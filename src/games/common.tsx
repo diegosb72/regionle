@@ -1,0 +1,323 @@
+/** Pieces shared by every game: screen frame, clock, verdict box and results. */
+import { ArrowLeft, Check, CircleAlert, Flame, RotateCcw, Settings2, Timer, X } from 'lucide-react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Flag, StudyLinks, capitalise } from '../components/ui';
+import { divisionsLink } from '../lib/links';
+import type { GameConfig } from '../lib/store';
+import { cx, fmtArea, fmtPop, fmtTime, nf } from '../lib/text';
+import type { Deck, Item, Res } from '../lib/types';
+import { scoreOf } from './quiz';
+
+export interface GameProps {
+  deck: Deck;
+  cfg: GameConfig;
+  /** Back to the setup screen. */
+  onExit(): void;
+  /** Starts again, optionally with a changed configuration. */
+  onAgain(patch?: Partial<GameConfig>): void;
+}
+
+/** Milliseconds elapsed while `running` is true. */
+export function useElapsed(running: boolean): number {
+  const [ms, setMs] = useState(0);
+  const banked = useRef(0);
+  useEffect(() => {
+    if (!running) return;
+    const started = Date.now();
+    const timer = setInterval(() => setMs(banked.current + Date.now() - started), 500);
+    return () => {
+      clearInterval(timer);
+      banked.current += Date.now() - started;
+      setMs(banked.current);
+    };
+  }, [running]);
+  return ms;
+}
+
+export function Hud({ ms, streak, progress }: { ms?: number; streak?: number; progress?: ReactNode }) {
+  return (
+    <>
+      {progress != null && <span className="hud-chip hud-main">{progress}</span>}
+      {streak != null && streak >= 2 && (
+        <span className="hud-chip hud-streak" title="Racha de aciertos a la primera">
+          <Flame size={14} aria-hidden="true" />
+          {streak}
+        </span>
+      )}
+      {ms != null && (
+        <span className="hud-chip" title="Tiempo">
+          <Timer size={14} aria-hidden="true" />
+          {fmtTime(ms)}
+        </span>
+      )}
+    </>
+  );
+}
+
+export function GameShell({
+  title,
+  subtitle,
+  hud,
+  panel,
+  stage,
+  onExit,
+  progress,
+}: {
+  title: string;
+  subtitle: string;
+  hud?: ReactNode;
+  panel: ReactNode;
+  stage?: ReactNode;
+  onExit(): void;
+  /** 0–1, drawn as a thin bar under the header. */
+  progress?: number;
+}) {
+  return (
+    <div className="play">
+      <header className="play-top">
+        <button type="button" className="btn btn-ghost btn-sm" onClick={onExit}>
+          <ArrowLeft size={16} aria-hidden="true" />
+          <span>Salir</span>
+        </button>
+        <div className="play-title">
+          <strong>{title}</strong>
+          <span>{subtitle}</span>
+        </div>
+        <div className="hud">{hud}</div>
+        {progress != null && (
+          <div className="play-bar" aria-hidden="true">
+            <i style={{ width: `${Math.round(Math.min(1, Math.max(0, progress)) * 100)}%` }} />
+          </div>
+        )}
+      </header>
+      <div className={cx('play-body', !stage && 'solo')}>
+        <section className="panel">{panel}</section>
+        {stage && <section className="stage">{stage}</section>}
+      </div>
+    </div>
+  );
+}
+
+/** One or two lines of facts about an item. */
+export function ItemFacts({ item }: { item: Item }) {
+  const c = item.country;
+  if (item.kind === 'country') {
+    return (
+      <p className="facts">
+        {c.cap && (
+          <>
+            Capital: <b>{c.cap.es}</b>
+            <br />
+          </>
+        )}
+        {c.pop ? `${fmtPop(c.pop)} · ` : ''}
+        {fmtArea(c.ar)}
+        {c.sov && c.cl === 'dep' ? ' · territorio dependiente' : ''}
+      </p>
+    );
+  }
+  return (
+    <p className="facts">
+      {capitalise(item.type)}
+      {item.parent ? ` · ${item.parent}` : ''} · <Flag code={c.fl} size="sm" /> {c.n.es}
+      <br />
+      {fmtArea(item.area)}
+    </p>
+  );
+}
+
+const VERDICT_ICON = { ok: Check, warn: CircleAlert, bad: X } as const;
+
+export function Verdict({ res, title, item, children }: { res: Res; title: ReactNode; item?: Item | null; children?: ReactNode }) {
+  const Icon = VERDICT_ICON[res];
+  return (
+    <div className={cx('verdict', `verdict-${res}`)} role="status" aria-live="polite">
+      <div className="verdict-head">
+        <span className="verdict-icon">
+          <Icon size={16} strokeWidth={3} aria-hidden="true" />
+        </span>
+        <span>{title}</span>
+      </div>
+      {item && <ItemFacts item={item} />}
+      {item && <StudyLinks item={item} />}
+      {children}
+    </div>
+  );
+}
+
+export function Donut({ ok, warn, bad, label, caption }: { ok: number; warn: number; bad: number; label: string; caption: string }) {
+  const total = Math.max(1, ok + warn + bad);
+  const R = 52;
+  const C = 2 * Math.PI * R;
+  let offset = 0;
+  const arc = (n: number, cls: string) => {
+    const len = (n / total) * C;
+    const el = n > 0 ? <circle key={cls} className={cls} cx="64" cy="64" r={R} strokeDasharray={`${len} ${C - len}`} strokeDashoffset={-offset} /> : null;
+    offset += len;
+    return el;
+  };
+  return (
+    <div className="donut">
+      <svg viewBox="0 0 128 128" aria-hidden="true">
+        <circle className="donut-bg" cx="64" cy="64" r={R} />
+        <g transform="rotate(-90 64 64)">
+          {arc(ok, 'donut-ok')}
+          {arc(warn, 'donut-warn')}
+          {arc(bad, 'donut-bad')}
+        </g>
+      </svg>
+      <div className="donut-text">
+        <strong>{label}</strong>
+        <span>{caption}</span>
+      </div>
+    </div>
+  );
+}
+
+export interface ResultRow {
+  item: Item;
+  res: Res;
+  note?: string;
+}
+
+const RES_LABEL: Record<Res, string> = { bad: 'Para repasar', warn: 'Con ayuda', ok: 'A la primera' };
+
+export function Results({
+  title,
+  deck,
+  rows,
+  counts,
+  ms,
+  stats,
+  note,
+  onAgain,
+  onReview,
+  onExit,
+  againLabel = 'Otra vez',
+  children,
+}: {
+  title: string;
+  deck?: Deck;
+  rows: ResultRow[];
+  /** Tallies to show when they do not come from the rows (games scored by rounds). */
+  counts?: { ok: number; warn: number; bad: number };
+  ms?: number;
+  /** Extra figures shown next to the score. */
+  stats?: { label: string; value: ReactNode }[];
+  note?: ReactNode;
+  onAgain(): void;
+  onReview?(ids: string[]): void;
+  onExit(): void;
+  againLabel?: string;
+  children?: ReactNode;
+}) {
+  const count = counts ?? { ok: 0, warn: 0, bad: 0 };
+  if (!counts) for (const r of rows) count[r.res]++;
+  const total = count.ok + count.warn + count.bad;
+  const weak = rows.filter((r) => r.res !== 'ok');
+  const several = !!deck && deck.countries.length > 1 && deck.scope === 'regions';
+  return (
+    <div className="results">
+      <p className="kicker">Resultado</p>
+      <h2 className="results-title">{title}</h2>
+      {note && <p className="results-note">{note}</p>}
+      <div className="results-score">
+        <Donut {...count} label={`${scoreOf(count.ok, count.warn, total)} %`} caption={`${nf(count.ok)} de ${nf(total)}`} />
+        <dl className="results-stats">
+          <div>
+            <dt>A la primera</dt>
+            <dd className="c-ok">{nf(count.ok)}</dd>
+          </div>
+          <div>
+            <dt>Con ayuda</dt>
+            <dd className="c-warn">{nf(count.warn)}</dd>
+          </div>
+          <div>
+            <dt>Fallos</dt>
+            <dd className="c-bad">{nf(count.bad)}</dd>
+          </div>
+          {ms != null && (
+            <div>
+              <dt>Tiempo</dt>
+              <dd>{fmtTime(ms)}</dd>
+            </div>
+          )}
+          {stats?.map((s) => (
+            <div key={s.label}>
+              <dt>{s.label}</dt>
+              <dd>{s.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+      <div className="results-actions">
+        <button type="button" className="btn btn-primary" onClick={onAgain} autoFocus>
+          <RotateCcw size={16} aria-hidden="true" />
+          {againLabel}
+        </button>
+        {onReview && weak.length > 0 && weak.length < rows.length && (
+          <button type="button" className="btn" onClick={() => onReview(weak.map((r) => r.item.id))}>
+            Repasar {nf(weak.length)} {weak.length === 1 ? 'fallo' : 'fallos'}
+          </button>
+        )}
+        <button type="button" className="btn btn-ghost" onClick={onExit}>
+          <Settings2 size={16} aria-hidden="true" />
+          Cambiar de juego
+        </button>
+      </div>
+      {children}
+      {(['bad', 'warn', 'ok'] as const).map((res) => {
+        const list = rows.filter((r) => r.res === res);
+        if (!list.length) return null;
+        return (
+          <details key={res} className={cx('results-group', `g-${res}`)} open={res !== 'ok'}>
+            <summary>
+              <span className="dot" />
+              {RES_LABEL[res]} <small>{nf(list.length)}</small>
+            </summary>
+            <ul>
+              {list.map(({ item, note: n }) => (
+                <li key={item.id}>
+                  <div className="row-name">
+                    {(item.kind === 'country' || several) && <Flag code={item.country.fl} size="sm" />}
+                    <b>{item.name}</b>
+                    {n ? <small>{n}</small> : item.kind === 'unit' && (item.parent || several) ? <small>{item.parent ?? item.country.n.es}</small> : null}
+                  </div>
+                  {res !== 'ok' && <StudyLinks item={item} />}
+                </li>
+              ))}
+            </ul>
+          </details>
+        );
+      })}
+      {deck && deck.scope === 'regions' && deck.countries.length <= 3 && (
+        <div className="links results-read">
+          {deck.countries.map((c) => {
+            const l = divisionsLink(c);
+            return (
+              <a key={c.id} className="pill-link" href={l.href} target="_blank" rel="noopener noreferrer" title={l.title}>
+                {l.label}
+              </a>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Nearest items first: plausible wrong options for multiple choice. */
+export function nearest(target: Item, pool: Item[], n: number): Item[] {
+  const [lon, lat] = target.lp;
+  const cos = Math.cos((lat * Math.PI) / 180);
+  return pool
+    .filter((p) => p.id !== target.id)
+    .map((p) => {
+      let dLon = Math.abs(p.lp[0] - lon);
+      if (dLon > 180) dLon = 360 - dLon;
+      return [Math.hypot(dLon * cos, p.lp[1] - lat), p] as const;
+    })
+    .sort((a, b) => a[0] - b[0])
+    .slice(0, n)
+    .map((x) => x[1]);
+}

@@ -1,0 +1,364 @@
+/** Loads the generated data files and turns a selection of countries into a playable deck. */
+import type { MultiLineString } from 'geojson';
+import { feature, mesh } from 'topojson-client';
+import type { GeometryCollection, Topology } from 'topojson-specification';
+import type { Country, Deck, Extra, Geo, Index, Item, LL, Level, Section } from './types';
+
+type Loader = (path: string) => Promise<unknown>;
+
+let loader: Loader = async (path) => {
+  const res = await fetch(`${import.meta.env.BASE_URL}data/${path}`);
+  if (!res.ok) throw new Error(`No se pudo cargar ${path} (${res.status})`);
+  return res.json();
+};
+
+const cache = new Map<string, Promise<unknown>>();
+
+/** Replaces the way files are fetched (tests read them from disk). */
+export function setLoader(fn: Loader): void {
+  loader = fn;
+  cache.clear();
+}
+
+function once<T>(name: string, make: () => Promise<T>): Promise<T> {
+  let p = cache.get(name) as Promise<T> | undefined;
+  if (!p) {
+    p = make();
+    cache.set(name, p);
+    p.catch(() => cache.delete(name));
+  }
+  return p;
+}
+
+export interface World {
+  index: Index;
+  byId: Map<string, Country>;
+}
+
+export function loadIndex(): Promise<World> {
+  return once('index', async () => {
+    const index = (await loader('index.json')) as Index;
+    return { index, byId: new Map(index.countries.map((c) => [c.id, c])) };
+  });
+}
+
+/** Country outlines keyed by id. */
+export function loadWorldGeo(): Promise<Map<string, Geo>> {
+  return once('world', async () => {
+    const topo = (await loader('world.json')) as Topology;
+    const fc = feature(topo, topo.objects.c as GeometryCollection) as unknown as { features: Geo[] };
+    return new Map(fc.features.map((f) => [String(f.id), f]));
+  });
+}
+
+interface UnitProps {
+  n: { es: string; en?: string; lo?: string };
+  al?: string[];
+  t?: string;
+  q?: 0;
+  wd?: string;
+  lp: LL;
+  fp: LL[];
+  ar: number;
+  nb?: string[];
+  sl?: string[];
+  g?: string[];
+  m?: string[];
+}
+
+interface RegionFile {
+  topo: Topology;
+  /** Properties of every finest-level unit. */
+  fine: Map<string, UnitProps>;
+  groupName: Map<string, string>;
+  levels: Map<string, Geo[]>;
+  outline?: MultiLineString;
+}
+
+function loadRegion(id: string): Promise<RegionFile> {
+  return once(`r/${id}`, async () => {
+    const topo = (await loader(`r/${id}.json`)) as Topology;
+    const fine = new Map<string, UnitProps>();
+    const groupName = new Map<string, string>();
+    for (const [k, obj] of Object.entries(topo.objects)) {
+      for (const g of (obj as GeometryCollection).geometries) {
+        const p = g.properties as unknown as UnitProps;
+        if (k === 'f') fine.set(String(g.id), p);
+        else groupName.set(String(g.id), p.n.es);
+      }
+    }
+    return { topo, fine, groupName, levels: new Map() };
+  });
+}
+
+function levelFeatures(file: RegionFile, k: string): Geo[] {
+  let list = file.levels.get(k);
+  if (!list) {
+    const fc = feature(file.topo, file.topo.objects[k] as GeometryCollection) as unknown as { features: Geo[] };
+    list = fc.features;
+    file.levels.set(k, list);
+  }
+  return list;
+}
+
+/**
+ * The national border: every line of the finest level that has a subdivision on one side only. Taken
+ * from the same file as the subdivisions, it lies exactly on their edges at any zoom.
+ */
+function outlineOf(file: RegionFile): MultiLineString {
+  return (file.outline ??= mesh(file.topo, file.topo.objects.f as GeometryCollection, (a, b) => a === b));
+}
+
+async function mapLimit<T, R>(list: T[], limit: number, fn: (item: T) => Promise<R>, tick?: (done: number) => void): Promise<R[]> {
+  const out = new Array<R>(list.length);
+  let next = 0;
+  let done = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(limit, list.length) }, async () => {
+      while (next < list.length) {
+        const i = next++;
+        out[i] = await fn(list[i]);
+        tick?.(++done);
+      }
+    }),
+  );
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// Selection helpers
+// ---------------------------------------------------------------------------
+
+/** Number of askable units at the finest level. */
+export function fineCount(c: Country): number {
+  return c.lv[c.lv.length - 1]?.n ?? 0;
+}
+
+/** Can the country be chosen in this section? */
+export function eligible(section: Section, c: Country): boolean {
+  if (c.cl === 'other') return false;
+  if (section === 'regions') return fineCount(c) >= 2;
+  if (section === 'pops') return c.pop != null && c.pop > 0;
+  return true;
+}
+
+export function levelOf(c: Country, levels?: Record<string, string>): Level {
+  const k = levels?.[c.id];
+  return c.lv.find((l) => l.k === k) ?? c.lv.find((l) => l.k === c.dl) ?? c.lv[c.lv.length - 1];
+}
+
+const FEMININE = /(a|ión|dad)$/;
+export function isFeminine(noun: string): boolean {
+  return FEMININE.test(noun.split(' ')[0]);
+}
+
+/** Europe is framed without Siberia or the Arctic so that the usual map of the continent appears. */
+const EUROPE_BOX = { w: -27, e: 50, s: 33, n: 72.5 };
+
+function frameForCountries(chosen: Country[]): LL[] {
+  const europe = chosen.length > 1 && chosen.every((c) => c.ct === 'EU');
+  const out: LL[] = [];
+  for (const c of chosen) {
+    const pts = europe ? c.fp.filter((p) => p[0] >= EUROPE_BOX.w && p[0] <= EUROPE_BOX.e && p[1] >= EUROPE_BOX.s && p[1] <= EUROPE_BOX.n) : c.fp;
+    out.push(...pts);
+  }
+  return out.length ? out : chosen.flatMap((c) => c.fp);
+}
+
+/** Name of the place the selection amounts to ("Europa", "Caribe", "Mundo"), judged by its UN members. */
+function commonPlace(chosen: Country[], index: Index, section: Section): string | null {
+  if (chosen.length < 2) return null;
+  const ids = new Set(chosen.map((c) => c.id));
+  const members = index.countries.filter((c) => c.cl === 'un' && eligible(section, c));
+  const covers = (inPlace: (c: Country) => boolean) => {
+    const list = members.filter(inPlace);
+    return list.length > 1 && list.every((c) => ids.has(c.id));
+  };
+  if (covers(() => true)) return 'Mundo';
+  const { sr, ct } = chosen[0];
+  if (chosen.every((c) => c.sr === sr) && covers((c) => c.sr === sr)) return index.subregions[sr]?.es ?? null;
+  if (chosen.every((c) => c.ct === ct) && covers((c) => c.ct === ct)) return index.continents[ct]?.es ?? null;
+  return null;
+}
+
+export interface DeckSpec {
+  scope: 'regions' | 'countries';
+  countries: string[];
+  levels?: Record<string, string>;
+}
+
+export function deckKey(spec: DeckSpec): string {
+  const ids = [...new Set(spec.countries)].sort();
+  if (spec.scope === 'countries') return `c:${ids.join(',')}`;
+  return `r:${ids.map((id) => (spec.levels?.[id] ? `${id}.${spec.levels[id]}` : id)).join(',')}`;
+}
+
+export async function buildDeck(spec: DeckSpec, onProgress?: (done: number, total: number) => void): Promise<Deck> {
+  const [{ index, byId }, world] = await Promise.all([loadIndex(), loadWorldGeo()]);
+  const chosen = [...new Set(spec.countries)].map((id) => byId.get(id)).filter((c): c is Country => !!c && c.cl !== 'other');
+  const sel = new Set(chosen.map((c) => c.id));
+  const context: Geo[] = [];
+  for (const [id, g] of world) if (!sel.has(id)) context.push(g);
+
+  if (spec.scope === 'countries') {
+    const items: Item[] = [];
+    for (const c of chosen) {
+      const geo = world.get(c.id);
+      if (!geo) continue;
+      items.push({
+        id: c.id,
+        kind: 'country',
+        name: c.n.es,
+        en: c.n.en ?? c.n.es,
+        answers: [c.n.es, c.n.en ?? '', ...(c.al ?? [])],
+        country: c,
+        type: c.cl === 'dep' ? 'territorio' : 'país',
+        geo,
+        lp: c.lp,
+        fp: c.fp,
+        area: c.ar,
+        nb: (c.nb ?? []).filter((id) => sel.has(id)),
+        sl: (c.sl ?? []).filter((id) => sel.has(id)),
+        wd: c.wd,
+      });
+    }
+    const place = commonPlace(chosen, index, 'countries');
+    return {
+      key: deckKey(spec),
+      scope: 'countries',
+      items,
+      byId: new Map(items.map((it) => [it.id, it])),
+      extras: [],
+      context,
+      outline: [],
+      frame: frameForCountries(chosen),
+      countries: chosen,
+      title: chosen.length === 1 ? chosen[0].n.es : place ? `${place} · ${items.length} países` : `${items.length} países`,
+      noun: { one: 'país', many: 'países', fem: false },
+    };
+  }
+
+  const files = await mapLimit(chosen, 8, (c) => loadRegion(c.id), (done) => onProgress?.(done, chosen.length));
+  const items: Item[] = [];
+  const extras: Extra[] = [];
+  /** Finest unit id → id of the deck item that contains it. */
+  const owner = new Map<string, string>();
+  const sources = new Map<string, { file: RegionFile; units: string[] }>();
+  const labels = new Set<string>();
+  let anyLevel = null as Level | null;
+
+  chosen.forEach((c, i) => {
+    const file = files[i];
+    const level = levelOf(c, spec.levels);
+    anyLevel = level;
+    labels.add(level.sg);
+    for (const geo of levelFeatures(file, level.k)) {
+      const p = geo.properties as unknown as UnitProps;
+      const id = String(geo.id);
+      if (p.q === 0) {
+        extras.push({ id, name: p.n.es, geo });
+        continue;
+      }
+      const units = level.k === 'f' ? [id] : (p.m ?? []);
+      for (const u of units) owner.set(u, id);
+      sources.set(id, { file, units });
+      const parentId = level.k === 'f' ? p.g?.[p.g.length - 1] : undefined;
+      items.push({
+        id,
+        kind: 'unit',
+        name: p.n.es,
+        en: p.n.en ?? p.n.es,
+        lo: p.n.lo,
+        answers: [p.n.es, p.n.en ?? '', p.n.lo ?? '', ...(p.al ?? [])],
+        country: c,
+        type: p.t ?? level.sg,
+        parent: parentId ? file.groupName.get(parentId) : undefined,
+        geo,
+        lp: p.lp,
+        fp: p.fp,
+        area: p.ar,
+        nb: [],
+        sl: [],
+        wd: p.wd,
+      });
+    }
+  });
+
+  for (const it of items) {
+    const src = sources.get(it.id)!;
+    const nb = new Set<string>();
+    const sl = new Set<string>();
+    for (const u of src.units) {
+      const p = src.file.fine.get(u);
+      if (!p) continue;
+      for (const n of p.nb ?? []) {
+        const o = owner.get(n);
+        if (o && o !== it.id) nb.add(o);
+      }
+      for (const n of p.sl ?? []) {
+        const o = owner.get(n);
+        if (o && o !== it.id) sl.add(o);
+      }
+    }
+    it.nb = [...nb];
+    it.sl = [...sl].filter((id) => !nb.has(id));
+  }
+
+  const single = chosen.length === 1 ? levelOf(chosen[0], spec.levels) : null;
+  const shared: Level | null = labels.size === 1 ? anyLevel : null;
+  const one = single?.sg ?? shared?.sg ?? 'región';
+  const many = single?.es ?? shared?.es ?? 'regiones';
+  const place = commonPlace(chosen, index, 'regions');
+  return {
+    key: deckKey(spec),
+    scope: 'regions',
+    items,
+    byId: new Map(items.map((it) => [it.id, it])),
+    extras,
+    context,
+    outline: chosen.map((c, i) => ({ id: c.id, geo: outlineOf(files[i]) })),
+    frame: items.flatMap((it) => it.fp),
+    countries: chosen,
+    title: single ? `${chosen[0].n.es} · ${single.es}` : `${place ?? `${chosen.length} países`} · ${items.length} ${many}`,
+    noun: { one, many, fem: isFeminine(one) },
+  };
+}
+
+/** Adjacency of a deck, by land only or including short sea crossings. */
+export function deckGraph(deck: Deck, withSea = true): Map<string, string[]> {
+  const g = new Map<string, string[]>();
+  for (const it of deck.items) g.set(it.id, withSea ? [...it.nb, ...it.sl] : it.nb);
+  return g;
+}
+
+/** Sea crossings between deck items, each pair once, as label-point pairs for drawing. */
+export function seaLinks(deck: Deck): [LL, LL][] {
+  const out: [LL, LL][] = [];
+  for (const it of deck.items) {
+    for (const id of it.sl) {
+      const other = deck.byId.get(id);
+      if (other && it.id < id) out.push([it.lp, other.lp]);
+    }
+  }
+  return out;
+}
+
+/** A country as a quiz item without geometry: enough for results lists and study links. */
+export function countryItem(c: Country): Item {
+  return {
+    id: c.id,
+    kind: 'country',
+    name: c.n.es,
+    en: c.n.en ?? c.n.es,
+    answers: [c.n.es, c.n.en ?? '', ...(c.al ?? [])],
+    country: c,
+    type: c.cl === 'dep' ? 'territorio' : 'país',
+    geo: null as unknown as Geo,
+    lp: c.lp,
+    fp: c.fp,
+    area: c.ar,
+    nb: c.nb ?? [],
+    sl: c.sl ?? [],
+    wd: c.wd,
+  };
+}
