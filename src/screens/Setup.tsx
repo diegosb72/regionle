@@ -311,6 +311,15 @@ export function Setup({ section, world }: { section: Section; world: World }) {
             : null;
 
   const typed = ANSWER_MODES.includes(def.id) && opts.answer === 'type';
+  /** Initials that are taken where they are promised, and the same in both languages. */
+  const initialsSample =
+    def.id === 'capital'
+      ? section === 'countries'
+        ? L('BA por Buenos Aires', 'BA for Buenos Aires')
+        : L('SLC por Salt Lake City', 'SLC for Salt Lake City')
+      : section === 'countries'
+        ? L('NZ por Nueva Zelanda', 'NZ for New Zealand')
+        : L('NY por Nueva York', 'NY for New York');
   /** Against the clock or with lives: the game has no fixed number of questions. */
   const paced = FORMAT_MODES.includes(def.id) && opts.format !== 'normal';
   const finite = FINITE_MODES.includes(def.id);
@@ -544,6 +553,16 @@ export function Setup({ section, world }: { section: Section; world: World }) {
                       { value: 'type', label: L('Escribir', 'Type it'), title: L('Más difícil: recordar', 'Harder: recall') },
                     ]}
                   />
+                  {typed && (
+                    <p className="opt-hint">
+                      {section === 'physical'
+                        ? L('No importan tildes ni mayúsculas.', 'Accents and capitals do not matter.')
+                        : L(
+                            `No importan tildes ni mayúsculas, y un nombre de varias palabras vale por sus siglas: ${initialsSample}.`,
+                            `Accents and capitals do not matter, and a name of several words can be typed by its initials: ${initialsSample}.`,
+                          )}
+                    </p>
+                  )}
                 </div>
               )}
               {show.length && (

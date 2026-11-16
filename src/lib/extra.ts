@@ -1,5 +1,5 @@
 /** Decks that are not made of countries or their divisions: cities, and rivers, lakes, seas, ranges, peaks, deserts and islands. */
-import { commonPlace, frameForCountries, frameForLand, loadFile, loadIndex, loadWorldGeo } from './data';
+import { commonPlace, frameForCountries, frameForLand, loadFile, loadIndex, loadWorldGeo, properNames } from './data';
 import { L, nm } from './i18n';
 import type { AnyGeo, Country, Deck, Geo, Item, LL, Named } from './types';
 
@@ -68,6 +68,7 @@ export async function buildCityDeck(ids: string[], pick: CityPick, count: number
     name: nm(rec.n),
     en: rec.n.en ?? rec.n.es,
     answers: [rec.n.es, rec.n.en ?? '', ...(rec.al ?? [])],
+    proper: properNames(rec.n),
     country,
     type: rec.k === 3 ? L('capital', 'capital') : L('ciudad', 'city'),
     geo: { type: 'Feature', id: rec.i, properties: {}, geometry: { type: 'Point', coordinates: rec.ll } },
@@ -247,6 +248,8 @@ export async function buildPhysicalDeck(tokens: string[], must?: string[], keep 
     name: nm(rec.n),
     en: rec.n.en ?? rec.n.es,
     answers: [rec.n.es, rec.n.en ?? '', ...(rec.al ?? [])],
+    // No initials here: "Lago", "Mar" or "Golfo" is the kind of thing, and "LS" would say no more than "S".
+    proper: [],
     country: home(rec),
     type: kindNoun(rec.k).one,
     geo: { type: 'Feature', id: rec.i, properties: {}, geometry: geometryOf(rec, file.scale) } as AnyGeo,

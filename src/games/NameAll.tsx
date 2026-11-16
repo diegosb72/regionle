@@ -10,7 +10,7 @@ import { Flag } from '../components/ui';
 import { L, nm } from '../lib/i18n';
 import { MODE_NAME } from '../lib/modes';
 import { useStore } from '../lib/store';
-import { Matcher, fmtTime, hintMax, letterHint, nf, pick } from '../lib/text';
+import { Matcher, fmtTime, hintMax, letterHint, nf, pick, shortNote } from '../lib/text';
 import type { Res } from '../lib/types';
 import { GameShell, Hud, Results, originOf, useElapsed, type GameProps, type ResultRow } from './common';
 
@@ -19,6 +19,8 @@ export function NameAllGame({ deck, cfg, onExit, onAgain }: GameProps) {
   /** What has to be filled in: the whole map, or the pieces of a custom list. */
   const pool = useMemo(() => (cfg.only ? deck.items.filter((it) => cfg.only!.includes(it.id)) : deck.items), [deck, cfg.only]);
   const inPool = useMemo(() => new Set(pool.map((it) => it.id)), [pool]);
+  /** Something to fill in can be typed by its initials: worth telling. */
+  const short = useMemo(() => matcher.abbreviations().some(([, id]) => inPool.has(id)), [matcher, inPool]);
   const [found, setFound] = useState<string[]>([]);
   /** Named with a letter of help, or after a wrong name for the piece that was marked. */
   const [helped, setHelped] = useState<string[]>([]);
@@ -73,34 +75,33 @@ export function NameAllGame({ deck, cfg, onExit, onAgain }: GameProps) {
   };
 
   /**
-   * Accepts a name as soon as it is complete, unless it is the beginning of another missing name. Not
-   * when a piece is marked: "what is this one called?" is a question, and its answer is sent with Enter
-   * and judged, or typing names until one sticks would cost nothing.
+   * Accepts a name as soon as it is complete, unless it is the beginning of another missing name, and an
+   * abbreviation unless a name of the map could be starting with it. Not when a piece is marked: "what is
+   * this one called?" is a question, and its answer is sent with Enter and judged, or typing names until
+   * one sticks would cost nothing.
    */
   const onType = (text: string) => {
     if (done || target) return false;
-    const ids = matcher.lookup(text).filter((id) => inPool.has(id) && !filled(id));
-    if (!ids.length) {
-      setPending(false);
-      return false;
-    }
-    const others = new Set(pool.filter((it) => !filled(it.id) && !ids.includes(it.id)).map((it) => it.id));
-    if (matcher.isPrefixOf(text, others)) {
-      setPending(true);
-      return false;
-    }
-    return accept(ids);
+    const { ids, wait } = matcher.typed(text, new Set(pool.filter((it) => !filled(it.id)).map((it) => it.id)));
+    setPending(wait);
+    return !wait && ids.length > 0 && accept(ids);
   };
 
   const onSubmit = (text: string) => {
     if (done) return;
     if (target && targetItem) {
-      const v = matcher.check(text, target);
+      // Letters of the name in sight would spell its abbreviation out: the name has to be written.
+      const v = matcher.check(text, target, { whole: letters > 0 });
       if (v.res === 'yes') {
         accept([target]);
         return;
       }
       setShake((n) => n + 1);
+      if (v.res === 'short' || v.res === 'vague') {
+        // Not a wrong name: an abbreviation that does not count here, and why.
+        setNote(shortNote(v.res, text));
+        return;
+      }
       setSlipped(true);
       setFlash({ id: target, kind: 'bad', n: Date.now() });
       setNote(v.res === 'other' ? L(`No es ${deck.byId.get(v.id)!.name}.`, `It is not ${deck.byId.get(v.id)!.name}.`) : L('No es correcto.', 'That is not right.'));
@@ -112,7 +113,9 @@ export function NameAllGame({ deck, cfg, onExit, onAgain }: GameProps) {
     const first = ids[0] ? deck.byId.get(ids[0])! : null;
     setNote(
       !first
-        ? L('No coincide con nada de este mapa.', 'It matches nothing on this map.')
+        ? matcher.vague(text)
+          ? shortNote('vague', text)
+          : L('No coincide con nada de este mapa.', 'It matches nothing on this map.')
         : !inPool.has(first.id)
           ? cfg.list
             ? L(`${first.name} no está en tu lista.`, `${first.name} is not on your list.`)
@@ -275,10 +278,10 @@ export function NameAllGame({ deck, cfg, onExit, onAgain }: GameProps) {
               (pending
                 ? L('Pulsa Intro para confirmar, o sigue escribiendo.', 'Press Enter to confirm, or keep typing.')
                 : targetItem
-                  ? L(`Escribe el nombre de ${fem ? 'la' : 'el'} que has marcado y pulsa Intro. Tócal${fem ? 'a' : 'o'} otra vez para soltarl${fem ? 'a' : 'o'}.`, 'Type the name of the one you marked and press Enter. Tap it again to let it go.')
+                  ? L(`Escribe el nombre ${fem ? 'de la' : 'del'} que has marcado y pulsa Intro. Tócal${fem ? 'a' : 'o'} otra vez para soltarl${fem ? 'a' : 'o'}.`, 'Type the name of the one you marked and press Enter. Tap it again to let it go.')
                   : L(
-                      `Sin orden: se aceptan en cuanto ${fem ? 'las' : 'los'} escribes, con o sin tildes. Si prefieres elegir tú, toca en el mapa ${fem ? 'la' : 'el'} que quieras rellenar.`,
-                      'In any order: they are accepted as soon as you type them, with or without accents. If you would rather choose, tap the one you want to fill in on the map.',
+                      `Sin orden: se aceptan en cuanto ${fem ? 'las' : 'los'} escribes, con o sin tildes${short ? ', y por sus siglas si el nombre tiene varias palabras' : ''}. Si prefieres elegir tú, toca en el mapa ${fem ? 'la' : 'el'} que quieras rellenar.`,
+                      `In any order: they are accepted as soon as you type them, with or without accents${short ? ', and by their initials when the name has several words' : ''}. If you would rather choose, tap the one you want to fill in on the map.`,
                     ))}
           </p>
           {last.length > 0 && (
