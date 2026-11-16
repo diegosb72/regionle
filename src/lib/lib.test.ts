@@ -230,6 +230,31 @@ describe('data', () => {
     expect(review.items.some((it) => it.name === 'Danubio')).toBe(false);
   });
 
+  it('builds maps of peaks: points with their height, drawn over everything else', async () => {
+    const peaks = await buildPhysicalDeck(['peak', 'EU']);
+    expect(peaks.title).toBe('Picos y volcanes · Europa');
+    expect(peaks.noun.one).toBe('pico');
+    expect(peaks.items.length).toBeGreaterThanOrEqual(8);
+    expect(peaks.items.every((it) => it.shape === 'point' && it.cat === 'peak' && it.kind === 'feature' && (it.elev ?? 0) > 0)).toBe(true);
+    expect(peaks.items.map((it) => it.name)).toEqual(expect.arrayContaining(['Teide', 'Mulhacén', 'Aneto', 'Mont Blanc', 'Etna']));
+    expect(peaks.byId.get('p:teide')!.elev).toBeGreaterThan(3700);
+    // The Teide is asked, so the Canaries are in sight.
+    expect(Math.min(...peaks.frame.map((p) => p[1]))).toBeLessThan(29);
+    const all = await buildPhysicalDeck(['peak', 'EU', 'all']);
+    expect(all.items.length).toBeGreaterThan(peaks.items.length);
+
+    // Among rivers and ranges, a peak comes last: it is a dot and anything drawn later would cover it.
+    const mixed = await buildPhysicalDeck(['river', 'range', 'peak', 'EU']);
+    expect(mixed.items[mixed.items.length - 1].cat).toBe('peak');
+    expect(new Set(mixed.items.map((it) => it.shape))).toEqual(new Set(['line', 'area', 'point']));
+
+    // A custom list keeps its own map: the peaks it names are there even if the selection has changed.
+    const listed = await buildPhysicalDeck(['river', 'EU'], ['p:teide', 'p:mount-everest'], true);
+    expect(listed.byId.has('p:teide')).toBe(true);
+    expect(listed.byId.has('p:mount-everest')).toBe(true);
+    expect(listed.items.some((it) => it.name === 'Danubio')).toBe(true);
+  });
+
   it('reads and writes the selection of a physical map', () => {
     expect(parsePhys(['river', 'EU'])).toEqual({ kinds: ['river'], places: ['EU'], all: false });
     expect(parsePhys([])).toEqual({ kinds: ['river'], places: [], all: false });

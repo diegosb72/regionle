@@ -70,7 +70,7 @@ export interface Item {
   kind: 'unit' | 'country' | 'city' | 'feature';
   /** How it is drawn: a surface, a line or a dot. */
   shape: 'area' | 'line' | 'point';
-  /** Physical features: river, lake, sea, range, desert, island. */
+  /** Physical features: river, lake, sea, range, desert, island, peak. */
   cat?: string;
   /** Drawn under the land (seas), so that coasts stay clean. */
   under?: boolean;
@@ -95,6 +95,8 @@ export interface Item {
   fp: LL[];
   /** km² */
   area: number;
+  /** Peaks: metres above sea level. */
+  elev?: number;
   /** Ids of deck items sharing a land border. */
   nb: string[];
   /** Ids of deck items reachable by a short sea crossing. */
@@ -136,6 +138,11 @@ export interface Deck {
 export type Section = 'regions' | 'countries' | 'pops' | 'cities' | 'physical';
 export type Mode =
   | 'explore'
+  | 'learn'
+  | 'regionle'
+  | 'blind'
+  /** Not a game: the screen where a custom list is put together. */
+  | 'edit'
   | 'pin'
   | 'identify'
   | 'nameall'

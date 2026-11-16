@@ -10,22 +10,28 @@ Todo funciona en el navegador: no hay servidor, registro ni anuncios, y el progr
 
 | Sección | Modos |
 | --- | --- |
-| **Regiones** (divisiones internas de uno o varios países en un mismo mapa) | Explorar · Señalar · Identificar · Nombrarlas todas · Silueta · Puzle · Vecinos · Capitales · Ruta |
-| **Países** | Los nueve anteriores, más Banderas |
-| **Ciudades** (las más pobladas, las capitales de país o las capitales de región) | Explorar · Situar · Identificar · Nombrarlas todas |
-| **Geografía física** (ríos, lagos, mares y océanos, cordilleras, desiertos e islas, del mundo o de un continente) | Explorar · Señalar · Identificar · Nombrarlos todos |
+| **Regiones** (divisiones internas de uno o varios países en un mismo mapa) | Explorar · Aprender · Señalar · Identificar · Rellenar el mapa · Silueta · Regionle · Puzle · Vecinos · Capitales · Ruta |
+| **Países** | Los once anteriores, más Banderas |
+| **Ciudades** (las más pobladas, las capitales de país o las capitales de región) | Explorar · Aprender · Señalar · Situar a ciegas · Identificar · Rellenar el mapa |
+| **Geografía física** (ríos, lagos, mares y océanos, cordilleras, picos y volcanes, desiertos e islas, del mundo o de un continente) | Explorar · Aprender · Señalar · Identificar · Rellenar el mapa |
 | **Cifras** (población o superficie) | Mayor o menor · Ordena cinco · Cifra exacta · ¿Qué país? |
 
-- **251 países y territorios** y unas **4500 divisiones** de primer nivel. España, Francia, Italia, el Reino Unido y algunos países más se pueden jugar a dos o tres niveles (comunidades o provincias, regiones o departamentos…). Hay además **4560 ciudades** de 227 países, **492 accidentes geográficos** y las capitales de las regiones de 122 países.
+- **251 países y territorios** y unas **4500 divisiones** de primer nivel. España, Francia, Italia, el Reino Unido y algunos países más se pueden jugar a dos o tres niveles (comunidades o provincias, regiones o departamentos…). Hay además **4560 ciudades** de 227 países, **593 accidentes geográficos** (entre ellos 101 picos y volcanes con su altitud) y las capitales de las regiones de 122 países.
 - **Reto del día**: cada día un país y cinco pruebas cortas, las mismas para todo el mundo (adivinar una región por su silueta, señalar cinco, una ruta entre dos países, un país por su población y cinco preguntas de banderas y capitales). Hasta 100 puntos, racha, calendario con los días anteriores y resultado para compartir.
-- **Sin límite**: todo lo demás se puede repetir, barajar y jugar en modo sin fin, en el que lo fallado vuelve a salir hasta que se acierta. El modo Ruta conserva su «ruta del día» y, después, todas las rutas que se quieran.
-- **Repaso espaciado**: cada respuesta vuelve cuando está a punto de olvidarse (al día siguiente, a los 3 días, a los 7, 16, 35 y 75); un fallo la trae de vuelta el mismo día. La portada propone el repaso de hoy, agrupado por mapas.
+- **Sin límite**: todo lo demás se puede repetir, barajar y jugar en modo sin fin, en el que lo fallado vuelve a salir hasta que se acierta. **Regionle** es el juego clásico tantas veces como se quiera: una silueta, seis intentos y, en cada fallo, la distancia y la dirección. El modo Ruta conserva su «ruta del día» y, después, todas las rutas que se quieran.
+- **Aprender**: lecciones de cinco piezas nuevas. Primero se enseñan una a una, luego se pregunta dónde está cada una y cómo se llama, y al final se mezclan con las de lecciones anteriores. Lo que se falla vuelve a salir hasta que se acierta, y la lección siguiente empieza donde se dejó.
+- **Listas a medida**: se marcan en el mapa las piezas que se quieren practicar («las doce del examen del jueves»), se les pone nombre y se juega solo con ellas en cualquier modo. Una lista se comparte con un enlace que la contiene entera.
+- **Contrarreloj y supervivencia**: en Señalar, Identificar, Silueta, Puzle, Capitales y Banderas se puede jugar un minuto contra el reloj o hasta el tercer fallo, con un intento por pregunta y sin pistas. Se guarda el récord de cada mapa.
+- **Las preguntas no se contestan solas**: la respuesta se escribe (las cuatro opciones siguen en los ajustes). En Vecinos el mapa no dibuja las fronteras interiores y cada nombre se envía y se juzga; en Puzle, el puntero no ilumina las piezas del mapa mudo; las capitales que se llaman como su región o su país («Madrid», «Ciudad de México») no se preguntan, y con cuatro opciones tampoco las que se parecen a ella («Valencia», «Brasilia»); donde no hay tres capitales falsas que haya que saberse (Costa Rica, Portugal, Turquía…), la capital se escribe aunque se hayan pedido opciones; en los mapas físicos, las opciones falsas son del mismo tipo que la buena (ríos entre ríos).
+- **Situar a ciegas**: el mapa no muestra ninguna ciudad y hay que hacer clic donde se cree que está. Cuenta la distancia en kilómetros, con un margen que depende del tamaño del mapa.
+- **Repaso espaciado**: cada respuesta vuelve cuando está a punto de olvidarse (al día siguiente, a los 3 días, a los 7, 16, 35 y 75); un fallo la trae de vuelta el mismo día. La portada propone el repaso de hoy, agrupado por mapas. Si una corrección de los datos retira algo que estaba pendiente (una ciudad que la fuente situaba en el país de al lado, la capital de una división que ya no existe), sale del repaso en lugar de quedarse pendiente para siempre.
 - **Filtros**: por continente y subregión, tipo de territorio, litoral, población, superficie y número de divisiones; atajos (Mundo, Unión Europea, hispanohablantes, G20…) y selecciones guardadas.
-- **Para estudiar**: cada respuesta enlaza con Wikipedia, OpenStreetMap y vídeos; al fallar se muestra un resumen de Wikipedia con su foto (se puede desactivar); el modo Explorar muestra la ficha y los vecinos de cada pieza, y al terminar se puede repasar solo lo fallado.
+- **Para estudiar**: cada respuesta enlaza con Wikipedia, OpenStreetMap y vídeos, y tiene un botón para **oír el nombre** con la voz del navegador; al fallar se muestra un resumen de Wikipedia con su foto (se puede desactivar); el modo Explorar muestra la ficha y los vecinos de cada pieza, y al terminar se puede repasar solo lo fallado.
 - **Retos por enlace**: al acabar una partida se puede enviar un enlace con las mismas preguntas en el mismo orden y el resultado que hay que superar. No hace falta servidor: todo viaja en el propio enlace.
-- **Progreso**: mapa de lo que se sabe (aprendido, aprendiendo, toca repasar), previsión de repasos de la semana, aciertos por habilidad, últimas partidas y mejores marcas, con exportación e importación en un archivo.
+- **Logros y niveles**: 29 logros (continentes completos, un país al detalle, rachas del reto diario, récords de cada modo…) y diez niveles, de Turista a Atlas viviente. Se calculan con lo que ya está guardado, así que quien jugaba antes empieza con lo que tenía ganado.
+- **Progreso**: nivel y logros, mapa de lo que se sabe (aprendido, aprendiendo, toca repasar), previsión de repasos de la semana, aciertos por habilidad, últimas partidas y récords, con exportación e importación en un archivo (incluye las listas).
 - **Sin conexión**: la aplicación se guarda en el navegador la primera vez que se abre y los mapas, según se van usando; el botón «Descargar todo» del pie de página baja de una vez todos los mapas y banderas (unos 3 MB comprimidos). Cuando hay una versión nueva, se avisa y no cambia nada hasta que se acepta.
-- Español e inglés (se elige en la cabecera; por defecto, el idioma del navegador), tema claro y oscuro, uso con teclado y diseño adaptado al móvil.
+- Español e inglés (se elige en la cabecera; por defecto, el idioma del navegador), tema claro y oscuro, **colores para daltónicos** (azul, amarillo y bermellón, con tramas en el mapa; se activan en el pie de página), uso con teclado y diseño adaptado al móvil.
 
 ## Puesta en marcha
 
@@ -83,6 +89,8 @@ npm run data:fetch      # descarga las fuentes a .cache/src (no se versiona)
 npm run data:build      # países y regiones: genera public/data y el informe .cache/report.txt
 npm run data:physical   # ciudades, capitales de región y geografía física
 npm run data            # las tres cosas seguidas
+
+npm i --no-save all-the-cities@3.1.0 && npm run data:check   # segunda opinión sobre ciudades y capitales
 ```
 
 - `data:fetch` descarga archivos de GitHub fijados por *commit* y verificados por su SHA. Usa la API si hay un token (`GH_TOKEN`, `GITHUB_TOKEN` o la CLI `gh`) y, si no, `raw.githubusercontent.com`.
@@ -91,9 +99,10 @@ npm run data            # las tres cosas seguidas
   - `world.json`: el mapa del mundo por países;
   - `r/<ISO>.json`: las divisiones de cada país (TopoJSON).
 - `data:physical` necesita que `data:build` se haya ejecutado antes (sitúa cada ciudad en su región) y escribe:
-  - `physical.json`: 177 ríos, 113 mares y océanos, 76 lagos, 64 cordilleras, 43 islas y 19 desiertos, con nombre en español e inglés y una marca para los más conocidos, que son los que se juegan por defecto;
-  - `cities.json`: las 60 ciudades más pobladas de cada país y todas las capitales;
-  - `capitals.json`: la capital de cada región, en los países y niveles en los que la fuente la señala para al menos el 70 % de las regiones (las de España y Francia están escritas a mano).
+  - `physical.json`: 177 ríos, 113 mares y océanos, 101 picos y volcanes, 76 lagos, 64 cordilleras, 43 islas y 19 desiertos, con nombre en español e inglés y una marca para los más conocidos, que son los que se juegan por defecto. Los picos son un punto con su altitud; su posición y su altura salen de Natural Earth, y la lista de cuáles entran está en `physical-config.mjs`;
+  - `cities.json`: las 60 ciudades más pobladas de cada país y todas las capitales. La marca de «capital de región» de una ciudad sale de `capitals.json` y no de la fuente, así que las dos secciones dicen lo mismo;
+  - `capitals.json`: la capital de cada región, en los países y niveles en los que la fuente la señala para al menos el 70 % de las regiones (las de España y Francia, incluidos los 96 departamentos, están escritas a mano): 2151 capitales de 122 países.
+- `data:check` no genera nada: compara lo construido con [GeoNames](https://www.geonames.org/) (el paquete `all-the-cities`, que no es una dependencia del proyecto y hay que instalar antes) y lista lo que no coincide. Natural Earth marca como capital de región ciudades que no lo son (la antigua capital, la ciudad más grande, la vecina del otro lado del río), sitúa algunos pueblos fronterizos en el país de al lado y da a alguna aldea la población de una tocaya famosa; nada en la propia fuente dice cuáles. Cada diferencia se ha revisado una a una: las correcciones están en `physical-config.mjs` (`REGION_CAPITAL_FIXES`, 70 capitales de 45 países; `CITY_COUNTRY`, 9 ciudades; `CITY_DROP`, 9 lugares) y lo que difiere y está bien, con su motivo, en el propio `check.mjs`. De GeoNames no se distribuye ningún dato.
 - Las decisiones editoriales (nombres en español, agrupaciones, niveles, correcciones de la fuente) están en `scripts/data/config.mjs` y, para la geografía física, en `scripts/data/physical-config.mjs`.
 
 ### Criterios
@@ -110,11 +119,11 @@ scripts/pwa/       Service worker y paso final de la compilación
 public/data/       Datos generados que usa el juego
 public/icons/      Iconos de la aplicación instalada
 docs/              El juego compilado que publica GitHub Pages (no se edita a mano)
-src/lib/           Tipos, carga de datos, geometría, texto, idiomas, estado guardado, repaso, retos, enlaces
-src/components/    Mapa (d3-geo + SVG), selector de países, campo de respuesta, ficha de Wikipedia
+src/lib/           Tipos, carga de datos, geometría, texto, idiomas, estado guardado, repaso, retos, listas, logros, enlaces
+src/components/    Mapa (d3-geo + SVG), selector de países, campo de respuesta, ficha de Wikipedia, voz, logros
 src/games/         Lógica y pantallas de cada modo
 src/daily/         Reto del día
-src/screens/       Inicio, preparación de la partida, partida, reto recibido y progreso
+src/screens/       Inicio, preparación de la partida, partida, reto o lista recibidos y progreso
 src/styles.css     Hoja de estilos única
 ```
 
@@ -126,7 +135,11 @@ Hecho con React 19, TypeScript, Vite, d3-geo, TopoJSON y Zustand. Los textos de 
 - El progreso vive solo en el navegador en el que se juega; para llevarlo a otro hay que exportarlo e importarlo desde «Progreso».
 - Los nombres en español de algunas divisiones, ciudades y accidentes geográficos poco conocidos proceden directamente de la fuente y pueden contener erratas.
 - La población de las ciudades es la de su **área urbana** según Natural Earth, no la del municipio, y la lista de ciudades de cada país es la de esa fuente: puede faltar alguna ciudad grande y sobrar alguna pequeña.
-- Las **capitales de región** no están disponibles en todos los países ni en todos los niveles (por ejemplo, faltan en los departamentos de Francia, las provincias de Italia o los estados de Estados Unidos).
+- Las **capitales de región** no están disponibles en todos los países ni en todos los niveles (faltan, por ejemplo, las de las provincias de Italia y las zonas de Nepal, que ya no existen). Donde casi todas las capitales se llaman como su región queda poco que preguntar: de las 52 provincias de España solo se preguntan las ocho en las que el nombre no coincide, en ocho países queda una sola pregunta y en once, ninguna (el juego lo dice al empezar). En total se preguntan 1220 de las 2151.
+- En **inglés**, las capitales de región se muestran con su nombre en español cuando lo tienen («La Haya»); al escribir se acepta también el inglés.
+- Algunos mapas siguen una **división administrativa antigua** (las provincias de Kenia, las regiones de Ghana o de Marruecos anteriores a sus reformas, los diez estados de Sudán del Sur): es la que trae la fuente.
+- Los **picos y volcanes** son los que trae Natural Earth: faltan algunos conocidos (Annapurna, Cotopaxi, Santa Helena, Mauna Loa…) y no se han añadido a mano.
+- El botón de **oír el nombre** usa la voz que tenga el navegador para el idioma de la interfaz: los nombres que se conservan en su lengua (Bouches-du-Rhône) suenan con ese acento, y donde no hay voz instalada no se oye nada.
 - La ficha de Wikipedia y los enlaces externos necesitan conexión; sin ella, simplemente no aparecen.
 - El reto del día se calcula en el dispositivo a partir de la fecha: es el mismo para todo el mundo, pero no hay clasificación ni se comprueba en ningún servidor.
 
@@ -134,7 +147,7 @@ Hecho con React 19, TypeScript, Vite, d3-geo, TopoJSON y Zustand. Los textos de 
 
 - **Mapas, ciudades y geografía física**: [Natural Earth](https://www.naturalearthdata.com/) 1:10m y 1:50m, dominio público.
 - **Población**: Banco Mundial (indicador `SP.POP.TOTL`, dato de 2025 para la mayoría de los países), a través de [datasets/population](https://github.com/datasets/population), ODC-PDDL.
-- **Capitales, superficies y otros datos de países**: [GeoNames](https://www.geonames.org/), CC BY 4.0.
+- **Capitales, superficies y otros datos de países**: [GeoNames](https://www.geonames.org/), CC BY 4.0. GeoNames es también el contraste con el que se han corregido las capitales de región y el país de las ciudades fronterizas (`npm run data:check`).
 - **Banderas**: [flag-icons](https://github.com/lipis/flag-icons), MIT.
 - **Resúmenes y fotos de la ficha**: [Wikipedia](https://www.wikipedia.org/) y [Wikidata](https://www.wikidata.org/), consultadas desde el navegador de quien juega; los textos son CC BY-SA 4.0 y cada ficha enlaza con su artículo.
 - **Tipografías**: Fraunces y DM Sans, SIL Open Font License 1.1, empaquetadas por [Fontsource](https://fontsource.org/).

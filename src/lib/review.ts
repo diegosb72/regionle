@@ -90,6 +90,24 @@ export function parseOrigin(id: string, origin: string | undefined): Origin | nu
 }
 
 /**
+ * Of the answers a review was going to ask, those about things that are no longer in the data: a city that
+ * turned out to be a mistake of the source, a town it had filed under the country next door. They can never
+ * come up again and would be due for ever, so the caller drops them.
+ *
+ * Only what is certain: an answer that says which map it was learnt on, when that map is the one loaded.
+ * One stored by an early version, with no map, may belong to another level of the country (a province, on a
+ * map of communities), and is left alone.
+ */
+export function goneFrom(only: readonly string[], has: (id: string) => boolean, where: Record<string, string>, section: string, levelOf: (country: string) => string | undefined): string[] {
+  return only.filter((id) => {
+    if (has(id) || !where[id]) return false;
+    const origin = parseOrigin(id, where[id]);
+    if (!origin || origin.section !== section) return false;
+    return origin.section !== 'regions' || (!!origin.level && !!origin.country && origin.level === levelOf(origin.country));
+  });
+}
+
+/**
  * What is due now, gathered into games that can be played, each on the map it was learnt on: the
  * regions of one country, the countries, the capitals of the world, the cities of one country, the
  * rivers and seas. A country studied at two levels is reviewed at the one with more due; the other waits.

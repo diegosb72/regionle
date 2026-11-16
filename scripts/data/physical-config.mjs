@@ -550,9 +550,134 @@ export const ISLANDS = [
 ];
 
 /**
+ * Peaks and volcanoes: points, not shapes. Every entry is looked up by name among the mountains of
+ * Natural Earth's elevation points, which supply the place, the height and the Wikidata id; nothing
+ * here is written from memory. Two rules decided what stays out: a peak that Natural Earth does not
+ * have (Annapurna, Cotopaxi, Mount St. Helens…) and a peak that sits so close to another one of the
+ * list that the two dots could not be told apart on the map of a continent (Monte Rosa by the
+ * Matterhorn, Mauna Loa by Mauna Kea).
+ */
+export const PEAKS = [
+  // Europe
+  ['Mont Blanc', 'Mont Blanc', 'EU', 1, ['Mont Blanc'], ['Monte Blanco', 'Monte Bianco']],
+  ['Elbrús', 'Mount Elbrus', 'EU', 1, ['Gora Elbrus'], ['Elbrus', 'Monte Elbrús', 'Monte Elbrus']],
+  ['Cervino', 'Matterhorn', 'EU', 1, ['Matterhorn'], ['Monte Cervino']],
+  ['Teide', 'Teide', 'EU AF', 1, ['Pico del Teide'], ['Pico del Teide', 'El Teide', 'Mount Teide']],
+  ['Mulhacén', 'Mulhacén', 'EU', 1, ['Mulhacén']],
+  ['Aneto', 'Aneto', 'EU', 1, ['Pico de Aneto'], ['Pico Aneto', 'Pico de Aneto']],
+  ['Etna', 'Mount Etna', 'EU', 1, ['Monte Etna'], ['Monte Etna']],
+  ['Vesubio', 'Mount Vesuvius', 'EU', 1, ['Vesuvio'], ['Monte Vesubio', 'Vesuvio', 'Vesuvius']],
+  ['Olimpo', 'Mount Olympus', 'EU', 1, ['Mount Olympus@20,38,25,42'], ['Monte Olimpo', 'Olympus']],
+  ['Zugspitze', 'Zugspitze', 'EU', 2, ['Zugspitze']],
+  ['Grossglockner', 'Grossglockner', 'EU', 2, ['Grossglockner'], ['Großglockner']],
+  ['Triglav', 'Triglav', 'EU', 2, ['Triglav']],
+  ['Musala', 'Musala', 'EU', 2, ['Musala']],
+  ['Pico Gerlach', 'Gerlachovský štít', 'EU', 2, ['Gerlach'], ['Gerlach', 'Gerlachovsky stit']],
+  ['Moldoveanu', 'Moldoveanu', 'EU', 2, ['Moldoveanu']],
+  ['Hoverla', 'Hoverla', 'EU', 2, ['Gora Goverla'], ['Goverla']],
+  ['Galdhøpiggen', 'Galdhøpiggen', 'EU', 2, ['Galdhpiggen'], ['Galdhopiggen']],
+  ['Kebnekaise', 'Kebnekaise', 'EU', 2, ['Kebnekaise']],
+  ['Hvannadalshnúkur', 'Hvannadalshnúkur', 'EU', 2, ['Hvannadalshnkur'], ['Hvannadalshnjúkur', 'Hvannadalshnukur']],
+  ['Ben Nevis', 'Ben Nevis', 'EU', 2, ['Ben Nevis']],
+  ['Snowdon', 'Snowdon', 'EU', 2, ['Snowdon'], ['Yr Wyddfa']],
+  ['Carrauntoohil', 'Carrauntoohil', 'EU', 2, ['Carrauntoohil'], ['Carrantuohill']],
+  ['Torrecerredo', 'Torre Cerredo', 'EU', 2, ['Torre de Cerredo'], ['Torre de Cerredo']],
+  ['Almanzor', 'Pico Almanzor', 'EU', 2, ['Pico de Almanzor'], ['Pico de Almanzor']],
+  ['Moncayo', 'Moncayo', 'EU', 2, ['Moncayo']],
+  ['Puig Major', 'Puig Major', 'EU', 2, ['Puig Mayor'], ['Puig Mayor']],
+  ['Corno Grande', 'Corno Grande', 'EU', 2, ['Corno Grande'], ['Gran Sasso']],
+  ['Monte Cinto', 'Monte Cinto', 'EU', 2, ['Monte Cinto'], ['Cinto']],
+  ['Puy de Sancy', 'Puy de Sancy', 'EU', 2, ['Puy de Sancy'], ['Sancy']],
+  ['Monte Ida', 'Mount Ida', 'EU', 2, ['Psiloritis'], ['Psiloritis', 'Ida']],
+  ['Naródnaya', 'Mount Narodnaya', 'EU AS', 2, ['Gora Narodnaya'], ['Narodnaya']],
+
+  // Asia
+  ['Everest', 'Mount Everest', 'AS', 1, ['Mount Everest'], ['Monte Everest', 'Chomolungma', 'Sagarmatha']],
+  ['K2', 'K2', 'AS', 1, ['K2'], ['Godwin-Austen', 'Chogori']],
+  ['Monte Fuji', 'Mount Fuji', 'AS', 1, ['Fuji'], ['Fuji', 'Fujiyama', 'Fuji-san']],
+  ['Ararat', 'Mount Ararat', 'AS', 1, ['Mount Ararat'], ['Monte Ararat']],
+  ['Krakatoa', 'Krakatoa', 'AS', 1, ['Krakatau'], ['Krakatau', 'Volcán Krakatoa']],
+  ['Kanchenjunga', 'Kangchenjunga', 'AS', 2, ['Kanchenjunga'], ['Kanchenjunga']],
+  ['Dhaulagiri', 'Dhaulagiri', 'AS', 2, ['Dhaulagiri']],
+  ['Nanga Parbat', 'Nanga Parbat', 'AS', 2, ['Nanga Parbat']],
+  ['Kailash', 'Mount Kailash', 'AS', 2, ['Kailash'], ['Monte Kailash', 'Kailas']],
+  ['Damavand', 'Mount Damavand', 'AS', 2, ['Mount Damavand'], ['Monte Damavand']],
+  ['Monte Hermón', 'Mount Hermon', 'AS', 2, ['Jabal ash Shaykh'], ['Hermón', 'Hermon', 'Jabal al-Shaykh']],
+  ['Pico Ismail Samani', 'Ismoil Somoni Peak', 'AS', 2, ['Pik Imeni Ismail Samani'], ['Ismail Samani', 'Ismoil Somoni', 'Pico Comunismo', 'Communism Peak']],
+  ['Pico Pobeda', 'Jengish Chokusu', 'AS', 2, ['Pik Pobeda'], ['Pobeda', 'Pico Victoria', 'Victory Peak']],
+  ['Beluja', 'Belukha', 'AS', 2, ['Belukha'], ['Monte Beluja']],
+  ['Kliuchevskói', 'Klyuchevskaya Sopka', 'AS', 2, ['Klyuchevskaya Sopka'], ['Kliuchévskaya Sopka', 'Klyuchevskoy', 'Kliuchevskoi']],
+  ['Kinabalu', 'Mount Kinabalu', 'AS', 2, ['Gunung Kinabalu'], ['Monte Kinabalu']],
+  ['Pinatubo', 'Mount Pinatubo', 'AS', 2, ['Mount Pinatubo'], ['Monte Pinatubo']],
+  ['Tambora', 'Mount Tambora', 'AS', 2, ['Gunung Tambora'], ['Monte Tambora']],
+  ['Merapi', 'Mount Merapi', 'AS', 2, ['Gunung Merapi'], ['Monte Merapi']],
+
+  // Africa
+  ['Kilimanjaro', 'Mount Kilimanjaro', 'AF', 1, ['Mount Kilimanjaro'], ['Monte Kilimanjaro', 'Kilimanyaro']],
+  ['Monte Kenia', 'Mount Kenya', 'AF', 1, ['Mount Kenya'], ['Kenia', 'Kenya']],
+  ['Toubkal', 'Toubkal', 'AF', 1, ['Jebel Toubkal'], ['Jebel Toubkal', 'Yebel Tubqal', 'Tubqal']],
+  ['Monte Stanley', 'Mount Stanley', 'AF', 2, ['Mount Stanley'], ['Stanley', 'Pico Margarita', 'Margherita Peak']],
+  ['Ras Dashen', 'Ras Dashen', 'AF', 2, ['Ras Dejen'], ['Ras Dejen', 'Ras Dashan']],
+  ['Monte Camerún', 'Mount Cameroon', 'AF', 2, ['Mont Cameroun'], ['Camerún', 'Fako']],
+  ['Monte Elgon', 'Mount Elgon', 'AF', 2, ['Mount Elgon'], ['Elgon']],
+  ['Emi Koussi', 'Emi Koussi', 'AF', 2, ['Emi Koussi']],
+  ['Tahat', 'Mount Tahat', 'AF', 2, ['Tahat'], ['Monte Tahat']],
+  ['Thabana Ntlenyana', 'Thabana Ntlenyana', 'AF', 2, ['Thabana Ntlenyana']],
+  ['Monte Catalina', 'Mount Catherine', 'AF', 2, ['Gebel Katherna'], ['Santa Catalina', 'Jebel Katrina', 'Gebel Katherina']],
+  ['Pico Basilé', 'Pico Basilé', 'AF', 2, ['Pico de Santa Isabel'], ['Pico de Santa Isabel']],
+  ['Pico de Fogo', 'Pico do Fogo', 'AF', 2, ['Pico de Cano'], ['Fogo']],
+  ['Pitón de las Nieves', 'Piton des Neiges', 'AF', 2, ['Piton des Neiges']],
+
+  // The Americas
+  ['Aconcagua', 'Aconcagua', 'AM', 1, ['Cerro Aconcagua'], ['Cerro Aconcagua']],
+  ['Denali', 'Denali', 'AM', 1, ['Denali'], ['McKinley', 'Monte McKinley', 'Mount McKinley']],
+  ['Pico de Orizaba', 'Pico de Orizaba', 'AM', 1, ['Pico de Orizaba'], ['Citlaltépetl', 'Orizaba']],
+  ['Popocatépetl', 'Popocatépetl', 'AM', 1, ['Volcán Popocatépetl'], ['Volcán Popocatépetl']],
+  ['Chimborazo', 'Chimborazo', 'AM', 1, ['Chimborazo'], ['Volcán Chimborazo']],
+  ['Monte Logan', 'Mount Logan', 'AM', 2, ['Mount Logan'], ['Logan']],
+  ['Monte Whitney', 'Mount Whitney', 'AM', 2, ['Mount Whitney'], ['Whitney']],
+  ['Monte Rainier', 'Mount Rainier', 'AM', 2, ['Mount Rainier'], ['Rainier']],
+  ['Monte Elbert', 'Mount Elbert', 'AM', 2, ['Mount Elbert'], ['Elbert']],
+  ['Monte Mitchell', 'Mount Mitchell', 'AM', 2, ['Mount Mitchell'], ['Mitchell']],
+  ['Gunnbjørn', 'Gunnbjørn Fjeld', 'AM', 2, ['Gunnbjørn Fjeld'], ['Gunnbjorn', 'Gunnbjörn']],
+  ['Tajumulco', 'Tajumulco', 'AM', 2, ['Volcán Tajumulco'], ['Volcán Tajumulco']],
+  ['Chirripó', 'Chirripó', 'AM', 2, ['Cerro Chirripó'], ['Cerro Chirripó']],
+  ['Pico Duarte', 'Pico Duarte', 'AM', 2, ['Pico Duarte'], ['Duarte']],
+  ['Pico Turquino', 'Pico Turquino', 'AM', 2, ['Pico Turquino'], ['Turquino']],
+  ['Monte Pelée', 'Mount Pelée', 'AM', 2, ['Montagne Pelée'], ['Montaña Pelada', 'Mont Pelée', 'Montagne Pelée', 'Pelée']],
+  ['Pico Cristóbal Colón', 'Pico Cristóbal Colón', 'AM', 2, ['Pico Cristóbal Colón'], ['Cristóbal Colón']],
+  ['Pico Bolívar', 'Pico Bolívar', 'AM', 2, ['Pico Bolívar'], ['Bolívar']],
+  ['Nevado del Ruiz', 'Nevado del Ruiz', 'AM', 2, ['Nevado del Ruiz'], ['Ruiz']],
+  ['Monte Roraima', 'Mount Roraima', 'AM', 2, ['Mount Roraima'], ['Roraima']],
+  ['Pico da Neblina', 'Pico da Neblina', 'AM', 2, ['Pico da Neblina'], ['Pico de la Neblina']],
+  ['Huascarán', 'Huascarán', 'AM', 2, ['Nevado Huascarán'], ['Nevado Huascarán']],
+  ['Illimani', 'Illimani', 'AM', 2, ['Nevado Illimani'], ['Nevado Illimani']],
+  ['Ojos del Salado', 'Ojos del Salado', 'AM', 2, ['Nevado Ojos del Salado'], ['Nevado Ojos del Salado']],
+  ['Volcán Villarrica', 'Villarrica', 'AM', 2, ['Volcaán Villarrica'], ['Villarrica']],
+  ['Fitz Roy', 'Fitz Roy', 'AM', 2, ['Monte Fitz Roy'], ['Monte Fitz Roy', 'Chaltén', 'Cerro Chaltén', 'Fitzroy']],
+  ['Torres del Paine', 'Torres del Paine', 'AM', 2, ['Torres del Paine'], ['Paine']],
+
+  // Oceania and Antarctica
+  ['Kosciuszko', 'Mount Kosciuszko', 'OC', 1, ['Mount Kosciuszko'], ['Monte Kosciuszko']],
+  ['Puncak Jaya', 'Puncak Jaya', 'OC', 1, ['Puncak Jaya'], ['Pirámide de Carstensz', 'Carstensz Pyramid', 'Jaya']],
+  ['Monte Cook', 'Aoraki / Mount Cook', 'OC', 1, ['Aoraki (Mount Cook)'], ['Aoraki', 'Mount Cook', 'Cook']],
+  ['Mauna Kea', 'Mauna Kea', 'OC', 1, ['Mauna Kea']],
+  ['Monte Wilhelm', 'Mount Wilhelm', 'OC', 2, ['Mount Wilhelm'], ['Wilhelm']],
+  ['Ruapehu', 'Mount Ruapehu', 'OC', 2, ['Mount Ruapehu'], ['Monte Ruapehu']],
+  ['Taranaki', 'Mount Taranaki', 'OC', 2, ['Mount Taranaki'], ['Monte Taranaki', 'Monte Egmont', 'Mount Egmont']],
+  ['Uluru', 'Uluru', 'OC', 2, ['Uluru (Ayers Rock)'], ['Ayers Rock']],
+  ['Macizo Vinson', 'Vinson Massif', 'AN', 1, ['Vinson Massif'], ['Monte Vinson', 'Mount Vinson', 'Vinson']],
+  ['Monte Erebus', 'Mount Erebus', 'AN', 2, ['Mount Erebus'], ['Erebus']],
+];
+
+/**
  * Capitals of regions written by hand, for the countries where Natural Earth marks the capitals of a
- * different level (Spanish provinces) or of an older map (French regions). Keys are unit ids or names;
- * the first name is the one shown, the rest are also accepted.
+ * different level (Spanish provinces), of an older map (French regions) or none at all (French
+ * departments, whose capital is the seat of the prefecture). Keys are unit ids or names; the first name
+ * is the one shown, the rest are also accepted.
+ *
+ * The Italian provinces are left out on purpose: nearly every one is named after its capital (Milano,
+ * Torino, Bari…), so there would be nothing to ask.
  */
 export const REGION_CAPITALS = {
   ES: {
@@ -582,11 +707,115 @@ export const REGION_CAPITALS = {
       'Normandie': ['Ruan', 'Rouen'], 'Nouvelle-Aquitaine': ['Burdeos', 'Bordeaux'], 'Occitanie': ['Toulouse', 'Tolosa'], 'Pays de la Loire': ['Nantes'],
       "Provence-Alpes-Côte d'Azur": ['Marsella', 'Marseille'],
     },
+    f: {
+      'FR-01': ['Bourg-en-Bresse'], 'FR-02': ['Laon'], 'FR-03': ['Moulins'], 'FR-04': ['Digne-les-Bains', 'Digne'], 'FR-05': ['Gap'], 'FR-06': ['Niza', 'Nice'],
+      'FR-07': ['Privas'], 'FR-08': ['Charleville-Mézières', 'Charleville'], 'FR-09': ['Foix'], 'FR-10': ['Troyes'], 'FR-11': ['Carcasona', 'Carcassonne'],
+      'FR-12': ['Rodez'], 'FR-13': ['Marsella', 'Marseille'], 'FR-14': ['Caen'], 'FR-15': ['Aurillac'], 'FR-16': ['Angulema', 'Angoulême'],
+      'FR-17': ['La Rochelle', 'La Rochela'], 'FR-18': ['Bourges'], 'FR-19': ['Tulle'], 'FR-21': ['Dijon'], 'FR-22': ['Saint-Brieuc'], 'FR-23': ['Guéret'],
+      'FR-24': ['Périgueux'], 'FR-25': ['Besançon', 'Besanzón'], 'FR-26': ['Valence'], 'FR-27': ['Évreux'], 'FR-28': ['Chartres'], 'FR-29': ['Quimper'],
+      'FR-2A': ['Ajaccio', 'Ayacio'], 'FR-2B': ['Bastia'], 'FR-30': ['Nimes', 'Nîmes'], 'FR-31': ['Toulouse', 'Tolosa'], 'FR-32': ['Auch'],
+      'FR-33': ['Burdeos', 'Bordeaux'], 'FR-34': ['Montpellier'], 'FR-35': ['Rennes'], 'FR-36': ['Châteauroux'], 'FR-37': ['Tours'], 'FR-38': ['Grenoble'],
+      'FR-39': ['Lons-le-Saunier'], 'FR-40': ['Mont-de-Marsan'], 'FR-41': ['Blois'], 'FR-42': ['Saint-Étienne'], 'FR-43': ['Le Puy-en-Velay', 'Le Puy'],
+      'FR-44': ['Nantes'], 'FR-45': ['Orleans', 'Orléans'], 'FR-46': ['Cahors'], 'FR-47': ['Agen'], 'FR-48': ['Mende'], 'FR-49': ['Angers'], 'FR-50': ['Saint-Lô'],
+      'FR-51': ['Châlons-en-Champagne', 'Châlons', 'Châlons-sur-Marne'], 'FR-52': ['Chaumont'], 'FR-53': ['Laval'], 'FR-54': ['Nancy'], 'FR-55': ['Bar-le-Duc'],
+      'FR-56': ['Vannes'], 'FR-57': ['Metz'], 'FR-58': ['Nevers'], 'FR-59': ['Lille', 'Lila'], 'FR-60': ['Beauvais'], 'FR-61': ['Alençon'], 'FR-62': ['Arras', 'Arrás'],
+      'FR-63': ['Clermont-Ferrand', 'Clermont'], 'FR-64': ['Pau'], 'FR-65': ['Tarbes'], 'FR-66': ['Perpiñán', 'Perpignan'], 'FR-67': ['Estrasburgo', 'Strasbourg'],
+      'FR-68': ['Colmar'], 'FR-69': ['Lyon', 'Lion'], 'FR-70': ['Vesoul'], 'FR-71': ['Mâcon'], 'FR-72': ['Le Mans'], 'FR-73': ['Chambéry'], 'FR-74': ['Annecy'],
+      'FR-75': ['París', 'Paris'], 'FR-76': ['Ruan', 'Rouen'], 'FR-77': ['Melun'], 'FR-78': ['Versalles', 'Versailles'], 'FR-79': ['Niort'], 'FR-80': ['Amiens'],
+      'FR-81': ['Albi'], 'FR-82': ['Montauban'], 'FR-83': ['Tolón', 'Toulon'], 'FR-84': ['Aviñón', 'Avignon'], 'FR-85': ['La Roche-sur-Yon'], 'FR-86': ['Poitiers'],
+      'FR-87': ['Limoges'], 'FR-88': ['Épinal'], 'FR-89': ['Auxerre'], 'FR-90': ['Belfort'], 'FR-91': ['Évry-Courcouronnes', 'Évry'], 'FR-92': ['Nanterre'],
+      'FR-93': ['Bobigny'], 'FR-94': ['Créteil'], 'FR-95': ['Pontoise', 'Cergy', 'Cergy-Pontoise'],
+    },
   },
 };
 
-/** Spanish names of cities that Natural Earth gets wrong or gives in an unusual form, by its own `NAME`. */
-export const CITY_NAMES = { Castello: 'Castellón de la Plana', 'Las Palmas': 'Las Palmas de Gran Canaria' };
+/** Countries left without capitals of regions: Nepal's zones were abolished in 2015 and their seats are unreliable. */
+export const REGION_CAPITALS_SKIP = new Set(['NP']);
 
-/** Places left out, as "NAME|ADM1NAME": entries of Natural Earth that are plainly wrong. */
-export const CITY_DROP = new Set(['Mazatlán|Sonora']);
+/**
+ * Capitals of regions put right by hand, `{ country: { level: { unit: names } } }`; the first name is the
+ * one shown, the rest are accepted too, and `null` takes a capital out.
+ *
+ * Natural Earth marks "capital of a first-order division" on cities that are not one (a former seat, the
+ * biggest town, a neighbour across the river), and leaves a few true ones unmarked. Every capital was
+ * compared with the seats GeoNames records (`npm run data:check`), and each difference settled one by one:
+ * these are the ones where Natural Earth was wrong. Where two cities share the role (Lubusz, Cuyavia and
+ * Pomerania), either is accepted.
+ */
+export const REGION_CAPITAL_FIXES = {
+  AF: { f: { 'AF-BGL': ['Pul-e Khumri', 'Puli Khumri', 'Pol-e Khomri'], 'AF-LOG': ['Pul-e Alam', 'Puli Alam', 'Pol-e Alam'], 'AF-PIA': ['Sharana', 'Sharan', 'Zareh Sharan'] } },
+  AO: { f: { 'AO-LNO': ['Dundo'] } },
+  AR: { f: { 'AR-R': ['Viedma'] } },
+  BD: { f: { 'BD-C': ['Dacca', 'Daca', 'Dhaka'] } },
+  BI: { f: { 'BI-MW': ['Mwaro'], 'BI-GI': ['Gitega', 'Guitega'] } },
+  BZ: { f: { 'BZ-CY': ['San Ignacio'] } },
+  CI: { f: { 'CI-07': ['Yamusukro', 'Yamoussoukro'] } },
+  CU: { f: { 'CU-12': ['Bayamo'] } },
+  CY: { f: { 'CY-01': ['Nicosia', 'Lefkosia'] } },
+  EG: { f: { 'EG-DK': ['El Mansurá', 'Mansura', 'Mansoura', 'Al Mansurah'] } },
+  GT: { f: { 'GT-PR': ['Guastatoya'] } },
+  GW: { f: { 'GW-QU': ['Buba'] } },
+  IQ: { f: { 'IQ-SD': ['Tikrit'], 'IQ-MA': ['Amara', 'Al Amarah', 'Amarah'] } },
+  JM: { f: { 'JM-03': ['Morant Bay'] } },
+  JP: { f: { 'JP-35': ['Yamaguchi'] } },
+  KH: { f: { 'KH-16': ['Banlung', 'Ban Lung'], 'KH-5': ['Chbar Mon', 'Kampong Speu', 'Kompung Speu'] } },
+  KP: { f: { 'KP-02': ['Pyongsong', "P'yŏngsŏng"], 'KP-06': ['Sariwon', 'Sariwŏn'] } },
+  KZ: { f: { 'KZ-YUZ': ['Turkestán', 'Turkistan', 'Turkestan'] } },
+  LK: { g1: { 'LK-1': ['Colombo'], 'LK-6': ['Kurunegala'] } },
+  LR: { f: { 'LR-BM': ['Tubmanburg'] } },
+  LS: { f: { 'LS-B': ['Butha-Buthe'], 'LS-C': ['Hlotse', 'Leribe'] } },
+  MA: { f: { 'MA-03': ['Alhucemas', 'Al Hoceima', 'Al-Hoceima'] } },
+  MR: { f: { 'MR-11': ['Zuérate', 'Zouérat', 'Zouerate', 'Zouérate'] } },
+  MY: { f: { 'MY-10': ['Shah Alam'] } },
+  MZ: { f: { 'MZ-I': ['Inhambane'] } },
+  NG: { f: { 'NG-DE': ['Asaba'] } },
+  NL: { f: { 'NL-FL': ['Lelystad'], 'NL-ZH': ['La Haya', 'The Hague', 'Den Haag'] } },
+  NO: { f: { 'NO-01': ['Sarpsborg'], 'NO-02': ['Oslo'] } },
+  PE: { f: { 'PE-LIM': ['Huacho'] } },
+  PG: { f: { 'PG-EBR': ['Kokopo'], 'PG-NSB': ['Buka'] } },
+  PL: { f: { 'PL-LB': ['Zielona Góra', 'Gorzów Wielkopolski', 'Gorzów'], 'PL-KP': ['Bydgoszcz', 'Toruń'] } },
+  PY: { f: { 'PY-11': ['Areguá'], 'PY-15': ['Villa Hayes'], 'PY-19': ['Filadelfia'] } },
+  RU: { f: { 'RU-IN': ['Magás', 'Magas'], 'RU-KK': ['Abakán', 'Abakan'] } },
+  SD: { f: { 'SD-KH': ['Jartum', 'Khartoum'], 'SD-NW': ['Rabak'] } },
+  SN: { f: { 'SN-MT': ['Matam'] } },
+  SO: { f: { 'SO-SOL': ['Hargeisa', 'Hargeysa'] } },
+  SS: { f: { 'SS-EC': ['Yuba', 'Juba'], 'SS-EE': ['Torit'] } },
+  SZ: { f: { 'SZ-HH': ['Mbabane'], 'SZ-SH': ['Nhlangano'] } },
+  TG: { f: { 'TG-K': ['Kara', 'Lama-Kara'], 'TG-P': ['Atakpamé', 'Atakpame'] } },
+  // Ashgabat is not the seat of the region around it, and which town is has changed of late.
+  TM: { f: { 'TM-A': null } },
+  UY: { f: { 'UY-MA': ['Maldonado'] } },
+  VE: { f: { 'VE-A': ['Caracas'], 'VE-M': ['Los Teques'] } },
+  VN: {
+    f: {
+      'VN-25': ['Đông Hà', 'Dong Ha'], 'VN-43': ['Bà Rịa', 'Ba Ria'], 'VN-71': ['Điện Biên Phủ', 'Dien Bien Phu'], 'VN-73': ['Vị Thanh', 'Vi Thanh'],
+      'VN-CT': ['Cần Thơ', 'Can Tho'],
+    },
+  },
+  ZA: { f: { 'ZA-GT': ['Johannesburgo', 'Johannesburg'], 'ZA-NW': ['Mahikeng', 'Mafikeng', 'Mmabatho'] } },
+  ZM: { f: { 'ZM-07': ['Choma'] } },
+};
+
+/** Spanish names of cities that Natural Earth gets wrong or gives in an unusual form, by its own `NAME`. */
+export const CITY_NAMES = { Castello: 'Castellón de la Plana', 'Las Palmas': 'Las Palmas de Gran Canaria', Guaira: 'Salto del Guairá' };
+
+/**
+ * Places left out, as "NAME|ADM1NAME": entries of Natural Earth that are plainly wrong. Nearly all are a
+ * hamlet, or nothing at all, carrying the population of a well-known namesake (the Natal of Rio Grande
+ * do Norte in the middle of the Amazon, the Iranian Arak in the Algerian Sahara), which put them among
+ * the largest cities of their country.
+ */
+export const CITY_DROP = new Set([
+  'Mazatlán|Sonora', 'Natal|Amazonas', 'Vila Velha|Amapi', 'Crato|Amazonas', 'Arak|Tamanghasset', 'Al Hillah|Ar Riyad', 'Santa Ana|El Beni',
+  'Noginsk|Evenk', 'Nakhodka|Yamal-Nenets',
+]);
+
+/**
+ * Towns on a border that Natural Earth files under the neighbour, as "NAME|ADM0_A3" → the country they
+ * are in. Found by looking each city up in GeoNames; left alone, Saint-Louis was a city of Mauritania and
+ * the capital of one of its regions.
+ */
+export const CITY_COUNTRY = {
+  'Saint-Louis|MRT': 'SN', 'Kaédi|SEN': 'MR', 'Ebebiyín|GAB': 'GQ', 'Kapan|AZE': 'AM', "Qacha's Nek|ZAF": 'LS', 'Mandera|SOM': 'KE',
+  'Luangwa|MOZ': 'ZM', 'Yacuíba|ARG': 'BO', 'Guaira|BRA': 'PY',
+};

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mulberry32 } from '../lib/text';
-import { initQuiz, quizReducer, scoreOf, type QuizAction, type QuizState } from './quiz';
+import { answersItself, capitalsNeedTyping, initQuiz, quizReducer, scoreOf, type QuizAction, type QuizState } from './quiz';
 
 const run = (s: QuizState, ...actions: QuizAction[]) => actions.reduce(quizReducer, s);
 
@@ -56,5 +56,55 @@ describe('quiz state machine', () => {
     expect(s.phase).toBe('done');
     expect(s.lap).toBeGreaterThan(3);
     expect(s.asked).toBe(41);
+  });
+});
+
+describe('capitals that answer themselves', () => {
+  const it_ = (name: string, ...capital: string[]) => ({ name, capital });
+
+  it('are never asked, however the answer is given', () => {
+    for (const x of [it_('Comunidad de Madrid', 'Madrid'), it_('Región de Murcia', 'Murcia'), it_('Ceuta', 'Ceuta'), it_('México', 'Ciudad de México', 'México'), it_('Territorio de Belfort', 'Belfort')]) {
+      expect(answersItself(x, false), x.name).toBe(true);
+      expect(answersItself(x, true), x.name).toBe(true);
+    }
+  });
+
+  it('are not asked either when a second accepted spelling is the name of the place', () => {
+    // Hlotse also goes by "Leribe", and Chbar Mon by the name of its province: typing the question back would be right.
+    for (const x of [it_('Leribe', 'Hlotse', 'Leribe'), it_('Kompung Speu', 'Chbar Mon', 'Kampong Speu', 'Kompung Speu')]) {
+      expect(answersItself(x, false), x.name).toBe(true);
+      expect(answersItself(x, true), x.name).toBe(true);
+    }
+    // A spelling that only resembles the place does not count: it still has to be known.
+    expect(answersItself(it_('Navarra', 'Pamplona', 'Iruña'), false)).toBe(false);
+    // Nor does one that holds the name of the place among other words: "Marne" alone is not accepted.
+    expect(answersItself(it_('Marne', 'Châlons-en-Champagne', 'Châlons', 'Châlons-sur-Marne'), false)).toBe(false);
+  });
+
+  it('can only be asked typed where three wrong options that have to be known cannot be found', () => {
+    // Costa Rica: six provinces named after their capital, and Guanacaste.
+    const cr = [it_('Alajuela', 'Alajuela'), it_('Cartago', 'Cartago'), it_('Heredia', 'Heredia'), it_('Limón', 'Limón'), it_('Puntarenas', 'Puntarenas'), it_('San José', 'San José'), it_('Guanacaste', 'Liberia')];
+    expect(capitalsNeedTyping(cr)).toBe(true);
+    const es = [it_('Andalucía', 'Sevilla'), it_('Aragón', 'Zaragoza'), it_('Galicia', 'Santiago de Compostela'), it_('Cataluña', 'Barcelona'), it_('Comunidad de Madrid', 'Madrid')];
+    expect(capitalsNeedTyping(es)).toBe(false);
+    // What has no capital in the data does not count as an option.
+    expect(capitalsNeedTyping([...es.slice(0, 3), { name: 'Extremadura' }, { name: 'Asturias', capital: [] }])).toBe(true);
+  });
+
+  it('are asked when typed and left out when picked, if only a likeness gives them away', () => {
+    for (const x of [it_('Comunidad Valenciana', 'Valencia', 'València'), it_('Canarias', 'Las Palmas de Gran Canaria', 'Santa Cruz de Tenerife'), it_('Brasil', 'Brasilia'), it_('Argelia', 'Argel')]) {
+      expect(answersItself(x, false), x.name).toBe(false);
+      expect(answersItself(x, true), x.name).toBe(true);
+    }
+  });
+
+  it('are asked either way when they have to be known', () => {
+    for (const x of [it_('Andalucía', 'Sevilla'), it_('Álava', 'Vitoria', 'Vitoria-Gasteiz'), it_('Galicia', 'Santiago de Compostela'), it_('Bocas del Ródano', 'Marsella'), it_('Francia', 'París')]) {
+      expect(answersItself(x, false), x.name).toBe(false);
+      expect(answersItself(x, true), x.name).toBe(false);
+    }
+    // Nothing to ask where the data has no capital.
+    expect(answersItself({ name: 'Madrid' }, true)).toBe(false);
+    expect(answersItself({ name: 'Madrid', capital: [] }, true)).toBe(false);
   });
 });

@@ -494,6 +494,11 @@ export const UNIT_NAME = {
   'CL-MA': { es: 'Magallanes', en: 'Magallanes', lo: 'Magallanes y de la Antártica Chilena', al: ['Magallanes y de la Antártica Chilena', 'Magallanes y Antártica Chilena'] },
   'CL-BI': { es: 'Biobío', en: 'Biobío', al: ['Bío-Bío', 'Bio Bio'] },
   'CL-AR': { es: 'La Araucanía', al: ['Araucanía'] },
+  // Vietnam y Nepal: Natural Earth da a dos provincias el nombre de la región a la que pertenecen
+  // («Đông Nam Bộ», el sudeste; «Đông Bắc», el nordeste) y a la zona de Kosi el de uno de sus distritos.
+  'VN-39': { es: 'Đồng Nai', en: 'Đồng Nai', lo: 'Đồng Nai', al: ['Dong Nai'] },
+  'VN-53': { es: 'Bắc Kạn', en: 'Bắc Kạn', lo: 'Bắc Kạn', al: ['Bac Kan'] },
+  'NP-KO': { es: 'Kosi', en: 'Koshi', lo: 'Kosi', al: ['Koshi'] },
   // Kazajistán: la capital recuperó su nombre en 2022 y Kazajistán Meridional se llama Turkestán desde 2018
   'KZ-AST': { es: 'Astaná', en: 'Astana', lo: 'Astana', al: ['Nur-Sultán', 'Nur-Sultan', 'Nursultán', 'Astana ciudad'] },
   'KZ-YUZ': { es: 'Turkestán', en: 'Turkistan', lo: 'Türkistan', al: ['Kazajistán Meridional', 'Turquestán', 'South Kazakhstan', 'Turkestan'] },

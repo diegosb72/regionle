@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import type { Index } from '../lib/types';
-import { addDays, bearing, compass, countryOfDay, dailyPool, dayNumber, emptyRec, isDate, ladder, quickQuestions, regionTargets, routePoints, streakOf, whichTarget } from './spec';
+import { addDays, bearing, capitalGivenAway, compass, countryOfDay, dailyPool, dayNumber, emptyRec, isDate, ladder, quickQuestions, regionTargets, routePoints, streakOf, whichTarget } from './spec';
 
 const index = JSON.parse(fs.readFileSync('public/data/index.json', 'utf8')) as Index;
 
@@ -69,6 +69,24 @@ describe('tests of the day', () => {
       expect(q.id).not.toBe('ES');
     }
     expect(quickQuestions('2026-11-16', index, ['ES'])).toEqual(qs);
+  });
+
+  it('never asks for a capital that is in the name of its country', () => {
+    const country = (id: string) => index.countries.find((c) => c.id === id)!;
+    for (const id of ['MX', 'GT', 'PA', 'LU', 'TN', 'BR', 'DZ', 'SV', 'KW']) expect(capitalGivenAway(country(id)), id).toBe(true);
+    for (const id of ['ES', 'FR', 'PT', 'AR', 'JP', 'DO', 'CR', 'US']) expect(capitalGivenAway(country(id)), id).toBe(false);
+    // A year of challenges: the capital questions are never given away, and there are always two of them.
+    const kinds = new Set<string>();
+    for (let d = '2026-11-01'; d <= '2027-10-31'; d = addDays(d, 1)) {
+      const qs = quickQuestions(d, index, []);
+      expect(qs).toHaveLength(5);
+      expect(qs.filter((q) => q.kind === 'capital'), d).toHaveLength(2);
+      for (const q of qs) if (q.kind === 'capital') expect(capitalGivenAway(country(q.id)), `${d} ${q.id}`).toBe(false);
+      kinds.add(qs.map((q) => q.kind[0]).join(''));
+    }
+    // Most days end with the two capitals; when one would answer itself, a flag takes its place.
+    expect(kinds.has('fffcc')).toBe(true);
+    expect(kinds.size).toBeGreaterThan(1);
   });
 
   it('picks a country with a known population to guess', () => {

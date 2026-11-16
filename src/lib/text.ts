@@ -316,6 +316,53 @@ export function pick<T>(list: readonly T[], rng: Rng = Math.random): T {
   return list[Math.floor(rng() * list.length)];
 }
 
+const FILLER = new Set(['de', 'del', 'la', 'las', 'el', 'los', 'y', 'e', 'the', 'of', 'and', 'city', 'ciudad', 'do', 'da', 'dos', 'di', 'd', 'l']);
+
+/**
+ * Do two names give each other away? True when the words of one are all among the words of the other
+ * ("Madrid" and "Comunidad de Madrid", "Guatemala" and "Ciudad de Guatemala"): asking for the capital
+ * of a place that is named after it teaches nothing.
+ */
+export function namesOverlap(a: string, b: string): boolean {
+  return nameWithin(a, b) || nameWithin(b, a);
+}
+
+/** Are the words of `inner` all among those of `outer`? ("Leribe" in "Leribe", "Madrid" in "Comunidad de Madrid".) */
+export function nameWithin(inner: string, outer: string): boolean {
+  const words = (s: string) => new Set(norm(s).split(' ').filter((w) => w && !FILLER.has(w)));
+  const x = words(inner);
+  const y = words(outer);
+  if (!x.size || !y.size) return false;
+  for (const w of x) if (!y.has(w)) return false;
+  return true;
+}
+
+/**
+ * Does one name ring in the other? Looser than `namesOverlap`: one shared word is enough, and so is a word
+ * that begins another ("Valencia" in "Comunidad Valenciana", "Canaria" in "Canarias", "Brasil" in
+ * "Brasilia"). Typing such a capital still takes knowing it; picking it out among four options does not.
+ */
+export function namesEcho(a: string, b: string): boolean {
+  const words = (s: string) => norm(s).split(' ').filter((w) => w.length >= 4 && !FILLER.has(w));
+  const x = words(a);
+  const y = words(b);
+  return x.some((p) => y.some((q) => p.startsWith(q) || q.startsWith(p)));
+}
+
+/** Characters a hint always shows: they are not letters to guess. */
+const SEPARATOR = /[\s\-'’.,()]/;
+
+/** "Te _ _ _ _": the first `shown` letters of an answer, the rest as blanks. */
+export function letterHint(answer: string, shown: number): string {
+  let left = shown;
+  return [...answer].map((ch) => (SEPARATOR.test(ch) ? ch : left-- > 0 ? ch : '_')).join(' ');
+}
+
+/** Most letters a hint can show: the last one is always left for the player. */
+export function hintMax(answer: string): number {
+  return Math.max(0, [...answer].filter((ch) => !SEPARATOR.test(ch)).length - 1);
+}
+
 /** Local calendar day as "2026-11-15". */
 export function today(d = new Date()): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;

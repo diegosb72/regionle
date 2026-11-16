@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { INTERVALS, REVIEW_MAX, dueAt, dueCount, dueGroups, forecast, gradeOf, intervalOf, isDue, parseOrigin, reviewConfig } from './review';
-import { DEFAULT_OPTS, type Stat } from './store';
+import { INTERVALS, REVIEW_MAX, dueAt, dueCount, dueGroups, forecast, gradeOf, goneFrom, intervalOf, isDue, parseOrigin, reviewConfig } from './review';
+import { DEFAULT_OPTS, dropAnswers, type Stat } from './store';
 
 const MIN = 60_000;
 const HOUR = 60 * MIN;
@@ -186,5 +186,43 @@ describe("today's review", () => {
       7,
     );
     expect(f).toEqual([1, 1, 2, 0, 0, 0, 0]);
+  });
+});
+
+describe('answers about things that are no longer in the data', () => {
+  const level = (country: string) => (country === 'ES' ? 'g1' : 'f');
+
+  it('are told apart when the map they were learnt on is the one loaded and does not have them', () => {
+    const deck = new Set(['a', 'b']);
+    const where = { a: 't|BR|top', ghost: 't|BR|top', b: 't|BR|top' };
+    expect(goneFrom(['a', 'ghost', 'b'], (id) => deck.has(id), where, 'cities', level)).toEqual(['ghost']);
+    // Everything is there: nothing goes.
+    expect(goneFrom(['a', 'b'], (id) => deck.has(id), where, 'cities', level)).toEqual([]);
+    // A river that left the list, a country that is no more.
+    expect(goneFrom(['r:styx'], () => false, { 'r:styx': 'p' }, 'physical', level)).toEqual(['r:styx']);
+    expect(goneFrom(['XX'], () => false, { XX: 'c' }, 'countries', level)).toEqual(['XX']);
+  });
+
+  it('are left alone when it is not certain that they belong to this map', () => {
+    const none = () => false;
+    // Stored by an early version, without its map: it may be a province on a map of communities.
+    expect(goneFrom(['ES-M'], none, {}, 'regions', level)).toEqual([]);
+    // Learnt on another level of the country than the one loaded.
+    expect(goneFrom(['ES-M'], none, { 'ES-M': 'r|ES|f' }, 'regions', level)).toEqual([]);
+    // Learnt in another section.
+    expect(goneFrom(['x'], none, { x: 't|BR|top' }, 'physical', level)).toEqual([]);
+    // The same level, and the map does not have it: gone.
+    expect(goneFrom(['ES-XX'], none, { 'ES-XX': 'r|ES|g1' }, 'regions', level)).toEqual(['ES-XX']);
+  });
+
+  it('are dropped whole: every skill, and the map they were learnt on', () => {
+    const stat: Stat = [1, 1, 1, 0];
+    const stats = { 'loc:ghost': stat, 'name:ghost': stat, 'loc:a': stat, 'name:r:volga': stat, 'loc:r:styx': stat };
+    const where = { ghost: 't|BR|top', a: 't|BR|top', 'r:volga': 'p', 'r:styx': 'p' };
+    const left = dropAnswers(stats, where, ['ghost', 'r:styx']);
+    expect(Object.keys(left.stats).sort()).toEqual(['loc:a', 'name:r:volga']);
+    expect(Object.keys(left.where).sort()).toEqual(['a', 'r:volga']);
+    // Nothing to drop leaves everything as it was.
+    expect(dropAnswers(stats, where, [])).toEqual({ stats, where });
   });
 });

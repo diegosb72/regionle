@@ -38,6 +38,7 @@ const FILES = [
   { ...NE, file: 'ne_10m_geography_marine_polys.geojson', sha: 'bea6b3567d415123ca75123c2aa1619076bf2250' },
   { ...NE, file: 'ne_10m_geography_regions_polys.geojson', sha: 'b0af6a56d56c7903c9aa40df5b01813bb4334c94' },
   { ...NE, file: 'ne_50m_geography_marine_polys.geojson', sha: '530f9f9e07f0a9015e2075a8d0db480dc44a22b3' },
+  { ...NE, file: 'ne_10m_geography_regions_elevation_points.geojson', sha: '86076ef74c48d1adca1eadefd2b22894795d070c' },
   { ...POP, file: 'population.csv', sha: '4a07ae0fbf5610d7bd2de9aea41f783ee1e0aea7' },
 ];
 

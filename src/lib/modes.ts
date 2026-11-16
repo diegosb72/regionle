@@ -3,20 +3,24 @@ import {
   ArrowUpDown,
   CircleHelp,
   Compass,
+  Crosshair,
   Flag,
+  GraduationCap,
   Hash,
-  Keyboard,
   Landmark,
   ListOrdered,
   MapPin,
+  PaintBucket,
   Puzzle,
   Route,
   ScanSearch,
   Shapes,
+  Target,
   Waypoints,
   type LucideIcon,
 } from 'lucide-react';
 import { L } from './i18n';
+import type { Format } from './store';
 import type { Mode, Section } from './types';
 
 export interface ModeDef {
@@ -35,52 +39,97 @@ export const PATHS: Record<Section, string> = { regions: 'regiones', countries: 
 
 function modesOf(section: Section): ModeDef[] {
   const explore: ModeDef = { id: 'explore', name: L('Explorar', 'Explore'), desc: L('Sin preguntas: recorre el mapa con nombres, datos y enlaces para estudiar.', 'No questions: browse the map with names, facts and links to study.'), icon: Compass, level: 1 };
+  const learn: ModeDef = {
+    id: 'learn',
+    name: L('Aprender', 'Learn'),
+    desc: L('Por lecciones: cinco piezas nuevas cada vez, que primero te presentamos y luego te preguntamos mezcladas con las que ya sabes.', 'In lessons: five new pieces at a time, first shown to you and then asked mixed with the ones you already know.'),
+    icon: GraduationCap,
+    level: 1,
+  };
   const pin: ModeDef = { id: 'pin', name: L('Señalar', 'Pin it'), desc: L('Te damos un nombre y lo buscas en el mapa.', 'You get a name and find it on the map.'), icon: MapPin, level: 1 };
   const identify: ModeDef = { id: 'identify', name: L('Identificar', 'Identify'), desc: L('Se ilumina una zona del mapa y dices cuál es.', 'A part of the map lights up and you say which one it is.'), icon: ScanSearch, level: 2 };
-  const nameall: ModeDef = { id: 'nameall', name: L('Nombrarlas todas', 'Name them all'), desc: L('Escribe todos los nombres de memoria mientras el mapa se llena.', 'Type every name from memory while the map fills up.'), icon: Keyboard, level: 3 };
+  const nameall: ModeDef = {
+    id: 'nameall',
+    name: L('Rellenar el mapa', 'Fill the map'),
+    desc: L('Un mapa vacío que se llena con lo que escribes de memoria. Si quieres, toca antes la pieza que vas a rellenar.', 'A blank map that fills up with what you type from memory. If you like, tap the piece you are about to fill first.'),
+    icon: PaintBucket,
+    level: 3,
+  };
   const outline: ModeDef = { id: 'outline', name: L('Silueta', 'Outline'), desc: L('Reconócelas solo por su forma, sin mapa alrededor.', 'Recognise them by their shape alone, with no map around.'), icon: Shapes, level: 3 };
+  const regionle: ModeDef = {
+    id: 'regionle',
+    name: 'Regionle',
+    desc: L('El juego clásico, sin límite: adivina cuál es por su silueta en seis intentos. Cada fallo te dice a qué distancia y hacia dónde está.', 'The classic game, with no limit: guess which one it is from its outline in six tries. Each miss tells you how far away it is and in which direction.'),
+    icon: Target,
+    level: 3,
+  };
   const travel: ModeDef = { id: 'travel', name: L('Ruta', 'Route'), desc: L('Une dos puntos del mapa pasando por las menos fronteras posibles.', 'Join two places crossing as few borders as you can.'), icon: Route, level: 3 };
   const puzzle: ModeDef = { id: 'puzzle', name: L('Puzle', 'Jigsaw'), desc: L('Te damos una pieza sin nombre y la colocas en el mapa mudo.', 'You get an unnamed piece and place it on the blank map.'), icon: Puzzle, level: 2 };
-  const neighbours: ModeDef = { id: 'neighbours', name: L('Vecinos', 'Neighbours'), desc: L('De cada pieza, señala todas las que limitan con ella.', 'For each piece, pick every one that borders it.'), icon: Waypoints, level: 3 };
+  const neighbours: ModeDef = {
+    id: 'neighbours',
+    name: L('Vecinos', 'Neighbours'),
+    desc: L('De cada pieza, escribe todas las que limitan con ella. El mapa no enseña las fronteras: se va dibujando con tus aciertos.', 'For each piece, type every one that borders it. The map shows no borders: it is drawn as you get them right.'),
+    icon: Waypoints,
+    level: 3,
+  };
   switch (section) {
     case 'regions':
       return [
         explore,
+        learn,
         pin,
         identify,
         nameall,
         outline,
+        regionle,
         puzzle,
         neighbours,
-        { id: 'capital', name: L('Capitales', 'Capitals'), desc: L('De cada región, su capital. Solo en los países que las tienen en los datos.', 'The capital of each region. Only for the countries whose data has them.'), icon: Landmark, level: 2 },
+        {
+          id: 'capital',
+          name: L('Capitales', 'Capitals'),
+          desc: L('De cada región, su capital. Solo en los países que las tienen en los datos; las que se llaman igual que su región no se preguntan.', 'The capital of each region. Only for the countries whose data has them; the ones named after their region are not asked.'),
+          icon: Landmark,
+          level: 2,
+        },
         travel,
       ];
     case 'countries':
       return [
         explore,
+        learn,
         pin,
         identify,
-        { ...nameall, name: L('Nombrarlos todos', 'Name them all') },
+        nameall,
         outline,
+        regionle,
         puzzle,
         neighbours,
-        { id: 'capital', name: L('Capitales', 'Capitals'), desc: L('De cada país, su capital.', 'The capital of each country.'), icon: Landmark, level: 2 },
+        { id: 'capital', name: L('Capitales', 'Capitals'), desc: L('De cada país, su capital. Los que se llaman igual que su capital no se preguntan.', 'The capital of each country. The ones named after their capital are not asked.'), icon: Landmark, level: 2 },
         { id: 'flag', name: L('Banderas', 'Flags'), desc: L('¿De qué país es cada bandera?', 'Which country does each flag belong to?'), icon: Flag, level: 2 },
         travel,
       ];
     case 'cities':
       return [
         explore,
-        { ...pin, name: L('Situar', 'Place it'), desc: L('Te damos una ciudad y la buscas entre los puntos del mapa.', 'You get a city and find it among the dots on the map.') },
+        learn,
+        { ...pin, desc: L('Te damos una ciudad y la buscas entre los puntos del mapa.', 'You get a city and find it among the dots on the map.') },
+        {
+          id: 'blind',
+          name: L('Situar a ciegas', 'Place it blind'),
+          desc: L('Sin puntos en el mapa: haz clic donde creas que está la ciudad y puntúas según los kilómetros de error.', 'No dots on the map: click where you think the city is and score by how many kilometres you are off.'),
+          icon: Crosshair,
+          level: 3,
+        },
         { ...identify, desc: L('Se ilumina un punto del mapa y dices qué ciudad es.', 'A dot lights up and you say which city it is.') },
         nameall,
       ];
     case 'physical':
       return [
         explore,
+        learn,
         pin,
         { ...identify, desc: L('Se ilumina un río, un mar o una cordillera y dices cuál es.', 'A river, a sea or a range lights up and you say which one it is.') },
-        { ...nameall, name: L('Nombrarlos todos', 'Name them all') },
+        nameall,
       ];
     default:
       return [
@@ -100,8 +149,16 @@ function modeName(mode: Mode): string {
       return L('Señalar', 'Pin it');
     case 'identify':
       return L('Identificar', 'Identify');
+    case 'learn':
+      return L('Aprender', 'Learn');
+    case 'regionle':
+      return 'Regionle';
+    case 'blind':
+      return L('Situar a ciegas', 'Place it blind');
+    case 'edit':
+      return L('Lista a medida', 'Custom list');
     case 'nameall':
-      return L('Nombrar todo', 'Name them all');
+      return L('Rellenar el mapa', 'Fill the map');
     case 'outline':
       return L('Silueta', 'Outline');
     case 'travel':
@@ -124,6 +181,8 @@ function modeName(mode: Mode): string {
       return L('¿Qué país?', 'Which country?');
   }
 }
+
+export const formatName = (f: Format): string => (f === 'timed' ? L('Contrarreloj', 'Time attack') : f === 'lives' ? L('Supervivencia', 'Survival') : L('Normal', 'Standard'));
 
 export interface SectionInfo {
   path: string;
@@ -161,7 +220,7 @@ function sectionInfo(section: Section): SectionInfo {
         path,
         name: L('Física', 'Physical'),
         title: L('Ríos, mares y montañas', 'Rivers, seas and mountains'),
-        blurb: L('Ríos, lagos, mares, cordilleras, desiertos e islas del mundo o de un continente.', 'Rivers, lakes, seas, mountain ranges, deserts and islands of the world or of one continent.'),
+        blurb: L('Ríos, lagos, mares, cordilleras, picos, desiertos e islas del mundo o de un continente.', 'Rivers, lakes, seas, mountain ranges, peaks, deserts and islands of the world or of one continent.'),
       };
     default:
       return {
@@ -180,7 +239,7 @@ function lazy<K extends string, V>(keys: readonly K[], make: (key: K) => V): Rec
   return out;
 }
 
-const MODE_IDS: readonly Mode[] = ['explore', 'pin', 'identify', 'nameall', 'outline', 'travel', 'puzzle', 'neighbours', 'capital', 'flag', 'exact', 'which', 'hilo', 'rank'];
+const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'neighbours', 'capital', 'flag', 'blind', 'edit', 'exact', 'which', 'hilo', 'rank'];
 
 export const MODES: Record<Section, ModeDef[]> = lazy(SECTION_IDS, modesOf);
 export const MODE_NAME: Record<Mode, string> = lazy(MODE_IDS, modeName);

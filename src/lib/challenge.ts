@@ -18,7 +18,12 @@ export interface Challenge {
   from?: string;
   score?: number;
   ms?: number;
+  /** Made by a version that still asked for capitals named after their place. */
+  legacy?: boolean;
 }
+
+/** Version of the rules that decide what is asked. Links without it come from before version 2. */
+const RULES = 2;
 
 const SECTIONS: Section[] = ['regions', 'countries', 'cities', 'physical'];
 /** Games that ask one thing after another and end with a score: the ones that can be compared. */
@@ -34,16 +39,17 @@ interface Wire {
   k: number;
   f?: string;
   r?: [number, number];
+  v?: number;
 }
 
-const toBase64Url = (text: string): string => {
+export const toBase64Url = (text: string): string => {
   const bytes = new TextEncoder().encode(text);
   let bin = '';
   for (const b of bytes) bin += String.fromCharCode(b);
   return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 };
 
-const fromBase64Url = (code: string): string => {
+export const fromBase64Url = (code: string): string => {
   const pad = code.replace(/-/g, '+').replace(/_/g, '/');
   const bin = atob(pad + '==='.slice((pad.length + 3) % 4));
   return new TextDecoder().decode(Uint8Array.from(bin, (ch) => ch.charCodeAt(0)));
@@ -69,6 +75,8 @@ export function encodeChallenge(cfg: GameConfig, result?: { score: number; ms: n
   };
   const levels = Object.fromEntries(Object.entries(cfg.levels).filter(([id]) => cfg.countries.includes(id)));
   if (Object.keys(levels).length) wire.l = levels;
+  // A challenge that is passed on keeps the rules it was made with.
+  if (!cfg.challenge?.legacy) wire.v = RULES;
   const name = from?.trim().slice(0, 24);
   if (name) wire.f = name;
   if (result) wire.r = [Math.round(result.score), Math.round(result.ms)];
@@ -102,6 +110,7 @@ export function decodeChallenge(code: string): Challenge | null {
   const levels: Record<string, string> = {};
   if (wire.l && typeof wire.l === 'object') for (const [id, lv] of Object.entries(wire.l)) if (isStr(lv) && /^[a-z0-9]{1,3}$/.test(lv)) levels[id] = lv;
   const out: Challenge = { section: wire.s as Section, mode: wire.m as Mode, countries, levels, opts, seed: Math.floor(wire.k) };
+  if (!(typeof wire.v === 'number' && wire.v >= RULES)) out.legacy = true;
   if (isStr(wire.f) && wire.f.trim()) out.from = wire.f.trim().slice(0, 24);
   if (Array.isArray(wire.r) && Number.isFinite(wire.r[0]) && Number.isFinite(wire.r[1])) {
     out.score = Math.max(0, Math.min(100, Math.round(wire.r[0])));

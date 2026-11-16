@@ -13,10 +13,15 @@ import type { AnyGeo, Deck, Item, LL } from '../lib/types';
 export type Paint = 'ok' | 'warn' | 'bad' | 'target' | 'from' | 'to' | 'sel' | 'near' | 'dim' | 'due';
 
 export interface MapHandle {
-  /** Brings items into view, zooming in when they are too small to see. */
-  focus(ids: string[], opts?: { force?: boolean; fill?: number; instant?: boolean }): void;
+  /**
+   * Brings items into view, zooming in when they are too small to see. With `passing`, the view that is
+   * left behind is remembered, so that `restore` can go back to it.
+   */
+  focus(ids: string[], opts?: { force?: boolean; fill?: number; instant?: boolean; passing?: boolean }): void;
   /** Back to the whole deck. */
   reset(): void;
+  /** Back to where the player was before a passing `focus`; nothing when they have moved the map since. */
+  restore(): void;
 }
 
 interface Props {
@@ -36,6 +41,12 @@ interface Props {
   /** Dashed connections, e.g. sea crossings. */
   links?: [LL, LL][];
   flash?: { id: string; kind: 'bad' | 'ok'; n: number } | null;
+  /** A click anywhere on the map reports where it fell, instead of what it fell on. */
+  onPoint?: (ll: LL) => void;
+  /** When given, the only dots that are drawn: the rest stay off the map (placing cities blind). */
+  dots?: ReadonlySet<string>;
+  /** Pins that are not items: where the player clicked. */
+  marks?: { ll: LL; kind: 'guess' }[];
 }
 
 interface Shape {
@@ -141,7 +152,7 @@ function build(deck: Deck) {
   for (const it of deck.items) {
     if (it.shape === 'point') {
       const c = projection(it.lp);
-      if (c) shapes.push({ id: it.id, name: it.name, kind: 'point', d: '', bb: null, x: c[0], y: c[1], x0: c[0] - DOT, y0: c[1] - DOT, x1: c[0] + DOT, y1: c[1] + DOT, size: DOT * 2, land: DOT * 2 });
+      if (c) shapes.push({ id: it.id, name: it.name, kind: 'point', cls: it.cat, d: '', bb: null, x: c[0], y: c[1], x0: c[0] - DOT, y0: c[1] - DOT, x1: c[0] + DOT, y1: c[1] + DOT, size: DOT * 2, land: DOT * 2 });
       continue;
     }
     let d: string;
@@ -321,6 +332,8 @@ interface OverlayProps {
   paint?: PaintMap;
   labels?: ReadonlySet<string> | 'all';
   pinned?: ReadonlySet<string>;
+  only?: ReadonlySet<string>;
+  marks?: { x: number; y: number; kind: string }[];
 }
 
 /**
@@ -329,7 +342,7 @@ interface OverlayProps {
  * visible at the current zoom is in the document at all.
  */
 const Overlay = memo(
-  forwardRef<OverlayHandle, OverlayProps>(function Overlay({ shapes, paint, labels, pinned }, ref) {
+  forwardRef<OverlayHandle, OverlayProps>(function Overlay({ shapes, paint, labels, pinned, only, marks }, ref) {
     const gRef = useRef<SVGGElement>(null);
     const stepRef = useRef<number | null>(null);
     const [step, setStep] = useState<number | null>(null);
@@ -352,19 +365,20 @@ const Overlay = memo(
     const k = step == null ? 0 : 2 ** (step / STEPS);
     const rings = useMemo(() => (k ? pickRings(shapes, k, paint) : []), [shapes, k, paint]);
 
-    const dots = useMemo(() => shapes.filter((s) => s.kind === 'point'), [shapes]);
+    const dots = useMemo(() => shapes.filter((s) => s.kind === 'point' && (!only || only.has(s.id))), [shapes, only]);
     const named = useMemo(() => {
       if (!labels && !pinned?.size) return [];
       const out: { s: Shape; min: number; pin: boolean }[] = [];
       for (const s of shapes) {
         const pin = !!pinned?.has(s.id);
         if (!pin && !(labels === 'all' || labels?.has(s.id))) continue;
+        if (only && s.kind === 'point' && !only.has(s.id)) continue;
         // A dot has no room of its own: whether its name fits depends on what lies around it, and is settled below.
         const room = s.kind === 'point' ? Infinity : Math.max(s.x1 - s.x0, (s.y1 - s.y0) * 0.6, 0.02);
         out.push({ s, pin, min: pin ? 0 : ((s.name.length * 6.3 + 8) * 0.9) / room });
       }
       return out;
-    }, [shapes, labels, pinned]);
+    }, [shapes, labels, pinned, only]);
     /** Maps of dots, and physical maps that mix kinds lying on top of one another (a river crossing a desert): names can collide. */
     const crowded = useMemo(() => shapes.some((s) => s.kind !== 'area' || !!s.cls), [shapes]);
     const shown = useMemo(() => {
@@ -401,8 +415,24 @@ const Overlay = memo(
           <g className="m-dots">
             {dots.map((s) => (
               <g key={s.id} transform={`translate(${s.x} ${s.y})`}>
-                <circle r={4.6} data-id={s.id} className={cx('m-dot', paint?.[s.id] && `st-${paint[s.id]}`)} />
+                {s.cls === 'peak' ? (
+                  <path d="M0 -6.4 6.2 4.6H-6.2Z" data-id={s.id} className={cx('m-dot', 'k-peak', paint?.[s.id] && `st-${paint[s.id]}`)} />
+                ) : (
+                  <circle r={4.6} data-id={s.id} className={cx('m-dot', paint?.[s.id] && `st-${paint[s.id]}`)} />
+                )}
                 <circle r={13} data-id={s.id} className="m-dot-hit" />
+              </g>
+            ))}
+          </g>
+        )}
+        {marks && marks.length > 0 && (
+          <g className="m-marks">
+            {marks.map((m, i) => (
+              <g key={i} transform={`translate(${m.x} ${m.y})`}>
+                <g className={`m-mark m-mark-${m.kind}`}>
+                  <circle r={9} className="m-mark-ring" />
+                  <path d="M-5 -5 5 5M5 -5-5 5" />
+                </g>
               </g>
             ))}
           </g>
@@ -421,7 +451,7 @@ const Overlay = memo(
   }),
 );
 
-export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, paint, pickable, onPick, labels, pinned, tip, blind, links, flash }, ref) {
+export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, paint, pickable, onPick, labels, pinned, tip, blind, links, flash, onPoint, dots, marks }, ref) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const rootRef = useRef<SVGGElement>(null);
@@ -429,6 +459,8 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
   const tipRef = useRef<HTMLDivElement>(null);
   const zoomRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const tRef = useRef<ZoomTransform>(zoomIdentity);
+  /** The view a passing `focus` moved away from. Forgotten as soon as the player moves the map. */
+  const backRef = useRef<ZoomTransform | null>(null);
   const layoutRef = useRef<{ w: number; h: number; fit: ZoomTransform } | null>(null);
   const tipFn = useRef(tip);
   tipFn.current = tip;
@@ -494,6 +526,8 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
       const root = rootRef.current;
       if (!root) return;
       root.setAttribute('transform', t.toString());
+      // Textures are drawn in map units: undo the zoom, or the stripes would grow with it.
+      svg.querySelectorAll<SVGPatternElement>('pattern[data-fixed]').forEach((el) => el.setAttribute('patternTransform', `scale(${1 / t.k}) rotate(${el.dataset.fixed})`));
       overlayRef.current?.zoomed(t.k);
       if (tipRef.current) tipRef.current.style.opacity = '0';
       if (!frame) {
@@ -506,7 +540,11 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
     };
     const z = d3zoom<SVGSVGElement, unknown>()
       .clickDistance(6)
-      .on('zoom', (ev: { transform: ZoomTransform }) => apply(ev.transform));
+      .on('zoom', (ev: { transform: ZoomTransform; sourceEvent?: unknown }) => {
+        // A wheel, a drag or a pinch: the player has taken the view, and it is theirs to keep.
+        if (ev.sourceEvent) backRef.current = null;
+        apply(ev.transform);
+      });
     zoomRef.current = z;
     const sel = select(svg);
     sel.call(z).on('dblclick.zoom', null);
@@ -518,6 +556,7 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
       // The observer also reports once on start, with nothing changed: touching the transform then
       // would cut short a move that a game has just asked for.
       if (layoutRef.current?.w === w && layoutRef.current.h === h) return;
+      backRef.current = null;
       const [x0, y0, x1, y1] = g.view.box;
       const pad = Math.min(56, Math.min(w, h) * 0.09);
       const k = Math.min((w - 2 * pad) / Math.max(x1 - x0, 1e-6), (h - 2 * pad) / Math.max(y1 - y0, 1e-6));
@@ -595,6 +634,8 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
         let k = opts.fill != null ? Math.min(whole * opts.fill, fit.k * 60) : one ? (SEEN + 4) / one.land : whole * 0.5;
         k = Math.min(k, whole * 0.85, z.scaleExtent()[1]);
         const target = k < fit.k * 1.3 ? fit : zoomIdentity.translate(w / 2 - (k * (x0 + x1)) / 2, h / 2 - (k * (y0 + y1)) / 2).scale(k);
+        if (opts.passing) backRef.current ??= t;
+        else backRef.current = null;
         select(svg)
           .transition()
           .duration(opts.instant ? 0 : 650)
@@ -604,11 +645,32 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
         const svg = svgRef.current;
         const z = zoomRef.current;
         const lay = layoutRef.current;
+        backRef.current = null;
         if (svg && z && lay) select(svg).transition().duration(450).call(z.transform, lay.fit);
+      },
+      restore() {
+        const svg = svgRef.current;
+        const z = zoomRef.current;
+        const back = backRef.current;
+        backRef.current = null;
+        if (svg && z && back) select(svg).transition().duration(450).call(z.transform, back);
       },
     }),
     [g],
   );
+
+  // Handy when testing from the browser console: where a place falls on screen. Removed from production builds.
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    (window as unknown as { __mapXY?: (ll: LL) => [number, number] | null }).__mapXY = (ll) => {
+      const svg = svgRef.current;
+      const p = g.view.projection(ll);
+      if (!svg || !p) return null;
+      const t = tRef.current;
+      const box = svg.getBoundingClientRect();
+      return [box.left + p[0] * t.k + t.x, box.top + p[1] * t.k + t.y];
+    };
+  }, [g]);
 
   // Brief blink on an item (wrong click, right answer…).
   useEffect(() => {
@@ -656,9 +718,19 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
     return out;
   }, [g, links]);
 
+  const markPoints = useMemo(() => {
+    if (!marks?.length) return undefined;
+    const out: { x: number; y: number; kind: string }[] = [];
+    for (const m of marks) {
+      const q = g.view.projection(m.ll);
+      if (q) out.push({ x: q[0], y: q[1], kind: m.kind });
+    }
+    return out;
+  }, [g, marks]);
+
   const hotRef = useRef<Element | null>(null);
   const rawId = (target: EventTarget | null, attr: string) => (target instanceof Element ? (target.closest(`[${attr}]`)?.getAttribute(attr) ?? null) : null);
-  const dotShapes = useMemo(() => g.shapes.filter((s) => s.kind === 'point'), [g]);
+  const dotShapes = useMemo(() => g.shapes.filter((s) => s.kind === 'point' && (!dots || dots.has(s.id))), [g, dots]);
   /**
    * Item under the pointer. Dots lie close together and their click areas overlap: the one nearest to
    * the pointer is meant, not the one that happens to be drawn last.
@@ -686,6 +758,7 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
   const zoomBy = (factor: number) => {
     const svg = svgRef.current;
     const z = zoomRef.current;
+    backRef.current = null;
     if (svg && z) select(svg).transition().duration(220).call(z.scaleBy, factor);
   };
 
@@ -693,10 +766,19 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
     <div className="map" ref={wrapRef}>
       <svg
         ref={svgRef}
-        className={cx('map-svg', pickable && 'pickable', blind && 'blind', deck.outline.length > 12 && 'dense')}
+        className={cx('map-svg', pickable && 'pickable', blind && 'blind', onPoint && 'pointable', deck.outline.length > 12 && 'dense')}
         role="img"
         aria-label={L(`Mapa: ${deck.title}`, `Map: ${deck.title}`)}
         onClick={(e) => {
+          if (onPoint) {
+            const svg = svgRef.current;
+            if (!svg) return;
+            const t = tRef.current;
+            const box = svg.getBoundingClientRect();
+            const ll = g.view.projection.invert?.([(e.clientX - box.left - t.x) / t.k, (e.clientY - box.top - t.y) / t.k]);
+            if (ll && Number.isFinite(ll[0]) && Number.isFinite(ll[1])) onPoint([ll[0], ll[1]]);
+            return;
+          }
           const id = idAt(e);
           if (id && onPick) onPick(id);
         }}
@@ -732,6 +814,15 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
           <pattern id="m-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
             <rect width="6" height="6" className="m-hatch-bg" />
             <line x1="0" y1="0" x2="0" y2="6" className="m-hatch-line" />
+          </pattern>
+          {/* Textures of the colour-blind palette: stripes for a miss, dots for a right answer with help. They keep their size on screen. */}
+          <pattern id="m-cb-bad" data-fixed="45" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <rect width="7" height="7" className="m-cb-bg-bad" />
+            <line x1="0" y1="0" x2="0" y2="7" strokeWidth="2.4" className="m-cb-ink" />
+          </pattern>
+          <pattern id="m-cb-warn" data-fixed="0" width="7" height="7" patternUnits="userSpaceOnUse">
+            <rect width="7" height="7" className="m-cb-bg-warn" />
+            <circle cx="3.5" cy="3.5" r="1.3" stroke="none" className="m-cb-ink" />
           </pattern>
         </defs>
         <g ref={rootRef}>
@@ -773,7 +864,7 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
               </g>
             ))}
           </g>
-          <Overlay ref={overlayRef} shapes={g.shapes} paint={paint} labels={labels} pinned={pinned} />
+          <Overlay ref={overlayRef} shapes={g.shapes} paint={paint} labels={labels} pinned={pinned} only={dots} marks={markPoints} />
         </g>
       </svg>
       <div className="map-tip" ref={tipRef} aria-hidden="true" />
@@ -790,6 +881,7 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
             const svg = svgRef.current;
             const z = zoomRef.current;
             const lay = layoutRef.current;
+            backRef.current = null;
             if (svg && z && lay) select(svg).transition().duration(450).call(z.transform, lay.fit);
           }}
           aria-label={L('Ver todo', 'See everything')}

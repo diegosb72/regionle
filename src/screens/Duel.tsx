@@ -1,35 +1,16 @@
 /** A game received by link: who sends it, what it is about and the result to beat. */
 import { ArrowLeft, Play, Swords } from 'lucide-react';
 import { useMemo } from 'react';
-import { Flag, capitalise } from '../components/ui';
-import { levelOf, type World } from '../lib/data';
-import { decodeChallenge, type Challenge } from '../lib/challenge';
-import { kindNoun, parsePhys } from '../lib/extra';
-import { L, levelNoun, nm } from '../lib/i18n';
+import { Flag } from '../components/ui';
+import type { World } from '../lib/data';
+import { decodeChallenge } from '../lib/challenge';
+import { describeMap } from '../lib/describe';
+import { L } from '../lib/i18n';
 import { MODES, MODE_NAME, SECTIONS } from '../lib/modes';
 import { go } from '../lib/router';
 import { DEFAULT_OPTS, useStore } from '../lib/store';
-import { fmtTime, plural } from '../lib/text';
+import { fmtTime } from '../lib/text';
 import type { Country } from '../lib/types';
-
-/** What is played, in words: "España · provincias". */
-function describe(c: Challenge, countries: Country[], world: World): string {
-  if (c.section === 'physical') {
-    const spec = parsePhys(c.countries);
-    const where = spec.places.length ? spec.places.map((p) => (world.index.continents[p] ? nm(world.index.continents[p]) : p)).join(', ') : L('todo el mundo', 'the whole world');
-    return `${spec.kinds.map((k) => capitalise(kindNoun(k).many)).join(', ')} · ${where}`;
-  }
-  const place = countries.length === 1 ? nm(countries[0].n) : countries.length <= 3 ? countries.map((x) => nm(x.n)).join(', ') : plural(countries.length, L('país', 'country'), L('países', 'countries'));
-  if (c.section === 'regions') {
-    const nouns = new Set(countries.map((x) => levelNoun(levelOf(x, c.levels)).many));
-    return `${place} · ${nouns.size === 1 ? [...nouns][0] : L('regiones', 'regions')}`;
-  }
-  if (c.section === 'cities') {
-    const pick = c.opts.cityPick ?? 'top';
-    return `${place} · ${pick === 'caps' ? L('capitales de país', 'national capitals') : pick === 'regcaps' ? L('capitales de región', 'regional capitals') : L(`las ${c.opts.cityCount ?? 25} ciudades más pobladas`, `the ${c.opts.cityCount ?? 25} largest cities`)}`;
-  }
-  return place;
-}
 
 export function Duel({ code, world }: { code: string; world: World }) {
   const opts = useStore((s) => s.opts);
@@ -62,7 +43,7 @@ export function Duel({ code, world }: { code: string; world: World }) {
       levels: challenge.levels,
       // The sender's options decide the questions; the rest stays as the player has it.
       opts: { ...DEFAULT_OPTS, ...opts, ...challenge.opts },
-      challenge: { seed: challenge.seed, from: challenge.from, score: challenge.score, ms: challenge.ms },
+      challenge: { seed: challenge.seed, from: challenge.from, score: challenge.score, ms: challenge.ms, ...(challenge.legacy ? { legacy: true } : {}) },
     });
     go('jugar');
   };
@@ -81,7 +62,7 @@ export function Duel({ code, world }: { code: string; world: World }) {
             ))}
           </span>
         )}
-        <strong>{describe(challenge, countries, world)}</strong>
+        <strong>{describeMap({ section: challenge.section, countries: challenge.countries, levels: challenge.levels, cityPick: challenge.opts.cityPick, cityCount: challenge.opts.cityCount }, world)}</strong>
         <span>
           {SECTIONS[challenge.section].name} · {MODE_NAME[challenge.mode]} · {length === 'all' ? L('todas las preguntas', 'every question') : L(`${length} preguntas`, `${length} questions`)}
           {challenge.opts.answer === 'type' ? ` · ${L('escribiendo', 'typing')}` : ''}
