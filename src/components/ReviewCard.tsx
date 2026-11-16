@@ -76,8 +76,8 @@ export function ReviewCard({ world }: { world: World }) {
             <p className="review-text">
               {week
                 ? L(
-                    `Nada que repasar ahora. ${ahead[1] ? `Mañana ${ahead[1] === 1 ? 'vuelve 1 respuesta' : `vuelven ${nf(ahead[1])} respuestas`}; ` : ''}en los próximos siete días, ${nf(week)}.`,
-                    `Nothing to review now. ${ahead[1] ? `Tomorrow ${ahead[1] === 1 ? '1 answer comes' : `${nf(ahead[1])} answers come`} back; ` : ''}over the next seven days, ${nf(week)}.`,
+                    `Nada que repasar ahora. ${ahead[1] ? `Mañana ${ahead[1] === 1 ? 'vuelve 1 respuesta' : `vuelven ${nf(ahead[1])} respuestas`}; en` : 'En'} los próximos siete días, ${nf(week)}.`,
+                    `Nothing to review now. ${ahead[1] ? `Tomorrow ${ahead[1] === 1 ? '1 answer comes' : `${nf(ahead[1])} answers come`} back; over` : 'Over'} the next seven days, ${nf(week)}.`,
                   )
                 : L('Nada que repasar esta semana. Juega algo nuevo y volverá cuando toque.', 'Nothing to review this week. Play something new and it will come back in due time.')}
             </p>

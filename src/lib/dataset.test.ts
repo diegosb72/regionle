@@ -128,7 +128,11 @@ interface PhysRec {
   r: number;
   lp: [number, number];
   fp: [number, number][];
-  g: ['L' | 'A', number[][]];
+  /** Lines and surfaces; a peak is the point its name hangs from and has none. */
+  g?: ['L' | 'A', number[][]];
+  /** Height of a peak, in metres. */
+  el?: number;
+  wd?: string;
 }
 interface CityRec {
   i: string;
@@ -142,7 +146,7 @@ interface CityRec {
 
 describe('physical.json', () => {
   const file = read<{ scale: number; f: PhysRec[] }>('physical.json');
-  const KINDS = ['river', 'lake', 'sea', 'range', 'desert', 'island'];
+  const KINDS = ['river', 'lake', 'sea', 'range', 'peak', 'desert', 'island'];
   const PLACES = ['EU', 'AS', 'AF', 'AM', 'OC', 'AN'];
   const byKind = (k: string) => file.f.filter((f) => f.k === k);
   /** Undoes the storage: the first point and then the steps, in whole fractions of a degree. */
@@ -176,19 +180,25 @@ describe('physical.json', () => {
       ['lake', 60, 20],
       ['sea', 90, 35],
       ['range', 50, 18],
+      ['peak', 90, 25],
       ['desert', 15, 6],
       ['island', 35, 18],
     ] as const) {
       expect(byKind(kind).length, kind).toBeGreaterThanOrEqual(all);
       expect(byKind(kind).filter((f) => f.r === 1).length, kind).toBeGreaterThanOrEqual(known);
     }
-    for (const id of ['r:danube', 'r:nile', 'r:amazon', 'r:ebro', 's:atlantic-ocean', 's:mediterranean-sea', 'd:sahara', 'i:greenland', 'r:alps', 'r:andes', 'l:lake-victoria'])
+    for (const id of ['r:danube', 'r:nile', 'r:amazon', 'r:ebro', 's:atlantic-ocean', 's:mediterranean-sea', 'd:sahara', 'i:greenland', 'r:alps', 'r:andes', 'l:lake-victoria', 'p:mount-everest', 'p:teide', 'p:mount-kilimanjaro', 'p:aconcagua'])
       expect(file.f.some((f) => f.i === id), id).toBe(true);
   });
 
   it('draws rivers as lines and everything else as surfaces, inside the globe', () => {
     const problems: string[] = [];
     for (const f of file.f) {
+      if (f.k === 'peak') continue;
+      if (!f.g) {
+        problems.push(`${f.i}: nothing to draw`);
+        continue;
+      }
       const [shape, parts] = f.g;
       if (shape !== (f.k === 'river' ? 'L' : 'A')) problems.push(`${f.i}: drawn as ${shape}`);
       if (!parts.length) problems.push(`${f.i}: nothing to draw`);
@@ -221,10 +231,36 @@ describe('physical.json', () => {
     expect(problems).toEqual([]);
   });
 
+  it('marks every peak as a point with its height, apart from the others', () => {
+    const peaks = byKind('peak');
+    const problems: string[] = [];
+    for (const f of peaks) {
+      if (f.g) problems.push(`${f.i}: drawn as a shape`);
+      if (!Number.isInteger(f.el) || f.el! < 300 || f.el! > 8850) problems.push(`${f.i}: height ${f.el}`);
+      const [x, y] = f.lp;
+      if (!(x >= -180 && x <= 180 && y >= -90 && y <= 90)) problems.push(`${f.i}: off the globe`);
+      if (f.fp.length !== 1 || f.fp[0][0] !== x || f.fp[0][1] !== y) problems.push(`${f.i}: framed away from itself`);
+    }
+    // Two triangles on top of each other cannot be told apart, nor clicked.
+    const km = (a: [number, number], b: [number, number]) => {
+      const rad = Math.PI / 180;
+      const h = Math.sin(((b[1] - a[1]) * rad) / 2) ** 2 + Math.cos(a[1] * rad) * Math.cos(b[1] * rad) * Math.sin(((b[0] - a[0]) * rad) / 2) ** 2;
+      return 2 * 6371 * Math.asin(Math.sqrt(h));
+    };
+    for (let i = 0; i < peaks.length; i++) for (let j = i + 1; j < peaks.length; j++) if (km(peaks[i].lp, peaks[j].lp) < 55) problems.push(`${peaks[i].i} and ${peaks[j].i}: too close`);
+    expect(problems).toEqual([]);
+    // Heights that anyone can check.
+    const height = (id: string) => peaks.find((f) => f.i === id)?.el;
+    expect(height('p:mount-everest')).toBeGreaterThanOrEqual(8840);
+    expect(height('p:teide')).toBeGreaterThanOrEqual(3700);
+    expect(height('p:mulhacen')).toBeGreaterThanOrEqual(3470);
+    expect(peaks.filter((f) => f.ct.includes('EU') && f.r === 1).length).toBeGreaterThanOrEqual(8);
+  });
+
   it('winds every surface the right way round', () => {
     // As with countries: a ring wound backwards means "the whole globe but this".
     for (const f of file.f) {
-      if (f.g[0] !== 'A') continue;
+      if (!f.g || f.g[0] !== 'A') continue;
       const geo = { type: 'MultiPolygon' as const, coordinates: f.g[1].map((flat) => [decode(flat)]) };
       // The Pacific covers a third of the planet: nothing gets near the whole of it.
       expect(geoArea(geo), f.i).toBeLessThan(0.75 * 4 * Math.PI);
@@ -281,6 +317,56 @@ describe('cities.json', () => {
     expect(file.c.ES.slice(0, 2).map((c) => c.n.es)).toEqual(['Madrid', 'Barcelona']);
   });
 
+  it('keeps border towns in their own country, and capitals under their own name', () => {
+    // The source files these under the neighbour across the river or the border.
+    const where = (name: string) => Object.entries(file.c).filter(([, list]) => list.some((c) => c.n.es === name)).map(([id]) => id);
+    expect(where('Saint Louis')).toEqual(['SN']);
+    expect(where('Kaédi')).toEqual(['MR']);
+    expect(where('Ebebiyín')).toEqual(['GQ']);
+    expect(where('Kapan')).toEqual(['AM']);
+    expect(where('Yacuiba')).toEqual(['BO']);
+    // The name of a capital goes to the city that has it, not to the nearest town.
+    expect(file.c.GP.find((c) => c.k === 3)?.p).toBeLessThan(5000);
+    expect(file.c.GP.map((c) => c.n.es)).toContain('Pointe-à-Pitre');
+    expect(file.c.GF.find((c) => c.k === 3)?.p).toBeGreaterThan(50000);
+    expect(file.c.PW.map((c) => c.n.es).sort()).toEqual(['Koror', 'Ngerulmud']);
+  });
+
+  it('has no hamlet with the population of a famous namesake among the largest cities', () => {
+    // A Natal in the Amazon, a Vila Velha in Amapá, the Iranian Arak in the Algerian desert, the Iraqi Hilla in Arabia.
+    const top = (id: string) => file.c[id].slice(0, 30).map((c) => c.n.es);
+    expect(top('BR').filter((n) => n.startsWith('Natal'))).toEqual(['Natal']);
+    expect(top('BR').filter((n) => n.startsWith('Vila Velha'))).toEqual(['Vila Velha']);
+    expect(file.c.BR.find((c) => c.n.es === 'Vila Velha')!.ll[1]).toBeLessThan(-15);
+    expect(file.c.BR.find((c) => c.n.es === 'Natal')!.ll[0]).toBeGreaterThan(-40);
+    expect(top('DZ')).not.toContain('Arak');
+    expect(top('SA')).not.toContain('Al Ḥilla');
+    expect(file.c.BO.find((c) => c.n.es === 'San Borja')!.p).toBeLessThan(50000);
+  });
+
+  it('marks as capital of a region the city that is one, and no other', () => {
+    const marked = (id: string) => file.c[id].filter((c) => (c.k ?? 0) >= 1).map((c) => c.n.es);
+    const names = (id: string) => file.c[id].map((c) => c.n.es);
+    // Spain: the capitals of its communities and its two autonomous cities, with both capitals of the Canaries.
+    expect(marked('ES')).toHaveLength(20);
+    expect(marked('ES')).toEqual(expect.arrayContaining(['Madrid', 'Santiago de Compostela', 'Mérida', 'Las Palmas de Gran Canaria', 'Santa Cruz de Tenerife', 'Ceuta']));
+    // France: its thirteen regions of today, not the twenty-two of before 2016.
+    expect(marked('FR')).toHaveLength(13);
+    expect(names('FR')).toContain('Montpellier');
+    expect(marked('FR')).not.toContain('Montpellier');
+    // The biggest town, the twin across the river or a former seat is not the capital.
+    expect(names('JP')).toContain('Kitakyūshū');
+    expect(marked('JP')).not.toContain('Kitakyūshū');
+    expect(marked('SD')).toContain('Jartum');
+    expect(names('SD')).toContain('Omdurmán');
+    expect(marked('SD')).not.toContain('Omdurmán');
+    expect(marked('BR')).not.toContain('Niterói');
+    expect(marked('ZM')).toContain('Choma');
+    expect(marked('ZM')).not.toContain('Livingstone');
+    expect(marked('CU')).toContain('Bayamo');
+    expect(marked('GB').sort()).toEqual(['Belfast', 'Cardiff', 'Edimburgo', 'Londres']);
+  });
+
   it('places every city in a region of its own country', () => {
     const problems: string[] = [];
     for (const [id, list] of Object.entries(file.c)) {
@@ -316,6 +402,50 @@ describe('capitals.json', () => {
       }
     }
     expect(problems).toEqual([]);
+  });
+
+  it('gives the seat of a region and not its biggest town, a former seat or a neighbour', () => {
+    // Each of these was wrong as the source marks it, and was put right after comparing with GeoNames.
+    const first = (id: string, unit: string, level = 'f') => file.rc[id][level][unit]?.[0];
+    expect(first('CY', 'CY-01')).toBe('Nicosia');
+    expect(first('BD', 'BD-C')).toBe('Dacca');
+    expect(first('NL', 'NL-FL')).toBe('Lelystad');
+    expect(first('NL', 'NL-NH')).toBe('Haarlem');
+    expect(first('NL', 'NL-ZH')).toBe('La Haya');
+    expect(first('JP', 'JP-35')).toBe('Yamaguchi');
+    expect(first('JP', 'JP-40')).toBe('Fukuoka');
+    expect(first('ZA', 'ZA-GT')).toBe('Johannesburgo');
+    expect(first('SD', 'SD-KH')).toBe('Jartum');
+    expect(first('NG', 'NG-DE')).toBe('Asaba');
+    expect(first('NG', 'NG-AN')).toBe('Awka');
+    expect(first('MY', 'MY-10')).toBe('Shah Alam');
+    expect(first('CU', 'CU-12')).toBe('Bayamo');
+    expect(first('PE', 'PE-LIM')).toBe('Huacho');
+    expect(first('SN', 'SN-MT')).toBe('Matam');
+    expect(first('MR', 'MR-06')).toBe('Rosso');
+    expect(first('LK', 'LK-1', 'g1')).toBe('Colombo');
+    expect(first('AR', 'AR-R')).toBe('Viedma');
+    expect(first('AR', 'AR-B')).toBe('La Plata');
+    expect(first('VE', 'VE-A')).toBe('Caracas');
+    expect(first('CA', 'CA-ON')).toBe('Toronto');
+    // Two cities share the role: either is accepted.
+    expect(file.rc.PL.f['PL-LB']).toEqual(expect.arrayContaining(['Zielona Góra', 'Gorzów Wielkopolski']));
+    // Nepal's zones no longer exist.
+    expect(file.rc.NP).toBeUndefined();
+  });
+
+  it('accepts for a capital only its own names, not those of another city of the region', () => {
+    expect(file.rc.JP.f['JP-01']).toEqual(['Sapporo']);
+    expect(file.rc.KZ.f['KZ-KAR'].join(' ')).not.toMatch(/Zhezkazgan|Jezkazgan/);
+    expect(file.rc.ZA.f['ZA-EC'].join(' ')).not.toMatch(/Qacha/);
+    expect(file.rc.MR.f['MR-06'].join(' ')).not.toMatch(/Louis/);
+  });
+
+  it('knows the prefecture of every French department', () => {
+    expect(Object.keys(file.rc.FR.f)).toHaveLength(96);
+    expect(file.rc.FR.f['FR-13'][0]).toBe('Marsella');
+    expect(file.rc.FR.f['FR-31'][0]).toBe('Toulouse');
+    expect(file.rc.FR.f['FR-75'][0]).toBe('París');
   });
 
   it('knows the capitals of every Spanish province and autonomous community', () => {

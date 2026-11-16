@@ -1,6 +1,27 @@
 /** Pure state machine of the question-by-question games (pin, identify, outline, capitals, flags). */
-import { shuffle, type Rng } from '../lib/text';
+import { nameWithin, namesEcho, namesOverlap, shuffle, type Rng } from '../lib/text';
 import type { Res } from '../lib/types';
+
+/**
+ * A place whose capital is in its name answers itself. So does one whose capital also goes by the name of
+ * the place (Hlotse is "Leribe" too): any accepted spelling that is made of words of the question could be
+ * typed straight back. When the answer is picked (among four options, or on the map) instead of typed, a
+ * likeness in the name shown is enough to give it away: `loose` leaves those out as well.
+ */
+export function answersItself(it: { name: string; capital?: string[] }, loose: boolean): boolean {
+  const names = it.capital;
+  if (!names?.length) return false;
+  return namesOverlap(names[0], it.name) || names.some((cap) => nameWithin(cap, it.name)) || (loose && namesEcho(names[0], it.name));
+}
+
+/**
+ * Four options take three wrong capitals that have to be known. Where a map has fewer (the rest are named
+ * after their own region and are ruled out at a glance, which leaves the answer standing alone), the
+ * capitals can only be asked typed.
+ */
+export function capitalsNeedTyping(items: readonly { name: string; capital?: string[] }[]): boolean {
+  return items.filter((it) => it.capital?.length && !answersItself(it, true)).length < 4;
+}
 
 export interface QuizState {
   pool: string[];

@@ -1,4 +1,4 @@
-/** Decks that are not made of countries or their divisions: cities, and rivers, lakes, seas, ranges, deserts and islands. */
+/** Decks that are not made of countries or their divisions: cities, and rivers, lakes, seas, ranges, peaks, deserts and islands. */
 import { commonPlace, frameForCountries, frameForLand, loadFile, loadIndex, loadWorldGeo } from './data';
 import { L, nm } from './i18n';
 import type { AnyGeo, Country, Deck, Geo, Item, LL, Named } from './types';
@@ -104,7 +104,7 @@ export async function buildCityDeck(ids: string[], pick: CityPick, count: number
 // Physical geography
 // ---------------------------------------------------------------------------
 
-export const PHYS_KINDS = ['river', 'lake', 'sea', 'range', 'desert', 'island'] as const;
+export const PHYS_KINDS = ['river', 'lake', 'sea', 'range', 'peak', 'desert', 'island'] as const;
 export type PhysKind = (typeof PHYS_KINDS)[number];
 /** Continents a physical deck can be limited to; `W` is the whole world. */
 export const PHYS_PLACES = ['W', 'EU', 'AS', 'AF', 'AM', 'OC'] as const;
@@ -119,10 +119,12 @@ interface PhysRec {
   r: 1 | 2;
   wd?: string;
   ar?: number;
+  /** Peaks: metres above sea level. */
+  el?: number;
   lp: LL;
   fp: LL[];
-  /** 'L' lines or 'A' rings, each a flat list: the first point and then the steps, in thousandths of a degree. */
-  g: ['L' | 'A', number[][]];
+  /** 'L' lines or 'A' rings, each a flat list: the first point and then the steps, in thousandths of a degree. Peaks have none: they are the point `lp`. */
+  g?: ['L' | 'A', number[][]];
 }
 interface PhysFile {
   scale: number;
@@ -144,6 +146,7 @@ function decode(flat: number[], scale: number): LL[] {
 }
 
 function geometryOf(rec: PhysRec, scale: number): AnyGeo['geometry'] {
+  if (!rec.g) return { type: 'Point', coordinates: rec.lp };
   const parts = rec.g[1].map((flat) => decode(flat, scale));
   if (rec.g[0] === 'L') return { type: 'MultiLineString', coordinates: parts };
   return { type: 'MultiPolygon', coordinates: parts.map((ring) => [ring]) };
@@ -160,6 +163,8 @@ export function kindNoun(kind: PhysKind): { one: string; many: string; fem: bool
       return { one: L('mar', 'sea'), many: L('mares y océanos', 'seas and oceans'), fem: false };
     case 'range':
       return { one: L('cordillera', 'mountain range'), many: L('cordilleras', 'mountain ranges'), fem: es };
+    case 'peak':
+      return { one: L('pico', 'peak'), many: L('picos y volcanes', 'peaks and volcanoes'), fem: false };
     case 'desert':
       return { one: L('desierto', 'desert'), many: L('desiertos', 'deserts'), fem: false };
     default:
@@ -195,7 +200,7 @@ const matches = (f: PhysRec, spec: PhysSpec): boolean =>
   spec.kinds.includes(f.k) && (spec.all || f.r === 1) && (!spec.places.length || f.ct.some((c) => spec.places.includes(c)));
 
 /** Seas first and rivers last: what is drawn later lies on top and gets the click. */
-const ORDER: Record<PhysKind, number> = { sea: 0, desert: 1, range: 2, island: 3, lake: 4, river: 5 };
+const ORDER: Record<PhysKind, number> = { sea: 0, desert: 1, range: 2, island: 3, lake: 4, river: 5, peak: 6 };
 
 /** The selection that a set of features fits in: their kinds, their continents (the world if they are many), everything if any is little known. */
 function specAround(file: PhysFile, ids: string[]): PhysSpec {
@@ -204,10 +209,13 @@ function specAround(file: PhysFile, ids: string[]): PhysSpec {
   return { kinds: PHYS_KINDS.filter((k) => recs.some((f) => f.k === k)), places: places.length > 2 ? [] : places, all: recs.some((f) => f.r === 2) };
 }
 
-/** With `must`, the map is drawn around those features (a review): the tokens are ignored. */
-export async function buildPhysicalDeck(tokens: string[], must?: string[]): Promise<Deck> {
+/**
+ * With `must`, the map is drawn around those features and the tokens are ignored (a review); with
+ * `keep`, the map is the one the tokens ask for and those features are added to it (a custom list).
+ */
+export async function buildPhysicalDeck(tokens: string[], must?: string[], keep = false): Promise<Deck> {
   const [{ index }, world, file] = await Promise.all([loadIndex(), loadWorldGeo(), loadPhysical()]);
-  const around = must?.length ? specAround(file, must) : null;
+  const around = must?.length && !keep ? specAround(file, must) : null;
   const spec = around?.kinds.length ? around : parsePhys(tokens);
   const continent = (id: string): Country => ({ id: `@${id}`, a3: '', n: index.continents[id] ?? { es: id }, ct: id, sr: '', cl: 'other', ar: 0, lp: [0, 0], fp: [], lv: [], dl: 'f' });
   const pseudo = new Map<string, Country>();
@@ -233,7 +241,7 @@ export async function buildPhysicalDeck(tokens: string[], must?: string[]): Prom
   const items: Item[] = recs.map((rec) => ({
     id: rec.i,
     kind: 'feature',
-    shape: rec.g[0] === 'L' ? 'line' : 'area',
+    shape: !rec.g ? 'point' : rec.g[0] === 'L' ? 'line' : 'area',
     cat: rec.k,
     under: rec.k === 'sea',
     name: nm(rec.n),
@@ -245,6 +253,7 @@ export async function buildPhysicalDeck(tokens: string[], must?: string[]): Prom
     lp: rec.lp,
     fp: rec.fp,
     area: rec.ar ?? 0,
+    elev: rec.el,
     nb: [],
     sl: [],
     wd: rec.wd,

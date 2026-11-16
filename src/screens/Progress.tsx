@@ -1,17 +1,18 @@
 /** What has been learnt so far, where on the map, what is due for review, recent games, and backup of the saved data. */
 import { ArrowRight, CalendarClock, Download, Trash2, Upload } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { BadgeBoard } from '../components/Badges';
 import { MapView, type Paint } from '../components/MapView';
 import { Flag, Seg, Spinner, capitalise } from '../components/ui';
 import { buildDeck, eligible, type World } from '../lib/data';
 import { kindNoun, parsePhys } from '../lib/extra';
 import { L, getLang, levelNoun, nm } from '../lib/i18n';
-import { MODE_NAME, SECTIONS } from '../lib/modes';
+import { MODE_NAME, SECTIONS, formatName } from '../lib/modes';
 import { dueCount, dueGroups, forecast, gradeOf, parseOrigin, reviewConfig, type Grade } from '../lib/review';
 import { go } from '../lib/router';
 import { isLearnt, useStore, type Skill, type Stat } from '../lib/store';
 import { cx, fmtTime, nf } from '../lib/text';
-import type { Country, Deck } from '../lib/types';
+import type { Country, Deck, Mode } from '../lib/types';
 import { scoreOf } from '../games/quiz';
 
 const SKILL_IDS: Skill[] = ['loc', 'name', 'cap', 'flag', 'nb'];
@@ -287,6 +288,9 @@ export function Progress({ world }: { world: World }) {
   const best = useStore((s) => s.best);
   const favs = useStore((s) => s.favs);
   const daily = useStore((s) => s.daily);
+  const tot = useStore((s) => s.tot);
+  const lists = useStore((s) => s.lists);
+  const badges = useStore((s) => s.badges);
   const setSel = useStore((s) => s.setSel);
   const resetProgress = useStore((s) => s.resetProgress);
   const importData = useStore((s) => s.importData);
@@ -337,12 +341,14 @@ export function Progress({ world }: { world: World }) {
   const countriesLearnt = countriesSeen.filter((r) => r.whole.learnt > 0).length;
   const worldTotal = world.index.countries.filter((c) => c.cl !== 'dep' && eligible('countries', c)).length;
 
-  const totals = sessions.reduce((a, s) => ({ q: a.q + s.total, ok: a.ok + s.ok, warn: a.warn + s.warn, ms: a.ms + s.ms }), { q: 0, ok: 0, warn: 0, ms: 0 });
-  const records = Object.entries(best);
+  // Lifetime tallies; the list of sessions only keeps the latest ones.
+  const totals = { g: tot.g ?? sessions.length, q: tot.q ?? 0, ok: tot.ok ?? 0, warn: tot.warn ?? 0, ms: tot.ms ?? 0 };
+  // A record of nothing is not a record (older versions could store a zero).
+  const records = Object.entries(best).filter(([, v]) => v > 0);
   const dailyDone = Object.values(daily).filter((d) => d.t).length;
 
   const exportData = () => {
-    const blob = new Blob([JSON.stringify({ app: 'regionle', version: 2, exported: new Date().toISOString(), stats, where: whereMap, sessions, best, favs, daily }, null, 1)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ app: 'regionle', version: 3, exported: new Date().toISOString(), stats, where: whereMap, sessions, best, favs, daily, lists, badges, tot }, null, 1)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `regionle-${L('progreso', 'progress')}-${new Date().toISOString().slice(0, 10)}.json`;
@@ -385,22 +391,38 @@ export function Progress({ world }: { world: World }) {
         </li>
       );
     }
+    // Every other record is about a map: "nameall:<map>", "regionle:<map>", "blind:<map>|<n>", "timed:<mode>:<map>".
+    let mapKey = what;
+    let mode: Mode | null = null;
+    if (kind === 'timed' || kind === 'lives') {
+      mode = rest[0] as Mode;
+      mapKey = rest.slice(1).join(':');
+    }
     let label: string;
-    if (what.startsWith('p:')) {
-      const spec = parsePhys(what.slice(2).split(','));
+    if (mapKey.startsWith('p:')) {
+      const spec = parsePhys(mapKey.slice(2).split(','));
       label = `${spec.kinds.map((x) => capitalise(kindNoun(x).many)).join(', ')} · ${spec.places.length ? spec.places.map((p) => (world.index.continents[p] ? nm(world.index.continents[p]) : p)).join(', ') : L('mundo', 'world')}`;
     } else {
-      const ids = what.replace(/^[rct]:/, '').split('|')[0].split(',');
+      const ids = mapKey.replace(/^[rct]:/, '').split('|')[0].split(',');
       const names = ids.slice(0, 3).map((id) => {
         const c = world.byId.get(id.split('.')[0]);
         return c ? nm(c.n) : id;
       });
-      label = `${names.join(', ')}${ids.length > 3 ? L(` y ${ids.length - 3} más`, ` and ${ids.length - 3} more`) : ''}${what.startsWith('c:') ? ` (${L('países', 'countries')})` : what.startsWith('t:') ? ` (${L('ciudades', 'cities')})` : ''}`;
+      label = `${names.join(', ')}${ids.length > 3 ? L(` y ${ids.length - 3} más`, ` and ${ids.length - 3} more`) : ''}${mapKey.startsWith('c:') ? ` (${L('países', 'countries')})` : mapKey.startsWith('t:') ? ` (${L('ciudades', 'cities')})` : ''}`;
     }
+    const hits = (n: number) => L(`${n} ${n === 1 ? 'acierto' : 'aciertos'}`, `${n} right`);
+    const [game, value] =
+      kind === 'timed' || kind === 'lives'
+        ? [`${MODE_NAME[mode!] ?? ''} · ${formatName(kind).toLowerCase()}`, hits(v)]
+        : kind === 'regionle'
+          ? [MODE_NAME.regionle, L(`racha de ${v}`, `streak of ${v}`)]
+          : kind === 'blind'
+            ? [MODE_NAME.blind, L(`${nf(v)} km de error medio`, `mean error of ${nf(v)} km`)]
+            : [MODE_NAME.nameall, fmtTime(v)];
     return (
       <li key={k}>
-        <b>{MODE_NAME.nameall}</b> · {label}
-        <span>{fmtTime(v)}</span>
+        <b>{game}</b> · {label}
+        <span>{value}</span>
       </li>
     );
   };
@@ -432,7 +454,7 @@ export function Progress({ world }: { world: World }) {
           <dl className="tiles">
             <div>
               <dt>{L('Partidas', 'Games')}</dt>
-              <dd>{nf(sessions.length)}</dd>
+              <dd>{nf(totals.g)}</dd>
             </div>
             <div>
               <dt>{L('Preguntas', 'Questions')}</dt>
@@ -448,6 +470,7 @@ export function Progress({ world }: { world: World }) {
             </div>
           </dl>
 
+          <BadgeBoard world={world} />
           {Object.keys(stats).length > 0 && <KnowledgeMap world={world} />}
           {Object.keys(stats).length > 0 && <ReviewBlock />}
 
@@ -543,7 +566,7 @@ export function Progress({ world }: { world: World }) {
                       <tr key={s.t}>
                         <td>{when(s.t)}</td>
                         <td>{MODE_NAME[s.mode]}</td>
-                        <td>{s.note ? `${s.label} · ${s.note}` : s.label}</td>
+                        <td>{s.note === 'timed' || s.note === 'lives' ? `${s.label} · ${formatName(s.note).toLowerCase()}` : s.note ? `${s.label} · ${s.note}` : s.label}</td>
                         <td className="num">
                           {s.ok} / {s.total}
                         </td>
@@ -561,9 +584,9 @@ export function Progress({ world }: { world: World }) {
 
       <section className="block">
         <h2>{L('Copia de seguridad', 'Backup')}</h2>
-        <p className="tip-line">{L('Llévate tu progreso y tus selecciones guardadas a otro navegador, o empieza de cero.', 'Take your progress and saved selections to another browser, or start from scratch.')}</p>
+        <p className="tip-line">{L('Llévate tu progreso, tus selecciones guardadas y tus listas a otro navegador, o empieza de cero.', 'Take your progress, your saved selections and your lists to another browser, or start from scratch.')}</p>
         <div className="backup">
-          <button type="button" className="btn" onClick={exportData} disabled={empty && !favs.length}>
+          <button type="button" className="btn" onClick={exportData} disabled={empty && !favs.length && !lists.length}>
             <Download size={16} aria-hidden="true" />
             {L('Exportar', 'Export')}
           </button>

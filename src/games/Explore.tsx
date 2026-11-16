@@ -2,13 +2,14 @@
 import { Search } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { MapView, type MapHandle, type Paint } from '../components/MapView';
+import { SpeakButton } from '../components/Speak';
 import { WikiCard } from '../components/WikiCard';
 import { Flag, LinkPill, StudyLinks, Toggle, capitalise } from '../components/ui';
 import { L, capName, getLang, nm } from '../lib/i18n';
 import { divisionsLink } from '../lib/links';
 import { MODE_NAME } from '../lib/modes';
 import { useStore, isLearnt } from '../lib/store';
-import { fmtArea, fmtPop, key } from '../lib/text';
+import { fmtArea, fmtPop, key, nf } from '../lib/text';
 import type { Item } from '../lib/types';
 import { GameShell, showsCountry, type GameProps } from './common';
 
@@ -22,7 +23,9 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const several = showsCountry(deck);
   const fem = deck.noun.fem;
 
-  const sorted = useMemo(() => [...deck.items].sort((a, b) => a.name.localeCompare(b.name, getLang())), [deck]);
+  /** With a custom list, the map is about its pieces: the rest stays in the background. */
+  const listed = useMemo(() => (cfg.list && cfg.only ? new Set(cfg.only) : null), [cfg.list, cfg.only]);
+  const sorted = useMemo(() => deck.items.filter((it) => !listed || listed.has(it.id)).sort((a, b) => a.name.localeCompare(b.name, getLang())), [deck, listed]);
   const shown = useMemo(() => {
     const k = key(query);
     return k ? sorted.filter((it) => it.answers.some((a) => key(a).includes(k))) : sorted;
@@ -35,13 +38,14 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
 
   const paint = useMemo(() => {
     const p: Record<string, Paint> = {};
+    if (listed) for (const it of deck.items) if (!listed.has(it.id)) p[it.id] = 'dim';
     if (item) {
       for (const id of item.nb) p[id] = 'near';
       for (const id of item.sl) p[id] = 'near';
       p[item.id] = 'sel';
     }
     return p;
-  }, [item]);
+  }, [item, listed, deck]);
 
   const pinned = useMemo(() => (sel ? new Set([sel]) : undefined), [sel]);
   const learnt = (it: Item) => isLearnt(stats[`loc:${it.id}`]) && isLearnt(stats[`name:${it.id}`]);
@@ -54,9 +58,9 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
   return (
     <GameShell
       title={MODE_NAME.explore}
-      subtitle={deck.title}
+      subtitle={cfg.list ? `${deck.title} · ${cfg.list}` : deck.title}
       onExit={onExit}
-      stage={<MapView ref={map} deck={deck} paint={paint} pickable onPick={(id) => choose(id, false)} labels={names ? 'all' : undefined} pinned={pinned} tip={(id) => deck.byId.get(id)?.name} />}
+      stage={<MapView ref={map} deck={deck} paint={paint} pickable onPick={(id) => choose(id, false)} labels={names ? (listed ?? 'all') : undefined} pinned={pinned} tip={(id) => deck.byId.get(id)?.name} />}
       panel={
         <div className="q explore">
           {item ? (
@@ -66,7 +70,7 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
                 {item.parent ? ` · ${item.parent}` : ''}
               </p>
               <h2 className="q-name">
-                {item.kind === 'country' && <Flag code={item.country.fl} size="md" />} {item.name}
+                {item.kind === 'country' && <Flag code={item.country.fl} size="md" />} {item.name} <SpeakButton key={item.id} text={item.name} />
               </h2>
               {(other(item) || (item.lo && item.lo !== item.en && item.lo !== item.name)) && (
                 <p className="q-sub">
@@ -128,6 +132,12 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
                     <dd>{fmtArea(item.area)}</dd>
                   </div>
                 )}
+                {item.elev != null && (
+                  <div>
+                    <dt>{L('Altitud', 'Height')}</dt>
+                    <dd>{nf(item.elev)} m</dd>
+                  </div>
+                )}
               </dl>
               {(item.nb.length > 0 || item.sl.length > 0) && (
                 <>
@@ -167,7 +177,7 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
 
           <label className="search">
             <Search size={16} aria-hidden="true" />
-            <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={L(`Buscar entre ${deck.items.length} ${deck.noun.many}…`, `Search ${deck.items.length} ${deck.noun.many}…`)} aria-label={L('Buscar', 'Search')} />
+            <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={L(`Buscar entre ${sorted.length} ${deck.noun.many}…`, `Search ${sorted.length} ${deck.noun.many}…`)} aria-label={L('Buscar', 'Search')} />
           </label>
           <ul className="index">
             {shown.slice(0, 400).map((it) => (
@@ -185,7 +195,7 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
           </ul>
 
           <div className="q-actions">
-            <button type="button" className="btn btn-primary" onClick={() => onAgain({ mode: 'pin' })}>
+            <button type="button" className="btn btn-primary" onClick={() => onAgain({ mode: 'pin', only: cfg.only, list: cfg.list })}>
               {L('Ponerme a prueba', 'Test myself')}
             </button>
           </div>

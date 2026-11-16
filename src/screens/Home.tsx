@@ -1,5 +1,6 @@
 import { ArrowRight, BookOpen, CalendarClock, Filter, Infinity as InfinityIcon } from 'lucide-react';
 import { useMemo } from 'react';
+import { LevelChip } from '../components/Badges';
 import { ReviewCard } from '../components/ReviewCard';
 import { Flag } from '../components/ui';
 import { DailyCard } from '../daily/Daily';
@@ -50,8 +51,8 @@ export function Home({ world }: { world: World }) {
         </h1>
         <p className="lead">
           {L(
-            'Provincias, estados y regiones de casi todos los países, además de capitales, banderas, ciudades, ríos, mares y cifras. Elige qué quieres aprender, juega las veces que quieras y repasa lo que falles.',
-            'Provinces, states and regions of almost every country, plus capitals, flags, cities, rivers, seas and figures. Choose what you want to learn, play as often as you like and review what you miss.',
+            'Provincias, estados y regiones de casi todos los países, además de capitales, banderas, ciudades, ríos, mares, picos y cifras. Elige qué quieres aprender, juega las veces que quieras y repasa lo que falles.',
+            'Provinces, states and regions of almost every country, plus capitals, flags, cities, rivers, seas, peaks and figures. Choose what you want to learn, play as often as you like and review what you miss.',
           )}
         </p>
         <div className="hero-cta">
@@ -102,7 +103,7 @@ export function Home({ world }: { world: World }) {
               </ul>
               {id === 'physical' ? (
                 <span className="scard-flags scard-kinds" aria-hidden="true">
-                  {['river', 'lake', 'sea', 'range', 'desert', 'island'].map((k) => (
+                  {['river', 'lake', 'sea', 'range', 'peak', 'desert', 'island'].map((k) => (
                     <i key={k} className={`kdot kdot-${k}`} />
                   ))}
                 </span>
@@ -165,6 +166,7 @@ export function Home({ world }: { world: World }) {
         </article>
       </section>
 
+      {last && <LevelChip world={world} />}
       {last && (
         <p className="home-last">
           {L('Última partida', 'Last game')}: <b>{MODE_NAME[last.mode]}</b> · {last.label} · {L(`${last.ok} de ${last.total} a la primera`, `${last.ok} of ${last.total} first time`)}. <a href="#/progreso">{L('Ver tu progreso', 'See your progress')}</a>

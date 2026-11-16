@@ -2,7 +2,7 @@
  * The daily challenge: everything that is asked on a given day follows from the date alone, so it is
  * the same for everyone and any past day can be played again.
  */
-import { hashStr, mulberry32, sample, shuffle } from '../lib/text';
+import { hashStr, mulberry32, namesEcho, namesOverlap, sample, shuffle } from '../lib/text';
 import type { Country, Index, Item, LL } from '../lib/types';
 
 /** Day 0 of the rotation. */
@@ -153,12 +153,24 @@ function nearestTo(target: Country, pool: Country[], n: number): Country[] {
     .map((x) => x[1]);
 }
 
+/** Is the capital of a country in its name ("Ciudad de México", "Brasilia")? Judged in both languages: the day is the same for everyone. */
+export function capitalGivenAway(c: Country): boolean {
+  if (!c.cap) return false;
+  const same = (cap: string, name: string) => namesOverlap(cap, name) || namesEcho(cap, name);
+  return same(c.cap.es, c.n.es) || same(c.cap.en, c.n.en ?? c.n.es);
+}
+
 /** Test 5: three flags and two capitals, each with three plausible wrong options from the same part of the world. */
 export function quickQuestions(date: string, index: Index, avoid: string[]): QuickQuestion[] {
   const rng = rngFor(date, 'quick');
   const list = worldPool(index).filter((c) => c.cl === 'un' && c.fl && c.cap && !avoid.includes(c.id));
-  return sample(list, 5, rng).map((c, i) => {
-    const kind = i < 3 ? ('flag' as const) : ('capital' as const);
+  const picked = sample(list, 5, rng);
+  // The last two are asked by their capital, unless the capital is in the name of the country: among four
+  // options it would answer itself, so that country is asked by its flag and an earlier one takes its place.
+  const byCapital = new Set<number>();
+  for (let i = picked.length - 1; i >= 0 && byCapital.size < 2; i--) if (!capitalGivenAway(picked[i])) byCapital.add(i);
+  return picked.map((c, i) => {
+    const kind = byCapital.has(i) ? ('capital' as const) : ('flag' as const);
     const others = sample(nearestTo(c, list, 9), 3, rng);
     return { kind, id: c.id, options: shuffle([c, ...others], rng).map((o) => o.id) };
   });

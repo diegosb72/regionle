@@ -1,6 +1,6 @@
 // Builds the data of the cities and physical geography sections:
 //
-//   public/data/physical.json   rivers, lakes, seas, ranges, deserts and islands that can be asked
+//   public/data/physical.json   rivers, lakes, seas, ranges, peaks, deserts and islands that can be asked
 //   public/data/cities.json     cities of every country
 //   public/data/capitals.json   capitals of the regions of every country that has them marked
 //
@@ -352,7 +352,53 @@ for (const row of P.ISLANDS) addAreas('island', row, [regionByName], true);
 for (const row of P.LAKES) addAreas('lake', row, [lakeByName, marineByName], true);
 for (const row of P.RIVERS) addLines('river', row);
 
-const kinds = ['river', 'lake', 'sea', 'range', 'desert', 'island'];
+// Peaks and volcanoes are points: place, height and Wikidata id come from Natural Earth's elevation points.
+const peakByName = index(
+  load('ne_10m_geography_regions_elevation_points').filter((f) => f.properties.featurecla === 'mountain'),
+  'name',
+);
+function addPeak([es, en, cts, rank, sources, al = []]) {
+  const m = sources[0].match(/^(.*?)@(.+)$/);
+  const name = m ? m[1] : sources[0];
+  let found = peakByName.get(key(name)) ?? [];
+  if (m) {
+    const [w, s, e, n] = m[2].split(',').map(Number);
+    found = found.filter((f) => {
+      const [x, y] = f.geometry.coordinates;
+      return x >= w && x <= e && y >= s && y <= n;
+    });
+  }
+  if (found.length !== 1) return warn(`peak ${es}: ${found.length} mountains in Natural Earth are called "${sources[0]}"`);
+  const f = found[0];
+  const at = ll(f.geometry.coordinates);
+  const el = Math.round(f.properties.elevation);
+  if (!(el > 0)) return warn(`peak ${es}: no height`);
+  features.push({
+    i: idFor('peak', en),
+    k: 'peak',
+    n: { es, en },
+    al: uniq(al.filter((a) => key(a) !== key(es) && key(a) !== key(en))),
+    ct: cts.split(' '),
+    r: rank,
+    wd: f.properties.wikidataid || undefined,
+    el,
+    lp: at,
+    fp: [at],
+    points: 1,
+  });
+}
+for (const row of P.PEAKS) addPeak(row);
+// Two peaks too close together would be one dot on the map of a continent.
+{
+  const peaks = features.filter((f) => f.k === 'peak');
+  for (let i = 0; i < peaks.length; i++)
+    for (let j = i + 1; j < peaks.length; j++) {
+      const km = geoDistance(peaks[i].lp, peaks[j].lp) * R_KM;
+      if (km < 55) warn(`peaks ${peaks[i].n.es} and ${peaks[j].n.es} are ${Math.round(km)} km apart`);
+    }
+}
+
+const kinds = ['river', 'lake', 'sea', 'range', 'peak', 'desert', 'island'];
 say('Physical features');
 for (const k of kinds) {
   const list = features.filter((f) => f.k === k);
@@ -454,7 +500,9 @@ for (const pl of places) {
   if (P.CITY_DROP.has(`${p.NAME}|${p.ADM1NAME}`)) continue;
   // The country Natural Earth names is believed when the city is in it or at its door (Melilla falls just
   // outside the simplified outline of Spain); otherwise the map decides, as overseas territories are countries here.
-  const named = byA3.get(p.ADM0_A3);
+  const forced = P.CITY_COUNTRY[`${p.NAME}|${p.ADM0_A3}`];
+  const named = forced ? countries.find((c) => c.id === forced) : byA3.get(p.ADM0_A3);
+  if (forced && !named) warn(`cities: no country ${forced} for ${p.NAME}`);
   const home = named && shapeOf.get(named.id);
   let country = home && ((inBox(at, home.box) && geoContains(home.f, at)) || nearRings(at, home.rings) < 40) ? named : null;
   if (!country) {
@@ -536,52 +584,31 @@ for (const [id, all] of byCountry) {
 }
 
 // The capital of a country is called what the countries section calls it.
+const capNotes = [];
 for (const c of countries) {
   const list = byCountry.get(c.id);
   if (!list || !c.cap) continue;
   const caps = list.filter((x) => x.k >= 2).sort((a, b) => b.k - a.k);
   const names = [c.cap.es, c.cap.en].filter(Boolean).map(key);
   const called = (x) => names.includes(key(x.n.es)) || names.includes(key(x.n.en ?? '')) || x.al.some((a) => names.includes(key(a)));
-  let hit = caps.find(called);
-  if (!hit && c.cap.ll) hit = list.find((x) => Math.hypot(x.ll[0] - c.cap.ll[0], x.ll[1] - c.cap.ll[1]) < 0.3);
-  if (!hit) hit = list.find(called);
-  if (!hit) continue;
+  // By name first: among the capitals Natural Earth marks, then among every city (Cayenne is the capital
+  // of a region of France there). Only then by place, and only a marked capital or a city on the very spot:
+  // the nearest town is somebody else (Koror is not Ngerulmud, nor Pointe-à-Pitre Basse-Terre).
+  const kmTo = (x) => geoDistance(x.ll, c.cap.ll) * R_KM;
+  const nearestOf = (pool, max) => (c.cap.ll ? pool.filter((x) => kmTo(x) < max).sort((a, b) => kmTo(a) - kmTo(b))[0] : undefined);
+  let hit = caps.find(called) ?? list.find(called);
+  if (!hit) {
+    hit = nearestOf(caps, 35) ?? nearestOf(list, 6);
+    if (hit) capNotes.push(`${c.id}: «${c.cap.es}» given to ${hit.n.es} (k${hit.k}), ${Math.round(kmTo(hit))} km away`);
+  }
+  if (!hit) {
+    if (list.length) capNotes.push(`${c.id}: no city for «${c.cap.es}»`);
+    continue;
+  }
   if (key(hit.n.es) !== key(c.cap.es)) hit.al = uniq([hit.n.es, ...hit.al]).slice(0, 3);
   hit.n = c.cap.en && c.cap.en !== c.cap.es ? { es: c.cap.es, en: c.cap.en } : { es: c.cap.es };
   for (const x of list) if (x.k === 3 && x !== hit) x.k = 2;
   hit.k = 3;
-}
-
-// A capital that sits on a border can fall on the wrong side of a simplified outline (Viedma, across the
-// river from the province of Buenos Aires): when a region holds two and its neighbour none, it changes hands.
-let moved = 0;
-for (const c of countries) {
-  const region = regionOf(c.id);
-  const list = byCountry.get(c.id);
-  if (!region || !list) continue;
-  const units = region.fine.filter((u) => u.p.q !== 0);
-  const capsOf = (id) => list.filter((x) => x.u === id && x.k >= 1);
-  for (const u of units) {
-    const inside = capsOf(u.id);
-    if (inside.length < 2) continue;
-    for (const x of inside) {
-      if (capsOf(u.id).length < 2) break;
-      let best = null;
-      let bestKm = 25;
-      for (const v of units) {
-        if (v === u || capsOf(v.id).length || !inBox(x.at, v.box, 0.5)) continue;
-        const km = nearRings(x.at, v.rings);
-        if (km < bestKm) {
-          bestKm = km;
-          best = v;
-        }
-      }
-      if (best) {
-        x.u = best.id;
-        moved++;
-      }
-    }
-  }
 }
 
 // Two cities of one country with the same name: the smaller one says where it is.
@@ -599,11 +626,12 @@ for (const list of byCountry.values()) {
 // Capitals of regions: the level of each country whose units have, nearly all of them, one marked capital.
 const regionCaps = {};
 const capReport = [];
+const several = [];
 for (const c of countries) {
   const region = regionOf(c.id);
   const list = byCountry.get(c.id) ?? [];
   const manual = P.REGION_CAPITALS[c.id] ?? {};
-  if (!region) continue;
+  if (!region || P.REGION_CAPITALS_SKIP.has(c.id)) continue;
   for (const lv of c.lv) {
     const units =
       lv.k === 'f'
@@ -631,8 +659,11 @@ for (const c of countries) {
         if (!caps.length) caps = inside.filter((x) => x.k === 3);
         if (!caps.length) continue;
         withCap++;
+        // Several marked in one region: the biggest, and its names alone (the others are other cities).
         caps.sort((a, b) => b.p - a.p);
-        out[u.id] = uniq([...caps.map((x) => x.n.es), ...caps.flatMap((x) => [x.n.en, ...x.al])].filter(Boolean)).slice(0, 5);
+        const top = caps[0];
+        if (caps.length > 1) several.push(`${c.id}/${lv.k} ${u.id} ${u.p.n.es}: ${caps.map((x) => `${x.n.es} (${Math.round(x.p / 1000)}k)`).join(', ')}`);
+        out[u.id] = uniq([top.n.es, top.n.en, ...top.al].filter(Boolean)).slice(0, 5);
       }
       const coverage = withCap / units.length;
       const excess = marked / Math.max(1, withCap);
@@ -640,7 +671,56 @@ for (const c of countries) {
       capReport.push(`${c.id}/${lv.k}: ${withCap}/${units.length} units, ${marked} marked${ok ? '' : ' → skipped'}`);
       if (!ok) continue;
     }
+    // What Natural Earth marks wrongly, put right by hand; `null` takes a capital out.
+    for (const [id, names] of Object.entries(P.REGION_CAPITAL_FIXES[c.id]?.[lv.k] ?? {})) {
+      if (!units.some((u) => u.id === id)) warn(`capital fixes ${c.id}/${lv.k}: there is no unit ${id}`);
+      else if (names) out[id] = names;
+      else delete out[id];
+    }
     if (Object.keys(out).length >= 2) (regionCaps[c.id] ??= {})[lv.k] = out;
+  }
+}
+
+// The cities say the same as that table. Where the capitals of a country's regions are known, a city is
+// marked as one because the table names it, not because Natural Earth does: the mark comes off the former
+// seats and big towns (Kitakyushu, Onitsha, Niterói) and goes on the capitals it had missed (Lelystad).
+// The regions meant are the larger ones where a country has two levels: communities, not provinces.
+let capsMarked = 0;
+let capsUnmarked = 0;
+for (const c of countries) {
+  const list = byCountry.get(c.id);
+  const region = regionOf(c.id);
+  const lv = ['g1', 'g2', 'f'].find((k) => regionCaps[c.id]?.[k]);
+  if (!lv || !list || !region) continue;
+  const called = (x, keys) => keys.includes(key(x.n.es)) || keys.includes(key(x.n.en ?? '')) || x.al.some((a) => keys.includes(key(a)));
+  const real = new Set();
+  /** Fine units that belong to a region whose capital is known. */
+  const covered = new Set();
+  for (const [id, names] of Object.entries(regionCaps[c.id][lv])) {
+    const members = lv === 'f' ? [id] : (region.groups[lv]?.find((g) => g.id === id)?.p.m ?? []);
+    for (const m of members) covered.add(m);
+    const hits = list.filter((x) => called(x, names.map(key)));
+    const inside = hits.filter((x) => members.includes(x.u));
+    if (inside.length) {
+      // More than one where two cities share the role, and each has its name in the list.
+      for (const x of inside) real.add(x);
+      continue;
+    }
+    // Just across a simplified outline (Viedma, on the far bank from its province): the nearest namesake.
+    const rings = region.fine.filter((u) => members.includes(u.id)).flatMap((u) => u.rings);
+    const nearby = hits.map((x) => [nearRings(x.at, rings), x]).filter(([d]) => d < 40).sort((p, q) => p[0] - q[0])[0];
+    if (nearby) real.add(nearby[1]);
+  }
+  for (const x of list) {
+    if (real.has(x)) {
+      if (x.k < 1) {
+        x.k = 1;
+        capsMarked++;
+      }
+    } else if (x.k === 1 && covered.has(x.u)) {
+      x.k = 0;
+      capsUnmarked++;
+    }
   }
 }
 
@@ -673,10 +753,10 @@ const counts = Object.values(cityOut).map((l) => l.length);
 say(`  countries with ≥ 5 cities: ${counts.filter((n) => n >= 5).length} · ≥ 10: ${counts.filter((n) => n >= 10).length} · ≥ 25: ${counts.filter((n) => n >= 25).length}`);
 const levels = Object.values(regionCaps).reduce((n, o) => n + Object.keys(o).length, 0);
 const capUnits = Object.values(regionCaps).reduce((n, o) => n + Object.values(o).reduce((m, t) => m + Object.keys(t).length, 0), 0);
-say(`  ${moved} capitals moved across a border to the region that had none`);
 say(`  ${twice} places listed twice were merged · ${renamed} names that belonged to another city were put right`);
+say(`  capitals of regions among the cities: ${capsMarked} marked that Natural Earth had not, ${capsUnmarked} unmarked that are not one`);
 say(`  capitals of regions: ${Object.keys(regionCaps).length} countries, ${levels} levels, ${capUnits} regions · capitals.json ${(capitalsText.length / 1024).toFixed(0)} kB`);
 
 fs.mkdirSync(path.join(ROOT, '.cache'), { recursive: true });
-fs.writeFileSync(path.join(ROOT, '.cache/physical-report.txt'), [...report, '', 'Capitals of regions, level by level', ...capReport, '', `Warnings: ${warnings.length}`, ...warnings].join('\n'));
+fs.writeFileSync(path.join(ROOT, '.cache/physical-report.txt'), [...report, '', 'National capitals named by their place, not their name', ...capNotes, '', 'Capitals of regions, level by level', ...capReport, '', 'Regions with several marked capitals (the first is taken)', ...several, '', `Warnings: ${warnings.length}`, ...warnings].join('\n'));
 say(`${warnings.length} warnings · report in .cache/physical-report.txt`);

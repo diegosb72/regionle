@@ -196,6 +196,40 @@ export function distanceKm(a: LL, b: LL): number {
   return geoDistance(a, b) * 6371;
 }
 
+/** Roughly the longest distance between two of the points: the farthest from any one of them, and the farthest from that. */
+export function spanKm(points: LL[]): number {
+  if (points.length < 2) return 1;
+  const farthest = (from: LL) => points.reduce((best, p) => (distanceKm(from, p) > distanceKm(from, best) ? p : best), from);
+  const a = farthest(points[0]);
+  return distanceKm(a, farthest(a)) || 1;
+}
+
+/**
+ * How close counts as right and as nearly right when a place is put on the map blind, in kilometres. Both
+ * follow the size of the map: forty kilometres are a bad miss among the cities of Belgium and a
+ * bull's-eye among the capitals of the world.
+ */
+export function tolerances(points: LL[]): { ok: number; warn: number } {
+  const ok = Math.max(15, Math.min(500, spanKm(points) * 0.03));
+  return { ok: Math.round(ok), warn: Math.round(ok * 2.6) };
+}
+
+/** Nearest first: the plausible wrong options of a multiple choice, the pieces around a lesson. */
+export function nearest<T extends { id: string; lp: LL }>(target: { id: string; lp: LL }, pool: T[], n: number): T[] {
+  const [lon, lat] = target.lp;
+  const cos = Math.cos((lat * Math.PI) / 180);
+  return pool
+    .filter((p) => p.id !== target.id)
+    .map((p) => {
+      let dLon = Math.abs(p.lp[0] - lon);
+      if (dLon > 180) dLon = 360 - dLon;
+      return [Math.hypot(dLon * cos, p.lp[1] - lat), p] as const;
+    })
+    .sort((a, b) => a[0] - b[0])
+    .slice(0, n)
+    .map((x) => x[1]);
+}
+
 // ---------------------------------------------------------------------------
 // Graph
 // ---------------------------------------------------------------------------

@@ -170,7 +170,7 @@ export function RegionleTest({ deck, target, shape, step, onScore, onDone }: Tes
           <p className="q-note" role="status">
             {note ??
               (guesses.length
-                ? L(`Te quedan ${GUESSES - guesses.length} ${tries(GUESSES - guesses.length)}.`, `${GUESSES - guesses.length} ${tries(GUESSES - guesses.length)} left.`)
+                ? L(`${GUESSES - guesses.length === 1 ? 'Te queda' : 'Te quedan'} ${GUESSES - guesses.length} ${tries(GUESSES - guesses.length)}.`, `${GUESSES - guesses.length} ${tries(GUESSES - guesses.length)} left.`)
                 : L(`Tienes ${GUESSES} intentos. Cada fallo te dice a qué distancia y hacia dónde está.`, `You have ${GUESSES} tries. Each miss tells you how far away it is and in which direction.`))}
           </p>
         </>
@@ -279,6 +279,8 @@ export function PinFive({ deck, targets, step, onScore, onDone }: TestProps & { 
   const advance = () => {
     setNote(null);
     setMissed(0);
+    // Where the map went to show the last answer, it comes back: the next one may be at the other end.
+    map.current?.restore();
     if (at + 1 >= targets.length) setPhase('end');
     else {
       setAt(at + 1);
@@ -291,7 +293,7 @@ export function PinFive({ deck, targets, step, onScore, onDone }: TestProps & { 
     setFlash({ id: cur, kind: res === 'bad' ? 'bad' : 'ok', n: Date.now() });
     setNote(null);
     setPhase('shown');
-    if (res === 'bad') map.current?.focus([cur]);
+    if (res === 'bad') map.current?.focus([cur], { passing: true });
   };
 
   // A hit moves on by itself; a miss waits for the player to look at where it was.
@@ -479,7 +481,7 @@ export function WhichTest({ target, countries, continent, step, onScore, onDone 
               <p className="q-note" role="status">
                 {note ??
                   L(
-                    `Cada intento te dice si te pasas o te quedas corto. Te quedan ${GUESSES - guesses.length}${guesses.length < 3 ? '; al tercer fallo verás su superficie' : ''}.`,
+                    `Cada intento te dice si te pasas o te quedas corto. ${GUESSES - guesses.length === 1 ? 'Te queda' : 'Te quedan'} ${GUESSES - guesses.length}${guesses.length < 3 ? '; al tercer fallo verás su superficie' : ''}.`,
                     `Each try tells you whether you are over or under. ${GUESSES - guesses.length} left${guesses.length < 3 ? '; after three misses you will see its area' : ''}.`,
                   )}
               </p>

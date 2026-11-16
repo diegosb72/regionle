@@ -1,6 +1,7 @@
 import { Infinity as InfinityIcon, Moon, Sun, SunMoon } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Spinner } from './components/ui';
+import { BadgeWatcher } from './components/Badges';
+import { Spinner, Toggle } from './components/ui';
 import { Daily } from './daily/Daily';
 import { dayNumber, isDate } from './daily/spec';
 import { loadIndex, loadWorldGeo, type World } from './lib/data';
@@ -13,6 +14,7 @@ import { cx, today } from './lib/text';
 import type { Section } from './lib/types';
 import { Duel } from './screens/Duel';
 import { Home } from './screens/Home';
+import { ListLink } from './screens/ListLink';
 import { Play } from './screens/Play';
 import { Progress } from './screens/Progress';
 import { Setup } from './screens/Setup';
@@ -40,6 +42,8 @@ export function App() {
   const theme = useStore((s) => s.theme);
   const setTheme = useStore((s) => s.setTheme);
   const setLang = useStore((s) => s.setLang);
+  const cb = useStore((s) => s.cb);
+  const setCb = useStore((s) => s.setCb);
   const [world, setWorld] = useState<World | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
@@ -68,6 +72,12 @@ export function App() {
     return () => mq.removeEventListener('change', apply);
   }, [theme]);
 
+  // Colours that do not depend on telling red from green: the stylesheet does the rest.
+  useEffect(() => {
+    if (cb) document.documentElement.dataset.cb = '1';
+    else delete document.documentElement.dataset.cb;
+  }, [cb]);
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [route]);
@@ -80,6 +90,8 @@ export function App() {
   const dailyDate = isDate(asked) && dayNumber(asked) >= 0 && asked <= today() ? asked : today();
   // "#/duelo/<code>" is a game sent by someone else.
   const duel = route.startsWith('duelo/') ? route.slice(6) : null;
+  // "#/lista/<code>" is a custom list sent by someone else.
+  const listCode = route.startsWith('lista/') ? route.slice(6) : null;
   const ThemeIcon = THEME_ICON[theme];
 
   let page;
@@ -96,11 +108,18 @@ export function App() {
   else if (playing) page = <Play world={world} />;
   else if (isDaily) page = <Daily key={dailyDate} world={world} date={dailyDate} />;
   else if (duel != null) page = <Duel key={duel} code={duel} world={world} />;
+  else if (listCode != null) page = <ListLink key={listCode} code={listCode} world={world} />;
   else if (section) page = <Setup key={section} section={section} world={world} />;
   else if (route === 'progreso') page = <Progress world={world} />;
   else page = <Home world={world} />;
 
-  if ((playing || isDaily) && world && !error) return <div className="app app-play">{page}</div>;
+  if ((playing || isDaily) && world && !error)
+    return (
+      <div className="app app-play">
+        {page}
+        <BadgeWatcher world={world} />
+      </div>
+    );
 
   return (
     <div className="app">
@@ -143,6 +162,11 @@ export function App() {
       </main>
       <footer className="foot">
         <OfflineBar />
+        <div className="foot-prefs">
+          <Toggle checked={cb} onChange={setCb} hint={L('Azul, amarillo y rojo con tramas en lugar de verde, amarillo y rojo.', 'Blue, yellow and red with textures instead of green, yellow and red.')}>
+            {L('Colores para daltónicos', 'Colour-blind friendly colours')}
+          </Toggle>
+        </div>
         <p>
           {L('Inspirado en', 'Inspired by')}{' '}
           <a href="https://regionle.xyz" target="_blank" rel="noopener noreferrer">
@@ -166,6 +190,7 @@ export function App() {
         </p>
       </footer>
       <UpdateNotice />
+      {world && <BadgeWatcher world={world} />}
     </div>
   );
 }

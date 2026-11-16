@@ -77,6 +77,20 @@ describe('challenge by link', () => {
     expect(decodeChallenge(wire({ ...good, k: 'x' }))).toBeNull();
   });
 
+  it('plays a link from before the rules changed with the questions its sender had', () => {
+    const wire = (o: unknown) => Buffer.from(JSON.stringify(o)).toString('base64url');
+    // Links used to carry no version: capitals named after their place were still asked.
+    const old = decodeChallenge(wire({ s: 'regions', m: 'capital', c: 'ES', k: 9 }))!;
+    expect(old.legacy).toBe(true);
+    // A link made now is played by the rules of now…
+    const fresh = decodeChallenge(encodeChallenge(game({ mode: 'capital' })))!;
+    expect(fresh.legacy).toBeUndefined();
+    // …and an old challenge that is passed on stays as it was.
+    const passedOn = decodeChallenge(encodeChallenge(game({ mode: 'capital', challenge: { seed: 9, legacy: true } })))!;
+    expect(passedOn.legacy).toBe(true);
+    expect(passedOn.seed).toBe(9);
+  });
+
   it('ignores options and results that make no sense instead of trusting them', () => {
     const wire = (o: unknown) => Buffer.from(JSON.stringify(o)).toString('base64url');
     const back = decodeChallenge(wire({ s: 'cities', m: 'pin', c: 'ESFR', k: 3.9, o: ['shout', 'endless', 'smell', 'all', 9999], l: { ES: '<script>' }, f: '   ', r: [250, -5] }))!;

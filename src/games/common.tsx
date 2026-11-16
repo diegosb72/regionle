@@ -2,6 +2,7 @@
 import { ArrowLeft, Check, CircleAlert, Flame, RotateCcw, Settings2, Timer, X } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ReviewNext } from '../components/ReviewCard';
+import { SpeakButton } from '../components/Speak';
 import { WikiCard } from '../components/WikiCard';
 import { Flag, StudyLinks, capitalise } from '../components/ui';
 import { levelOf } from '../lib/data';
@@ -28,6 +29,8 @@ export function originOf(item: Item, cfg: GameConfig): string {
 export function showsCountry(deck: Deck | undefined): boolean {
   return !!deck && deck.countries.length > 1 && (deck.scope === 'regions' || deck.scope === 'cities');
 }
+
+export { nearest } from '../lib/geo';
 
 export interface GameProps {
   deck: Deck;
@@ -161,6 +164,12 @@ export function ItemFacts({ item }: { item: Item }) {
             {fmtArea(item.area)}
           </>
         )}
+        {item.elev != null && (
+          <>
+            <br />
+            {L(`${nf(item.elev)} m de altitud`, `${nf(item.elev)} m high`)}
+          </>
+        )}
       </p>
     );
   }
@@ -181,9 +190,13 @@ export function ItemFacts({ item }: { item: Item }) {
 
 const VERDICT_ICON = { ok: Check, warn: CircleAlert, bad: X } as const;
 
-/** `wiki` adds what Wikipedia says about the item: worth it when the answer was missed and there is time to read. */
-export function Verdict({ res, title, item, wiki, children }: { res: Res; title: ReactNode; item?: Item | null; wiki?: boolean; children?: ReactNode }) {
+/**
+ * `wiki` adds what Wikipedia says about the item: worth it when the answer was missed and there is time to read.
+ * `say` is the name the loudspeaker reads out, when it is not the name of the item (a capital).
+ */
+export function Verdict({ res, title, item, wiki, say, children }: { res: Res; title: ReactNode; item?: Item | null; wiki?: boolean; say?: string; children?: ReactNode }) {
   const Icon = VERDICT_ICON[res];
+  const aloud = say ?? item?.name;
   return (
     <div className={cx('verdict', `verdict-${res}`)} role="status" aria-live="polite">
       <div className="verdict-head">
@@ -191,6 +204,7 @@ export function Verdict({ res, title, item, wiki, children }: { res: Res; title:
           <Icon size={16} strokeWidth={3} aria-hidden="true" />
         </span>
         <span>{title}</span>
+        {aloud && <SpeakButton key={aloud} text={aloud} />}
       </div>
       {item && <ItemFacts item={item} />}
       {item && wiki && res !== 'ok' && <WikiCard item={item} />}
@@ -249,6 +263,8 @@ export function Results({
   onReview,
   onExit,
   againLabel = L('Otra vez', 'Again'),
+  again = true,
+  focus = true,
   children,
 }: {
   title: string;
@@ -264,6 +280,13 @@ export function Results({
   onReview?(ids: string[]): void;
   onExit(): void;
   againLabel?: string;
+  /** False when playing the same again makes no sense (nothing was left to ask). */
+  again?: boolean;
+  /**
+   * False when the game ends while the player is typing: the Enter that often follows the last name
+   * would land on the button and start another game before the result is seen.
+   */
+  focus?: boolean;
   children?: ReactNode;
 }) {
   const count = counts ?? { ok: 0, warn: 0, bad: 0 };
@@ -308,13 +331,20 @@ export function Results({
       </div>
       {review && <ReviewNext />}
       <div className="results-actions">
-        <button type="button" className={review ? 'btn' : 'btn btn-primary'} onClick={onAgain} autoFocus={!review}>
-          <RotateCcw size={16} aria-hidden="true" />
-          {againLabel}
-        </button>
+        {again && (
+          <button type="button" className={review ? 'btn' : 'btn btn-primary'} onClick={onAgain} autoFocus={focus && !review}>
+            <RotateCcw size={16} aria-hidden="true" />
+            {againLabel}
+          </button>
+        )}
         {onReview && weak.length > 0 && weak.length < rows.length && (
           <button type="button" className="btn" onClick={() => onReview(weak.map((r) => r.item.id))}>
-            {L(`Repasar ${nf(weak.length)} ${weak.length === 1 ? 'fallo' : 'fallos'}`, `Review ${nf(weak.length)} ${weak.length === 1 ? 'miss' : 'misses'}`)}
+            {/* The repeat takes the misses and the answers that needed help: the button says which it is. */}
+            {weak.length === count.bad || counts
+              ? L(`Repasar ${nf(weak.length)} ${weak.length === 1 ? 'fallo' : 'fallos'}`, `Review ${nf(weak.length)} ${weak.length === 1 ? 'miss' : 'misses'}`)
+              : weak.length === 1
+                ? L('Repasar la que no salió a la primera', 'Review the one not right first time')
+                : L(`Repasar las ${nf(weak.length)} que no salieron a la primera`, `Review the ${nf(weak.length)} not right first time`)}
           </button>
         )}
         <button type="button" className="btn btn-ghost" onClick={onExit}>
@@ -363,18 +393,3 @@ export function Results({
   );
 }
 
-/** Nearest items first: plausible wrong options for multiple choice. */
-export function nearest(target: Item, pool: Item[], n: number): Item[] {
-  const [lon, lat] = target.lp;
-  const cos = Math.cos((lat * Math.PI) / 180);
-  return pool
-    .filter((p) => p.id !== target.id)
-    .map((p) => {
-      let dLon = Math.abs(p.lp[0] - lon);
-      if (dLon > 180) dLon = 360 - dLon;
-      return [Math.hypot(dLon * cos, p.lp[1] - lat), p] as const;
-    })
-    .sort((a, b) => a[0] - b[0])
-    .slice(0, n)
-    .map((x) => x[1]);
-}

@@ -162,7 +162,7 @@ function HiLo({ countries, cfg, onExit }: PopProps) {
         } else {
           const st = useStore.getState();
           const prev = st.best[`hilo:${m.id}`] ?? 0;
-          const isNew = st.setBest(`hilo:${m.id}`, streak) && streak > 0;
+          const isNew = streak > 0 && st.setBest(`hilo:${m.id}`, streak);
           setRecord({ best: Math.max(prev, streak), isNew });
           save({ ok: streak, warn: 0, bad: 1 }, ms, L(`Racha de ${streak}`, `Streak of ${streak}`));
           setPhase('over');
@@ -646,7 +646,7 @@ function Which({ countries, cfg, onExit }: PopProps) {
         <>
           <AnswerInput label={L('País', 'Country')} placeholder={L('Escribe un país de tu selección…', 'Type a country from your selection…')} onSubmit={onSubmit} suggest={suggest} shake={shake} clear={clear} />
           <p className="q-note" role="status">
-            {note ?? L(`Cada intento te dice si te pasas o te quedas corto. Te quedan ${MAX_GUESSES - guesses.length}.`, `Each guess tells you whether you are too high or too low. ${MAX_GUESSES - guesses.length} left.`)}
+            {note ?? L(`Cada intento te dice si te pasas o te quedas corto. ${MAX_GUESSES - guesses.length === 1 ? 'Te queda' : 'Te quedan'} ${MAX_GUESSES - guesses.length}.`, `Each guess tells you whether you are too high or too low. ${MAX_GUESSES - guesses.length} left.`)}
           </p>
         </>
       )}

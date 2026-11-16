@@ -1,17 +1,23 @@
-/** Neighbours: one piece lights up and the player picks, on the map, every piece that shares a land border with it. */
-import { ArrowRight, Eye, Flag as FlagIcon, MapPin } from 'lucide-react';
+/**
+ * Neighbours: one piece is shown on a map without inner borders and the player types every piece that
+ * shares a land border with it. Nothing on the map gives the answer away: the neighbours are drawn as
+ * they are named.
+ */
+import { ArrowRight, Eye, Flag as FlagIcon, Keyboard, Lightbulb } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { AnswerInput, type Suggestion } from '../components/AnswerInput';
 import { MapView, type MapHandle, type Paint } from '../components/MapView';
 import { Flag } from '../components/ui';
 import { seedOf } from '../lib/challenge';
+import { loadIndex } from '../lib/data';
 import { L, nm } from '../lib/i18n';
 import { MODE_NAME } from '../lib/modes';
 import { useStore } from '../lib/store';
-import { mulberry32, shuffle } from '../lib/text';
-import type { Res } from '../lib/types';
+import { Matcher, hintMax, letterHint, mulberry32, shuffle } from '../lib/text';
+import type { Item, Res } from '../lib/types';
 import { GameShell, Hud, Results, Verdict, originOf, showsCountry, useElapsed, type GameProps, type ResultRow } from './common';
 
-/** Wrong picks allowed before the answer is shown. */
+/** Wrong names allowed before the answer is shown. */
 const MISSES = 3;
 
 export function NeighboursGame({ deck, cfg, onExit, onAgain }: GameProps) {
@@ -32,9 +38,17 @@ export function NeighboursGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const [note, setNote] = useState<string | null>(null);
   const [flash, setFlash] = useState<{ id: string; kind: 'bad' | 'ok'; n: number } | null>(null);
   const [stopped, setStopped] = useState(false);
+  const [shake, setShake] = useState(0);
+  const [clear, setClear] = useState(0);
+  /** The neighbour a hint is spelling out, and how many of its letters are shown. */
+  const [hint, setHint] = useState<{ id: string; shown: number } | null>(null);
+  const [helped, setHelped] = useState(false);
+  /** Countries of the world that are not on this map: named so that the player knows why they do not count. */
+  const [outside, setOutside] = useState<{ matcher: Matcher; names: Map<string, string> } | null>(null);
   const map = useRef<MapHandle>(null);
   const record = useStore((s) => s.record);
   const addSession = useStore((s) => s.addSession);
+  const matcher = useMemo(() => new Matcher(deck.items), [deck]);
 
   const ended = stopped || at >= order.length;
   const ms = useElapsed(!ended);
@@ -44,6 +58,22 @@ export function NeighboursGame({ deck, cfg, onExit, onAgain }: GameProps) {
   if (import.meta.env.DEV) (window as unknown as { __ask?: string }).__ask = item?.id;
   const fem = deck.noun.fem;
   const many = deck.noun.many;
+
+  useEffect(() => {
+    if (deck.scope !== 'countries') return;
+    let alive = true;
+    loadIndex().then(
+      ({ index }) => {
+        if (!alive) return;
+        const others = index.countries.filter((c) => c.cl !== 'other' && !deck.byId.has(c.id));
+        setOutside({ matcher: new Matcher(others.map((c) => ({ id: c.id, answers: [c.n.es, c.n.en ?? '', ...(c.al ?? [])] }))), names: new Map(others.map((c) => [c.id, nm(c.n)])) });
+      },
+      () => undefined,
+    );
+    return () => {
+      alive = false;
+    };
+  }, [deck]);
 
   // The map travels to each question. The zoom depends on the piece alone, so that the frame gives nothing away…
   useEffect(() => {
@@ -64,7 +94,7 @@ export function NeighboursGame({ deck, cfg, onExit, onAgain }: GameProps) {
       t: Date.now(),
       section: cfg.section,
       mode: cfg.mode,
-      label: deck.title,
+      label: cfg.list ? `${deck.title} · ${cfg.list}` : deck.title,
       total: list.length,
       ok: list.filter((r) => r === 'ok').length,
       warn: list.filter((r) => r === 'warn').length,
@@ -85,30 +115,58 @@ export function NeighboursGame({ deck, cfg, onExit, onAgain }: GameProps) {
     setBest((b) => Math.max(b, run));
   };
 
-  const onPick = (id: string) => {
-    if (!item || done || id === item.id) return;
-    const other = deck.byId.get(id);
-    if (!other || found.includes(id)) return;
-    if (item.nb.includes(id)) {
-      const list = [...found, id];
-      setFound(list);
-      setNote(null);
-      setFlash({ id, kind: 'ok', n: Date.now() });
-      if (list.length === item.nb.length) settle(misses === 0 ? 'ok' : 'warn');
+  const accept = (id: string) => {
+    if (!item) return;
+    const list = [...found, id];
+    setFound(list);
+    setNote(null);
+    setClear((n) => n + 1);
+    setFlash({ id, kind: 'ok', n: Date.now() });
+    if (hint?.id === id) setHint(null);
+    if (list.length === item.nb.length) settle(misses === 0 && !helped ? 'ok' : 'warn');
+  };
+
+  const missing = (it: Item) => it.nb.filter((id) => !found.includes(id));
+
+  /**
+   * Every name is sent with Enter and judged. Taking a neighbour as soon as its name is complete would
+   * answer "is this one a neighbour?" for free: the names that stay in the box are the ones that are not.
+   */
+  const onSubmit = (text: string) => {
+    if (!item || done) return;
+    const ids = matcher.find(text);
+    const hit = ids.find((id) => item.nb.includes(id) && !found.includes(id));
+    if (hit) return accept(hit);
+    setShake((n) => n + 1);
+    if (!ids.length) {
+      const far = outside?.matcher.find(text)[0];
+      setNote(
+        far
+          ? L(`${outside!.names.get(far)} no está en este mapa: solo cuentan ${fem ? 'las' : 'los'} ${many} elegidos.`, `${outside!.names.get(far)} is not on this map: only the chosen ${many} count.`)
+          : L('No coincide con nada de este mapa.', 'It matches nothing on this map.'),
+      );
       return;
     }
-    setFlash({ id, kind: 'bad', n: Date.now() });
-    if (misses + 1 >= MISSES) {
-      setMisses(misses + 1);
-      settle('bad');
-    } else {
-      setMisses(misses + 1);
-      setNote(
-        item.sl.includes(id)
-          ? L(`${other.name} está al otro lado del mar: solo cuentan las fronteras por tierra.`, `${other.name} lies across the sea: only land borders count.`)
-          : L(`${other.name} no limita con ${item.name}.`, `${other.name} does not border ${item.name}.`),
-      );
-    }
+    const other = deck.byId.get(ids[0])!;
+    if (other.id === item.id) return setNote(L(`${other.name} es ${fem ? 'la' : 'el'} que te preguntamos.`, `${other.name} is the one being asked.`));
+    if (found.includes(other.id)) return setNote(L(`${other.name}: ya ${fem ? 'la' : 'lo'} tienes.`, `${other.name}: you already have it.`));
+    // A short sea crossing is a fair guess: it is explained, not punished.
+    if (item.sl.includes(other.id)) return setNote(L(`${other.name} está al otro lado del mar: solo cuentan las fronteras por tierra.`, `${other.name} lies across the sea: only land borders count.`));
+    const n = misses + 1;
+    setMisses(n);
+    if (n >= MISSES) settle('bad');
+    else setNote(L(`${other.name} no limita con ${item.name}.`, `${other.name} does not border ${item.name}.`));
+  };
+
+  const giveHint = () => {
+    if (!item || done) return;
+    const left = missing(item);
+    if (!left.length) return;
+    setHelped(true);
+    setNote(null);
+    const id = hint && left.includes(hint.id) ? hint.id : left[Math.floor(Math.random() * left.length)];
+    const name = deck.byId.get(id)!.name;
+    setHint({ id, shown: Math.min(hintMax(name), hint?.id === id ? hint.shown + 1 : 1) });
   };
 
   const next = () => {
@@ -117,6 +175,9 @@ export function NeighboursGame({ deck, cfg, onExit, onAgain }: GameProps) {
     setMisses(0);
     setDone(null);
     setNote(null);
+    setHint(null);
+    setHelped(false);
+    setClear((n) => n + 1);
   };
 
   useEffect(() => {
@@ -145,8 +206,30 @@ export function NeighboursGame({ deck, cfg, onExit, onAgain }: GameProps) {
 
   const labels = useMemo(() => (ended ? ('all' as const) : new Set(done && item ? item.nb : found)), [ended, done, item, found]);
   const pinned = useMemo(() => (item ? new Set([item.id]) : undefined), [item]);
+  const suggest = useMemo(() => {
+    if (!opts.suggest) return undefined;
+    return (text: string): Suggestion[] =>
+      matcher
+        .suggest(text, 6)
+        .map((id) => deck.byId.get(id))
+        .filter((it): it is Item => !!it)
+        .map((it) => ({ id: it.id, label: it.name, sub: several ? nm(it.country.n) : undefined }));
+  }, [opts.suggest, matcher, deck, several]);
+
   const title = MODE_NAME.neighbours;
-  const stage = <MapView ref={map} deck={deck} paint={paint} pickable={!ended && !done} onPick={onPick} labels={labels} pinned={pinned} flash={flash} tip={(id) => (ended || done || found.includes(id) || id === item?.id ? deck.byId.get(id)?.name : null)} />;
+  const stage = (
+    <MapView
+      ref={map}
+      deck={deck}
+      paint={paint}
+      labels={labels}
+      pinned={pinned}
+      flash={flash}
+      // No inner borders while the question is open: seeing which pieces touch would answer it.
+      blind={!ended && !done}
+      tip={(id) => (ended || done || found.includes(id) || id === item?.id ? deck.byId.get(id)?.name : null)}
+    />
+  );
 
   if (ended) {
     const rows: ResultRow[] = Object.entries(results).map(([id, res]) => ({ item: deck.byId.get(id)!, res }));
@@ -165,7 +248,7 @@ export function NeighboursGame({ deck, cfg, onExit, onAgain }: GameProps) {
             rows={rows}
             ms={ms}
             stats={[{ label: L('Mejor racha', 'Best streak'), value: best }]}
-            onAgain={() => onAgain({ only: cfg.only })}
+            onAgain={() => onAgain({ only: cfg.only, list: cfg.list })}
             onReview={(ids) => onAgain({ only: ids })}
             onExit={onExit}
           />
@@ -175,7 +258,9 @@ export function NeighboursGame({ deck, cfg, onExit, onAgain }: GameProps) {
   }
 
   const total = item!.nb.length;
-  const missing = item!.nb.filter((id) => !found.includes(id)).map((id) => deck.byId.get(id)?.name ?? id);
+  const left = missing(item!).map((id) => deck.byId.get(id)?.name ?? id);
+  /** Neighbours that the map does not hold: the question is about the chosen countries only. */
+  const beyond = deck.scope === 'countries' && (item!.country.nb?.length ?? 0) > total;
   return (
     <GameShell
       title={title}
@@ -199,7 +284,7 @@ export function NeighboursGame({ deck, cfg, onExit, onAgain }: GameProps) {
             <strong>
               {found.length} / {total}
             </strong>
-            <span>{L(total === 1 ? 'vecino encontrado' : 'vecinos encontrados', total === 1 ? 'neighbour found' : 'neighbours found')}</span>
+            <span>{L(total === 1 ? 'vecino escrito' : 'vecinos escritos', total === 1 ? 'neighbour named' : 'neighbours named')}</span>
             <span className="nb-lives" aria-label={L(`Fallos: ${misses} de ${MISSES}`, `Misses: ${misses} of ${MISSES}`)}>
               {Array.from({ length: MISSES }, (_, i) => (
                 <i key={i} className={i < misses ? 'off' : undefined} />
@@ -207,14 +292,33 @@ export function NeighboursGame({ deck, cfg, onExit, onAgain }: GameProps) {
             </span>
           </div>
           {!done && (
-            <p className="q-how">
-              <MapPin size={15} aria-hidden="true" /> {L('Haz clic en cada vecino. Solo cuentan las fronteras por tierra; al tercer fallo se muestra la respuesta.', 'Click each neighbour. Only land borders count; the third miss shows the answer.')}
-            </p>
-          )}
-          {!done && note && (
-            <p className="q-note" role="status">
-              {note}
-            </p>
+            <>
+              <AnswerInput
+                label={L(`Nombre de ${fem ? 'una' : 'un'} ${deck.noun.one} vecin${fem ? 'a' : 'o'}`, `Name of a neighbouring ${deck.noun.one}`)}
+                placeholder={L('Escribe un vecino…', 'Type a neighbour…')}
+                onSubmit={onSubmit}
+                suggest={suggest}
+                shake={shake}
+                clear={clear}
+              />
+              {hint && <p className="q-letters">{letterHint(deck.byId.get(hint.id)!.name, hint.shown)}</p>}
+              <p className="q-note" role="status">
+                {note ?? (
+                  <>
+                    <Keyboard size={15} aria-hidden="true" />{' '}
+                    {L('Escríbelos uno a uno, en cualquier orden, y pulsa Intro tras cada uno. Solo cuentan las fronteras por tierra; al tercer fallo se muestra la respuesta.', 'Type them one by one, in any order, and press Enter after each. Only land borders count; the third miss shows the answer.')}
+                    {beyond ? ` ${L(`Solo cuentan los ${many} de este mapa.`, `Only the ${many} on this map count.`)}` : ''}
+                  </>
+                )}
+              </p>
+              {found.length > 0 && (
+                <ul className="found">
+                  {found.map((id) => (
+                    <li key={id}>{deck.byId.get(id)!.name}</li>
+                  ))}
+                </ul>
+              )}
+            </>
           )}
           {done && (
             <Verdict
@@ -223,19 +327,20 @@ export function NeighboursGame({ deck, cfg, onExit, onAgain }: GameProps) {
                 done === 'ok'
                   ? L('¡Todos, sin fallos!', 'All of them, no misses!')
                   : done === 'warn'
-                    ? L(`Todos, con ${misses} ${misses === 1 ? 'fallo' : 'fallos'}`, `All of them, with ${misses} ${misses === 1 ? 'miss' : 'misses'}`)
-                    : missing.length
-                      ? L(`Faltaban ${missing.length}`, `${missing.length} were missing`)
+                    ? misses
+                      ? L(`Todos, con ${misses} ${misses === 1 ? 'fallo' : 'fallos'}`, `All of them, with ${misses} ${misses === 1 ? 'miss' : 'misses'}`)
+                      : L('Todos, con pista', 'All of them, with a hint')
+                    : left.length
+                      ? L(`Faltaban ${left.length}`, `${left.length} were missing`)
                       : L('Demasiados fallos', 'Too many misses')
               }
               item={item}
               wiki={cfg.opts.wiki}
             >
-              {missing.length > 0 && (
-                <p className="q-how">
-                  {L('En naranja:', 'In orange:')} <b>{missing.join(', ')}</b>
-                </p>
-              )}
+              <p className="q-how">
+                {L('Limita con:', 'It borders:')} <b>{item!.nb.map((id) => deck.byId.get(id)?.name ?? id).join(', ')}</b>
+                {left.length > 0 && left.length < total ? ` · ${L('en naranja, los que faltaban', 'in orange, the ones that were missing')}` : ''}
+              </p>
             </Verdict>
           )}
           <div className="q-actions">
@@ -245,10 +350,16 @@ export function NeighboursGame({ deck, cfg, onExit, onAgain }: GameProps) {
                 <ArrowRight size={16} aria-hidden="true" />
               </button>
             ) : (
-              <button type="button" className="btn btn-sm" onClick={() => settle('bad')}>
-                <Eye size={15} aria-hidden="true" />
-                {L('Ver la respuesta', 'Show the answer')}
-              </button>
+              <>
+                <button type="button" className="btn btn-sm" onClick={giveHint}>
+                  <Lightbulb size={15} aria-hidden="true" />
+                  {hint ? L('Otra letra', 'Another letter') : L('Pista', 'Hint')}
+                </button>
+                <button type="button" className="btn btn-sm" onClick={() => settle('bad')}>
+                  <Eye size={15} aria-hidden="true" />
+                  {L('Ver la respuesta', 'Show the answer')}
+                </button>
+              </>
             )}
             <button type="button" className="btn btn-sm btn-ghost q-end" onClick={() => setStopped(true)}>
               <FlagIcon size={15} aria-hidden="true" />
