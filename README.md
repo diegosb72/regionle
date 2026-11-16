@@ -2,6 +2,8 @@
 
 Juego web de geografía para aprender las regiones, provincias y estados de los países del mundo, además de sus capitales, banderas y cifras. Está inspirado en [regionle.xyz](https://regionle.xyz) y le añade tres cosas: **partidas sin límite**, **filtros** para elegir qué estudiar y **enlaces para aprender** en cada respuesta.
 
+**Jugar: <https://diegosb72.github.io/regionle/>**
+
 Todo funciona en el navegador: no hay servidor, registro ni anuncios, y el progreso se guarda en `localStorage`.
 
 ## Qué incluye
@@ -32,6 +34,7 @@ npm run dev        # http://localhost:5173
 | --- | --- |
 | `npm run dev` | Servidor de desarrollo |
 | `npm run build` | Comprueba los tipos y genera `dist/` |
+| `npm run build:pages` | Lo mismo, pero en `docs/`, la carpeta que publica GitHub Pages |
 | `npm run preview` | Sirve `dist/` en el puerto 4173 |
 | `npm test` | Pruebas (Vitest), incluidas las comprobaciones de los datos generados |
 | `npm run typecheck` | Solo la comprobación de tipos |
@@ -39,6 +42,27 @@ npm run dev        # http://localhost:5173
 ### Publicación
 
 `npm run build` deja en `dist/` un sitio estático de unos 11 MB (la aplicación, los mapas y las banderas). Las rutas van en el `#` de la dirección y los recursos se piden con rutas relativas, así que sirve tal cual en cualquier alojamiento estático y en cualquier subcarpeta (GitHub Pages, Netlify, un directorio de un servidor propio…).
+
+#### GitHub Pages
+
+Lo que se publica es la carpeta `docs/` de la rama `main`, que contiene el juego ya compilado. Hay que activarlo una sola vez en GitHub:
+
+1. Abrir **Settings → Pages** en el repositorio.
+2. En **Build and deployment**, elegir **Source: Deploy from a branch**.
+3. En **Branch**, elegir `main` y la carpeta `/docs`, y pulsar **Save**.
+
+Al cabo de un minuto el juego estará en <https://diegosb72.github.io/regionle/>.
+
+Para publicar una versión nueva hay que recompilar esa carpeta y subirla:
+
+```bash
+npm run build:pages
+git add docs
+git commit -m "Publica la última versión"
+git push
+```
+
+El archivo `docs/.nojekyll` (se copia desde `public/`) hace que GitHub Pages sirva los archivos tal cual, sin pasarlos por Jekyll.
 
 ## Datos
 
@@ -67,6 +91,7 @@ npm run data:build   # genera public/data y el informe .cache/report.txt
 ```
 scripts/data/      Descarga y construcción de los datos
 public/data/       Datos generados que usa el juego
+docs/              El juego compilado que publica GitHub Pages (no se edita a mano)
 src/lib/           Tipos, carga de datos, geometría, texto, estado guardado, enlaces
 src/components/    Mapa (d3-geo + SVG), selector de países, campo de respuesta
 src/games/         Lógica y pantallas de cada modo
