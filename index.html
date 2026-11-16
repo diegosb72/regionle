@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="Regionle ∞: juego de geografía sin límites para aprender los países del mundo y sus regiones, provincias y estados." />
+    <meta name="theme-color" content="#f4efe6" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0e1a21" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f5c63'/%3E%3Cpath d='M14 40c6-14 10-4 16-12s8-14 20-10v24c-9 5-14-4-20 2s-10 6-16-4z' fill='%23f6e7c8'/%3E%3Ccircle cx='41' cy='27' r='5' fill='%23e2572b'/%3E%3C/svg%3E" />
+    <title>Regionle ∞ — Aprende las regiones del mundo</title>
+  </head>
+  <body>
+    <script>
+      // Set the theme before the first paint to avoid a flash.
+      try {
+        var t = (JSON.parse(localStorage.getItem('regionle:v1') || '{}').state || {}).theme || 'auto';
+        document.documentElement.dataset.theme = t === 'auto' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : t;
+      } catch (e) {}
+    </script>
+    <div id="root"></div>
+    <noscript>Regionle ∞ necesita JavaScript para funcionar.</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
