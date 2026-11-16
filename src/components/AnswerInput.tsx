@@ -1,4 +1,5 @@
 import { CornerDownLeft } from 'lucide-react';
+import { L } from '../lib/i18n';
 import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { cx } from '../lib/text';
 
@@ -132,7 +133,7 @@ export function AnswerInput({ placeholder, onSubmit, onType, suggest, disabled, 
           } else if (e.key === 'Escape') setOpen(false);
         }}
       />
-      <button type="button" className={cx('answer-send', pending && 'pending')} onClick={() => submit(text)} disabled={disabled || !text.trim()} aria-label="Enviar respuesta" title="Enviar (Intro)">
+      <button type="button" className={cx('answer-send', pending && 'pending')} onClick={() => submit(text)} disabled={disabled || !text.trim()} aria-label={L('Enviar respuesta', 'Send answer')} title={L('Enviar (Intro)', 'Send (Enter)')}>
         <CornerDownLeft size={18} />
       </button>
       {listed && place && (

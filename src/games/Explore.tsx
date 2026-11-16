@@ -2,23 +2,27 @@
 import { Search } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { MapView, type MapHandle, type Paint } from '../components/MapView';
+import { WikiCard } from '../components/WikiCard';
 import { Flag, LinkPill, StudyLinks, Toggle, capitalise } from '../components/ui';
+import { L, capName, getLang, nm } from '../lib/i18n';
 import { divisionsLink } from '../lib/links';
+import { MODE_NAME } from '../lib/modes';
 import { useStore, isLearnt } from '../lib/store';
 import { fmtArea, fmtPop, key } from '../lib/text';
 import type { Item } from '../lib/types';
-import { GameShell, type GameProps } from './common';
+import { GameShell, showsCountry, type GameProps } from './common';
 
-export function ExploreGame({ deck, onExit, onAgain }: GameProps) {
+export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const [sel, setSel] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [names, setNames] = useState(true);
   const map = useRef<MapHandle>(null);
   const stats = useStore((s) => s.stats);
   const item = sel ? deck.byId.get(sel) : null;
-  const several = deck.countries.length > 1 && deck.scope === 'regions';
+  const several = showsCountry(deck);
+  const fem = deck.noun.fem;
 
-  const sorted = useMemo(() => [...deck.items].sort((a, b) => a.name.localeCompare(b.name, 'es')), [deck]);
+  const sorted = useMemo(() => [...deck.items].sort((a, b) => a.name.localeCompare(b.name, getLang())), [deck]);
   const shown = useMemo(() => {
     const k = key(query);
     return k ? sorted.filter((it) => it.answers.some((a) => key(a).includes(k))) : sorted;
@@ -41,10 +45,15 @@ export function ExploreGame({ deck, onExit, onAgain }: GameProps) {
 
   const pinned = useMemo(() => (sel ? new Set([sel]) : undefined), [sel]);
   const learnt = (it: Item) => isLearnt(stats[`loc:${it.id}`]) && isLearnt(stats[`name:${it.id}`]);
+  /** The other name worth showing: the English one for a Spanish reader and the other way round. */
+  const other = (it: Item): string | null => {
+    const alt = getLang() === 'en' ? it.answers[0] : it.en;
+    return alt && alt !== it.name ? alt : null;
+  };
 
   return (
     <GameShell
-      title="Explorar"
+      title={MODE_NAME.explore}
       subtitle={deck.title}
       onExit={onExit}
       stage={<MapView ref={map} deck={deck} paint={paint} pickable onPick={(id) => choose(id, false)} labels={names ? 'all' : undefined} pinned={pinned} tip={(id) => deck.byId.get(id)?.name} />}
@@ -59,52 +68,84 @@ export function ExploreGame({ deck, onExit, onAgain }: GameProps) {
               <h2 className="q-name">
                 {item.kind === 'country' && <Flag code={item.country.fl} size="md" />} {item.name}
               </h2>
-              {item.en !== item.name && <p className="q-sub">En inglés: {item.en}{item.lo && item.lo !== item.en && item.lo !== item.name ? ` · nombre local: ${item.lo}` : ''}</p>}
+              {(other(item) || (item.lo && item.lo !== item.en && item.lo !== item.name)) && (
+                <p className="q-sub">
+                  {other(item) ? `${L('En inglés', 'In Spanish')}: ${other(item)}` : ''}
+                  {item.lo && item.lo !== item.en && item.lo !== item.name ? `${other(item) ? ' · ' : ''}${L('nombre local', 'local name')}: ${item.lo}` : ''}
+                </p>
+              )}
               <dl className="datalist">
-                {item.kind === 'unit' && (
+                {(item.kind === 'unit' || item.kind === 'city') && (
                   <div>
-                    <dt>País</dt>
+                    <dt>{L('País', 'Country')}</dt>
                     <dd>
-                      <Flag code={item.country.fl} size="sm" /> {item.country.n.es}
+                      <Flag code={item.country.fl} size="sm" /> {nm(item.country.n)}
                     </dd>
+                  </div>
+                )}
+                {item.kind === 'feature' && (
+                  <div>
+                    <dt>{L('Continente', 'Continent')}</dt>
+                    <dd>{nm(item.country.n)}</dd>
                   </div>
                 )}
                 {item.kind === 'country' && item.country.cap && (
                   <div>
-                    <dt>Capital</dt>
-                    <dd>{item.country.cap.es}</dd>
+                    <dt>{L('Capital', 'Capital')}</dt>
+                    <dd>{capName(item.country.cap)}</dd>
+                  </div>
+                )}
+                {item.kind === 'unit' && item.capital?.length ? (
+                  <div>
+                    <dt>{L('Capital', 'Capital')}</dt>
+                    <dd>{item.capital[0]}</dd>
+                  </div>
+                ) : null}
+                {item.kind === 'city' && (item.cap ?? 0) > 0 && (
+                  <div>
+                    <dt>{L('Es', 'It is')}</dt>
+                    <dd>{item.cap === 3 ? L('la capital del país', 'the national capital') : item.cap === 2 ? L('la segunda capital del país', 'the second national capital') : L('capital de región', 'a regional capital')}</dd>
                   </div>
                 )}
                 {item.kind === 'country' && item.country.pop != null && (
                   <div>
-                    <dt>Población</dt>
+                    <dt>{L('Población', 'Population')}</dt>
                     <dd>
                       {fmtPop(item.country.pop)}
                       {item.country.py ? ` (${item.country.py})` : ''}
                     </dd>
                   </div>
                 )}
-                <div>
-                  <dt>Superficie</dt>
-                  <dd>{fmtArea(item.area)}</dd>
-                </div>
+                {item.kind === 'city' && item.pop ? (
+                  <div>
+                    <dt>{L('Área urbana', 'Urban area')}</dt>
+                    <dd>{fmtPop(item.pop)}</dd>
+                  </div>
+                ) : null}
+                {item.area > 0 && (
+                  <div>
+                    <dt>{L('Superficie', 'Area')}</dt>
+                    <dd>{fmtArea(item.area)}</dd>
+                  </div>
+                )}
               </dl>
               {(item.nb.length > 0 || item.sl.length > 0) && (
                 <>
-                  <p className="label">Limita con</p>
+                  <p className="label">{L('Limita con', 'Borders')}</p>
                   <ul className="chips">
                     {[...item.nb, ...item.sl].map((id) => (
                       <li key={id}>
                         <button type="button" className="chip" onClick={() => choose(id)}>
                           {deck.byId.get(id)?.name}
-                          {item.sl.includes(id) && <small> por mar</small>}
+                          {item.sl.includes(id) && <small> {L('por mar', 'by sea')}</small>}
                         </button>
                       </li>
                     ))}
                   </ul>
                 </>
               )}
-              <p className="label">Para aprender más</p>
+              {cfg.opts.wiki && <WikiCard key={item.id} item={item} />}
+              <p className="label">{L('Para aprender más', 'To learn more')}</p>
               <StudyLinks item={item} />
               {deck.scope === 'regions' && (
                 <div className="links">
@@ -114,37 +155,38 @@ export function ExploreGame({ deck, onExit, onAgain }: GameProps) {
             </div>
           ) : (
             <div className="q-prompt">
-              <p className="kicker">Sin preguntas</p>
-              <h2 className="q-ask">Toca {deck.noun.fem ? 'una' : 'un'} {deck.noun.one} para ver su ficha</h2>
-              <p className="q-sub">Vecinos, datos y enlaces para estudiar. Cuando te suene el mapa, pasa a «Señalar».</p>
+              <p className="kicker">{L('Sin preguntas', 'No questions')}</p>
+              <h2 className="q-ask">{L(`Toca ${fem ? 'una' : 'un'} ${deck.noun.one} para ver su ficha`, `Tap a ${deck.noun.one} to see its card`)}</h2>
+              <p className="q-sub">{L(`Datos y enlaces para estudiar. Cuando te suene el mapa, pasa a «${MODE_NAME.pin}».`, `Facts and links to study. Once the map looks familiar, move on to “${MODE_NAME.pin}”.`)}</p>
             </div>
           )}
 
           <Toggle checked={names} onChange={setNames}>
-            Nombres en el mapa
+            {L('Nombres en el mapa', 'Names on the map')}
           </Toggle>
 
           <label className="search">
             <Search size={16} aria-hidden="true" />
-            <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Buscar entre ${deck.items.length} ${deck.noun.many}…`} aria-label="Buscar" />
+            <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={L(`Buscar entre ${deck.items.length} ${deck.noun.many}…`, `Search ${deck.items.length} ${deck.noun.many}…`)} aria-label={L('Buscar', 'Search')} />
           </label>
           <ul className="index">
             {shown.slice(0, 400).map((it) => (
               <li key={it.id}>
                 <button type="button" className={it.id === sel ? 'on' : undefined} onClick={() => choose(it.id)}>
                   {(it.kind === 'country' || several) && <Flag code={it.country.fl} size="sm" />}
+                  {it.kind === 'feature' && <i className={`kdot kdot-${it.cat}`} aria-hidden="true" />}
                   <span>{it.name}</span>
-                  {learnt(it) && <i className="learnt" title="Aprendida: la sitúas y la nombras" />}
+                  {learnt(it) && <i className="learnt" title={L('Aprendido: lo sitúas y lo nombras', 'Learnt: you can place it and name it')} />}
                 </button>
               </li>
             ))}
-            {shown.length > 400 && <li className="more">…y {shown.length - 400} más: afina la búsqueda.</li>}
-            {!shown.length && <li className="more">Nada coincide.</li>}
+            {shown.length > 400 && <li className="more">{L(`…y ${shown.length - 400} más: afina la búsqueda.`, `…and ${shown.length - 400} more: narrow the search.`)}</li>}
+            {!shown.length && <li className="more">{L('Nada coincide.', 'Nothing matches.')}</li>}
           </ul>
 
           <div className="q-actions">
             <button type="button" className="btn btn-primary" onClick={() => onAgain({ mode: 'pin' })}>
-              Ponerme a prueba
+              {L('Ponerme a prueba', 'Test myself')}
             </button>
           </div>
         </div>

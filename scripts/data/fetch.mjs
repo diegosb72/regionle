@@ -3,7 +3,7 @@
 //   npm run data:fetch
 //
 // Sources
-//   · Natural Earth 1:10m cultural vectors (public domain)
+//   · Natural Earth cultural and physical vectors, 1:10m and 1:50m (public domain)
 //       https://github.com/nvkelso/natural-earth-vector @ ca96624 (v5.1.2+)
 //   · World Bank total population (SP.POP.TOTL), as packaged by datasets/population (ODC-PDDL)
 //       https://github.com/datasets/population @ d4b1a4a
@@ -32,6 +32,12 @@ const FILES = [
   { ...NE, file: 'ne_10m_admin_0_map_units.geojson', sha: '003025bf947f0c083318dfdb86a69b8dd0678947' },
   { ...NE, file: 'ne_10m_admin_0_disputed_areas.geojson', sha: '20866d163d8e7557bb9808d286060229f79e2e42' },
   { ...NE, file: 'ne_10m_populated_places.geojson', sha: '376fb028c390a7a23213800ae4babaa6f534a0f3' },
+  // Physical geography (scripts/data/physical.mjs).
+  { ...NE, file: 'ne_10m_rivers_lake_centerlines.geojson', sha: '61a0d7137a6ff1113cc259525e7479c63d5fec86' },
+  { ...NE, file: 'ne_10m_lakes.geojson', sha: 'e48ec603e0943b62f8c81960fb990bb6bab4a4a8' },
+  { ...NE, file: 'ne_10m_geography_marine_polys.geojson', sha: 'bea6b3567d415123ca75123c2aa1619076bf2250' },
+  { ...NE, file: 'ne_10m_geography_regions_polys.geojson', sha: 'b0af6a56d56c7903c9aa40df5b01813bb4334c94' },
+  { ...NE, file: 'ne_50m_geography_marine_polys.geojson', sha: '530f9f9e07f0a9015e2075a8d0db480dc44a22b3' },
   { ...POP, file: 'population.csv', sha: '4a07ae0fbf5610d7bd2de9aea41f783ee1e0aea7' },
 ];
 

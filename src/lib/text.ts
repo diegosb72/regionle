@@ -1,4 +1,5 @@
 /** Text helpers: answer matching, number formatting and seeded randomness. */
+import { L, getLang } from './i18n';
 
 const FOLD: Record<string, string> = {
   ß: 'ss',
@@ -186,13 +187,14 @@ export class Matcher {
 // Numbers
 // ---------------------------------------------------------------------------
 
-const formatters = new Map<number, Intl.NumberFormat>();
-/** Spanish number with at most `digits` decimals. */
+const formatters = new Map<string, Intl.NumberFormat>();
+/** Number with at most `digits` decimals, written the way of the interface language ("1.417,5" · "1,417.5"). */
 export function nf(n: number, digits = 0): string {
-  let f = formatters.get(digits);
+  const lang = getLang();
+  let f = formatters.get(`${lang}${digits}`);
   if (!f) {
-    f = new Intl.NumberFormat('es-ES', { maximumFractionDigits: digits });
-    formatters.set(digits, f);
+    f = new Intl.NumberFormat(lang === 'en' ? 'en-GB' : 'es-ES', { maximumFractionDigits: digits });
+    formatters.set(`${lang}${digits}`, f);
   }
   return f.format(n);
 }
@@ -209,7 +211,7 @@ export function fmtBig(n: number): string {
   if (n >= 999_500) {
     const m = n / 1e6;
     const txt = nf(m, m >= 100 ? 0 : m >= 10 ? 1 : 2);
-    return `${txt} ${txt === '1' ? 'millón' : 'millones'}`;
+    return `${txt} ${L(txt === '1' ? 'millón' : 'millones', 'million')}`;
   }
   return nf(n >= 1000 ? sig(n, 3) : Math.round(n));
 }
@@ -220,16 +222,16 @@ export function fmtShort(n: number): string {
     const m = n / 1e6;
     return `${nf(m, m >= 100 ? 0 : m >= 10 ? 1 : 2)} M`;
   }
-  if (n >= 10_000) return `${nf(n / 1e3, n >= 100_000 ? 0 : 1)} mil`;
+  if (n >= 10_000) return `${nf(n / 1e3, n >= 100_000 ? 0 : 1)} ${L('mil', 'k')}`;
   return nf(Math.round(n));
 }
 
 export function fmtPop(n: number): string {
-  return `${fmtBig(n)} ${n >= 999_500 ? 'de habitantes' : 'habitantes'}`;
+  return `${fmtBig(n)} ${L(n >= 999_500 ? 'de habitantes' : 'habitantes', 'people')}`;
 }
 
 export function fmtArea(km2: number): string {
-  if (km2 >= 999_500) return `${fmtBig(km2)} de km²`;
+  if (km2 >= 999_500) return `${fmtBig(km2)} ${L('de km²', 'km²')}`;
   return `${nf(km2, km2 < 100 ? 2 : 0)} km²`;
 }
 
@@ -249,6 +251,8 @@ export function fmtTime(ms: number): string {
 export function parseNumber(text: string): number | null {
   let t = text.trim().replace(/[\s\u00a0\u202f']/g, '');
   if (!t || !/^[0-9.,]+$/.test(t)) return null;
+  // In English the two marks swap roles: read it as its mirror image.
+  if (getLang() === 'en') t = t.replace(/[.,]/g, (ch) => (ch === '.' ? ',' : '.'));
   const commas = (t.match(/,/g) || []).length;
   const points = (t.match(/\./g) || []).length;
   if (commas > 1 && points === 0) t = t.replace(/,/g, '');

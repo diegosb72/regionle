@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AnswerInput, type Suggestion } from '../components/AnswerInput';
 import { Flag, Seg } from '../components/ui';
 import { countryItem } from '../lib/data';
+import { L, getLang, nm } from '../lib/i18n';
+import { MODE_NAME } from '../lib/modes';
 import { useStore, type GameConfig } from '../lib/store';
 import { Matcher, cx, fmtArea, fmtPop, fmtShort, judgeAmount, nf, parseNumber, pick, sample, shuffle } from '../lib/text';
 import type { Country, Res } from '../lib/types';
@@ -28,37 +30,51 @@ interface Metric {
   defaultUnit: number;
 }
 
-const METRICS: Record<'pop' | 'area', Metric> = {
-  pop: {
-    id: 'pop',
-    of: (c) => c.pop ?? 0,
-    full: fmtPop,
-    short: (v) => fmtShort(v),
-    noun: 'población',
-    more: 'Más habitantes',
-    less: 'Menos habitantes',
-    units: [
-      { label: 'miles', factor: 1e3 },
-      { label: 'millones', factor: 1e6 },
-    ],
-    defaultUnit: 1e6,
-  },
-  area: {
-    id: 'area',
+function makeMetric(id: 'pop' | 'area'): Metric {
+  if (id === 'pop') {
+    return {
+      id,
+      of: (c) => c.pop ?? 0,
+      full: fmtPop,
+      short: (v) => fmtShort(v),
+      noun: L('población', 'population'),
+      more: L('Más habitantes', 'More people'),
+      less: L('Menos habitantes', 'Fewer people'),
+      units: [
+        { label: L('miles', 'thousand'), factor: 1e3 },
+        { label: L('millones', 'million'), factor: 1e6 },
+      ],
+      defaultUnit: 1e6,
+    };
+  }
+  return {
+    id,
     of: (c) => c.ar,
     full: fmtArea,
     short: (v) => `${fmtShort(v)} km²`,
-    noun: 'superficie',
-    more: 'Más grande',
-    less: 'Más pequeño',
+    noun: L('superficie', 'area'),
+    more: L('Más grande', 'Larger'),
+    less: L('Más pequeño', 'Smaller'),
     units: [
       { label: 'km²', factor: 1 },
-      { label: 'miles de km²', factor: 1e3 },
-      { label: 'millones de km²', factor: 1e6 },
+      { label: L('miles de km²', 'thousand km²'), factor: 1e3 },
+      { label: L('millones de km²', 'million km²'), factor: 1e6 },
     ],
     defaultUnit: 1e3,
-  },
-};
+  };
+}
+
+const metrics = new Map<string, Metric>();
+/** The figure the game is about, with its words in the interface language; the same object every time. */
+function metricOf(id: 'pop' | 'area'): Metric {
+  const k = `${getLang()}:${id}`;
+  let m = metrics.get(k);
+  if (!m) {
+    m = makeMetric(id);
+    metrics.set(k, m);
+  }
+  return m;
+}
 
 /** Number of questions: every country once, a fixed number, or no end. */
 function questionsOf(length: GameConfig['opts']['length'], available: number): number {
@@ -69,7 +85,7 @@ function Frame({ title, cfg, countries, onExit, hud, progress, children }: { tit
   return (
     <GameShell
       title={title}
-      subtitle={`${nf(countries.length)} países · ${METRICS[cfg.opts.metric].noun}`}
+      subtitle={`${nf(countries.length)} ${L('países', 'countries')} · ${metricOf(cfg.opts.metric).noun}`}
       onExit={onExit}
       hud={hud}
       progress={progress}
@@ -82,7 +98,7 @@ function CountryCard({ c, value, state, children }: { c: Country; value?: string
   return (
     <div className={cx('pcard', state)}>
       <Flag code={c.fl} size="xl" />
-      <h3>{c.n.es}</h3>
+      <h3>{nm(c.n)}</h3>
       {value != null && <p className="pcard-value">{value}</p>}
       {children}
     </div>
@@ -113,7 +129,7 @@ function challenger(list: Country[], m: Metric, current: Country, streak: number
 }
 
 function HiLo({ countries, cfg, onExit }: PopProps) {
-  const m = METRICS[cfg.opts.metric];
+  const m = metricOf(cfg.opts.metric);
   const [a, setA] = useState(() => pick(countries));
   const [b, setB] = useState(() => challenger(countries, m, a, 0, []));
   const [phase, setPhase] = useState<'ask' | 'show' | 'over'>('ask');
@@ -121,7 +137,7 @@ function HiLo({ countries, cfg, onExit }: PopProps) {
   const [log, setLog] = useState<{ a: Country; b: Country; ok: boolean }[]>([]);
   const [record, setRecord] = useState<{ best: number; isNew: boolean } | null>(null);
   const ms = useElapsed(phase !== 'over');
-  const save = useSession(cfg, `Mayor o menor · ${m.noun}`);
+  const save = useSession(cfg, `${MODE_NAME.hilo} · ${m.noun}`);
   const streak = log.filter((l) => l.ok).length;
   const right = guess != null && (m.of(b) === m.of(a) || (guess === 'more') === m.of(b) > m.of(a));
 
@@ -148,7 +164,7 @@ function HiLo({ countries, cfg, onExit }: PopProps) {
           const prev = st.best[`hilo:${m.id}`] ?? 0;
           const isNew = st.setBest(`hilo:${m.id}`, streak) && streak > 0;
           setRecord({ best: Math.max(prev, streak), isNew });
-          save({ ok: streak, warn: 0, bad: 1 }, ms, `Racha de ${streak}`);
+          save({ ok: streak, warn: 0, bad: 1 }, ms, L(`Racha de ${streak}`, `Streak of ${streak}`));
           setPhase('over');
         }
       },
@@ -180,34 +196,30 @@ function HiLo({ countries, cfg, onExit }: PopProps) {
   if (phase === 'over') {
     const miss = log[log.length - 1];
     return (
-      <Frame title="Mayor o menor" cfg={cfg} countries={countries} onExit={onExit} hud={<Hud ms={ms} />}>
+      <Frame title={MODE_NAME.hilo} cfg={cfg} countries={countries} onExit={onExit} hud={<Hud ms={ms} />}>
         <div className="results">
-          <p className="kicker">Fin de la racha</p>
+          <p className="kicker">{L('Fin de la racha', 'End of the streak')}</p>
           <h2 className="results-title">
-            {streak === 0 ? 'A la primera, no' : `${streak} ${streak === 1 ? 'acierto seguido' : 'aciertos seguidos'}`}
+            {streak === 0 ? L('A la primera, no', 'Not at the first go') : L(`${streak} ${streak === 1 ? 'acierto seguido' : 'aciertos seguidos'}`, `${streak} right in a row`)}
           </h2>
           <p className="results-note">
-            {record?.isNew ? '¡Nuevo récord! ' : record ? `Tu récord: ${record.best}. ` : ''}
-            {miss && (
-              <>
-                {miss.b.n.es} tiene {m.full(m.of(miss.b))}; {miss.a.n.es}, {m.full(m.of(miss.a))}.
-              </>
-            )}
+            {record?.isNew ? L('¡Nuevo récord! ', 'New record! ') : record ? L(`Tu récord: ${record.best}. `, `Your record: ${record.best}. `) : ''}
+            {miss && L(`${nm(miss.b.n)} tiene ${m.full(m.of(miss.b))}; ${nm(miss.a.n)}, ${m.full(m.of(miss.a))}.`, `${nm(miss.b.n)} has ${m.full(m.of(miss.b))}; ${nm(miss.a.n)}, ${m.full(m.of(miss.a))}.`)}
           </p>
           <div className="results-actions">
             <button type="button" className="btn btn-primary" onClick={again} autoFocus>
-              Otra racha
+              {L('Otra racha', 'Another streak')}
             </button>
             <button type="button" className="btn btn-ghost" onClick={onExit}>
-              Cambiar de juego
+              {L('Cambiar de juego', 'Change game')}
             </button>
           </div>
           <ol className="hl-log">
             {log.map((l, i) => (
               <li key={i} className={l.ok ? 'hit' : 'miss'}>
-                <Flag code={l.a.fl} size="sm" /> {l.a.n.es} <small>{m.short(m.of(l.a))}</small>
+                <Flag code={l.a.fl} size="sm" /> {nm(l.a.n)} <small>{m.short(m.of(l.a))}</small>
                 <span className="vs">{m.of(l.b) > m.of(l.a) ? '<' : '>'}</span>
-                <Flag code={l.b.fl} size="sm" /> {l.b.n.es} <small>{m.short(m.of(l.b))}</small>
+                <Flag code={l.b.fl} size="sm" /> {nm(l.b.n)} <small>{m.short(m.of(l.b))}</small>
               </li>
             ))}
           </ol>
@@ -217,14 +229,14 @@ function HiLo({ countries, cfg, onExit }: PopProps) {
   }
 
   return (
-    <Frame title="Mayor o menor" cfg={cfg} countries={countries} onExit={onExit} hud={<Hud ms={ms} streak={streak} progress={`Racha ${streak}`} />}>
-      <p className="kicker center">¿Más o menos {m.id === 'pop' ? 'habitantes' : 'superficie'}?</p>
+    <Frame title={MODE_NAME.hilo} cfg={cfg} countries={countries} onExit={onExit} hud={<Hud ms={ms} streak={streak} progress={`${L('Racha', 'Streak')} ${streak}`} />}>
+      <p className="kicker center">{m.id === 'pop' ? L('¿Más o menos habitantes?', 'More or fewer people?') : L('¿Más o menos superficie?', 'Larger or smaller?')}</p>
       <div className="hl">
         <CountryCard c={a} value={m.full(m.of(a))} />
         <div className="hl-vs" aria-hidden="true">
           vs
         </div>
-        <CountryCard c={b} value={phase === 'show' ? m.full(m.of(b)) : '¿ ?'} state={phase === 'show' ? (right ? 'right' : 'wrong') : undefined}>
+        <CountryCard c={b} value={phase === 'show' ? m.full(m.of(b)) : L('¿ ?', '?')} state={phase === 'show' ? (right ? 'right' : 'wrong') : undefined}>
           <div className="hl-buttons">
             <button type="button" className={cx('btn', guess === 'more' && 'picked')} disabled={phase !== 'ask'} onClick={() => answer('more')}>
               <ArrowUp size={16} aria-hidden="true" />
@@ -238,7 +250,10 @@ function HiLo({ countries, cfg, onExit }: PopProps) {
         </CountryCard>
       </div>
       <p className="hint-line">
-        ¿{b.n.es} tiene {m.id === 'pop' ? 'más o menos habitantes' : 'más o menos superficie'} que {a.n.es}? También con las flechas ↑ ↓ del teclado.
+        {m.id === 'pop'
+          ? L(`¿${nm(b.n)} tiene más o menos habitantes que ${nm(a.n)}?`, `Does ${nm(b.n)} have more or fewer people than ${nm(a.n)}?`)
+          : L(`¿${nm(b.n)} tiene más o menos superficie que ${nm(a.n)}?`, `Is ${nm(b.n)} larger or smaller than ${nm(a.n)}?`)}{' '}
+        {L('También con las flechas ↑ ↓ del teclado.', 'The ↑ ↓ arrow keys work too.')}
       </p>
     </Frame>
   );
@@ -249,7 +264,7 @@ function HiLo({ countries, cfg, onExit }: PopProps) {
 // ---------------------------------------------------------------------------
 
 function RankFive({ countries, cfg, onExit }: PopProps) {
-  const m = METRICS[cfg.opts.metric];
+  const m = metricOf(cfg.opts.metric);
   const size = Math.min(5, countries.length);
   const rounds = cfg.opts.length === 'endless' ? Infinity : cfg.opts.length === 'all' ? 10 : cfg.opts.length;
   const deal = () => sample(countries, size);
@@ -260,7 +275,7 @@ function RankFive({ countries, cfg, onExit }: PopProps) {
   const [points, setPoints] = useState(0);
   const round = count.ok + count.warn + count.bad;
   const ms = useElapsed(phase !== 'end');
-  const save = useSession(cfg, `Ordena cinco · ${m.noun}`);
+  const save = useSession(cfg, `${MODE_NAME.rank} · ${m.noun}`);
   const correct = useMemo(() => [...five].sort((x, y) => m.of(y) - m.of(x)), [five, m]);
 
   const toggle = (id: string) => {
@@ -284,19 +299,19 @@ function RankFive({ countries, cfg, onExit }: PopProps) {
   };
 
   const finish = () => {
-    save(count, ms, `${points} posiciones acertadas`);
+    save(count, ms, L(`${points} posiciones acertadas`, `${points} positions right`));
     setPhase('end');
   };
 
   if (phase === 'end') {
     return (
-      <Frame title="Ordena cinco" cfg={cfg} countries={countries} onExit={onExit} hud={<Hud ms={ms} />}>
+      <Frame title={MODE_NAME.rank} cfg={cfg} countries={countries} onExit={onExit} hud={<Hud ms={ms} />}>
         <Results
-          title={count.bad === 0 && count.warn === 0 && round > 0 ? '¡Todo en su sitio!' : 'Partida terminada'}
+          title={count.bad === 0 && count.warn === 0 && round > 0 ? L('¡Todo en su sitio!', 'Everything in its place!') : L('Partida terminada', 'Game over')}
           rows={[]}
           counts={count}
           ms={ms}
-          stats={[{ label: 'Posiciones', value: `${points} de ${round * size}` }]}
+          stats={[{ label: L('Posiciones', 'Positions'), value: `${points} ${L('de', 'of')} ${round * size}` }]}
           onAgain={() => {
             setCount({ ok: 0, warn: 0, bad: 0 });
             setPoints(0);
@@ -313,15 +328,15 @@ function RankFive({ countries, cfg, onExit }: PopProps) {
   const shown = phase === 'show' ? correct : five;
   return (
     <Frame
-      title="Ordena cinco"
+      title={MODE_NAME.rank}
       cfg={cfg}
       countries={countries}
       onExit={onExit}
       progress={Number.isFinite(rounds) ? round / rounds : undefined}
-      hud={<Hud ms={ms} progress={Number.isFinite(rounds) ? `${Math.min(round + (phase === 'ask' ? 1 : 0), rounds)} / ${rounds}` : `Ronda ${round + (phase === 'ask' ? 1 : 0)}`} />}
+      hud={<Hud ms={ms} progress={Number.isFinite(rounds) ? `${Math.min(round + (phase === 'ask' ? 1 : 0), rounds)} / ${rounds}` : `${L('Ronda', 'Round')} ${round + (phase === 'ask' ? 1 : 0)}`} />}
     >
-      <p className="kicker center">De mayor a menor {m.noun}</p>
-      <h2 className="q-ask center">{phase === 'ask' ? 'Toca los países en orden, empezando por el mayor' : 'Este es el orden correcto'}</h2>
+      <p className="kicker center">{L(`De mayor a menor ${m.noun}`, `From largest to smallest ${m.noun}`)}</p>
+      <h2 className="q-ask center">{phase === 'ask' ? L('Toca los países en orden, empezando por el mayor', 'Tap the countries in order, starting with the largest') : L('Este es el orden correcto', 'This is the right order')}</h2>
       <ol className={cx('rank', phase === 'show' && 'shown')}>
         {shown.map((c, i) => {
           const at = order.indexOf(c.id);
@@ -331,11 +346,11 @@ function RankFive({ countries, cfg, onExit }: PopProps) {
               <button type="button" className={cx('rank-card', at >= 0 && phase === 'ask' && 'picked', phase === 'show' && (hit ? 'right' : 'wrong'))} onClick={() => toggle(c.id)} disabled={phase !== 'ask'}>
                 <span className="rank-n">{phase === 'show' ? i + 1 : at >= 0 ? at + 1 : ''}</span>
                 <Flag code={c.fl} size="lg" />
-                <span className="rank-name">{c.n.es}</span>
+                <span className="rank-name">{nm(c.n)}</span>
                 {phase === 'show' && (
                   <span className="rank-value">
                     {m.short(m.of(c))}
-                    <small>{hit ? 'bien' : `pusiste ${at + 1}.º`}</small>
+                    <small>{hit ? L('bien', 'right') : L(`pusiste ${at + 1}.º`, `you put no. ${at + 1}`)}</small>
                   </span>
                 )}
               </button>
@@ -347,21 +362,21 @@ function RankFive({ countries, cfg, onExit }: PopProps) {
         {phase === 'ask' ? (
           <>
             <button type="button" className="btn btn-primary" disabled={order.length < size} onClick={check}>
-              Comprobar
+              {L('Comprobar', 'Check')}
             </button>
             <button type="button" className="btn btn-sm" disabled={!order.length} onClick={() => setOrder([])}>
-              Borrar orden
+              {L('Borrar orden', 'Clear order')}
             </button>
           </>
         ) : (
           <button type="button" className="btn btn-primary" onClick={next} autoFocus>
-            {round >= rounds ? 'Ver resultado' : 'Otros cinco'}
+            {round >= rounds ? L('Ver resultado', 'See the result') : L('Otros cinco', 'Another five')}
             <ArrowRight size={16} aria-hidden="true" />
           </button>
         )}
         <button type="button" className="btn btn-sm btn-ghost" onClick={finish}>
           <FlagIcon size={15} aria-hidden="true" />
-          Terminar
+          {L('Terminar', 'Finish')}
         </button>
       </div>
     </Frame>
@@ -375,11 +390,11 @@ function RankFive({ countries, cfg, onExit }: PopProps) {
 function magnitudeHint(v: number, m: Metric): string {
   const lo = Math.pow(10, Math.floor(Math.log10(v)));
   const step = v / lo < 2 ? [1, 2] : v / lo < 5 ? [2, 5] : [5, 10];
-  return `Entre ${m.short(lo * step[0])} y ${m.short(lo * step[1])}.`;
+  return L(`Entre ${m.short(lo * step[0])} y ${m.short(lo * step[1])}.`, `Between ${m.short(lo * step[0])} and ${m.short(lo * step[1])}.`);
 }
 
 function Exact({ countries, cfg, onExit }: PopProps) {
-  const m = METRICS[cfg.opts.metric];
+  const m = metricOf(cfg.opts.metric);
   const total = questionsOf(cfg.opts.length, countries.length);
   const [queue, setQueue] = useState(() => shuffle(countries));
   const [at, setAt] = useState(0);
@@ -390,7 +405,7 @@ function Exact({ countries, cfg, onExit }: PopProps) {
   const [rows, setRows] = useState<ResultRow[]>([]);
   const [ended, setEnded] = useState(false);
   const ms = useElapsed(!ended);
-  const save = useSession(cfg, `Cifra exacta · ${m.noun}`);
+  const save = useSession(cfg, `${MODE_NAME.exact} · ${m.noun}`);
   const c = queue[at % queue.length];
   const real = m.of(c);
   const parsed = parseNumber(text);
@@ -408,7 +423,7 @@ function Exact({ countries, cfg, onExit }: PopProps) {
     const j = judgeAmount(guess, real);
     const res: Res = j.res === 'ok' && hinted ? 'warn' : j.res;
     setShown({ res, guess, error: j.error });
-    setRows((r) => [...r, { item: countryItem(c), res, note: `${m.short(real)} · dijiste ${m.short(guess)}` }]);
+    setRows((r) => [...r, { item: countryItem(c), res, note: `${m.short(real)} · ${L('dijiste', 'you said')} ${m.short(guess)}` }]);
   };
 
   const next = () => {
@@ -422,10 +437,10 @@ function Exact({ countries, cfg, onExit }: PopProps) {
 
   if (ended) {
     return (
-      <Frame title="Cifra exacta" cfg={cfg} countries={countries} onExit={onExit} hud={<Hud ms={ms} />}>
+      <Frame title={MODE_NAME.exact} cfg={cfg} countries={countries} onExit={onExit} hud={<Hud ms={ms} />}>
         <Results
-          title="Partida terminada"
-          note="Acierto: a menos de un 10 % de la cifra real. Cerca: a menos de un 30 %."
+          title={L('Partida terminada', 'Game over')}
+          note={L('Acierto: a menos de un 10 % de la cifra real. Cerca: a menos de un 30 %.', 'Right: within 10% of the real figure. Close: within 30%.')}
           rows={rows}
           ms={ms}
           onAgain={() => {
@@ -446,14 +461,14 @@ function Exact({ countries, cfg, onExit }: PopProps) {
   const pct = shown ? Math.round(Math.abs(shown.error) * 100) : 0;
   return (
     <Frame
-      title="Cifra exacta"
+      title={MODE_NAME.exact}
       cfg={cfg}
       countries={countries}
       onExit={onExit}
       progress={Number.isFinite(total) ? rows.length / total : undefined}
       hud={<Hud ms={ms} progress={Number.isFinite(total) ? `${Math.min(rows.length + (shown ? 0 : 1), total)} / ${total}` : `${rows.length + (shown ? 0 : 1)}`} />}
     >
-      <p className="kicker center">{m.id === 'pop' ? '¿Cuántos habitantes tiene?' : '¿Qué superficie tiene?'}</p>
+      <p className="kicker center">{m.id === 'pop' ? L('¿Cuántos habitantes tiene?', 'How many people live there?') : L('¿Qué superficie tiene?', 'How large is it?')}</p>
       <CountryCard c={c} value={shown ? m.full(real) : undefined} state={shown ? (shown.res === 'bad' ? 'wrong' : 'right') : undefined} />
       {!shown ? (
         <form
@@ -470,28 +485,28 @@ function Exact({ countries, cfg, onExit }: PopProps) {
               autoFocus
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Cifra"
-              aria-label="Cifra"
+              placeholder={L('Cifra', 'Figure')}
+              aria-label={L('Cifra', 'Figure')}
               autoComplete="off"
               key={c.id}
             />
-            <Seg<number> small label="Unidad" value={unit} onChange={setUnit} options={m.units.map((u) => ({ value: u.factor, label: u.label }))} />
+            <Seg<number> small label={L('Unidad', 'Unit')} value={unit} onChange={setUnit} options={m.units.map((u) => ({ value: u.factor, label: u.label }))} />
           </div>
           <p className="q-note" role="status">
-            {text && guess == null ? 'Escribe solo la cifra, por ejemplo 47,5.' : guess != null ? `= ${m.full(guess)}` : hinted ? magnitudeHint(real, m) : 'Usa la coma para los decimales.'}
+            {text && guess == null ? L('Escribe solo la cifra, por ejemplo 47,5.', 'Type just the figure, for example 47.5.') : guess != null ? `= ${m.full(guess)}` : hinted ? magnitudeHint(real, m) : L('Usa la coma para los decimales.', 'Use a point for decimals.')}
             {hinted && guess != null ? ` · ${magnitudeHint(real, m)}` : ''}
           </p>
           <div className="q-actions center">
             <button type="submit" className="btn btn-primary" disabled={guess == null || guess <= 0}>
-              Comprobar
+              {L('Comprobar', 'Check')}
             </button>
             <button type="button" className="btn btn-sm" onClick={() => setHinted(true)} disabled={hinted}>
               <Lightbulb size={15} aria-hidden="true" />
-              Pista
+              {L('Pista', 'Hint')}
             </button>
             <button type="button" className="btn btn-sm btn-ghost" onClick={() => finish()}>
               <FlagIcon size={15} aria-hidden="true" />
-              Terminar
+              {L('Terminar', 'Finish')}
             </button>
           </div>
         </form>
@@ -502,20 +517,15 @@ function Exact({ countries, cfg, onExit }: PopProps) {
             item={countryItem(c)}
             title={
               shown.res === 'bad' ? (
-                <>
-                  Dijiste {m.short(shown.guess)}: te has quedado {shown.error < 0 ? 'corto' : 'largo'} un {nf(pct)} %
-                </>
+                L(`Dijiste ${m.short(shown.guess)}: te has quedado ${shown.error < 0 ? 'corto' : 'largo'} un ${nf(pct)} %`, `You said ${m.short(shown.guess)}: ${nf(pct)}% too ${shown.error < 0 ? 'low' : 'high'}`)
               ) : (
-                <>
-                  {shown.res === 'ok' ? '¡Muy cerca!' : 'Cerca.'} Dijiste {m.short(shown.guess)} ({shown.error < 0 ? '-' : '+'}
-                  {nf(pct)} %)
-                </>
+                `${shown.res === 'ok' ? L('¡Muy cerca!', 'Very close!') : L('Cerca.', 'Close.')} ${L('Dijiste', 'You said')} ${m.short(shown.guess)} (${shown.error < 0 ? '-' : '+'}${nf(pct)} %)`
               )
             }
           />
           <div className="q-actions center">
             <button type="button" className="btn btn-primary" onClick={next} autoFocus>
-              {rows.length >= total ? 'Ver resultado' : 'Siguiente'}
+              {rows.length >= total ? L('Ver resultado', 'See the result') : L('Siguiente', 'Next')}
               <ArrowRight size={16} aria-hidden="true" />
             </button>
           </div>
@@ -532,7 +542,7 @@ function Exact({ countries, cfg, onExit }: PopProps) {
 const MAX_GUESSES = 6;
 
 function Which({ countries, cfg, onExit }: PopProps) {
-  const m = METRICS[cfg.opts.metric];
+  const m = metricOf(cfg.opts.metric);
   const total = questionsOf(cfg.opts.length, countries.length);
   const matcher = useMemo(() => new Matcher(countries.map((c) => ({ id: c.id, answers: [c.n.es, c.n.en ?? '', ...(c.al ?? [])] }))), [countries]);
   const byId = useMemo(() => new Map(countries.map((c) => [c.id, c])), [countries]);
@@ -546,14 +556,14 @@ function Which({ countries, cfg, onExit }: PopProps) {
   const [shake, setShake] = useState(0);
   const [clear, setClear] = useState(0);
   const ms = useElapsed(!ended);
-  const save = useSession(cfg, `¿Qué país? · ${m.noun}`);
+  const save = useSession(cfg, `${MODE_NAME.which} · ${m.noun}`);
   const c = queue[at % queue.length];
   const real = m.of(c);
 
   const settle = (res: Res, n: number) => {
     setDone(res);
     setNote(null);
-    setRows((r) => [...r, { item: countryItem(c), res, note: res === 'bad' ? m.short(real) : `${m.short(real)} · ${n} ${n === 1 ? 'intento' : 'intentos'}` }]);
+    setRows((r) => [...r, { item: countryItem(c), res, note: res === 'bad' ? m.short(real) : `${m.short(real)} · ${n} ${L(n === 1 ? 'intento' : 'intentos', n === 1 ? 'guess' : 'guesses')}` }]);
   };
 
   const onSubmit = (text: string) => {
@@ -562,12 +572,12 @@ function Which({ countries, cfg, onExit }: PopProps) {
     const g = id ? byId.get(id) : undefined;
     if (!g) {
       setShake((n) => n + 1);
-      setNote('Ese país no está en tu selección.');
+      setNote(L('Ese país no está en tu selección.', 'That country is not in your selection.'));
       return;
     }
     if (guesses.some((x) => x.id === g.id)) {
       setShake((n) => n + 1);
-      setNote(`${g.n.es} ya lo has probado.`);
+      setNote(L(`${nm(g.n)} ya lo has probado.`, `You have already tried ${nm(g.n)}.`));
       return;
     }
     const list = [...guesses, g];
@@ -598,13 +608,13 @@ function Which({ countries, cfg, onExit }: PopProps) {
     matcher
       .suggest(text, 6)
       .map((id) => byId.get(id)!)
-      .map((x) => ({ id: x.id, label: x.n.es, icon: <Flag code={x.fl} size="sm" /> }));
+      .map((x) => ({ id: x.id, label: nm(x.n), icon: <Flag code={x.fl} size="sm" /> }));
 
   if (ended) {
     return (
-      <Frame title="¿Qué país?" cfg={cfg} countries={countries} onExit={onExit} hud={<Hud ms={ms} />}>
+      <Frame title={MODE_NAME.which} cfg={cfg} countries={countries} onExit={onExit} hud={<Hud ms={ms} />}>
         <Results
-          title="Partida terminada"
+          title={L('Partida terminada', 'Game over')}
           rows={rows}
           ms={ms}
           onAgain={() => {
@@ -623,20 +633,20 @@ function Which({ countries, cfg, onExit }: PopProps) {
 
   return (
     <Frame
-      title="¿Qué país?"
+      title={MODE_NAME.which}
       cfg={cfg}
       countries={countries}
       onExit={onExit}
       progress={Number.isFinite(total) ? rows.length / total : undefined}
       hud={<Hud ms={ms} progress={Number.isFinite(total) ? `${Math.min(rows.length + (done ? 0 : 1), total)} / ${total}` : `${rows.length + (done ? 0 : 1)}`} />}
     >
-      <p className="kicker center">{m.id === 'pop' ? '¿Qué país tiene esta población?' : '¿Qué país tiene esta superficie?'}</p>
+      <p className="kicker center">{m.id === 'pop' ? L('¿Qué país tiene esta población?', 'Which country has this population?') : L('¿Qué país tiene esta superficie?', 'Which country has this area?')}</p>
       <p className="bigfig">{m.full(real)}</p>
       {!done && (
         <>
-          <AnswerInput label="País" placeholder="Escribe un país de tu selección…" onSubmit={onSubmit} suggest={suggest} shake={shake} clear={clear} />
+          <AnswerInput label={L('País', 'Country')} placeholder={L('Escribe un país de tu selección…', 'Type a country from your selection…')} onSubmit={onSubmit} suggest={suggest} shake={shake} clear={clear} />
           <p className="q-note" role="status">
-            {note ?? `Cada intento te dice si te pasas o te quedas corto. Te quedan ${MAX_GUESSES - guesses.length}.`}
+            {note ?? L(`Cada intento te dice si te pasas o te quedas corto. Te quedan ${MAX_GUESSES - guesses.length}.`, `Each guess tells you whether you are too high or too low. ${MAX_GUESSES - guesses.length} left.`)}
           </p>
         </>
       )}
@@ -648,17 +658,17 @@ function Which({ countries, cfg, onExit }: PopProps) {
             return (
               <li key={g.id} className={hit ? 'hit' : undefined}>
                 <Flag code={g.fl} size="sm" />
-                <b>{g.n.es}</b>
+                <b>{nm(g.n)}</b>
                 <span>{m.short(v)}</span>
                 {hit ? (
-                  <Check size={16} aria-label="correcto" />
+                  <Check size={16} aria-label={L('correcto', 'correct')} />
                 ) : v > real ? (
                   <em>
-                    <ArrowDown size={14} aria-hidden="true" /> busca uno {m.id === 'pop' ? 'menos poblado' : 'más pequeño'}
+                    <ArrowDown size={14} aria-hidden="true" /> {m.id === 'pop' ? L('busca uno menos poblado', 'look for a less populous one') : L('busca uno más pequeño', 'look for a smaller one')}
                   </em>
                 ) : (
                   <em>
-                    <ArrowUp size={14} aria-hidden="true" /> busca uno {m.id === 'pop' ? 'más poblado' : 'más grande'}
+                    <ArrowUp size={14} aria-hidden="true" /> {m.id === 'pop' ? L('busca uno más poblado', 'look for a more populous one') : L('busca uno más grande', 'look for a larger one')}
                   </em>
                 )}
               </li>
@@ -667,23 +677,23 @@ function Which({ countries, cfg, onExit }: PopProps) {
         </ul>
       )}
       {done && (
-        <Verdict res={done} item={countryItem(c)} title={done === 'bad' ? <>Era <b>{c.n.es}</b></> : done === 'ok' ? <>¡A la primera! <b>{c.n.es}</b></> : <>Correcto: <b>{c.n.es}</b></>} />
+        <Verdict res={done} item={countryItem(c)} title={<>{done === 'bad' ? L('Era', 'It was') : done === 'ok' ? L('¡A la primera!', 'First time!') : L('Correcto:', 'Correct:')} <b>{nm(c.n)}</b></>} />
       )}
       <div className="q-actions center">
         {done ? (
           <button type="button" className="btn btn-primary" onClick={next} autoFocus>
-            {rows.length >= total ? 'Ver resultado' : 'Siguiente'}
+            {rows.length >= total ? L('Ver resultado', 'See the result') : L('Siguiente', 'Next')}
             <ArrowRight size={16} aria-hidden="true" />
           </button>
         ) : (
           <button type="button" className="btn btn-sm" onClick={() => settle('bad', guesses.length)}>
             <X size={15} aria-hidden="true" />
-            No lo sé
+            {L('No lo sé', "I don't know")}
           </button>
         )}
         <button type="button" className="btn btn-sm btn-ghost" onClick={() => finish()}>
           <FlagIcon size={15} aria-hidden="true" />
-          Terminar
+          {L('Terminar', 'Finish')}
         </button>
       </div>
     </Frame>

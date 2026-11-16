@@ -4,10 +4,12 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnswerInput } from '../components/AnswerInput';
 import { MapView, type MapHandle, type Paint } from '../components/MapView';
 import { Flag } from '../components/ui';
+import { L, nm } from '../lib/i18n';
+import { MODE_NAME } from '../lib/modes';
 import { useStore } from '../lib/store';
 import { Matcher, fmtTime, nf, pick } from '../lib/text';
 import type { Res } from '../lib/types';
-import { GameShell, Hud, Results, useElapsed, type GameProps, type ResultRow } from './common';
+import { GameShell, Hud, Results, originOf, useElapsed, type GameProps, type ResultRow } from './common';
 
 export function NameAllGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const matcher = useMemo(() => new Matcher(deck.items), [deck]);
@@ -27,6 +29,8 @@ export function NameAllGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const ms = useElapsed(!done);
   const foundSet = useMemo(() => new Set(found), [found]);
   const store = useStore;
+  const fem = deck.noun.fem;
+  const title = MODE_NAME.nameall;
 
   const accept = (ids: string[]) => {
     const fresh = ids.filter((id) => !foundSet.has(id));
@@ -64,7 +68,7 @@ export function NameAllGame({ deck, cfg, onExit, onAgain }: GameProps) {
     const ids = matcher.find(text);
     if (accept(ids)) return;
     setShake((n) => n + 1);
-    setNote(ids.length ? `${deck.byId.get(ids[0])!.name}: ya ${deck.noun.fem ? 'la' : 'lo'} tienes.` : 'No coincide con nada de este mapa.');
+    setNote(ids.length ? L(`${deck.byId.get(ids[0])!.name}: ya ${fem ? 'la' : 'lo'} tienes.`, `${deck.byId.get(ids[0])!.name}: you already have it.`) : L('No coincide con nada de este mapa.', 'It matches nothing on this map.'));
   };
 
   const hint = () => {
@@ -78,15 +82,17 @@ export function NameAllGame({ deck, cfg, onExit, onAgain }: GameProps) {
   // Save the session once it ends.
   useEffect(() => {
     if (!done) return;
+    map.current?.reset();
+    // Giving up before writing a single name says nothing about what the player knows.
+    if (!found.length) return;
     const st = store.getState();
     const helpedSet = new Set(helped);
-    for (const it of deck.items) st.record('name', it.id, foundSet.has(it.id) ? (helpedSet.has(it.id) ? 'warn' : 'ok') : 'bad');
+    for (const it of deck.items) st.record('name', it.id, foundSet.has(it.id) ? (helpedSet.has(it.id) ? 'warn' : 'ok') : 'bad', originOf(it, cfg));
     st.addSession({ t: Date.now(), section: cfg.section, mode: cfg.mode, label: deck.title, total, ok: found.length - helped.length, warn: helped.length, bad: total - found.length, ms });
     if (found.length === total) {
       const prev = st.best[`nameall:${deck.key}`];
       setRecord(st.setBest(`nameall:${deck.key}`, ms, true) ? 'new' : (prev ?? null));
     }
-    map.current?.reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done]);
 
@@ -100,7 +106,7 @@ export function NameAllGame({ deck, cfg, onExit, onAgain }: GameProps) {
   }, [found, helped, done, hintId, deck, foundSet]);
 
   const perCountry = useMemo(() => {
-    if (deck.scope !== 'regions' || deck.countries.length < 2) return [];
+    if ((deck.scope !== 'regions' && deck.scope !== 'cities') || deck.countries.length < 2) return [];
     return deck.countries
       .map((c) => {
         const items = deck.items.filter((it) => it.country.id === c.id);
@@ -118,15 +124,15 @@ export function NameAllGame({ deck, cfg, onExit, onAgain }: GameProps) {
     const rows: ResultRow[] = deck.items.map((item) => ({ item, res: (foundSet.has(item.id) ? (helpedSet.has(item.id) ? 'warn' : 'ok') : 'bad') as Res }));
     return (
       <GameShell
-        title="Nombrarlas todas"
+        title={title}
         subtitle={deck.title}
         onExit={onExit}
         hud={<Hud ms={ms} progress={`${found.length} / ${total}`} />}
         stage={stage}
         panel={
           <Results
-            title={found.length === total ? '¡Mapa completo!' : `Te han faltado ${nf(total - found.length)}`}
-            note={record === 'new' ? `Nuevo récord: ${fmtTime(ms)}.` : typeof record === 'number' ? `Tu récord en este mapa: ${fmtTime(record)}.` : undefined}
+            title={found.length === total ? L('¡Mapa completo!', 'Map complete!') : L(`Te han faltado ${nf(total - found.length)}`, `You missed ${nf(total - found.length)}`)}
+            note={record === 'new' ? L(`Nuevo récord: ${fmtTime(ms)}.`, `New record: ${fmtTime(ms)}.`) : typeof record === 'number' ? L(`Tu récord en este mapa: ${fmtTime(record)}.`, `Your record on this map: ${fmtTime(record)}.`) : undefined}
             deck={deck}
             rows={rows}
             ms={ms}
@@ -141,7 +147,7 @@ export function NameAllGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const last = found.slice(-8).reverse();
   return (
     <GameShell
-      title={deck.noun.fem ? 'Nombrarlas todas' : 'Nombrarlos todos'}
+      title={title}
       subtitle={deck.title}
       onExit={onExit}
       progress={found.length / Math.max(1, total)}
@@ -150,14 +156,17 @@ export function NameAllGame({ deck, cfg, onExit, onAgain }: GameProps) {
       panel={
         <div className="q">
           <div className="q-prompt">
-            <p className="kicker">De memoria</p>
-            <h2 className="q-ask">
-              Escribe {deck.noun.fem ? 'todas las' : 'todos los'} {deck.noun.many}
-            </h2>
+            <p className="kicker">{L('De memoria', 'From memory')}</p>
+            <h2 className="q-ask">{L(`Escribe ${fem ? 'todas las' : 'todos los'} ${deck.noun.many}`, `Type all the ${deck.noun.many}`)}</h2>
           </div>
-          <AnswerInput label={`Nombre de ${deck.noun.fem ? 'una' : 'un'} ${deck.noun.one}`} placeholder="Escribe un nombre…" onSubmit={onSubmit} onType={onType} shake={shake} clear={clear} pending={pending} />
+          <AnswerInput label={L(`Nombre de ${fem ? 'una' : 'un'} ${deck.noun.one}`, `Name of a ${deck.noun.one}`)} placeholder={L('Escribe un nombre…', 'Type a name…')} onSubmit={onSubmit} onType={onType} shake={shake} clear={clear} pending={pending} />
           <p className="q-note" role="status">
-            {note ?? (pending ? 'Pulsa Intro para confirmar, o sigue escribiendo.' : hintId ? `¿Cómo se llama ${deck.noun.fem ? 'la' : 'el'} que parpadea?` : 'Sin orden: se aceptan en cuanto las escribes, con o sin tildes.')}
+            {note ??
+              (pending
+                ? L('Pulsa Intro para confirmar, o sigue escribiendo.', 'Press Enter to confirm, or keep typing.')
+                : hintId
+                  ? L(`¿Cómo se llama ${fem ? 'la' : 'el'} que parpadea?`, 'What is the blinking one called?')
+                  : L(`Sin orden: se aceptan en cuanto ${fem ? 'las' : 'los'} escribes, con o sin tildes.`, 'In any order: they are accepted as soon as you type them, with or without accents.'))}
           </p>
           {last.length > 0 && (
             <ul className="found">
@@ -171,9 +180,9 @@ export function NameAllGame({ deck, cfg, onExit, onAgain }: GameProps) {
             <ul className="tally">
               {perCountry.map(({ c, total: t, got, ids }) => (
                 <li key={c.id}>
-                  <button type="button" className={got === t ? 'full' : undefined} onClick={() => map.current?.focus(ids, { force: true, fill: 0.85 })} title={`Ver ${c.n.es} en el mapa`}>
+                  <button type="button" className={got === t ? 'full' : undefined} onClick={() => map.current?.focus(ids, { force: true, fill: 0.85 })} title={L(`Ver ${nm(c.n)} en el mapa`, `Show ${nm(c.n)} on the map`)}>
                     <Flag code={c.fl} size="sm" />
-                    <span>{c.n.es}</span>
+                    <span>{nm(c.n)}</span>
                     <b>
                       {got}/{t}
                     </b>
@@ -185,11 +194,11 @@ export function NameAllGame({ deck, cfg, onExit, onAgain }: GameProps) {
           <div className="q-actions">
             <button type="button" className="btn btn-sm" onClick={hint}>
               <Lightbulb size={15} aria-hidden="true" />
-              Pista
+              {L('Pista', 'Hint')}
             </button>
             <button type="button" className="btn btn-sm btn-ghost q-end" onClick={() => setOver(true)}>
               <FlagIcon size={15} aria-hidden="true" />
-              Me rindo
+              {L('Me rindo', 'I give up')}
             </button>
           </div>
         </div>

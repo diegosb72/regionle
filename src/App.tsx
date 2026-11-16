@@ -1,22 +1,27 @@
 import { Infinity as InfinityIcon, Moon, Sun, SunMoon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Spinner } from './components/ui';
+import { Daily } from './daily/Daily';
+import { dayNumber, isDate } from './daily/spec';
 import { loadIndex, loadWorldGeo, type World } from './lib/data';
-import { SECTIONS } from './lib/modes';
+import { L, getLang } from './lib/i18n';
+import { PATHS, SECTIONS, SECTION_IDS } from './lib/modes';
+import { OfflineBar, UpdateNotice } from './components/Offline';
 import { useRoute } from './lib/router';
 import { useStore, type Theme } from './lib/store';
-import { cx } from './lib/text';
+import { cx, today } from './lib/text';
 import type { Section } from './lib/types';
+import { Duel } from './screens/Duel';
 import { Home } from './screens/Home';
 import { Play } from './screens/Play';
 import { Progress } from './screens/Progress';
 import { Setup } from './screens/Setup';
 
 const THEME_NEXT: Record<Theme, Theme> = { auto: 'light', light: 'dark', dark: 'auto' };
-const THEME_LABEL: Record<Theme, string> = { auto: 'Tema: automático', light: 'Tema: claro', dark: 'Tema: oscuro' };
+const themeLabel = (theme: Theme): string => (theme === 'auto' ? L('Tema: automático', 'Theme: automatic') : theme === 'light' ? L('Tema: claro', 'Theme: light') : L('Tema: oscuro', 'Theme: dark'));
 const THEME_ICON = { auto: SunMoon, light: Sun, dark: Moon } as const;
 
-const BY_PATH = Object.fromEntries((Object.keys(SECTIONS) as Section[]).map((s) => [SECTIONS[s].path, s])) as Record<string, Section>;
+const BY_PATH = Object.fromEntries(SECTION_IDS.map((s) => [PATHS[s], s])) as Record<string, Section>;
 
 function Logo() {
   return (
@@ -34,9 +39,11 @@ export function App() {
   const route = useRoute();
   const theme = useStore((s) => s.theme);
   const setTheme = useStore((s) => s.setTheme);
+  const setLang = useStore((s) => s.setLang);
   const [world, setWorld] = useState<World | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const lang = getLang();
 
   useEffect(() => {
     let alive = true;
@@ -67,63 +74,98 @@ export function App() {
 
   const section = BY_PATH[route];
   const playing = route === 'jugar';
+  // "#/reto" is today's challenge; "#/reto/2026-11-10" a past one.
+  const isDaily = route === 'reto' || route.startsWith('reto/');
+  const asked = route.slice(5);
+  const dailyDate = isDate(asked) && dayNumber(asked) >= 0 && asked <= today() ? asked : today();
+  // "#/duelo/<code>" is a game sent by someone else.
+  const duel = route.startsWith('duelo/') ? route.slice(6) : null;
   const ThemeIcon = THEME_ICON[theme];
 
   let page;
   if (error) {
     page = (
       <div className="empty-state">
-        <p>No se han podido cargar los datos del juego ({error}).</p>
+        <p>{L(`No se han podido cargar los datos del juego (${error}).`, `The game data could not be loaded (${error}).`)}</p>
         <button type="button" className="btn btn-primary" onClick={() => setAttempt((n) => n + 1)}>
-          Reintentar
+          {L('Reintentar', 'Retry')}
         </button>
       </div>
     );
-  } else if (!world) page = <Spinner label="Cargando el atlas…" />;
+  } else if (!world) page = <Spinner label={L('Cargando el atlas…', 'Loading the atlas…')} />;
   else if (playing) page = <Play world={world} />;
+  else if (isDaily) page = <Daily key={dailyDate} world={world} date={dailyDate} />;
+  else if (duel != null) page = <Duel key={duel} code={duel} world={world} />;
   else if (section) page = <Setup key={section} section={section} world={world} />;
   else if (route === 'progreso') page = <Progress world={world} />;
   else page = <Home world={world} />;
 
-  if (playing && world && !error) return <div className="app app-play">{page}</div>;
+  if ((playing || isDaily) && world && !error) return <div className="app app-play">{page}</div>;
 
   return (
     <div className="app">
       <a className="skip" href="#contenido">
-        Saltar al contenido
+        {L('Saltar al contenido', 'Skip to content')}
       </a>
       <header className="top">
-        <a className="brand" href="#/" aria-label="Regionle infinito, inicio">
+        <a className="brand" href="#/" aria-label={L('Regionle infinito, inicio', 'Regionle infinite, home')}>
           <Logo />
           <span>
             Regionle
             <InfinityIcon size={22} strokeWidth={2.6} aria-hidden="true" />
           </span>
         </a>
-        <nav className="nav" aria-label="Secciones">
-          {(Object.keys(SECTIONS) as Section[]).map((s) => (
+        <nav className="nav" aria-label={L('Secciones', 'Sections')}>
+          {SECTION_IDS.map((s) => (
             <a key={s} href={`#/${SECTIONS[s].path}`} className={cx(section === s && 'on')} aria-current={section === s ? 'page' : undefined}>
               {SECTIONS[s].name}
             </a>
           ))}
           <a href="#/progreso" className={cx(route === 'progreso' && 'on')} aria-current={route === 'progreso' ? 'page' : undefined}>
-            Progreso
+            {L('Progreso', 'Progress')}
           </a>
         </nav>
-        <button type="button" className="icon-btn" onClick={() => setTheme(THEME_NEXT[theme])} aria-label={`${THEME_LABEL[theme]}. Cambiar`} title={THEME_LABEL[theme]}>
-          <ThemeIcon size={18} />
-        </button>
+        <div className="top-tools">
+          <div className="lang" role="group" aria-label={L('Idioma', 'Language')}>
+            {(['es', 'en'] as const).map((code) => (
+              <button key={code} type="button" className={cx(lang === code && 'on')} aria-pressed={lang === code} lang={code} title={code === 'es' ? 'Español' : 'English'} onClick={() => setLang(code)}>
+                {code.toUpperCase()}
+              </button>
+            ))}
+          </div>
+          <button type="button" className="icon-btn" onClick={() => setTheme(THEME_NEXT[theme])} aria-label={`${themeLabel(theme)}. ${L('Cambiar', 'Change')}`} title={themeLabel(theme)}>
+            <ThemeIcon size={18} />
+          </button>
+        </div>
       </header>
       <main id="contenido" className="main">
         {page}
       </main>
       <footer className="foot">
+        <OfflineBar />
         <p>
-          Inspirado en <a href="https://regionle.xyz" target="_blank" rel="noopener noreferrer">regionle.xyz</a>. Mapas de <a href="https://www.naturalearthdata.com" target="_blank" rel="noopener noreferrer">Natural Earth</a> (dominio público), población del Banco Mundial y datos de países de{' '}
-          <a href="https://www.geonames.org" target="_blank" rel="noopener noreferrer">GeoNames</a> (CC BY 4.0).
+          {L('Inspirado en', 'Inspired by')}{' '}
+          <a href="https://regionle.xyz" target="_blank" rel="noopener noreferrer">
+            regionle.xyz
+          </a>
+          . {L('Mapas de', 'Maps from')}{' '}
+          <a href="https://www.naturalearthdata.com" target="_blank" rel="noopener noreferrer">
+            Natural Earth
+          </a>{' '}
+          {L('(dominio público), población del Banco Mundial y datos de países de', '(public domain), population from the World Bank and country data from')}{' '}
+          <a href="https://www.geonames.org" target="_blank" rel="noopener noreferrer">
+            GeoNames
+          </a>{' '}
+          (CC BY 4.0).
         </p>
-        <p>Las fronteras siguen el criterio de Naciones Unidas y no suponen ninguna toma de postura. Sin registro, sin anuncios, sin límite.</p>
+        <p>
+          {L(
+            'Las fronteras siguen el criterio de Naciones Unidas y no suponen ninguna toma de postura. Sin registro, sin anuncios, sin límite.',
+            'Borders follow the United Nations’ practice and imply no position on any dispute. No sign-up, no ads, no limit.',
+          )}
+        </p>
       </footer>
+      <UpdateNotice />
     </div>
   );
 }
