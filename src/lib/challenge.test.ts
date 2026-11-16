@@ -1,0 +1,103 @@
+import { describe, expect, it } from 'vitest';
+import { canChallenge, decodeChallenge, encodeChallenge, seedOf } from './challenge';
+import { DEFAULT_OPTS, type GameConfig } from './store';
+
+const game = (patch: Partial<GameConfig> = {}): GameConfig => ({ section: 'regions', mode: 'pin', countries: ['ES'], levels: { ES: 'g1' }, opts: DEFAULT_OPTS, nonce: 123456, ...patch });
+
+describe('challenge by link', () => {
+  it('carries the game, the seed, the name and the result', () => {
+    const code = encodeChallenge(game({ opts: { ...DEFAULT_OPTS, length: 10, answer: 'type' } }), { score: 84.6, ms: 61_234.4 }, '  Diego  ');
+    expect(code).toMatch(/^[A-Za-z0-9_-]+$/);
+    expect(decodeChallenge(code)).toEqual({
+      section: 'regions',
+      mode: 'pin',
+      countries: ['ES'],
+      levels: { ES: 'g1' },
+      opts: { answer: 'type', length: 10, pinBy: 'name', cityPick: 'top', cityCount: 25 },
+      seed: 123456,
+      from: 'Diego',
+      score: 85,
+      ms: 61_234,
+    });
+  });
+
+  it('works without a result or a name', () => {
+    const back = decodeChallenge(encodeChallenge(game()))!;
+    expect(back.from).toBeUndefined();
+    expect(back.score).toBeUndefined();
+    expect(back.ms).toBeUndefined();
+  });
+
+  it('keeps a long selection short', () => {
+    const codes = Array.from({ length: 193 }, (_, i) => `${String.fromCharCode(65 + (i % 26))}${String.fromCharCode(65 + Math.floor(i / 26))}`);
+    const code = encodeChallenge(game({ section: 'countries', countries: codes, levels: {} }), { score: 100, ms: 1000 }, 'Ana');
+    expect(code.length).toBeLessThan(700);
+    expect(decodeChallenge(code)!.countries).toEqual(codes);
+  });
+
+  it('keeps the tokens of a physical map, whatever their length', () => {
+    for (const tokens of [['river', 'EU'], ['all'], ['EU'], ['sea', 'lake', 'AM', 'AS', 'all']]) {
+      const back = decodeChallenge(encodeChallenge(game({ section: 'physical', countries: tokens, levels: {} })))!;
+      expect(back.section).toBe('physical');
+      expect(back.countries).toEqual(tokens);
+    }
+  });
+
+  it('keeps names with accents and trims long ones', () => {
+    expect(decodeChallenge(encodeChallenge(game(), undefined, 'Íñigo Ñandú ✓'))!.from).toBe('Íñigo Ñandú ✓');
+    expect(decodeChallenge(encodeChallenge(game(), undefined, 'x'.repeat(80)))!.from).toHaveLength(24);
+  });
+
+  it('only sends the levels of the countries that are played', () => {
+    const back = decodeChallenge(encodeChallenge(game({ levels: { ES: 'f', FR: 'g1', IT: 'f' } })))!;
+    expect(back.levels).toEqual({ ES: 'f' });
+  });
+
+  it('uses the seed it was sent with, so that the questions come in the same order', () => {
+    expect(seedOf(game({ nonce: 42 }))).toBe(42);
+    expect(seedOf(game({ nonce: 42, challenge: { seed: 7 } }))).toBe(7);
+    const sent = encodeChallenge(game({ nonce: 42, challenge: { seed: 7 } }));
+    expect(decodeChallenge(sent)!.seed).toBe(7);
+  });
+
+  it('rejects links that are cut, made up or about something that cannot be compared', () => {
+    const wire = (o: unknown) => Buffer.from(JSON.stringify(o)).toString('base64url');
+    const good = { s: 'regions', m: 'pin', c: 'ES', k: 1 };
+    expect(decodeChallenge(wire(good))).not.toBeNull();
+    expect(decodeChallenge('')).toBeNull();
+    expect(decodeChallenge('abc123')).toBeNull();
+    expect(decodeChallenge(encodeChallenge(game()).slice(0, 20))).toBeNull();
+    expect(decodeChallenge(wire(null))).toBeNull();
+    expect(decodeChallenge(wire({ ...good, s: 'pops' }))).toBeNull();
+    expect(decodeChallenge(wire({ ...good, m: 'travel' }))).toBeNull();
+    expect(decodeChallenge(wire({ ...good, c: '' }))).toBeNull();
+    expect(decodeChallenge(wire({ ...good, c: ['ES'] }))).toBeNull();
+    expect(decodeChallenge(wire({ ...good, c: 'E<' }))).toBeNull();
+    expect(decodeChallenge(wire({ ...good, c: 'ES'.repeat(700) }))).toBeNull();
+    expect(decodeChallenge(wire({ ...good, k: 'x' }))).toBeNull();
+  });
+
+  it('ignores options and results that make no sense instead of trusting them', () => {
+    const wire = (o: unknown) => Buffer.from(JSON.stringify(o)).toString('base64url');
+    const back = decodeChallenge(wire({ s: 'cities', m: 'pin', c: 'ESFR', k: 3.9, o: ['shout', 'endless', 'smell', 'all', 9999], l: { ES: '<script>' }, f: '   ', r: [250, -5] }))!;
+    expect(back.countries).toEqual(['ES', 'FR']);
+    expect(back.opts).toEqual({});
+    expect(back.levels).toEqual({});
+    expect(back.seed).toBe(3);
+    expect(back.from).toBeUndefined();
+    expect(back.score).toBe(100);
+    expect(back.ms).toBe(0);
+  });
+
+  it('is offered only for games that end with a score everyone can repeat', () => {
+    expect(canChallenge(game())).toBe(true);
+    expect(canChallenge(game({ mode: 'puzzle' }))).toBe(true);
+    expect(canChallenge(game({ section: 'physical', countries: ['river'] }))).toBe(true);
+    expect(canChallenge(game({ mode: 'explore' }))).toBe(false);
+    expect(canChallenge(game({ mode: 'travel' }))).toBe(false);
+    expect(canChallenge(game({ mode: 'nameall' }))).toBe(false);
+    expect(canChallenge(game({ section: 'pops', mode: 'hilo' }))).toBe(false);
+    expect(canChallenge(game({ only: ['ES-AN'] }))).toBe(false);
+    expect(canChallenge(game({ opts: { ...DEFAULT_OPTS, length: 'endless' } }))).toBe(false);
+  });
+});

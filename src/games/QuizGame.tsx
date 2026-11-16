@@ -1,20 +1,23 @@
-/** Question-by-question games: pin on the map, identify, outline, capitals and flags. */
+/** Question-by-question games: pin on the map, jigsaw, identify, outline, capitals and flags. */
 import { ArrowRight, Flag as FlagIcon, Lightbulb, MapPin } from 'lucide-react';
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { AnswerInput, type Suggestion } from '../components/AnswerInput';
+import { ChallengeBox } from '../components/ChallengeBox';
 import { MapView, type MapHandle, type Paint } from '../components/MapView';
 import { Flag } from '../components/ui';
+import { seedOf } from '../lib/challenge';
 import { silhouette } from '../lib/geo';
+import { L, nm } from '../lib/i18n';
+import { MODE_NAME } from '../lib/modes';
 import { useStore, type Skill } from '../lib/store';
-import { Matcher, cx, sample, shuffle } from '../lib/text';
+import { Matcher, cx, mulberry32, sample, shuffle } from '../lib/text';
 import type { Item, Res } from '../lib/types';
-import { GameShell, Hud, Results, Verdict, nearest, useElapsed, type GameProps, type ResultRow } from './common';
-import { initQuiz, quizReducer } from './quiz';
+import { GameShell, Hud, Results, Verdict, nearest, originOf, showsCountry, useElapsed, type GameProps, type ResultRow } from './common';
+import { initQuiz, quizReducer, scoreOf } from './quiz';
 
-type QuizMode = 'pin' | 'identify' | 'outline' | 'capital' | 'flag';
+type QuizMode = 'pin' | 'puzzle' | 'identify' | 'outline' | 'capital' | 'flag';
 
-const TITLE: Record<QuizMode, string> = { pin: 'Señalar', identify: 'Identificar', outline: 'Silueta', capital: 'Capitales', flag: 'Banderas' };
-const SKILL: Record<QuizMode, Skill> = { pin: 'loc', identify: 'name', outline: 'name', capital: 'cap', flag: 'flag' };
+const SKILL: Record<QuizMode, Skill> = { pin: 'loc', puzzle: 'loc', identify: 'name', outline: 'name', capital: 'cap', flag: 'flag' };
 
 /** "Te _ _ _ _" */
 function letterHint(answer: string, shown: number): string {
@@ -25,23 +28,28 @@ function letterHint(answer: string, shown: number): string {
 export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const mode = cfg.mode as QuizMode;
   const { opts } = cfg;
+  /** Games answered by clicking on the map. */
+  const clicky = mode === 'pin' || mode === 'puzzle';
   const pinBy = mode === 'pin' && deck.scope === 'countries' ? opts.pinBy : 'name';
-  const typed = mode !== 'pin' && opts.answer === 'type';
+  const typed = !clicky && opts.answer === 'type';
   const needsCapital = mode === 'capital' || pinBy === 'capital';
   const needsFlag = mode === 'flag' || pinBy === 'flag';
+  const seed = useMemo(() => seedOf(cfg), [cfg]);
 
   /** Items that can be asked or offered as wrong options in this mode. */
   const usable = useMemo(
-    () => deck.items.filter((it) => (!needsCapital || it.country.cap) && (!needsFlag || it.country.fl)),
-    [deck, needsCapital, needsFlag],
+    () => deck.items.filter((it) => (!needsCapital || it.capital?.length) && (!needsFlag || it.country.fl) && (mode !== 'puzzle' || it.shape === 'area')),
+    [deck, needsCapital, needsFlag, mode],
   );
   const pool = useMemo(() => (cfg.only ? usable.filter((it) => cfg.only!.includes(it.id)) : usable), [usable, cfg.only]);
 
   const [s, dispatch] = useReducer(quizReducer, null, () =>
     initQuiz(
-      pool.map((it) => it.id),
+      // Sorted first: the same seed must give the same questions whatever order the map was built in.
+      pool.map((it) => it.id).sort(),
       cfg.only ? 'all' : opts.length,
-      mode === 'pin',
+      clicky,
+      mulberry32(seed),
     ),
   );
   const item = s.cur ? (deck.byId.get(s.cur) ?? null) : null;
@@ -61,25 +69,28 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const [narrow, setNarrow] = useState<Set<string> | null>(null);
 
   const names = useMemo(() => new Matcher(deck.items), [deck]);
-  const capitals = useMemo(
-    () => new Matcher(usable.filter((it) => it.country.cap).map((it) => ({ id: it.id, answers: [it.country.cap!.es, it.country.cap!.en, ...(it.country.cap!.al ?? [])] }))),
-    [usable],
-  );
+  const capitals = useMemo(() => new Matcher(usable.filter((it) => it.capital?.length).map((it) => ({ id: it.id, answers: it.capital! }))), [usable]);
   const matcher = mode === 'capital' ? capitals : names;
-  const answerOf = (it: Item) => (mode === 'capital' ? it.country.cap!.es : it.name);
-  const maxTries = mode === 'pin' || typed ? 3 : 1;
-  const several = deck.countries.length > 1 && deck.scope === 'regions';
+  const answerOf = (it: Item) => (mode === 'capital' ? it.capital![0] : it.name);
+  const maxTries = clicky || typed ? 3 : 1;
+  const several = showsCountry(deck);
+  const fem = deck.noun.fem;
+  const one = deck.noun.one;
+  /** "la provincia" · "the province" */
+  const theOne = L(`${fem ? 'la' : 'el'} ${one}`, `the ${one}`);
+  const left = (n: number) => L(`Te quedan ${n} ${n === 1 ? 'intento' : 'intentos'}.`, `${n} ${n === 1 ? 'try' : 'tries'} left.`);
 
   // Four options: the right one and three of its nearest neighbours.
   const choices = useMemo(() => {
-    if (!item || typed || mode === 'pin') return [];
+    if (!item || typed || clicky) return [];
     const label = answerOf(item);
     const others = nearest(
       item,
       usable.filter((o) => answerOf(o) !== label),
       9,
     );
-    return shuffle([item, ...sample(others, 3)]);
+    const rng = mulberry32(seed + s.n * 7919);
+    return shuffle([item, ...sample(others, 3, rng)], rng);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [s.n]);
 
@@ -108,17 +119,17 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ended]);
 
-  const settled = (res: Res, id: string) => {
-    if (s.round === 1) record(SKILL[mode], id, res);
-    setFlash({ id, kind: res === 'bad' ? 'bad' : 'ok', n: Date.now() });
-    if (mode !== 'pin' || res === 'bad') map.current?.focus([id]);
+  const settled = (res: Res, it: Item) => {
+    if (s.round === 1) record(SKILL[mode], it.id, res, originOf(it, cfg));
+    setFlash({ id: it.id, kind: res === 'bad' ? 'bad' : 'ok', n: Date.now() });
+    if (!clicky || res === 'bad') map.current?.focus([it.id]);
   };
 
   const right = () => {
     if (!item || s.phase !== 'ask') return;
     dispatch({ type: 'right' });
     setNote(null);
-    settled(s.tries === 0 && s.hints === 0 ? 'ok' : 'warn', item.id);
+    settled(s.tries === 0 && s.hints === 0 ? 'ok' : 'warn', item);
   };
 
   const wrong = (message: string | null, blink?: string) => {
@@ -127,7 +138,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
     dispatch({ type: 'wrong', max: maxTries });
     setNote(failed ? null : message);
     setShake((n) => n + 1);
-    if (failed) settled('bad', item.id);
+    if (failed) settled('bad', item);
     else if (blink) setFlash({ id: blink, kind: 'bad', n: Date.now() });
   };
 
@@ -135,13 +146,13 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
     if (!item || s.phase !== 'ask') return;
     dispatch({ type: 'giveup' });
     setNote(null);
-    settled('bad', item.id);
+    settled('bad', item);
   };
 
   const next = () => dispatch({ type: 'next' });
 
   const onPick = (id: string) => {
-    if (!item || mode !== 'pin') return;
+    if (!item || !clicky) return;
     if (s.phase === 'reveal') {
       if (id === item.id) next();
       return;
@@ -151,14 +162,14 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
     const other = deck.byId.get(id);
     if (!other) return;
     if (s.marks[id] && !hidden.has(id)) {
-      setNote(`${other.name} ya está ${deck.noun.fem ? 'resuelta' : 'resuelto'}.`);
+      setNote(L(`${other.name} ya está ${fem ? 'resuelta' : 'resuelto'}.`, `${other.name} is already solved.`));
       return;
     }
     if (narrow && !narrow.has(id)) {
-      setNote(`${other.name} está ${deck.noun.fem ? 'descartada' : 'descartado'}: busca entre ${deck.noun.fem ? 'las iluminadas' : 'los iluminados'}.`);
+      setNote(L(`${other.name} está ${fem ? 'descartada' : 'descartado'}: busca entre ${fem ? 'las iluminadas' : 'los iluminados'}.`, `${other.name} is ruled out: look among the lit ones.`));
       return;
     }
-    wrong(`Eso es ${other.name}.`, id);
+    wrong(L(`Eso es ${other.name}.`, `That is ${other.name}.`), id);
   };
 
   const onSubmit = (text: string) => {
@@ -167,9 +178,9 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
     if (v.res === 'yes') return right();
     if (v.res === 'other') {
       const other = deck.byId.get(v.id)!;
-      if (mode === 'capital') wrong(`${other.country.cap!.es} es la capital de ${other.name}.`);
-      else wrong(`No es ${other.name}.`, mode === 'identify' ? v.id : undefined);
-    } else wrong('No es correcto.');
+      if (mode === 'capital') wrong(L(`${other.capital![0]} es la capital de ${other.name}.`, `${other.capital![0]} is the capital of ${other.name}.`));
+      else wrong(L(`No es ${other.name}.`, `It is not ${other.name}.`), mode === 'identify' ? v.id : undefined);
+    } else wrong(L('No es correcto.', 'That is not right.'));
   };
 
   const onChoice = (id: string) => {
@@ -184,9 +195,9 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const hint = () => {
     if (!item || s.phase !== 'ask') return;
     dispatch({ type: 'hint' });
-    if (mode === 'pin') {
+    if (clicky) {
       // Narrow the search: the answer and a few of its nearest neighbours stay lit.
-      const open = deck.items.filter((it) => !s.marks[it.id] || hidden.has(it.id));
+      const open = usable.filter((it) => !s.marks[it.id] || hidden.has(it.id));
       const keep = [item, ...nearest(item, open, Math.min(4, Math.max(1, Math.floor(open.length / 3))))].map((it) => it.id);
       setNarrow(new Set(keep));
       map.current?.focus(keep, { fill: 0.6 });
@@ -234,6 +245,13 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const pinned = useMemo(() => (item && !ended && s.phase !== 'ask' ? new Set([item.id]) : undefined), [item, ended, s.phase]);
 
   const outlinePath = useMemo(() => (mode === 'outline' && item ? silhouette(item.geo, 400) : ''), [mode, item]);
+  /** The jigsaw piece, drawn smaller the smaller it is next to the biggest one: size is a clue too. */
+  const piece = useMemo(() => {
+    if (mode !== 'puzzle' || !item) return null;
+    const biggest = usable.reduce((m, it) => Math.max(m, it.area), 0) || 1;
+    // The scale is compressed, or the small pieces of a map with one giant would be specks.
+    return { d: silhouette(item.geo, 240, 0.04), k: Math.max(0.45, Math.min(1, (item.area / biggest) ** 0.3 * 1.1)) };
+  }, [mode, item, usable]);
 
   const suggest = useMemo(() => {
     if (!typed || !opts.suggest) return undefined;
@@ -242,28 +260,33 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
         .suggest(text, 6)
         .map((id) => deck.byId.get(id))
         .filter((it): it is Item => !!it)
-        .map((it) => ({ id: it.id, label: answerOf(it), sub: mode === 'capital' ? undefined : several ? it.country.n.es : undefined }));
+        .map((it) => ({ id: it.id, label: answerOf(it), sub: mode === 'capital' ? undefined : several ? nm(it.country.n) : undefined }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [typed, opts.suggest, matcher, deck, mode, several]);
 
   // ------------------------------------------------------------------ render
 
+  // Handy when debugging from the browser console; removed from production builds.
+  if (import.meta.env.DEV) (window as unknown as { __ask?: string }).__ask = ended ? undefined : item?.id;
+
+  const title = MODE_NAME[mode];
   const stage = (
     <>
       <MapView
         ref={map}
         deck={deck}
         paint={paint}
-        pickable={mode === 'pin' && !ended}
+        pickable={clicky && !ended}
         onPick={onPick}
         labels={labels}
         pinned={pinned}
         flash={flash}
+        blind={mode === 'puzzle' && !ended}
         tip={(id) => (ended || (s.marks[id] && !hidden.has(id)) ? deck.byId.get(id)?.name : null)}
       />
       {mode === 'outline' && item && !ended && s.phase === 'ask' && !showMap && (
         <div className="outline-stage">
-          <svg viewBox="0 0 400 400" role="img" aria-label="Silueta que hay que reconocer">
+          <svg viewBox="0 0 400 400" role="img" aria-label={L('Silueta que hay que reconocer', 'Outline to recognise')}>
             <path d={outlinePath} />
           </svg>
         </div>
@@ -273,24 +296,27 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
 
   if (ended) {
     const rows: ResultRow[] = Object.entries(s.results).map(([id, res]) => ({ item: deck.byId.get(id)!, res }));
+    const score = scoreOf(s.ok, s.warn, s.asked);
     return (
       <GameShell
-        title={TITLE[mode]}
+        title={title}
         subtitle={deck.title}
         onExit={onExit}
         hud={<Hud ms={ms} />}
         stage={stage}
         panel={
           <Results
-            title={rows.length ? (s.bad === 0 && s.warn === 0 ? '¡Pleno!' : s.bad === 0 ? '¡Muy bien!' : 'Partida terminada') : 'Sin preguntas'}
+            title={rows.length ? (s.bad === 0 && s.warn === 0 ? L('¡Pleno!', 'Full marks!') : s.bad === 0 ? L('¡Muy bien!', 'Well done!') : L('Partida terminada', 'Game over')) : L('Sin preguntas', 'No questions')}
             deck={deck}
             rows={rows}
             ms={ms}
-            stats={[{ label: 'Mejor racha', value: s.bestStreak }]}
-            onAgain={() => onAgain({ only: cfg.only })}
-            onReview={(ids) => onAgain({ only: ids })}
+            stats={[{ label: L('Mejor racha', 'Best streak'), value: s.bestStreak }]}
+            onAgain={() => onAgain({ only: cfg.only, challenge: undefined })}
+            onReview={(ids) => onAgain({ only: ids, challenge: undefined })}
             onExit={onExit}
-          />
+          >
+            {rows.length > 0 && s.asked >= s.total && <ChallengeBox cfg={cfg} score={score} ms={ms} what={`${deck.title} · ${title}`} />}
+          </Results>
         }
       />
     );
@@ -304,60 +330,79 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
       if (pinBy === 'flag')
         return (
           <>
-            <p className="kicker">Señala el país de esta bandera</p>
+            <p className="kicker">{L('Señala el país de esta bandera', 'Pin the country of this flag')}</p>
             <Flag code={c.fl} size="xl" className="q-flag" />
           </>
         );
       if (pinBy === 'capital')
         return (
           <>
-            <p className="kicker">Señala el país cuya capital es</p>
-            <h2 className="q-name">{c.cap!.es}</h2>
+            <p className="kicker">{L('Señala el país cuya capital es', 'Pin the country whose capital is')}</p>
+            <h2 className="q-name">{item.capital![0]}</h2>
           </>
         );
       return (
         <>
-          <p className="kicker">Señala en el mapa</p>
+          <p className="kicker">{L('Señala en el mapa', 'Find it on the map')}</p>
           <h2 className="q-name">{item.name}</h2>
           {several && (
             <p className="q-sub">
-              <Flag code={c.fl} size="sm" /> {item.type} de {c.n.es}
+              <Flag code={c.fl} size="sm" /> {L(`${item.type} de ${nm(c.n)}`, `${item.type} in ${nm(c.n)}`)}
             </p>
           )}
         </>
       );
     }
+    if (mode === 'puzzle')
+      return (
+        <>
+          <p className="kicker">{L('Puzle', 'Jigsaw')}</p>
+          <h2 className="q-ask">{s.phase === 'ask' ? L('¿Dónde va esta pieza?', 'Where does this piece go?') : item.name}</h2>
+          {piece && (
+            <div className="piece">
+              <svg viewBox="0 0 240 240" role="img" aria-label={L('Pieza que hay que colocar', 'Piece to place')}>
+                <g transform={`translate(120 120) scale(${piece.k.toFixed(3)}) translate(-120 -120)`}>
+                  <path d={piece.d} />
+                </g>
+              </svg>
+            </div>
+          )}
+          {several && s.hints > 0 && (
+            <p className="q-sub">
+              <Flag code={c.fl} size="sm" /> {L(`Es de ${nm(c.n)}`, `It belongs to ${nm(c.n)}`)}
+            </p>
+          )}
+        </>
+      );
     if (mode === 'identify')
       return (
         <>
-          <p className="kicker">Identifica</p>
-          <h2 className="q-ask">
-            ¿Qué {deck.noun.one} está {deck.noun.fem ? 'resaltada' : 'resaltado'} en el mapa?
-          </h2>
+          <p className="kicker">{L('Identifica', 'Identify')}</p>
+          <h2 className="q-ask">{L(`¿Qué ${one} está ${fem ? 'resaltada' : 'resaltado'} en el mapa?`, `Which ${one} is highlighted on the map?`)}</h2>
         </>
       );
     if (mode === 'outline')
       return (
         <>
-          <p className="kicker">Silueta</p>
+          <p className="kicker">{L('Silueta', 'Outline')}</p>
           <h2 className="q-ask">
-            ¿Qué {deck.noun.one} tiene esta forma?
-            {several && s.hints > 0 && <small> Está en {c.n.es}.</small>}
+            {L(`¿Qué ${one} tiene esta forma?`, `Which ${one} has this shape?`)}
+            {several && s.hints > 0 && <small> {L(`Está en ${nm(c.n)}.`, `It is in ${nm(c.n)}.`)}</small>}
           </h2>
         </>
       );
     if (mode === 'capital')
       return (
         <>
-          <p className="kicker">¿Cuál es la capital de…?</p>
+          <p className="kicker">{L('¿Cuál es la capital de…?', 'What is the capital of…?')}</p>
           <h2 className="q-name">
-            <Flag code={c.fl} size="md" /> {item.name}
+            {(item.kind === 'country' || several) && <Flag code={c.fl} size="md" />} {item.name}
           </h2>
         </>
       );
     return (
       <>
-        <p className="kicker">¿De qué país es esta bandera?</p>
+        <p className="kicker">{L('¿De qué país es esta bandera?', 'Which country does this flag belong to?')}</p>
         <Flag code={c.fl} size="xl" className="q-flag" />
       </>
     );
@@ -367,31 +412,39 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const turn = asking ? s.asked + 1 : s.asked;
   const verdictTitle =
     s.last === 'ok' ? (
-      mode === 'pin' ? '¡Correcto!' : <>¡Correcto! <b>{answer}</b></>
+      mode === 'pin' ? (
+        L('¡Correcto!', 'Correct!')
+      ) : (
+        <>
+          {mode === 'puzzle' ? L('¡Encaja!', 'It fits!') : L('¡Correcto!', 'Correct!')} <b>{answer}</b>
+        </>
+      )
     ) : s.last === 'warn' ? (
-      <>Bien, con ayuda: <b>{answer}</b></>
-    ) : mode === 'pin' ? (
       <>
-        Era aquí: <b>{item?.name}</b>
+        {L('Bien, con ayuda:', 'Right, with help:')} <b>{answer}</b>
+      </>
+    ) : clicky ? (
+      <>
+        {L('Era aquí:', 'It was here:')} <b>{item?.name}</b>
       </>
     ) : (
       <>
-        Era <b>{answer}</b>
+        {L('Era', 'It was')} <b>{answer}</b>
       </>
     );
 
   const panel = (
     <div className="q">
-      {s.round === 2 && <p className="q-round">Repaso de fallos · quedan {s.queue.length + (asking ? 1 : 0)}</p>}
+      {s.round === 2 && <p className="q-round">{L(`Repaso de fallos · quedan ${s.queue.length + (asking ? 1 : 0)}`, `Reviewing misses · ${s.queue.length + (asking ? 1 : 0)} left`)}</p>}
       <div className="q-prompt">{question}</div>
 
-      {asking && mode === 'pin' && (
+      {asking && clicky && (
         <p className="q-how">
-          <MapPin size={15} aria-hidden="true" /> Haz clic en {deck.noun.fem ? 'la' : 'el'} {deck.noun.one}. Te quedan {maxTries - s.tries} {maxTries - s.tries === 1 ? 'intento' : 'intentos'}.
+          <MapPin size={15} aria-hidden="true" /> {mode === 'puzzle' ? L('Haz clic en su sitio en el mapa.', 'Click where it goes on the map.') : L(`Haz clic en ${theOne}.`, `Click ${theOne}.`)} {left(maxTries - s.tries)}
         </p>
       )}
 
-      {mode !== 'pin' && !typed && (
+      {!clicky && !typed && (
         <div className="choices">
           {choices.map((c, i) => {
             const isRight = !asking && c.id === item?.id;
@@ -409,8 +462,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
       {typed && asking && (
         <>
           <AnswerInput
-            label="Tu respuesta"
-            placeholder={mode === 'capital' ? 'Escribe la capital…' : `Escribe ${deck.noun.fem ? 'la' : 'el'} ${deck.noun.one}…`}
+            label={L('Tu respuesta', 'Your answer')}
+            placeholder={mode === 'capital' ? L('Escribe la capital…', 'Type the capital…') : L(`Escribe ${theOne}…`, `Type ${theOne}…`)}
             onSubmit={onSubmit}
             suggest={suggest}
             shake={shake}
@@ -424,38 +477,38 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
       {asking && note && (
         <p className="q-note" role="status">
           {note}
-          {typed && ` Te quedan ${maxTries - s.tries} ${maxTries - s.tries === 1 ? 'intento' : 'intentos'}.`}
+          {typed && ` ${left(maxTries - s.tries)}`}
         </p>
       )}
 
       {!asking && s.last && (
-        <Verdict res={s.last} title={verdictTitle} item={item}>
-          {s.phase === 'reveal' && <p className="q-how">Haz clic en {deck.noun.fem ? 'la' : 'el'} {deck.noun.one} que parpadea para seguir.</p>}
+        <Verdict res={s.last} title={verdictTitle} item={item} wiki={opts.wiki}>
+          {s.phase === 'reveal' && <p className="q-how">{L(`Haz clic en ${theOne} que parpadea para seguir.`, `Click the blinking ${one} to go on.`)}</p>}
         </Verdict>
       )}
 
       <div className="q-actions">
         {asking ? (
           <>
-            {(mode === 'pin' || typed || mode === 'outline') && (
-              <button type="button" className="btn btn-sm" onClick={hint} disabled={mode === 'pin' ? s.hints > 0 : mode === 'outline' && !typed ? showMap : s.hints >= [...answer].length - 1}>
+            {(clicky || typed || mode === 'outline') && (
+              <button type="button" className="btn btn-sm" onClick={hint} disabled={clicky ? s.hints > 0 : mode === 'outline' && !typed ? showMap : s.hints >= [...answer].length - 1}>
                 <Lightbulb size={15} aria-hidden="true" />
-                {mode === 'pin' ? 'Pista' : mode === 'outline' && (!showMap || !typed) ? 'Ver en el mapa' : 'Una letra'}
+                {clicky ? L('Pista', 'Hint') : mode === 'outline' && (!showMap || !typed) ? L('Ver en el mapa', 'Show on the map') : L('Una letra', 'A letter')}
               </button>
             )}
             <button type="button" className="btn btn-sm" onClick={giveUp}>
-              No lo sé
+              {L('No lo sé', "I don't know")}
             </button>
           </>
         ) : (
           <button type="button" className="btn btn-primary" onClick={next} autoFocus={s.last !== 'ok'}>
-            Siguiente
+            {L('Siguiente', 'Next')}
             <ArrowRight size={16} aria-hidden="true" />
           </button>
         )}
         <button type="button" className="btn btn-sm btn-ghost q-end" onClick={() => dispatch({ type: 'finish' })}>
           <FlagIcon size={15} aria-hidden="true" />
-          Terminar
+          {L('Terminar', 'Finish')}
         </button>
       </div>
     </div>
@@ -463,11 +516,11 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
 
   return (
     <GameShell
-      title={TITLE[mode]}
+      title={title}
       subtitle={deck.title}
       onExit={onExit}
       progress={Number.isFinite(s.total) ? s.asked / s.total : undefined}
-      hud={<Hud ms={ms} streak={s.streak} progress={s.round === 2 ? 'Repaso' : Number.isFinite(s.total) ? `${turn} / ${s.total}` : `${turn} · vuelta ${s.lap}`} />}
+      hud={<Hud ms={ms} streak={s.streak} progress={s.round === 2 ? L('Repaso', 'Review') : Number.isFinite(s.total) ? `${turn} / ${s.total}` : `${turn} · ${L('vuelta', 'lap')} ${s.lap}`} />}
       panel={panel}
       stage={stage}
     />

@@ -6,15 +6,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
-    "build:pages": "tsc --noEmit && vite build --outDir docs --emptyOutDir",
+    "build": "tsc --noEmit && vite build && node scripts/pwa/build.mjs dist",
+    "build:pages": "tsc --noEmit && vite build --outDir docs --emptyOutDir && node scripts/pwa/build.mjs docs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "data:fetch": "node scripts/data/fetch.mjs",
     "data:build": "node --max-old-space-size=3200 scripts/data/build.mjs",
-    "data": "npm run data:fetch && npm run data:build"
+    "data:physical": "node scripts/data/physical.mjs",
+    "data": "npm run data:fetch && npm run data:build && npm run data:physical"
   },
   "dependencies": {
     "@fontsource-variable/dm-sans": "^5.3.0",

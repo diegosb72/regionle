@@ -1,0 +1,27 @@
+{
+  "name": "Regionle ∞",
+  "short_name": "Regionle",
+  "description": "Juego de geografía sin límites: regiones, países, capitales, banderas, ciudades, ríos, mares y montañas de todo el mundo.",
+  "lang": "es",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "id": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f4efe6",
+  "theme_color": "#0f5c63",
+  "categories": ["education", "games"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "shortcuts": [
+    { "name": "Reto diario", "url": "./#/reto" },
+    { "name": "Regiones", "url": "./#/regiones" },
+    { "name": "Países", "url": "./#/paises" },
+    { "name": "Progreso", "url": "./#/progreso" }
+  ]
+}

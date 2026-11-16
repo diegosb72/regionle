@@ -1,5 +1,6 @@
 import { BookOpen, Database, ExternalLink, Map as MapIcon, Video } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { L } from '../lib/i18n';
 import { linksFor, type StudyLink } from '../lib/links';
 import { cx } from '../lib/text';
 import type { Item } from '../lib/types';
@@ -72,7 +73,7 @@ export function LinkPill({ link }: { link: StudyLink }) {
 /** Where to read more about an item. */
 export function StudyLinks({ item, extra }: { item: Item; extra?: StudyLink[] }) {
   return (
-    <div className="links" aria-label={`Aprende más sobre ${item.name}`}>
+    <div className="links" aria-label={L(`Aprende más sobre ${item.name}`, `Learn more about ${item.name}`)}>
       {linksFor(item).map((l) => (
         <LinkPill key={l.kind} link={l} />
       ))}
@@ -87,7 +88,7 @@ export function Spinner({ label }: { label?: string }) {
   return (
     <div className="spinner" role="status">
       <span className="spinner-dot" aria-hidden="true" />
-      <span>{label ?? 'Cargando…'}</span>
+      <span>{label ?? L('Cargando…', 'Loading…')}</span>
     </div>
   );
 }

@@ -1,12 +1,33 @@
 /** Pieces shared by every game: screen frame, clock, verdict box and results. */
 import { ArrowLeft, Check, CircleAlert, Flame, RotateCcw, Settings2, Timer, X } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { ReviewNext } from '../components/ReviewCard';
+import { WikiCard } from '../components/WikiCard';
 import { Flag, StudyLinks, capitalise } from '../components/ui';
+import { levelOf } from '../lib/data';
+import { L, capName, nm } from '../lib/i18n';
 import { divisionsLink } from '../lib/links';
-import type { GameConfig } from '../lib/store';
+import { useStore, type GameConfig } from '../lib/store';
 import { cx, fmtArea, fmtPop, fmtTime, nf } from '../lib/text';
 import type { Deck, Item, Res } from '../lib/types';
 import { scoreOf } from './quiz';
+
+/**
+ * Where an item comes from, as the review keeps it: enough to draw its map again another day.
+ * "r|ES|g1" a region of Spain at that level · "c" a country · "t|ES|top" a city of Spain, and which
+ * cities were on the map · "p" a river, a sea…
+ */
+export function originOf(item: Item, cfg: GameConfig): string {
+  if (item.kind === 'country') return 'c';
+  if (item.kind === 'feature') return 'p';
+  if (item.kind === 'city') return `t|${item.country.id}|${cfg.opts.cityPick}`;
+  return `r|${item.country.id}|${levelOf(item.country, cfg.levels).k}`;
+}
+
+/** Is the country of each item worth showing? Only when the map mixes several. */
+export function showsCountry(deck: Deck | undefined): boolean {
+  return !!deck && deck.countries.length > 1 && (deck.scope === 'regions' || deck.scope === 'cities');
+}
 
 export interface GameProps {
   deck: Deck;
@@ -39,13 +60,13 @@ export function Hud({ ms, streak, progress }: { ms?: number; streak?: number; pr
     <>
       {progress != null && <span className="hud-chip hud-main">{progress}</span>}
       {streak != null && streak >= 2 && (
-        <span className="hud-chip hud-streak" title="Racha de aciertos a la primera">
+        <span className="hud-chip hud-streak" title={L('Racha de aciertos a la primera', 'Streak of first-time right answers')}>
           <Flame size={14} aria-hidden="true" />
           {streak}
         </span>
       )}
       {ms != null && (
-        <span className="hud-chip" title="Tiempo">
+        <span className="hud-chip" title={L('Tiempo', 'Time')}>
           <Timer size={14} aria-hidden="true" />
           {fmtTime(ms)}
         </span>
@@ -77,7 +98,7 @@ export function GameShell({
       <header className="play-top">
         <button type="button" className="btn btn-ghost btn-sm" onClick={onExit}>
           <ArrowLeft size={16} aria-hidden="true" />
-          <span>Salir</span>
+          <span>{L('Salir', 'Exit')}</span>
         </button>
         <div className="play-title">
           <strong>{title}</strong>
@@ -106,21 +127,53 @@ export function ItemFacts({ item }: { item: Item }) {
       <p className="facts">
         {c.cap && (
           <>
-            Capital: <b>{c.cap.es}</b>
+            {L('Capital', 'Capital')}: <b>{capName(c.cap)}</b>
             <br />
           </>
         )}
         {c.pop ? `${fmtPop(c.pop)} · ` : ''}
         {fmtArea(c.ar)}
-        {c.sov && c.cl === 'dep' ? ' · territorio dependiente' : ''}
+        {c.sov && c.cl === 'dep' ? ` · ${L('territorio dependiente', 'dependent territory')}` : ''}
+      </p>
+    );
+  }
+  if (item.kind === 'city') {
+    return (
+      <p className="facts">
+        {item.cap === 3 ? L('Capital de', 'Capital of') : item.cap === 2 ? L('Segunda capital de', 'Second capital of') : item.cap === 1 ? L('Capital regional ·', 'Regional capital ·') : L('Ciudad de', 'City in')}{' '}
+        <Flag code={c.fl} size="sm" /> {nm(c.n)}
+        {item.pop ? (
+          <>
+            <br />
+            {fmtPop(item.pop)} {L('en su área urbana', 'in its urban area')}
+          </>
+        ) : null}
+      </p>
+    );
+  }
+  if (item.kind === 'feature') {
+    return (
+      <p className="facts">
+        {capitalise(item.type)} · {nm(c.n)}
+        {item.area > 0 && (
+          <>
+            <br />
+            {fmtArea(item.area)}
+          </>
+        )}
       </p>
     );
   }
   return (
     <p className="facts">
       {capitalise(item.type)}
-      {item.parent ? ` · ${item.parent}` : ''} · <Flag code={c.fl} size="sm" /> {c.n.es}
+      {item.parent ? ` · ${item.parent}` : ''} · <Flag code={c.fl} size="sm" /> {nm(c.n)}
       <br />
+      {item.capital?.length ? (
+        <>
+          {L('Capital', 'Capital')}: <b>{item.capital[0]}</b> ·{' '}
+        </>
+      ) : null}
       {fmtArea(item.area)}
     </p>
   );
@@ -128,7 +181,8 @@ export function ItemFacts({ item }: { item: Item }) {
 
 const VERDICT_ICON = { ok: Check, warn: CircleAlert, bad: X } as const;
 
-export function Verdict({ res, title, item, children }: { res: Res; title: ReactNode; item?: Item | null; children?: ReactNode }) {
+/** `wiki` adds what Wikipedia says about the item: worth it when the answer was missed and there is time to read. */
+export function Verdict({ res, title, item, wiki, children }: { res: Res; title: ReactNode; item?: Item | null; wiki?: boolean; children?: ReactNode }) {
   const Icon = VERDICT_ICON[res];
   return (
     <div className={cx('verdict', `verdict-${res}`)} role="status" aria-live="polite">
@@ -139,6 +193,7 @@ export function Verdict({ res, title, item, children }: { res: Res; title: React
         <span>{title}</span>
       </div>
       {item && <ItemFacts item={item} />}
+      {item && wiki && res !== 'ok' && <WikiCard item={item} />}
       {item && <StudyLinks item={item} />}
       {children}
     </div>
@@ -180,7 +235,7 @@ export interface ResultRow {
   note?: string;
 }
 
-const RES_LABEL: Record<Res, string> = { bad: 'Para repasar', warn: 'Con ayuda', ok: 'A la primera' };
+const resLabel = (res: Res): string => (res === 'bad' ? L('Para repasar', 'To review') : res === 'warn' ? L('Con ayuda', 'With help') : L('A la primera', 'First time'));
 
 export function Results({
   title,
@@ -193,7 +248,7 @@ export function Results({
   onAgain,
   onReview,
   onExit,
-  againLabel = 'Otra vez',
+  againLabel = L('Otra vez', 'Again'),
   children,
 }: {
   title: string;
@@ -215,30 +270,31 @@ export function Results({
   if (!counts) for (const r of rows) count[r.res]++;
   const total = count.ok + count.warn + count.bad;
   const weak = rows.filter((r) => r.res !== 'ok');
-  const several = !!deck && deck.countries.length > 1 && deck.scope === 'regions';
+  const several = showsCountry(deck);
+  const review = useStore((s) => !!s.game?.review);
   return (
     <div className="results">
-      <p className="kicker">Resultado</p>
+      <p className="kicker">{L('Resultado', 'Result')}</p>
       <h2 className="results-title">{title}</h2>
       {note && <p className="results-note">{note}</p>}
       <div className="results-score">
-        <Donut {...count} label={`${scoreOf(count.ok, count.warn, total)} %`} caption={`${nf(count.ok)} de ${nf(total)}`} />
+        <Donut {...count} label={`${scoreOf(count.ok, count.warn, total)} %`} caption={`${nf(count.ok)} ${L('de', 'of')} ${nf(total)}`} />
         <dl className="results-stats">
           <div>
-            <dt>A la primera</dt>
+            <dt>{L('A la primera', 'First time')}</dt>
             <dd className="c-ok">{nf(count.ok)}</dd>
           </div>
           <div>
-            <dt>Con ayuda</dt>
+            <dt>{L('Con ayuda', 'With help')}</dt>
             <dd className="c-warn">{nf(count.warn)}</dd>
           </div>
           <div>
-            <dt>Fallos</dt>
+            <dt>{L('Fallos', 'Misses')}</dt>
             <dd className="c-bad">{nf(count.bad)}</dd>
           </div>
           {ms != null && (
             <div>
-              <dt>Tiempo</dt>
+              <dt>{L('Tiempo', 'Time')}</dt>
               <dd>{fmtTime(ms)}</dd>
             </div>
           )}
@@ -250,19 +306,20 @@ export function Results({
           ))}
         </dl>
       </div>
+      {review && <ReviewNext />}
       <div className="results-actions">
-        <button type="button" className="btn btn-primary" onClick={onAgain} autoFocus>
+        <button type="button" className={review ? 'btn' : 'btn btn-primary'} onClick={onAgain} autoFocus={!review}>
           <RotateCcw size={16} aria-hidden="true" />
           {againLabel}
         </button>
         {onReview && weak.length > 0 && weak.length < rows.length && (
           <button type="button" className="btn" onClick={() => onReview(weak.map((r) => r.item.id))}>
-            Repasar {nf(weak.length)} {weak.length === 1 ? 'fallo' : 'fallos'}
+            {L(`Repasar ${nf(weak.length)} ${weak.length === 1 ? 'fallo' : 'fallos'}`, `Review ${nf(weak.length)} ${weak.length === 1 ? 'miss' : 'misses'}`)}
           </button>
         )}
         <button type="button" className="btn btn-ghost" onClick={onExit}>
           <Settings2 size={16} aria-hidden="true" />
-          Cambiar de juego
+          {review ? L('Volver al inicio', 'Back to home') : L('Cambiar de juego', 'Change game')}
         </button>
       </div>
       {children}
@@ -273,7 +330,7 @@ export function Results({
           <details key={res} className={cx('results-group', `g-${res}`)} open={res !== 'ok'}>
             <summary>
               <span className="dot" />
-              {RES_LABEL[res]} <small>{nf(list.length)}</small>
+              {resLabel(res)} <small>{nf(list.length)}</small>
             </summary>
             <ul>
               {list.map(({ item, note: n }) => (
@@ -281,7 +338,7 @@ export function Results({
                   <div className="row-name">
                     {(item.kind === 'country' || several) && <Flag code={item.country.fl} size="sm" />}
                     <b>{item.name}</b>
-                    {n ? <small>{n}</small> : item.kind === 'unit' && (item.parent || several) ? <small>{item.parent ?? item.country.n.es}</small> : null}
+                    {n ? <small>{n}</small> : (item.kind === 'unit' || item.kind === 'city') && (item.parent || several) ? <small>{item.parent ?? nm(item.country.n)}</small> : null}
                   </div>
                   {res !== 'ok' && <StudyLinks item={item} />}
                 </li>

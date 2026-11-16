@@ -11,7 +11,7 @@ import {
   type GeoProjection,
   type GeoStream,
 } from 'd3-geo';
-import type { Geo, LL } from './types';
+import type { AnyGeo, LL } from './types';
 import type { Rng } from './text';
 
 const DEG = 180 / Math.PI;
@@ -88,11 +88,13 @@ export function graticule() {
 }
 
 /** Number of coordinates in a set of shapes: a measure of how heavy they are to draw. */
-export function countPoints(geos: Geo[]): number {
+export function countPoints(geos: AnyGeo[]): number {
   let n = 0;
-  for (const g of geos) {
-    const polys = g.geometry.type === 'Polygon' ? [g.geometry.coordinates] : g.geometry.coordinates;
-    for (const poly of polys) for (const ring of poly) n += ring.length;
+  for (const { geometry: g } of geos) {
+    if (g.type === 'Point') n += 1;
+    else if (g.type === 'LineString') n += g.coordinates.length;
+    else if (g.type === 'MultiLineString') for (const line of g.coordinates) n += line.length;
+    else for (const poly of g.type === 'Polygon' ? [g.coordinates] : g.coordinates) for (const ring of poly) n += ring.length;
   }
   return n;
 }
@@ -174,7 +176,7 @@ export function coarsePath(projection: GeoProjection, grid: number): CoarsePath 
 }
 
 /** Outline of one feature drawn on its own, north up, inside a `size` square. */
-export function silhouette(geo: Geo, size: number, pad = 0.08): string {
+export function silhouette(geo: AnyGeo, size: number, pad = 0.08): string {
   const c = geoCentroid(geo);
   const projection = geoAzimuthalEqualArea()
     .rotate([-c[0], -c[1]])
@@ -232,6 +234,37 @@ export function shortestPath(graph: Graph, a: string, b: string, allowed?: Reado
   if (!prev.has(b)) return null;
   const out: string[] = [];
   for (let at: string | null = b; at; at = prev.get(at) ?? null) out.push(at);
+  return out.reverse();
+}
+
+/**
+ * A path from `a` to `b` that needs the fewest nodes outside `free`, both ends included: what is still
+ * missing once some of the way is already known.
+ */
+export function cheapestPath(graph: Graph, a: string, b: string, free: ReadonlySet<string>): string[] | null {
+  const cost = new Map<string, number>([[a, 0]]);
+  const prev = new Map<string, string | null>([[a, null]]);
+  // Costs are small whole numbers, so nodes are settled layer by layer: one layer per new node needed.
+  let layer = [a];
+  for (let guard = 0; layer.length && guard <= graph.size; guard++) {
+    const next: string[] = [];
+    for (let i = 0; i < layer.length; i++) {
+      const cur = layer[i];
+      const c = cost.get(cur)!;
+      for (const nx of graph.get(cur) || []) {
+        const w = nx === b || free.has(nx) ? 0 : 1;
+        if (cost.has(nx) && cost.get(nx)! <= c + w) continue;
+        cost.set(nx, c + w);
+        prev.set(nx, cur);
+        if (w === 0) layer.push(nx);
+        else next.push(nx);
+      }
+    }
+    layer = next.filter((id, i) => next.indexOf(id) === i);
+  }
+  if (!prev.has(b)) return null;
+  const out: string[] = [];
+  for (let at: string | null = b; at && out.length <= graph.size; at = prev.get(at) ?? null) out.push(at);
   return out.reverse();
 }
 

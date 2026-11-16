@@ -1,4 +1,4 @@
-import type { Feature, MultiLineString, MultiPolygon, Polygon } from 'geojson';
+import type { Feature, LineString, MultiLineString, MultiPolygon, Point, Polygon } from 'geojson';
 
 /** [longitude, latitude] */
 export type LL = [number, number];
@@ -61,12 +61,25 @@ export interface Index {
 }
 
 export type Geo = Feature<Polygon | MultiPolygon>;
+/** Shape of anything that can be asked: surfaces, rivers (lines) and cities (points). */
+export type AnyGeo = Feature<Polygon | MultiPolygon | LineString | MultiLineString | Point>;
 
-/** One thing that can be asked: a subdivision or a whole country. */
+/** One thing that can be asked: a subdivision, a whole country, a city or a river, lake, sea… */
 export interface Item {
   id: string;
-  kind: 'unit' | 'country';
-  /** Spanish display name. */
+  kind: 'unit' | 'country' | 'city' | 'feature';
+  /** How it is drawn: a surface, a line or a dot. */
+  shape: 'area' | 'line' | 'point';
+  /** Physical features: river, lake, sea, range, desert, island. */
+  cat?: string;
+  /** Drawn under the land (seas), so that coasts stay clean. */
+  under?: boolean;
+  /** Cities: inhabitants, and 3 for the capital of the country, 2 for its second capital, 1 for the capital of a region. */
+  pop?: number;
+  cap?: number;
+  /** Names of its capital: the first one is shown, all of them are accepted. */
+  capital?: string[];
+  /** Display name, in the language of the interface. */
   name: string;
   en: string;
   lo?: string;
@@ -77,7 +90,7 @@ export interface Item {
   type: string;
   /** Name of the group the unit belongs to ("Andalucía"), when there is one. */
   parent?: string;
-  geo: Geo;
+  geo: AnyGeo;
   lp: LL;
   fp: LL[];
   /** km² */
@@ -102,13 +115,15 @@ export interface Outline {
 
 export interface Deck {
   key: string;
-  scope: 'regions' | 'countries';
+  scope: 'regions' | 'countries' | 'cities' | 'physical';
   items: Item[];
   byId: Map<string, Item>;
   /** Drawn but never asked (disputed or special areas). */
   extras: Extra[];
   /** Everything else in the world, drawn muted. */
   context: Geo[];
+  /** Land drawn in full colour under the items, never asked: the countries whose cities or rivers are. */
+  base?: Geo[];
   /** National outlines of the chosen countries (regions scope), traced from their own subdivisions. */
   outline: Outline[];
   /** Points the initial view has to contain. */
@@ -118,7 +133,7 @@ export interface Deck {
   noun: { one: string; many: string; fem: boolean };
 }
 
-export type Section = 'regions' | 'countries' | 'pops';
+export type Section = 'regions' | 'countries' | 'pops' | 'cities' | 'physical';
 export type Mode =
   | 'explore'
   | 'pin'
@@ -126,6 +141,8 @@ export type Mode =
   | 'nameall'
   | 'outline'
   | 'travel'
+  | 'puzzle'
+  | 'neighbours'
   | 'capital'
   | 'flag'
   | 'exact'
