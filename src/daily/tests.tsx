@@ -10,6 +10,7 @@ import { distanceKm } from '../lib/geo';
 import { L, capName, nm } from '../lib/i18n';
 import { Matcher, cx, fmtArea, fmtPop, nf, shortNote } from '../lib/text';
 import type { Country, Deck, Res } from '../lib/types';
+import { testName } from './Card';
 import { GUESSES, TESTS, bearing, compass, ladder, spanOf, type QuickQuestion } from './spec';
 
 /** Where the test sits in the day. */
@@ -38,8 +39,7 @@ function useScore(decided: boolean, points: number, figure: number, onScore: (po
   });
 }
 
-export const testName = (i: number): string =>
-  [L('Regionle', 'Regionle'), L('Señalar', 'Pin it'), L('Ruta', 'Route'), L('¿Qué país?', 'Which country?'), L('Banderas y capitales', 'Flags and capitals')][i];
+export { testName };
 
 export const shellTitle = () => L('Reto del día', 'Daily challenge');
 export const shellSubtitle = (i: number) => `${L('Prueba', 'Test')} ${i + 1} ${L('de', 'of')} ${TESTS} · ${testName(i)}`;

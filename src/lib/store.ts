@@ -5,7 +5,7 @@ import { TESTS, emptyRec, streakOf, type DailyRec } from '../daily/spec';
 import type { CityPick } from './extra';
 import type { Lang } from './i18n';
 import { today } from './text';
-import { cleanTypeins, setTypeins as applyTypeins, type Typeins } from './typeins';
+import { cleanTypeins, setTypeins as applyTypeins, type Typeins } from './typeinPrefs';
 import type { Mode, Res, Section } from './types';
 
 export type Length = 'all' | 10 | 20 | 50 | 'endless';
@@ -147,12 +147,15 @@ interface State {
   tot: Totals;
   /** Colours that can be told apart with colour blindness. */
   cb: boolean;
+  /** The welcome for first-time players has been put away. */
+  welcomed: boolean;
   /** Short forms chosen in the settings for each thing, by id: those added to it and those taken from it. */
   typeins: Typeins;
   /** Whether names of several words get their initials unasked; null until chosen: as the game ships. */
   typeinAuto: boolean | null;
 
   setCb(cb: boolean): void;
+  setWelcomed(): void;
   setTypeins(typeins: Typeins): void;
   setTypeinAuto(auto: boolean | null): void;
   saveList(list: CustomList): void;
@@ -210,10 +213,12 @@ export const useStore = create<State>()(
       badges: {},
       tot: {},
       cb: false,
+      welcomed: false,
       typeins: {},
       typeinAuto: null,
 
       setCb: (cb) => set({ cb }),
+      setWelcomed: () => set({ welcomed: true }),
       setTypeins: (typeins) => set({ typeins }),
       setTypeinAuto: (typeinAuto) => set({ typeinAuto }),
       saveList: (list) => set((s) => ({ lists: [...s.lists.filter((l) => l.id !== list.id), list] })),
@@ -341,6 +346,7 @@ export const useStore = create<State>()(
         badges: s.badges,
         tot: s.tot,
         cb: s.cb,
+        welcomed: s.welcomed,
         typeins: s.typeins,
         typeinAuto: s.typeinAuto,
       }),

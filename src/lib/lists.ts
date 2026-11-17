@@ -4,6 +4,7 @@
  */
 import { fromBase64Url, toBase64Url } from './challenge';
 import type { CityPick } from './extra';
+import { LIST_PATH, linkTo } from './routes';
 import type { CustomList, GameConfig, Opts } from './store';
 import type { Mode, Section } from './types';
 
@@ -103,8 +104,7 @@ export function decodeList(code: string): CustomList | null {
 
 /** Address of a list, under whatever folder the site is served from. */
 export function listUrl(code: string): string {
-  const base = typeof location === 'undefined' ? '' : location.href.split('#')[0];
-  return `${base}#/lista/${code}`;
+  return linkTo(`${LIST_PATH}/${code}`);
 }
 
 /** Same pieces on the same map: the list a link brings may already be here. */

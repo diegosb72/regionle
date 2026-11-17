@@ -2,10 +2,11 @@ import { select } from 'd3-selection';
 import 'd3-transition';
 import { zoom as d3zoom, zoomIdentity, zoomTransform, type ZoomBehavior, type ZoomTransform } from 'd3-zoom';
 import { Maximize, Minus, Plus } from 'lucide-react';
-import { forwardRef, memo, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { forwardRef, memo, useCallback, useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import type { GeoPermissibleObjects } from 'd3-geo';
 import { NOMINAL, coarsePath, countPoints, graticule, makeView } from '../lib/geo';
 import { L } from '../lib/i18n';
+import { ARROWS, inOrder, moveFrom, movesOf, nearestTo, type Moves } from '../lib/mapKeys';
 import { cx } from '../lib/text';
 import type { AnyGeo, Deck, Item, LL } from '../lib/types';
 
@@ -27,8 +28,13 @@ export interface MapHandle {
 interface Props {
   deck: Deck;
   paint?: Readonly<Record<string, Paint | undefined>>;
-  /** Items react to the pointer and report clicks. */
+  /** Items react to the pointer and report clicks: a click, or Enter with the keyboard cursor on one, is an answer. */
   pickable?: boolean;
+  /**
+   * The pieces look like something to click although no answer is being asked: the game takes a click
+   * for something else (on the answer it has just shown, to go on). The keyboard is not involved.
+   */
+  pressable?: boolean;
   onPick?: (id: string) => void;
   /** Names drawn when there is room for them. */
   labels?: ReadonlySet<string> | 'all';
@@ -334,6 +340,11 @@ interface OverlayProps {
   pinned?: ReadonlySet<string>;
   only?: ReadonlySet<string>;
   marks?: { x: number; y: number; kind: string }[];
+  /** Keyboard: the item the cursor is on, and what may be said of it. */
+  cursor?: Shape | null;
+  cursorText?: string | null;
+  /** Keyboard: the cross that marks a spot. */
+  cross?: readonly [number, number] | null;
 }
 
 /**
@@ -342,7 +353,7 @@ interface OverlayProps {
  * visible at the current zoom is in the document at all.
  */
 const Overlay = memo(
-  forwardRef<OverlayHandle, OverlayProps>(function Overlay({ shapes, paint, labels, pinned, only, marks }, ref) {
+  forwardRef<OverlayHandle, OverlayProps>(function Overlay({ shapes, paint, labels, pinned, only, marks, cursor, cursorText, cross }, ref) {
     const gRef = useRef<SVGGElement>(null);
     const stepRef = useRef<number | null>(null);
     const [step, setStep] = useState<number | null>(null);
@@ -402,6 +413,8 @@ const Overlay = memo(
         });
     }, [named, k, crowded, dots]);
 
+    const cursorSmall = !!cursor && (cursor.kind === 'point' || cursor.size * k < 26);
+
     return (
       <g ref={gRef}>
         <g className="m-rings">
@@ -438,20 +451,42 @@ const Overlay = memo(
           </g>
         )}
         <g className="m-labels">
-          {shown.map(({ s, pin }) => (
-            <g key={s.id} transform={`translate(${s.x} ${s.y})`}>
-              <text className={cx('m-lbl', pin && 'm-lbl-pin')} y={s.kind === 'point' ? -12 : undefined}>
-                {s.name}
-              </text>
-            </g>
-          ))}
+          {shown.map(({ s, pin }) =>
+            // The name under the keyboard cursor is written by the cursor itself.
+            cursorText && s.id === cursor?.id ? null : (
+              <g key={s.id} transform={`translate(${s.x} ${s.y})`}>
+                <text className={cx('m-lbl', pin && 'm-lbl-pin')} y={s.kind === 'point' ? -12 : undefined}>
+                  {s.name}
+                </text>
+              </g>
+            ),
+          )}
         </g>
+        {cursor && (
+          <g transform={`translate(${cursor.x} ${cursor.y})`} className="m-cur-at">
+            {/* A dot, or a piece too small for its outline to be seen, gets a ring around it. */}
+            {cursorSmall && <circle r={cursor.kind === 'point' ? 11 : RING_R + 5} className="m-cur-ring" />}
+            {cursorText && (
+              <text className="m-lbl m-lbl-pin m-lbl-cur" y={cursorSmall ? -(cursor.kind === 'point' ? 22 : RING_R + 16) : undefined}>
+                {cursorText}
+              </text>
+            )}
+          </g>
+        )}
+        {cross && (
+          <g transform={`translate(${cross[0]} ${cross[1]})`}>
+            <g className="m-cross">
+              <circle r={12} />
+              <path d="M-22 0H-5M5 0H22M0 -22V-5M0 5V22" />
+            </g>
+          </g>
+        )}
       </g>
     );
   }),
 );
 
-export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, paint, pickable, onPick, labels, pinned, tip, blind, links, flash, onPoint, dots, marks }, ref) {
+export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, paint, pickable, pressable, onPick, labels, pinned, tip, blind, links, flash, onPoint, dots, marks }, ref) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const rootRef = useRef<SVGGElement>(null);
@@ -598,56 +633,64 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
     };
   }, [g]);
 
+  /** Brings items into view, as `MapHandle.focus` says. */
+  const bring = useCallback(
+    (ids: string[], opts: { force?: boolean; fill?: number; instant?: boolean; passing?: boolean } = {}) => {
+      const svg = svgRef.current;
+      const z = zoomRef.current;
+      const lay = layoutRef.current;
+      if (!svg || !z || !lay) return;
+      let x0 = Infinity;
+      let y0 = Infinity;
+      let x1 = -Infinity;
+      let y1 = -Infinity;
+      for (const id of ids) {
+        const s = g.byId.get(id);
+        if (!s) continue;
+        x0 = Math.min(x0, s.x0);
+        y0 = Math.min(y0, s.y0);
+        x1 = Math.max(x1, s.x1);
+        y1 = Math.max(y1, s.y1);
+      }
+      if (!Number.isFinite(x0)) return;
+      const { w, h, fit } = lay;
+      const t = tRef.current;
+      const bw = Math.max(x1 - x0, 0.02);
+      const bh = Math.max(y1 - y0, 0.02);
+      const one = ids.length === 1 ? g.byId.get(ids[0]) : undefined;
+      const inside = x0 * t.k + t.x > 16 && y0 * t.k + t.y > 16 && x1 * t.k + t.x < w - 16 && y1 * t.k + t.y < h - 16;
+      // An archipelago can span a wide box and still be a few specks: judge it by its biggest island.
+      const seen = one ? one.land * t.k >= SEEN : Math.max(bw, bh) * t.k >= 36;
+      if (!opts.force && inside && seen) return;
+      const whole = Math.min(w / bw, h / bh);
+      // Asked to fill the view: do so. Otherwise come just close enough to make the thing out, so that
+      // as much as possible of what surrounds it stays on screen.
+      let k = opts.fill != null ? Math.min(whole * opts.fill, fit.k * 60) : one ? (SEEN + 4) / one.land : whole * 0.5;
+      k = Math.min(k, whole * 0.85, z.scaleExtent()[1]);
+      const target = k < fit.k * 1.3 ? fit : zoomIdentity.translate(w / 2 - (k * (x0 + x1)) / 2, h / 2 - (k * (y0 + y1)) / 2).scale(k);
+      if (opts.passing) backRef.current ??= t;
+      else backRef.current = null;
+      select(svg)
+        .transition()
+        .duration(opts.instant ? 0 : 650)
+        .call(z.transform, target);
+    },
+    [g],
+  );
+
+  const seeAll = useCallback(() => {
+    const svg = svgRef.current;
+    const z = zoomRef.current;
+    const lay = layoutRef.current;
+    backRef.current = null;
+    if (svg && z && lay) select(svg).transition().duration(450).call(z.transform, lay.fit);
+  }, []);
+
   useImperativeHandle(
     ref,
     () => ({
-      focus(ids, opts = {}) {
-        const svg = svgRef.current;
-        const z = zoomRef.current;
-        const lay = layoutRef.current;
-        if (!svg || !z || !lay) return;
-        let x0 = Infinity;
-        let y0 = Infinity;
-        let x1 = -Infinity;
-        let y1 = -Infinity;
-        for (const id of ids) {
-          const s = g.byId.get(id);
-          if (!s) continue;
-          x0 = Math.min(x0, s.x0);
-          y0 = Math.min(y0, s.y0);
-          x1 = Math.max(x1, s.x1);
-          y1 = Math.max(y1, s.y1);
-        }
-        if (!Number.isFinite(x0)) return;
-        const { w, h, fit } = lay;
-        const t = tRef.current;
-        const bw = Math.max(x1 - x0, 0.02);
-        const bh = Math.max(y1 - y0, 0.02);
-        const one = ids.length === 1 ? g.byId.get(ids[0]) : undefined;
-        const inside = x0 * t.k + t.x > 16 && y0 * t.k + t.y > 16 && x1 * t.k + t.x < w - 16 && y1 * t.k + t.y < h - 16;
-        // An archipelago can span a wide box and still be a few specks: judge it by its biggest island.
-        const seen = one ? one.land * t.k >= SEEN : Math.max(bw, bh) * t.k >= 36;
-        if (!opts.force && inside && seen) return;
-        const whole = Math.min(w / bw, h / bh);
-        // Asked to fill the view: do so. Otherwise come just close enough to make the thing out, so that
-        // as much as possible of what surrounds it stays on screen.
-        let k = opts.fill != null ? Math.min(whole * opts.fill, fit.k * 60) : one ? (SEEN + 4) / one.land : whole * 0.5;
-        k = Math.min(k, whole * 0.85, z.scaleExtent()[1]);
-        const target = k < fit.k * 1.3 ? fit : zoomIdentity.translate(w / 2 - (k * (x0 + x1)) / 2, h / 2 - (k * (y0 + y1)) / 2).scale(k);
-        if (opts.passing) backRef.current ??= t;
-        else backRef.current = null;
-        select(svg)
-          .transition()
-          .duration(opts.instant ? 0 : 650)
-          .call(z.transform, target);
-      },
-      reset() {
-        const svg = svgRef.current;
-        const z = zoomRef.current;
-        const lay = layoutRef.current;
-        backRef.current = null;
-        if (svg && z && lay) select(svg).transition().duration(450).call(z.transform, lay.fit);
-      },
+      focus: bring,
+      reset: seeAll,
       restore() {
         const svg = svgRef.current;
         const z = zoomRef.current;
@@ -656,7 +699,7 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
         if (svg && z && back) select(svg).transition().duration(450).call(z.transform, back);
       },
     }),
-    [g],
+    [bring, seeAll],
   );
 
   // Handy when testing from the browser console: where a place falls on screen. Removed from production builds.
@@ -755,20 +798,215 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
     return best;
   };
 
-  const zoomBy = (factor: number) => {
+  /** Zooms about a point of the screen, or about the middle of the map. */
+  const zoomBy = (factor: number, about?: [number, number] | null) => {
     const svg = svgRef.current;
     const z = zoomRef.current;
     backRef.current = null;
-    if (svg && z) select(svg).transition().duration(220).call(z.scaleBy, factor);
+    if (!svg || !z) return;
+    const move = select(svg).transition().duration(220);
+    if (about) move.call(z.scaleBy, factor, about);
+    else move.call(z.scaleBy, factor);
   };
+
+  // ------------------------------------------------------------------ keyboard
+  // A map on which a piece is chosen, or a spot marked, can be worked without a pointer: the arrows move a
+  // cursor from piece to piece (or a cross over the map), Enter does what a click would, and + − 0 zoom.
+  /** The game is waiting for an answer on the map. */
+  const asking = !!pickable || !!onPoint;
+  /** Once a game has asked for an answer on the map, it stays in the tab order between questions. */
+  const keyed = useRef(false);
+  if (asking) keyed.current = true;
+  const keyable = keyed.current;
+  /** The keyboard was at work on the map when the focus left it. */
+  const wasKeying = useRef(false);
+  const hintId = useId();
+  const [kb, setKb] = useState<{ of: unknown; id?: string; at?: readonly [number, number] } | null>(null);
+  /** The keyboard is in use: the cursor is drawn. A pointer, or the focus going elsewhere, puts it away. */
+  const [keying, setKeying] = useState(false);
+  const cursor = kb?.of === g && kb.id ? g.byId.get(kb.id) : undefined;
+  const cross = kb?.of === g ? kb.at : undefined;
+  /** What the cursor can stand on: whatever a click can fall on. */
+  const spots = useMemo(() => g.shapes.filter((s) => s.kind !== 'point' || !dots || dots.has(s.id)), [g, dots]);
+  const navRef = useRef<{ of: Shape[]; moves: Moves; order: Shape[] } | null>(null);
+  /** Worked out the first time a key asks for it: a map of thousands of pieces takes a moment. */
+  const nav = () => {
+    if (navRef.current?.of !== spots) navRef.current = { of: spots, moves: movesOf(spots), order: inOrder(spots) };
+    return navRef.current;
+  };
+  /** Where a point of the map falls on screen; null when it is out of sight. */
+  const onScreen = (x: number, y: number): [number, number] | null => {
+    const lay = layoutRef.current;
+    if (!lay) return null;
+    const t = tRef.current;
+    const sx = x * t.k + t.x;
+    const sy = y * t.k + t.y;
+    return sx >= 0 && sy >= 0 && sx <= lay.w && sy <= lay.h ? [sx, sy] : null;
+  };
+  /** The point of the map in the middle of the screen. */
+  const middle = (): [number, number] => {
+    const lay = layoutRef.current;
+    const t = tRef.current;
+    return lay ? [(lay.w / 2 - t.x) / t.k, (lay.h / 2 - t.y) / t.k] : [0, 0];
+  };
+
+  /**
+   * Keeps the keyboard cursor in sight: the map slides when the piece is out of view. The zoom stays as
+   * the player left it (a piece too small to make out gets a ring, and + brings it closer).
+   */
+  const follow = (s: Shape) => {
+    const svg = svgRef.current;
+    const z = zoomRef.current;
+    const lay = layoutRef.current;
+    if (!svg || !z || !lay) return;
+    const t = tRef.current;
+    const sx = s.x * t.k + t.x;
+    const sy = s.y * t.k + t.y;
+    const margin = Math.min(56, lay.w / 6, lay.h / 6);
+    if (sx >= margin && sy >= margin && sx <= lay.w - margin && sy <= lay.h - margin) return;
+    backRef.current = null;
+    select(svg).transition().duration(260).call(z.translateTo, s.x, s.y);
+  };
+
+  const moveCross = (arrow: number, px: number) => {
+    const svg = svgRef.current;
+    const z = zoomRef.current;
+    const lay = layoutRef.current;
+    if (!svg || !z || !lay) return;
+    // The first key only brings the cross out, in the middle of what is on screen.
+    if (!cross || !keying || !onScreen(cross[0], cross[1])) return setKb({ of: g, at: middle() });
+    let t = tRef.current;
+    let sx = cross[0] * t.k + t.x + (arrow === ARROWS.ArrowLeft ? -px : arrow === ARROWS.ArrowRight ? px : 0);
+    let sy = cross[1] * t.k + t.y + (arrow === ARROWS.ArrowUp ? -px : arrow === ARROWS.ArrowDown ? px : 0);
+    const x = (sx - t.x) / t.k;
+    const y = (sy - t.y) / t.k;
+    // Near the edge the map moves under the cross, as far as it can go.
+    const margin = Math.min(48, lay.w / 5, lay.h / 5);
+    const dx = sx < margin ? margin - sx : sx > lay.w - margin ? lay.w - margin - sx : 0;
+    const dy = sy < margin ? margin - sy : sy > lay.h - margin ? lay.h - margin - sy : 0;
+    if (dx || dy) {
+      backRef.current = null;
+      select(svg).call(z.translateBy, dx / t.k, dy / t.k);
+      t = tRef.current;
+    }
+    sx = Math.min(lay.w - 6, Math.max(6, x * t.k + t.x));
+    sy = Math.min(lay.h - 6, Math.max(6, y * t.k + t.y));
+    setKb({ of: g, at: [(sx - t.x) / t.k, (sy - t.y) / t.k] });
+  };
+
+  const onKeyDown = (e: KeyboardEvent<SVGSVGElement>) => {
+    if (!keyable || e.altKey || e.ctrlKey || e.metaKey) return;
+    // A key the map uses goes no further: the games listen for Enter on the whole window, and the Enter
+    // that answers must not also be the one that moves on to the next question.
+    const take = () => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!keying) setKeying(true);
+    };
+    const at = keying ? (cursor ? onScreen(cursor.x, cursor.y) : cross ? onScreen(cross[0], cross[1]) : null) : null;
+    if (e.key === '+' || e.key === '=' || e.key === '-' || e.key === '_') {
+      take();
+      zoomBy(e.key === '+' || e.key === '=' ? 1.7 : 1 / 1.7, at);
+      return;
+    }
+    if (e.key === '0') {
+      take();
+      seeAll();
+      return;
+    }
+    const arrow = ARROWS[e.key];
+    const enter = e.key === 'Enter' || e.key === ' ';
+    if (onPoint) {
+      if (arrow != null) {
+        take();
+        moveCross(arrow, e.shiftKey ? 4 : 28);
+      } else if (enter && keying && cross) {
+        take();
+        const ll = g.view.projection.invert?.([cross[0], cross[1]]);
+        if (ll && Number.isFinite(ll[0]) && Number.isFinite(ll[1])) onPoint([ll[0], ll[1]]);
+      }
+      return;
+    }
+    if (!onPick) return;
+    const paging = e.key === 'PageDown' || e.key === 'PageUp' || e.key === 'Home' || e.key === 'End';
+    if (arrow != null || paging) {
+      take();
+      if (!spots.length) return;
+      const { moves, order } = nav();
+      let next: string | null | undefined;
+      // The first key only brings the cursor out: where it was, or on the piece nearest the middle of the
+      // screen among those that can be made out as the map stands.
+      if (!cursor || (!keying && !onScreen(cursor.x, cursor.y))) {
+        const k = tRef.current.k;
+        const plain = spots.filter((s) => s.kind === 'point' || s.land * k >= SEEN);
+        next = nearestTo(...middle(), plain.length ? plain : spots)?.id;
+      } else if (!keying) next = cursor.id;
+      else if (arrow != null) next = moveFrom(moves, cursor.id, arrow);
+      else {
+        const i = order.findIndex((s) => s.id === cursor.id);
+        next = e.key === 'Home' ? order[0]?.id : e.key === 'End' ? order[order.length - 1]?.id : order[i + (e.key === 'PageDown' ? 1 : -1)]?.id;
+      }
+      const target = next ? g.byId.get(next) : undefined;
+      if (!target) return;
+      setKb({ of: g, id: target.id });
+      follow(target);
+      return;
+    }
+    // Enter is an answer only while the game is waiting for one; otherwise it goes on to the game ("next question").
+    if (enter && pickable && keying && cursor) {
+      take();
+      onPick(cursor.id);
+    }
+  };
+
+  // Between two questions the focus goes to the "next" button, which then goes away and leaves the focus
+  // nowhere. When the next question opens, whoever was answering with the keyboard gets the map back.
+  useEffect(() => {
+    if (!asking || !wasKeying.current) return;
+    const svg = svgRef.current;
+    const lost = !document.activeElement || document.activeElement === document.body;
+    if (!svg || !lost) return;
+    svg.focus({ preventScroll: true });
+    setKeying(true);
+  }, [asking]);
+
+  /** What the cursor says of where it is: the name when the game lets it be known, and its place in the count. */
+  const cursorText = cursor ? (tipFn.current?.(cursor.id) ?? null) : null;
+  let spoken = '';
+  if (keying && cursor) {
+    const order = navRef.current?.order ?? [];
+    spoken = `${cursorText ?? L('Pieza', 'Piece')}, ${order.findIndex((s) => s.id === cursor.id) + 1} ${L('de', 'of')} ${order.length}`;
+  } else if (keying && cross) {
+    const ll = g.view.projection.invert?.([cross[0], cross[1]]);
+    if (ll && Number.isFinite(ll[0]) && Number.isFinite(ll[1]))
+      spoken = `${L('Cruz en', 'Cross at')} ${Math.abs(ll[1]).toFixed(1)}° ${ll[1] >= 0 ? 'N' : 'S'}, ${Math.abs(ll[0]).toFixed(1)}° ${ll[0] >= 0 ? 'E' : L('O', 'W')}`;
+  }
+  const keysHint = onPoint
+    ? L('Flechas: mover la cruz (con Mayús, más despacio) · Intro: marcar · + − 0: zoom', 'Arrows: move the cross (with Shift, slower) · Enter: mark · + − 0: zoom')
+    : L('Flechas: de pieza en pieza · Intro: elegir · + − 0: zoom', 'Arrows: from piece to piece · Enter: choose · + − 0: zoom');
 
   return (
     <div className="map" ref={wrapRef}>
       <svg
         ref={svgRef}
-        className={cx('map-svg', pickable && 'pickable', blind && 'blind', onPoint && 'pointable', deck.outline.length > 12 && 'dense')}
-        role="img"
+        className={cx('map-svg', (pickable || pressable) && 'pickable', blind && 'blind', onPoint && 'pointable', deck.outline.length > 12 && 'dense')}
+        role={keyable ? 'application' : 'img'}
+        aria-roledescription={keyable ? L('mapa', 'map') : undefined}
         aria-label={L(`Mapa: ${deck.title}`, `Map: ${deck.title}`)}
+        aria-describedby={keyable ? hintId : undefined}
+        tabIndex={keyable ? 0 : undefined}
+        onKeyDown={onKeyDown}
+        onPointerDown={() => {
+          wasKeying.current = false;
+          if (keying) setKeying(false);
+        }}
+        onFocus={() => {
+          wasKeying.current = false;
+        }}
+        onBlur={() => {
+          wasKeying.current = keying;
+          if (keying) setKeying(false);
+        }}
         onClick={(e) => {
           if (onPoint) {
             const svg = svgRef.current;
@@ -864,30 +1102,47 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
               </g>
             ))}
           </g>
-          <Overlay ref={overlayRef} shapes={g.shapes} paint={paint} labels={labels} pinned={pinned} only={dots} marks={markPoints} />
+          {keying && cursor && cursor.kind !== 'point' && (
+            <g className={cx('m-cur', cursor.kind === 'line' && 'm-cur-ln')}>
+              <path className="m-cur-halo" d={g.fullOf(cursor.id)} />
+              <path className="m-cur-line" d={g.fullOf(cursor.id)} />
+            </g>
+          )}
+          <Overlay
+            ref={overlayRef}
+            shapes={g.shapes}
+            paint={paint}
+            labels={labels}
+            pinned={pinned}
+            only={dots}
+            marks={markPoints}
+            cursor={keying ? cursor : null}
+            cursorText={keying ? cursorText : null}
+            cross={keying && onPoint ? cross : null}
+          />
         </g>
       </svg>
+      {keyable && (
+        <>
+          {/* Shown while the map has the keyboard, and read out as its description. */}
+          <p className="map-keys" id={hintId}>
+            {keysHint}
+          </p>
+          <p className="sr-only" role="status">
+            {spoken}
+          </p>
+        </>
+      )}
       <div className="map-tip" ref={tipRef} aria-hidden="true" />
       <div className="map-ctl">
         <button type="button" onClick={() => zoomBy(1.7)} aria-label={L('Acercar', 'Zoom in')} title={L('Acercar', 'Zoom in')}>
-          <Plus size={18} />
+          <Plus size={18} aria-hidden="true" />
         </button>
         <button type="button" onClick={() => zoomBy(1 / 1.7)} aria-label={L('Alejar', 'Zoom out')} title={L('Alejar', 'Zoom out')}>
-          <Minus size={18} />
+          <Minus size={18} aria-hidden="true" />
         </button>
-        <button
-          type="button"
-          onClick={() => {
-            const svg = svgRef.current;
-            const z = zoomRef.current;
-            const lay = layoutRef.current;
-            backRef.current = null;
-            if (svg && z && lay) select(svg).transition().duration(450).call(z.transform, lay.fit);
-          }}
-          aria-label={L('Ver todo', 'See everything')}
-          title={L('Ver todo', 'See everything')}
-        >
-          <Maximize size={16} />
+        <button type="button" onClick={seeAll} aria-label={L('Ver todo', 'See everything')} title={L('Ver todo', 'See everything')}>
+          <Maximize size={16} aria-hidden="true" />
         </button>
       </div>
     </div>

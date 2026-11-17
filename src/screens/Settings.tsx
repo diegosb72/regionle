@@ -500,6 +500,18 @@ export function Settings({ world, path }: { world: World; path: string }) {
               )}
             </span>
           </p>
+          {tab === 'regions' && (
+            <p className="ti-fine ti-codes">
+              {L(
+                'El código gris de cada pieza es el suyo en la norma ISO 3166-2; los que llevan una x son del juego, para las piezas que la norma no recoge.',
+                'The grey code of each piece is its own in ISO 3166-2; those with an x are the game’s, for pieces the standard does not list.',
+              )}
+              {(groups?.length ?? 0) > 1 &&
+                ` ${L('Cada nivel tiene sus códigos, todos en vigor, así que una misma tierra puede salir dos veces', 'Each level has its codes, all of them in force, so the same land can show up twice')}${
+                  scope === 'ES' ? L(': Asturias es ES-AS como comunidad autónoma y ES-O como provincia.', ': Asturias is ES-AS as an autonomous community and ES-O as a province.') : '.'
+                }`}
+            </p>
+          )}
 
           {error ? (
             <div className="empty-state">

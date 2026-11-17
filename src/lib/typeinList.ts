@@ -5,6 +5,7 @@
 import { buildDeck, countryAnswers, countryItem, eligible, loadIndex } from './data';
 import { PHYS_KINDS, buildCityDeck, buildPhysicalDeck, kindNoun, loadCapitals, loadCities, type PhysKind } from './extra';
 import { L, getLang, levelNoun, nm } from './i18n';
+import { SETTINGS_PATH } from './routes';
 import { spellingsOf, type Spellings } from './spellings';
 import { Matcher, codeOf, key, shortFormsOf, type Answerable } from './text';
 import { capKey, capitalAnswers, chipsOf, editOf, type Chip, type TypeinSettings } from './typeins';
@@ -16,8 +17,8 @@ export type TypeinTab = (typeof TYPEIN_TABS)[number];
 /** Address of each list, after that of the settings: the words the sections go by. */
 export const TAB_PATH: Record<TypeinTab, string> = { countries: 'paises', regions: 'regiones', cities: 'ciudades', capitals: 'capitales', physical: 'fisica' };
 
-/** Address of the settings. What follows it names a list and, where lists go by country, the country. */
-export const SETTINGS_PATH = 'configuracion';
+/** Address of the settings (`routes.ts`). What follows it names a list and, where lists go by country, the country. */
+export { SETTINGS_PATH };
 
 /** Where the settings open on a list: for links from the rest of the game. */
 export function settingsLink(tab: TypeinTab, scope = ''): string {

@@ -33,8 +33,10 @@ function walk(dir, base = '') {
 }
 
 const GENERATED = new Set(['sw.js', 'offline.json']);
+/** Read by search engines and social networks, never by the game: neither stored nor counted in the version. */
+const forCrawlers = (f) => f === 'robots.txt' || f === 'sitemap.xml' || /^social-[\w-]+\.png$/.test(f);
 const files = walk(out)
-  .filter((f) => !GENERATED.has(f) && !f.startsWith('.'))
+  .filter((f) => !GENERATED.has(f) && !f.startsWith('.') && !forCrawlers(f))
   .sort();
 const digest = (list) => {
   const h = createHash('sha1');

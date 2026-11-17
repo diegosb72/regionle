@@ -363,7 +363,10 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
         ref={map}
         deck={deck}
         paint={paint}
-        pickable={clicky && !ended}
+        // Only while a question is open: after it, Enter on the map is "next", not an answer.
+        pickable={clicky && s.phase === 'ask'}
+        // After a miss the answer blinks and a click on it goes on: it has to look like it can be clicked.
+        pressable={clicky && s.phase === 'reveal'}
         onPick={onPick}
         labels={labels}
         pinned={pinned}

@@ -17,7 +17,7 @@ Todo funciona en el navegador: no hay servidor, registro ni anuncios, y el progr
 | **Cifras** (población o superficie) | Mayor o menor · Ordena cinco · Cifra exacta · ¿Qué país? |
 
 - **251 países y territorios** y unas **4500 divisiones** de primer nivel. España, Francia, Italia, el Reino Unido y algunos países más se pueden jugar a dos o tres niveles (comunidades o provincias, regiones o departamentos…). Hay además **4538 ciudades** de 227 países, **593 accidentes geográficos** (entre ellos 101 picos y volcanes con su altitud) y las capitales de las regiones de 122 países.
-- **Reto del día**: cada día un país y cinco pruebas cortas, las mismas para todo el mundo (adivinar una región por su silueta, señalar cinco, una ruta entre dos países, un país por su población y cinco preguntas de banderas y capitales). Hasta 100 puntos, racha, calendario con los días anteriores y resultado para compartir.
+- **Reto del día**: cada día un país y cinco pruebas cortas, las mismas para todo el mundo (adivinar una región por su silueta, señalar cinco, una ruta entre dos países, un país por su población y cinco preguntas de banderas y capitales). Hasta 100 puntos, racha, calendario con los días anteriores y resultado para compartir, como texto o como **imagen**: una tarjeta cuadrada con el país, su mapa, los puntos y las cinco pruebas, que se dibuja en el propio navegador (en el ordenador se descarga; en el móvil se comparte directamente).
 - **Sin límite**: todo lo demás se puede repetir, barajar y jugar en modo sin fin, en el que lo fallado vuelve a salir hasta que se acierta. **Regionle** es el juego clásico tantas veces como se quiera: una silueta, seis intentos y, en cada fallo, la distancia y la dirección. El modo Ruta conserva su «ruta del día» y, después, todas las rutas que se quieran.
 - **Aprender**: lecciones de cinco piezas nuevas. Primero se enseñan una a una, luego se pregunta dónde está cada una y cómo se llama, y al final se mezclan con las de lecciones anteriores. Lo que se falla vuelve a salir hasta que se acierta, y la lección siguiente empieza donde se dejó.
 - **Listas a medida**: se marcan en el mapa las piezas que se quieren practicar («las doce del examen del jueves»), se les pone nombre y se juega solo con ellas en cualquier modo. Una lista se comparte con un enlace que la contiene entera.
@@ -31,12 +31,16 @@ Todo funciona en el navegador: no hay servidor, registro ni anuncios, y el progr
 - **Situar a ciegas**: el mapa no muestra ninguna ciudad y hay que hacer clic donde se cree que está. Cuenta la distancia en kilómetros, con un margen que depende del tamaño del mapa.
 - **Repaso espaciado**: cada respuesta vuelve cuando está a punto de olvidarse (al día siguiente, a los 3 días, a los 7, 16, 35 y 75); un fallo la trae de vuelta el mismo día. La portada propone el repaso de hoy, agrupado por mapas. Si una corrección de los datos retira algo que estaba pendiente (una ciudad que la fuente situaba en el país de al lado, la capital de una división que ya no existe), sale del repaso en lugar de quedarse pendiente para siempre.
 - **Filtros**: por continente y subregión, tipo de territorio, litoral, población, superficie y número de divisiones; atajos (Mundo, Unión Europea, hispanohablantes, G20…) y selecciones guardadas.
-- **Para estudiar**: cada respuesta enlaza con Wikipedia, OpenStreetMap y vídeos, y tiene un botón para **oír el nombre** con la voz del navegador; al fallar se muestra un resumen de Wikipedia con su foto (se puede desactivar); el modo Explorar muestra la ficha y los vecinos de cada pieza, y al terminar se puede repasar solo lo fallado.
+- **Para estudiar**: cada respuesta enlaza con Wikipedia, OpenStreetMap y vídeos, y tiene un botón para **oír el nombre** con la voz del navegador; al fallar se muestra un resumen de Wikipedia con su foto (se puede desactivar), en el idioma del juego o, si ahí no hay artículo o no dice nada, en el otro; el modo Explorar muestra la ficha y los vecinos de cada pieza, y al terminar se puede repasar solo lo fallado.
 - **Retos por enlace**: al acabar una partida se puede enviar un enlace con las mismas preguntas en el mismo orden y el resultado que hay que superar. No hace falta servidor: todo viaja en el propio enlace.
 - **Logros y niveles**: 29 logros (continentes completos, un país al detalle, rachas del reto diario, récords de cada modo…) y diez niveles, de Turista a Atlas viviente. Se calculan con lo que ya está guardado, así que quien jugaba antes empieza con lo que tenía ganado.
 - **Progreso**: nivel y logros, mapa de lo que se sabe (aprendido, aprendiendo, toca repasar), previsión de repasos de la semana, aciertos por habilidad, últimas partidas y récords, con exportación e importación en un archivo (incluye las listas y las abreviaturas de Configuración).
 - **Sin conexión**: la aplicación se guarda en el navegador la primera vez que se abre y los mapas, según se van usando; el botón «Descargar todo» del pie de página baja de una vez todos los mapas y banderas (unos 3 MB comprimidos). Cuando hay una versión nueva, se avisa y no cambia nada hasta que se acepta.
-- Español e inglés (se elige en la cabecera; por defecto, el idioma del navegador), tema claro y oscuro, **colores para daltónicos** (azul, amarillo y bermellón, con tramas en el mapa; se activan en el pie de página), uso con teclado y diseño adaptado al móvil.
+- **Con teclado**: todo el juego se usa sin ratón ni pantalla táctil. En los mapas en los que hay que elegir una pieza (Señalar, Puzle, Aprender, el reto del día…) se llega al mapa con Tab, las flechas llevan un cursor a la pieza vecina por ese lado, AvPág y RePág las recorren de oeste a este (Inicio y Fin van a la primera y a la última), Intro o Espacio eligen y `+`, `−` y `0` mueven el zoom. En Situar a ciegas las flechas mueven una cruz (con Mayús, a pasos cortos). Mientras se pregunta por una pieza, el cursor dice su lugar en la cuenta y no su nombre, que sería la respuesta. Las teclas están en «Acerca de».
+- **Primera vez**: quien entra sin haber jugado encuentra en la portada cómo se juega, en tres pasos. Desaparece al cerrarla o al jugar la primera partida.
+- **Acerca de** (en el pie de página): la versión y las novedades de cada una, las teclas, qué se guarda y dónde (nada sale del navegador) y las fuentes con sus licencias.
+- **Si algo falla**: una pantalla que se rompe, o que no llega a cargarse, lo dice y deja reintentar, recargar o volver al inicio sin perder el progreso; una dirección que no existe lo dice y enlaza con todo lo demás, en lugar de enseñar la portada.
+- Español e inglés (se elige en la cabecera; por defecto, el idioma del navegador), tema claro y oscuro, **colores para daltónicos** (azul, amarillo y bermellón, con tramas en el mapa; se activan en el pie de página) y diseño adaptado al móvil.
 
 ## Puesta en marcha
 
@@ -50,15 +54,28 @@ npm run dev        # http://localhost:5173
 | Orden | Para qué |
 | --- | --- |
 | `npm run dev` | Servidor de desarrollo |
-| `npm run build` | Comprueba los tipos, genera `dist/` y le añade el *service worker* (`sw.js`) y la lista de la descarga completa (`offline.json`) |
+| `npm run build` | Comprueba los tipos, genera `dist/`, le añade el *service worker* (`sw.js`) y la lista de la descarga completa (`offline.json`) y comprueba que la primera carga no pasa de su tamaño (véase «Tamaño») |
 | `npm run build:pages` | Lo mismo, pero en `docs/`, la carpeta que publica GitHub Pages |
 | `npm run preview` | Sirve `dist/` en el puerto 4173 |
 | `npm test` | Pruebas (Vitest), incluidas las comprobaciones de los datos generados |
 | `npm run typecheck` | Solo la comprobación de tipos |
+| `npm run e2e` | Pruebas en un navegador de verdad (Playwright, carpeta `e2e/`): compila el sitio, lo sirve y juega con él, con ratón, con teclado, con el dedo y sin conexión. La primera vez hay que bajar el navegador con `npx playwright install chromium` |
+| `npm run social` | Vuelve a dibujar las imágenes que acompañan al enlace del juego en redes y mensajería (`public/social-es.png` y `public/social-en.png`), con ese mismo navegador |
 
 ### Publicación
 
 `npm run build` deja en `dist/` un sitio estático de unos 13 MB (la aplicación, los mapas y las banderas). Las rutas van en el `#` de la dirección y los recursos se piden con rutas relativas, así que sirve tal cual en cualquier alojamiento estático y en cualquier subcarpeta (GitHub Pages, Netlify, un directorio de un servidor propio…).
+
+#### Páginas, buscadores y enlaces compartidos
+
+La compilación escribe tres páginas que solo se distinguen en el idioma: `index.html`, `es.html` y `en.html`. Cada una lleva su título y su descripción, su dirección canónica, las otras dos como alternativas por idioma (`hreflang`), lo que leen las redes y la mensajería para enseñar el enlace con título, descripción e imagen (Open Graph y Twitter Card, con `social-es.png` o `social-en.png`, de 1200 × 630) y los datos estructurados del juego (`WebApplication`). Se escriben también `sitemap.xml`, con las tres, y `robots.txt`. El juego habla el idioma que se haya elegido en él; si no se ha elegido ninguno, el de la página por la que se entra (`en.html`, `es.html`) y, en la portada, el del navegador.
+
+Todo eso lleva la dirección pública del sitio, que sale del campo `homepage` de `package.json`. Para publicar en otro lugar se cambia ahí o se da al compilar: `SITE_URL=https://ejemplo.org/juego/ npm run build`.
+
+Dos cosas no dependen del código:
+
+- Los buscadores solo leen el `robots.txt` de la raíz del dominio. En `usuario.github.io/regionle/` el que se genera no lo lee nadie (tampoco estorba, y vale tal cual si el juego se publica en un dominio propio). El mapa del sitio se da de alta a mano en Google Search Console o en Bing Webmaster Tools.
+- Las pantallas del juego van en el `#` de la dirección, que los buscadores no siguen: lo que se indexa es la portada, en sus dos idiomas.
 
 #### GitHub Pages
 
@@ -83,7 +100,41 @@ El archivo `docs/.nojekyll` (se copia desde `public/`) hace que GitHub Pages sir
 
 #### Instalación y uso sin conexión
 
-El último paso de la compilación (`scripts/pwa/build.mjs`) escribe en la carpeta compilada un *service worker* con la lista de archivos de la aplicación y un número de versión calculado a partir de su contenido. Solo se registra en el sitio compilado (no en `npm run dev`) y necesita HTTPS o `localhost`, como cualquier *service worker*. La aplicación se sirve desde la copia guardada; los mapas se piden primero a la red y, si no responde, se usa la copia; las banderas se toman siempre de la copia si la hay.
+El último paso de la compilación (`scripts/pwa/build.mjs`) escribe en la carpeta compilada un *service worker* (`sw.js`, a partir de `scripts/pwa/sw.js`) con la lista de archivos de la aplicación y un número de versión calculado a partir de su contenido. Solo se registra en el sitio compilado (no en `npm run dev`) y necesita HTTPS o `localhost`, como cualquier *service worker*. Qué guarda y cómo lo sirve:
+
+| Qué | Cuándo se guarda | Cómo se sirve |
+| --- | --- | --- |
+| **La aplicación**: las tres páginas, los guiones de todas las pantallas, los estilos, las tipografías y los iconos | En la primera visita, al instalarse el *service worker* | Siempre de la copia |
+| **El índice de países y el mapa del mundo** (`data/index.json` y `data/world.json`), sin los que el juego no abre | También al instalarse | Como los mapas: primero la red |
+| **Los mapas** de cada país y los demás archivos de `data/` | La primera vez que se usan, o todos de una vez con «Descargar todo» | Primero se piden a la red; si no responde (o tarda más de 2,5 s habiendo copia), la copia |
+| **Las banderas** (`flags/`) | Igual que los mapas | De la copia si la hay: no cambian |
+| `robots.txt`, `sitemap.xml` y las imágenes para redes | Nunca | De la red: no son para quien juega |
+
+- Lo que se guarda al instalarse son unos 40 archivos, 1 MB comprimido, en una copia que se llama `regionle-shell-<versión>`. Una versión nueva se descarga entera aparte y **no sustituye a la anterior hasta que se acepta el aviso** «Hay una versión nueva»; entonces se recarga la página y se borra la copia vieja. Así no se mezclan nunca archivos de dos versiones.
+- Los mapas y las banderas están en otra copia, `regionle-data`, que se conserva de una versión a otra.
+- Una visita a `es.html` o a `en.html` recibe esa página; cualquier otra dirección del juego, `index.html`. Los archivos que no son páginas (el mapa del sitio, una imagen) se responden como lo que son.
+- Una copia se busca solo por su dirección: no cuenta lo que vaya detrás de un `?` ni la cabecera `Vary` con la que algunos servidores acompañan todo lo que sirven.
+- Para verlo en local: `npm run build && npm run preview`, y en las herramientas del navegador, *Application → Service workers* y *Cache storage*. `npm run e2e` comprueba que el juego abre sin conexión, en los dos idiomas y en pantallas que aún no se habían visitado.
+
+### Versiones y novedades
+
+El número de versión está en `package.json` y se ve en el pie de página y en «Acerca de». Lo que trae cada versión se escribe en `src/lib/changelog.ts`, en los dos idiomas: de ahí salen la lista de «Acerca de» y el archivo [`CHANGELOG.md`](CHANGELOG.md), que no se edita a mano. Las pruebas fallan si la primera entrada de la lista no es la versión de `package.json` o si `CHANGELOG.md` no dice lo mismo que la lista.
+
+Para sacar una versión: `npm version minor --no-git-tag-version` (o `patch`), añadir su entrada al principio de `RELEASES`, `npm test -- -u` (reescribe `CHANGELOG.md`) y `npm run build:pages`.
+
+### Tamaño
+
+La portada no descarga el juego entero: cada pantalla va en un archivo aparte que se pide cuando hace falta y, si el navegador no pide ahorrar datos, por adelantado en cuanto la página está ociosa. `scripts/budget.mjs`, al final de la compilación, suma lo que pesa comprimido (gzip) lo que una primera visita tiene que descargar y **detiene la compilación** si pasa de su límite:
+
+| | Hoy | Límite |
+| --- | --- | --- |
+| La página | 2,5 kB | 5 kB |
+| Guiones de la primera carga | 110 kB | 130 kB |
+| Estilos | 19 kB | 26 kB |
+| Tipografías pedidas con la página | 102 kB | 110 kB |
+| El mayor de los guiones que se piden después | 33 kB | 60 kB |
+
+Antes de repartirlo, el juego era un solo guion de 247 kB comprimido. Los límites dejan algo de margen sobre lo que hay; subir uno es una decisión, no un trámite: se cambia en `scripts/budget.mjs`.
 
 ## Datos
 
@@ -139,15 +190,19 @@ npm i --no-save all-the-cities@3.1.0 && npm run data:check   # segunda opinión 
 scripts/data/      Descarga y construcción de los datos
 scripts/typeins/   Lista de type-ins de JetPunk y el script que escribe lo que el juego trae de fábrica
 scripts/pwa/       Service worker y paso final de la compilación
+scripts/social/    Dibuja las imágenes que acompañan al enlace del juego en redes
+scripts/budget.mjs Límites de tamaño de la primera carga
+e2e/               Pruebas en un navegador de verdad (Playwright)
 public/data/       Datos generados que usa el juego
 public/icons/      Iconos de la aplicación instalada
 docs/              El juego compilado que publica GitHub Pages (no se edita a mano)
-src/lib/           Tipos, carga de datos, geometría, texto, abreviaturas, idiomas, estado guardado, repaso, retos, listas, logros, enlaces
-src/components/    Mapa (d3-geo + SVG), selector de países, campo de respuesta, ficha de Wikipedia, voz, logros
+src/lib/           Tipos, carga de datos, geometría, texto, abreviaturas, idiomas, estado guardado, repaso, retos, listas, logros, enlaces, direcciones, metadatos de las páginas y novedades
+src/components/    Mapa (d3-geo + SVG) y su teclado, selector de países, campo de respuesta, ficha de Wikipedia, voz, logros, aviso de error y carga de pantallas
 src/games/         Lógica y pantallas de cada modo
-src/daily/         Reto del día
-src/screens/       Inicio, preparación de la partida, partida, reto o lista recibidos, progreso y configuración
+src/daily/         Reto del día y la imagen de su resultado
+src/screens/       Inicio, preparación de la partida, partida, reto o lista recibidos, progreso, configuración, acerca de y dirección desconocida
 src/styles.css     Hoja de estilos única
+CHANGELOG.md       Novedades de cada versión (se escribe a partir de src/lib/changelog.ts)
 ```
 
 Hecho con React 19, TypeScript, Vite, d3-geo, TopoJSON y Zustand. Los textos de la interfaz están junto al código que los muestra, en los dos idiomas (`L('español', 'English')` en `src/lib/i18n.ts`).
@@ -169,6 +224,9 @@ Hecho con React 19, TypeScript, Vite, d3-geo, TopoJSON y Zustand. Los textos de 
 - El botón de **oír el nombre** usa la voz que tenga el navegador para el idioma de la interfaz: los nombres que se conservan en su lengua (Bouches-du-Rhône) suenan con ese acento, y donde no hay voz instalada no se oye nada.
 - La ficha de Wikipedia y los enlaces externos necesitan conexión; sin ella, simplemente no aparecen.
 - El reto del día se calcula en el dispositivo a partir de la fecha: es el mismo para todo el mundo, pero no hay clasificación ni se comprueba en ningún servidor.
+- La **imagen del resultado** se comparte como archivo donde el navegador sabe hacerlo (los móviles) y se descarga en los demás. El enlace de un reto enseña en redes la imagen general del juego, no la del resultado: para eso haría falta un servidor.
+- Con el **teclado**, el cursor del mapa va de pieza en pieza por cercanía: en un mapa de miles de piezas se tarda en llegar lejos (AvPág, Inicio y Fin ayudan). Un lector de pantalla oye el lugar de la pieza en la cuenta («Pieza, 6 de 19») mientras se pregunta por ella, y su nombre solo donde no es la respuesta.
+- Los **buscadores** solo ven la portada, en sus dos idiomas: las demás pantallas van en el `#` de la dirección. Es lo que permite que el juego funcione en cualquier carpeta de cualquier alojamiento estático y sin conexión.
 
 ## Fuentes y licencias
 

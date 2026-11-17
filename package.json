@@ -1,23 +1,26 @@
 {
   "name": "regionle",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.5.0",
+  "homepage": "https://diegosb72.github.io/regionle/",
   "description": "Regionle ∞ — juego de geografía ilimitado para aprender países y regiones del mundo",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build && node scripts/pwa/build.mjs dist",
-    "build:pages": "tsc --noEmit && vite build --outDir docs --emptyOutDir && node scripts/pwa/build.mjs docs",
+    "build": "tsc --noEmit && vite build && node scripts/pwa/build.mjs dist && node scripts/budget.mjs dist",
+    "build:pages": "tsc --noEmit && vite build --outDir docs --emptyOutDir && node scripts/pwa/build.mjs docs && node scripts/budget.mjs docs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "e2e": "playwright test",
     "data:fetch": "node scripts/data/fetch.mjs",
     "data:build": "node --max-old-space-size=3200 scripts/data/build.mjs",
     "data:physical": "node scripts/data/physical.mjs",
     "data:check": "node scripts/data/check.mjs",
     "data": "npm run data:fetch && npm run data:build && npm run data:physical",
-    "typeins": "node scripts/typeins/build.mjs"
+    "typeins": "node scripts/typeins/build.mjs",
+    "social": "node scripts/social/build.mjs"
   },
   "dependencies": {
     "@fontsource-variable/dm-sans": "^5.3.0",
@@ -36,6 +39,7 @@
     "zustand": "^5.1.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.1",
     "@types/d3-ease": "^3.0.2",
     "@types/d3-geo": "^3.1.1",
     "@types/d3-interpolate": "^3.0.4",

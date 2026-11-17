@@ -1,7 +1,7 @@
 /** Today's review: what was learnt comes back when it is about to be forgotten. */
 import { ArrowRight, CalendarClock, Check } from 'lucide-react';
 import { useMemo } from 'react';
-import type { World } from '../lib/data';
+import type { World } from '../lib/world';
 import { L, levelNoun, nm } from '../lib/i18n';
 import { MODE_NAME } from '../lib/modes';
 import { dueCount, dueGroups, forecast, reviewConfig, type ReviewGroup } from '../lib/review';

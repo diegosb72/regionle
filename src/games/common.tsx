@@ -103,10 +103,10 @@ export function GameShell({
           <ArrowLeft size={16} aria-hidden="true" />
           <span>{L('Salir', 'Exit')}</span>
         </button>
-        <div className="play-title">
+        <h1 className="play-title">
           <strong>{title}</strong>
           <span>{subtitle}</span>
-        </div>
+        </h1>
         <div className="hud">{hud}</div>
         {progress != null && (
           <div className="play-bar" aria-hidden="true">

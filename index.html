@@ -3,7 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- Between these marks the build writes what changes with the page and its language (src/lib/seo.ts). -->
+    <!--seo-->
+    <title>Regionle ∞ — Aprende las regiones del mundo</title>
     <meta name="description" content="Regionle ∞: juego de geografía sin límites para aprender los países del mundo y sus regiones, capitales, banderas, ciudades, ríos, mares y montañas." />
+    <!--/seo-->
     <meta name="theme-color" content="#f4efe6" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0e1a21" media="(prefers-color-scheme: dark)" />
     <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
@@ -11,18 +15,72 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Regionle" />
-    <title>Regionle ∞ — Aprende las regiones del mundo</title>
+    <script>
+      // The first screen cannot be drawn without this file: it is asked for at once, while the script of
+      // the game is still on its way, and the game takes the answer from here (src/lib/world.ts).
+      try {
+        window.__regionleIndex = fetch('./data/index.json');
+        window.__regionleIndex.catch(function () {});
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <script>
-      // Set the theme before the first paint to avoid a flash.
+      // Before the first paint, to avoid a flash: the theme, and the language the page is going to speak
+      // (the one chosen; else the one of the page, en.html or es.html; else the browser's).
       try {
-        var t = (JSON.parse(localStorage.getItem('regionle:v1') || '{}').state || {}).theme || 'auto';
-        document.documentElement.dataset.theme = t === 'auto' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : t;
+        var saved = (JSON.parse(localStorage.getItem('regionle:v1') || '{}').state || {});
+        var theme = saved.theme || 'auto';
+        document.documentElement.dataset.theme = theme === 'auto' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme;
+        var page = /\/(es|en)(?:\.html)?$/.exec(location.pathname);
+        var lang = saved.lang === 'es' || saved.lang === 'en' ? saved.lang : page ? page[1] : '';
+        if (!lang) {
+          lang = 'es';
+          var asked = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language];
+          for (var i = 0; i < asked.length; i++) {
+            var two = String(asked[i] || '').slice(0, 2).toLowerCase();
+            if (two === 'es' || two === 'en') {
+              lang = two;
+              break;
+            }
+          }
+        }
+        document.documentElement.lang = lang;
       } catch (e) {}
     </script>
-    <div id="root"></div>
-    <noscript>Regionle ∞ necesita JavaScript para funcionar. · Regionle ∞ needs JavaScript to work.</noscript>
+    <div id="root">
+      <!-- What is seen while the game arrives: its header and a turning dot. The game draws over it. -->
+      <div class="app">
+        <header class="top">
+          <span class="brand">
+            <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+              <rect width="32" height="32" rx="8" class="logo-bg" />
+              <path class="logo-a" d="M7 9.5 15 7v8.5L7 18z" />
+              <path class="logo-b" d="M17 7l8 2.5V17l-8-1.5z" />
+              <path class="logo-c" d="M7 20.5l8-2.5v7l-8-1.5z" />
+              <path class="logo-d" d="M17 18l8 1.5v4L17 25z" />
+            </svg>
+            <span>
+              Regionle
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M6 16c5 0 7-8 12-8a4 4 0 0 1 0 8c-5 0-7-8-12-8a4 4 0 1 0 0 8" />
+              </svg>
+            </span>
+          </span>
+        </header>
+        <div class="main">
+          <div class="spinner" role="status" aria-label="Regionle ∞"><span class="spinner-dot"></span></div>
+        </div>
+      </div>
+    </div>
+    <noscript>
+      <style>
+        #root .spinner {
+          display: none;
+        }
+      </style>
+      <p style="max-width: 60ch; margin: 0 auto; padding: 0 20px 40px; font-size: 18px"><!--noscript-->Regionle ∞ es un juego de geografía para aprender los países del mundo y sus regiones, capitales, banderas, ciudades, ríos, mares y montañas. Necesita JavaScript para funcionar.<!--/noscript--></p>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -1,39 +1,39 @@
 import '@fontsource-variable/fraunces/opsz.css';
 import '@fontsource-variable/fraunces/wght-italic.css';
 import '@fontsource-variable/dm-sans/wght.css';
-import { StrictMode, useEffect } from 'react';
+import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
-import { L, browserLang, getLang, setLang } from './lib/i18n';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { browserLang, getLang, setLang, type Lang } from './lib/i18n';
 import { registerOffline } from './lib/offline';
+import { pageLang } from './lib/routes';
 import { useStore } from './lib/store';
 import './styles.css';
+
+/**
+ * The language of this visit: the one the player has chosen; failing that, the one of the page
+ * (`en.html` is the game in English, `es.html` in Spanish); failing that, the browser's.
+ */
+const langFor = (chosen: Lang | null): Lang => chosen ?? pageLang(window.location.pathname) ?? browserLang();
 
 /**
  * The language is module state read by every text when it is drawn: it is set before anything renders,
  * and the whole interface is mounted again when the player changes it.
  */
 function Root() {
-  const lang = useStore((s) => s.lang) ?? browserLang();
+  const lang = langFor(useStore((s) => s.lang));
   if (getLang() !== lang) setLang(lang);
-  useEffect(() => {
-    document.title = L('Regionle ∞ — Aprende las regiones del mundo', 'Regionle ∞ — Learn the regions of the world');
-    document.querySelector('meta[name="description"]')?.setAttribute(
-      'content',
-      L(
-        'Regionle ∞: juego de geografía sin límites para aprender los países del mundo y sus regiones, capitales, banderas, ciudades, ríos, mares y montañas.',
-        'Regionle ∞: a geography game with no limits to learn the countries of the world and their regions, capitals, flags, cities, rivers, seas and mountains.',
-      ),
-    );
-  }, [lang]);
   return <App key={lang} />;
 }
 
-setLang(useStore.getState().lang ?? browserLang());
+setLang(langFor(useStore.getState().lang));
 registerOffline();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Root />
+    <ErrorBoundary>
+      <Root />
+    </ErrorBoundary>
   </StrictMode>,
 );
