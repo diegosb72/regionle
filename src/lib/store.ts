@@ -4,7 +4,7 @@ import { persist } from 'zustand/middleware';
 import { TESTS, emptyRec, streakOf, type DailyRec } from '../daily/spec';
 import type { CityPick } from './extra';
 import type { Lang } from './i18n';
-import { isRecent, recentConfig, recentOf, withRecent, type Recent } from './recent';
+import { RECENT_MAX, isRecent, recentConfig, recentOf, withRecent, type Recent } from './recent';
 import { today } from './text';
 import { cleanTypeins, setTypeins as applyTypeins, type Typeins } from './typeinPrefs';
 import type { Mode, Res, Section } from './types';
@@ -154,6 +154,10 @@ interface State {
   welcomed: boolean;
   /** One-key shortcuts (1 to 5, R, P, T, ?) work; turned off by whoever they get in the way of. */
   hotkeys: boolean;
+  /** A sound for each answer, right or wrong. Off until asked for. */
+  sound: boolean;
+  /** A short buzz of the phone for each answer. Off until asked for. */
+  haptic: boolean;
   /** Short forms chosen in the settings for each thing, by id: those added to it and those taken from it. */
   typeins: Typeins;
   /** Whether names of several words get their initials unasked; null until chosen: as the game ships. */
@@ -162,6 +166,8 @@ interface State {
   setCb(cb: boolean): void;
   setWelcomed(): void;
   setHotkeys(on: boolean): void;
+  setSound(on: boolean): void;
+  setHaptic(on: boolean): void;
   setTypeins(typeins: Typeins): void;
   setTypeinAuto(auto: boolean | null): void;
   saveList(list: CustomList): void;
@@ -224,12 +230,16 @@ export const useStore = create<State>()(
       cb: false,
       welcomed: false,
       hotkeys: true,
+      sound: false,
+      haptic: false,
       typeins: {},
       typeinAuto: null,
 
       setCb: (cb) => set({ cb }),
       setWelcomed: () => set({ welcomed: true }),
       setHotkeys: (hotkeys) => set({ hotkeys }),
+      setSound: (sound) => set({ sound }),
+      setHaptic: (haptic) => set({ haptic }),
       setTypeins: (typeins) => set({ typeins }),
       setTypeinAuto: (typeinAuto) => set({ typeinAuto }),
       saveList: (list) => set((s) => ({ lists: [...s.lists.filter((l) => l.id !== list.id), list] })),
@@ -331,6 +341,8 @@ export const useStore = create<State>()(
           stats: d.stats ?? {},
           where: d.where && typeof d.where === 'object' ? d.where : {},
           sessions: d.sessions ?? [],
+          // A copy from before the maps played lately were kept says nothing about them: they stay.
+          recent: Array.isArray(d.recent) ? d.recent.filter(isRecent).slice(0, RECENT_MAX) : get().recent,
           best: d.best ?? {},
           favs: Array.isArray(d.favs) ? d.favs : get().favs,
           daily: d.daily && typeof d.daily === 'object' ? d.daily : get().daily,
@@ -372,6 +384,8 @@ export const useStore = create<State>()(
         cb: s.cb,
         welcomed: s.welcomed,
         hotkeys: s.hotkeys,
+        sound: s.sound,
+        haptic: s.haptic,
         typeins: s.typeins,
         typeinAuto: s.typeinAuto,
       }),
@@ -383,8 +397,10 @@ export const useStore = create<State>()(
           sel: { ...current.sel, ...p.sel },
           mode: { ...current.mode, ...p.mode },
           opts: { ...current.opts, ...p.opts },
-          recent: Array.isArray(p.recent) ? p.recent.filter(isRecent) : [],
+          recent: Array.isArray(p.recent) ? p.recent.filter(isRecent).slice(0, RECENT_MAX) : [],
           hotkeys: p.hotkeys !== false,
+          sound: p.sound === true,
+          haptic: p.haptic === true,
           // Players from before the tallies existed start from what their latest sessions add up to.
           tot: p.tot && Object.keys(p.tot).length ? p.tot : totalsOf(p.sessions ?? []),
           typeins: cleanTypeins(p.typeins),

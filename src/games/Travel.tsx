@@ -11,7 +11,7 @@ import { MODE_NAME } from '../lib/modes';
 import { useStore } from '../lib/store';
 import { Matcher, cx, hashStr, mulberry32, pick, plural, shortNote } from '../lib/text';
 import type { Item } from '../lib/types';
-import { GameShell, Hud, useElapsed, type GameProps } from './common';
+import { GameShell, Hud, useElapsed, useFlashSignal, type GameProps } from './common';
 
 interface Guess {
   id: string;
@@ -45,6 +45,7 @@ export function TravelGame({ deck, cfg, onExit, embed }: GameProps & { embed?: T
   const [shake, setShake] = useState(0);
   const [clear, setClear] = useState(0);
   const [flash, setFlash] = useState<{ id: string; kind: 'bad' | 'ok'; n: number } | null>(null);
+  useFlashSignal(flash);
   const [played, setPlayed] = useState(0);
   const map = useRef<MapHandle>(null);
   const ms = useElapsed(state === 'play' && !!route);

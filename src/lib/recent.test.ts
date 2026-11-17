@@ -107,6 +107,16 @@ describe('the saved state keeps the maps played lately', () => {
     expect(s.sel.countries.length).toBeGreaterThan(2);
   });
 
+  it('brings them back from a backup, and keeps its own when the backup is from before', () => {
+    const mine = recentOf(game(), session())!;
+    const theirs = recentOf(game({ countries: ['FR'] }), session({ t: 5000 }))!;
+    useStore.setState({ recent: [mine] });
+    expect(useStore.getState().importData({ stats: {}, sessions: [] })).toBe(true);
+    expect(useStore.getState().recent).toEqual([mine]);
+    expect(useStore.getState().importData({ stats: {}, sessions: [], recent: [theirs, 'junk', { t: 1 }] })).toBe(true);
+    expect(useStore.getState().recent).toEqual([theirs]);
+  });
+
   it('forgets them with the rest of the progress', () => {
     useStore.getState().start({ section: 'regions', mode: 'pin', countries: ['ES'], levels: {}, opts: DEFAULT_OPTS });
     useStore.getState().addSession(session());

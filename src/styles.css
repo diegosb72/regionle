@@ -5613,7 +5613,13 @@ body:has(.startbar) .toast {
 }
 
 .foot-prefs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 32px;
   margin-bottom: 8px;
+}
+.foot-prefs > .toggle {
+  flex: 0 1 300px;
 }
 .foot-prefs .toggle-text {
   color: var(--ink-2);

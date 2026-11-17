@@ -14,7 +14,7 @@ import { useStore, type Format, type Skill } from '../lib/store';
 import { Matcher, cx, fmtTime, hintMax, letterHint, mulberry32, sample, shortNote, shuffle, type Answerable } from '../lib/text';
 import { capitalAnswers } from '../lib/typeins';
 import type { Item, Res } from '../lib/types';
-import { GameShell, Hud, Results, Verdict, nearest, originOf, showsCountry, useElapsed, type GameProps, type ResultRow } from './common';
+import { GameShell, Hud, Results, Verdict, answered, nearest, originOf, showsCountry, useElapsed, type GameProps, type ResultRow } from './common';
 import { answersItself, capitalsNeedTyping, initQuiz, quizReducer, scoreOf } from './quiz';
 
 type QuizMode = 'pin' | 'puzzle' | 'identify' | 'outline' | 'capital' | 'flag';
@@ -217,7 +217,11 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
     setNote(failed ? null : message);
     setShake((n) => n + 1);
     if (failed) settled('bad', item);
-    else if (blink) setFlash({ id: blink, kind: 'bad', n: Date.now() });
+    else {
+      // Wrong with tries left: its own short sound, apart from the one that settles the question.
+      answered('try');
+      if (blink) setFlash({ id: blink, kind: 'bad', n: Date.now() });
+    }
   };
 
   const giveUp = () => {

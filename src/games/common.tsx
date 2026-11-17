@@ -6,6 +6,7 @@ import { SpeakButton } from '../components/Speak';
 import { WikiCard } from '../components/WikiCard';
 import { Flag, StudyLinks, capitalise } from '../components/ui';
 import { levelOf } from '../lib/data';
+import { signal, type Cue } from '../lib/feedback';
 import { L, capName, nm } from '../lib/i18n';
 import { divisionsLink } from '../lib/links';
 import { useStore, type GameConfig } from '../lib/store';
@@ -188,6 +189,19 @@ export function ItemFacts({ item }: { item: Item }) {
   );
 }
 
+/** The sound and the buzz that go with an answer, for those who have turned them on. */
+export function answered(res: Cue): void {
+  const { sound, haptic } = useStore.getState();
+  signal(res, { sound, haptic });
+}
+
+/** For the games that settle nothing with a verdict: there the flash of the map is the answer. */
+export function useFlashSignal(flash: { kind: 'bad' | 'ok'; n: number } | null): void {
+  useEffect(() => {
+    if (flash) answered(flash.kind);
+  }, [flash]);
+}
+
 const VERDICT_ICON = { ok: Check, warn: CircleAlert, bad: X } as const;
 
 /**
@@ -197,6 +211,8 @@ const VERDICT_ICON = { ok: Check, warn: CircleAlert, bad: X } as const;
 export function Verdict({ res, title, item, wiki, say, children }: { res: Res; title: ReactNode; item?: Item | null; wiki?: boolean; say?: string; children?: ReactNode }) {
   const Icon = VERDICT_ICON[res];
   const aloud = say ?? item?.name;
+  // A verdict comes up when a question is settled: that is when it sounds, for those who asked for it.
+  useEffect(() => answered(res), [res, item?.id]);
   return (
     <div className={cx('verdict', `verdict-${res}`)} role="status" aria-live="polite">
       <div className="verdict-head">

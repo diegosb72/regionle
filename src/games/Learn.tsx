@@ -14,7 +14,7 @@ import { MODE_NAME } from '../lib/modes';
 import { useStore } from '../lib/store';
 import { Matcher, cx, hintMax, letterHint, nf, sample, shortNote, shuffle } from '../lib/text';
 import type { Item, Res } from '../lib/types';
-import { GameShell, Hud, ItemFacts, Verdict, nearest, originOf, showsCountry, useElapsed, type GameProps } from './common';
+import { GameShell, Hud, ItemFacts, Verdict, answered, nearest, originOf, showsCountry, useElapsed, type GameProps } from './common';
 import { isIntroduced, lessonQueue, pickLesson, type Q } from './lesson';
 
 const TRIES = 2;
@@ -181,6 +181,7 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
     setTries(tries + 1);
     setNote(message);
     setShake((n) => n + 1);
+    answered('try');
     if (blink) setFlash({ id: blink, kind: 'bad', n: Date.now() });
   };
 

@@ -502,8 +502,8 @@ export function Progress({ world }: { world: World }) {
 
   const exportData = () => {
     // The short forms chosen in the settings travel with the rest: they are read when the copy is made.
-    const { typeins, typeinAuto } = useStore.getState();
-    const data = { app: 'regionle', version: 3, exported: new Date().toISOString(), stats, where: whereMap, sessions, best, favs, daily, lists, badges, tot, typeins, typeinAuto };
+    const { typeins, typeinAuto, recent } = useStore.getState();
+    const data = { app: 'regionle', version: 3, exported: new Date().toISOString(), stats, where: whereMap, sessions, recent, best, favs, daily, lists, badges, tot, typeins, typeinAuto };
     download(JSON.stringify(data, null, 1), `regionle-${L('progreso', 'progress')}-${new Date().toISOString().slice(0, 10)}.json`, 'application/json');
   };
 

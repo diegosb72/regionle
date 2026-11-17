@@ -5,6 +5,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { lazyScreen, savingData, whenIdle } from './components/lazy';
 import { OfflineBar, UpdateNotice } from './components/Offline';
 import { Spinner, Toggle } from './components/ui';
+import { PULSES, TONES, buzz, canBuzz, play, prime } from './lib/feedback';
 import { L, getLang } from './lib/i18n';
 import { SECTIONS, SECTION_IDS } from './lib/modes';
 import { applyMeta } from './lib/pageMeta';
@@ -52,6 +53,11 @@ export function App() {
   const path = useRoute();
   const theme = useStore((s) => s.theme);
   const setTheme = useStore((s) => s.setTheme);
+  const sound = useStore((s) => s.sound);
+  const setSound = useStore((s) => s.setSound);
+  const haptic = useStore((s) => s.haptic);
+  const setHaptic = useStore((s) => s.setHaptic);
+  const [buzzes] = useState(canBuzz);
   const setLang = useStore((s) => s.setLang);
   const cb = useStore((s) => s.cb);
   const setCb = useStore((s) => s.setCb);
@@ -118,6 +124,19 @@ export function App() {
     const box = content.current;
     if (box && !box.contains(document.activeElement)) box.focus({ preventScroll: true });
   }, [path]);
+
+  // Browsers let a page make sound only once the player has done something on it: the first click or key
+  // gets it ready, so that the first answer is heard.
+  useEffect(() => {
+    if (!sound) return;
+    const ready = () => prime();
+    window.addEventListener('pointerdown', ready, { once: true, capture: true });
+    window.addEventListener('keydown', ready, { once: true, capture: true });
+    return () => {
+      window.removeEventListener('pointerdown', ready, { capture: true });
+      window.removeEventListener('keydown', ready, { capture: true });
+    };
+  }, [sound]);
 
   // Keys that work on any screen. They stand aside while something is typed, while a map holds the keyboard
   // and while a panel is open, and they do not take anyone out of a game.
@@ -254,6 +273,29 @@ export function App() {
           <Toggle checked={cb} onChange={setCb} hint={L('Azul, amarillo y rojo con tramas en lugar de verde, amarillo y rojo.', 'Blue, yellow and red with textures instead of green, yellow and red.')}>
             {L('Colores para daltónicos', 'Colour-blind friendly colours')}
           </Toggle>
+          <Toggle
+            checked={sound}
+            onChange={(on) => {
+              setSound(on);
+              // Turned on, it is heard at once: that is how a right answer sounds.
+              if (on) play(TONES.ok);
+            }}
+            hint={L('Dos notas hacia arriba al acertar y dos hacia abajo al fallar.', 'Two notes up for a right answer and two down for a miss.')}
+          >
+            {L('Sonidos al responder', 'Sounds when you answer')}
+          </Toggle>
+          {buzzes && (
+            <Toggle
+              checked={haptic}
+              onChange={(on) => {
+                setHaptic(on);
+                if (on) buzz(PULSES.ok);
+              }}
+              hint={L('Un toque al acertar y dos al fallar.', 'One tap for a right answer and two for a miss.')}
+            >
+              {L('Vibración al responder', 'Vibration when you answer')}
+            </Toggle>
+          )}
         </div>
         <p>
           {L('Inspirado en', 'Inspired by')}{' '}
