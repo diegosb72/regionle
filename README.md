@@ -135,10 +135,10 @@ La portada no descarga el juego entero: cada pantalla va en un archivo aparte qu
 | | Hoy | Límite |
 | --- | --- | --- |
 | La página | 2,5 kB | 5 kB |
-| Guiones de la primera carga | 110 kB | 130 kB |
-| Estilos | 19 kB | 26 kB |
+| Guiones de la primera carga | 114 kB | 130 kB |
+| Estilos | 20 kB | 26 kB |
 | Tipografías pedidas con la página | 102 kB | 110 kB |
-| El mayor de los guiones que se piden después | 33 kB | 60 kB |
+| El mayor de los guiones que se piden después | 32 kB | 60 kB |
 
 Antes de repartirlo, el juego era un solo guion de 247 kB comprimido. Los límites dejan algo de margen sobre lo que hay; subir uno es una decisión, no un trámite: se cambia en `scripts/budget.mjs`.
 
