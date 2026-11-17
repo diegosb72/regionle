@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { BADGE_GROUPS, POINTS, badgesOf, groupName, isEarned, levelOfPoints, pointsOf, type Badge } from '../lib/badges';
-import type { World } from '../lib/data';
+import type { World } from '../lib/world';
 import { L, getLang } from '../lib/i18n';
 import { useStore } from '../lib/store';
 import { cx, nf } from '../lib/text';

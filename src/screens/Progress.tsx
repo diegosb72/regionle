@@ -1,14 +1,18 @@
 /** What has been learnt so far, where on the map, what is due for review, recent games, and backup of the saved data. */
-import { ArrowRight, CalendarClock, Download, Trash2, Upload } from 'lucide-react';
+import { ArrowRight, CalendarClock, Download, FileSpreadsheet, Trash2, Upload } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { BadgeBoard } from '../components/Badges';
 import { MapView, type Paint } from '../components/MapView';
+import { groupPlace } from '../components/ReviewCard';
 import { Flag, Seg, Spinner, capitalise } from '../components/ui';
+import { namesOf, type Named } from '../lib/answerNames';
+import { toCsv } from '../lib/csv';
 import { buildDeck, eligible, type World } from '../lib/data';
 import { kindNoun, parsePhys } from '../lib/extra';
 import { L, getLang, levelNoun, nm } from '../lib/i18n';
 import { MODE_NAME, SECTIONS, formatName } from '../lib/modes';
-import { dueCount, dueGroups, forecast, gradeOf, parseOrigin, reviewConfig, type Grade } from '../lib/review';
+import { REVIEW_MAX, allGroups, dueCount, dueGroups, forecast, gradeOf, missGroups, missesOf, parseOrigin, reviewConfig, type Grade, type ReviewGroup } from '../lib/review';
+import { reviewTable } from '../lib/reviewTable';
 import { go } from '../lib/router';
 import { isLearnt, useStore, type Skill, type Stat } from '../lib/store';
 import { cx, fmtTime, nf } from '../lib/text';
@@ -44,6 +48,15 @@ function when(t: number): string {
   if (days === 0) return `${L('Hoy', 'Today')}, ${hour}`;
   if (days === 1) return `${L('Ayer', 'Yesterday')}, ${hour}`;
   return d.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+}
+
+/** Hands a file made here over to the browser's downloads. */
+function download(text: string, name: string, type: string): void {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type }));
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
 
 // ------------------------------------------------------------ knowledge map
@@ -224,11 +237,48 @@ function KnowledgeMap({ world }: { world: World }) {
 
 // ------------------------------------------------------------------- review
 
-function ReviewBlock() {
+function ReviewBlock({ world }: { world: World }) {
   const stats = useStore((s) => s.stats);
   const where = useStore((s) => s.where);
   const opts = useStore((s) => s.opts);
   const start = useStore((s) => s.start);
+  /** What the making of the file is at, while it is being made. */
+  const [making, setMaking] = useState<string | null>(null);
+
+  /** Every answer with its name, its map and its dates, as a file for a spreadsheet or for Anki. */
+  const exportCsv = async () => {
+    const all = allGroups(stats, where);
+    setMaking(L('Preparando el archivo…', 'Preparing the file…'));
+    // The names are on the maps: each one is read, from the copy the browser keeps where there is one.
+    const names = await namesOf(all, opts, (done, total) => setMaking(L(`Leyendo los mapas: ${done} de ${total}…`, `Reading the maps: ${done} of ${total}…`)));
+    const table = reviewTable(
+      all,
+      stats,
+      names,
+      {
+        header: [
+          L('Nombre', 'Name'),
+          L('Capital', 'Capital'),
+          L('Mapa', 'Map'),
+          L('Qué se pregunta', 'What is asked'),
+          L('Estado', 'State'),
+          L('Veces preguntada', 'Times asked'),
+          L('Aciertos a la primera', 'Right first time'),
+          L('Racha', 'Run'),
+          L('Última vez', 'Last time'),
+          L('Próximo repaso', 'Next review'),
+          'Id',
+        ],
+        place: (g) => groupPlace(g, world).text,
+        skill: skillName,
+        grade: (g) => (g === 'known' ? L('sabida', 'known') : g === 'due' ? L('toca repasar', 'due for review') : L('aprendiendo', 'learning')),
+      },
+      Date.now(),
+    );
+    // Excel wants semicolons where the comma is the decimal mark, as in Spanish, and commas elsewhere.
+    download(toCsv(table, getLang() === 'en' ? ',' : ';'), `regionle-${L('repaso', 'review')}-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8');
+    setMaking(null);
+  };
   const { groups, due, days } = useMemo(() => {
     const now = Date.now();
     const groups = dueGroups(stats, where, now);
@@ -275,6 +325,108 @@ function ReviewBlock() {
           'Each first-time right answer pushes the next review further away: 1 day, 3, 7, 16, 35 and 75. A miss brings it back the same day.',
         )}
       </p>
+      <p className="fc-file">
+        <button type="button" className="btn btn-sm" onClick={() => void exportCsv()} disabled={making != null}>
+          <FileSpreadsheet size={15} aria-hidden="true" />
+          {L('Descargar el repaso (CSV)', 'Download the review (CSV)')}
+        </button>
+        <span role="status">
+          {making ??
+            L(
+              'Una fila por respuesta, con su nombre, su mapa, cuántas veces la has acertado y cuándo vuelve: para una hoja de cálculo o para Anki.',
+              'A row for each answer, with its name, its map, how often you got it right and when it comes back: for a spreadsheet or for Anki.',
+            )}
+        </span>
+      </p>
+    </section>
+  );
+}
+
+// -------------------------------------------------------------- most missed
+
+/** Maps shown, and pieces named on each. */
+const MISS_MAPS = 5;
+const MISS_NAMES = 8;
+
+function MissBlock({ world }: { world: World }) {
+  const stats = useStore((s) => s.stats);
+  const where = useStore((s) => s.where);
+  const opts = useStore((s) => s.opts);
+  const start = useStore((s) => s.start);
+  const groups = useMemo(() => missGroups(stats, where), [stats, where]);
+  const shown = useMemo(() => groups.slice(0, MISS_MAPS), [groups]);
+  /** The names of the pieces, read from their maps; null while they are being read. */
+  const [names, setNames] = useState<Map<string, Map<string, Named>> | null>(null);
+  // What is listed, not how often each was missed: the maps are not read again after every answer.
+  const listed = shown.map((g) => `${g.key}=${g.ids.slice(0, MISS_NAMES).join(',')}`).join('|');
+  useEffect(() => {
+    let alive = true;
+    void namesOf(shown, opts).then((m) => alive && setNames(m));
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listed]);
+
+  if (!groups.length) return null;
+  const total = groups.reduce((n, g) => n + g.ids.length, 0);
+  const play = (g: ReviewGroup) => {
+    start(reviewConfig(g, opts));
+    go('jugar');
+  };
+
+  return (
+    <section className="block miss">
+      <h2>{L('Lo que más fallas', 'What you miss most')}</h2>
+      <p className="tip-line">
+        {L(
+          `${total === 1 ? 'Una respuesta que has fallado' : `${nf(total)} respuestas que has fallado`} dos veces o más y aún no te sabes. ${total === 1 ? 'A su lado' : 'Junto a cada una'}, las veces que la has fallado de las que te la han preguntado. Dos aciertos seguidos a la primera la quitan de aquí.`,
+          `${total === 1 ? 'One answer' : `${nf(total)} answers`} you have missed twice or more and do not know yet. Next to ${total === 1 ? 'it' : 'each'}, the times you missed it out of the times it was asked. Two first-time right answers in a row take it off the list.`,
+        )}
+      </p>
+      <ul className="miss-list">
+        {shown.map((g) => {
+          const place = groupPlace(g, world);
+          const known = names?.get(g.key);
+          const n = Math.min(g.ids.length, REVIEW_MAX);
+          return (
+            <li key={g.key}>
+              <div className="miss-head">
+                {place.flag && <Flag code={place.flag} size="sm" />}
+                <b>
+                  {place.text} <small>· {MODE_NAME[g.mode]}</small>
+                </b>
+                <button type="button" className="btn btn-sm" onClick={() => play(g)}>
+                  {L(n === 1 ? 'Practicarla' : `Practicar las ${n}`, n === 1 ? 'Practise it' : `Practise all ${n}`)}
+                  <ArrowRight size={15} aria-hidden="true" />
+                </button>
+              </div>
+              <ol className="miss-items">
+                {g.ids.slice(0, MISS_NAMES).map((id) => {
+                  const st = stats[`${g.skill}:${id}`];
+                  const missed = missesOf(st);
+                  return (
+                    <li key={id}>
+                      {/* The id stands for a name that could not be read: no connection and no copy of that map. */}
+                      <span>{names ? (known?.get(id)?.name ?? id) : '…'}</span>
+                      <small title={L(`Fallada ${missed} de las ${st[0]} veces`, `Missed ${missed} of ${st[0]} times`)}>{L(`${missed} de ${st[0]}`, `${missed} of ${st[0]}`)}</small>
+                    </li>
+                  );
+                })}
+                {g.ids.length > MISS_NAMES && <li className="miss-more">{L(`y ${g.ids.length - MISS_NAMES} más`, `and ${g.ids.length - MISS_NAMES} more`)}</li>}
+              </ol>
+            </li>
+          );
+        })}
+      </ul>
+      {groups.length > shown.length && (
+        <p className="tip-line">
+          {L(
+            `Y ${groups.length - shown.length === 1 ? 'otro mapa' : `otros ${groups.length - shown.length} mapas`} con algo que se te resiste: ${groups.length - shown.length === 1 ? 'saldrá' : 'saldrán'} aquí cuando despejes estos.`,
+            `And ${groups.length - shown.length} more ${groups.length - shown.length === 1 ? 'map' : 'maps'} with something that keeps slipping: ${groups.length - shown.length === 1 ? 'it' : 'they'} will show here once these are cleared.`,
+          )}
+        </p>
+      )}
     </section>
   );
 }
@@ -350,13 +502,9 @@ export function Progress({ world }: { world: World }) {
 
   const exportData = () => {
     // The short forms chosen in the settings travel with the rest: they are read when the copy is made.
-    const { typeins, typeinAuto } = useStore.getState();
-    const blob = new Blob([JSON.stringify({ app: 'regionle', version: 3, exported: new Date().toISOString(), stats, where: whereMap, sessions, best, favs, daily, lists, badges, tot, typeins, typeinAuto }, null, 1)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `regionle-${L('progreso', 'progress')}-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    const { typeins, typeinAuto, recent } = useStore.getState();
+    const data = { app: 'regionle', version: 3, exported: new Date().toISOString(), stats, where: whereMap, sessions, recent, best, favs, daily, lists, badges, tot, typeins, typeinAuto };
+    download(JSON.stringify(data, null, 1), `regionle-${L('progreso', 'progress')}-${new Date().toISOString().slice(0, 10)}.json`, 'application/json');
   };
 
   const onFile = async (f: File | undefined) => {
@@ -475,7 +623,8 @@ export function Progress({ world }: { world: World }) {
 
           <BadgeBoard world={world} />
           {Object.keys(stats).length > 0 && <KnowledgeMap world={world} />}
-          {Object.keys(stats).length > 0 && <ReviewBlock />}
+          {Object.keys(stats).length > 0 && <ReviewBlock world={world} />}
+          <MissBlock world={world} />
 
           <section className="block">
             <h2>{L('Aprendido', 'Learnt')}</h2>

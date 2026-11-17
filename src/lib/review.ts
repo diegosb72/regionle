@@ -108,52 +108,96 @@ export function goneFrom(only: readonly string[], has: (id: string) => boolean, 
 }
 
 /**
- * What is due now, gathered into games that can be played, each on the map it was learnt on: the
- * regions of one country, the countries, the capitals of the world, the cities of one country, the
- * rivers and seas. A country studied at two levels is reviewed at the one with more due; the other waits.
+ * Answers gathered into games that can be played, each on the map it was learnt on: the regions of one
+ * country, the countries, the capitals of the world, the cities of one country, the rivers and seas.
+ * `pick` says which answers go in and in what order within their game: the lowest number first.
+ *
+ * A country studied at two levels gives one game, at the level with more answers, and the other waits;
+ * with `everyLevel`, a game for each.
  */
-export function dueGroups(stats: Record<string, Stat>, where: Record<string, string>, now: number): ReviewGroup[] {
+function gather(stats: Record<string, Stat>, where: Record<string, string>, pick: (stat: Stat) => number | null, everyLevel = false): ReviewGroup[] {
   interface Draft extends ReviewGroup {
-    /** level → [id, due] */
+    /** level → [id, order] */
     per: Map<string, [string, number][]>;
     seen: Set<string>;
   }
   const groups = new Map<string, Draft>();
   for (const [key, stat] of Object.entries(stats)) {
-    if (!isDue(stat, now)) continue;
+    const order = pick(stat);
+    if (order == null) continue;
     const at = key.indexOf(':');
     const skill = key.slice(0, at) as Skill;
     const id = key.slice(at + 1);
     if (!(skill in SKILL_MODE)) continue;
     const origin = parseOrigin(id, where[id]);
     if (!origin) continue;
-    const { section, country, pick } = origin;
-    const one = section === 'regions' || (section === 'cities' && pick !== 'caps');
-    const gk = [section, skill, ...(one ? [country] : []), ...(section === 'cities' ? [pick] : [])].join(':');
+    const { section, country, pick: cities } = origin;
+    const one = section === 'regions' || (section === 'cities' && cities !== 'caps');
+    const gk = [section, skill, ...(one ? [country] : []), ...(section === 'cities' ? [cities] : [])].join(':');
     let g = groups.get(gk);
     if (!g) {
-      g = { key: gk, section, skill, mode: SKILL_MODE[skill], country: one ? country : undefined, pick: section === 'cities' ? pick : undefined, countries: [], ids: [], oldest: Infinity, per: new Map(), seen: new Set() };
+      g = { key: gk, section, skill, mode: SKILL_MODE[skill], country: one ? country : undefined, pick: section === 'cities' ? cities : undefined, countries: [], ids: [], oldest: Infinity, per: new Map(), seen: new Set() };
       groups.set(gk, g);
     }
     if (country) g.seen.add(country);
     const level = origin.level ?? '';
     if (!g.per.has(level)) g.per.set(level, []);
-    g.per.get(level)!.push([id, dueAt(stat)]);
+    g.per.get(level)!.push([id, order]);
   }
   const out: ReviewGroup[] = [];
   for (const g of groups.values()) {
-    const [level, list] = [...g.per.entries()].sort((a, b) => b[1].length - a[1].length)[0];
-    list.sort((a, b) => a[1] - b[1] || (a[0] < b[0] ? -1 : 1));
+    const levels = [...g.per.entries()].sort((a, b) => b[1].length - a[1].length);
     const { per, seen, ...group } = g;
     void per;
-    out.push({ ...group, level: level || undefined, ids: list.map((x) => x[0]), oldest: list[0][1], countries: [...seen].sort() });
+    for (const [level, list] of everyLevel ? levels : levels.slice(0, 1)) {
+      list.sort((a, b) => a[1] - b[1] || (a[0] < b[0] ? -1 : 1));
+      out.push({ ...group, key: everyLevel && level ? `${g.key}:${level}` : g.key, level: level || undefined, ids: list.map((x) => x[0]), oldest: list[0][1], countries: [...seen].sort() });
+    }
   }
   return out.sort((a, b) => b.ids.length - a.ids.length || a.oldest - b.oldest || (a.key < b.key ? -1 : 1));
 }
 
-/** The game that reviews a group: its map, the game of that skill and only the questions that are due. */
-export function reviewConfig(group: ReviewGroup, opts: Opts): Omit<GameConfig, 'nonce'> {
-  const ids = group.ids.slice(0, REVIEW_MAX);
+/**
+ * What is due now, gathered into games that can be played, each on the map it was learnt on. A country
+ * studied at two levels is reviewed at the one with more due; the other waits.
+ */
+export function dueGroups(stats: Record<string, Stat>, where: Record<string, string>, now: number): ReviewGroup[] {
+  return gather(stats, where, (stat) => (isDue(stat, now) ? dueAt(stat) : null));
+}
+
+/** Times an answer was not right first time. */
+export function missesOf(stat: Stat | undefined): number {
+  return stat ? Math.max(0, stat[0] - stat[1]) : 0;
+}
+
+/**
+ * An answer that keeps slipping: missed twice or more and not learnt since. Two right answers in a row
+ * take it off the list, however many misses came before.
+ */
+export function isSlipping(stat: Stat | undefined): boolean {
+  return !!stat && missesOf(stat) >= 2 && stat[2] < 2;
+}
+
+/**
+ * What is missed most, gathered like a review: a game for each map, the most missed first in each and the
+ * maps with more of them first. Each level of a country is a game of its own.
+ */
+export function missGroups(stats: Record<string, Stat>, where: Record<string, string>): ReviewGroup[] {
+  // The most missed first; of two missed as often, the one that was asked fewer times.
+  return gather(stats, where, (stat) => (isSlipping(stat) ? -missesOf(stat) + Math.min(stat[0], 999) / 1000 : null), true);
+}
+
+/** Every answer there is, map by map and level by level; on each map, the one asked longest ago first. */
+export function allGroups(stats: Record<string, Stat>, where: Record<string, string>): ReviewGroup[] {
+  return gather(stats, where, (stat) => (stat[0] ? stat[3] : null), true);
+}
+
+/**
+ * The game that reviews a group: its map, the game of that skill and only the questions that are due,
+ * `max` of them at most (all of them when what is wanted is the map itself, to read names from it).
+ */
+export function reviewConfig(group: ReviewGroup, opts: Opts, max = REVIEW_MAX): Omit<GameConfig, 'nonce'> {
+  const ids = group.ids.slice(0, max);
   const one = group.country ? [group.country] : null;
   return {
     section: group.section,

@@ -2,13 +2,14 @@
 import { BookOpen, CalendarDays, Check, Copy, Flame, MapPin, Play, Share2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { MapView, type MapHandle } from '../components/MapView';
-import { Flag, Spinner } from '../components/ui';
+import { BASE, Flag, Spinner } from '../components/ui';
 import { GameShell } from '../games/common';
 import { TravelGame } from '../games/Travel';
 import { buildDeck, isFeminine, levelOf, type World } from '../lib/data';
 import { silhouette } from '../lib/geo';
 import { L, capName, fmtDay, fmtWeekday, getLang, nm } from '../lib/i18n';
 import { go } from '../lib/router';
+import { DAILY_PATH, linkTo, siteRoot } from '../lib/routes';
 import { DEFAULT_OPTS, useStore } from '../lib/store';
 import { cx, fmtArea, fmtPop, today } from '../lib/text';
 import type { Country, Deck, Mode } from '../lib/types';
@@ -28,7 +29,9 @@ import {
   worldPool,
   type DailyRec,
 } from './spec';
-import { PinFive, PointsChip, QuickFive, RegionleTest, WhichTest, nextLabel, shellSubtitle, shellTitle, testName, type Step } from './tests';
+import { testName, useCountdown } from './Card';
+import { SharePicture } from './SharePicture';
+import { PinFive, PointsChip, QuickFive, RegionleTest, WhichTest, nextLabel, shellSubtitle, shellTitle, type Step } from './tests';
 
 /** "España" → 🇪🇸: the flag as text, for sharing. */
 function flagEmoji(id: string): string {
@@ -37,8 +40,15 @@ function flagEmoji(id: string): string {
 
 export function shareText(date: string, country: Country, rec: DailyRec): string {
   const squares = rec.p.map((p) => ((p ?? 0) >= 16 ? '🟩' : (p ?? 0) >= 8 ? '🟨' : '🟥')).join('');
-  const url = `${window.location.origin}${window.location.pathname}#/reto/${date}`;
+  const url = linkTo(`${DAILY_PATH}/${date}`);
   return [`Regionle ∞ · ${L('Reto del', 'Challenge of')} ${fmtDay(date, true)}`, `${flagEmoji(country.id)} ${nm(country.n)} · ${totalOf(rec)}/100`, squares, url].join('\n');
+}
+
+/** The address of the game as it is read out: "diegosb72.github.io/regionle". */
+export function siteLabel(href?: string): string {
+  return siteRoot(href)
+    .replace(/^[a-z]+:\/\/(www\.)?/i, '')
+    .replace(/\/(index\.html)?$/, '');
 }
 
 /** What happened in a test, from the figure kept with its points. */
@@ -60,18 +70,6 @@ function figureText(test: number, k: number | null): string {
 
 const verdictOf = (total: number): string =>
   total >= 90 ? L('¡Sobresaliente!', 'Outstanding!') : total >= 70 ? L('¡Muy bien!', 'Very good!') : total >= 50 ? L('Bien jugado', 'Well played') : total >= 25 ? L('Hay margen', 'Room to grow') : L('Mañana más', 'Better luck tomorrow');
-
-function useCountdown(): string {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 20000);
-    return () => clearInterval(t);
-  }, []);
-  const end = new Date(now);
-  end.setHours(24, 0, 0, 0);
-  const mins = Math.max(0, Math.round((end.getTime() - now) / 60000));
-  return `${Math.floor(mins / 60)} h ${String(mins % 60).padStart(2, '0')} min`;
-}
 
 // ---------------------------------------------------------------------------
 // Calendar
@@ -118,76 +116,6 @@ export function Calendar({ world, current }: { world: World; current?: string })
         );
       })}
     </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// The card on the home page
-// ---------------------------------------------------------------------------
-
-export function DailyCard({ world }: { world: World }) {
-  const daily = useStore((s) => s.daily);
-  const bestStreak = useStore((s) => s.best['daily:streak'] ?? 0);
-  const date = today();
-  const pool = useMemo(() => dailyPool(world.index), [world]);
-  const country = countryOfDay(pool, dayNumber(date));
-  const rec = daily[date];
-  const done = doneCount(rec);
-  const streak = streakOf(daily, date);
-  const level = levelOf(country);
-  const fem = isFeminine(level.sg);
-  const left = useCountdown();
-  return (
-    <section className="d-card" aria-labelledby="d-card-title">
-      <div className="d-card-main">
-        <p className="kicker">
-          {L('Reto del día', 'Daily challenge')} · {fmtWeekday(date)}, {fmtDay(date)}
-        </p>
-        <h2 id="d-card-title">
-          <Flag code={country.fl} size="lg" />
-          <span>
-            {L('Hoy toca', 'Today:')} <em>{nm(country.n)}</em>
-          </span>
-        </h2>
-        <p className="d-card-text">
-          {L(
-            `Cinco pruebas cortas, las mismas para todo el mundo: adivina ${fem ? 'una' : 'uno'} de sus ${level.n} ${level.es} por la silueta, señala ${fem ? 'otras' : 'otros'} cinco en el mapa, une dos países, acierta un país por su población y responde a cinco banderas y capitales.`,
-            `Five short tests, the same for everybody: guess one of its ${level.n} ${level.en} from its outline, find five more on the map, join two countries, guess a country from its population and answer five flags and capitals.`,
-          )}
-        </p>
-        <ol className="d-steps" aria-label={L('Pruebas de hoy', "Today's tests")}>
-          {Array.from({ length: TESTS }, (_, i) => {
-            const p = rec?.p[i];
-            return (
-              <li key={i} className={cx(p != null && 'done')}>
-                <i>{p != null ? <Check size={13} strokeWidth={3} aria-hidden="true" /> : i + 1}</i>
-                {testName(i)}
-                {p != null && <b>{p}</b>}
-              </li>
-            );
-          })}
-        </ol>
-      </div>
-      <div className="d-card-side">
-        {rec?.t ? (
-          <p className="d-card-score">
-            <strong>{totalOf(rec)}</strong>
-            <span>/ 100</span>
-          </p>
-        ) : null}
-        <button type="button" className="btn btn-accent btn-lg" onClick={() => go('reto')}>
-          {rec?.t ? <CalendarDays size={18} aria-hidden="true" /> : <Play size={18} aria-hidden="true" />}
-          {rec?.t ? L('Ver mi resultado', 'See my result') : done ? L(`Seguir: prueba ${done + 1} de ${TESTS}`, `Continue: test ${done + 1} of ${TESTS}`) : L('Jugar el reto de hoy', "Play today's challenge")}
-        </button>
-        <p className="d-card-meta">
-          <span className={cx('d-streak', streak > 0 && 'on')} title={L(`Tu mejor racha: ${bestStreak}`, `Your best streak: ${bestStreak}`)}>
-            <Flame size={15} aria-hidden="true" />
-            {streak === 0 ? L('Empieza hoy tu racha', 'Start your streak today') : streak === 1 ? L('1 día seguido', '1 day in a row') : L(`${streak} días seguidos`, `${streak} days in a row`)}
-          </span>
-          {rec?.t ? <span>{L(`Nuevo reto en ${left}`, `Next challenge in ${left}`)}</span> : null}
-        </p>
-      </div>
-    </section>
   );
 }
 
@@ -360,10 +288,27 @@ export function Daily({ world, date }: { world: World; date: string }) {
         </p>
         <div className="d-share">
           <textarea ref={shareBox} readOnly rows={4} value={shareText(date, country, rec)} aria-label={L('Texto para compartir', 'Text to share')} onFocus={(e) => e.currentTarget.select()} />
-          <button type="button" className="btn btn-primary" onClick={share}>
-            {copied ? <Check size={16} aria-hidden="true" /> : 'share' in navigator ? <Share2 size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
-            {copied ? L('Copiado', 'Copied') : L('Compartir resultado', 'Share the result')}
-          </button>
+          <div className="d-share-btns">
+            <button type="button" className="btn btn-primary" onClick={share}>
+              {copied ? <Check size={16} aria-hidden="true" /> : 'share' in navigator ? <Share2 size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
+              {copied ? L('Copiado', 'Copied') : L('Compartir resultado', 'Share the result')}
+            </button>
+            <SharePicture
+              info={{
+                kicker: `${L('Reto del', 'Challenge of')} ${fmtDay(date, true)}`,
+                country: nm(country.n),
+                total,
+                verdict: verdictOf(total),
+                rows: rec.p.map((p, i) => ({ name: testName(i), points: p ?? 0 })),
+                streak: !past && streak > 1 ? L(`${streak} días seguidos`, `${streak} days in a row`) : null,
+                site: siteLabel(),
+              }}
+              flagUrl={country.fl ? `${BASE}flags/${country.fl}.svg` : undefined}
+              deck={regions}
+              file={`regionle-${date}.png`}
+              text={shareText(date, country, rec)}
+            />
+          </div>
         </div>
         <div className="d-learn">
           <h3>{L(`Aprende ${fem ? 'las' : 'los'} ${level.es} de ${nm(country.n)}`, `Learn the ${level.en} of ${nm(country.n)}`)}</h3>

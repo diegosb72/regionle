@@ -1,63 +1,14 @@
-/** Loads the generated data files and turns a selection of countries into a playable deck. */
+/** Turns a selection of countries into a playable deck. The files themselves are fetched in `world.ts`. */
 import type { MultiLineString } from 'geojson';
 import { feature, mesh } from 'topojson-client';
 import type { GeometryCollection, Topology } from 'topojson-specification';
-import { L, capName, levelNoun, nm } from './i18n';
+import { L, capName, getLang, levelNoun, nm } from './i18n';
 import type { Answerable } from './text';
 import { editOf } from './typeins';
-import type { Country, Deck, Extra, Geo, Index, Item, LL, Level, Section } from './types';
+import type { Country, Deck, Extra, Geo, Item, LL, Level } from './types';
+import { commonPlace, fetchFile, isFeminine, levelOf, loadFile, loadIndex, loadWorldGeo, once } from './world';
 
-type Loader = (path: string) => Promise<unknown>;
-
-let loader: Loader = async (path) => {
-  const res = await fetch(`${import.meta.env.BASE_URL}data/${path}`);
-  if (!res.ok) throw new Error(L(`No se pudo cargar ${path} (${res.status})`, `Could not load ${path} (${res.status})`));
-  return res.json();
-};
-
-const cache = new Map<string, Promise<unknown>>();
-
-/** Replaces the way files are fetched (tests read them from disk). */
-export function setLoader(fn: Loader): void {
-  loader = fn;
-  cache.clear();
-}
-
-function once<T>(name: string, make: () => Promise<T>): Promise<T> {
-  let p = cache.get(name) as Promise<T> | undefined;
-  if (!p) {
-    p = make();
-    cache.set(name, p);
-    p.catch(() => cache.delete(name));
-  }
-  return p;
-}
-
-/** Any other generated file, fetched once. */
-export function loadFile<T>(path: string): Promise<T> {
-  return once(path, () => loader(path) as Promise<T>);
-}
-
-export interface World {
-  index: Index;
-  byId: Map<string, Country>;
-}
-
-export function loadIndex(): Promise<World> {
-  return once('index', async () => {
-    const index = (await loader('index.json')) as Index;
-    return { index, byId: new Map(index.countries.map((c) => [c.id, c])) };
-  });
-}
-
-/** Country outlines keyed by id. */
-export function loadWorldGeo(): Promise<Map<string, Geo>> {
-  return once('world', async () => {
-    const topo = (await loader('world.json')) as Topology;
-    const fc = feature(topo, topo.objects.c as GeometryCollection) as unknown as { features: Geo[] };
-    return new Map(fc.features.map((f) => [String(f.id), f]));
-  });
-}
+export { commonPlace, eligible, fineCount, isFeminine, levelOf, loadFile, loadIndex, loadWorldGeo, setLoader, type World } from './world';
 
 interface UnitProps {
   n: { es: string; en?: string; lo?: string };
@@ -85,7 +36,7 @@ interface RegionFile {
 
 function loadRegion(id: string): Promise<RegionFile> {
   return once(`r/${id}`, async () => {
-    const topo = (await loader(`r/${id}.json`)) as Topology;
+    const topo = (await fetchFile(`r/${id}.json`)) as Topology;
     const fine = new Map<string, UnitProps>();
     const groupName = new Map<string, UnitProps['n']>();
     for (const [k, obj] of Object.entries(topo.objects)) {
@@ -136,31 +87,6 @@ async function mapLimit<T, R>(list: T[], limit: number, fn: (item: T) => Promise
 // ---------------------------------------------------------------------------
 // Selection helpers
 // ---------------------------------------------------------------------------
-
-/** Number of askable units at the finest level. */
-export function fineCount(c: Country): number {
-  return c.lv[c.lv.length - 1]?.n ?? 0;
-}
-
-/** Can the country be chosen in this section? */
-export function eligible(section: Section, c: Country): boolean {
-  if (c.cl === 'other') return false;
-  if (section === 'regions') return fineCount(c) >= 2;
-  if (section === 'pops') return c.pop != null && c.pop > 0;
-  return true;
-}
-
-export function levelOf(c: Country, levels?: Record<string, string>): Level {
-  const k = levels?.[c.id];
-  return c.lv.find((l) => l.k === k) ?? c.lv.find((l) => l.k === c.dl) ?? c.lv[c.lv.length - 1];
-}
-
-const FEMININE = /(a|ión|dad)$/;
-/** Spanish grammar only: in English nothing agrees in gender. */
-export function isFeminine(noun: string): boolean {
-  return getLangIsEs() && FEMININE.test(noun.split(' ')[0]);
-}
-const getLangIsEs = (): boolean => L('es', 'en') === 'es';
 
 /** Europe is framed without Siberia or the Arctic so that the usual map of the continent appears. */
 const EUROPE_BOX = { w: -27, e: 50, s: 33, n: 72.5 };
@@ -231,22 +157,6 @@ export function frameForLand(chosen: Country[], world: Map<string, Geo>, cities:
   }
   out.push(...cities);
   return out.length ? out : chosen.flatMap((c) => c.fp);
-}
-
-/** Name of the place the selection amounts to ("Europa", "Caribe", "Mundo"), judged by its UN members. */
-export function commonPlace(chosen: Country[], index: Index, section: Section): string | null {
-  if (chosen.length < 2) return null;
-  const ids = new Set(chosen.map((c) => c.id));
-  const members = index.countries.filter((c) => c.cl === 'un' && eligible(section, c));
-  const covers = (inPlace: (c: Country) => boolean) => {
-    const list = members.filter(inPlace);
-    return list.length > 1 && list.every((c) => ids.has(c.id));
-  };
-  if (covers(() => true)) return L('Mundo', 'World');
-  const { sr, ct } = chosen[0];
-  if (chosen.every((c) => c.sr === sr) && covers((c) => c.sr === sr)) return index.subregions[sr] ? nm(index.subregions[sr]) : null;
-  if (chosen.every((c) => c.ct === ct) && covers((c) => c.ct === ct)) return index.continents[ct] ? nm(index.continents[ct]) : null;
-  return null;
 }
 
 /** Names of the capital of a country: the one shown first, then every spelling accepted. */
@@ -363,7 +273,7 @@ export async function buildDeck(spec: DeckSpec, onProgress?: (done: number, tota
         capital: capitals[c.id]?.[level.k]?.[id],
         country: c,
         // The data names odd units ("ciudad autónoma") in Spanish only.
-        type: getLangIsEs() ? (p.t ?? noun.one) : noun.one,
+        type: (getLang() === 'es') ? (p.t ?? noun.one) : noun.one,
         parent: parentId && file.groupName.has(parentId) ? nm(file.groupName.get(parentId)!) : undefined,
         geo,
         lp: p.lp,

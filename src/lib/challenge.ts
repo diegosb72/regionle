@@ -4,6 +4,7 @@
  * same questions; it can also carry the sender's result, to compare at the end.
  */
 import type { CityPick } from './extra';
+import { DUEL_PATH, linkTo } from './routes';
 import type { GameConfig, Length, Opts } from './store';
 import type { Mode, Section } from './types';
 
@@ -121,6 +122,5 @@ export function decodeChallenge(code: string): Challenge | null {
 
 /** Address of a challenge, under whatever folder the site is served from. */
 export function challengeUrl(code: string): string {
-  const base = typeof location === 'undefined' ? '' : location.href.split('#')[0];
-  return `${base}#/duelo/${code}`;
+  return linkTo(`${DUEL_PATH}/${code}`);
 }

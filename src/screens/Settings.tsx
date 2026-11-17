@@ -4,10 +4,11 @@ import { memo, useEffect, useMemo, useRef, useState, type FormEvent } from 'reac
 import { Seg, Spinner, Toggle } from '../components/ui';
 import type { World } from '../lib/data';
 import { L, nm } from '../lib/i18n';
+import { spellingsOf, type Spellings } from '../lib/spellings';
 import { useStore } from '../lib/store';
 import { cx, key, looksLikePattern } from '../lib/text';
 import { SCOPED, TAB_PATH, TYPEIN_TABS, chipViews, locateTypein, settingsLink, typeinGroups, typeinScopes, type ChipView, type TypeinGroup, type TypeinRow, type TypeinTab } from '../lib/typeinList';
-import { MAX_PATTERN, SHIPPED_AUTO, addForm, readTypeinFile, resetForms, switchForm, typeinFile, type AddError, type TypeinSettings } from '../lib/typeins';
+import { MAX_PATTERN, SHIPPED_AUTO, addForm, formKey, readTypeinFile, resetForms, switchForm, typeinFile, type AddError, type TypeinSettings } from '../lib/typeins';
 import type { Country } from '../lib/types';
 
 const TAB_BY_PATH = Object.fromEntries(TYPEIN_TABS.map((t) => [TAB_PATH[t], t])) as Record<string, TypeinTab | undefined>;
@@ -21,6 +22,38 @@ type Only = 'all' | 'short' | 'mine';
 
 /** Rows drawn at first, and how many more each time they are asked for: a list can run to hundreds. */
 const PAGE = 80;
+
+/**
+ * A pattern shows as the spellings it takes: all of them while they are this few, the first ones and a
+ * way to the rest otherwise.
+ */
+const FEW = 8;
+const FIRST = 6;
+
+/** The spellings of a pattern in a word or two: the first one, and a sign that there are more. */
+const firstOf = (spelt: Spellings): string => (spelt.forms.length > 1 || spelt.more ? `${spelt.forms[0]}…` : spelt.forms[0]);
+
+/**
+ * How the patterns of the rows that have been in sight were named, by id and pattern: a change made in
+ * one list is called the same from another, where the names of the thing are not at hand.
+ */
+const namedBefore = new Map<string, string>();
+
+/**
+ * A short form as the list of changes names it: a pattern, by the first spelling it takes, which is how
+ * its row shows it when the row is in sight (`chips`).
+ */
+function briefly(id: string, text: string, chips?: ChipView[]): string {
+  if (!looksLikePattern(text)) return text;
+  const k = formKey(text);
+  const here = chips?.find((c) => c.key === k)?.spelt;
+  if (here) return firstOf(here);
+  const before = namedBefore.get(`${id}\n${k}`);
+  if (before) return before;
+  // Left to the pattern, it is its shortest spelling.
+  const bare = spellingsOf(text);
+  return bare ? firstOf(bare) : text;
+}
 
 const current = (): TypeinSettings => {
   const s = useStore.getState();
@@ -39,15 +72,59 @@ function addErrorText(why: AddError): string {
 function clashText(chip: ChipView): string {
   const others = chip.clash ?? [];
   const list = others.length > 3 ? `${others.slice(0, 3).join(', ')}…` : others.join(others.length === 2 ? L(' y ', ' and ') : ', ');
-  if (!others.length) return L(`${chip.text}: en este mapa puede ser más de un nombre, y no vale.`, `${chip.text}: on this map it could be more than one name, and does not count.`);
-  if (chip.taken) return L(`${chip.text}: en un mapa donde también esté ${list} vale para las dos.`, `${chip.text}: on a map that also holds ${list} it counts for both.`);
-  return L(`${chip.text}: no vale en un mapa donde también esté ${list}.`, `${chip.text}: does not count on a map that also holds ${list}.`);
+  const text = chip.spelt ? firstOf(chip.spelt) : chip.text;
+  if (!others.length) return L(`${text}: en este mapa puede ser más de un nombre, y no vale.`, `${text}: on this map it could be more than one name, and does not count.`);
+  if (chip.taken) return L(`${text}: en un mapa donde también esté ${list} vale para las dos.`, `${text}: on a map that also holds ${list} it counts for both.`);
+  return L(`${text}: no vale en un mapa donde también esté ${list}.`, `${text}: does not count on a map that also holds ${list}.`);
+}
+
+/** The spellings a pattern takes, in one piece: they count or not together, because they are one pattern. */
+function Many({ chip, name, spelt, open, onOpen, onFlip }: { chip: ChipView; name: string; spelt: Spellings; open: boolean; onOpen: () => void; onFlip: () => void }) {
+  const total = spelt.forms.length;
+  const few = total <= FEW;
+  const shown = few || open ? spelt.forms : spelt.forms.slice(0, FIRST);
+  const left = total - shown.length;
+  const own = chip.from === 'own';
+  const several = total > 1 || spelt.more;
+  const lost = !own && chip.on && !!chip.clash;
+  const said = `${shown.slice(0, 3).join(', ')}${total > 3 || spelt.more ? '…' : ''}`;
+  // With all of them in sight, it is said that there are more still: a loose pattern takes more than can be read.
+  const tail = spelt.more && (few || open) ? L(' … y muchas más', ' … and many more') : '';
+  const title = own
+    ? `${several ? L('Añadidas por ti. Toca para quitarlas.', 'Added by you. Tap to remove them.') : L('Añadida por ti. Toca para quitarla.', 'Added by you. Tap to remove it.')} (${chip.text})`
+    : chip.on
+      ? several
+        ? L('Valen. Toca para apagarlas todas.', 'They count. Tap to switch them all off.')
+        : L('Vale. Toca para apagarla.', 'It counts. Tap to switch it off.')
+      : several
+        ? L('No valen. Toca para encenderlas todas.', 'They do not count. Tap to switch them all on.')
+        : L('No vale. Toca para encenderla.', 'It does not count. Tap to switch it on.');
+  return (
+    <span className={cx('ti-chip ti-many', own ? 'ti-own' : chip.on ? 'on' : 'off', lost && 'clash', open && 'ti-open')} data-forms={total}>
+      <button type="button" className="ti-many-main" aria-pressed={own ? undefined : chip.on} onClick={onFlip} title={title} aria-label={own ? L(`Quitar ${said} de ${name}`, `Remove ${said} from ${name}`) : L(`${said} por ${name}`, `${said} for ${name}`)}>
+        {!own && chip.on && (lost ? <TriangleAlert size={13} aria-hidden="true" /> : <Check size={13} aria-hidden="true" />)}
+        <span>
+          {/* A line may end after a dot, never before one. */}
+          {shown.join('\u00a0· ')}
+          {tail}
+        </span>
+        {own && <X size={13} aria-hidden="true" />}
+      </button>
+      {!few && (
+        <button type="button" className="ti-many-more" aria-expanded={open} onClick={onOpen} title={open ? L('Ver solo las primeras', 'Show the first ones only') : L('Ver todas las variantes', 'Show every variant')}>
+          {open ? L('menos', 'less') : spelt.more ? L('+más', '+more') : `+${left}`}
+        </button>
+      )}
+    </span>
+  );
 }
 
 const Row = memo(
   function Row({ row, chips, changed }: { row: TypeinRow; chips: ChipView[]; changed: boolean; sig: string }) {
     const [text, setText] = useState('');
     const [why, setWhy] = useState<AddError | null>(null);
+    /** The pattern whose spellings are all in sight. */
+    const [open, setOpen] = useState<string | null>(null);
 
     const flip = (chip: ChipView) => {
       const s = useStore.getState();
@@ -84,9 +161,11 @@ const Row = memo(
         </div>
         <div className="ti-side">
           <div className="ti-forms">
-            {chips.map((chip) =>
-              chip.from === 'own' ? (
-                <button key={chip.key} type="button" className={cx('ti-chip ti-own', chip.pattern && 'ti-pat')} onClick={() => flip(chip)} title={L('Añadida por ti. Toca para quitarla.', 'Added by you. Tap to remove it.')} aria-label={L(`Quitar ${chip.text} de ${row.name}`, `Remove ${chip.text} from ${row.name}`)}>
+            {chips.map((chip) => {
+              if (chip.spelt) return <Many key={chip.key} chip={chip} name={row.name} spelt={chip.spelt} open={open === chip.key} onOpen={() => setOpen(open === chip.key ? null : chip.key)} onFlip={() => flip(chip)} />;
+              // A pattern written with signs that cannot be spelt out stays as it was written.
+              return chip.from === 'own' ? (
+                <button key={chip.key} type="button" className={cx('ti-chip ti-own', chip.pattern && 'ti-raw')} onClick={() => flip(chip)} title={L('Añadida por ti. Toca para quitarla.', 'Added by you. Tap to remove it.')} aria-label={L(`Quitar ${chip.text} de ${row.name}`, `Remove ${chip.text} from ${row.name}`)}>
                   <span>{chip.text}</span>
                   <X size={13} aria-hidden="true" />
                 </button>
@@ -94,7 +173,7 @@ const Row = memo(
                 <button
                   key={chip.key}
                   type="button"
-                  className={cx('ti-chip', chip.on ? 'on' : 'off', chip.on && chip.clash && 'clash', chip.pattern && 'ti-pat')}
+                  className={cx('ti-chip', chip.on ? 'on' : 'off', chip.on && chip.clash && 'clash', chip.pattern && 'ti-raw')}
                   aria-pressed={chip.on}
                   onClick={() => flip(chip)}
                   title={chip.on ? L('Vale. Toca para apagarla.', 'It counts. Tap to switch it off.') : L('No vale. Toca para encenderla.', 'It does not count. Tap to switch it on.')}
@@ -103,8 +182,8 @@ const Row = memo(
                   {chip.on && (chip.clash ? <TriangleAlert size={13} aria-hidden="true" /> : <Check size={13} aria-hidden="true" />)}
                   <span>{chip.text}</span>
                 </button>
-              ),
-            )}
+              );
+            })}
             <form className="ti-add" onSubmit={add}>
               <input
                 value={text}
@@ -148,7 +227,8 @@ const Row = memo(
   (a, b) => a.row === b.row && a.sig === b.sig && a.changed === b.changed,
 );
 
-const signature = (chips: ChipView[]): string => chips.map((c) => `${c.key}:${c.text}:${c.from}:${c.on ? 1 : 0}:${c.usual ? 1 : 0}:${c.clash ? `${c.taken ? 't' : 'f'}${c.clash.join(',')}` : ''}`).join('|');
+/** What a row shows of its short forms. The spellings of a pattern change only by those that it loses to other things. */
+const signature = (chips: ChipView[]): string => chips.map((c) => `${c.key}:${c.text}:${c.from}:${c.on ? 1 : 0}:${c.usual ? 1 : 0}:${c.clash ? `${c.taken ? 't' : 'f'}${c.clash.join(',')}` : ''}:${c.lost?.join(',') ?? ''}`).join('|');
 
 export function Settings({ world, path }: { world: World; path: string }) {
   const edits = useStore((s) => s.typeins);
@@ -226,6 +306,9 @@ export function Settings({ world, path }: { world: World; path: string }) {
   }, [tab, scope, query, only]);
 
   const views = useMemo(() => (groups ?? []).map((g) => chipViews(g, settings)), [groups, settings]);
+  useEffect(() => {
+    for (const view of views) for (const [id, chips] of view) for (const c of chips) if (c.spelt) namedBefore.set(`${id}\n${c.key}`, firstOf(c.spelt));
+  }, [views]);
 
   const q = key(query);
   const rawQ = query.trim().toLowerCase();
@@ -235,7 +318,10 @@ export function Settings({ world, path }: { world: World; path: string }) {
     if (!rawQ) return true;
     if (row.id.toLowerCase().includes(rawQ)) return true;
     if (!q) return false;
-    return key(row.name).includes(q) || (!!row.note && key(row.note).includes(q)) || row.also.some((a) => key(a).includes(q)) || chips.some((c) => c.key.startsWith(q));
+    if (key(row.name).includes(q) || (!!row.note && key(row.note).includes(q)) || row.also.some((a) => key(a).includes(q))) return true;
+    // A pattern is found by the spellings it shows, as any other short form is by its own.
+    const Q = q.toUpperCase();
+    return chips.some((c) => (c.spelt ? c.spelt.forms.some((f) => f.startsWith(Q)) : c.key.startsWith(q)));
   };
 
   let left = shown;
@@ -251,6 +337,8 @@ export function Settings({ world, path }: { world: World; path: string }) {
   });
 
   const changedIds = Object.keys(edits).sort();
+  /** The short forms of a row in sight: a pattern among the changes is named the way its row shows it. */
+  const chipsFor = (id: string): ChipView[] | undefined => views.find((v) => v.has(id))?.get(id);
   const scopeCountry = scope ? world.byId.get(scope) : undefined;
 
   const pick = (t: TypeinTab) => {
@@ -397,19 +485,33 @@ export function Settings({ world, path }: { world: World; path: string }) {
               {L('añadida por ti', 'added by you')}
             </span>
             <span className="ti-key">
-              <span className="ti-chip on ti-pat" aria-hidden="true">
-                <Check size={13} />
-                <span>r:^GALI[CZ]I?A</span>
+              <span className="ti-chip on ti-many" aria-hidden="true">
+                <span className="ti-many-main">
+                  <Check size={13} />
+                  <span>GALICIA · GALIZA</span>
+                </span>
               </span>
-              {L('patrón', 'pattern')}
+              {L('variantes que van juntas', 'variants that go together')}
             </span>
             <span className="ti-legend-how">
               {L(
-                'Toca una para cambiarla; escribe y pulsa Intro para añadir. Un patrón empieza por r: (una expresión regular) o por c: (letras que basta con que aparezcan) y se prueba sobre lo escrito sin espacios ni tildes, como en JetPunk.',
-                'Tap one to change it; type and press Enter to add. A pattern begins with r: (a regular expression) or c: (letters that only have to appear) and is tried on what is typed without spaces or accents, as in JetPunk.',
+                'Toca una para cambiarla; escribe y pulsa Intro para añadir. Las variantes que van juntas se encienden y se apagan a la vez, y +N las enseña todas. Van sin espacios ni tildes, que al escribir no cuentan, y basta con que lo escrito empiece por una de ellas. Para añadir varias de golpe vale un patrón como los de JetPunk (con r: o c: delante): se verá con las variantes que acepta.',
+                'Tap one to change it; type and press Enter to add. Variants that go together are switched on and off as one, and +N shows them all. They are written without spaces or accents, which do not count when typing, and it is enough for what is typed to begin with one of them. To add several at once, a pattern like those of JetPunk will do (with r: or c: in front): it shows as the variants it takes.',
               )}
             </span>
           </p>
+          {tab === 'regions' && (
+            <p className="ti-fine ti-codes">
+              {L(
+                'El código gris de cada pieza es el suyo en la norma ISO 3166-2; los que llevan una x son del juego, para las piezas que la norma no recoge.',
+                'The grey code of each piece is its own in ISO 3166-2; those with an x are the game’s, for pieces the standard does not list.',
+              )}
+              {(groups?.length ?? 0) > 1 &&
+                ` ${L('Cada nivel tiene sus códigos, todos en vigor, así que una misma tierra puede salir dos veces', 'Each level has its codes, all of them in force, so the same land can show up twice')}${
+                  scope === 'ES' ? L(': Asturias es ES-AS como comunidad autónoma y ES-O como provincia.', ': Asturias is ES-AS as an autonomous community and ES-O as a province.') : '.'
+                }`}
+            </p>
+          )}
 
           {error ? (
             <div className="empty-state">
@@ -486,13 +588,13 @@ export function Settings({ world, path }: { world: World; path: string }) {
                     </button>
                     <span className="ti-diff">
                       {(edits[id].add ?? []).map((a) => (
-                        <b key={`+${a}`} className="ti-plus">
-                          +{a}
+                        <b key={`+${a}`} className="ti-plus" title={looksLikePattern(a) ? a : undefined}>
+                          +{briefly(id, a, chipsFor(id))}
                         </b>
                       ))}
                       {(edits[id].off ?? []).map((k) => (
                         <s key={`-${k}`} className="ti-minus">
-                          {looksLikePattern(k) ? k : k.toUpperCase()}
+                          {looksLikePattern(k) ? briefly(id, k, chipsFor(id)) : k.toUpperCase()}
                         </s>
                       ))}
                     </span>

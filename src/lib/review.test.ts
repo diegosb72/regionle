@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { INTERVALS, REVIEW_MAX, dueAt, dueCount, dueGroups, forecast, gradeOf, goneFrom, intervalOf, isDue, parseOrigin, reviewConfig } from './review';
+import { INTERVALS, REVIEW_MAX, allGroups, dueAt, dueCount, dueGroups, forecast, gradeOf, goneFrom, intervalOf, isDue, isSlipping, missGroups, missesOf, parseOrigin, reviewConfig } from './review';
 import { DEFAULT_OPTS, dropAnswers, type Stat } from './store';
 
 const MIN = 60_000;
@@ -224,5 +224,83 @@ describe('answers about things that are no longer in the data', () => {
     expect(Object.keys(left.where).sort()).toEqual(['a', 'r:volga']);
     // Nothing to drop leaves everything as it was.
     expect(dropAnswers(stats, where, [])).toEqual({ stats, where });
+  });
+});
+
+describe('what is missed most', () => {
+  /** An answer asked `seen` times, right first time `ok` of them, with `run` right in a row now. */
+  const st = (seen: number, ok: number, run: number): Stat => [seen, ok, run, NOW - DAY];
+
+  it('counts the times an answer was not right first time', () => {
+    expect(missesOf(st(7, 2, 0))).toBe(5);
+    expect(missesOf(st(3, 3, 3))).toBe(0);
+    expect(missesOf(undefined)).toBe(0);
+  });
+
+  it('is what was missed twice or more and has not been learnt since', () => {
+    expect(isSlipping(st(2, 0, 0))).toBe(true);
+    expect(isSlipping(st(5, 2, 1))).toBe(true);
+    // Missed once: anyone slips once.
+    expect(isSlipping(st(4, 3, 1))).toBe(false);
+    // Missed five times, and then right twice running: learnt, and off the list.
+    expect(isSlipping(st(7, 2, 2))).toBe(false);
+    expect(isSlipping(undefined)).toBe(false);
+  });
+
+  it('gathers it by map, the most missed first, with a game for each level of a country', () => {
+    const stats: Record<string, Stat> = {
+      'loc:ES-ZA': st(7, 2, 0),
+      'loc:ES-GU': st(4, 1, 1),
+      'loc:ES-M': st(6, 6, 6),
+      'loc:ES-TE': st(3, 1, 0),
+      'loc:ES-AR': st(3, 0, 0),
+      'name:ES-ZA': st(2, 0, 0),
+      'cap:FR': st(5, 1, 0),
+      'loc:FR': st(2, 1, 1),
+    };
+    const where = { 'ES-ZA': 'r|ES|g2', 'ES-GU': 'r|ES|g2', 'ES-M': 'r|ES|g2', 'ES-TE': 'r|ES|g2', 'ES-AR': 'r|ES|g1', FR: 'c' };
+    const groups = missGroups(stats, where);
+    expect(groups.map((g) => [g.key, g.ids])).toEqual([
+      // Zamora was missed five times, Guadalajara three, Teruel two; Madrid is known.
+      ['regions:loc:ES:g2', ['ES-ZA', 'ES-GU', 'ES-TE']],
+      // Of the maps with one, the one whose piece was missed more: four times, three, two.
+      ['countries:cap', ['FR']],
+      // The communities are another map of the same country: a game of their own.
+      ['regions:loc:ES:g1', ['ES-AR']],
+      ['regions:name:ES:g2', ['ES-ZA']],
+    ]);
+    // Each one is played like a review: on its map, only those pieces.
+    const cfg = reviewConfig(groups[0], DEFAULT_OPTS);
+    expect(cfg).toMatchObject({ section: 'regions', mode: 'pin', countries: ['ES'], levels: { ES: 'g2' }, only: ['ES-ZA', 'ES-GU', 'ES-TE'], review: true });
+  });
+
+  it('puts first, of two missed as often, the one that was asked fewer times', () => {
+    const stats: Record<string, Stat> = { 'loc:ES-A': st(9, 6, 0), 'loc:ES-B': st(3, 0, 0), 'loc:ES-C': st(4, 1, 0) };
+    const where = { 'ES-A': 'r|ES|g2', 'ES-B': 'r|ES|g2', 'ES-C': 'r|ES|g2' };
+    expect(missGroups(stats, where)[0].ids).toEqual(['ES-B', 'ES-C', 'ES-A']);
+  });
+
+  it('is empty while nothing has been missed twice', () => {
+    expect(missGroups({ 'loc:ES-M': st(3, 2, 2), 'loc:ES-B': st(1, 0, 0) }, { 'ES-M': 'r|ES|g2', 'ES-B': 'r|ES|g2' })).toEqual([]);
+  });
+});
+
+describe('every answer, for the file of the review', () => {
+  it('lists each one once, on its map and at its level, the one asked longest ago first', () => {
+    const stats: Record<string, Stat> = {
+      'loc:ES-ZA': [2, 1, 1, NOW - 3 * DAY],
+      'loc:ES-M': [1, 1, 1, NOW - 5 * DAY],
+      'loc:ES-AR': [1, 1, 1, NOW - DAY],
+      'flag:FR': [1, 0, 0, NOW],
+      'loc:never': [0, 0, 0, 0],
+    };
+    const where = { 'ES-ZA': 'r|ES|g2', 'ES-M': 'r|ES|g2', 'ES-AR': 'r|ES|g1', FR: 'c' };
+    const groups = allGroups(stats, where);
+    expect(groups.map((g) => [g.key, g.level, g.ids])).toEqual([
+      ['regions:loc:ES:g2', 'g2', ['ES-M', 'ES-ZA']],
+      ['regions:loc:ES:g1', 'g1', ['ES-AR']],
+      ['countries:flag', undefined, ['FR']],
+    ]);
+    expect(groups.flatMap((g) => g.ids)).toHaveLength(4);
   });
 });

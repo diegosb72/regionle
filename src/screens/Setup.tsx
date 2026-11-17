@@ -1,5 +1,5 @@
 /** Setup: 1 what to play with, 2 mode, 3 options. */
-import { Check, ChevronDown, Infinity as InfinityIcon, ListChecks, ListPlus, Pencil, Play, Share2, Trash2, X } from 'lucide-react';
+import { Check, ChevronDown, Infinity as InfinityIcon, ListChecks, ListPlus, Pencil, Play, Share2, Target, Timer, Trash2, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Picker } from '../components/Picker';
 import { Flag, Seg, Toggle, capitalise } from '../components/ui';
@@ -9,6 +9,8 @@ import { CITY_COUNTS, PHYS_KINDS, PHYS_PLACES, kindNoun, loadCities, loadPhysica
 import { L, getLang, levelNoun, nm } from '../lib/i18n';
 import { encodeList, listConfig, listPlayable, listUrl } from '../lib/lists';
 import { MODES, SECTIONS, formatName } from '../lib/modes';
+import { estimateOf, minutesOf, paceOf, percentOf, questionsOf } from '../lib/pace';
+import { FORMAT_MODES, LENGTH_MODES } from '../lib/rules';
 import { go } from '../lib/router';
 import { useStore, type CustomList, type Length, type Opts } from '../lib/store';
 import { cx, nf, plural } from '../lib/text';
@@ -18,11 +20,8 @@ import type { Country, Mode, Section } from '../lib/types';
 
 const levelName = (n: number): string => [L('Fácil', 'Easy'), L('Medio', 'Medium'), L('Difícil', 'Hard')][n - 1];
 const ANSWER_MODES: Mode[] = ['learn', 'identify', 'outline', 'capital', 'flag'];
-const LENGTH_MODES: Mode[] = ['pin', 'identify', 'outline', 'regionle', 'puzzle', 'neighbours', 'capital', 'flag', 'blind', 'exact', 'which', 'rank'];
 /** Games that are one round of everything: they cannot go on for ever. */
 const FINITE_MODES: Mode[] = ['neighbours', 'blind'];
-/** Games that can also be played against the clock or until the lives run out. */
-const FORMAT_MODES: Mode[] = ['pin', 'identify', 'outline', 'puzzle', 'capital', 'flag'];
 /** Games where names are typed and a list of suggestions can help. */
 const SUGGEST_MODES: Mode[] = ['travel', 'neighbours', 'regionle'];
 /** Games that stop on a missed answer long enough to read about it. */
@@ -214,6 +213,7 @@ export function Setup({ section, world }: { section: Section; world: World }) {
   const start = useStore((s) => s.start);
   const lists = useStore((s) => s.lists);
   const listOnId = useStore((s) => s.listOn[section]);
+  const sessions = useStore((s) => s.sessions);
   const setListOn = useStore((s) => s.setListOn);
   const removeList = useStore((s) => s.removeList);
   const modeRef = useRef<HTMLElement>(null);
@@ -369,6 +369,11 @@ export function Setup({ section, world }: { section: Section; world: World }) {
             { ...endless, title: L('Sin fin: lo fallado vuelve a salir', 'Endless: what you miss comes back') },
           ];
 
+  // How big the game is and how it goes for this player: the label of the mode is the same for everyone.
+  const pace = useMemo(() => paceOf(sessions, section, def.id), [sessions, section, def.id]);
+  const questions = problem ? null : questionsOf({ mode: def.id, units, length: finite && opts.length === 'endless' ? 'all' : opts.length, format: opts.format, list: !!active });
+  const estimate = problem ? null : estimateOf(def.id, questions, pace);
+
   /** The map that is chosen now, as a game of the given mode. */
   const current = (mode: Mode) => {
     const picked: Record<string, string> = {};
@@ -458,6 +463,38 @@ export function Setup({ section, world }: { section: Section; world: World }) {
             <p className="mode-about" aria-live="polite">
               <strong>{levelName(def.level)}.</strong> {def.desc}
             </p>
+            {(estimate || questions != null || pace.first != null) && (
+              <ul className="mode-facts">
+                {(estimate || questions != null) && (
+                  <li
+                    title={
+                      !estimate
+                        ? undefined
+                        : estimate.own
+                          ? L('Calculado con tus partidas de este modo.', 'Worked out from your games of this mode.')
+                          : L('Una estimación general: en cuanto juegues una partida se ajusta a tu ritmo.', 'A general estimate: it follows your pace as soon as you play a game.')
+                    }
+                  >
+                    <Timer size={14} aria-hidden="true" />
+                    <span>
+                      {estimate && L(minutesOf(estimate.ms) === 1 ? 'Alrededor de 1 min' : `Unos ${nf(minutesOf(estimate.ms))} min`, `About ${nf(minutesOf(estimate.ms))} min`)}
+                      {estimate && questions != null && ' · '}
+                      {questions != null && (def.id === 'nameall' ? plural(questions, noun[0], noun[1]) : plural(questions, L('pregunta', 'question'), L('preguntas', 'questions')))}
+                      {estimate?.own && <small> {L('a tu ritmo', 'at your pace')}</small>}
+                    </span>
+                  </li>
+                )}
+                {pace.first != null && (
+                  <li title={L('En tus últimas partidas de este modo en esta sección.', 'In your latest games of this mode in this section.')}>
+                    <Target size={14} aria-hidden="true" />
+                    <span>
+                      {L(`Aciertas el ${percentOf(pace.first)} % a la primera`, `You get ${percentOf(pace.first)}% right first time`)}
+                      <small> {L(`en ${plural(pace.games, 'partida', 'partidas')}`, `in ${plural(pace.games, 'game', 'games')}`)}</small>
+                    </span>
+                  </li>
+                )}
+              </ul>
+            )}
           </section>
 
           <section className="step">

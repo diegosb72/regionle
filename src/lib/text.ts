@@ -162,6 +162,29 @@ function compile(text: string): Compiled | null {
   return c;
 }
 
+/**
+ * Whether a pattern takes these letters whole, to the last one: what the games ask of something typed
+ * before they take it without waiting for Enter. `letters` are the letters and digits of what was typed,
+ * run together and in lower case.
+ */
+export function patternTakes(pattern: string, letters: string): boolean {
+  return !!letters && !!compile(pattern)?.full.test(letters);
+}
+
+/**
+ * The part of these letters that a pattern is found in, the way JetPunk looks for it: "sanktgall" in
+ * "sanktgallen" for "^(SANKT|ST)GAL[EL]". Null when it is not there.
+ */
+export function patternFinds(pattern: string, letters: string): string | null {
+  const m = letters ? compile(pattern)?.loose.exec(letters) : null;
+  return m?.[0] || null;
+}
+
+/** The words of a name as a pattern meets them when they are typed: lower case, no accents, no signs. */
+export function typedWords(name: string): string[] {
+  return fold(name).split(' ').filter(Boolean);
+}
+
 /** A short form a thing answers to before the settings have their say. */
 export interface ShortForm {
   /** As it is compared: "pei", "eeuu". */
@@ -362,7 +385,7 @@ export class Matcher {
   private shortOf = new Set<string>();
   /** Names with the article that `key` drops, run together: "larioja". */
   private heads: string[] = [];
-  /** The patterns the settings give each thing: what they take is not a spelling that can be listed. */
+  /** The patterns the settings give each thing: what they take is no spelling of its own (see `spellingsOf`). */
   private patterns: { id: string; loose: RegExp; full: RegExp }[] = [];
 
   /**
@@ -515,6 +538,19 @@ export class Matcher {
     if (opts.whole) return [];
     const id = this.shortFor(input);
     return id ? [id] : this.patterned(input, 'full');
+  }
+
+  /**
+   * The things the input is before any pattern is asked: those it is a spelling of, or the one it is the
+   * initials of. Undefined when it is left to the patterns. It is what `lookup` goes by: a pattern that
+   * takes "Shanxi" for Shaanxi takes nothing on a map where Shanxi is.
+   */
+  spoken(input: string): string[] | undefined {
+    if (!key(input)) return undefined;
+    const hit = this.named(input);
+    if (hit) return hit;
+    const id = this.shortFor(input);
+    return id ? [id] : undefined;
   }
 
   /**

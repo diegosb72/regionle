@@ -32,30 +32,50 @@ async function getJson(url: string): Promise<unknown> {
   }
 }
 
-/** Title of the article and the language it is in: by its Wikidata id when the data has one, by search otherwise. */
-async function articleOf(item: Item, lang: Lang): Promise<{ title: string; lang: Lang } | null> {
+interface Article {
+  title: string;
+  lang: Lang;
+}
+
+/**
+ * The articles about an item, the one in the language of the interface first. With a Wikidata id they are
+ * the ones linked to it, in either language; without one, whatever a search by name finds in the
+ * language of the interface (the names are only known in that one, so the other is not searched).
+ */
+async function articlesOf(item: Item, lang: Lang): Promise<Article[]> {
   const other: Lang = lang === 'es' ? 'en' : 'es';
   if (item.wd) {
     const data = (await getJson(`https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${item.wd}&props=sitelinks&sitefilter=${lang}wiki%7C${other}wiki&format=json&origin=*`)) as {
       entities?: Record<string, { sitelinks?: Record<string, { title?: string }> }>;
     };
     const links = data.entities?.[item.wd]?.sitelinks ?? {};
-    for (const l of [lang, other]) {
+    return [lang, other].flatMap((l) => {
       const title = links[`${l}wiki`]?.title;
-      if (title) return { title, lang: l };
-    }
-    return null;
+      return title ? [{ title, lang: l }] : [];
+    });
   }
   const data = (await getJson(`https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(placeQuery(item))}&srlimit=1&srnamespace=0&format=json&origin=*`)) as {
     query?: { search?: { title?: string }[] };
   };
   const title = data.query?.search?.[0]?.title;
-  return title ? { title, lang } : null;
+  return title ? [{ title, lang }] : [];
 }
 
-async function load(item: Item, lang: Lang): Promise<Summary | null> {
-  const article = await articleOf(item, lang);
-  if (!article) return null;
+/** Two or three sentences are enough next to a question. */
+export function shorten(extract: string): string {
+  // Cut after the mark that ends a sentence, without a look-behind: Safari before 16.4 does not read one,
+  // and a script it cannot read does not run at all.
+  const sentences = extract.replace(/([.!?])\s+(?=[A-ZÁÉÍÓÚÑ¿¡"«(])/g, '$1\u0000').split('\u0000');
+  let text = '';
+  for (const part of sentences) {
+    if (text && (text.length + part.length > 420 || text.length > 260)) break;
+    text += (text ? ' ' : '') + part;
+  }
+  return text.length > 520 ? `${text.slice(0, 500).replace(/\s+\S*$/, '')}…` : text;
+}
+
+/** What an article says at its start; null when it says nothing that can be shown (no text, or a list of meanings). */
+async function summaryOf(article: Article): Promise<Summary | null> {
   const s = (await getJson(`https://${article.lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(article.title.replace(/ /g, '_'))}`)) as {
     type?: string;
     title?: string;
@@ -64,20 +84,22 @@ async function load(item: Item, lang: Lang): Promise<Summary | null> {
     content_urls?: { desktop?: { page?: string } };
   };
   if (!s.extract || s.type === 'disambiguation') return null;
-  // Two or three sentences are enough next to a question.
-  const sentences = s.extract.split(/(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚÑ¿¡"«(])/);
-  let text = '';
-  for (const part of sentences) {
-    if (text && (text.length + part.length > 420 || text.length > 260)) break;
-    text += (text ? ' ' : '') + part;
-  }
   return {
     title: s.title ?? article.title,
-    text: text.length > 520 ? `${text.slice(0, 500).replace(/\s+\S*$/, '')}…` : text,
+    text: shorten(s.extract),
     image: s.thumbnail?.source,
     url: s.content_urls?.desktop?.page ?? `https://${article.lang}.wikipedia.org/wiki/${encodeURIComponent(article.title.replace(/ /g, '_'))}`,
     lang: article.lang,
   };
+}
+
+/** The first article that has something to show: the one in the player's language, and the other one only when that one fails. */
+async function load(item: Item, lang: Lang): Promise<Summary | null> {
+  for (const article of await articlesOf(item, lang)) {
+    const summary = await summaryOf(article).catch(() => null);
+    if (summary) return summary;
+  }
+  return null;
 }
 
 export function wikiSummary(item: Item): Promise<Summary | null> {

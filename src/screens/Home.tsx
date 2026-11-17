@@ -1,16 +1,19 @@
-import { ArrowRight, BookOpen, CalendarClock, Filter, Infinity as InfinityIcon } from 'lucide-react';
+import { ArrowRight, BookOpen, CalendarClock, Filter, Infinity as InfinityIcon, Star, X } from 'lucide-react';
 import { useMemo } from 'react';
 import { LevelChip } from '../components/Badges';
 import { ReviewCard } from '../components/ReviewCard';
 import { Flag } from '../components/ui';
-import { DailyCard } from '../daily/Daily';
-import type { World } from '../lib/data';
-import { L } from '../lib/i18n';
-import { MODES, MODE_NAME, SECTIONS, SECTION_IDS } from '../lib/modes';
+import { DailyCard } from '../daily/Card';
+import { countriesOf, describeMap, type MapSpec } from '../lib/describe';
+import { commonPlace, type World } from '../lib/world';
+import { L, getLang } from '../lib/i18n';
+import { MODES, MODE_NAME, SECTIONS, SECTION_IDS, formatName } from '../lib/modes';
+import { recentKey, type Recent } from '../lib/recent';
 import { go } from '../lib/router';
-import { useStore } from '../lib/store';
+import { PATHS, PLAY_PATH } from '../lib/routes';
+import { useStore, type Fav } from '../lib/store';
 import { nf } from '../lib/text';
-import type { Section } from '../lib/types';
+import type { Mode, Section } from '../lib/types';
 
 const SAMPLE: Record<Section, string[]> = {
   regions: ['ES', 'FR', 'IT', 'DE', 'US', 'MX', 'BR', 'JP'],
@@ -20,11 +23,200 @@ const SAMPLE: Record<Section, string[]> = {
   pops: ['CN', 'IN', 'US', 'NG', 'BR', 'RU', 'AU', 'DE'],
 };
 
+/** The first sentence of a description (no look-behind: old Safari does not read it). */
+const firstSentence = (text: string): string => /^.*?\.(?=\s|$)/.exec(text)?.[0] ?? text;
+
+/** The ways of playing a newcomer is told about, from looking to knowing them all by heart. */
+const FIRST_MODES: Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall'];
+
+/**
+ * How the game works, for whoever has never played: what to choose, what each way of playing is and what
+ * comes back later. It goes away with the first game, or when it is put away.
+ */
+function Welcome() {
+  const setWelcomed = useStore((s) => s.setWelcomed);
+  const setMode = useStore((s) => s.setMode);
+  const modes = FIRST_MODES.flatMap((id) => MODES.regions.find((m) => m.id === id) ?? []);
+  return (
+    <section className="welcome" aria-labelledby="welcome-title">
+      <button type="button" className="welcome-close" onClick={setWelcomed} aria-label={L('Cerrar la bienvenida', 'Close the welcome')} title={L('Cerrar', 'Close')}>
+        <X size={18} aria-hidden="true" />
+      </button>
+      <p className="kicker">{L('¿Primera vez por aquí?', 'First time here?')}</p>
+      <h2 id="welcome-title">{L('Así se juega, en tres pasos', 'How to play, in three steps')}</h2>
+      <ol className="welcome-steps">
+        <li>
+          <h3>{L('Elige un mapa', 'Choose a map')}</h3>
+          <p>
+            {L(
+              'Arriba tienes las cinco secciones: regiones, países, ciudades, geografía física y cifras. Dentro de cada una eliges los países que quieras, de uno solo al mundo entero.',
+              'The five sections are at the top: regions, countries, cities, physical geography and figures. Inside each one you choose the countries you want, from a single one to the whole world.',
+            )}
+          </p>
+        </li>
+        <li>
+          <h3>{L('Elige cómo jugar', 'Choose how to play')}</h3>
+          <dl className="welcome-modes">
+            {modes.map((m) => (
+              <div key={m.id}>
+                <dt>
+                  <m.icon size={15} aria-hidden="true" />
+                  {m.name}
+                </dt>
+                <dd>{firstSentence(m.desc)}</dd>
+              </div>
+            ))}
+          </dl>
+        </li>
+        <li>
+          <h3>{L('Y vuelve', 'And come back')}</h3>
+          <p>
+            {L(
+              'Lo que fallas vuelve a los pocos días hasta que se queda: es el repaso que te propone esta página. Y cada día hay un reto de cinco pruebas, el mismo para todo el mundo. Todo se guarda en este navegador, sin registro.',
+              'What you miss comes back a few days later until it sticks: that is the review this page offers you. And every day there is a challenge of five tests, the same for everyone. It is all kept in this browser, with no sign-up.',
+            )}
+          </p>
+        </li>
+      </ol>
+      <div className="welcome-actions">
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={() => {
+            setMode('regions', 'learn');
+            go(PATHS.regions);
+          }}
+        >
+          {L('Empezar por «Aprender»', 'Start with “Learn”')}
+          <ArrowRight size={16} aria-hidden="true" />
+        </button>
+        <button type="button" className="btn btn-ghost" onClick={setWelcomed}>
+          {L('Ya sé cómo va', 'I know how it works')}
+        </button>
+      </div>
+    </section>
+  );
+}
+
+/** Maps played lately that the first page shows. */
+const RECENT_SHOWN = 4;
+
+const specOf = (r: Recent): MapSpec => ({ section: r.section, countries: r.countries, levels: r.levels, cityPick: r.o.cityPick, cityCount: r.o.cityCount });
+
+/** A map played before in words: "Europa · 45 países", "España · provincias", "Ríos · Europa". */
+function recentMap(r: Recent, world: World): string {
+  const text = describeMap(specOf(r), world);
+  if (r.section === 'physical') return text;
+  const chosen = countriesOf(specOf(r), world);
+  const place = chosen.length > 3 ? commonPlace(chosen, world.index, r.section) : null;
+  const what = r.section === 'pops' ? ` · ${r.o.metric === 'area' ? L('superficie', 'area') : L('población', 'population')}` : '';
+  return `${place ? `${place} · ` : ''}${text}${what}`;
+}
+
+/** How long ago, by the day: "hoy", "ayer", "hace 3 días", and a date from a week on. */
+function ago(t: number): string {
+  const days = Math.round((new Date().setHours(0, 0, 0, 0) - new Date(t).setHours(0, 0, 0, 0)) / 864e5);
+  if (days <= 0) return L('hoy', 'today');
+  if (days === 1) return L('ayer', 'yesterday');
+  if (days < 7) return L(`hace ${days} días`, `${days} days ago`);
+  return new Date(t).toLocaleDateString(getLang() === 'en' ? 'en-GB' : 'es-ES', { day: 'numeric', month: 'short' });
+}
+
+/**
+ * What was being practised, one click away: the maps played lately, each as the game it was, and the
+ * selections of countries saved in the menus.
+ */
+function Recents({ world }: { world: World }) {
+  const recent = useStore((s) => s.recent);
+  const favs = useStore((s) => s.favs);
+  const resume = useStore((s) => s.resume);
+  const setSel = useStore((s) => s.setSel);
+  const setLevel = useStore((s) => s.setLevel);
+  // A game this version does not have, or a map whose countries the data no longer has, cannot be played again.
+  const shown = recent
+    .filter((r) => MODES[r.section]?.some((m) => m.id === r.mode))
+    .filter((r) => r.section === 'physical' || countriesOf(specOf(r), world).length > 0)
+    .slice(0, RECENT_SHOWN);
+  // What is kept may come from another version, or from a file edited by hand: only what can be shown is.
+  const saved = favs.filter((f) => !!f && typeof f.name === 'string' && Object.hasOwn(SECTIONS, f.section) && Array.isArray(f.ids) && f.ids.length > 0);
+  if (!shown.length && !saved.length) return null;
+
+  const again = (r: Recent) => {
+    resume(r);
+    go(PLAY_PATH);
+  };
+  const openFav = (fav: Fav) => {
+    setSel(fav.section, fav.ids);
+    for (const [id, k] of Object.entries(fav.levels ?? {})) setLevel(id, k);
+    go(SECTIONS[fav.section].path);
+  };
+
+  return (
+    <section className="recent" aria-labelledby="recent-h">
+      <h2 id="recent-h">{shown.length ? L('Sigue donde lo dejaste', 'Pick up where you left off') : L('Tus selecciones guardadas', 'Your saved selections')}</h2>
+      {shown.length > 0 && (
+        <ul className="recent-list">
+          {shown.map((r) => {
+            const flags = countriesOf(specOf(r), world).slice(0, 3);
+            const paced = r.o.format && r.o.format !== 'normal' ? ` · ${formatName(r.o.format).toLowerCase()}` : '';
+            return (
+              <li key={recentKey(r)}>
+                <button type="button" onClick={() => again(r)}>
+                  <span className="recent-what">
+                    {SECTIONS[r.section].name} · {MODE_NAME[r.mode]}
+                    {paced}
+                  </span>
+                  <span className="recent-map">
+                    {r.countries.length <= 3 && flags.length > 0 && (
+                      <span className="recent-flags" aria-hidden="true">
+                        {flags.map((c) => (
+                          <Flag key={c.id} code={c.fl} size="sm" />
+                        ))}
+                      </span>
+                    )}
+                    {recentMap(r, world)}
+                  </span>
+                  <span className="recent-how">
+                    {r.total > 0 ? `${L(`${r.ok} de ${r.total} a la primera`, `${r.ok} of ${r.total} first time`)} · ` : ''}
+                    {ago(r.t)}
+                  </span>
+                  <span className="recent-go">
+                    {L('Jugar otra vez', 'Play again')}
+                    <ArrowRight size={15} aria-hidden="true" />
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {saved.length > 0 && (
+        <div className="recent-favs">
+          {shown.length > 0 && <h3>{L('Tus selecciones guardadas', 'Your saved selections')}</h3>}
+          <ul>
+            {saved.map((fav) => (
+              <li key={`${fav.section}:${fav.name}`}>
+                <button type="button" className="chip" onClick={() => openFav(fav)} title={L(`${fav.ids.length} países guardados`, `${fav.ids.length} countries saved`)}>
+                  <Star size={13} aria-hidden="true" />
+                  {fav.name}
+                  <small>{SECTIONS[fav.section].name}</small>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  );
+}
+
 const goLabel = (id: Section): string => (id === 'physical' ? L('Elegir qué y dónde', 'Choose what and where') : L('Elegir países', 'Choose countries'));
 
 export function Home({ world }: { world: World }) {
   const sessions = useStore((s) => s.sessions);
   const game = useStore((s) => s.game);
+  // Someone who has never played: no game finished or in course, no daily challenge, nothing answered.
+  const fresh = useStore((s) => !s.welcomed && !s.sessions.length && !s.game && !s.tot.g && !Object.keys(s.daily).length && !Object.keys(s.stats).length);
 
   const totals = useMemo(() => {
     const cs = world.index.countries.filter((c) => c.cl !== 'other');
@@ -39,16 +231,18 @@ export function Home({ world }: { world: World }) {
 
   return (
     <div className="home">
+      {/* The first heading of the page; the headline further down is drawn as large as ever. */}
+      <h1 className="sr-only">{L('Regionle ∞: juego de geografía para aprender el mapa del mundo', 'Regionle ∞: a geography game to learn the map of the world')}</h1>
       <DailyCard world={world} />
       <ReviewCard world={world} />
 
       <section className="hero">
         <p className="kicker">{L('Geografía para aprender jugando', 'Geography you learn by playing')}</p>
-        <h1>
+        <h2 className="hero-title">
           {L('El mapa del mundo,', 'The map of the world,')}
           <br />
           <em>{L('pieza a pieza.', 'piece by piece.')}</em>
-        </h1>
+        </h2>
         <p className="lead">
           {L(
             'Provincias, estados y regiones de casi todos los países, además de capitales, banderas, ciudades, ríos, mares, picos y cifras. Elige qué quieres aprender, juega las veces que quieras y repasa lo que falles.',
@@ -61,7 +255,7 @@ export function Home({ world }: { world: World }) {
             <ArrowRight size={18} aria-hidden="true" />
           </button>
           {game && !game.review && (
-            <button type="button" className="btn btn-lg" onClick={() => go('jugar')}>
+            <button type="button" className="btn btn-lg" onClick={() => go(PLAY_PATH)}>
               {L('Seguir', 'Resume')}: {MODE_NAME[game.mode]}
             </button>
           )}
@@ -82,11 +276,14 @@ export function Home({ world }: { world: World }) {
           <div>
             <dt>{L('partidas al día', 'games a day')}</dt>
             <dd className="inf">
-              <InfinityIcon size={44} strokeWidth={2.4} aria-label={L('sin límite', 'no limit')} />
+              <InfinityIcon size={44} strokeWidth={2.4} role="img" aria-label={L('sin límite', 'no limit')} />
             </dd>
           </div>
         </dl>
       </section>
+
+      {fresh && <Welcome />}
+      <Recents world={world} />
 
       <section className="sections">
         {SECTION_IDS.map((id, i) => {

@@ -1,7 +1,7 @@
 /** Today's review: what was learnt comes back when it is about to be forgotten. */
 import { ArrowRight, CalendarClock, Check } from 'lucide-react';
 import { useMemo } from 'react';
-import type { World } from '../lib/data';
+import type { World } from '../lib/world';
 import { L, levelNoun, nm } from '../lib/i18n';
 import { MODE_NAME } from '../lib/modes';
 import { dueCount, dueGroups, forecast, reviewConfig, type ReviewGroup } from '../lib/review';
@@ -11,7 +11,7 @@ import { nf } from '../lib/text';
 import { Flag } from './ui';
 
 /** What a group is about: "España · provincias". */
-function groupPlace(g: ReviewGroup, world: World): { flag?: string; text: string } {
+export function groupPlace(g: ReviewGroup, world: World): { flag?: string; text: string } {
   const c = g.country ? world.byId.get(g.country) : undefined;
   if (g.section === 'regions') {
     if (!c) return { text: L('Regiones', 'Regions') };

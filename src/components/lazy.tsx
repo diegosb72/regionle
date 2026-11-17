@@ -1,0 +1,58 @@
+/**
+ * A screen whose code is fetched when it is first shown, so that the first page does not carry the
+ * whole game. `warm()` fetches it ahead of time; once it is here, the screen is drawn at once, without
+ * the loading message that `React.lazy` alone would show the first time.
+ */
+import { createElement, lazy, useState, type ComponentType, type ReactElement } from 'react';
+
+export interface LazyScreen<P> {
+  (props: P): ReactElement;
+  /** Fetches the code now. Safe to call many times; a failure is forgotten, so that it can be tried again. */
+  warm(): void;
+}
+
+export function lazyScreen<P extends object>(load: () => Promise<ComponentType<P>>): LazyScreen<P> {
+  let loaded: ComponentType<P> | null = null;
+  let pending: Promise<ComponentType<P>> | null = null;
+
+  const fetchIt = (): Promise<ComponentType<P>> =>
+    (pending ??= load().then(
+      (component) => (loaded = component),
+      (error: unknown) => {
+        // `React.lazy` keeps a failure for good: a new one is made so that showing the screen again asks again.
+        pending = null;
+        waiting = fresh();
+        throw error;
+      },
+    ));
+  const fresh = (): ComponentType<P> => lazy(async () => ({ default: await fetchIt() })) as unknown as ComponentType<P>;
+  let waiting = fresh();
+
+  function Screen(props: P) {
+    // Decided once for each time the screen is shown: swapping one for the other later would start it again.
+    const [Use] = useState<ComponentType<P>>(() => loaded ?? waiting);
+    return createElement(Use, props);
+  }
+  const warm = (): void => {
+    fetchIt().catch(() => undefined);
+  };
+  return Object.assign(Screen, { warm });
+}
+
+/** Runs `task` when the browser has nothing better to do, or soon enough where it cannot say. */
+export function whenIdle(task: () => void, timeout = 4000): () => void {
+  if (typeof window === 'undefined') return () => undefined;
+  const w = window as Window & { requestIdleCallback?: (fn: () => void, opts?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void };
+  if (w.requestIdleCallback) {
+    const id = w.requestIdleCallback(task, { timeout });
+    return () => w.cancelIdleCallback?.(id);
+  }
+  const id = window.setTimeout(task, 1200);
+  return () => window.clearTimeout(id);
+}
+
+/** The player has asked the browser to spend as little data as it can. */
+export function savingData(): boolean {
+  const c = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+  return c?.saveData === true;
+}

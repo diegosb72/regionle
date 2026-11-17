@@ -12,7 +12,7 @@ import { MODE_NAME } from '../lib/modes';
 import { useStore } from '../lib/store';
 import { Matcher, fmtTime, hintMax, letterHint, nf, pick, shortNote } from '../lib/text';
 import type { Res } from '../lib/types';
-import { GameShell, Hud, Results, originOf, useElapsed, type GameProps, type ResultRow } from './common';
+import { GameShell, Hud, Results, originOf, useElapsed, useFlashSignal, type GameProps, type ResultRow } from './common';
 
 export function NameAllGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const matcher = useMemo(() => new Matcher(deck.items), [deck]);
@@ -47,6 +47,7 @@ export function NameAllGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const [shake, setShake] = useState(0);
   const [clear, setClear] = useState(0);
   const [flash, setFlash] = useState<{ id: string; kind: 'bad' | 'ok'; n: number } | null>(null);
+  useFlashSignal(flash);
   const [record, setRecord] = useState<'new' | number | null>(null);
   const map = useRef<MapHandle>(null);
   const total = pool.length;

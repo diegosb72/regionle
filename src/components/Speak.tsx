@@ -55,7 +55,8 @@ export function SpeakButton({ text, className }: { text: string; className?: str
       type="button"
       className={cx('speak', busy && 'on', className)}
       aria-label={label}
-      title={L('Escuchar el nombre', 'Listen to the name')}
+      aria-pressed={busy}
+      title={busy ? L('Sonando…', 'Playing…') : L('Escuchar el nombre', 'Listen to the name')}
       onClick={(e) => {
         e.stopPropagation();
         setBusy(true);

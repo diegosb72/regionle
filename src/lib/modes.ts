@@ -20,6 +20,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { L } from './i18n';
+import { PATHS } from './routes';
 import type { Format } from './store';
 import type { Mode, Section } from './types';
 
@@ -34,8 +35,7 @@ export interface ModeDef {
 
 export const SECTION_IDS: readonly Section[] = ['regions', 'countries', 'cities', 'physical', 'pops'];
 
-/** Address of each section; the same in every language, so that links keep working. */
-export const PATHS: Record<Section, string> = { regions: 'regiones', countries: 'paises', cities: 'ciudades', physical: 'fisica', pops: 'poblaciones' };
+export { PATHS };
 
 function modesOf(section: Section): ModeDef[] {
   const explore: ModeDef = { id: 'explore', name: L('Explorar', 'Explore'), desc: L('Sin preguntas: recorre el mapa con nombres, datos y enlaces para estudiar.', 'No questions: browse the map with names, facts and links to study.'), icon: Compass, level: 1 };
