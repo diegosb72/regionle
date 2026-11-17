@@ -5,6 +5,7 @@
 import { buildDeck, countryAnswers, countryItem, eligible, loadIndex } from './data';
 import { PHYS_KINDS, buildCityDeck, buildPhysicalDeck, kindNoun, loadCapitals, loadCities, type PhysKind } from './extra';
 import { L, getLang, levelNoun, nm } from './i18n';
+import { spellingsOf, type Spellings } from './spellings';
 import { Matcher, codeOf, key, shortFormsOf, type Answerable } from './text';
 import { capKey, capitalAnswers, chipsOf, editOf, type Chip, type TypeinSettings } from './typeins';
 import type { Country, Item } from './types';
@@ -184,6 +185,17 @@ export interface ChipView extends Chip {
   clash?: string[];
   /** With `clash`: whether it is taken for this thing all the same (a spelling that two things share is taken for both). */
   taken?: boolean;
+  /**
+   * For a pattern: the spellings it takes for this thing on the map, which is what the settings show of
+   * it. Missing when they cannot be listed, and then the pattern is shown as it was written.
+   */
+  spelt?: Spellings;
+  /**
+   * For a pattern: the spellings it takes that are something else on the map, and so are not among those
+   * of `spelt` ("SHANXI" for Shaanxi, in China). When they are all it takes, they stay in `spelt` and
+   * `clash` says what they are.
+   */
+  lost?: string[];
 }
 
 /**
@@ -207,8 +219,23 @@ export function chipViews(group: TypeinGroup, settings: TypeinSettings): Map<str
     out.set(
       r.id,
       chips.get(r.id)!.map((c): ChipView => {
-        // What a pattern takes cannot be listed, and neither can what else it might be.
-        if (!c.on || c.pattern) return c;
+        if (c.pattern) {
+          const all = spellingsOf(c.text, [r.name, ...r.item.answers]);
+          if (!all) return c;
+          // A spelling that is the name of something else on the map is that thing, whatever the pattern
+          // takes: it is not shown as one of this thing's. The same with the pattern on or off.
+          const others = new Set<string>();
+          const lost = all.forms.filter((f) => {
+            const ids = f.includes('…') ? undefined : matcher.spoken(f);
+            if (!ids || ids.includes(r.item.id)) return false;
+            for (const id of ids) others.add(names.get(id) ?? id);
+            return true;
+          });
+          if (!lost.length) return { ...c, spelt: all };
+          if (lost.length < all.forms.length) return { ...c, spelt: { forms: all.forms.filter((f) => !lost.includes(f)), more: all.more }, lost };
+          return { ...c, spelt: all, lost, ...(c.on ? { clash: [...others], taken: false } : {}) };
+        }
+        if (!c.on) return c;
         const ids = matcher.lookup(c.text);
         if (ids.length === 1 && ids[0] === r.item.id) return c;
         const others = new Set<string>();

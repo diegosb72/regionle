@@ -5709,6 +5709,15 @@ a.icon-btn {
   padding: 1px 8px;
   font-size: 12px;
 }
+.ti-legend .ti-chip.ti-many {
+  padding: 0;
+}
+.ti-legend .ti-many-main {
+  padding: 1px 8px;
+}
+.ti-legend .ti-many-main svg {
+  margin-top: 2px;
+}
 /* A sample and what it means, never on two lines. */
 .ti-key {
   display: inline-flex;
@@ -5845,20 +5854,76 @@ a.icon-btn {
   background: var(--accent-soft);
   color: var(--accent-ink);
 }
-/* A pattern is read sign by sign: in a face that tells each one apart, and on as many lines as it takes. */
-.ti-chip.ti-pat {
+/* A pattern that cannot be spelt out is read sign by sign: in a face that tells each one apart, and on as many lines as it takes. */
+.ti-chip.ti-raw {
   border-radius: 12px;
   font: 500 12px/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   letter-spacing: 0;
   text-align: left;
 }
-.ti-chip.ti-pat span {
+.ti-chip.ti-raw span {
   min-width: 0;
 }
-.ti-chip.ti-pat svg {
+.ti-chip.ti-raw svg {
   flex: none;
 }
-button.ti-chip:hover {
+/* The spellings a pattern takes, in one piece: the piece is switched, and a second button shows them all. */
+.ti-chip.ti-many {
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  border-radius: 14px;
+  overflow: hidden;
+}
+.ti-many button {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+}
+.ti-many-main {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+  padding: 5px 10px;
+  line-height: 1.5;
+  text-align: left;
+}
+/* The tick stays by the first line, however many there are. */
+.ti-many-main svg {
+  flex: none;
+  margin-top: 3px;
+}
+.ti-many-main span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.ti-many .ti-many-more {
+  flex: none;
+  padding: 3px 9px 3px 8px;
+  border-left: 1px solid color-mix(in srgb, currentColor 28%, transparent);
+  font-weight: 750;
+  white-space: nowrap;
+}
+/* With all of them in sight they take the whole width, and the way back goes under them. */
+.ti-chip.ti-many.ti-open {
+  flex-direction: column;
+}
+.ti-many.ti-open .ti-many-more {
+  padding: 6px 10px;
+  border-left: 0;
+  border-top: 1px solid color-mix(in srgb, currentColor 28%, transparent);
+}
+.ti-many button:hover {
+  background: color-mix(in srgb, currentColor 9%, transparent);
+}
+.ti-many button:focus-visible {
+  outline-offset: -2px;
+}
+button.ti-chip:hover,
+.ti-chip.ti-many:hover {
   border-color: var(--ink-3);
 }
 .ti-add {
@@ -5995,6 +6060,18 @@ button.ti-chip:hover {
   .ti-chip {
     min-height: 36px;
     padding: 4px 12px;
+  }
+  .ti-chip.ti-many {
+    padding: 0;
+  }
+  .ti-many-main {
+    padding: 7px 12px;
+  }
+  .ti-many .ti-many-more {
+    padding: 4px 12px 4px 11px;
+  }
+  .ti-many.ti-open .ti-many-more {
+    padding: 9px 12px;
   }
   .ti-add {
     min-height: 36px;

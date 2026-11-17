@@ -191,7 +191,7 @@ export interface Chip {
   on: boolean;
   /** Whether it counts when the player has said nothing about it. */
   usual: boolean;
-  /** A pattern rather than a spelling: what it takes cannot be listed. */
+  /** A pattern rather than a spelling: `text` is for the game to read, and the settings show what it takes (`spellingsOf`). */
   pattern?: boolean;
 }
 
