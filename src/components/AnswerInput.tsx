@@ -107,7 +107,8 @@ export function AnswerInput({ placeholder, onSubmit, onType, suggest, disabled, 
         aria-controls={suggest ? listId : undefined}
         aria-autocomplete={suggest ? 'list' : undefined}
         onChange={(e) => {
-          const v = e.target.value;
+          // No answer begins with a dot or a space: the last one of "N.H." comes after "N.H" has been taken.
+          const v = e.target.value.replace(/^[\s.]+/, '');
           if (onType?.(v)) {
             setText('');
             setOpen(false);

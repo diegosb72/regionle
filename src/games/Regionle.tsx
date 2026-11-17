@@ -13,7 +13,7 @@ import { distanceKm, silhouette, spanKm } from '../lib/geo';
 import { L, nm } from '../lib/i18n';
 import { MODE_NAME } from '../lib/modes';
 import { useStore } from '../lib/store';
-import { Matcher, cx, mulberry32, nf, shuffle } from '../lib/text';
+import { Matcher, cx, mulberry32, nf, shortNote, shuffle } from '../lib/text';
 import type { Res } from '../lib/types';
 import { GameShell, Hud, Results, Verdict, originOf, showsCountry, useElapsed, type GameProps, type ResultRow } from './common';
 
@@ -79,7 +79,7 @@ export function RegionleGame({ deck, cfg, onExit, onAgain }: GameProps) {
     const g = id ? deck.byId.get(id) : undefined;
     if (!g) {
       setShake((n) => n + 1);
-      setNote(L('No coincide con nada de este mapa.', 'It matches nothing on this map.'));
+      setNote(matcher.vague(text) ? shortNote('vague', text) : L('No coincide con nada de este mapa.', 'It matches nothing on this map.'));
       return;
     }
     if (guesses.includes(g.id)) {

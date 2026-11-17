@@ -9,11 +9,11 @@ import { AnswerInput, type Suggestion } from '../components/AnswerInput';
 import { MapView, type MapHandle, type Paint } from '../components/MapView';
 import { Flag } from '../components/ui';
 import { seedOf } from '../lib/challenge';
-import { loadIndex } from '../lib/data';
+import { countryAnswers, loadIndex } from '../lib/data';
 import { L, nm } from '../lib/i18n';
 import { MODE_NAME } from '../lib/modes';
 import { useStore } from '../lib/store';
-import { Matcher, hintMax, letterHint, mulberry32, shuffle } from '../lib/text';
+import { Matcher, hintMax, letterHint, mulberry32, shortNote, shuffle } from '../lib/text';
 import type { Item, Res } from '../lib/types';
 import { GameShell, Hud, Results, Verdict, originOf, showsCountry, useElapsed, type GameProps, type ResultRow } from './common';
 
@@ -66,7 +66,7 @@ export function NeighboursGame({ deck, cfg, onExit, onAgain }: GameProps) {
       ({ index }) => {
         if (!alive) return;
         const others = index.countries.filter((c) => c.cl !== 'other' && !deck.byId.has(c.id));
-        setOutside({ matcher: new Matcher(others.map((c) => ({ id: c.id, answers: [c.n.es, c.n.en ?? '', ...(c.al ?? [])] }))), names: new Map(others.map((c) => [c.id, nm(c.n)])) });
+        setOutside({ matcher: new Matcher(others.map(countryAnswers)), names: new Map(others.map((c) => [c.id, nm(c.n)])) });
       },
       () => undefined,
     );
@@ -136,9 +136,13 @@ export function NeighboursGame({ deck, cfg, onExit, onAgain }: GameProps) {
     if (!item || done) return;
     const ids = matcher.find(text);
     const hit = ids.find((id) => item.nb.includes(id) && !found.includes(id));
-    if (hit) return accept(hit);
+    // The hint spells a neighbour out letter by letter, and its initials with it: that one is written in full.
+    const spelt = !!hit && hint?.id === hit && matcher.abbreviates(text);
+    if (hit && !spelt) return accept(hit);
     setShake((n) => n + 1);
+    if (spelt) return setNote(shortNote('short', text));
     if (!ids.length) {
+      if (matcher.vague(text)) return setNote(shortNote('vague', text));
       const far = outside?.matcher.find(text)[0];
       setNote(
         far

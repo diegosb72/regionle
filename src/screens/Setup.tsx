@@ -12,6 +12,8 @@ import { MODES, SECTIONS, formatName } from '../lib/modes';
 import { go } from '../lib/router';
 import { useStore, type CustomList, type Length, type Opts } from '../lib/store';
 import { cx, nf, plural } from '../lib/text';
+import { SAMPLES, settingsLink } from '../lib/typeinList';
+import { SHIPPED_AUTO, editOf } from '../lib/typeins';
 import type { Country, Mode, Section } from '../lib/types';
 
 const levelName = (n: number): string => [L('Fácil', 'Easy'), L('Medio', 'Medium'), L('Difícil', 'Hard')][n - 1];
@@ -201,6 +203,7 @@ function ListCard({ list, others, world, onEdit, onLeave, onRemove, onUse }: { l
 
 export function Setup({ section, world }: { section: Section; world: World }) {
   const selected = useStore((s) => s.sel[section]);
+  const typeinAuto = useStore((s) => s.typeinAuto) ?? SHIPPED_AUTO;
   const setSel = useStore((s) => s.setSel);
   const levels = useStore((s) => s.levels);
   const setLevel = useStore((s) => s.setLevel);
@@ -311,6 +314,27 @@ export function Setup({ section, world }: { section: Section; world: World }) {
             : null;
 
   const typed = ANSWER_MODES.includes(def.id) && opts.answer === 'type';
+  /** Initials that are taken where they are promised, and the same in both languages. */
+  const sample: keyof typeof SAMPLES = def.id === 'capital' ? (section === 'countries' ? 'countryCapitals' : 'regionCapitals') : section === 'countries' ? 'countries' : section === 'cities' ? 'cities' : 'regions';
+  const sampleText = {
+    regions: L('NY por Nueva York', 'NY for New York'),
+    regionCapitals: L('SLC por Salt Lake City', 'SLC for Salt Lake City'),
+    countries: L('NZ por Nueva Zelanda', 'NZ for New Zealand'),
+    countryCapitals: L('BA por Buenos Aires', 'BA for Buenos Aires'),
+    cities: L('NY por Nueva York', 'NY for New York'),
+  }[sample];
+  /** Initials are promised while the settings give them, and the example is given while it has not been switched off there. */
+  const initials = section !== 'physical' && typeinAuto;
+  const initialsSample = editOf(SAMPLES[sample].id)?.off?.includes(SAMPLES[sample].key) ? '' : `: ${sampleText}`;
+  /** The list of the settings that holds what this game asks to type. */
+  const typeinsHref =
+    section === 'physical'
+      ? settingsLink('physical')
+      : def.id === 'capital'
+        ? settingsLink('capitals', section === 'regions' ? selected[0] : '')
+        : section === 'regions' || section === 'cities'
+          ? settingsLink(section, selected[0])
+          : settingsLink('countries');
   /** Against the clock or with lives: the game has no fixed number of questions. */
   const paced = FORMAT_MODES.includes(def.id) && opts.format !== 'normal';
   const finite = FINITE_MODES.includes(def.id);
@@ -544,6 +568,17 @@ export function Setup({ section, world }: { section: Section; world: World }) {
                       { value: 'type', label: L('Escribir', 'Type it'), title: L('Más difícil: recordar', 'Harder: recall') },
                     ]}
                   />
+                  {typed && (
+                    <p className="opt-hint">
+                      {initials
+                        ? L(
+                            `No importan tildes ni mayúsculas, y un nombre de varias palabras vale por sus siglas${initialsSample}.`,
+                            `Accents and capitals do not matter, and a name of several words can be typed by its initials${initialsSample}.`,
+                          )
+                        : L('No importan tildes ni mayúsculas.', 'Accents and capitals do not matter.')}{' '}
+                      <a href={typeinsHref}>{L('Elegir abreviaturas', 'Choose short forms')}</a>
+                    </p>
+                  )}
                 </div>
               )}
               {show.length && (

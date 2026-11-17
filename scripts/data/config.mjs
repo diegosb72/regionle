@@ -216,7 +216,7 @@ export const COUNTRY_NAME = {
 /** Extra accepted spellings when typing a country (on top of es/en/long names). */
 export const COUNTRY_ALIASES = {
   US: ['EEUU', 'EE UU', 'USA', 'US', 'Estados Unidos de América', 'United States of America', 'América'],
-  GB: ['Gran Bretaña', 'UK', 'Great Britain', 'Reino Unido de Gran Bretaña e Irlanda del Norte'],
+  GB: ['Gran Bretaña', 'UK', 'GB', 'Great Britain', 'Reino Unido de Gran Bretaña e Irlanda del Norte'],
   NL: ['Holanda', 'Holland', 'The Netherlands'],
   CZ: ['República Checa', 'Czech Republic'],
   SZ: ['Suazilandia', 'Swazilandia', 'Swaziland', 'eSwatini'],
@@ -557,6 +557,9 @@ export const UNIT_NAME = {
   'SY-QU': { es: 'Quneitra', en: 'Quneitra', lo: 'Al-Qunayṭirah', al: ['Kuneitra', 'Al Qunaytirah'] },
   'CA-QC': { es: 'Quebec', en: 'Quebec', lo: 'Québec' },
   'AU-ACT': { es: 'Territorio de la Capital Australiana', al: ['ACT', 'Canberra'] },
+  // Abbreviations in common use that the initials of the name do not spell (those are accepted by rule).
+  'CA-NT': { al: ['NWT'] },
+  'ZA-NL': { al: ['KZN'] },
   'CN-XZ': { es: 'Tíbet', en: 'Tibet', lo: 'Xizang', al: ['Xizang'] },
   'CN-NM': { es: 'Mongolia Interior', en: 'Inner Mongolia', lo: 'Nei Mongol', al: ['Nei Mongol', 'Inner Mongol'] },
   'CN-XJ': { es: 'Xinjiang', en: 'Xinjiang', al: ['Sinkiang'] },

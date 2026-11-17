@@ -5578,3 +5578,424 @@ body:has(.startbar) .toast {
   stroke: var(--ink);
   stroke-dasharray: 2 2;
 }
+
+/* ---------------------------------------------------------------- settings */
+
+a.icon-btn {
+  text-decoration: none;
+}
+.icon-btn.on {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.ti {
+  padding-bottom: 24px;
+}
+/* One column: the rule, the list and, after it, what the player has changed. */
+.ti-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.ti-card {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--card);
+}
+.ti-card h2 {
+  font-size: 20px;
+}
+.ti-fine {
+  color: var(--ink-3);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.ti-main {
+  min-width: 0;
+  scroll-margin-top: calc(var(--top-h) + 12px);
+}
+.ti-yours {
+  scroll-margin-top: calc(var(--top-h) + 12px);
+}
+/* The way down to it, past a list that can be long. */
+.ti-skip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  justify-self: start;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--brand);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+/* With room for two columns the list is on the left and the rest beside it. */
+@media (min-width: 1000px) {
+  .ti-layout {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    grid-template-rows: auto 1fr;
+    gap: 16px 40px;
+  }
+  .ti-main {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+  .ti-rule {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  /* What has been changed stays in sight while the list goes by. */
+  .ti-yours {
+    grid-column: 2;
+    grid-row: 2;
+    position: sticky;
+    top: calc(var(--top-h) + 16px);
+    max-height: calc(100vh - var(--top-h) - 32px);
+    max-height: calc(100dvh - var(--top-h) - 32px);
+    overflow-y: auto;
+  }
+  .ti-skip {
+    display: none;
+  }
+}
+
+.ti-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  justify-items: start;
+}
+.ti-find {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  width: 100%;
+}
+.ti-find .search {
+  flex: 1 1 240px;
+}
+.ti-find .select {
+  min-width: 0;
+  max-width: 100%;
+}
+/* The longest names of country are cut short rather than pushing the page wide. */
+.ti-find .select select {
+  flex: 0 1 auto;
+  min-width: 0;
+  min-height: 42px;
+  max-width: 320px;
+}
+.ti-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 7px;
+  margin-top: 14px;
+}
+.ti-legend .ti-chip {
+  min-height: 24px;
+  padding: 1px 8px;
+  font-size: 12px;
+}
+/* A sample and what it means, never on two lines. */
+.ti-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 8px;
+  white-space: nowrap;
+}
+.ti-legend-how {
+  flex-basis: 100%;
+}
+.ti-loading {
+  display: grid;
+  place-items: center;
+  min-height: 40vh;
+}
+
+.ti-group {
+  margin-top: 24px;
+}
+.ti-group h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--ink);
+  font-size: 21px;
+}
+.ti-group h3 small {
+  font: 400 13px/1.3 var(--sans);
+  letter-spacing: 0;
+  color: var(--ink-3);
+}
+.ti-row {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 6px 20px;
+  padding: 10px 0 10px 10px;
+  border-bottom: 1px solid var(--line);
+  border-left: 3px solid transparent;
+}
+/* One the player has had a say on. */
+.ti-row.ti-changed {
+  border-left-color: var(--accent);
+}
+.ti-what {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  align-content: start;
+  gap: 2px 8px;
+  min-width: 0;
+  padding-top: 4px;
+}
+.ti-name {
+  font-weight: 600;
+  font-size: 15.5px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.ti-id,
+.ti-jump code {
+  font: 500 12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--bg-2);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.ti-note {
+  color: var(--ink-3);
+  font-size: 13px;
+}
+.ti-also {
+  flex-basis: 100%;
+  color: var(--ink-3);
+  font-size: 13px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.ti-side {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  min-width: 0;
+}
+.ti-forms {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.ti-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  max-width: 100%;
+  padding: 3px 10px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  font: 650 13px/1.2 var(--sans);
+  letter-spacing: 0.03em;
+  overflow-wrap: anywhere;
+}
+.ti-chip.on {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  color: var(--ink);
+}
+.ti-chip.on svg {
+  color: var(--brand);
+}
+.ti-chip.off {
+  border-style: dashed;
+  color: var(--ink-3);
+}
+.ti-chip.off span {
+  text-decoration: line-through;
+}
+.ti-chip.clash {
+  border-color: var(--warn);
+  background: var(--warn-soft);
+  color: var(--warn-ink);
+}
+.ti-chip.clash svg {
+  color: var(--warn-ink);
+}
+.ti-chip.ti-own {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+button.ti-chip:hover {
+  border-color: var(--ink-3);
+}
+.ti-add {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 3px 0 10px;
+  border: 1px dashed var(--line-2);
+  border-radius: 999px;
+}
+.ti-add:focus-within {
+  border-style: solid;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 22%, transparent);
+}
+.ti-add input {
+  width: 84px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 13.5px;
+}
+.ti-add input::placeholder {
+  color: var(--ink-3);
+}
+.ti-add button {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--brand);
+  color: var(--on-brand);
+}
+.ti-add button:disabled {
+  background: transparent;
+  color: var(--ink-3);
+}
+.ti-reset {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-3);
+}
+.ti-reset:hover {
+  background: var(--bg-2);
+  color: var(--ink);
+}
+.ti-msg {
+  color: var(--warn-ink);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.ti-msg-bad {
+  color: var(--bad-ink);
+}
+.ti-more {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.ti-changes {
+  display: grid;
+  gap: 2px;
+  max-height: 232px;
+  overflow-y: auto;
+}
+.ti-changes li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+}
+.ti-jump {
+  flex: none;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+}
+.ti-jump:hover code {
+  background: var(--brand-soft);
+  color: var(--ink);
+}
+.ti-diff {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 0 8px;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.ti-plus {
+  color: var(--accent-ink);
+}
+.ti-minus {
+  color: var(--ink-3);
+}
+
+@media (max-width: 720px) {
+  .ti-row {
+    grid-template-columns: minmax(0, 1fr);
+    padding-left: 8px;
+  }
+}
+/* The five lists in one line on a phone, as long as they fit: they share its width. */
+@media (max-width: 520px) {
+  .ti-bar > .seg:first-child {
+    display: flex;
+    width: 100%;
+  }
+  .ti-bar > .seg:first-child .seg-btn {
+    flex: 1 1 auto;
+    padding-inline: 4px;
+    font-size: 13.5px;
+  }
+}
+/* Fingers need more room, and a field with small type makes a phone zoom in. */
+@media (hover: none) {
+  .ti-chip {
+    min-height: 36px;
+    padding: 4px 12px;
+  }
+  .ti-add {
+    min-height: 36px;
+  }
+  .ti-add input {
+    width: 96px;
+    font-size: 16px;
+  }
+  .ti-add button {
+    width: 30px;
+    height: 30px;
+  }
+  .ti-reset {
+    width: 36px;
+    height: 36px;
+  }
+}

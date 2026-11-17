@@ -1,0 +1,9 @@
+{
+  "app": "regionle",
+  "kind": "typeins",
+  "version": 1,
+  "auto": true,
+  "edits": {
+    "US-RI": { "off": ["ri"] }
+  }
+}

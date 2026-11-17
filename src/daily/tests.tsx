@@ -5,10 +5,10 @@ import { AnswerInput, type Suggestion } from '../components/AnswerInput';
 import { MapView, type MapHandle, type Paint } from '../components/MapView';
 import { Flag } from '../components/ui';
 import { GameShell, Verdict } from '../games/common';
-import { countryItem } from '../lib/data';
+import { countryAnswers, countryItem } from '../lib/data';
 import { distanceKm } from '../lib/geo';
 import { L, capName, nm } from '../lib/i18n';
-import { Matcher, cx, fmtArea, fmtPop, nf } from '../lib/text';
+import { Matcher, cx, fmtArea, fmtPop, nf, shortNote } from '../lib/text';
 import type { Country, Deck, Res } from '../lib/types';
 import { GUESSES, TESTS, bearing, compass, ladder, spanOf, type QuickQuestion } from './spec';
 
@@ -111,7 +111,7 @@ export function RegionleTest({ deck, target, shape, step, onScore, onDone }: Tes
     const g = id ? deck.byId.get(id) : undefined;
     if (!g) {
       setShake((n) => n + 1);
-      setNote(L(`No coincide con ${fem ? 'ninguna' : 'ningún'} ${deck.noun.one} de ${nm(country.n)}.`, `That matches nothing in ${nm(country.n)}.`));
+      setNote(matcher.vague(text) ? shortNote('vague', text) : L(`No coincide con ${fem ? 'ninguna' : 'ningún'} ${deck.noun.one} de ${nm(country.n)}.`, `That matches nothing in ${nm(country.n)}.`));
       return;
     }
     if (guesses.includes(g.id)) {
@@ -416,7 +416,7 @@ export function PinFive({ deck, targets, step, onScore, onDone }: TestProps & { 
 
 export function WhichTest({ target, countries, continent, step, onScore, onDone }: TestProps & { target: Country; countries: Country[]; continent: string }) {
   const list = useMemo(() => countries.filter((c) => (c.pop ?? 0) > 0), [countries]);
-  const matcher = useMemo(() => new Matcher(list.map((c) => ({ id: c.id, answers: [c.n.es, c.n.en ?? '', ...(c.al ?? [])] }))), [list]);
+  const matcher = useMemo(() => new Matcher(list.map(countryAnswers)), [list]);
   const byId = useMemo(() => new Map(list.map((c) => [c.id, c])), [list]);
   const [guesses, setGuesses] = useState<Country[]>([]);
   const [state, setState] = useState<'play' | 'won' | 'lost'>('play');
@@ -432,7 +432,7 @@ export function WhichTest({ target, countries, continent, step, onScore, onDone 
     const g = id ? byId.get(id) : undefined;
     if (!g) {
       setShake((n) => n + 1);
-      setNote(L('No reconozco ese país.', 'I do not know that country.'));
+      setNote(matcher.vague(text) ? shortNote('vague', text) : L('No reconozco ese país.', 'I do not know that country.'));
       return;
     }
     if (guesses.some((x) => x.id === g.id)) {

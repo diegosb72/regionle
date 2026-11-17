@@ -12,7 +12,7 @@ import { Flag } from '../components/ui';
 import { L, nm } from '../lib/i18n';
 import { MODE_NAME } from '../lib/modes';
 import { useStore } from '../lib/store';
-import { Matcher, cx, hintMax, letterHint, nf, sample, shuffle } from '../lib/text';
+import { Matcher, cx, hintMax, letterHint, nf, sample, shortNote, shuffle } from '../lib/text';
 import type { Item, Res } from '../lib/types';
 import { GameShell, Hud, ItemFacts, Verdict, nearest, originOf, showsCountry, useElapsed, type GameProps } from './common';
 import { isIntroduced, lessonQueue, pickLesson, type Q } from './lesson';
@@ -200,8 +200,14 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
 
   const onSubmit = (text: string) => {
     if (!item || verdict) return;
-    const v = matcher.check(text, item.id);
+    // Letters of the answer in sight would spell its abbreviation out: the name has to be written.
+    const v = matcher.check(text, item.id, { whole: letters > 0 });
     if (v.res === 'yes') return right();
+    if (v.res === 'short' || v.res === 'vague') {
+      setShake((n) => n + 1);
+      setNote(shortNote(v.res, text));
+      return;
+    }
     wrong(v.res === 'other' ? L(`No es ${deck.byId.get(v.id)!.name}. Te queda un intento.`, `It is not ${deck.byId.get(v.id)!.name}. One try left.`) : L('No es correcto. Te queda un intento.', 'That is not right. One try left.'));
   };
 

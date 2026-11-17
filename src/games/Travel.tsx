@@ -9,7 +9,7 @@ import { bfs, cheapestPath, pickRoute, shortestPath, type Route } from '../lib/g
 import { L, fmtDay } from '../lib/i18n';
 import { MODE_NAME } from '../lib/modes';
 import { useStore } from '../lib/store';
-import { Matcher, cx, hashStr, mulberry32, pick, plural } from '../lib/text';
+import { Matcher, cx, hashStr, mulberry32, pick, plural, shortNote } from '../lib/text';
 import type { Item } from '../lib/types';
 import { GameShell, Hud, useElapsed, type GameProps } from './common';
 
@@ -106,7 +106,7 @@ export function TravelGame({ deck, cfg, onExit, embed }: GameProps & { embed?: T
     const ids = matcher.find(text);
     if (!ids.length) {
       setShake((n) => n + 1);
-      setNote(L('No coincide con nada de este mapa.', 'It matches nothing on this map.'));
+      setNote(matcher.vague(text) ? shortNote('vague', text) : L('No coincide con nada de este mapa.', 'It matches nothing on this map.'));
       return;
     }
     const fresh = ids.filter((id) => id !== route.from && id !== route.to && !guessed.has(id));

@@ -3,11 +3,11 @@ import { ArrowDown, ArrowRight, ArrowUp, Check, Flag as FlagIcon, Lightbulb, X }
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AnswerInput, type Suggestion } from '../components/AnswerInput';
 import { Flag, Seg } from '../components/ui';
-import { countryItem } from '../lib/data';
+import { countryAnswers, countryItem } from '../lib/data';
 import { L, getLang, nm } from '../lib/i18n';
 import { MODE_NAME } from '../lib/modes';
 import { useStore, type GameConfig } from '../lib/store';
-import { Matcher, cx, fmtArea, fmtPop, fmtShort, judgeAmount, nf, parseNumber, pick, sample, shuffle } from '../lib/text';
+import { Matcher, cx, fmtArea, fmtPop, fmtShort, judgeAmount, nf, parseNumber, pick, sample, shortNote, shuffle } from '../lib/text';
 import type { Country, Res } from '../lib/types';
 import { GameShell, Hud, Results, Verdict, useElapsed, type ResultRow } from './common';
 
@@ -544,7 +544,7 @@ const MAX_GUESSES = 6;
 function Which({ countries, cfg, onExit }: PopProps) {
   const m = metricOf(cfg.opts.metric);
   const total = questionsOf(cfg.opts.length, countries.length);
-  const matcher = useMemo(() => new Matcher(countries.map((c) => ({ id: c.id, answers: [c.n.es, c.n.en ?? '', ...(c.al ?? [])] }))), [countries]);
+  const matcher = useMemo(() => new Matcher(countries.map(countryAnswers)), [countries]);
   const byId = useMemo(() => new Map(countries.map((c) => [c.id, c])), [countries]);
   const [queue, setQueue] = useState(() => shuffle(countries));
   const [at, setAt] = useState(0);
@@ -572,7 +572,7 @@ function Which({ countries, cfg, onExit }: PopProps) {
     const g = id ? byId.get(id) : undefined;
     if (!g) {
       setShake((n) => n + 1);
-      setNote(L('Ese país no está en tu selección.', 'That country is not in your selection.'));
+      setNote(matcher.vague(text) ? shortNote('vague', text) : L('Ese país no está en tu selección.', 'That country is not in your selection.'));
       return;
     }
     if (guesses.some((x) => x.id === g.id)) {
