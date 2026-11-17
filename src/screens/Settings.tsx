@@ -5,9 +5,9 @@ import { Seg, Spinner, Toggle } from '../components/ui';
 import type { World } from '../lib/data';
 import { L, nm } from '../lib/i18n';
 import { useStore } from '../lib/store';
-import { cx, key } from '../lib/text';
+import { cx, key, looksLikePattern } from '../lib/text';
 import { SCOPED, TAB_PATH, TYPEIN_TABS, chipViews, locateTypein, settingsLink, typeinGroups, typeinScopes, type ChipView, type TypeinGroup, type TypeinRow, type TypeinTab } from '../lib/typeinList';
-import { MAX_LENGTH, SHIPPED_AUTO, addForm, readTypeinFile, resetForms, switchForm, typeinFile, type AddError, type TypeinSettings } from '../lib/typeins';
+import { MAX_PATTERN, SHIPPED_AUTO, addForm, readTypeinFile, resetForms, switchForm, typeinFile, type AddError, type TypeinSettings } from '../lib/typeins';
 import type { Country } from '../lib/types';
 
 const TAB_BY_PATH = Object.fromEntries(TYPEIN_TABS.map((t) => [TAB_PATH[t], t])) as Record<string, TypeinTab | undefined>;
@@ -31,6 +31,7 @@ function addErrorText(why: AddError): string {
   if (why === 'name') return L('Ya vale: es uno de sus nombres.', 'It counts already: it is one of its names.');
   if (why === 'have') return L('Esa ya la tiene.', 'It has that one already.');
   if (why === 'full') return L('Tiene demasiadas: quita alguna antes.', 'It has too many: remove one first.');
+  if (why === 'pattern') return L('Ese patrón no se puede leer: revisa sus paréntesis y corchetes.', 'That pattern cannot be read: check its brackets.');
   return L('Escribe letras o números.', 'Type letters or digits.');
 }
 
@@ -85,15 +86,15 @@ const Row = memo(
           <div className="ti-forms">
             {chips.map((chip) =>
               chip.from === 'own' ? (
-                <button key={chip.key} type="button" className="ti-chip ti-own" onClick={() => flip(chip)} title={L('Añadida por ti. Toca para quitarla.', 'Added by you. Tap to remove it.')} aria-label={L(`Quitar ${chip.text} de ${row.name}`, `Remove ${chip.text} from ${row.name}`)}>
-                  {chip.text}
+                <button key={chip.key} type="button" className={cx('ti-chip ti-own', chip.pattern && 'ti-pat')} onClick={() => flip(chip)} title={L('Añadida por ti. Toca para quitarla.', 'Added by you. Tap to remove it.')} aria-label={L(`Quitar ${chip.text} de ${row.name}`, `Remove ${chip.text} from ${row.name}`)}>
+                  <span>{chip.text}</span>
                   <X size={13} aria-hidden="true" />
                 </button>
               ) : (
                 <button
                   key={chip.key}
                   type="button"
-                  className={cx('ti-chip', chip.on ? 'on' : 'off', chip.on && chip.clash && 'clash')}
+                  className={cx('ti-chip', chip.on ? 'on' : 'off', chip.on && chip.clash && 'clash', chip.pattern && 'ti-pat')}
                   aria-pressed={chip.on}
                   onClick={() => flip(chip)}
                   title={chip.on ? L('Vale. Toca para apagarla.', 'It counts. Tap to switch it off.') : L('No vale. Toca para encenderla.', 'It does not count. Tap to switch it on.')}
@@ -112,7 +113,7 @@ const Row = memo(
                   setWhy(null);
                 }}
                 placeholder={L('Añadir…', 'Add…')}
-                maxLength={MAX_LENGTH}
+                maxLength={MAX_PATTERN + 2}
                 autoCapitalize="characters"
                 autoComplete="off"
                 autoCorrect="off"
@@ -312,8 +313,8 @@ export function Settings({ world, path }: { world: World; path: string }) {
         <h1>{L('Qué vale al escribir', 'What you can type')}</h1>
         <p className="lead">
           {L(
-            'Todas las piezas del juego, cada una con su id y con las abreviaturas por las que responde además de por su nombre. Apaga las que no quieras y añade las tuyas: valen en todos los modos en los que se escribe.',
-            'Every piece of the game, each with its id and the short forms it answers to besides its name. Switch off the ones you do not want and add your own: they count wherever answers are typed.',
+            'Todas las piezas del juego, cada una con su id y con las abreviaturas y variantes por las que responde además de por su nombre. Apaga las que no quieras y añade las tuyas: valen en todos los modos en los que se escribe.',
+            'Every piece of the game, each with its id and the short forms and variants it answers to besides its name. Switch off the ones you do not want and add your own: they count wherever answers are typed.',
           )}
         </p>
       </header>
@@ -325,8 +326,8 @@ export function Settings({ world, path }: { world: World; path: string }) {
             checked={auto}
             onChange={(v) => setTypeinAuto(v === SHIPPED_AUTO ? null : v)}
             hint={L(
-              'Un nombre de varias palabras vale por sus iniciales: NH por Nuevo Hampshire, NZ por Nueva Zelanda. Apagado, de esas solo valen las que enciendas tú; EEUU, UK o CDMX no dependen de esto y se apagan una a una.',
-              'A name of several words can be typed by its initials: NH for New Hampshire, NZ for New Zealand. Switched off, only the ones you switch on yourself count; USA, UK or CDMX do not depend on this and are switched off one by one.',
+              'Un nombre de varias palabras vale por sus iniciales: NZ por Nueva Zelanda, BA por Buenos Aires. Las regiones que traen lista propia no las tienen: en ellas vale lo que se ve encendido. Apagado, de las siglas solo valen las que enciendas tú; EEUU, UK o CDMX no dependen de esto y se apagan una a una.',
+              'A name of several words can be typed by its initials: NZ for New Zealand, BA for Buenos Aires. Regions that come with a list of their own have none: what shows switched on is what counts there. Switched off, only the initials you switch on yourself count; USA, UK or CDMX do not depend on this and are switched off one by one.',
             )}
           >
             {L('Siglas automáticas', 'Automatic initials')}
@@ -395,7 +396,19 @@ export function Settings({ world, path }: { world: World; path: string }) {
               </span>
               {L('añadida por ti', 'added by you')}
             </span>
-            <span className="ti-legend-how">{L('Toca una para cambiarla; escribe y pulsa Intro para añadir.', 'Tap one to change it; type and press Enter to add.')}</span>
+            <span className="ti-key">
+              <span className="ti-chip on ti-pat" aria-hidden="true">
+                <Check size={13} />
+                <span>r:^GALI[CZ]I?A</span>
+              </span>
+              {L('patrón', 'pattern')}
+            </span>
+            <span className="ti-legend-how">
+              {L(
+                'Toca una para cambiarla; escribe y pulsa Intro para añadir. Un patrón empieza por r: (una expresión regular) o por c: (letras que basta con que aparezcan) y se prueba sobre lo escrito sin espacios ni tildes, como en JetPunk.',
+                'Tap one to change it; type and press Enter to add. A pattern begins with r: (a regular expression) or c: (letters that only have to appear) and is tried on what is typed without spaces or accents, as in JetPunk.',
+              )}
+            </span>
           </p>
 
           {error ? (
@@ -479,7 +492,7 @@ export function Settings({ world, path }: { world: World; path: string }) {
                       ))}
                       {(edits[id].off ?? []).map((k) => (
                         <s key={`-${k}`} className="ti-minus">
-                          {k.toUpperCase()}
+                          {looksLikePattern(k) ? k : k.toUpperCase()}
                         </s>
                       ))}
                     </span>

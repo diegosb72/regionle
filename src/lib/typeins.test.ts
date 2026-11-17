@@ -2,7 +2,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { buildDeck, countryAnswers, loadIndex, setLoader } from './data';
 import { buildCityDeck, buildPhysicalDeck } from './extra';
 import { setLang } from './i18n';
@@ -27,6 +27,10 @@ import {
   typeinFile,
   type Typeins,
 } from './typeins';
+
+// The game as it shipped before it came with a list for its regions: nothing but RI switched off. These
+// tests are about the rule and about the settings; what the list does is told in shippedList.test.ts.
+vi.mock('./typeins.default.json', () => ({ default: { app: 'regionle', kind: 'typeins', version: 1, auto: true, edits: { 'US-RI': { off: ['ri'] } } } }));
 
 /** Something with these names, the first of them the one on show, and what the settings say of it. */
 const named = (id: string, short: ShortEdit | undefined, ...names: string[]): Answerable => ({ id, answers: names, proper: names, short });

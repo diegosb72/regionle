@@ -5,10 +5,13 @@
  *
  * A thing goes by its id ("US-NH", "ES", "cj64n2v", "r:volga"); the name of its capital, by `capKey` of it.
  */
-import { key, shortFormsOf, type Answerable, type ShortEdit } from './text';
+import { MAX_PATTERN, key, looksLikePattern, patternOf, shortFormsOf, type Answerable, type ShortEdit } from './text';
 import shipped from './typeins.default.json';
 
-/** The choices for each thing that has any, by id. Only `add` and `off` are kept. */
+/**
+ * The choices for each thing that has any, by id: what is added, what is taken away, and `rule: false`
+ * where the initials of its names are not to be taken unasked.
+ */
 export type Typeins = Record<string, ShortEdit>;
 
 /** The settings: the choices, and whether names of several words get their initials unasked. */
@@ -32,9 +35,23 @@ export const MAX_LENGTH = 40;
 
 const isObject = (x: unknown): x is Record<string, unknown> => !!x && typeof x === 'object' && !Array.isArray(x);
 
-/** A short form as it is kept: one line, single spaces, no longer than it may be. */
+export { MAX_PATTERN };
+
+/**
+ * A short form as it is kept: one line, single spaces, no longer than it may be. A pattern is kept as
+ * `patternOf` writes it; one that cannot be read comes back as it was typed, for whoever asks to say so.
+ */
 export function tidyForm(text: string): string {
+  if (looksLikePattern(text)) return patternOf(text) ?? text.replace(/\s+/g, '').slice(0, MAX_PATTERN + 2);
   return text.replace(/\s+/g, ' ').trim().slice(0, MAX_LENGTH).trim();
+}
+
+/**
+ * What tells one short form from another: its letters, whatever their case and the dots between them, or
+ * the whole of its text when it is a pattern. Empty for what is neither.
+ */
+export function formKey(text: string): string {
+  return looksLikePattern(text) ? (patternOf(text) ?? '') : key(text);
 }
 
 function cleanList(x: unknown, keep: (s: string) => string): string[] {
@@ -44,7 +61,7 @@ function cleanList(x: unknown, keep: (s: string) => string): string[] {
   for (const raw of x) {
     if (typeof raw !== 'string') continue;
     const s = tidyForm(raw);
-    const k = key(s);
+    const k = formKey(s);
     if (!k || seen.has(k)) continue;
     seen.add(k);
     out.push(keep(s));
@@ -53,7 +70,7 @@ function cleanList(x: unknown, keep: (s: string) => string): string[] {
   return out;
 }
 
-const entry = (add: string[], off: string[]): ShortEdit => ({ ...(add.length ? { add } : {}), ...(off.length ? { off } : {}) });
+const entry = (add: string[], off: string[], rule = true): ShortEdit => ({ ...(add.length ? { add } : {}), ...(off.length ? { off } : {}), ...(rule ? {} : { rule: false }) });
 
 /** Choices read from a file or from what was saved, with anything that is not one left out. */
 export function cleanTypeins(x: unknown): Typeins {
@@ -63,8 +80,9 @@ export function cleanTypeins(x: unknown): Typeins {
     if (!id || id.length > 80 || !isObject(v)) continue;
     const add = cleanList(v.add, (s) => s);
     // Something cannot be both added and taken away: what is added stays.
-    const off = cleanList(v.off, key).filter((k) => !add.some((a) => key(a) === k));
-    if (add.length || off.length) out[id] = entry(add, off);
+    const off = cleanList(v.off, formKey).filter((k) => !add.some((a) => formKey(a) === k));
+    const rule = v.rule !== false;
+    if (add.length || off.length || !rule) out[id] = entry(add, off, rule);
   }
   return out;
 }
@@ -74,8 +92,8 @@ const SHIPPED_FILE: Record<string, unknown> = isObject(shipped) ? shipped : {};
 export const SHIPPED: Typeins = cleanTypeins(isObject(SHIPPED_FILE.edits) ? SHIPPED_FILE.edits : SHIPPED_FILE);
 export const SHIPPED_AUTO: boolean = typeof SHIPPED_FILE.auto === 'boolean' ? SHIPPED_FILE.auto : true;
 
-const has = (list: readonly string[] | undefined, k: string): boolean => !!list?.some((x) => key(x) === k);
-const without = (list: readonly string[] | undefined, k: string): string[] => (list ?? []).filter((x) => key(x) !== k);
+const has = (list: readonly string[] | undefined, k: string): boolean => !!list?.some((x) => formKey(x) === k);
+const without = (list: readonly string[] | undefined, k: string): string[] => (list ?? []).filter((x) => formKey(x) !== k);
 
 /**
  * The settings in a file: one exported from the settings screen, a backup of the progress (it carries
@@ -101,9 +119,10 @@ export function readTypeinFile(x: unknown): { edits: Typeins; auto?: boolean } |
   const edits: Typeins = {};
   for (const [id, e] of Object.entries(cleanTypeins(raw))) {
     const s = SHIPPED[id];
-    const add = (e.add ?? []).filter((a) => !has(s?.add, key(a)));
+    const add = (e.add ?? []).filter((a) => !has(s?.add, formKey(a)));
     const off = (e.off ?? []).filter((k) => !has(s?.off, k));
-    if (add.length || off.length) edits[id] = entry(add, off);
+    const rule = e.rule !== false || s?.rule === false;
+    if (add.length || off.length || !rule) edits[id] = entry(add, off, rule);
   }
   return { edits, ...(typeof auto === 'boolean' ? { auto } : {}) };
 }
@@ -133,11 +152,28 @@ export const capKey = (id: string): string => `cap:${id}`;
 export function editOf(id: string, settings: TypeinSettings = mine): ShortEdit | undefined {
   const s = SHIPPED[id];
   const u = settings.edits[id];
-  if (!s && !u) return settings.auto ? undefined : { rule: false };
+  const rule = ruleOf(id, settings);
+  if (!s && !u) return rule ? undefined : { rule: false };
   // What the player adds comes back even if the game ships without it, and the other way round.
   const off = [...(s?.off ?? []).filter((k) => !has(u?.add, k)), ...(u?.off ?? [])];
-  const add = [...(s?.add ?? []).filter((a) => !has(u?.off, key(a))), ...(u?.add ?? [])];
-  return { ...entry(add, off), ...(settings.auto ? {} : { rule: false }) };
+  const add = [...(s?.add ?? []).filter((a) => !has(u?.off, formKey(a))), ...(u?.add ?? [])];
+  return entry(add, off, rule);
+}
+
+/**
+ * Whether a thing gets the initials of its names unasked: where the settings give them at all, and unless
+ * the game ships it with a list of its own (`rule: false`), which then says all there is to say.
+ */
+export function ruleOf(id: string, settings: TypeinSettings = mine): boolean {
+  return settings.auto && SHIPPED[id]?.rule !== false && settings.edits[id]?.rule !== false;
+}
+
+/** Whether a short form of a thing is in force: for whoever gives it as an example. */
+export function inForce(id: string, form: string, settings: TypeinSettings = mine): boolean {
+  const k = formKey(form);
+  const e = editOf(id, settings);
+  if (has(e?.add, k)) return true;
+  return e?.rule !== false && !has(e?.off, k);
 }
 
 /** The capital of something as a thing to type, under the id of what it is the capital of. */
@@ -155,6 +191,8 @@ export interface Chip {
   on: boolean;
   /** Whether it counts when the player has said nothing about it. */
   usual: boolean;
+  /** A pattern rather than a spelling: what it takes cannot be listed. */
+  pattern?: boolean;
 }
 
 /**
@@ -165,19 +203,23 @@ export function chipsOf(it: Answerable, id: string, settings: TypeinSettings = m
   const s = SHIPPED[id];
   const u = settings.edits[id];
   const out: Chip[] = [];
+  const rule = ruleOf(id, settings);
   const push = (k: string, text: string, from: Chip['from'], usual: boolean) => {
     if (!k || out.some((c) => c.key === k)) return;
-    out.push({ key: k, text, from, usual, on: has(u?.add, k) || (usual && !has(u?.off, k)) });
+    out.push({ key: k, text, from, usual, on: has(u?.add, k) || (usual && !has(u?.off, k)), ...(looksLikePattern(text) ? { pattern: true } : {}) });
   };
-  for (const f of shortFormsOf(it)) push(f.key, f.text, f.from, !has(s?.off, f.key) && (f.from === 'data' || settings.auto));
-  for (const raw of s?.add ?? []) push(key(raw), raw, 'data', true);
-  for (const raw of u?.add ?? []) push(key(raw), raw, 'own', false);
+  // Initials that the game ships with all the same ("NH" where the rule is off) are as usual as any.
+  for (const f of shortFormsOf(it)) push(f.key, f.text, f.from, has(s?.add, f.key) || (!has(s?.off, f.key) && (f.from === 'data' || rule)));
+  for (const raw of s?.add ?? []) push(formKey(raw), raw, 'data', true);
+  for (const raw of u?.add ?? []) push(formKey(raw), raw, 'own', false);
   return out;
 }
 
 function withEntry(edits: Typeins, id: string, add: string[], off: string[]): Typeins {
   const next = { ...edits };
-  if (add.length || off.length) next[id] = entry(add, off);
+  // A choice read from a file may say that the thing gets no initials unasked: that stays.
+  const rule = edits[id]?.rule !== false;
+  if (add.length || off.length || !rule) next[id] = entry(add, off, rule);
   else delete next[id];
   return next;
 }
@@ -193,8 +235,8 @@ export function switchForm(edits: Typeins, id: string, chip: Chip, on: boolean):
   return withEntry(edits, id, add, off);
 }
 
-/** Why a short form was not added: nothing to add · it is one of its names already · it has it · it has too many. */
-export type AddError = 'empty' | 'name' | 'have' | 'full';
+/** Why a short form was not added: nothing to add · it is one of its names already · it has it · it has too many · a pattern that cannot be read. */
+export type AddError = 'empty' | 'name' | 'have' | 'full' | 'pattern';
 
 /**
  * The player's choices after a short form is added to a thing. One that it has but is switched off is
@@ -202,13 +244,15 @@ export type AddError = 'empty' | 'name' | 'have' | 'full';
  */
 export function addForm(edits: Typeins, id: string, text: string, it: Answerable, settings: TypeinSettings = mine): { edits: Typeins } | { error: AddError } {
   const typed = tidyForm(text);
+  const pattern = looksLikePattern(typed);
+  if (pattern && !patternOf(typed)) return { error: typed.replace(/^\s*[rc]\s*:/i, '') ? 'pattern' : 'empty' };
   // A few letters typed without a thought for the Shift key are a code: "ma" is kept as "MA".
   const s = /^[\p{Ll}\d.]{1,5}$/u.test(typed) ? typed.toUpperCase() : typed;
-  const k = key(s);
+  const k = formKey(s);
   if (!k) return { error: 'empty' };
   const known = chipsOf(it, id, { auto: settings.auto, edits }).find((c) => c.key === k);
   if (known) return known.on ? { error: 'have' } : { edits: switchForm(edits, id, known, true) };
-  if (it.answers.some((a) => a && key(a) === k)) return { error: 'name' };
+  if (!pattern && it.answers.some((a) => a && key(a) === k)) return { error: 'name' };
   const u = edits[id];
   if ((u?.add?.length ?? 0) >= MAX_FORMS) return { error: 'full' };
   return { edits: withEntry(edits, id, [...(u?.add ?? []), s], u?.off ?? []) };
@@ -228,7 +272,7 @@ export function typeinFile(settings: TypeinSettings = mine): TypeinFile {
   const edits: Typeins = {};
   for (const id of [...new Set([...Object.keys(SHIPPED), ...Object.keys(settings.edits)])].sort()) {
     const e = editOf(id, { auto: true, edits: settings.edits });
-    if (e?.add?.length || e?.off?.length) edits[id] = entry(e.add ?? [], e.off ?? []);
+    if (e?.add?.length || e?.off?.length || e?.rule === false) edits[id] = entry(e.add ?? [], e.off ?? [], e.rule !== false);
   }
   return { app: 'regionle', kind: 'typeins', version: 1, auto: settings.auto, edits };
 }

@@ -2,12 +2,16 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { buildDeck, loadIndex, setLoader } from './data';
 import { buildCityDeck, buildPhysicalDeck } from './extra';
 import { setLang } from './i18n';
 import { Matcher, initialsOf, type Answerable } from './text';
 import type { Deck } from './types';
+
+// The game as it shipped before it came with a list for its regions: nothing but RI switched off. These
+// tests are about the rule that gives initials; what the list does is told in shippedList.test.ts.
+vi.mock('./typeins.default.json', () => ({ default: { app: 'regionle', kind: 'typeins', version: 1, auto: true, edits: { 'US-RI': { off: ['ri'] } } } }));
 
 /** Something with these names, the first of them the one on show. */
 const named = (id: string, ...names: string[]): Answerable => ({ id, answers: names, proper: names });

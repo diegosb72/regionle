@@ -16,7 +16,8 @@
     "data:build": "node --max-old-space-size=3200 scripts/data/build.mjs",
     "data:physical": "node scripts/data/physical.mjs",
     "data:check": "node scripts/data/check.mjs",
-    "data": "npm run data:fetch && npm run data:build && npm run data:physical"
+    "data": "npm run data:fetch && npm run data:build && npm run data:physical",
+    "typeins": "node scripts/typeins/build.mjs"
   },
   "dependencies": {
     "@fontsource-variable/dm-sans": "^5.3.0",

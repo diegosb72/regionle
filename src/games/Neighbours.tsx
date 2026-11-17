@@ -137,7 +137,7 @@ export function NeighboursGame({ deck, cfg, onExit, onAgain }: GameProps) {
     const ids = matcher.find(text);
     const hit = ids.find((id) => item.nb.includes(id) && !found.includes(id));
     // The hint spells a neighbour out letter by letter, and its initials with it: that one is written in full.
-    const spelt = !!hit && hint?.id === hit && matcher.abbreviates(text);
+    const spelt = !!hit && hint?.id === hit && matcher.abbreviates(text, hit);
     if (hit && !spelt) return accept(hit);
     setShake((n) => n + 1);
     if (spelt) return setNote(shortNote('short', text));
