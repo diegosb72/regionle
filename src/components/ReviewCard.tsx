@@ -11,7 +11,7 @@ import { nf } from '../lib/text';
 import { Flag } from './ui';
 
 /** What a group is about: "España · provincias". */
-function groupPlace(g: ReviewGroup, world: World): { flag?: string; text: string } {
+export function groupPlace(g: ReviewGroup, world: World): { flag?: string; text: string } {
   const c = g.country ? world.byId.get(g.country) : undefined;
   if (g.section === 'regions') {
     if (!c) return { text: L('Regiones', 'Regions') };

@@ -13,8 +13,8 @@ import { RegionleGame } from '../games/Regionle';
 import { TravelGame } from '../games/Travel';
 import { GameShell, type GameProps } from '../games/common';
 import { answersItself, capitalsNeedTyping } from '../games/quiz';
-import { buildDeck, eligible, levelOf, loadIndex, type World } from '../lib/data';
-import { buildCityDeck, buildPhysicalDeck } from '../lib/extra';
+import { eligible, levelOf, type World } from '../lib/data';
+import { deckFor } from '../lib/decks';
 import { L } from '../lib/i18n';
 import { MODE_NAME, PATHS } from '../lib/modes';
 import { goneFrom } from '../lib/review';
@@ -49,24 +49,6 @@ function Message({ title, text, onExit, action }: { title: string; text: string;
       }
     />
   );
-}
-
-/** The deck a configuration asks for, whatever its section. */
-export async function deckFor(cfg: GameConfig, onProgress?: (done: number, total: number) => void): Promise<Deck> {
-  let countries = cfg.countries;
-  // A review of countries or of capitals is played on the whole of their continents, not among the few that are due.
-  if (cfg.review && (cfg.section === 'countries' || (cfg.section === 'cities' && cfg.opts.cityPick === 'caps'))) {
-    const { index, byId } = await loadIndex();
-    const mine = new Set(countries);
-    const continents = new Set(countries.map((id) => byId.get(id)?.ct));
-    countries = index.countries.filter((c) => mine.has(c.id) || (c.cl === 'un' && continents.has(c.ct))).map((c) => c.id);
-  }
-  // A review and a custom list are about given pieces: the map has to hold them whatever else it shows.
-  const listed = !!cfg.list || cfg.mode === 'edit';
-  const must = cfg.review || listed ? cfg.only : undefined;
-  if (cfg.section === 'cities') return buildCityDeck(countries, cfg.opts.cityPick, cfg.opts.cityCount, must);
-  if (cfg.section === 'physical') return buildPhysicalDeck(countries, must, listed && !cfg.review);
-  return buildDeck({ scope: cfg.section === 'regions' ? 'regions' : 'countries', countries, levels: cfg.levels }, onProgress);
 }
 
 function Session({ cfg, world }: { cfg: GameConfig; world: World }) {

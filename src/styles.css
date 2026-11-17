@@ -6580,3 +6580,82 @@ kbd {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ---------------------------------------------- progress: most missed, file */
+.fc-file {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  color: var(--ink-3);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.fc-file .btn {
+  flex: none;
+}
+.fc-file span {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+.miss-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px 28px;
+  align-items: start;
+}
+.miss-list > li {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.miss-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.miss-head b {
+  flex: 1 1 140px;
+  min-width: 0;
+  line-height: 1.25;
+}
+.miss-head small {
+  color: var(--ink-3);
+  font-weight: 400;
+}
+.miss-head .btn {
+  flex: none;
+}
+.miss-items li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-2);
+}
+.miss-items li span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.miss-items li small {
+  flex: none;
+  color: var(--bad-ink);
+  font-size: 13.5px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.miss-items li.miss-more {
+  border-bottom: 0;
+  color: var(--ink-3);
+  font-size: 14px;
+}
+@media (max-width: 720px) {
+  .miss-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
