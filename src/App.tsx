@@ -8,8 +8,9 @@ import { Spinner, Toggle } from './components/ui';
 import { L, getLang } from './lib/i18n';
 import { SECTIONS, SECTION_IDS } from './lib/modes';
 import { applyMeta } from './lib/pageMeta';
-import { leaveLangPage, useRoute } from './lib/router';
+import { go, leaveLangPage, useRoute } from './lib/router';
 import { ABOUT_PATH, PROGRESS_PATH, SETTINGS_PATH, routeOf } from './lib/routes';
+import { shortcutOf } from './lib/shortcuts';
 import { useStore, type Theme } from './lib/store';
 import { cx, today } from './lib/text';
 import { VERSION } from './lib/version';
@@ -28,6 +29,8 @@ const Settings = lazyScreen(() => import('./screens/Settings').then((m) => m.Set
 const About = lazyScreen(() => import('./screens/About').then((m) => m.About));
 /** In the order they are most likely to be asked for. */
 const SCREENS = [Setup, Play, Daily, Progress, Settings, Duel, ListLink, About];
+/** The panel of keyboard shortcuts: asked for with "?" by few, so it comes when it is asked for. */
+const KeysDialog = lazyScreen(() => import('./components/KeyHelp').then((m) => m.KeysDialog));
 
 const THEME_NEXT: Record<Theme, Theme> = { auto: 'light', light: 'dark', dark: 'auto' };
 const themeLabel = (theme: Theme): string => (theme === 'auto' ? L('Tema: automático', 'Theme: automatic') : theme === 'light' ? L('Tema: claro', 'Theme: light') : L('Tema: oscuro', 'Theme: dark'));
@@ -116,6 +119,34 @@ export function App() {
     if (box && !box.contains(document.activeElement)) box.focus({ preventScroll: true });
   }, [path]);
 
+  // Keys that work on any screen. They stand aside while something is typed, while a map holds the keyboard
+  // and while a panel is open, and they do not take anyone out of a game.
+  const playing = route.kind === 'play' || route.kind === 'daily';
+  const [help, setHelp] = useState(false);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.repeat || e.isComposing) return;
+      const at = e.target instanceof Element ? e.target : null;
+      const busy = !!at?.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"], [role="application"], dialog[open]');
+      const st = useStore.getState();
+      const act = shortcutOf({ key: e.key, ctrl: e.ctrlKey, meta: e.metaKey, alt: e.altKey, busy, playing, off: !st.hotkeys });
+      if (!act) return;
+      e.preventDefault();
+      if (act.kind === 'go') go(act.path);
+      else if (act.kind === 'theme') st.setTheme(THEME_NEXT[st.theme]);
+      else setHelp(true);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [playing]);
+  const keys = help ? (
+    <ErrorBoundary>
+      <Suspense fallback={null}>
+        <KeysDialog onClose={() => setHelp(false)} />
+      </Suspense>
+    </ErrorBoundary>
+  ) : null;
+
   const section = route.kind === 'section' ? route.section : null;
   const settings = route.kind === 'settings';
   const progress = route.kind === 'progress';
@@ -160,6 +191,7 @@ export function App() {
           {guarded}
         </main>
         <BadgeWatcher world={world} />
+        {keys}
       </div>
     );
 
@@ -249,12 +281,17 @@ export function App() {
             {L('Acerca de, privacidad y licencias', 'About, privacy and licences')}
           </a>
           <span aria-hidden="true"> · </span>
+          <button type="button" className="foot-keys" onClick={() => setHelp(true)} aria-haspopup="dialog">
+            {L('Atajos de teclado', 'Keyboard shortcuts')}
+          </button>
+          <span aria-hidden="true"> · </span>
           <span>
             {L('Versión', 'Version')} {VERSION}
           </span>
         </p>
       </footer>
       <UpdateNotice />
+      {keys}
       {world && <BadgeWatcher world={world} />}
     </div>
   );

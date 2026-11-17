@@ -1,6 +1,7 @@
 /** About the game: what is new, how to play with the keyboard, what is kept and where, and whose work it stands on. */
 import { ExternalLink } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { GameKeys, GlobalKeys } from '../components/KeyHelp';
 import { RELEASES } from '../lib/changelog';
 import { L, fmtDay, getLang } from '../lib/i18n';
 import { PROGRESS_PATH } from '../lib/routes';
@@ -14,16 +15,6 @@ function Out({ href, children }: { href: string; children: ReactNode }) {
       {children}
       <ExternalLink size={12} aria-hidden="true" />
     </a>
-  );
-}
-
-function Keys({ children }: { children: string }) {
-  return (
-    <>
-      {children.split(' ').map((k, i) => (
-        <kbd key={i}>{k}</kbd>
-      ))}
-    </>
   );
 }
 
@@ -76,65 +67,10 @@ export function About() {
       <section className="about-block" aria-labelledby="about-keys">
         <h2 id="about-keys">{L('Con el teclado', 'With the keyboard')}</h2>
         <p>{L('Todo el juego se puede usar sin ratón ni pantalla táctil.', 'The whole game can be used without a mouse or a touch screen.')}</p>
-        <dl className="about-keys">
-          <div>
-            <dt>
-              <Keys>Tab</Keys>
-            </dt>
-            <dd>{L('Pasa al botón, enlace o campo siguiente; con Mayús, al anterior. Intro o Espacio lo pulsan.', 'Moves to the next button, link or field; with Shift, to the one before. Enter or Space press it.')}</dd>
-          </div>
-          <div>
-            <dt>
-              <Keys>← ↑ → ↓</Keys>
-            </dt>
-            <dd>
-              {L(
-                'En un mapa en el que hay que elegir una pieza (Señalar, Puzle, Aprender, el reto del día…), llevan el cursor a la pieza vecina por ese lado. Donde se marca un punto (Situar a ciegas) mueven una cruz; con Mayús, a pasos cortos.',
-                'On a map where a piece has to be chosen (Pin it, Jigsaw, Learn, the daily challenge…), they take the cursor to the next piece on that side. Where a spot is marked (Place it blind) they move a cross; with Shift, in short steps.',
-              )}
-            </dd>
-          </div>
-          <div>
-            <dt>
-              <Keys>{L('AvPág RePág', 'PgDn PgUp')}</Keys>
-            </dt>
-            <dd>
-              {L(
-                'En esos mismos mapas, pasan a la pieza siguiente o a la anterior, de oeste a este; Inicio y Fin van a la primera y a la última.',
-                'On those same maps, they go to the next piece or to the one before, from west to east; Home and End go to the first and to the last.',
-              )}
-            </dd>
-          </div>
-          <div>
-            <dt>
-              <Keys>{L('Intro', 'Enter')}</Keys>
-            </dt>
-            <dd>
-              {L(
-                'En el mapa, elige la pieza del cursor o deja el punto bajo la cruz (también Espacio). Después de una respuesta, pasa a la pregunta siguiente. Al escribir, envía la respuesta.',
-                'On the map, it chooses the piece under the cursor or drops the spot under the cross (Space too). After an answer, it moves on to the next question. When typing, it sends the answer.',
-              )}
-            </dd>
-          </div>
-          <div>
-            <dt>
-              <Keys>+ − 0</Keys>
-            </dt>
-            <dd>{L('Con el mapa enfocado, acercan, alejan y vuelven a enseñarlo entero.', 'With the map focused, they zoom in, zoom out and show the whole of it again.')}</dd>
-          </div>
-          <div>
-            <dt>
-              <Keys>1 2 3 4</Keys>
-            </dt>
-            <dd>{L('Eligen entre las cuatro opciones, cuando la respuesta no se escribe.', 'They choose among the four options, when the answer is not typed.')}</dd>
-          </div>
-          <div>
-            <dt>
-              <Keys>↑ ↓</Keys>
-            </dt>
-            <dd>{L('En «Mayor o menor», responden más o menos. En un campo de respuesta con sugerencias, las recorren; Esc las cierra.', 'In “Higher or lower”, they answer more or less. In an answer field with suggestions, they go through them; Esc closes them.')}</dd>
-          </div>
-        </dl>
+        <h3 className="about-rel">{L('En cualquier pantalla', 'On any screen')}</h3>
+        <GlobalKeys />
+        <h3 className="about-rel">{L('En los juegos', 'In the games')}</h3>
+        <GameKeys />
       </section>
 
       <section className="about-block" aria-labelledby="about-data">

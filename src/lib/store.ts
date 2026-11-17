@@ -152,6 +152,8 @@ interface State {
   cb: boolean;
   /** The welcome for first-time players has been put away. */
   welcomed: boolean;
+  /** One-key shortcuts (1 to 5, R, P, T, ?) work; turned off by whoever they get in the way of. */
+  hotkeys: boolean;
   /** Short forms chosen in the settings for each thing, by id: those added to it and those taken from it. */
   typeins: Typeins;
   /** Whether names of several words get their initials unasked; null until chosen: as the game ships. */
@@ -159,6 +161,7 @@ interface State {
 
   setCb(cb: boolean): void;
   setWelcomed(): void;
+  setHotkeys(on: boolean): void;
   setTypeins(typeins: Typeins): void;
   setTypeinAuto(auto: boolean | null): void;
   saveList(list: CustomList): void;
@@ -220,11 +223,13 @@ export const useStore = create<State>()(
       tot: {},
       cb: false,
       welcomed: false,
+      hotkeys: true,
       typeins: {},
       typeinAuto: null,
 
       setCb: (cb) => set({ cb }),
       setWelcomed: () => set({ welcomed: true }),
+      setHotkeys: (hotkeys) => set({ hotkeys }),
       setTypeins: (typeins) => set({ typeins }),
       setTypeinAuto: (typeinAuto) => set({ typeinAuto }),
       saveList: (list) => set((s) => ({ lists: [...s.lists.filter((l) => l.id !== list.id), list] })),
@@ -366,6 +371,7 @@ export const useStore = create<State>()(
         tot: s.tot,
         cb: s.cb,
         welcomed: s.welcomed,
+        hotkeys: s.hotkeys,
         typeins: s.typeins,
         typeinAuto: s.typeinAuto,
       }),
@@ -378,6 +384,7 @@ export const useStore = create<State>()(
           mode: { ...current.mode, ...p.mode },
           opts: { ...current.opts, ...p.opts },
           recent: Array.isArray(p.recent) ? p.recent.filter(isRecent) : [],
+          hotkeys: p.hotkeys !== false,
           // Players from before the tallies existed start from what their latest sessions add up to.
           tot: p.tot && Object.keys(p.tot).length ? p.tot : totalsOf(p.sessions ?? []),
           typeins: cleanTypeins(p.typeins),
