@@ -1,15 +1,17 @@
-import { ArrowRight, BookOpen, CalendarClock, Filter, Infinity as InfinityIcon, X } from 'lucide-react';
+import { ArrowRight, BookOpen, CalendarClock, Filter, Infinity as InfinityIcon, Star, X } from 'lucide-react';
 import { useMemo } from 'react';
 import { LevelChip } from '../components/Badges';
 import { ReviewCard } from '../components/ReviewCard';
 import { Flag } from '../components/ui';
 import { DailyCard } from '../daily/Card';
-import type { World } from '../lib/world';
-import { L } from '../lib/i18n';
-import { MODES, MODE_NAME, SECTIONS, SECTION_IDS } from '../lib/modes';
+import { countriesOf, describeMap, type MapSpec } from '../lib/describe';
+import { commonPlace, type World } from '../lib/world';
+import { L, getLang } from '../lib/i18n';
+import { MODES, MODE_NAME, SECTIONS, SECTION_IDS, formatName } from '../lib/modes';
+import { recentKey, type Recent } from '../lib/recent';
 import { go } from '../lib/router';
 import { PATHS, PLAY_PATH } from '../lib/routes';
-import { useStore } from '../lib/store';
+import { useStore, type Fav } from '../lib/store';
 import { nf } from '../lib/text';
 import type { Mode, Section } from '../lib/types';
 
@@ -96,6 +98,113 @@ function Welcome() {
   );
 }
 
+/** Maps played lately that the first page shows. */
+const RECENT_SHOWN = 4;
+
+const specOf = (r: Recent): MapSpec => ({ section: r.section, countries: r.countries, levels: r.levels, cityPick: r.o.cityPick, cityCount: r.o.cityCount });
+
+/** A map played before in words: "Europa · 45 países", "España · provincias", "Ríos · Europa". */
+function recentMap(r: Recent, world: World): string {
+  const text = describeMap(specOf(r), world);
+  if (r.section === 'physical') return text;
+  const chosen = countriesOf(specOf(r), world);
+  const place = chosen.length > 3 ? commonPlace(chosen, world.index, r.section) : null;
+  const what = r.section === 'pops' ? ` · ${r.o.metric === 'area' ? L('superficie', 'area') : L('población', 'population')}` : '';
+  return `${place ? `${place} · ` : ''}${text}${what}`;
+}
+
+/** How long ago, by the day: "hoy", "ayer", "hace 3 días", and a date from a week on. */
+function ago(t: number): string {
+  const days = Math.round((new Date().setHours(0, 0, 0, 0) - new Date(t).setHours(0, 0, 0, 0)) / 864e5);
+  if (days <= 0) return L('hoy', 'today');
+  if (days === 1) return L('ayer', 'yesterday');
+  if (days < 7) return L(`hace ${days} días`, `${days} days ago`);
+  return new Date(t).toLocaleDateString(getLang() === 'en' ? 'en-GB' : 'es-ES', { day: 'numeric', month: 'short' });
+}
+
+/**
+ * What was being practised, one click away: the maps played lately, each as the game it was, and the
+ * selections of countries saved in the menus.
+ */
+function Recents({ world }: { world: World }) {
+  const recent = useStore((s) => s.recent);
+  const favs = useStore((s) => s.favs);
+  const resume = useStore((s) => s.resume);
+  const setSel = useStore((s) => s.setSel);
+  const setLevel = useStore((s) => s.setLevel);
+  // A map whose countries the data no longer has cannot be played again.
+  const shown = recent.filter((r) => r.section === 'physical' || countriesOf(specOf(r), world).length > 0).slice(0, RECENT_SHOWN);
+  if (!shown.length && !favs.length) return null;
+
+  const again = (r: Recent) => {
+    resume(r);
+    go(PLAY_PATH);
+  };
+  const openFav = (fav: Fav) => {
+    setSel(fav.section, fav.ids);
+    for (const [id, k] of Object.entries(fav.levels ?? {})) setLevel(id, k);
+    go(SECTIONS[fav.section].path);
+  };
+
+  return (
+    <section className="recent" aria-labelledby="recent-h">
+      <h2 id="recent-h">{shown.length ? L('Sigue donde lo dejaste', 'Pick up where you left off') : L('Tus selecciones guardadas', 'Your saved selections')}</h2>
+      {shown.length > 0 && (
+        <ul className="recent-list">
+          {shown.map((r) => {
+            const flags = countriesOf(specOf(r), world).slice(0, 3);
+            const paced = r.o.format && r.o.format !== 'normal' ? ` · ${formatName(r.o.format).toLowerCase()}` : '';
+            return (
+              <li key={recentKey(r)}>
+                <button type="button" onClick={() => again(r)}>
+                  <span className="recent-what">
+                    {SECTIONS[r.section].name} · {MODE_NAME[r.mode]}
+                    {paced}
+                  </span>
+                  <span className="recent-map">
+                    {r.countries.length <= 3 && flags.length > 0 && (
+                      <span className="recent-flags" aria-hidden="true">
+                        {flags.map((c) => (
+                          <Flag key={c.id} code={c.fl} size="sm" />
+                        ))}
+                      </span>
+                    )}
+                    {recentMap(r, world)}
+                  </span>
+                  <span className="recent-how">
+                    {r.total > 0 ? `${L(`${r.ok} de ${r.total} a la primera`, `${r.ok} of ${r.total} first time`)} · ` : ''}
+                    {ago(r.t)}
+                  </span>
+                  <span className="recent-go">
+                    {L('Jugar otra vez', 'Play again')}
+                    <ArrowRight size={15} aria-hidden="true" />
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {favs.length > 0 && (
+        <div className="recent-favs">
+          {shown.length > 0 && <h3>{L('Tus selecciones guardadas', 'Your saved selections')}</h3>}
+          <ul>
+            {favs.map((fav) => (
+              <li key={`${fav.section}:${fav.name}`}>
+                <button type="button" className="chip" onClick={() => openFav(fav)} title={L(`${fav.ids.length} países guardados`, `${fav.ids.length} countries saved`)}>
+                  <Star size={13} aria-hidden="true" />
+                  {fav.name}
+                  <small>{SECTIONS[fav.section].name}</small>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  );
+}
+
 const goLabel = (id: Section): string => (id === 'physical' ? L('Elegir qué y dónde', 'Choose what and where') : L('Elegir países', 'Choose countries'));
 
 export function Home({ world }: { world: World }) {
@@ -169,6 +278,7 @@ export function Home({ world }: { world: World }) {
       </section>
 
       {fresh && <Welcome />}
+      <Recents world={world} />
 
       <section className="sections">
         {SECTION_IDS.map((id, i) => {

@@ -9,6 +9,7 @@ import { CITY_COUNTS, PHYS_KINDS, PHYS_PLACES, kindNoun, loadCities, loadPhysica
 import { L, getLang, levelNoun, nm } from '../lib/i18n';
 import { encodeList, listConfig, listPlayable, listUrl } from '../lib/lists';
 import { MODES, SECTIONS, formatName } from '../lib/modes';
+import { FORMAT_MODES } from '../lib/rules';
 import { go } from '../lib/router';
 import { useStore, type CustomList, type Length, type Opts } from '../lib/store';
 import { cx, nf, plural } from '../lib/text';
@@ -21,8 +22,6 @@ const ANSWER_MODES: Mode[] = ['learn', 'identify', 'outline', 'capital', 'flag']
 const LENGTH_MODES: Mode[] = ['pin', 'identify', 'outline', 'regionle', 'puzzle', 'neighbours', 'capital', 'flag', 'blind', 'exact', 'which', 'rank'];
 /** Games that are one round of everything: they cannot go on for ever. */
 const FINITE_MODES: Mode[] = ['neighbours', 'blind'];
-/** Games that can also be played against the clock or until the lives run out. */
-const FORMAT_MODES: Mode[] = ['pin', 'identify', 'outline', 'puzzle', 'capital', 'flag'];
 /** Games where names are typed and a list of suggestions can help. */
 const SUGGEST_MODES: Mode[] = ['travel', 'neighbours', 'regionle'];
 /** Games that stop on a missed answer long enough to read about it. */

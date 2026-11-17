@@ -5,10 +5,10 @@ import type { GeometryCollection, Topology } from 'topojson-specification';
 import { L, capName, getLang, levelNoun, nm } from './i18n';
 import type { Answerable } from './text';
 import { editOf } from './typeins';
-import type { Country, Deck, Extra, Geo, Index, Item, LL, Level, Section } from './types';
-import { eligible, fetchFile, isFeminine, levelOf, loadFile, loadIndex, loadWorldGeo, once } from './world';
+import type { Country, Deck, Extra, Geo, Item, LL, Level } from './types';
+import { commonPlace, fetchFile, isFeminine, levelOf, loadFile, loadIndex, loadWorldGeo, once } from './world';
 
-export { eligible, fineCount, isFeminine, levelOf, loadFile, loadIndex, loadWorldGeo, setLoader, type World } from './world';
+export { commonPlace, eligible, fineCount, isFeminine, levelOf, loadFile, loadIndex, loadWorldGeo, setLoader, type World } from './world';
 
 interface UnitProps {
   n: { es: string; en?: string; lo?: string };
@@ -157,22 +157,6 @@ export function frameForLand(chosen: Country[], world: Map<string, Geo>, cities:
   }
   out.push(...cities);
   return out.length ? out : chosen.flatMap((c) => c.fp);
-}
-
-/** Name of the place the selection amounts to ("Europa", "Caribe", "Mundo"), judged by its UN members. */
-export function commonPlace(chosen: Country[], index: Index, section: Section): string | null {
-  if (chosen.length < 2) return null;
-  const ids = new Set(chosen.map((c) => c.id));
-  const members = index.countries.filter((c) => c.cl === 'un' && eligible(section, c));
-  const covers = (inPlace: (c: Country) => boolean) => {
-    const list = members.filter(inPlace);
-    return list.length > 1 && list.every((c) => ids.has(c.id));
-  };
-  if (covers(() => true)) return L('Mundo', 'World');
-  const { sr, ct } = chosen[0];
-  if (chosen.every((c) => c.sr === sr) && covers((c) => c.sr === sr)) return index.subregions[sr] ? nm(index.subregions[sr]) : null;
-  if (chosen.every((c) => c.ct === ct) && covers((c) => c.ct === ct)) return index.continents[ct] ? nm(index.continents[ct]) : null;
-  return null;
 }
 
 /** Names of the capital of a country: the one shown first, then every spelling accepted. */

@@ -4,6 +4,7 @@ import { persist } from 'zustand/middleware';
 import { TESTS, emptyRec, streakOf, type DailyRec } from '../daily/spec';
 import type { CityPick } from './extra';
 import type { Lang } from './i18n';
+import { isRecent, recentConfig, recentOf, withRecent, type Recent } from './recent';
 import { today } from './text';
 import { cleanTypeins, setTypeins as applyTypeins, type Typeins } from './typeinPrefs';
 import type { Mode, Res, Section } from './types';
@@ -131,6 +132,8 @@ interface State {
    */
   where: Record<string, string>;
   sessions: SessionRec[];
+  /** The maps played lately, the last one first: what the first page offers to play again. */
+  recent: Recent[];
   best: Record<string, number>;
   /** Results of the daily challenge by day. */
   daily: Record<string, DailyRec>;
@@ -177,6 +180,8 @@ interface State {
   addFav(fav: Fav): void;
   removeFav(section: Section, name: string): void;
   start(cfg: Omit<GameConfig, 'nonce'>): void;
+  /** Starts a map played before again, and leaves the menus of its section as they were for it. */
+  resume(recent: Recent): void;
   /** Forgets the game in course. */
   leave(): void;
   record(skill: Skill, id: string, res: Res, origin?: string): void;
@@ -204,6 +209,7 @@ export const useStore = create<State>()(
       stats: {},
       where: {},
       sessions: [],
+      recent: [],
       best: {},
       daily: {},
       lang: null,
@@ -272,6 +278,17 @@ export const useStore = create<State>()(
       addFav: (fav) => set((s) => ({ favs: [...s.favs.filter((f) => !(f.section === fav.section && f.name === fav.name)), fav] })),
       removeFav: (section, name) => set((s) => ({ favs: s.favs.filter((f) => !(f.section === section && f.name === name)) })),
       start: (cfg) => set((s) => ({ game: { ...cfg, nonce: Math.max(Date.now(), (s.game?.nonce ?? 0) + 1) } })),
+      resume: (r) =>
+        set((s) => {
+          const cfg = recentConfig(r, s.opts);
+          return {
+            sel: { ...s.sel, [r.section]: cfg.countries },
+            levels: { ...s.levels, ...cfg.levels },
+            mode: { ...s.mode, [r.section]: r.mode },
+            opts: cfg.opts,
+            game: { ...cfg, nonce: Math.max(Date.now(), (s.game?.nonce ?? 0) + 1) },
+          };
+        }),
       leave: () => set({ game: null }),
       record: (skill, id, res, origin) =>
         set((s) => {
@@ -290,6 +307,7 @@ export const useStore = create<State>()(
       addSession: (rec) =>
         set((s) => ({
           sessions: [rec, ...s.sessions].slice(0, 80),
+          recent: withRecentOf(s.recent, s.game, rec),
           tot: { ...s.tot, g: (s.tot.g ?? 0) + 1, q: (s.tot.q ?? 0) + rec.total, ok: (s.tot.ok ?? 0) + rec.ok, warn: (s.tot.warn ?? 0) + rec.warn, ms: (s.tot.ms ?? 0) + rec.ms },
         })),
       setBest: (key, value, lowerWins = false) => {
@@ -298,7 +316,7 @@ export const useStore = create<State>()(
         if (better) set((s) => ({ best: { ...s.best, [key]: value } }));
         return better;
       },
-      resetProgress: () => set({ stats: {}, where: {}, sessions: [], best: {}, daily: {}, badges: {}, tot: {} }),
+      resetProgress: () => set({ stats: {}, where: {}, sessions: [], recent: [], best: {}, daily: {}, badges: {}, tot: {} }),
       importData: (data) => {
         if (!data || typeof data !== 'object') return false;
         const d = data as Partial<State>;
@@ -337,6 +355,7 @@ export const useStore = create<State>()(
         stats: s.stats,
         where: s.where,
         sessions: s.sessions,
+        recent: s.recent,
         best: s.best,
         daily: s.daily,
         lang: s.lang,
@@ -358,6 +377,7 @@ export const useStore = create<State>()(
           sel: { ...current.sel, ...p.sel },
           mode: { ...current.mode, ...p.mode },
           opts: { ...current.opts, ...p.opts },
+          recent: Array.isArray(p.recent) ? p.recent.filter(isRecent) : [],
           // Players from before the tallies existed start from what their latest sessions add up to.
           tot: p.tot && Object.keys(p.tot).length ? p.tot : totalsOf(p.sessions ?? []),
           typeins: cleanTypeins(p.typeins),
@@ -383,6 +403,12 @@ export function migrateSaved(saved: unknown, version: number): Record<string, un
   const p = { ...((saved ?? {}) as Record<string, unknown>) };
   if (version < 2 && p.opts && typeof p.opts === 'object') p.opts = { ...(p.opts as object), answer: 'type' };
   return p;
+}
+
+/** The maps played lately once a game has ended: with it first when it is one to come back to. */
+function withRecentOf(list: Recent[], game: GameConfig | null, rec: SessionRec): Recent[] {
+  const r = game ? recentOf(game, rec) : null;
+  return r ? withRecent(list, r) : list;
 }
 
 /** The lifetime tallies that a list of sessions adds up to. */

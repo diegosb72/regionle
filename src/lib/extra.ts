@@ -1,6 +1,7 @@
 /** Decks that are not made of countries or their divisions: cities, and rivers, lakes, seas, ranges, peaks, deserts and islands. */
 import { commonPlace, frameForCountries, frameForLand, loadFile, loadIndex, loadWorldGeo, properNames } from './data';
 import { L, nm } from './i18n';
+import { PHYS_KINDS, kindNoun, parsePhys, physTokens, type PhysKind, type PhysSpec } from './phys';
 import { editOf } from './typeins';
 import type { AnyGeo, Country, Deck, Geo, Item, LL, Named } from './types';
 
@@ -107,10 +108,9 @@ export async function buildCityDeck(ids: string[], pick: CityPick, count: number
 // Physical geography
 // ---------------------------------------------------------------------------
 
-export const PHYS_KINDS = ['river', 'lake', 'sea', 'range', 'peak', 'desert', 'island'] as const;
-export type PhysKind = (typeof PHYS_KINDS)[number];
-/** Continents a physical deck can be limited to; `W` is the whole world. */
-export const PHYS_PLACES = ['W', 'EU', 'AS', 'AF', 'AM', 'OC'] as const;
+// What a physical map is made of, in words and as a selection, is in `phys.ts`: the first page reads it too.
+export { PHYS_KINDS, PHYS_PLACES, kindNoun, parsePhys, physTokens, type PhysKind, type PhysSpec } from './phys';
+
 
 interface PhysRec {
   i: string;
@@ -153,45 +153,6 @@ function geometryOf(rec: PhysRec, scale: number): AnyGeo['geometry'] {
   const parts = rec.g[1].map((flat) => decode(flat, scale));
   if (rec.g[0] === 'L') return { type: 'MultiLineString', coordinates: parts };
   return { type: 'MultiPolygon', coordinates: parts.map((ring) => [ring]) };
-}
-
-export function kindNoun(kind: PhysKind): { one: string; many: string; fem: boolean } {
-  const es = L('es', 'en') === 'es';
-  switch (kind) {
-    case 'river':
-      return { one: L('río', 'river'), many: L('ríos', 'rivers'), fem: false };
-    case 'lake':
-      return { one: L('lago', 'lake'), many: L('lagos', 'lakes'), fem: false };
-    case 'sea':
-      return { one: L('mar', 'sea'), many: L('mares y océanos', 'seas and oceans'), fem: false };
-    case 'range':
-      return { one: L('cordillera', 'mountain range'), many: L('cordilleras', 'mountain ranges'), fem: es };
-    case 'peak':
-      return { one: L('pico', 'peak'), many: L('picos y volcanes', 'peaks and volcanoes'), fem: false };
-    case 'desert':
-      return { one: L('desierto', 'desert'), many: L('desiertos', 'deserts'), fem: false };
-    default:
-      return { one: L('isla', 'island'), many: L('islas', 'islands'), fem: es };
-  }
-}
-
-/** Selection of a physical deck, kept in the same list of ids as the countries of the other sections. */
-export interface PhysSpec {
-  kinds: PhysKind[];
-  /** Continent codes; empty for the whole world. */
-  places: string[];
-  /** Everything, or only the best known. */
-  all: boolean;
-}
-
-export function parsePhys(tokens: string[]): PhysSpec {
-  const kinds = PHYS_KINDS.filter((k) => tokens.includes(k));
-  const places = PHYS_PLACES.filter((p) => p !== 'W' && tokens.includes(p));
-  return { kinds: kinds.length ? [...kinds] : ['river'], places: [...places], all: tokens.includes('all') };
-}
-
-export function physTokens(spec: PhysSpec): string[] {
-  return [...spec.kinds, ...spec.places, ...(spec.all ? ['all'] : [])];
 }
 
 /** How many features a selection holds, without building anything. */

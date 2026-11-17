@@ -5,7 +5,7 @@
  */
 import { feature } from 'topojson-client';
 import type { GeometryCollection, Topology } from 'topojson-specification';
-import { L } from './i18n';
+import { L, nm } from './i18n';
 import type { Country, Geo, Index, Level, Section } from './types';
 
 type Loader = (path: string) => Promise<unknown>;
@@ -102,6 +102,22 @@ export function levelOf(c: Country, levels?: Record<string, string>): Level {
 }
 
 const FEMININE = /(a|ión|dad)$/;
+/** Name of the place the selection amounts to ("Europa", "Caribe", "Mundo"), judged by its UN members. */
+export function commonPlace(chosen: Country[], index: Index, section: Section): string | null {
+  if (chosen.length < 2) return null;
+  const ids = new Set(chosen.map((c) => c.id));
+  const members = index.countries.filter((c) => c.cl === 'un' && eligible(section, c));
+  const covers = (inPlace: (c: Country) => boolean) => {
+    const list = members.filter(inPlace);
+    return list.length > 1 && list.every((c) => ids.has(c.id));
+  };
+  if (covers(() => true)) return L('Mundo', 'World');
+  const { sr, ct } = chosen[0];
+  if (chosen.every((c) => c.sr === sr) && covers((c) => c.sr === sr)) return index.subregions[sr] ? nm(index.subregions[sr]) : null;
+  if (chosen.every((c) => c.ct === ct) && covers((c) => c.ct === ct)) return index.continents[ct] ? nm(index.continents[ct]) : null;
+  return null;
+}
+
 /** Spanish grammar only: in English nothing agrees in gender. */
 export function isFeminine(noun: string): boolean {
   return getLangIsEs() && FEMININE.test(noun.split(' ')[0]);

@@ -1,6 +1,7 @@
 /** A selection in words: "España · provincias", "Ríos · Europa". Used wherever a map arrives from outside the menus. */
-import { levelOf, type World } from './data';
-import { kindNoun, parsePhys, type CityPick } from './extra';
+import type { CityPick } from './extra';
+import { kindNoun, parsePhys } from './phys';
+import { levelOf, type World } from './world';
 import { L, levelNoun, nm } from './i18n';
 import { plural } from './text';
 import type { Country, Section } from './types';
