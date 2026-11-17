@@ -6865,3 +6865,34 @@ kbd {
 .keys-off dd {
   color: var(--ink-3);
 }
+
+/* ------------------------------------------- setup: size and results of a mode */
+.mode-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  margin-top: 8px;
+}
+.mode-facts li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg-2);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 550;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+}
+.mode-facts svg {
+  flex: none;
+  color: var(--ink-3);
+}
+.mode-facts small {
+  color: var(--ink-3);
+  font-size: inherit;
+  font-weight: 400;
+}
