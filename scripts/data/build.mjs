@@ -8,6 +8,9 @@
 //   world.json     TopoJSON of country shapes (country-level games and backdrop)
 //   r/<ID>.json    TopoJSON of one country's subdivisions, one object per level
 //
+// Besides the data it leaves two things to read in .cache: report.txt, what was built, and names.json,
+// where each name came from (what the source said of every unit, and which of it was believed).
+//
 // The whole thing runs on ONE topology of Natural Earth's admin-1 polygons, so
 // that every border is a shared arc: countries are dissolved from their own
 // subdivisions, neighbours come from shared arcs, and simplification keeps
@@ -23,12 +26,13 @@ import { geoArea, geoCentroid, geoAzimuthalEqualArea, geoLength } from 'd3-geo';
 import { geoStitch } from 'd3-geo-projection';
 import polylabel from 'polylabel';
 import * as C from './config.mjs';
-import { norm, slug, similar, cleanEs, cleanEn, cleanLocal, shoelace, pointInRing, round, uniq } from './lib.mjs';
+import { norm, slug, similar, translates, cleanEs, cleanEn, cleanLocal, dropKind, shoelace, pointInRing, round, uniq } from './lib.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const SRC = path.join(ROOT, '.cache/src');
 const OUT = path.join(ROOT, 'public/data');
 const REPORT = path.join(ROOT, '.cache/report.txt');
+const NAMES = path.join(ROOT, '.cache/names.json');
 
 // --- tuning ----------------------------------------------------------------
 const K_REGION = +(process.env.K_REGION || 2.5e5); // subdivision files: tolerance = country land area / K
@@ -76,9 +80,16 @@ const validIso = (s) => /^[A-Z]{2}-[A-Z0-9]{1,3}$/.test(s || '');
 
 /** @type {{idx:number,p:any,geometry:any,entity:string,id:string,area:number,nonQuiz:boolean,into?:string}[]} */
 const raws = [];
+const fixesUsed = new Set();
 for (const f of adm1) {
   const p = { ...f.properties };
   for (const [match, patch] of C.RECODE) if (match(p)) Object.assign(p, patch);
+  // Attributes the source has wrong, put right by the code that never changes (see config.SOURCE_FIX).
+  const fix = C.SOURCE_FIX[f.properties.adm1_code];
+  if (fix) {
+    Object.assign(p, fix);
+    fixesUsed.add(f.properties.adm1_code);
+  }
   let entity = C.splitEntity(p);
   if (entity === undefined) entity = p.adm0_a3 in C.A3_TO_ENTITY ? C.A3_TO_ENTITY[p.adm0_a3] : iso2OfA3(p.adm0_a3);
   if (!entity) {
@@ -87,6 +98,7 @@ for (const f of adm1) {
   }
   raws.push({ idx: raws.length, p, geometry: f.geometry, entity, id: '', area: 0, nonQuiz: C.NON_QUIZ.some((fn) => fn(p)) });
 }
+for (const code of Object.keys(C.SOURCE_FIX)) if (!fixesUsed.has(code)) warn(`SOURCE_FIX: no feature has the code ${code}`);
 // Land that no admin-1 polygon covers: the undefined Chile–Argentina border zone.
 {
   const spi = adm0.find((f) => f.properties.ADM0_A3 === 'SPI');
@@ -433,8 +445,15 @@ for (const e of entities.values()) {
     const es = ov.es || pick?.NAME_ES || pick?.NAME || e.gnCapital;
     const en = ov.en || pick?.NAME_EN || pick?.NAME || e.gnCapital;
     const ll = ov.ll || (pick ? [round(pick.LONGITUDE, 3), round(pick.LATITUDE, 3)] : null);
-    const al = uniq([pick?.NAME, pick?.NAME_EN, pick?.NAME_ES, pick?.NAMEASCII, pick?.NAMEALT, ...(ov.alt || []), ...caps.filter((p) => p !== pick).flatMap((p) => [p.NAME, p.NAME_ES])].filter(Boolean).flatMap((s) => s.split('|'))).filter(
-      (s) => norm(s) !== norm(es) && norm(s) !== norm(en),
+    // NAMEALT comes cut at the first letter that is not ASCII: «Ciudad de M» for Ciudad de México, «H» for
+    // Hà Nội. What is left is no name, and as an accepted answer it took a single letter for a capital.
+    const cut = (s) => s.length < 2 || [es, en, pick?.NAME_ES, pick?.NAME_EN].some((full) => full && full.length > s.length && full.startsWith(s) && /[^\x00-\x7f]/.test(full[s.length]));
+    const alt = String(pick?.NAMEALT || '')
+      .split('|')
+      .map((s) => s.trim())
+      .filter((s) => s && !cut(s));
+    const al = uniq([pick?.NAME, pick?.NAME_EN, pick?.NAME_ES, pick?.NAMEASCII, ...alt, ...(ov.alt || []), ...caps.filter((p) => p !== pick).flatMap((p) => [p.NAME, p.NAME_ES])].filter(Boolean).flatMap((s) => s.split('|'))).filter(
+      (s) => norm(s) !== norm(es) && norm(s) !== norm(en) && !/[()]/.test(s),
     );
     e.cap = { es, en, ...(ll ? { ll } : {}), ...(al.length ? { al } : {}) };
   }
@@ -732,8 +751,32 @@ const sea = unitList.map(() => new Map()); // unit → Map(other unit → km)
 // ===========================================================================
 const typeEs = (t) => C.TYPE_ES[t]?.[0] || null;
 
+/** What the source said of each unit and what was made of it (.cache/names.json). */
+const nameLog = [];
+
+/**
+ * Wikidata ids that two or more units of a country carry. The Spanish and English labels of the source
+ * come from Wikidata, so an id that sits on the wrong polygon brings the names of another place with it:
+ * twenty Latvian municipalities were all "Valmiera" that way, and seven regions of Madagascar took the
+ * name of the province they belong to. An id that several units share vouches for none of them, so its
+ * labels count only where they resemble the unit's own name, and the id itself is dropped elsewhere.
+ */
+const wdShared = new Set();
+/** Entries of TRUST_ES_UNIT and TRUST_EN_UNIT that did their work, and those that changed nothing. */
+const readUsed = new Set();
+const idle = new Set();
+{
+  const seen = new Map();
+  for (const u of units.values()) {
+    const w = u.main.p.wikidataid;
+    if (w) seen.set(`${u.entity} ${w}`, (seen.get(`${u.entity} ${w}`) || 0) + 1);
+  }
+  for (const [k, n] of seen) if (n > 1) wdShared.add(k);
+}
+
 function unitNames(u) {
   const p = u.main.p;
+  u.wd = p.wikidataid || null;
   const merged = C.MERGED_NAME[u.id];
   const ov = { ...(merged ? { es: merged.es, en: merged.en, lo: merged.name } : {}), ...(C.UNIT_NAME[u.id] || {}) };
   const e = entities.get(u.entity);
@@ -742,11 +785,26 @@ function unitNames(u) {
   const [lo0, extras] = cleanLocal(p.name);
   // Scholarly transliterations ("Bādgīs", "Ġawr") are not how Spanish maps spell things.
   const exotic = /[āēīōūġḥṭṣḍẓḳʿʾ]/i;
-  const esC = exotic.test(p.name_es || '') ? '' : cleanEs(p.name_es);
   const enC = cleanEn(p.name_en);
+  const esC = exotic.test(p.name_es || '') ? '' : dropKind(cleanEs(p.name_es), [lo0]);
   const trust = C.TRUST_ES.has(u.entity);
-  const esOk = !!esC && (trust || similar(esC, lo0) || similar(esC, enC));
-  const enOk = !!enC && (trust || similar(enC, lo0));
+  const shared = wdShared.has(`${u.entity} ${p.wikidataid}`);
+  const esLo = !!esC && similar(esC, lo0);
+  const enLo = !!enC && similar(enC, lo0);
+  // A label is believed when the country is one whose labels are good, when it resembles the unit's own
+  // name (or, the Spanish one, the English one), when it translates it, or when somebody has read it.
+  const esRead = C.TRUST_ES_UNIT.has(u.id);
+  const enRead = C.TRUST_EN_UNIT.has(u.id);
+  const esByRule = !!esC && (shared ? esLo : trust || esLo || similar(esC, enC) || translates(esC, lo0) || translates(esC, enC));
+  const enByRule = !!enC && (shared ? enLo : trust || enLo);
+  if (esRead) (esByRule || !esC ? idle : readUsed).add(`TRUST_ES_UNIT ${u.id}`);
+  if (enRead) (enByRule || !enC ? idle : readUsed).add(`TRUST_EN_UNIT ${u.id}`);
+  const esOk = esByRule || (!!esC && esRead);
+  const enOk = enByRule || (!!enC && enRead);
+  if (shared && !esLo && !enLo) {
+    u.wd = null;
+    note(`${u.id} ${lo0}: shares ${p.wikidataid} with another unit and its labels are of another place («${p.name_es}», «${p.name_en}»): named by its own name, id dropped`);
+  }
   const lo = ov.lo || lo0;
   const en = ov.en || (enOk ? enC : lo0);
   let es = ov.es;
@@ -770,7 +828,71 @@ function unitNames(u) {
     seen.add(k);
     out.push(s.trim());
   }
+  nameLog.push({
+    id: u.id,
+    src: { adm1: p.adm1_code, iso: p.iso_3166_2, name: p.name, es: p.name_es, en: p.name_en, geonames: p.gn_name, wikidata: p.wikidataid, type: p.type_en },
+    // which of the two labels was believed, and why: it resembles the unit's own name, the other label, or the country is trusted
+    es: { clean: esC, ok: esOk, likeName: esLo, likeEn: !!esC && similar(esC, enC), read: esRead },
+    en: { clean: enC, ok: enOk, likeName: enLo, read: enRead },
+    trust,
+    shared,
+    fixed: !!C.SOURCE_FIX[p.adm1_code],
+    override: Object.keys(C.UNIT_NAME[u.id] || {}),
+    out: { es, en, lo, al: out, wd: u.wd },
+  });
   return { es, en, lo, al: out };
+}
+
+/** A place name without the word for the kind of place, in the languages GeoNames uses: for comparing only. */
+const KIND_WORDS =
+  /\b(region|province|state|county|district|department|governorate|oblast|prefecture|municipality|parish|division|city|autonomous|republic|territory|of|the|de|del|la|el|provincia|departamento|rayon|rayonu|novads|okrug|kraj|zupanija|voblasts|muhafazat|provinsi|tinh|khett|wilaya|mintaqat)\b/g;
+const placeKey = (s) => norm(s).replace(KIND_WORDS, ' ').replace(/\s+/g, ' ').trim();
+
+/**
+ * Names that cannot all be right, looked for in every country once its units are named.
+ *
+ *  · Two pieces of one level under the same name: nearly always a label that came from another place.
+ *    Where it is true (a city and the district around it), both are listed in config.HOMONYMS.
+ *  · A unit that GeoNames calls by the name another unit carries, which GeoNames in turn calls something
+ *    else: a chain of that kind is a set of names laid on the wrong polygons (Guyana, Eritrea and
+ *    Ecuador came like that). One step alone is a town inside its district and means nothing.
+ *  · Two units that keep the same Wikidata id after all the above.
+ */
+function checkNames(e, quiz) {
+  for (const lang of ['es', 'en']) {
+    const by = new Map();
+    for (const u of quiz) {
+      const k = norm(u.names[lang]);
+      if (!by.has(k)) by.set(k, []);
+      by.get(k).push(u);
+    }
+    for (const us of by.values()) {
+      if (us.length < 2 || us.every((u) => C.HOMONYMS.has(u.id))) continue;
+      warn(`${e.id}: ${us.map((u) => u.id).join(', ')} all go by «${us[0].names[lang]}» (${lang})`);
+    }
+  }
+  const carrier = new Map(); // name → the one unit that carries it
+  for (const u of quiz)
+    for (const k of new Set([u.names.es, u.names.en, u.names.lo].map(placeKey))) {
+      if (!k) continue;
+      carrier.set(k, carrier.has(k) ? null : u);
+    }
+  const named = (u) => {
+    const k = placeKey(u.main.p.gn_name);
+    const own = [u.names.es, u.names.en, u.names.lo].map(placeKey);
+    return k && !own.includes(k) ? carrier.get(k) || null : null; // the unit whose name GeoNames gives to u
+  };
+  for (const u of quiz) {
+    const v = named(u);
+    if (v && named(v)) warn(`${e.id}: GeoNames calls ${u.id} «${u.names.es}» by the name of ${v.id} («${u.main.p.gn_name}»), and ${v.id} by another's: names on the wrong polygons?`);
+  }
+  const ids = new Map();
+  for (const u of quiz) {
+    if (!u.wd) continue;
+    if (!ids.has(u.wd)) ids.set(u.wd, []);
+    ids.get(u.wd).push(u.id);
+  }
+  for (const [wd, us] of ids) if (us.length > 1 && !us.every((id) => C.HOMONYMS.has(id))) warn(`${e.id}: ${us.join(', ')} share the Wikidata id ${wd}`);
 }
 
 // ===========================================================================
@@ -855,6 +977,7 @@ for (const e of entities.values()) {
   }
   const quiz = fine.filter((u) => !u.nonQuiz);
   if (e.cl === 'other') for (const u of fine) u.nonQuiz = true;
+  checkNames(e, quiz);
 
   // finest level
   const cfg = C.LEVELS[e.id];
@@ -871,7 +994,7 @@ for (const e of entities.values()) {
       al: u.names.al,
       t: typeEs(u.main.p.type_en) && typeEs(u.main.p.type_en) !== fineLabel.sg ? typeEs(u.main.p.type_en) : null,
       q: u.nonQuiz ? 0 : null,
-      wd: u.main.p.wikidataid || null,
+      wd: u.wd,
       lp: u.lp,
       fp: u.fp,
       ar: u.km2,
@@ -1035,5 +1158,36 @@ for (const e of entList) {
     note(`   ${u.id.padEnd(10)} ${u.nonQuiz ? '·' : ' '} ${n.es}${n.en !== n.es ? ' | en ' + n.en : ''}${n.lo !== n.es ? ' | lo ' + n.lo : ''}${n.al.length ? ' | al ' + n.al.join('; ') : ''}${u.members.length > 1 ? `  [${u.members.length} parts]` : ''}`);
   }
 }
+// One Wikidata id on units of two countries: one of the two carries a namesake's (config.SOURCE_FIX).
+{
+  const carriers = new Map();
+  for (const e of entList)
+    for (const u of e.units) {
+      if (!u.wd) continue;
+      if (!carriers.has(u.wd)) carriers.set(u.wd, []);
+      carriers.get(u.wd).push([e.id, u.id]);
+    }
+  for (const [wd, us] of carriers) if (new Set(us.map(([e]) => e)).size > 1) warn(`${us.map(([, id]) => id).join(', ')}: units of different countries share the Wikidata id ${wd}`);
+}
+// The lists of labels read by hand must name units that exist and labels the rules would turn down.
+for (const [list, ids] of [
+  ['TRUST_ES_UNIT', C.TRUST_ES_UNIT],
+  ['TRUST_EN_UNIT', C.TRUST_EN_UNIT],
+])
+  for (const id of ids) {
+    if (idle.has(`${list} ${id}`)) warn(`${list}: ${id} is believed without it (or has no label): take it off the list`);
+    else if (!readUsed.has(`${list} ${id}`)) warn(`${list}: no unit has the id ${id}`);
+  }
+// What was not believed, for whoever reads the source again: each line is a name the game does not use.
+note('');
+note('== labels of the source that were not believed ==');
+note('   (right ones go in config.TRUST_ES_UNIT / TRUST_EN_UNIT; a wrong name in the source, in SOURCE_FIX)');
+for (const x of nameLog) {
+  const off = [];
+  if (x.es.clean && !x.es.ok && !x.override.includes('es') && norm(x.es.clean) !== norm(x.out.es)) off.push(`es «${x.es.clean}»`);
+  if (x.en.clean && !x.en.ok && !x.override.includes('en') && norm(x.en.clean) !== norm(x.out.en)) off.push(`en «${x.en.clean}»`);
+  if (off.length) note(`   ${x.id.padEnd(10)} ${x.out.es}${x.out.en !== x.out.es ? ' | en ' + x.out.en : ''}   ✗ ${off.join(' · ')}${x.shared ? '   (id shared with another unit)' : ''}`);
+}
 fs.writeFileSync(REPORT, report.join('\n'));
+fs.writeFileSync(NAMES, JSON.stringify(nameLog, null, 1));
 log(`done → public/data (${((regionBytes + worldJson.length + indexJson.length) / 1e6).toFixed(2)} MB), report in .cache/report.txt`);

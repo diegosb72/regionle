@@ -207,7 +207,8 @@ export function chipViews(group: TypeinGroup, settings: TypeinSettings): Map<str
     out.set(
       r.id,
       chips.get(r.id)!.map((c): ChipView => {
-        if (!c.on) return c;
+        // What a pattern takes cannot be listed, and neither can what else it might be.
+        if (!c.on || c.pattern) return c;
         const ids = matcher.lookup(c.text);
         if (ids.length === 1 && ids[0] === r.item.id) return c;
         const others = new Set<string>();

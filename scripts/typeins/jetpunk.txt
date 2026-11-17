@@ -1,0 +1,4523 @@
+# Type-ins of the JetPunk quiz "ALL First-Level Subdivisions of the World With a Map", by Vicky
+# (https://www.jetpunk.com/user-quizzes/309965/all-first-level-subdivisions-of-the-world-with-a-map),
+# as its author's table gives them: 4299 answers, copied here with what the game can use of each.
+#
+# "@Country" opens the answers of a country. Each line after it is one answer:
+#
+#     code of its shape on the map of the quiz;name;type-in;type-in…
+#
+# A type-in is a spelling ("CANBERRA"), a regular expression ("r:^S[OU]KHUM") or letters to be found
+# anywhere ("c:CAPITAL"), tried on what is typed with letters and digits run together. An answer with none
+# is typed by its name. `build.mjs` matches each answer to a piece of the game and writes what the game
+# ships with, `src/lib/typeins.default.json`; `informe.md` says what was matched and what was not.
+@Abkhazia
+Abk_SuC;Sukhumi;r:^S[OU]KHUM;AQWA
+Abk_Gag;Gagra
+Abk_Gal;Gali;GAL
+Abk_Gud;Gudauta;r:^G[UW]D[AO][UW]TH?A
+Abk_Gul;Gulripshi;r:^G(U|WY)LR[IY]PH?S
+Abk_Oc;Ochamchira;r:^OCH?AMCH?[IY]R[AE]
+Abk_SuD;Sukhumi;r:^S[OU]KHUM;AQWA
+Abk_Tk;Tkvarcheli;r:^T[KQ][UVW]ARCH?[AE]L
+@Afghanistan
+AF-BDS;Badakhshan;r:^BADA[KX]H?SH?AN
+AF-BDG;Badghis
+AF-BGL;Baghlan
+AF-BAL;Balkh;r:^BAL[KX]
+AF-BAM;Bamyan
+AF-DAY;Daykundi
+AF-FRA;Farah
+AF-FYB;Faryab
+AF-GHA;Ghazni
+AF-GHO;Ghor;r:^GH?[OU]W?R
+AF-HEL;Helmand;r:^H[EI][HLRTU]+MAN
+AF-HER;Herat
+AF-JOW;Jowzjan;r:^J[AO][WZ]+JAN
+AF-KAB;Kabul;r:^KAB[EU]L
+AF-KAN;Kandahar;r:^[KQ]AND[AEI][AH]?AR
+AF-KAP;Kapisa
+AF-KHO;Khost
+AF-KNR;Kunar
+AF-KDZ;Kunduz
+AF-LAG;Laghman
+AF-LOG;Logar
+AF-WAR;Maidan Wardak;r:^(MAIDAN)?WARDA[GCK]
+AF-NAN;Nangarhar;r:^N[AI]NGR?[AR]+[AH]?AR
+AF-NIM;Nimruz;r:^NIMR[OU]Z
+AF-NUR;Nuristan;r:^N[OU]+R[EI]STAN
+AF-PIA;Paktia;r:^PAKT[EIY]A
+AF-PKA;Paktika
+AF-PAN;Panjshir;r:^PANJSH[EI]R
+AF-PAR;Parwan;r:^PAR[VW]AN
+AF-SAM;Samangan
+AF-SAR;Sar-e Pol;r:^SAR[EI]P[OU]L
+AF-TAK;Takhar
+AF-URU;Uruzgan;r:^[OU]R[OU]ZGAN
+AF-ZAB;Zabul
+@Albania
+AL-01;Berat
+AL-09;Dibër;r:^DIBR?E[RS]
+AL-02;Durrës
+AL-03;Elbasan
+AL-04;Fier
+AL-05;Gjirokastër;r:^GJIRO[CK]ASTR?E[RS]
+AL-06;Korçë
+AL-07;Kukës
+AL-08;Lezhë
+AL-10;Shkodër;r:^SHKODR?E[RS]
+AL-11;Tirana;r:^T[AEI]+R+AN+[AE]
+AL-12;Vlorë
+@Algeria
+DZ-01;Adrar
+DZ-59;Aflou;r:^AFLO?U
+DZ-44;Aïn Defla;r:^([AE]?IN)?DEFLA
+DZ-68;Aïn Oussera;r:^A[AEI]NOUS+[AE]RA
+DZ-46;Aïn Témouchent;r:^([AE]?IN)?TEM[OU]+[CS]HENT
+DZ-16;Algiers
+DZ-23;Annaba;r:^(A+N+A[BA]A|BON)
+DZ-63;Barika
+DZ-05;Batna
+DZ-08;Béchar;r:^B[AE][CS]HAR
+DZ-06;Béjaïa;r:^[BV][EOU]*[GJ][AIY]+[AE]
+DZ-52;Béni Abbès;r:^BENIAB+ES
+DZ-65;Bir El Ater;r:^BIR([AE]L)?ATER
+DZ-07;Biskra;r:^(TI)?[BV][EI]S[CK]E?R[AT]
+DZ-09;Blida;r:^(LE)?BU?([EI]L|L[AEIY]+)DA
+DZ-50;Bordj Baji Mokhtar;r:^B[OU]RD?JBAD?JIMOKHTAR
+DZ-34;Bordj Bou Arréridj;r:^B[OU]RD?JB[OU]+AR+[EI]RID?J
+DZ-64;Bou Saâda;r:^BO?US+A+DA
+DZ-10;Bouïra;r:^(T[OU]+)?[BV][EIOUY]+R(A|ET)
+DZ-35;Boumerdès;r:^B[OU]+M[EI]RD[AEI]S
+DZ-02;Chlef;r:^[CS]H?LEF;ORLEANSVILLE;r:^([AE][LR])?ASNAM
+DZ-25;Constantine;r:^[CKQ][AOU]N?[CS]T?ANTIN[AE]
+DZ-56;Djanet;r:^D?JANET
+DZ-17;Djelfa;r:^D?[GJ][EI]LFA
+DZ-60;El Abiodh Sidi Cheikh;r:^([AE]L)?ABIODHSIDICHEIKH
+DZ-61;El Aricha;r:^([AE]L)?ARICHA
+DZ-32;El Bayadh;r:^([AE][RL])?B[AE]YADH
+DZ-62;El Kantara;r:^([AE]L)?[CK]ANTARA
+DZ-57;El M'Ghair;r:^([AE][LRM])?M?GH?AIR
+DZ-58;El Menia;r:^([AE][MRL])?MEN[EI]A
+DZ-39;El Oued;r:^([AE][RL])?O(U|EU|UE)D
+DZ-36;El Taref;r:^([AE][LRT])?TAR[EI]?F
+DZ-47;Ghardaïa;r:^(TA[IY])?(GH?)?[AE]RD[AE][IY][AT]
+DZ-24;Guelma;r:^[CGQ][AEU]+L[AEI]?MA
+DZ-33;Illizi;r:^[AEI]L+[IY]Z[IY]
+DZ-54;In Guezzam;r:^([AEI]N)?G(U|EU|UE)Z+AM
+DZ-53;In Salah;r:^([AEI]N)?SALA[AH]
+DZ-18;Jijel;r:^I?[GJ]IL?[GJ][EI]L
+DZ-40;Khenchela;r:^(KH|X)ENCH?EL[AT];r:^MAS[CKQ]UL[AT]
+DZ-67;Ksar Chellala
+DZ-66;Ksar El Boukhari;r:^KSAR([AE]L)?B(OU|UO)KHARI
+DZ-03;Laghouat;r:^LAGH?[OUW]+AT
+DZ-28;M'Sila;r:^([AE][LR])?MA?S[IY]LA
+DZ-29;Mascara;r:^MU?[AE]S[CK][AE]R
+DZ-26;Médéa;r:^([AE][LM]|LE)?M[AE]?D[EIY]+[AT]
+DZ-69;Messaâd;r:^MES+A+D
+DZ-43;Mila;r:^MI[LR][AE]
+DZ-27;Mostaganem;r:^M[OU]+STA?GH?AN[AEI]?M
+DZ-45;Naâma;r:^NA+MA
+DZ-31;Oran
+DZ-30;Ouargla;r:^[OUW]+[AE]R[GQ]LA
+DZ-51;Ouled Djellal;r:^OUL[AE]DD?JEL+AL
+DZ-04;Oum El Bouaghi;r:^[OU]+M([AE][RL])?B[OU]+AGH?[IY];r:^[CK]ANROBERT;r:^(SIDI)?RGH?IS
+DZ-48;Relizane;r:^[GR]H?[AEI]L[IY]ZA+N
+DZ-20;Saïda;r:^SA([IY]|EE)D
+DZ-19;Sétif;r:^(AGEZDUN?)?SE?T[IY]F
+DZ-22;Sidi Bel Abbès;r:^(SIDI)?B[EI]LAB+ES
+DZ-21;Skikda;r:^SK[IY]KD
+DZ-41;Souk Ahras;r:^(SOU[KQ])?AHRAS;r:^TAGH?AST
+DZ-11;Tamanrasset;r:^TAMAN[GR]H?[AE]S+[AE]?T
+DZ-12;Tébessa;r:^TH?[EI]?[BV][EI]S[ST]?[AEI]
+DZ-14;Tiaret;r:^T[AI]+[HR]ER?T
+DZ-49;Timimoun;r:^T[IY]M[IY]MO?UN
+DZ-37;Tindouf;r:^T[AEI]NDO?UF
+DZ-42;Tipaza;r:^TI[BP]A[SZ]A;r:^TEFES+ED?T;r:^BAZA+R
+DZ-38;Tissemsilt;r:^T[EI]S+[EI]MS[IY]LT
+DZ-15;Tizi Ouzou;r:^TIZI(WEZ+U|[OU]+Z[OU])
+DZ-13;Tlemcen;r:^TI?L[EI]M[CS][AE]N
+DZ-55;Touggourt;r:^TO?U[GQ]+O?URT
+@Andorra
+AD-07;Andorra la Vella
+AD-02;Canillo
+AD-03;Encamp
+AD-08;Escaldes-Engordany;ESCALDES;r:^ENGORDAN(EE|EY|IE|Y)
+AD-04;La Massana;r:^(LA)?MAS+ANA
+AD-05;Ordino
+AD-06;Sant Julià de Lòria;r:^(SAI?NT|ST)?JUL[EI]A
+@Angola
+AO-BGO;Bengo
+AO-BGU;Benguela
+AO-BIE;Bié
+AO-CAB;Cabinda
+AO_Cua;Cuando;r:^[CK]UANDO
+AO-CNO;Cuanza Norte;r:^[CK](A[UW]|[UW]A)NZANORT[EH];r:^NORT[EH][CK](A[UW]|[UW]A)NZA
+AO-CUS;Cuanza Sul;r:^[CK](A[UW]|[UW]A)NZAS(UL|OUTH);r:^S(UL|OUTH)[CK](A[UW]|[UW]A)NZA
+AO_Cub;Cubango;r:^[CK]UBANGO
+AO-CNN;Cunene
+AO-HUA;Huambo
+AO-HUI;Huíla
+AO_IB;Icolo e Bengo;ICOLO;BENGO
+AO-LUA;Luanda
+AO-LNO;Lunda Norte;r:^LUNDANORT[EH];r:^NORT[EH]LUNDA
+AO-LSU;Lunda Sul;r:^LUNDASO?U(TH|L);r:^SO?U(TH|L)LUNDA
+AO-MAL;Malanje;r:^MALAN[GJ]E
+AO-MOX;Moxico
+AO_ML;Moxico Leste;MOXICOLESTE;r:^EAST(ERN)?MOXICO
+AO-NAM;Namibe
+AO-UIG;Uíge
+AO-ZAI;Zaire
+@Antigua and Barbuda
+AG-10;Barbuda
+AG-03;Saint George;r:^(SAINT|ST)GEORGE
+AG-04;Saint John
+AG-05;Saint Mary;r:^(SAINT|ST)MAR(EE|EY|IE|Y)
+AG-06;Saint Paul
+AG-07;Saint Peter;r:^(SAINT|ST)PETER
+AG-08;Saint Philip;r:^(SAINT|ST)(PH|F+)ILIP
+@Argentina
+AR-C;Buenos Aires;r:^(C(UI|IU)DAD(DE)?)?B[EU]+NOE?SAI?RES
+AR-B;Buenos Aires;r:^(C(UI|IU)DAD(DE)?)?B[EU]+NOE?SAI?RES
+AR-K;Catamarca
+AR-H;Chaco
+AR-U;Chubut
+AR-X;Córdoba
+AR-W;Corrientes;r:^COR+I?ENTES
+AR-E;Entre Ríos
+AR-P;Formosa
+AR-Y;Jujuy
+AR-L;La Pampa;r:^(LA)?PAMPA
+AR-F;La Rioja;r:^(LA)?RIOJA
+AR-M;Mendoza
+AR-N;Misiones;r:^MIS+IONES
+AR-Q;Neuquén;r:^N(U|EU|UE)Q(U|EU|UE)N
+AR-R;Río Negro
+AR-A;Salta
+AR-J;San Juan
+AR-D;San Luis
+AR-Z;Santa Cruz
+AR-S;Santa Fe
+AR-G;Santiago del Estero;SANTIAGO
+AR-V;Tierra del Fuego
+AR-T;Tucumán
+@Armenia
+AM-ER;Yerevan;r:^Y?[AE]R[AE]VAN
+AM-AG;Aragatsotn;r:^ARAGA(TS|C)[AOT]+N
+AM-AR;Ararat
+AM-AV;Armavir
+AM-GR;Gegharkunik;r:^GEGH?ARC?KUNIC?K
+AM-KT;Kotayk;r:^KOT[AE][IY]C?K
+AM-LO;Lori
+AM-SH;Shirak;r:^SH?IRAC?K
+AM-SU;Syunik;r:^S[EIY]UNIC?K
+AM-TV;Tavush;TAVUS
+AM-VD;Vayots Dzor;r:^V[AE][EIY]O(TS|C)(DZ|J)OR
+@Aruba
+AW-NTL;Noord/Tanki Leendert;r:^NO+R(D|TH);r:^TANKILE[AE]NDERT
+AW-OO;Oranjestad Oost;r:^ORANJESTAD((O+|EA)ST);r:^((O+|EA)ST)ORANJESTAD
+AW-OW;Oranjestad West;ORANJESTADWEST;WESTORANJESTAD
+AW-Pa;Paradera
+AW-SNN;San Nicolas Noord;r:^(S[AI]+NT?)NICOLA+SNO+R(D|TH);r:^NO+R(D|TH)(S[AI]+NT?)NICOLA+S
+AW-SNZ;San Nicolas Zuid;r:^(S[AI]+NT?)NICOLA+S[SZ](UI|OU)(D|TH);r:^[SZ](UI|OU)(D|TH)(S[AI]+NT?)NICOLA+S
+AW-SC;Santa Cruz
+AW-Sa;Savaneta
+@Australia
+AU-CX;Christmas Island;r:^[CK]H?RISTMAS
+AU-CC;Cocos (Keeling) Islands;r:^[CK]O[CK]OS;r:^KE[AE]LING
+AU-NF;Norfolk Island;r:^NORFOLC?K
+AU-NSW;New South Wales
+AU-QLD;Queensland
+AU-SA;South Australia;SOUTH
+AU-TAS;Tasmania
+AU-VIC;Victoria
+AU-WA;Western Australia;WEST
+AU-ACT;Australian Capital Territory;r:CAPITAL;ACT;CANBERRA
+AU-NT;Northern Territory;r:^(THE)?NORTH
+@Austria
+AT-1;Burgenland
+AT-2;Carinthia;r:^[CK]H?AE?RI?NTH?[EI]+[AN]
+AT-3;Lower Austria;r:^LOWERAUSTR[EI]A;r:^NIEDEROSTER+EICH
+AT-5;Salzburg
+AT-6;Styria;r:^STYR[EI]A;STEIERMARK
+AT-7;Tyrol;r:^T[IY]ROL
+AT-4;Upper Austria;r:^UP+ERAUSTR[EI]A;r:^OBEROSTER+EICH
+AT-9;Vienna
+AT-8;Vorarlberg
+@Azerbaijan
+AZ-BA;Baku;r:^BAK[IU]
+AZ-GA;Ganja;r:^[GJ]Y?[AE]ND?[CJZ][AE];KIROVABAD
+AZ-XA;Khankendi;r:^[KX]H?ANKENDI;STEPANAKERT
+AZ-LA;Lankaran;r:^L[AE]N[CK]([AE]R)?[AO]N
+AZ-MI;Mingachevir;r:^MING[AE]CH?EVIR
+AZ-NA;Naftalan
+AZ-SA;Shaki;r:^SH?[AE][CK]+N?[AEI]
+AZ-SR;Şirvan;r:^SH?IRVAN;r:^(ALI)?B[AE]YRAMLI
+AZ-SM;Sumgait;r:^SUM[GQ][AEIY]+T
+AZ-YE;Yevlakh;r:^Y?EVLA[KX]
+AZ-ABS;Absheron;r:^A[BP]SH?ER[OU]+N
+AZ-AGS;Agdash;r:^AGH?DAS
+AZ-AGM;Aghdam;r:^AGH?DAM;AKNA
+AZ_Aghdara;Aghdara;r:^AGH?D[AE]R[AE];MARTAKERT
+AZ-AGC;Aghjabadi;r:^AGH?[CJ]AB[AE]DI;r:^BEGH?AMEJ
+AZ-AGA;Aghstafa;r:^AGH?STAFA
+AZ-AGU;Agsu;r:^AGH?SU
+AZ-AST;Astara;r:^[AO]ST[AO]R[AO]
+AZ-BAL;Balakan;r:^B[AI]LA?[CK][AE]N
+AZ-BAR;Barda;r:^B[AE]RDH?[AE]
+AZ-BEY;Beylagan;r:^B[AE]YL[AE][GQ]AN;ZHDANOV
+AZ-BIL;Bilasuvar;r:^BIL[AE]SUVAR
+AZ-DAS;Dashkasan;r:^DASH?[CK][AE]S[AEI]N
+AZ-FUZ;Fuzuli;r:^F[IU]ZULI;VARANDA
+AZ-GAD;Gadabay;r:^[GK][AE][DT][AE]B[AE]C?[KY]
+AZ-QOB;Gobustan;r:^[GQ]OBUSTAN;r:^M[AE]R[AE]Z[AE]
+AZ-GOR;Goranboy;r:^G[EO]RANBO[IY];r:^[CGKQ]AS[IUY]MI[SZ]M[AEIY]+LOV
+AZ-GOY;Goychay;r:^GOYCH?[AE]Y
+AZ-GYG;Goygol;GOYGOL;r:^[KX]H?ANLAR
+AZ-HAC;Hajigabul;r:^HA[CJ]I[QG]ABUL;r:^([CKQ]AZI)?M[AE]([GQ]O)?M+[AE]D
+AZ-IMI;Imishli;r:^IMISH?LI
+AZ-ISM;Ismayilli;r:^ISM[AE][IY]+L+I
+AZ-CAB;Jabrayil;r:^D?[CJZ]H?[AE]BR[AE]Y?IL
+AZ-CAL;Jalilabad;r:^D?[CJZ]H?[AE]LILAB[AE]D
+AZ-KAL;Kalbajar;r:^[CK][AE][LR][BV][AE][CJ]H?[AE]R
+AZ-XAC;Khachmaz;r:^[KX]H?ACH?M[AE]Z
+AZ-XIZ;Khizi;r:^[KX]H?IZI
+AZ-XCI;Khojaly;r:^[KX]H?O[CJ]AL[IY];IVANYAN
+AZ-XVD;Khojavend;r:^[KX]H?O[CJ]AVEND;MARTUNI
+AZ-KUR;Kurdamir;r:^KURD[AE]MIR
+AZ-LAC;Lachin;r:^LACH?[AEI]N;r:^BERD?A?DZOR
+AZ-LAN;Lankaran;r:^L[AE]N[CK]([AE]R)?[AO]N
+AZ-LER;Lerik;r:^L(ER)?IC?K
+AZ-MAS;Masally;r:^MAS[AE]L+[EIY]
+AZ-NEF;Neftchala;r:^NEFTCH?ALA
+AZ-OGU;Oghuz;r:^OGH?UZ;VARTASHAN;GIWLSTAN;VARDUD
+AZ-QAB;Qabala;r:^[GQ][AE]B[AE]L[AE]
+AZ-QAX;Qakh;r:^[GQ]A[KX]
+AZ-QAZ;Qazax;r:^[GQ]H?AZA[KX]
+AZ-QBA;Quba;r:^[GQ]UBA
+AZ-QBI;Qubadli;r:^[GQ]UBADL[IY];r:^[CK]ASHUNIC?K;SANASAR;VOROTAN
+AZ-QUS;Qusar;r:^[GQ]USAR
+AZ-SAT;Saatly;r:^SA+TL[EIY]
+AZ-SAB;Sabirabad;SABIRABAD;r:^GALAG[AE]Y[AEI]N;r:^PETROPAVLOVS?K(A|OYE)
+AZ-SAL;Salyan
+AZ-SMX;Samukh;r:^SAMU[KX];r:^SA[BF][AI]R;r:^NEB[EI]AGALI
+AZ-SBN;Shabran;r:^SH?ABRAN;r:^D[AE]V[AE]CH?I
+AZ-SAK;Shaki;r:^SH?[AE][CK]+N?[AEI]
+AZ-SMI;Shamakhi;r:^SH?[AE]M[AE][XK]H?I
+AZ-SKR;Shamkir;r:^SH?[AE]MKH?[IOU]R
+AZ-SUS;Shusha;r:^SH?USH?[AI]
+AZ-SIY;Siyazan;r:^S[EIY]+[AE]Z[AEI]N
+AZ-TAR;Tartar;r:^T[AE]RT[AE]R
+AZ-TOV;Tovuz
+AZ-UCA;Ujar;r:^U[CJ]AR
+AZ-YAR;Yardimli;r:^YARD[IY]MLI
+AZ-YEV;Yevlakh;r:^Y?EVLA[KX]
+AZ-ZAQ;Zagatala;r:^ZA[CGKQ]ATALA
+AZ-ZAN;Zangilan;r:^Z[AE]NGILAN;r:^KOVSA[CK]AN
+AZ-ZAR;Zardab;r:^Z[AE]RDAB
+AZ-NX;Nakhchivan;r:^NA[KX]H?I?[CJ]H?[EI][VW]AN
+@Bahamas
+BS-AK;Acklins
+BS-BY;Berry Islands;r:^BER+(EE|EY|IE|Y)
+BS-BI;Bimini
+BS-BP;Black Point;r:^BLAC?KPOINT;r:^EXUMAC[AE]YS
+BS-CI;Cat Island
+BS-CO;Central Abaco
+BS-CS;Central Andros
+BS-CE;Central Eleuthera
+BS-FP;City of Freeport;r:^(CITY)?(OF)?FRE[AE]PORT
+BS-CK;Crooked Island;r:^[CK]H?ROOKED
+BS-EG;East Grand Bahama
+BS-EX;Exuma
+BS-GC;Grand Cay
+BS-GT;Green Turtle Cay
+BS-HI;Harbour Island;r:^HARBOU?R
+BS-HT;Hope Town;HOPETOWN;r:^GREA?TABACOC[AE]YS
+BS-IN;Inagua
+BS-LI;Long Island
+BS-MC;Mangrove Cay
+BS-MG;Mayaguana
+BS-MI;Moore's Island;MOORE
+BS-NO;North Abaco
+BS-NS;North Andros
+BS-NE;North Eleuthera
+BS-RI;Ragged Island;RAGGED
+BS-RC;Rum Cay
+BS-SS;San Salvador
+BS-SO;South Abaco
+BS-SA;South Andros
+BS-SE;South Eleuthera
+BS-SW;Spanish Wells
+BS_SC;Sweetings Cay;r:^SWE+TINGS?CAY
+BS-WG;West Grand Bahama
+BS-SDBaG;Bain and Grants Town;BAIN;GRANTS
+BS-SDBT;Bamboo Town
+BS-SDCa;Carmichael
+BS-SDCe;Centreville
+BS-SDEl;Elizabeth
+BS-SDEn;Englerston
+BS-SDFC;Fort Charlotte
+BS-SDFH;Fox Hill
+BS-SDFr;Freetown;r:^FREETOW?N;MONTAGU
+BS-SDGH;Garden Hills
+BS-SDGG;Golden Gates
+BS-SDGI;Golden Isles
+BS-SDKi;Killarney
+BS-SDMa;Marathon
+BS-SDMM;Mount Moriah
+BS-SDNV;Nassau Village;NASSAU
+BS-SDPi;Pinewood
+BS-SDSBr;Sea Breeze
+BS-SDSBe;South Beach
+BS-SDSS;Southern Shores
+BS-SDStA;St. Anne's;r:^(SAINTE?|STE?)ANNE
+BS-SDStB;St. Barnabas
+BS-SDTP;Tall Pines
+BS-SDYa;Yamacraw
+@Bahrain
+BH-13;Capital;c:CAPITAL;r:^ASIM[AOU]H;MANAMA
+BH-15;Muharraq;r:^([AE][LRM])?M[OU]+HAR+[AE][KQ]
+BH-17;Northern;NORTH;r:^SAM(AL|EL|LE)
+BH-14;Southern;SOUTH;JANUB
+@Bangladesh
+BD-A;Barisal;r:^BARISH?AL
+BD-B;Chittagong
+BD-C;Dhaka
+BD-D;Khulna
+BD-H;Mymensingh
+BD-E;Rajshahi
+BD-F;Rangpur
+BD-G;Sylhet
+@Barbados
+BB-01;Christ Church
+BB-02;Saint Andrew;r:^(SAINT|ST)ANDREW
+BB-03;Saint George;r:^(SAINT|ST)GEORGE
+BB-04;Saint James;r:^(SAINT|ST)JAMES
+BB-05;Saint John
+BB-06;Saint Joseph;r:^(SAINT|ST)JOSE(PH|F)
+BB-07;Saint Lucy;r:^(SAINT|ST)LUC(EE|EY|IE|Y)
+BB-08;Saint Michael;r:^(SAINT|ST)MICHA(AL|EL|LE)
+BB-09;Saint Peter;r:^(SAINT|ST)PETER
+BB-10;Saint Philip;r:^(SAINT|ST)(PH|F+)ILIP
+BB-11;Saint Thomas;r:^(SAINT|ST)THOMAS
+@Belarus
+BY-HM;Minsk
+BY-BR;Brest
+BY-HO;Gomel;r:^[GH]OM[IY]?EL
+BY-HR;Grodno;r:^[GH]ROD(N[AO]|Z[IY]EN)
+BY-MI;Minsk
+BY-MA;Mogilev;r:^M[AO][GH]IL(E|[IY]O)[UVW]
+BY-VI;Vitebsk;r:^VIT[CS]?[IY]?EBSC?K
+@Belgium
+BE-BRU;Brussels-Capital Region;r:^BRU[SX]+EL+E?S;r:CAPITAL
+BE-VLG;Flanders;r:^FLAND(ER|RE)S;r:^[FV]LA+[MAN]+(DE|S)
+BE-WAL;Wallonia;r:^WAL+ONR?[EI]Y?[AE]
+@Belize
+BZ-BZ;Belize
+BZ-CY;Cayo
+BZ-CZL;Corozal
+BZ-OW;Orange Walk;ORANGE
+BZ-SC;Stann Creek;STAN
+BZ-TOL;Toledo
+@Benin
+BJ-AL;Alibori
+BJ-AK;Atakora;r:^ATA[CK]ORA
+BJ-AQ;Atlantique
+BJ-BO;Borgou
+BJ-CO;Collines
+BJ-DO;Donga
+BJ-KO;Kouffo;r:^[CK](OU|UO)F+O
+BJ-LI;Littoral
+BJ-MO;Mono
+BJ-OU;Ouémé
+BJ-PL;Plateau;r:^PLAT+E?AU
+BJ-ZO;Zou
+@Bhutan
+BT-33;Bumthang;BUM
+BT-12;Chhukha;r:^CH+UKHA
+BT-22;Dagana
+BT-GA;Gasa
+BT-13;Haa
+BT-44;Lhuentse;r:^LH(U|EU|UE)NTSH?[EI]
+BT-42;Mongar;r:^MONG+AR
+BT-11;Paro
+BT-43;Pema Gatshel;r:^PEMAGATSH?(AL|EL|LE)
+BT-23;Punakha
+BT-45;Samdrup Jongkhar;SAMDRUP
+BT-14;Samtse;r:^SAM[CT][HS][EI]
+BT-31;Sarpang;SARPANG;r:^G[AE]YLEG(PH|F+)UG
+BT-15;Thimphu
+BT-TY;Trashi Yangtse;TRASHI
+BT-41;Trashigang;r:^TR?ASH?IGANG
+BT-32;Trongsa
+BT-21;Tsirang;r:^[CT][HS]IRANG
+BT-24;Wangdue Phodrang;r:^WANGD(U|EU|UE)
+BT-34;Zhemgang;r:^[SZ]HEMGANG
+@Bolivia
+BO-B;Beni;r:^(EL)?BENI
+BO-H;Chuquisaca
+BO-C;Cochabamba
+BO-L;La Paz
+BO-O;Oruro
+BO-N;Pando
+BO-P;Potosí
+BO-S;Santa Cruz
+BO-T;Tarija
+@Bosnia and Herzegovina
+BA-BRC;Brčko
+BA-BIH;Federation of Bosnia and Herzegovina;r:^(FO?)?B[AI]?H;r:^(FEDERATION)?(OF)?BOSNIA
+BA-SRP;Republika Srpska;r:^(REPUBLI(KA?|C))?SE?RPSKA;RS;SERB
+@Botswana
+BW-FR;Francistown
+BW-GA;Gaborone
+BW-CE;Central
+BW-CH;Chobe
+BW-GH;Ghanzi;r:^GH?ANT?[SZ]I
+BW-KG;Kgalagadi
+BW-KL;Kgatleng
+BW-KW;Kweneng
+BW-NE;North-East
+BW-NW;North-West;NORTHWEST;NGAMILAND
+BW-SE;South-East
+BW-SO;Southern;SOUTH;NGWAKETSE
+BW-JW;Jwaneng
+BW-LO;Lobatse
+BW_Or;Orapa
+BW-SP;Selebi-Phikwe;r:^SEL[EI]B[EI];r:(PH|F+)IKWE
+BW-ST;Sowa
+@Brazil
+BR-DF;Federal District;r:^DISTRIC?TOFED[AEI]R(AL|EL|LE);r:^FEDER(AL|EL|LE)DISTRICT;r:^BRA[SZ]IL[EI]A
+BR-AC;Acre
+BR-AL;Alagoas;r:^AL+[AEIO]GOAS
+BR-AP;Amapá
+BR-AM;Amazonas;r:^AM[AEIO]ZON[AEIOU]+S
+BR-BA;Bahia
+BR-CE;Ceará
+BR-ES;Espírito Santo
+BR-GO;Goiás;r:^G[AIOU][AIOU][AIOU]S
+BR-MA;Maranhão;r:^MARANHA?O
+BR-MT;Mato Grosso;r:^MAT+OGROS+O
+BR-MS;Mato Grosso do Sul;r:^MAT+OGROS+O(D[AEO])?SUL
+BR-MG;Minas Gerais;r:^MINASGER[AEIOU]+S
+BR-PA;Pará
+BR-PB;Paraíba;r:^PARAI?BA
+BR-PR;Paraná
+BR-PE;Pernambuco;r:^PERNAMB[AEIOU]CO
+BR-PI;Piauí;r:^P[AEI]+UI
+BR-RJ;Rio de Janeiro
+BR-RN;Rio Grande do Norte;r:^RIOGRANDE?(D[AEO])?NORTE
+BR-RS;Rio Grande do Sul;r:^RIOGRANDE?(D[AEO])?SUL
+BR-RO;Rondônia
+BR-RR;Roraima;r:^ROR+[AI]+MA
+BR-SC;Santa Catarina
+BR-SP;São Paulo
+BR-SE;Sergipe
+BR-TO;Tocantins;r:^T[AIO]C[AEIOU]NT[AEI]NS
+@Brunei
+BN-BE;Belait
+BN-BM;Brunei-Muara;BRUNEI;MUARA
+BN-TE;Temburong
+BN-TU;Tutong
+@Bulgaria
+BG-01;Blagoevgrad;r:^BLAGO?EVGRAD;r:MAC[AEI]DONIA
+BG-02;Burgas
+BG-08;Dobrich
+BG-07;Gabrovo
+BG-26;Haskovo
+BG-09;Kardzhali
+BG-10;Kyustendil
+BG-11;Lovech
+BG-12;Montana
+BG-13;Pazardzhik
+BG-14;Pernik
+BG-15;Pleven
+BG-16;Plovdiv
+BG-17;Razgrad
+BG-18;Ruse
+BG-27;Shumen
+BG-19;Silistra
+BG-20;Sliven
+BG-21;Smolyan
+BG-23;Sofia;r:^SO(F|PH)[IY]+A
+BG-22;Sofia City;r:^SO(F|PH)[IY]+A
+BG-24;Stara Zagora
+BG-25;Targovishte;r:^TARGOVISH?TE
+BG-03;Varna
+BG-04;Veliko Tarnovo;r:^VELIKOT[AE]RNOVO
+BG-05;Vidin
+BG-06;Vratsa;r:^VRA(TS|C)A
+BG-28;Yambol
+@Burkina Faso
+BF_Ba;Bankui
+BF_Dj;Djôrô
+BF_Go;Goulmou
+BF_Gu;Guiriko
+BF_Ka;Kadiogo
+BF_Ku;Kuilsé
+BF_Li;Liptako
+BF_Nak;Nakambé
+BF_Nan;Nando
+BF_Naz;Nazinon
+BF_Ou;Oubri
+BF_Si;Sirba
+BF_Som;Soum
+BF_Sor;Sourou
+BF_Tan;Tannounyan
+BF_Tap;Tapoa
+BF_Ya;Yaadga
+@Burundi
+BI_Buh;Buhumuza
+BI_Buj;Bujumbura
+BI_Bur;Burunga
+BI_But;Butanyerera
+BI_Gi;Gitega
+@Cambodia
+KH-12;Phnom Penh;r:^PH?E?N[OU]MPH?ENH
+KH-1;Banteay Meanchey;r:^BANTEA?(EE|EY|IE|Y)MEA?NCH[AEO]+Y
+KH-2;Battambang;r:^BA+T+D?AMBANG
+KH-3;Kampong Cham;r:^[CK]AMPONGCHA+M
+KH-4;Kampong Chhnang
+KH-5;Kampong Speu;r:^[CK]AMPONGSP([EOU]{2})
+KH-6;Kampong Thom;r:^[CK]AMPONGTH[OU]M
+KH-7;Kampot
+KH-8;Kandal;r:^[CK]ANDA+L
+KH-23;Kep;r:^[CK]A?E[BP]
+KH-9;Koh Kong;r:^[CK]A?OHKONG
+KH-10;Kratié;r:^[CK]H?RA(TIE|CHEH)
+KH-11;Mondulkiri;r:^M[AO][NṆ]D[AOU]LA?[GK]IRI
+KH-22;Oddar Meanchey;r:^O[DT]+ARMEA?NCH[AEO]+Y
+KH-24;Pailin
+KH-18;Preah Sihanouk;r:^(PREA?H)?SE?IHAN(OUC?K|U)
+KH-13;Preah Vihear;r:^(PREA?H)?VIHEA?R
+KH-14;Prey Veng;r:^PR[AE]YV[AE]+NG
+KH-15;Pursat;r:^PO?U(R|THI)?SA+T
+KH-16;Ratanakiri;r:^RE?[AO]K?TAK?N[AO]K+IRI
+KH-17;Siem Reap;r:^(KRONG)?S[AOIE]+MR[EIA]+[BP]
+KH-19;Stung Treng;r:^ST[EOU]+NGTRA?ENG
+KH-20;Svay Rieng;r:^SVA+YRIENG
+KH-21;Takéo;r:^TA+KA?E[OV]
+KH-25;Tboung Khmum;r:^TB[OU]+NGKHMUM
+@Cameroon
+CM-AD;Adamawa;r:^ADAMA[OUW]+A
+CM-CE;Centre;r:^CENTR(AL|EL|LE);r:^CENT(RE|ER)
+CM-ES;East
+CM-EN;Far North;FARNORTH;EXTREMENORD
+CM-LT;Littoral
+CM-NO;North;NORTH;NORD
+CM-NW;Northwest;NORTHWEST;r:^NORDO(U|EU|UE)ST
+CM-SU;South;SOUTH;SUD
+CM-SW;Southwest;SOUTHWEST;r:^SUDO(U|EU|UE)ST
+CM-OU;West;WEST;r:^O(U|EU|UE)ST
+@Canada
+CA-AB;Alberta
+CA-BC;British Columbia;r:^BRITISHC[OU]L[OU]MBIA;BC;r:^COLOMB(EE|EY|IE|Y)BRITAN+IQUE
+CA-MB;Manitoba
+CA-NB;New Brunswick;r:^(NEW|N(OU|UO)V([EA]+U|OW|OUGH))BRUNSWIC?K
+CA-NL;Newfoundland and Labrador;NEWFOUNDLAND;r:^TER+EN(U|EU|UE)VE;LABRADOR
+CA-NS;Nova Scotia;r:^NOU?V(A|EL+E)[ES]CO(TIA|S+E)
+CA-ON;Ontario
+CA-PE;Prince Edward Island;r:^(ILE(DU)?)?PRINCEED(W|OU)ARD;PEI;IPE
+CA-QC;Quebec
+CA-SK;Saskatchewan
+CA-NT;Northwest Territories;r:NOR(TH|D)(W|OU)EST
+CA-NU;Nunavut
+CA-YT;Yukon
+@Cape Verde
+CV-BV;Boa Vista
+CV-BR;Brava
+CV-MA;Maio
+CV-MO;Mosteiros
+CV-PA;Paul
+CV-PN;Porto Novo
+CV-PR;Praia
+CV-RB;Ribeira Brava
+CV-RG;Ribeira Grande
+CV-RS;Ribeira Grande de Santiago
+CV-SL;Sal
+CV-CA;Santa Catarina
+CV-CF;Santa Catarina do Fogo
+CV-CR;Santa Cruz
+CV-SD;São Domingos
+CV-SF;São Filipe
+CV-SO;São Lourenço dos Órgãos;r:^SAOL(OU|UO)RENCO
+CV-SM;São Miguel
+CV-SS;São Salvador do Mundo;SAOSALVADOR
+CV-SV;São Vicente
+CV-TA;Tarrafal
+CV-TS;Tarrafal de São Nicolau
+@Central African Republic
+CF-BB;Bamingui-Bangoran;BAMINGUI;BANGORAN
+CF-BGF;Bangui;r:^BANGU?I
+CF-BK;Basse-Kotto;r:^(BAS+E|UP+ER|DO)KOT+O
+CF-HM;Haut-Mbomou;r:^(HAUTE?|LOWER|TO)MBOMOU
+CF-HK;Haute-Kotto;r:^(HAUTE?|LOWER|TO)KOT+O
+CF-KG;Kémo
+CF_LP;Lim-Pendé
+CF-LB;Lobaye
+CF_Ma;Mambéré;r:^M(AM)?BA?ERE
+CF-HS;Mambéré-Kadéï;r:^M(AM)?BA?ERE[CK]ADEI;r:^(HAUTE?|LOWER|TO)SA?NGH?A
+CF-MB;Mbomou;r:^MBOMO?U
+CF-KB;Nana-Grébizi;r:^(NANA)?GREBIZI;r:^GI?RIBINGU?I
+CF-NM;Nana-Mambéré;r:^NANAM(AM)?BA?ERE
+CF-MP;Ombella-M'Poko;r:^OMBEL+AM?POKO
+CF-UK;Ouaka;r:^[OUW]+AKA
+CF-AC;Ouham;r:^[OUW]+H?AM
+CF_OF;Ouham-Fafa;r:^[OUW]+H?AMO?FAFA
+CF-OP;Ouham-Pendé;r:^[OUW]+H?AMO?PENDE
+CF-SE;Sangha-Mbaéré
+CF-VK;Vakaga
+@Chad
+TD-BG;Bahr el Gazel;r:^BA[AH]?R;r:^([AE]L)?GH?[AE]Z[AE]L
+TD-BA;Batha;r:^([AE]L)?BAT+H?A
+TD-BO;Borkou;r:^B[OU]R[GK]O?U
+TD-CB;Chari-Baguirmi;r:^[CS]HARI;r:^BA[GQ]U?IRMI
+TD-EE;Ennedi-Est;r:^EA?ST(ERN)?[EI]N+[EIY]D[IY];r:^[EI]N+[EIY]D[IY](EA?ST|(A(SH|L))?SH?AR[QG]I)
+TD-EO;Ennedi-Ouest;r:^O?[WU]EST(ERN)?[EI]N+[EIY]D[IY];r:^[EI]N+[EIY]D[IY](O?[WU]EST|(A(SH|L))?GH?ARBI)
+TD-GR;Guéra;r:^[GQ]U?[EIY]RA
+TD-HL;Hadjer-Lamis;r:^HAD?J+[AEI]R;LAMIS
+TD-KA;Kanem;r:^KAN[EI]M
+TD-LC;Lac;LAC;r:^([AE][LR])?B[AU]HAY?R
+TD-LO;Logone Occidental;r:^LOGONE(OCCIDENTAL|[OUW]+EST);r:^(OCCIDENTAL|[OUW]+EST(ERN)?)LOGONE
+TD-LR;Logone Oriental;r:^LOGONE(ORIENTAL|EA?ST);r:^(ORIENTAL|EA?ST(ERN)?)LOGONE
+TD-MA;Mandoul;r:^MANDO?UL
+TD-ME;Mayo-Kebbi Est;r:^M[AE]Y[OU](KEB+I)?EA?ST;r:^KEB+IEA?ST;r:^EA?ST(ERN)?M[AE]Y[OU];r:^EA?ST(ERN)?KEB+I
+TD-MO;Mayo-Kebbi Ouest;r:^M[AE]Y[OU](KEB+I)?O?[WU]EST;r:^KEB+IO?[WU]EST;r:^O?[WU]EST(ERN)?M[AE]Y[OU];r:O?[WU]EST(ERN)?KEB+I
+TD-MC;Moyen-Chari;r:^MOY[AEI]N;r:^[CS]HARI
+TD-ND;N'Djamena;r:^(CITY|VIL+E|MADINAT)?(OF|DE)?I?ND?J[AEI]M[AEI]NA
+TD-OD;Ouaddaï;r:^[OUW]+AD+A[IY]
+TD-SA;Salamat
+TD-SI;Sila;r:^(DAR)?SILA
+TD-TA;Tandjilé;r:^TAND?JIL[EIY]
+TD-TI;Tibesti;r:^T[EIY]B[AEI]ST[IY]
+TD-WF;Wadi Fira;r:^(WADI)?FIRA
+@Chile
+CL-AN;Antofagasta
+CL-AR;Araucanía
+CL-AP;Arica and Parinacota;r:^ARICA;r:^PARIN+ACOT+A
+CL-AT;Atacama
+CL-AI;Aysén;r:^A[IY]SEN
+CL-BI;Biobío
+CL-CO;Coquimbo
+CL-LL;Los Lagos;r:^(L[AO]S)?LAGOS
+CL-LR;Los Ríos;r:^(L[AO]S)?RIOS
+CL-MA;Magallanes
+CL-ML;Maule
+CL-NB;Ñuble
+CL-LI;O'Higgins;r:HIG+INS
+CL-RM;Santiago;c:SANTIAGO
+CL-TA;Tarapacá
+CL-VS;Valparaíso
+@China
+CN-BJ;Beijing;r:^B[EI]+JING
+CN-CQ;Chongqing
+CN-SH;Shanghai
+CN-TJ;Tianjin
+CN-AH;Anhui;r:^ANHUI
+CN-FJ;Fujian;r:^FUJ[AEI]+N
+CN-GS;Gansu;r:^GANSU
+CN-GD;Guangdong
+CN-GZ;Guizhou;r:^G[UI]+ZH?OU
+CN-HI;Hainan
+CN-HE;Hebei;r:^HEBEI
+CN-HL;Heilongjiang;r:^H[EI]+LONGJ[AEI]+NG
+CN-HA;Henan;r:^HEN+AN
+CN-HB;Hubei;r:^HUBEI
+CN-HN;Hunan;r:^HUN+AN
+CN-JS;Jiangsu;r:^J[AEI]+NGSU
+CN-JX;Jiangxi;r:^J[AEI]+NGXI
+CN-JL;Jilin;r:^JIL+[AI]N;KIRIN
+CN-LN;Liaoning;r:^L[AIO]+NING
+CN-QH;Qinghai;r:^[QTS]+INGHAI
+CN-SN;Shaanxi;r:^SHA+NXI
+CN-SD;Shandong;r:^SHANDONG
+CN-SX;Shanxi;r:^SHA+NXI
+CN-SC;Sichuan
+CN-YN;Yunnan;r:^YUN+AN
+CN-ZJ;Zhejiang;r:^[CZ]H?EJ[AIE]+NG
+CN-GX;Guangxi;r:^G(AU|UA)NG?XI
+CN-NM;Inner Mongolia;NEIMONGOL;r:^(INNER)?MONGOLIA
+CN-NX;Ningxia;r:^NINGXIA
+CN-XZ;Tibet;TIBET;XIZANG
+CN-XJ;Xinjiang;r:^XINJ[AEI]+NG;r:U[IY]+GH?[EU]R
+CN-HK;Hong Kong
+CN-MO;Macau
+@Colombia
+CO-AMA;Amazonas;r:^AM[AEIO]ZON[AEIOU]+S
+CO-ANT;Antioquia
+CO-ARA;Arauca
+CO-ATL;Atlántico
+CO-BOL;Bolívar
+CO-BOY;Boyacá
+CO-CAL;Caldas
+CO-CAQ;Caquetá
+CO-CAS;Casanare
+CO-CAU;Cauca
+CO-CES;Cesar
+CO-CHO;Chocó
+CO-COR;Córdoba
+CO-CUN;Cundinamarca
+CO-GUA;Guainía
+CO-GUV;Guaviare
+CO-HUI;Huila
+CO-LAG;La Guajira;r:^(LA)?GUAJIRA
+CO-MAG;Magdalena
+CO-MET;Meta
+CO-NAR;Nariño
+CO-NSA;Norte de Santander;r:^NORTE(DE)?SANTANDER
+CO-PUT;Putumayo
+CO-QUI;Quindío
+CO-RIS;Risaralda
+CO-SAP;San Andrés, Providencia and Santa Catalina;r:^SANANDRES|PROVIDENC[EI]A|SANTACATALINA;SAPSC
+CO-SAN;Santander
+CO-SUC;Sucre
+CO-TOL;Tolima
+CO-VAC;Valle del Cauca;r:^(CAUCA)?VALLE
+CO-VAU;Vaupés
+CO-VID;Vichada
+CO-DC;Capital District;r:CAPITAL;r:^B[AEIO]GOTA
+@Comoros
+KM-A;Anjouan;r:^((HI|A)?ND?)?[JZ][WOU]+H?AN
+KM-G;Grande Comore;r:^(GRANDE?)?COMOR[EO];r:^A?ND?[JG]AZID?JA
+KM-M;Mohéli;r:^M[AOUW]+H?[AEI]LI
+@Cook Islands
+CK-AI;Aitutaki
+CK-AT;Atiu
+CK-MG;Mangaia
+CK-MH;Manihiki
+CK-MK;Mauke
+CK-MI;Mitiaro
+CK-PA;Palmerston
+CK-PE;Penrhyn
+CK-PU;Pukapuka
+CK-RA;Rakahanga
+CK-AR;Arorangi
+CK-AV;Avarua
+CK-MT;Matavera
+CK-NG;Ngatangiia
+CK-TA;Takitumu
+@Costa Rica
+CR-A;Alajuela
+CR-C;Cartago
+CR-G;Guanacaste
+CR-H;Heredia
+CR-L;Limón
+CR-P;Puntarenas
+CR-SJ;San José
+@Croatia
+HR-21;Zagreb
+HR-07;Bjelovar-Bilogora;BJELOVAR;r:^BILOGO[RSK]+A
+HR-12;Brod-Posavina;BROD;r:^POSAVI?[NSK]+A
+HR-19;Dubrovnik-Neretva;r:^DUBROVA?NIC?K;NERETVA
+HR-18;Istria;r:^ISTA?R(AS)?[EIK]A
+HR-04;Karlovac;r:^[CK]ARLOVAC
+HR-06;Koprivnica-Križevci;r:^KOPRIVNI[CK]+[AO];r:^[CK]H?RI[SZ]H?EVA?[CK]+[AI]
+HR-02;Krapina-Zagorje;r:^[CK]H?RAPI[NSK]+[AO];r:^ZAGOR[JSK]+[AE]
+HR-09;Lika-Senj;r:^LI[CK]+[OA];SENJ
+HR-20;Međimurje;r:^MEDIMUR[JSK]+[AE]
+HR-14;Osijek-Baranja;r:^OSI?JEC?K;r:^BARAN[JSK]+A
+HR-11;Požega-Slavonia;r:^POZH?E[GSK]+[AO];r:^SLAVO[NSK]+[EI]?A
+HR-08;Primorje-Gorski Kotar;r:^PRIMOR[JSK]+[EO];r:^GORA?[NSK]+[AI]
+HR-15;Šibenik-Knin;r:^SH?IBENI?[CS]?K;r:^KN[AEI]N
+HR-03;Sisak-Moslavina;r:^SISAC?K;r:^MOSLAV[AI][NCK]+A
+HR-17;Split-Dalmatia;SPLIT;r:^DALMAT[EI][NSK]*A
+HR-05;Varaždin
+HR-10;Virovitica-Podravina;r:^VIROVITI[CK]+[OA];r:^PODRAVI?[NSK]+A
+HR-16;Vukovar-Srijem;VUKOVAR;SRIJEM
+HR-13;Zadar
+HR-01;Zagreb
+@Cuba
+CU-99;Isla de la Juventud
+CU-15;Artemisa
+CU-09;Camagüey
+CU-08;Ciego de Ávila;CIEGO;r:^(DE)?AVILA
+CU-06;Cienfuegos
+CU-12;Granma
+CU-14;Guantánamo
+CU-11;Holguín
+CU-03;La Habana;r:^(LA)?HA[BV]AN+A
+CU-10;Las Tunas;r:^(L[AO]S)?TUNAS
+CU-04;Matanzas
+CU-16;Mayabeque
+CU-01;Pinar del Río;PINAR
+CU-07;Sancti Spíritus
+CU-13;Santiago de Cuba;SANTIAGO
+CU-05;Villa Clara
+@Curaçao
+CW-W;Willemstad
+CW-BB;Bandabou;r:^BANDA+BOU
+CW-BR;Bandariba;r:^BANDA+RIBA
+@Cyprus
+CY-04;Famagusta;r:^([FG]?A)?(ZI)?M+[AO](GUST?A|CHOSTOS)
+CY-03;Larnaca;r:^LARNA[CK]A
+CY-02;Limassol;r:^L[IEY]+M[AEO]S+[OU][LNS]
+CY-01;Nicosia;r:^[LN][AEI]F?[CK]OS[EI]?A
+CY-05;Paphos;r:^[PB]A(F|PH)
+@Czech Republic
+CZ-10;Prague;r:^PRA[GH][UE]?[AUE]
+CZ-20;Central Bohemia;r:^CENTR(AL|EL|LE)BOHEM[EI]A;r:^STRH?EDOCH?ESK(EE|EY|IE|Y);r:^MIT+ELBOHMIS[CH]+E
+CZ-52;Hradec Králové;r:^HRADEC;r:^[CK]H?RALOVE
+CZ-41;Karlovy Vary;r:^[CK]ARL(OVY?|S)(V?AR(SK)?Y|BAD)
+CZ-51;Liberec;LIBEREC;r:^REICHENB[OUE]+RGER
+CZ-80;Moravia-Silesia;r:^MORA[VW]I?[SK]*[AEO];r:^SI?LE[ZSK]+(EE|EY|I[AE]|Y);r:^OSTRAV(SK)?[AY]
+CZ-71;Olomouc;r:^OLOMO?U(NIE)?C
+CZ-53;Pardubice;r:^PARDUBI[CK]+[EIY]
+CZ-32;Plzeň;r:^PI?L+[SZ]([AEI]N|NER)
+CZ-31;South Bohemia;SOUTHBOHEMIA;r:^JIHOCH?ESK(EE|EY|IE|Y);r:^SUDBOHMIS[CH]+E
+CZ-64;South Moravia;SOUTHMORAVIA;r:^J[IU]HOMORAVSK(EE|EY|IE|Y);r:^SUDM[AOU]HRIS[CH]+E
+CZ-42;Ústí nad Labem;r:^UST[EI];r:^AUS+IG
+CZ-63;Vysočina;r:^V[IY]SOCH?INA;HOCHLAND
+CZ-72;Zlín;r:^ZL[AEI]N
+@Democratic Republic of the Congo
+CD-BU;Bas-Uélé;r:^(BAS|LOW(ER)?)UELE
+CD-EQ;Équateur;r:^EQUAT[EOU]+R
+CD-HK;Haut-Katanga;r:^(HAUTE?|UP(PER)?)[CK]ATANGA
+CD-HL;Haut-Lomami;r:^(HAUTE?|UP(PER)?)LOMAMI
+CD-HU;Haut-Uélé;r:^(HAUTE?|UP(PER)?)UELE
+CD-IT;Ituri
+CD-KS;Kasaï
+CD-KC;Kasaï-Central;r:^[CK]ASAICENTRAL;r:^CENTRAL[CK]ASAI
+CD-KE;Kasaï-Oriental;r:^[CK]ASAI(ORIENTAL|EAST);r:^(ORIENTAL|EAST)[CK]ASAI
+CD-KN;Kinshasa
+CD-BC;Kongo Central;r:^[CK]ONGOCENTRAL;r:^(BAS|LOW(ER)?|CENTRAL)[CK]ONGO
+CD-KG;Kwango
+CD-KL;Kwilu
+CD-LO;Lomami
+CD-LU;Lualaba
+CD-MN;Mai-Ndombe
+CD-MA;Maniema
+CD-MO;Mongala
+CD-NU;Nord-Ubangi;r:^NOR(D|TH(ERN)?)UBANGI
+CD-NK;North Kivu;r:^NOR(D|TH(ERN)?)KIVU
+CD-SA;Sankuru
+CD-SK;South Kivu;r:^[SZ][IOU]+(D|TH(ERN)?)KIVU
+CD-SU;Sud-Ubangi;r:^[SZ][IOU]+(D|TH(ERN)?)UBANGI
+CD-TA;Tanganyika
+CD-TO;Tshopo
+CD-TU;Tshuapa
+@Denmark
+DK-84;Capital Region;r:^HOVEDSTAD[AEI]N;r:CAPITAL;r:^[CK]O[BP]ENHA[GV]E?N
+DK-82;Central Denmark;MID;r:^CENT(RAL|RE|ER)
+DK-81;North Jutland;r:^NOR(D|TH)
+DK-83;Southern Denmark;r:^S[OUY]+(D|TH)
+DK-85;Zealand;r:^[SZ]J?[AE]+L+AND
+@Djibouti
+DJ-AS;Ali Sabieh;r:^C?ALISAB[EI]+[HX]
+DJ-AR;Arta;r:^C?ARTA
+DJ-DI;Dikhil
+DJ-DJ;Djibouti;r:^D?J[AEI]B[OU]+TI
+DJ-OB;Obock;r:^[AO]W?B[OU]C?K
+DJ-TA;Tadjourah;r:^TAD?[GJ][OU]+R+[AI]
+@Dominica
+DM-02;Saint Andrew;r:^(SAINT|ST)ANDREW
+DM-03;Saint David;r:^(SAINT|ST)DAVID
+DM-04;Saint George
+DM-05;Saint John
+DM-06;Saint Joseph;r:^(SAINT|ST)JOSE(PH|F+)
+DM-07;Saint Luke;r:^(SAINT|ST)LUKE
+DM-08;Saint Mark;r:^(SAINT|ST)MARC?K
+DM-09;Saint Patrick;r:^(SAINT|ST)?PATRICK
+DM-10;Saint Paul
+DM-11;Saint Peter;r:^(SAINT|ST)PETER
+@Dominican Republic
+DO-01;Distrito Nacional;DISTRITONACIONAL;NATIONALDISTRICT;SANTODOMINGO
+DO-02;Azua
+DO-03;Baoruco;r:^BAH?ORUCO
+DO-04;Barahona;r:^BARAH?ONA
+DO-05;Dajabón
+DO-06;Duarte
+DO-08;El Seibo;r:^(EL)?SE[IY]BO
+DO-07;Elías Piña;ELIASPINA
+DO-09;Espaillat
+DO-30;Hato Mayor;HATOMAYOR
+DO-19;Hermanas Mirabal;r:^(HERMANAS)?MIRABAL;SALCEDO
+DO-10;Independencia
+DO-11;La Altagracia;r:^(LA)?ALTAGRACIA
+DO-12;La Romana;r:^(LA)?ROMANA
+DO-13;La Vega;r:^(LA)?VEGA
+DO-14;María Trinidad Sánchez;r:^(MARIA)?(TRINIDAD)?SANCHEZ;r:^(JULIA)?MOLINA;MTS
+DO-28;Monseñor Nouel;r:^(MONSENOR)?NOUEL
+DO-15;Monte Cristi;MONTECRISTI
+DO-29;Monte Plata
+DO-16;Pedernales
+DO-17;Peravia;PERAVIA
+DO-18;Puerto Plata;r:^(PUERTO|PTO?)PLATA
+DO-20;Samaná
+DO-21;San Cristóbal;r:^SANCRISTOBAL;r:^TRUJIL+O
+DO-31;San José de Ocoa;SANJOSE;r:^(DE)?OCOA
+DO-22;San Juan
+DO-23;San Pedro de Macorís;SANPEDRO;r:^(DE)?MACORIS
+DO-24;Sánchez Ramírez
+DO-25;Santiago
+DO-26;Santiago Rodríguez;SANTIAGORODRIGUEZ
+DO-32;Santo Domingo;SANTODOMINGO;DISTRITONACIONAL;NATIONALDISTRICT
+DO-27;Valverde
+@East Timor
+TL-AL;Aileu
+TL-AN;Ainaro;r:^AINAR[OU]
+TL_At;Atauro;r:^AT(AU|UA)R[OU];r:^[CK]AMBING
+TL-BA;Baucau;r:^BA[UL][CK]AU
+TL-BO;Bobonaro;r:^B[OU]B[OU]R?NAR[OU]
+TL-CO;Cova Lima;r:^[CK]OVALIMA
+TL-DI;Dili
+TL-ER;Ermera
+TL-LA;Lautém;r:^LAUT[AEI]+[MN]
+TL-LI;Liquiçá;r:^LI[KQ][IU]+[CS]A
+TL-MT;Manatuto;r:^MANATUT[OU]
+TL-MF;Manufahi
+TL-OE;Oecusse;r:^O?E?[CK]US+[EI];AMBENO
+TL-VI;Viqueque;r:^VI[KQ][EU]+[KQ]U?E
+@Ecuador
+EC-A;Azuay
+EC-B;Bolívar
+EC-F;Cañar
+EC-C;Carchi
+EC-H;Chimborazo
+EC-X;Cotopaxi
+EC-O;El Oro;r:^(EL)?ORO
+EC-E;Esmeraldas
+EC-W;Galápagos
+EC-G;Guayas
+EC-I;Imbabura
+EC-L;Loja
+EC-R;Los Ríos;r:^(L[AO]S)?RIOS
+EC-M;Manabí
+EC-S;Morona-Santiago;MORONA;SANTIAGO
+EC-N;Napo
+EC-D;Orellana
+EC-Y;Pastaza
+EC-P;Pichincha
+EC-SE;Santa Elena
+EC-SD;Santo Domingo de los Tsáchilas;SANTODOMINGO;r:^(DE)?(L[AO]S)?T?SACHILAS
+EC-U;Sucumbíos
+EC-T;Tungurahua
+EC-Z;Zamora-Chinchipe;ZAMORA;CHINCHIPE
+@Egypt
+EG-ALX;Alexandria;r:^[AEI](LE)?S?[CKX]AND[AE]?R[IE]Y*A
+EG-ASN;Aswan
+EG-AST;Asyut
+EG-BH;Beheira;r:^B[EU]H[AE][IY]?RA
+EG-BNS;Beni Suef;r:^B[AE]NIS(U|EU|UE)B?F
+EG-C;Cairo;r:^([AE][LCQ])?[CQ][AI]H?[AI]R[AO]
+EG-DK;Dakahlia;r:^DA[CKQ]AHL[EI]Y?A
+EG-DT;Damietta;r:^D[AU]M[IY][AE]T
+EG-FYM;Faiyum;r:^([AE][LF])?F[AE][IY]+UM;SHEDET
+EG-GH;Gharbia;r:^GH?ARB[AEIY]+A
+EG-GZ;Giza;r:^[GJ]IZA
+EG-IS;Ismailia;r:^[EI]SMA[Iʿ]+L[EIY]+A
+EG-KFS;Kafr El Sheikh;r:^[CK]AFR;r:^FUAD[IY]+A;r:^([AE](L|SH))?SH[AE]IK
+EG-LX;Luxor;r:^L[AU]([KQ]S|X)[AEIOU]R;AQSAR
+EG-MT;Matrouh;r:^MATR[OU]+H
+EG-MN;Minya
+EG-MNF;Monufia;r:^M[AEIOU]N[OU]+FE?[EIY]A
+EG-WAD;New Valley;r:^(NEW)?[VW]A(D|L+)E?[IY];r:^([AE]L)?WADI[AE]L[GJ][AEI]D(EE|[IY])D
+EG-SIN;North Sinai;r:^(NORTH(ERN)?|SHAM(AL|EL|LE))S[AI]+NA[AEI]
+EG-PTS;Port Said;r:^([BP][OU]RT?)?SA[EIY]+D
+EG-KB;Qalyubiyya;r:^([AE][RL])?QALYUB[AEIY]+A
+EG-KN;Qena;r:^Q[EI]NA
+EG-BA;Red Sea;r:^(THE)?REDSEA;r:^(AL)?(BA[AH]*R)?([AE]L)?A[AH]?MAR
+EG-SHR;Sharqia;r:^(AL)?SHARQ[EIY]+A
+EG-SHG;Sohag;r:^SOHA[GJ];r:^[GJ][EI]R[GJ]A
+EG-JS;South Sinai;r:^(SOUTH(ERN)?|JANUB)S[AI]+NA[AEI]
+EG-SUZ;Suez;r:^SUW?[AE]Y?[SZ]
+@El Salvador
+SV-AH;Ahuachapán
+SV-CA;Cabañas
+SV-CH;Chalatenango
+SV-CU;Cuscatlán
+SV-LI;La Libertad;r:^(LA)?LIBERTAD
+SV-PA;La Paz;r:^(LA)?PAZ
+SV-UN;La Unión;r:^(LA)?UNION
+SV-MO;Morazán
+SV-SM;San Miguel
+SV-SS;San Salvador
+SV-SV;San Vicente
+SV-SA;Santa Ana
+SV-SO;Sonsonate
+SV-US;Usulután
+@Equatorial Guinea
+GQ-AN;Annobón;r:^AN+OBO[MN];PAGALU
+GQ-BN;Bioko Norte;r:^BIOKONOR(TE|D|TH);r:^NOR(TE|D|TH)BIOKO
+GQ-BS;Bioko Sur;r:^BIOKOS[OU]+(D|L|R|TH);r:^S[OU]+(D|L|R|TH)BIOKO
+GQ-CS;Centro Sur;r:^CENT(R[EO]|ER|RAL)S[OU]+(D|L|R|TH);r:^S[OU]+(D|L|R|TH)CENT(R[EO]|ER|RAL)
+GQ-DJ;Djibloho;DJIBLOHO;r:^(C[IU]+DADE?)?(D[AE])?(LA)?PAZ;OYALA
+GQ-KN;Kié-Ntem;KIENTEM
+GQ-LI;Litoral;r:^LIT+ORAL
+GQ-WN;Wele-Nzas
+@Eritrea
+ER-AN;Anseba;r:^ANS[AE]BA
+ER-MA;Central;r:^CENT(RAL|RE|ER);r:^(AL)?M[AEI]+R?KE(L|ZHIA);r:^(AL)?AWSAT
+ER-GB;Gash-Barka;r:^[GQ]AS[CH];r:^BAR[CK]A
+ER-SK;Northern Red Sea;r:^NORTH(ERN)?REDSEA;r:^SHIMALI(AL)?BA[HḨ]RI(AL)?A[HḨ]MAR;r:^SEMIENAWI[CK][AEIY]+HBA[AH]?RI;r:^MARROS+OSET+ENTRIONALE
+ER-DU;Southern;SOUTH;r:^(AL)?[DJ][AE][BN]UB
+ER-DK;Southern Red Sea;r:^SOUTH(ERN)?REDSEA;r:^JANUBI(AL)?BA[HḨ]RI(AL)?A[HḨ]MAR;r:^D[AE]BUBAWI[CK][AEIY]+HBA[AH]?RI;r:^MARROS+OMERIDIONALE
+@Estonia
+EE-130;Alutaguse
+EE-141;Anija
+EE-142;Antsla;r:^ANT?[SZ]L?[AE]
+EE-171;Elva
+EE-214;Häädemeeste;r:^HA[AH]?DEME[AE]STE;r:^GUDMAN+SBACH
+EE-191;Haljala
+EE-198;Harku
+EE-205;Hiiumaa;HIIU
+EE-255;Järva
+EE-245;Jõelähtme
+EE-247;Jõgeva
+EE-251;Jõhvi;JOHVI;JEWE
+EE-272;Kadrina;r:^(SANKT|ST)?[CK]A(D|THA)RIN(A|EN)
+EE-283;Kambja
+EE-284;Kanepi;r:^[CK]AN+[AE]P(I|AH)
+EE-291;Kastre
+EE-293;Kehtna
+EE-303;Kihnu
+EE-305;Kiili
+EE-317;Kohila;r:^(KAP+A)?KO(HILA|IL)
+EE-338;Kose;r:^KOS(E|CH)
+EE-353;Kuusalu;r:^KU(USALU|SAL)
+EE-431;Lääne-Harju;r:^(LA+NE|WEST(ERN)?)HARJU
+EE-441;Lääne-Nigula;r:^(LA+NE|WEST(ERN)?)NIGULA
+EE-430;Lääneranna
+EE-442;Lüganuse
+EE-432;Luunja;r:^LU+N[EIJ]A
+EE-503;Märjamaa;MARJA
+EE-478;Muhu
+EE-480;Mulgi
+EE-486;Mustvee
+EE-528;Nõo;NOO;r:^NUGG[AEI]N
+EE-557;Otepää
+EE-586;Peipsiääre
+EE-638;Põhja-Pärnumaa;r:^(POHJA|NORTH(ERN)?)PARNU
+EE-615;Põhja-Sakala;r:^(POHJA|NORTH(ERN)?)SA[CK]ALA
+EE-618;Põltsamaa;POLTSA
+EE-622;Põlva;r:^POL[VW][AE]
+EE-651;Raasiku
+EE-653;Rae
+EE-661;Rakvere
+EE-708;Räpina;r:^RAP(INA|PIN)
+EE-668;Rapla;r:^RAP+(LA|EL)
+EE-698;Rõuge;r:^R[AO]UG[EO]
+EE-689;Ruhnu;r:^R[OU]H?N[OU]
+EE-712;Saarde
+EE-714;Saaremaa;SAARE
+EE-719;Saku;r:^SA(KU|CK)
+EE-726;Saue
+EE-732;Setomaa;SETO
+EE-792;Tapa
+EE-796;Tartu;r:^TART[OU]
+EE-803;Toila
+EE-809;Tori
+EE-824;Tõrva;r:^TOR[VW]A
+EE-834;Türi
+EE-928;Väike-Maarja;r:^(VAIKE|KLEIN)MA+R(JA|IEN)
+EE-855;Valga
+EE-890;Viimsi;r:^[VW]I[IE]MSI;WIEMS
+EE-899;Viljandi;r:^[FV][EI]L+J?(AND[EI]|IN)
+EE-901;Vinni
+EE-903;Viru-Nigula;VIRUNIGULA;r:^M[AOU]HOLM
+EE-907;Vormsi;r:^V?ORMS[IO]
+EE-917;Võru;r:^[VW][EO]R+[OU]
+EE-184;Haapsalu
+EE-296;Keila;KEILA;KEGEL
+EE-321;Kohtla-Järve
+EE-424;Loksa
+EE-446;Maardu;r:^MA+R(DU|T)
+EE-511;Narva;r:^NAR[VW]A
+EE-514;Narva-Jõesuu
+EE-567;Paide
+EE-624;Pärnu;r:^P[AE]RNA?U
+EE-663;Rakvere
+EE-735;Sillamäe;r:^SIL+AMA(E|G+I)
+EE-784;Tallinn
+EE-793;Tartu;r:^TART[OU]
+EE-897;Viljandi;r:^[FV][EI]L+J?(AND[EI]|IN)
+EE-919;Võru;r:^[VW][EO]R+[OU]
+@Eswatini
+SZ-HH;Hhohho;r:^([CK]A)?H+OH+O
+SZ-LU;Lubombo;r:^E?LUBO[MN](BO|JENI)
+SZ-MA;Manzini;r:^([CK]A)?MANZINI
+SZ-SH;Shiselweni;r:^E?SHI[SZ]ELWENI
+@Ethiopia
+ET-AA;Addis Ababa;r:^ADDIS;r:^FINFIN+E
+ET-DD;Dire Dawa;r:^DIR+[EI]DH?A[BW]A
+ET-AF;Afar;r:^Q?AFAR
+ET-AM;Amhara;r:^ʾ?AMH?ARA
+ET-BE;Benishangul-Gumuz;r:^BENI?SH?ANGUL;GUMUZ
+ET_CER;Central Ethiopia;r:^CENT(RAL|RE|ER);CER
+ET-GA;Gambela;r:^GAMBEL+A
+ET-HA;Harari
+ET-OR;Oromia;r:^OROM[EIY]+A
+ET-SI;Sidama
+ET-SO;Somali;r:^S[OU]+MA+L[EI]
+ET_SERS;South Ethiopia;SOUTH;SERS
+ET-SW;South West Ethiopia Peoples' Region;SOUTHWEST;r:^YADABUBE?MEʾ?E*RABE;SWEPR;YMIHK
+ET-TI;Tigray;r:^T[EI]GR[AE][IY]
+@Faroe Islands
+FO-Ei;Eiði
+FO-Ey;Eystur
+FO-Fa;Fámjin;r:^FAM[IJ][AEI]N
+FO-Fua;Fuglafjørður;r:^FUGL[AE]FJ[AO]RD
+FO-Fuo;Fugloy;FUGLO
+FO-Ho;Hov
+FO-Hu;Húsavík;r:^HUS[AE]VIC?[KG]
+FO-Hvl;Hvalba;r:^[HK]VALBI?[AO]
+FO-Hvn;Hvannasund;r:^[HK]VAN+[AE]SUND
+FO-Kl;Klaksvík
+FO-Ku;Kunoy
+FO-Kv;Kvívík;r:^KVIVIC?[KG]
+FO-Ne;Nes
+FO-Po;Porkeri;r:^PORKER[EI]
+FO-Ru;Runavík
+FO-Sa;Sandur;SAND
+FO-Sj;Sjóvar
+FO-Ska;Skálavík;r:^S[CK]AL[AE]VIC?[KG]
+FO-Sko;Skopun;r:^SKOP[AEIU]N
+FO-Sku;Skúvoy;r:^SKUG?VOY;SKUO
+FO-So;Sørvágur;r:^SORVAG(UR|S)
+FO-Sum;Sumba;r:^SUMB[EI]?A
+FO-Sun;Sunda
+FO-To;Tórshavn;r:^TH?ORSHAVN
+FO-Tv;Tvøroyri;r:^TVOROYR(I|AR)
+FO-Vaa;Vágar;r:^VAG[AO]
+FO-Vas;Vágur;VAG
+FO-Ve;Vestmanna
+FO-Vi;Viðareiði;r:^VID[AE]RE[IJ]D[EI]
+@Federated States of Micronesia
+FM-TRK;Chuuk;r:^(CH|TR)U+K
+FM-KSA;Kosrae;r:^K[OU]SR?AI?E
+FM-PNI;Pohnpei
+FM-YAP;Yap
+@Fiji
+FJ-R;Rotuma
+FJ-C;Central;r:^CENT(RAL|ER|RE)
+FJ-E;Eastern;EAST
+FJ-N;Northern;NORTH
+FJ-W;Western;WEST
+@Finland
+FI-01;Åland;ALAND;r:^AH?VENANMAA
+FI-08;Central Finland;r:^CENT(RAL|RE|ER);KESKI;r:^MEL+ERSTA
+FI-07;Central Ostrobothnia;r:^CENT(RAL|RE|ER)OSTROBOTHNIA;KESKIPOHJANMAA;r:^MEL+ERSTAOSTERBOT+[AEI]N
+FI-05;Kainuu;r:^KA[IJ]A?N(UU|A)
+FI-06;Kanta-Häme;r:^(KANTA)?HAME;r:^(EGENTLIGA)?TAVAST(LAND|IA)
+FI-09;Kymenlaakso;r:^KYM+EN(LA+KSO|EDALEN)
+FI-10;Lapland;r:^LAP+(LAND|I)
+FI-13;North Karelia;r:^(NORTH(ERN)?|POHJOIS|NORRA)KAR[EJ]A?L(I?A|EN)
+FI-14;North Ostrobothnia;r:^(NORTH(ERN)?|POHJOIS|NORRA)(OST(RO|ER)BOT(HNIA|TEN)|POH?JANMAA)
+FI-15;North Savo;r:^(NORTH(ERN)?|POHJOIS|NORRA)SAVO
+FI-12;Ostrobothnia;r:^OST(RO|ER)BOT(HNIA|TEN);r:^POH?JANMAA
+FI-16;Päijät-Häme;PAIJATHAME;r:^PAIJAN+ETAVAST[EI]A;PAIJATHAME;r:^PAIJAN+ETAVASTLAND
+FI-11;Pirkanmaa;r:^[BP]IRKA(NMAA|LAND)
+FI-17;Satakunta
+FI-02;South Karelia;r:^(SOUTH(ERN)?|ETELA|SODRA)KAR[EJ]A?L(I?A|EN)
+FI-03;South Ostrobothnia;r:^(SOUTH(ERN)?|ETELA|SODRA)(OST(RO|ER)BOT(HNIA|TEN)|POH?JANMAA)
+FI-04;South Savo;r:^(SOUTH(ERN)?|ETELA|SODRA)SAVO
+FI-19;Southwest Finland;SOUTHWEST;VARSINAIS;EGENTLIGA
+FI-18;Uusimaa;UUSIMAA;NYLAND
+@France
+FR-PF;French Polynesia;r:^(FRENCH)?POLYNESIA
+FR-BL;Saint Barthélemy
+FR-MF;Saint Martin;r:^(SAINT|ST|SINT)MA+RT[EI]N
+FR-PM;Saint Pierre and Miquelon;r:^(SAINT|ST)PIERRE;r:SP[AE]M
+FR-WF;Wallis and Futuna;r:^WAL+IS
+FR-ARA;Auvergne-Rhône-Alpes;r:^AUVERGN?E;r:^RHONEALPE?S;AURA
+FR-BFC;Bourgogne-Franche-Comté;r:^B[OU]+RGOGNE;FRANCHECOMTE;BURGUNDY;BFC
+FR-BRE;Brittany
+FR-CVL;Centre-Val de Loire;r:^CENT(RE|ER|RAL);VALDELOIRE
+FR-20R;Corsica
+FR-973;French Guiana
+FR-GES;Grand Est;r:^(GRAND)?EA?ST
+FR-971;Guadeloupe
+FR-HDF;Hauts-de-France;r:^HAUTS?DEFRANCE;UPPER
+FR-IDF;Île-de-France
+FR-972;Martinique
+FR-976;Mayotte
+FR-NOR;Normandy
+FR-NAQ;Nouvelle-Aquitaine
+FR-OCC;Occitania;r:^OC+[AEI]TA(NI[AE]|IN|NE)
+FR-PDL;Pays de la Loire
+FR-PAC;Provence-Alpes-Côte d'Azur;PROVENCE;r:^COTED?AZUR;PACA;r:^SUD|^SOUTH
+FR-974;Réunion
+FR-NC;New Caledonia
+@Gabon
+GA-1;Estuaire;r:^ESTUAI?R[EY]
+GA-2;Haut-Ogooué;r:^(H(AU|UA)TE?|UPPER)OGO(OU|UO)E
+GA-3;Moyen-Ogooué;r:^(MOY[AEI]N|MIDDLE)OGO(OU|UO)E
+GA-4;Ngounié
+GA-5;Nyanga
+GA-6;Ogooué-Ivindo
+GA-7;Ogooué-Lolo
+GA-8;Ogooué-Maritime;r:^OGO(OU|UO)EMARITIME;r:^MARITIMEOGO(OU|UO)E
+GA-9;Woleu-Ntem
+@Gambia
+GM-B;Banjul
+GM-M;Central River
+GM-L;Lower River
+GM-N;North Bank;NORTH
+GM-U;Upper River
+GM-W;West Coast;WEST
+@Georgia
+GE-TB;Tbilisi
+GE-GU;Guria
+GE-IM;Imereti
+GE-KA;Kakheti;r:^[CK]AKH?ETI
+GE-KK;Kvemo Kartli;KVEMO
+GE-MM;Mtskheta-Mtianeti;MTSKHETA;r:^MT[EI]ANETI
+GE-RL;Racha-Lechkhumi and Kvemo Svaneti;r:^RACH?A;r:^LEC[HKX]+UMI;KVEMOSVANETI
+GE-SZ;Samegrelo-Zemo Svaneti;SAMEGRELO;ZEMOSVANETI
+GE-SJ;Samtskhe-Javakheti;SAMTSKHE;JAVAKHETI
+GE-SK;Shida Kartli;SHIDAKARTLI
+GE-AJ;Adjara;r:^AD?JARI?A
+@Germany
+DE-BW;Baden-Württemberg
+DE-BY;Bavaria
+DE-BE;Berlin
+DE-BB;Brandenburg
+DE-HB;Bremen
+DE-HH;Hamburg
+DE-HE;Hesse
+DE-NI;Lower Saxony
+DE-MV;Mecklenburg-Vorpommern
+DE-NW;North Rhine-Westphalia
+DE-RP;Rhineland-Palatinate
+DE-SL;Saarland
+DE-SN;Saxony
+DE-ST;Saxony-Anhalt
+DE-SH;Schleswig-Holstein
+DE-TH;Thuringia
+@Ghana
+GH-AF;Ahafo
+GH-AH;Ashanti
+GH-BO;Bono
+GH-BE;Bono East
+GH-CP;Central;r:^CENTR(AL|EL|LE);r:^CENT(RE|ER)
+GH-EP;Eastern;r:^EA?ST
+GH-AA;Greater Accra;r:^(GREATER)?AC+RA
+GH-NE;North East
+GH-NP;Northern;NORTH
+GH-OT;Oti
+GH-SV;Savannah
+GH-UE;Upper East
+GH-UW;Upper West
+GH-TV;Volta
+GH-WP;Western;WEST
+GH-WN;Western North;r:^WEST(ERN)?NORTH;NORTHWEST
+@Greece
+GR_Ae;Aegean
+GR_At;Attica;r:^AT+ICA;ATHENS
+GR_Cr;Crete
+GR_EWM;Epirus and Western Macedonia;r:^EPIR[AEOU]+S;r:^WEST(ERN)?MAC[AEI]DONIA
+GR_MT;Macedonia and Thrace;r:^MAC[AEI]DONIA;THRACE
+GR_PWGI;Peloponnese, Western Greece and the Ionian;r:^(THE)?PEL+[AEIO]P+[AEION]+S(E|OU]+S|[AEI]+N);r:^WEST;r:^(THE)?IONI[AE]N
+GR_TCG;Thessaly and Central Greece;r:^THES+AL(EE|EY|IE|Y);r:^CENT(RAL|RE|ER)
+GR-69;Mount Athos;r:^M(OU|UO)NTATHOS;HOLYMOUNTAIN;AGIONOROS
+@Greenland
+GL-AV;Avannaata;r:^AVAN+A[AH]?TA;r:^NOR(TH|D)
+GL-KU;Kujalleq;r:^(KOM+UNE)?KUJAL+EQ;r:^S(OUTH|YD)
+GL-QT;Qeqertalik;r:^(KOM+UNE)?QEQERTALIC?K;r:^OMRADEMEDO?ER
+GL-QE;Qeqqata;QEQQATA;r:^CENT(RE|ER|RAL|RUM)
+GL-SM;Sermersooq;r:^(KOM+UNE(QARFIC?K)?)?SERMERSOOQ
+@Grenada
+GD-10;Carriacou and Petite Martinique;r:^CAR+[EI]ACOU;PETITEMARTINIQUE;r:^SOUTH(ERN)?GRENADINES
+GD-01;Saint Andrew;r:^(SAINT|ST)ANDREW
+GD-02;Saint David;r:^(SAINT|ST)DAVID
+GD-03;Saint George;r:^(SAINT|ST)GEORGE
+GD-04;Saint John
+GD-05;Saint Mark;r:^(SAINT|ST)MARC?K
+GD-06;Saint Patrick;r:^(SAINT|ST)PATRIC?K
+@Guatemala
+GT-16;Alta Verapaz
+GT-15;Baja Verapaz
+GT-04;Chimaltenango
+GT-20;Chiquimula
+GT-02;El Progreso;r:^(EL)?PROGRESO
+GT-05;Escuintla
+GT-01;Guatemala
+GT-13;Huehuetenango
+GT-18;Izabal
+GT-21;Jalapa
+GT-22;Jutiapa
+GT-17;Petén
+GT-09;Quetzaltenango
+GT-14;Quiché
+GT-11;Retalhuleu
+GT-03;Sacatepéquez
+GT-12;San Marcos
+GT-06;Santa Rosa
+GT-07;Sololá
+GT-10;Suchitepéquez
+GT-08;Totonicapán
+GT-19;Zacapa
+@Guinea
+GN-B;Boké
+GN-C;Conakry
+GN-F;Faranah
+GN-K;Kankan
+GN-D;Kindia
+GN-L;Labé
+GN-M;Mamou
+GN-N;Nzérékoré
+@Guinea-Bissau
+GW-BA;Bafatá
+GW-BM;Biombo
+GW-BL;Bolama;BOLAMA;BIJAGOS
+GW-CA;Cacheu
+GW-GA;Gabú
+GW-OI;Oio
+GW-QU;Quinara
+GW-TO;Tombali
+GW-BS;Bissau;r:^B[AEI]S+(AU|UA);SAB
+@Guyana
+GY-BA;Barima-Waini;BARIMA;WAINI
+GY-CU;Cuyuni-Mazaruni;CUYUNI;MAZARUNI
+GY-DE;Demerara-Mahaica;r:^DEMERARA;r:^M[AOU]HAICA
+GY-EB;East Berbice-Corentyne;r:^EA?STBERBICE;CORENTYNE
+GY-ES;Essequibo Islands-West Demerara;r:^ES+EQ(UI|IU)BO;WESTDEMERARA
+GY-MA;Mahaica-Berbice;r:^M[AOU]HAICA;BERBICE
+GY-PM;Pomeroon-Supenaam;r:^POMERO+N;r:^SUPENA[AH]?M
+GY-PT;Potaro-Siparuni;POTARO;SIPARUNI
+GY-UD;Upper Demerara-Berbice;r:^UP+ERDEMERARA;BERBICE
+GY-UT;Upper Takutu-Upper Essequibo;r:^UP+ERTAKUTU;r:^UP+ERES+EQ(UI|IU)BO
+@Haiti
+HT-AR;Artibonite;r:^L?AR?TIBONIT
+HT-CE;Centre;r:^CENT(RE|RAL|ER);SANT
+HT-GA;Grand'Anse;GRANDANS;BIGCOVE
+HT-NI;Nippes;NIP
+HT-ND;Nord;NO
+HT-NE;Nord-Est;r:^NOR?DES;NORTHEAST
+HT-NO;Nord-Ouest;r:^NORDO(U|EU|UE)ST;NODWES;NORTHWEST
+HT-OU;Ouest;r:^O(U|EU|UE)ST;LWES;WEST
+HT-SD;Sud;r:^S[IU]D;SOUTH
+HT-SE;Sud-Est;r:^S[IU]DES;SOUTHEAST
+@Honduras
+HN-AT;Atlántida
+HN-IB;Bay Islands;r:^B[AE]YISLANDS;r:^ISLASDELABA[AH]?[EI]A
+HN-CH;Choluteca
+HN-CL;Colón
+HN-CM;Comayagua
+HN-CP;Copán
+HN-CR;Cortés
+HN-EP;El Paraíso;r:^(EL)?PARAISO
+HN-FM;Francisco Morazán
+HN-GD;Gracias a Dios
+HN-IN;Intibucá
+HN-LP;La Paz;r:^(LA)?PAZ
+HN-LE;Lempira
+HN-OC;Ocotepeque
+HN-OL;Olancho
+HN-SB;Santa Bárbara
+HN-VA;Valle
+HN-YO;Yoro
+@Hungary
+HU-BU;Budapest
+HU-BK;Bács-Kiskun;BACS;KISKUN
+HU-BA;Baranya
+HU-BE;Békés
+HU-BZ;Borsod-Abaúj-Zemplén;BORSOD;ABAUJ;r:^ZEMPL[AEI]N
+HU-CS;Csongrád-Csanád;CSONGRAD;CSANAD
+HU-FE;Fejér
+HU-GS;Győr-Moson-Sopron;GYOR;MOSON;SOPRON
+HU-HB;Hajdú-Bihar;HAJDU;BIHAH
+HU-HE;Heves
+HU-JN;Jász-Nagykun-Szolnok;JASZ;NAGYKUN;r:^SZOLNOC?K
+HU-KE;Komárom-Esztergom;KOMAROM;r:^ESZT[EU]RGOM
+HU-NO;Nógrád
+HU-PE;Pest
+HU-SO;Somogy
+HU-SZ;Szabolcs-Szatmár-Bereg;SZABOLCS;SZARMAR;BEREG
+HU-TO;Tolna
+HU-VA;Vas
+HU-VE;Veszprém
+HU-ZA;Zala
+@Iceland
+IS-AKN;Akranes
+IS-AKU;Akureyri;r:^AKUR[AE]YR(I|ARBAER)
+IS-SFA;Árborg;r:ARBORG
+IS-ARN;Árneshreppur;ARNES
+IS-ASA;Ásahreppur;ASA
+IS-BLA;Bláskógabyggð;BLASKOGA
+IS-BOL;Bolungarvík
+IS-BOG;Borgarbyggð;BORGAR
+IS-DAB;Dalabyggð;DALA
+IS-DAV;Dalvíkurbyggð;DALVIK
+IS-EOM;Eyja- og Miklaholtshreppur;EYJA;r:^MIKLA[AH]?OLT
+IS-EYF;Eyjafjarðarsveit;r:^EYJAFJ[AO]RD[AU]R
+IS-FJL;Fjallabyggð;r:^FJAL+A
+IS-FJD;Fjarðabyggð;FJARDA
+IS-FLR;Fljótsdalshreppur;r:^FLJOTSDAL(SHREP+)?UR
+IS-FLA;Flóahreppur;r:^FLOT?A
+IS-GAR;Garðabær;GARDA
+IS-GOG;Grímsnes- og Grafningshreppur;GRIMSNES;GRAFNINGS
+IS-GRN;Grindavíkurbær;r:^GRINDAVIC?K
+IS-GRU;Grundarfjarðarbær;r:^GRUNDARFJ[AO]RD[AU]R
+IS-GRY;Grýtubakkahreppur;r:^GRYTUBA[CK]+A
+IS-HAF;Hafnarfjörður;r:^HAFNARFJ[AO]E?RD[AU]R
+IS-HRG;Hörgársveit;r:^HOE?RGAR
+IS-SHF;Hornafjörður;r:HORNAFJOE?RDUR
+IS-HRU;Hrunamannahreppur;r:^HRUNAMAN+A
+IS-HUG;Húnabyggð;HUNA
+IS-HUV;Húnaþing vestra;r:^HUNA.+INGVEST;r:^WEST(ERN)?HUNA.+ING
+IS-HVA;Hvalfjarðarsveit;r:^HVALFJ[AO]RD[AU]R
+IS-HVE;Hveragerði
+IS-ISA;Ísafjarðarbær;r:^ISAFJ[AO]RD[AU]R
+IS-KAL;Kaldrananeshreppur;r:^[CK]ALDRANANES
+IS-KJO;Kjósarhreppur;KJOSAR
+IS-KOP;Kópavogur;r:^KOPAVOG(UR|SB[AE]+R)
+IS-LAN;Langanesbyggð;LANGANES
+IS-MOS;Mosfellsbær;r:^MOSFEL(L|SBAER)
+IS-MUL;Múlaþing;r:^MULA.+ING
+IS-MYR;Mýrdalshreppur;r:^MYRDAL(SHREP+)?UR
+IS-NOR;Norðurþing;r:^NORDURTHING
+IS-SOL;Ölfus;r:OE?LF[AEOU]+S
+IS-RGE;Rangárþing eystra;r:^RANGAR.+INGEYST;r:^EAST(ERN)?RANGAR.+ING
+IS-RGY;Rangárþing ytra;r:^RANGAR.+INGYTRA;r:^OUTERRANGAR.+ING
+IS-RHH;Reykhólahreppur;r:^R[AE]YKHOLA
+IS-RKN;Reykjanesbær;r:^R[AE]YKJANES
+IS-RKV;Reykjavík
+IS-SEL;Seltjarnarnes
+IS-SKF;Skaftárhreppur;r:^S[CK]AFTAR
+IS-SKR;Skagafjörður;r:^S[CK]AGAFJOE?RDUR
+IS-SSS;Skagaströnd;r:S[CK]AGASTROE?ND
+IS-SOG;Skeiða- og Gnúpverjahreppur;SKEIDA;GNUPVERJ
+IS-SNF;Snæfellsbær;r:^SN[AE]+FELL
+IS-STR;Strandabyggð;STRANDA
+IS-STY;Stykkishólmur;r:^STY[CK]+ISHOLM(SBAE|U)R
+IS-SDV;Súðavíkurhreppur;r:^SUDAVIC?K
+IS-SDN;Suðurnesjabær;r:^SUDURNESJA
+IS-SBT;Svalbarðsstrandarhreppur;r:^SVALBARDS+TR[AO]ND
+IS-TJO;Tjörneshreppur;r:^TJOE?RNES
+IS-VEM;Vestmannaeyjar;r:^VESTMAN+A[AE]YJA
+IS-VER;Vesturbyggð;r:^[VW]EST
+IS-SVG;Vogar;c:VOGAR
+IS-VOP;Vopnafjarðarhreppur;r:^VOPNAFJ[AO]RD[AU]R
+IS-THG;Þingeyjarsveit;r:^THING[AE]YJAR
+@India
+IN-AP;Andhra Pradesh
+IN-AR;Arunachal Pradesh
+IN-AS;Assam
+IN-BR;Bihar
+IN-CG;Chhattisgarh
+IN-GA;Goa
+IN-GJ;Gujarat
+IN-HR;Haryana
+IN-HP;Himachal Pradesh
+IN-JH;Jharkhand
+IN-KA;Karnataka
+IN-KL;Kerala
+IN-MP;Madhya Pradesh
+IN-MH;Maharashtra
+IN-MN;Manipur
+IN-ML;Meghalaya
+IN-MZ;Mizoram
+IN-NL;Nagaland
+IN-OD;Odisha
+IN-PB;Punjab
+IN-RJ;Rajasthan
+IN-SK;Sikkim
+IN-TN;Tamil Nadu
+IN-TS;Telangana
+IN-TR;Tripura
+IN-UP;Uttar Pradesh
+IN-UK;Uttarakhand
+IN-WB;West Bengal
+IN-AN;Andaman and Nicobar Islands
+IN-CH;Chandigarh
+IN-DH;Dadra and Nagar Haveli and Daman and Diu;DADRA;r:^NAG[AE]RHAVELI;r:^DAM+AN;DIU;DNHDD
+IN-DL;Delhi
+IN-JK;Jammu and Kashmir
+IN-LA;Ladakh
+IN-LD;Lakshadweep
+IN-PY;Puducherry
+@Indonesia
+ID-AC;Aceh
+ID-BA;Bali
+ID-BB;Bangka Belitung Islands;c:BANGKABELITUNG
+ID-BT;Banten
+ID-BE;Bengkulu
+ID-JT;Central Java;r:^CENT((ER|RE)|R(AL|EL|LE))JAVA;r:^JAWATENGA[AH];JATENG
+ID-KT;Central Kalimantan;r:CENT((ER|RE)|R(AL|EL|LE))[CK]ALIMANTAN;r:^[CK]ALIMANTANTENGA[AH]
+ID-PT;Central Papua;r:^CENTR(AL|EL|LE)PAPUA;r:^PAPUATENGA[AH]
+ID-ST;Central Sulawesi;r:^CENT((ER|RE)|R(AL|EL|LE))[CS][EU]L[AE][BW]ES;r:^[CS][EU]L[AE][BW]ESI?TENGA[AH]
+ID-JI;East Java;r:^EA?STJAVA;JATIM;JAWAWETAN;r:^JH?A[BW]AH?[DT]H?IM[OU]R
+ID-KI;East Kalimantan;r:^EA?ST[CK]ALIMANTAN;r:^[CK]ALIMANTANTIMUR
+ID-NT;East Nusa Tenggara;r:^EA?STNUSATENGGARA;NUSATENGGARATIMUR;ENT;NTT
+ID-GO;Gorontalo;r:^[GH][OU][LR]ONTALO
+ID-PE;Highland Papua;r:^HIGH?LANDPAPUA;PAPUAPENGUNUNGAN
+ID-JK;Jakarta;c:JAKARTA;c:CAPITAL;DKI
+ID-JA;Jambi
+ID-LA;Lampung
+ID-MA;Maluku
+ID-KU;North Kalimantan;r:^NORTH[CK]ALIMANTAN;r:^[CK]ALIMANTANUTARA
+ID-MU;North Maluku;NORTHMALUKU;MALUKUUTARA
+ID-SA;North Sulawesi;SULAWESIUTARA;r:^NORTH[CS][EU]L[AE][BW]ES;r:^[CS][EU]L[AE][BW]ESI?UTARA
+ID-SU;North Sumatra;NORTHSUMATRA;SUMATRAUTARA
+ID-PA;Papua
+ID-RI;Riau;r:R[EI]AU
+ID-KR;Riau Islands;r:R[EI]AU
+ID-KS;South Kalimantan;r:^S(OU|UO)TH[CK]ALIMANTAN;r:^[CK]ALIMANTANS[AE]LATAN
+ID-PS;South Papua;r:^S(OU|UO)THPAPUA;PAPUASELATAN
+ID-SN;South Sulawesi;r:^S(OU|UO)TH[CS][EU]L[AE][BW]ES;r:^SULS(AL|EL|LE);r:^[CS][EU]L[AE][BW]ESI?SELATAN
+ID-SS;South Sumatra;r:^S(OU|UO)THSUMATRA;SUMATERASELATAN;r:^SUMS(AL|EL|LE)
+ID-SG;Southeast Sulawesi;r:^S(OU|UO)THEA?ST[CS][EU]L[AE][BW]ES;SULTRA;r:^SULAWESITENG+ARA
+ID-PD;Southwest Papua;r:^S(OU|UO)THWESTPAPUA;r:^PAPUABARATD[AE]YA
+ID-JB;West Java;WESTJAVA;JAWABARAT;JAWAKULON;JABAR
+ID-KB;West Kalimantan;r:^WEST[CK]ALIMANTAN;r:^[CK]ALIMANTANBARAT
+ID-NB;West Nusa Tenggara;r:^WESTNUSATENG+ARA;r:^NUSATENG+ARABARAT;WNT;NTB
+ID-PB;West Papua
+ID-SR;West Sulawesi;r:^WEST[CS][EU]L[AE][BW]ESI?;r:^[CS][EU]L[AE][BW]ESI?BARAT
+ID-SB;West Sumatra;WESTSUMATRA;SUMBAR;r:^SUMATERABARA(T|IC?K)
+ID-YO;Yogyakarta;r:[JY]OG[AYJ]+[CK]+ARTA;DIY
+@Iran
+IR-30;Alborz
+IR-24;Ardabil
+IR-18;Bushehr
+IR-14;Chaharmahal and Bakhtiari;r:^CHA[AH]?AR;r:^BAKHT[EIY]+ARI
+IR-03;East Azerbaijan;r:^(EAST|SHARQI)AD?[JZ][AE]RB[AIE]+D?[JZ]AN;r:^AD?[JZ][AE]RB[AIE]+D?[JZ]ANE?(EAST|SHARQI)
+IR-07;Fars
+IR-01;Gilan;r:^G[IU]+LAN
+IR-27;Golestan
+IR-13;Hamadan
+IR-22;Hormozgān
+IR-16;Ilam
+IR-10;Isfahan;r:^[HS]?[EI][FPS]+AHAN
+IR-08;Kerman
+IR-05;Kermanshah;r:^KERMANSH?A[AH]
+IR-06;Khuzestan
+IR-17;Kohgiluyeh and Boyer-Ahmad;KOHGILUYE;r:^B[UO]W?YERA[AH]?MAD
+IR-12;Kurdistan;r:^K[OU]RD[AEI]STAN
+IR-15;Lorestan;r:^L[OU]R[EI]STAN
+IR-00;Markazi
+IR-02;Mazandaran
+IR-28;North Khorasan;r:^(NORTH|SHOMALI)[KX]H?ORASAI?N;r:^[KX]H?ORASAI?NE?(NORTH|SHOMALI)
+IR-26;Qazvin
+IR-25;Qom
+IR-09;Razavi Khorasan;r:^(CENTRAL|RAZAVI)[KX]H?ORASAI?N;r:^[KX]H?ORASAI?NE?(CENTRAL|RAZAVI)
+IR-20;Semnan
+IR-11;Sistan and Baluchestan;SISTAN;r:^BAL[OU]CH?[EI]STAN
+IR-29;South Khorasan;r:^(SOUTH|JONUBI)[KX]H?ORASAI?N;r:^[KX]H?ORASAI?NE?(SOUTH|JONUBI)
+IR-23;Tehran
+IR-04;West Azerbaijan;r:^(WEST|GHARBI)AD?[JZ][AE]RB[AIE]+D?[JZ]AN;r:^AD?[JZ][AE]RB[AIE]+D?[JZ]ANE?(WEST|GHARBI)
+IR-21;Yazd
+IR-19;Zanjan
+@Iraq
+IQ-AN;Al Anbar;r:^([AE][LR])?ANBAR
+IQ-QA;Al-Qādisiyyah;r:^([AE][LR])?QADISIY+A
+IQ-BB;Babil;r:^BAB[IY]L
+IQ-BG;Baghdad
+IQ-BA;Basra;r:^([AE][LR])?BASRA
+IQ-DQ;Dhi Qar;r:^[DT]H?I[CKQ]+AR
+IQ-DI;Diyala;r:^D[IY]+ALA
+IQ-KA;Karbala;r:^[CK][AE]RB[AE]LA
+IQ-KI;Kirkuk;r:^K[AEI]R[CK]O?UC?K
+IQ-MA;Maysan;r:^M[AE]?[IY]SAN
+IQ-MU;Muthanna;r:^([AE][LR])?MUTHAN+A
+IQ-NA;Najaf;r:^([AE][LNR])?NAJAF;r:^BANIQ[IY]+A
+IQ-NI;Nineveh;r:^NA?[IY]NE?[UVW][AE]
+IQ-SD;Saladin;r:^SAL[AEI]H?(A[LD])?DIN
+IQ-WA;Wasit
+IQ-KR;Kurdistan;r:^K[OU]RD[AEI]STAN
+@Ireland
+IE-COC;Cork;r:^COR[CK]
+IE-D;Dublin
+IE-GC;Galway;r:^GAI?L+(W[AE]Y|IMH)
+IE-LK;Limerick;r:^LU?IMN?[AEI](RICK|ACH)
+IE-WD;Waterford;WATERFORD;r:^(PORT|PT)LAIRGE
+IE-CW;Carlow;r:^CE?A(THA)?RL(OW|ACH)
+IE-CN;Cavan;r:^(AN)?CA[BV]H?AN
+IE-CE;Clare;r:^(AN)?CLAR
+IE-CO;Cork;r:^COR[CK]
+IE-DL;Donegal;r:^D[OU]N+[AE]N?GAL
+IE-DuDLR;Dún Laoghaire–Rathdown;r:^DH?UNLAOGH?AIRE;r:^RATH(AN)?D[OU][IW]N
+IE-DuF;Fingal;r:^FH?INE?GAL
+IE-G;Galway;r:^GAI?L+(W[AE]Y|IMH)
+IE-KY;Kerry;r:^[CK][EI]A?R+A?[IY]
+IE-KE;Kildare;r:^[CK]IL+DAR[AE]
+IE-KK;Kilkenny;r:^[CK]IL+[CK]H?[AE]I?N+[IY]
+IE-LS;Laois
+IE-LM;Leitrim;r:^L[AEI]+TRO?IM
+IE-LD;Longford;r:^(AN)?LONGFOR[DT]
+IE-LH;Louth;r:^LO?U
+IE-MO;Mayo;r:^M[AEI]+(GH)?[EY]O
+IE-MH;Meath;r:^(AN)?M(EATH|HI)
+IE-MN;Monaghan;r:^M[IOU]+NE?A[CG]H?AN
+IE-OY;Offaly;r:^[OU](IBH)?F+H?AI?L[IY]
+IE-RN;Roscommon;r:^(ROS)?COM+[AIO]+N
+IE-SO;Sligo;r:^SLIG(O|EACH)
+IE-DuSD;South Dublin;SOUTHDUBLIN;r:^(BAILE)?ATHACLIATHTHEAS
+IE-TA;Tipperary;r:^TIO?[BP]+E?RAI?(RY|DARANN)
+IE-WH;Westmeath;r:^(AN)?(WEST|IAR)?M(EATH|HI)
+IE-WX;Wexford;WEXFORD;LOCHGARMAN
+IE-WW;Wicklow;r:^WI[CK]+LOW;r:^CILLMHANTA(IN|NE)
+@Israel
+IL_cA;Ariel
+IL_cBI;Beitar Illit;r:^BEI?TARIL+IT
+IL_cMA;Ma'ale Adumim;r:^MA+LEADUM+IM
+IL_cMI;Modi'in Illit
+IL_lcaAM;Alfei Menashe;r:^ALFEI?MENASHE
+IL_lcaBAO;Beit Aryeh-Ofarim;r:^BEI?TARYEH?OFARIM
+IL_lcaBE;Beit El;r:^BEI?TH?EL
+IL_lcaEf;Efrat
+IL_lcaEl;Elkana;r:^EL[CKQ]ANA
+IL_lcaGZ;Giv'at Ze'ev
+IL_lcaHA;Har Adar
+IL_lcaIm;Immanuel;r:^[EI]M+ANUEL
+IL_lcaKS;Karnei Shomron;r:^[CKQ]ARNEI?SHOME?RON
+IL_lcaKe;Kedumim;r:^[KQ]E?DUMIM
+IL_lcaKA;Kiryat Arba;r:^[KQ]IRYATARBA
+IL_lcaME;Ma'ale Efrayim;r:^MA[AH]?LEEFR[AE]Y?IM
+IL_lcaOr;Oranit
+IL_rcaBHY;Bik'at HaYarden;r:^BI[CK]ATH[AE]YARD[AEI]N;r:^ARA?VOTH[AE]YARD[AEI]N;r:^(SOUTH(ERN)?)?JORDAN(VALLEY|PLAINS)
+IL_rcaGE;Gush Etzion;r:^GUSHET?Z[IY]ON
+IL_rcaHE;Har Hevron
+IL_rcaMB;Mateh Binyamin;r:^MAT+EH?BINYAM[AEI]N
+IL_rcaMe;Megilot;MEGILOT;DEADSEA
+IL_rcaSh;Shomron;r:^SH?[AO]M[AE]?R(ON|IA)
+IL-M;Central;r:^CENT(RAL|ER|RE);r:^(HA)?MER[CK]AZ;r:^([AE][LR])?AWSAT
+IL-HA;Haifa;r:^H[AEIY]+FA
+IL-JM;Jerusalem;r:^[JY][AEU]RUSH?[AE]L[AEIY]+M;r:^([AE][LR])?QUDS
+IL-Z;Northern;NORTH;r:^(HA)?TSAFON;r:^([AE]SH)?SHAMALI
+IL-D;Southern;SOUTH;r:^(HA)?DAROM;r:^([AE][LR])?JANUBI
+IL-TA;Tel Aviv;r:^T[AE]L+A[BV]I[BV]
+@Italy
+IT-23;Aosta Valley;c:AOSTA
+IT-36;Friuli-Venezia Giulia;r:^FRIUL+I;r:^VEN[IE][ZC](E|IA)
+IT-88;Sardinia;r:^SARD[EI]G?N[EI]?A
+IT-82;Sicily
+IT-32;Trentino-South Tyrol;TRENTINO;r:^SO?U(TH|D)T[IY]ROL;ALTOADIGE
+IT-65;Abruzzo
+IT-75;Apulia;r:^A?PUG?L+IA
+IT-77;Basilicata;r:^BAS+IL+[AEI]CATA;LUCANIA
+IT-78;Calabria;r:^CAL+ABRIA
+IT-72;Campania;r:^CAMPAG?N[EI]A
+IT-45;Emilia-Romagna;r:^EMIL[EI]A;r:^ROMAGN[AE]
+IT-62;Lazio;r:^LA[TZ]I(O|UM)
+IT-42;Liguria;r:^L[AEI]GURIA
+IT-25;Lombardy
+IT-57;Marche
+IT-67;Molise;r:^M[AEIO]LISE
+IT-21;Piedmont;r:^P[EI]+D?MOU?NT
+IT-52;Tuscany;r:^T[OU]SCAN[AY]
+IT-55;Umbria
+IT-34;Veneto;r:^V[AEIO]N[EO]T(O|IA)
+@Ivory Coast
+CI-AB;Abidjan
+CI-BS;Bas-Sassandra;r:^(BAS|LOWER)SAS+ANDRA
+CI-CM;Comoé;r:^[CK]OMOE
+CI-DN;Denguélé
+CI-GD;Gôh-Djiboua;GOH;r:^DJIB(OU|UO)A
+CI-LC;Lacs;r:^LA[CK]E?S
+CI-LG;Lagunes;r:^LAG[OU]+NE?S
+CI-MG;Montagnes;r:^M[OU]+NTA[GI]NE?S
+CI-SM;Sassandra-Marahoué;r:^SAS+ANDRA;r:^MARA[AH]?(OU|UO)E
+CI-SV;Savanes;r:^SAVAN+[AE]H?S
+CI-VB;Vallée du Bandama;r:^(VAL+(EE|IE))?(DU)?BANDAMA
+CI-WR;Woroba
+CI-YM;Yamoussoukro
+CI-ZZ;Zanzan
+@Jamaica
+JM-13;Clarendon;r:^[CK]LAR[EI]ND[AO]N
+JM-09;Hanover;r:^H?AN+U?OV(ER|A)
+JM-01;Kingston;r:^KING?STOW?N
+JM-12;Manchester;r:^MANCHEST(ER|A)
+JM-04;Portland;r:^PU?OR?TLAN
+JM-02;Saint Andrew;r:^(SA?[AEI]NT?|ST)AN(DREW|JU)
+JM-06;Saint Ann;r:^(SA?[AEI]NT?|ST)AN
+JM-14;Saint Catherine;r:^(SA?[AEI]NT?|ST)[CK][EI]?A[CKT]H?E?R[AEI]N
+JM-11;Saint Elizabeth;r:^(SA?[AEI]NT?|ST)[EI]LIZ[AI]BET
+JM-08;Saint James;r:^(SA?[AEI]NT?|ST)JI?[AE]ME?[SZ]
+JM-05;Saint Mary;r:^(SA?[AEI]NT?|ST)MI?[AE]R[EIY]
+JM-03;Saint Thomas;r:^(SA?[AEI]NT?|ST)TH?[AO]MAS
+JM-07;Trelawny;r:^TR[EI]LA+W?N[EIY]
+JM-10;Westmoreland;r:^WEST?MOR?E?LAN
+@Japan
+JP-23;Aichi;r:^AI(CH|T)I
+JP-05;Akita
+JP-02;Aomori
+JP-12;Chiba;r:^(CH|T)IBA
+JP-38;Ehime
+JP-18;Fukui;r:^[FH]UKUI
+JP-40;Fukuoka;r:^[FH]U[CK]+[OU]+[CK]+A
+JP-07;Fukushima;r:^[FH]UK+USH?IMA
+JP-21;Gifu;r:^GI[FH]U
+JP-10;Gunma;r:^GU[MN]+A
+JP-34;Hiroshima;r:^HIROSH?[AEI]MA
+JP-01;Hokkaido;r:^H[AEIO][CK]+AID+O
+JP-28;Hyōgo
+JP-08;Ibaraki
+JP-17;Ishikawa;r:^ISH?I[CK]AWA
+JP-03;Iwate
+JP-37;Kagawa
+JP-46;Kagoshima;r:^KAG[AEIO]SH?IMA
+JP-14;Kanagawa
+JP-39;Kōchi;r:^[CK]OU?(CH|T)I
+JP-43;Kumamoto
+JP-26;Kyoto
+JP-24;Mie
+JP-04;Miyagi
+JP-45;Miyazaki
+JP-20;Nagano
+JP-42;Nagasaki
+JP-29;Nara
+JP-15;Niigata
+JP-44;Ōita
+JP-33;Okayama
+JP-47;Okinawa
+JP-27;Osaka
+JP-41;Saga
+JP-11;Saitama
+JP-25;Shiga;r:^SH?IGA
+JP-32;Shimane;r:^SH?IMANE
+JP-22;Shizuoka;r:^SH?IZ[OU]+K+A
+JP-09;Tochigi;r:^TO(CH|T)IGI
+JP-36;Tokushima;r:^TOKUSH?IMA
+JP-13;Tokyo
+JP-31;Tottori;r:^TOT+OR+I
+JP-16;Toyama
+JP-30;Wakayama
+JP-06;Yamagata
+JP-35;Yamaguchi;r:^YAMAGU(CH|T)I
+JP-19;Yamanashi;r:^YAMANASH?I
+@Jordan
+JO-AJ;Ajloun;r:^AJL[OU]+N
+JO-AM;Amman;r:^AM+AN;r:^(AS)?IM[AOU]H
+JO-AQ;Aqaba;r:^([AE][LR])?AQABA
+JO-BA;Balqa;r:^([AE][LR])?BAL[GQ]A
+JO-IR;Irbid;r:^IRB[EI]D
+JO-JA;Jerash;r:^J[AE]RASH
+JO-KA;Karak;r:^([AE][LR])?[CK]ARAC?K
+JO-MN;Ma'an;MAAN
+JO-MD;Madaba
+JO-MA;Mafraq;r:^([AE][LR])?MAFRA
+JO-AT;Tafilah;r:^([AE][LR])?TAFILA
+JO-AZ;Zarqa;r:^(AZ)?Z[AE]R[GQ]?A
+@Kazakhstan
+KZ-75;Almaty;r:^AL+MATY;r:^VERNI(EE|EY|IE|Y)
+KZ-71;Astana;r:^A[KQS][MT][AO][LN]A;r:^N[OU]+RS[OU]+LTAN
+KZ-79;Shymkent;r:^SH?[IY]MKENT
+KZ-BAY;Baikonur (Odintsovsky, Moscow);r:^BAI[KQ]ON[UY]R;r:^ODINTSOV(SKY|O)
+KZ-10;Abai;r:^ABA[IJY]
+KZ-11;Akmola;r:^N[OU]+RS[OU]+LTAN;r:^A[KQS][MT][AO][LN](A|INSK)
+KZ-15;Aktobe;r:^A[KQ]T[JY]?[OU]B(E|INSK)
+KZ-19;Almaty;r:^AL+MAT[IY];r:^VERNI(EE|EY|IE|Y)
+KZ-23;Atyrau;r:^ATYR[AE][YU]
+KZ-63;East Kazakhstan;EAST;SHYGYS;ZAPADNO;r:^VOSTOCH?NO
+KZ-31;Jambyl;r:^[JZ]H?AMBYL
+KZ-33;Jetisu;r:^[JZ]H?ET[IY]SU
+KZ-35;Karaganda;r:^[CKQ]ARA[GǴ]AND[AIY]
+KZ-39;Kostanay;r:^[KQ]OSTAN[AE][IJY]
+KZ-43;Kyzylorda;r:^[KQ]YZYLORD(A|INSK)
+KZ-47;Mangystau;r:^MAN[GǴ]+H?[IY]ST[AE][YU]
+KZ-59;North Kazakhstan;r:^SOLTUSTIC?K;NORTH;SEVERO
+KZ-55;Pavlodar
+KZ-61;Turkistan;r:^TURK[EI]STAN;r:^S(OU|UO)TH;r:^ONTUSTIC?K
+KZ-62;Ulytau
+KZ-27;West Kazakhstan;WEST;BATYS;ZAPADNO
+@Kenya
+KE-01;Baringo
+KE-02;Bomet
+KE-03;Bungoma
+KE-04;Busia
+KE-05;Elgeyo-Marakwet;r:^ELG[AE]YO;MARAKWET
+KE-06;Embu
+KE-07;Garissa
+KE-08;Homa Bay;r:^(HOMA|GAY)B[AE]Y
+KE-09;Isiolo
+KE-10;Kajiado
+KE-11;Kakamega
+KE-12;Kericho
+KE-13;Kiambu
+KE-14;Kilifi
+KE-15;Kirinyaga
+KE-16;Kisii
+KE-17;Kisumu
+KE-18;Kitui
+KE-19;Kwale
+KE-20;Laikipia
+KE-21;Lamu
+KE-22;Machakos
+KE-23;Makueni
+KE-24;Mandera
+KE-25;Marsabit
+KE-26;Meru
+KE-27;Migori
+KE-28;Mombasa
+KE-29;Murang'a
+KE-30;Nairobi
+KE-31;Nakuru
+KE-32;Nandi
+KE-33;Narok
+KE-34;Nyamira
+KE-35;Nyandarua
+KE-36;Nyeri
+KE-37;Samburu
+KE-38;Siaya
+KE-39;Taita–Taveta;TAITA;TAVETA
+KE-40;Tana River
+KE-41;Tharaka-Nithi;THARAKA;NITHI
+KE-42;Trans-Nzoia
+KE-43;Turkana
+KE-44;Uasin Gishu
+KE-45;Vihiga
+KE-46;Wajir
+KE-47;West Pokot
+@Kiribati
+KI-AG;Abaiang;r:^AB[AEI]+NG
+KI-AM;Abemama
+KI-AK;Aranuka;r:^ARAN[AU]C?KA
+KI-AO;Arorae
+KI-BA;Banaba;BANABA;OCEAN
+KI-BR;Beru
+KI-BT;Betio
+KI-BU;Butaritari;r:^BU[TA]+[RI]+[TA]+RI
+KI-CA;Canton;r:^((A(B[AE])?(RI)?RING+A)|([CK]AN?TO[MN]))
+KI-EU;Eutan;EUTAN;NORTHTARAWA
+KI-KI;Kiritimati;r:^(KIR+IT+IMATI|CH?RIST?MAS)
+KI-KU;Kuria;r:^C?KUR[EI]A
+KI-MN;Maiana;r:^MAR?IANA
+KI-MK;Makin
+KI-MR;Marakei;r:^MARAC?KEI
+KI-NI;Nikunau;r:^NIC?KUNAU
+KI-NO;Nonouti
+KI-NT;North Tabiteuea;r:^NORTHTABIT(EU|UE)EI?A
+KI-ON;Onotoa
+KI-ST;South Tabiteuea;r:^SOUTHTABIT(EU|UE)EI?A
+KI-TB;Tabuaeran;r:^((TAB(((UA|AU)E)|A)R[AE]N)|(F[AE]N+ING))
+KI-TM;Tamana
+KI-TN;Teinainano;TEINAINANO
+KI-TR;Teraina;r:^((TER[AE]I?NA)|(WASHINGTON))
+@Kosovo
+KV_Fe;Ferizaj;FERIZAJ;r:^UROSH?EVAC
+KV_Gk;Gjakova;r:^[DGJ]+AKOV(IC)?A
+KV_Gl;Gjilan;r:^GN?JILAN
+KV_Mi;Mitrovica;r:^(KOSOVSKA)?MITROVICA
+KV_Pe;Peja;PEJA;PEC
+KV_Pt;Pristina
+KV_Pz;Prizren
+@Kuwait
+KW-AH;Ahmadi;r:^(AL)?A[AH]?MADI
+KW-KU;Al Asimah;r:^(AL)?ASIM[AOU]H;r:^([AE]L)?KUW[AE][IY]T;c:CAPITAL
+KW-FA;Farwaniya;r:^(AL)?FARWANIYA
+KW-HA;Hawalli;r:^H[AE]WAL+[IY]
+KW-JA;Jahra;r:^(AL)?[GJ]A[AH]?RA
+KW-MU;Mubarak Al-Kabeer;r:^MUBARAC?K;r:^([AE][KL])?[CK]AB[AEI]+R
+@Kyrgyzstan
+KG-GB;Bishkek;r:^[BP]ISH?[CKP]+EC?K;FRUNZE
+KG-GO;Osh;OS
+KG-B;Batken
+KG-C;Chuy;r:^CH?U(EE|EY|IE|Y)
+KG-Y;Issyk-Kul;r:^[IY]S+[IY]C?K;r:^K[OU]L
+KG-J;Jalal-Abad;r:^[DJ]H?ALAL;r:^ABA[DT]
+KG-N;Naryn;r:^NAR[AEIY]N
+KG-O;Osh;OS
+KG-T;Talas
+@Laos
+LA-VT;Vientiane;r:^V[EI]+NG?[CT]H?[AEI]+N
+LA-AT;Attapeu;r:^AT+[AO]PE?U
+LA-BK;Bokèo;BOKEO;HUAKHONG
+LA-BL;Bolikhamxai;r:^BO[LR]IKHAM[SX][AE][IY]
+LA-CH;Champasak;r:^CHAMPAS+AC?K
+LA-HO;Houaphan;r:^H[AOU]+(PH|F+)AN
+LA-KH;Khammouan;r:^KHAM+[AOU]+N
+LA-LP;Louangphabang;r:^L[AOU]+NG[FHPR]+[AEI]BANG
+LA-LM;Luang Namtha;r:^L[AOU]+NGNAMTHA
+LA-OU;Oudomxay;r:^M?[OU]+(DOM|NG)XA[IY]
+LA-PH;Phongsaly;r:^(PH|F+)ONGSAL(EE|EY|I|Y)
+LA-SL;Salavan;r:^SA[LR]AVAI?N
+LA-SV;Savannakhét;r:^SAVA[HN]+AKH[EO](T|NE)
+LA-VI;Vientiane;r:^V[EI]+NG?[CT]H?[AEI]+N
+LA-XA;Xaignabouli;r:^[SX][AE][IGNY]+AB[OU]+[LR](EE|EY|I|Y)
+LA-XS;Xaisomboun
+LA-XE;Xékong;r:^[SX]EKONG
+LA-XI;Xiangkhouang
+@Latvia
+LV-DGV;Daugavpils
+LV-JEL;Jelgava
+LV-JUR;Jūrmala
+LV-LPX;Liepāja
+LV-REZ;Rēzekne
+LV-RIX;Rīga
+LV-VEN;Ventspils
+LV-011;Ādaži;r:^ADAZH?I
+LV-002;Aizkraukle
+LV-007;Alūksne
+LV-111;Augšdaugava;r:^(AUGSH?|UPPER)DAUGAVA
+LV-015;Balvi
+LV-016;Bauska
+LV-022;Cēsis
+LV-026;Dobele
+LV-033;Gulbene
+LV-042;Jēkabpils
+LV-041;Jelgava
+LV-052;Ķekava
+LV-047;Krāslava
+LV-050;Kuldīga
+LV-054;Limbaži;r:^LIMBAZH?I
+LV-056;Līvāni
+LV-058;Ludza
+LV-059;Madona
+LV-062;Mārupe
+LV-067;Ogre
+LV-068;Olaine
+LV-073;Preiļi
+LV-077;Rēzekne
+LV-080;Ropaži;r:^ROPAZH?I
+LV-087;Salaspils
+LV-088;Saldus
+LV-089;Saulkrasti
+LV-091;Sigulda
+LV-094;Smiltene
+LV-112;South Kurzeme;r:^(SOUTH(ERN)?|DIENVID)KURZEME
+LV-097;Talsi
+LV-099;Tukums
+LV-101;Valka
+LV-113;Valmiera
+LV-106;Ventspils
+@Lebanon
+LB-AK;Akkar;r:^A+K+AR
+LB-BH;Baalbek-Hermel;r:^BA[AH]?LBE[CK];r:^H[AE]R?M(AL|EL|LE)
+LB-BA;Beirut;r:^B[AEI][EIY]R[OU]+T
+LB-BI;Beqaa;r:^BE[CKQ]A
+LB_KJ;Keserwan-Jbeil;r:^KESE?R[OUW]+AN;JBEIL
+LB-JL;Mount Lebanon;r:^M([OU]+N)?TL[EI]BAN
+LB-NA;Nabatieh;r:NABAT+[EIY]+[AE][AH]
+LB-AS;North;r:^(L[EI]BAN(ON)?)?NOR(TH|D);r:^SAM(AL|EL|LE)
+LB-JA;South;r:^(L[EI]BAN(ON)?)?SO?U(TH|D);r:^([AE][LR])?JANUB
+@Lesotho
+LS-D;Berea
+LS-B;Butha-Buthe;r:^B[OU]TH[AE]
+LS-C;Leribe
+LS-E;Mafeteng
+LS-A;Maseru
+LS-F;Mohale's Hoek;r:^M[AOU]HALE
+LS-J;Mokhotlong
+LS-H;Qacha's Nek;QACHA
+LS-G;Quthing
+LS-K;Thaba-Tseka;THABA;TSEKA
+@Liberia
+LR-BM;Bomi
+LR-BG;Bong
+LR-GP;Gbarpolu
+LR-GB;Grand Bassa
+LR-CM;Grand Cape Mount
+LR-GG;Grand Gedeh
+LR-GK;Grand Kru;r:^(GRAND)?KRU;r:^SAS+TOWN
+LR-LO;Lofa
+LR-MG;Margibi;MARGIBI;GIBI;MARSHALL
+LR-MY;Maryland
+LR-MO;Montserrado
+LR-NI;Nimba
+LR-RG;River Gee
+LR-RI;Rivercess
+LR-SI;Sinoe
+@Libya
+LY-WA;Al Wahat;r:^([AE][RL])?WA[AH]?A[DHT];r:^(THE)?OAS[EI]S
+LY-BA;Benghazi;r:^B[EI]NGH?A[SZ]I
+LY-BU;Butnan;r:^([AE][RL])?BUTNAN;r:^T[OU]BRU[KQ]
+LY-DR;Derna;r:^D[AE]RNA
+LY-GT;Ghat;r:^[GƔYV]H?AT
+LY-JA;Jabal al Akhdar;r:^(([AE][RL])?[GJ]ABAL)?([AE]L)?AKHDAR;r:^GRE[AE]NM(OU|UO)NTA(IN|NE)
+LY-JG;Jabal al Gharbi;r:^(([AE][RL])?[GJ]ABAL)?([AE]L)?GH?ARBI;r:^WESTERNM(OU|UO)NTA(IN|NE)
+LY-JI;Jafara;r:^([AE][RL])?[GJ][AEI]?FARA
+LY-JU;Jufra;r:^([AE][RL])?J[OU]+FRA
+LY-KF;Kufra;r:^([AE][LN])?[CK][OU]+FRA
+LY-MJ;Marj;r:^([AE][RL])?MAR[GJ];r:^MEA?DOWS
+LY-MI;Misrata;r:^M[AEI]SU?RATA
+LY-MB;Murqub;r:^([AE][RL])?M[AEIOU]R[GQ][AIU]B
+LY-MQ;Murzuq;r:^M[AEIOU]RZ[AEIOU][KQ]
+LY-NL;Nalut;r:^[LN]ALO?UT
+LY-NQ;Nuqat al Khams;r:^([AE][LN])?NUQAT;r:^([AE][LN])?K?HAMS
+LY-SB;Sabha;r:^S[AE]BHA
+LY-SR;Sirte;r:^S[IU]+RT
+LY-TB;Tripoli;r:^TA?R[AI][BP]+[OU]L+(I|US)
+LY-WD;Wadi al Hayaa;r:^(WADI)?(AL)?HAYA
+LY-WS;Wadi al Shatii;r:^(WADI)?(A(L|SH)?)?SHATI
+LY-ZA;Zawiya;r:^([AE][LNZ])?ZAW[EI]Y?A
+@Liechtenstein
+LI-01;Balzers
+LI-02;Eschen
+LI-03;Gamprin
+LI-04;Mauren
+LI-05;Planken
+LI-06;Ruggell
+LI-07;Schaan
+LI-08;Schellenberg
+LI-09;Triesen
+LI-10;Triesenberg
+LI-11;Vaduz
+@Lithuania
+LT-02;Alytus
+LT-15;Kaunas
+LT-20;Klaipėda;r:^KLAIPI?EDA;MEMEL
+LT-31;Palanga;r:^PAL[AO]NGA
+LT-32;Panevėžys;r:^PANEVEZH?YS
+LT-43;Šiauliai;r:^SH?[EI]AUL[EI]AI
+LT-57;Vilnius
+LT-01;Akmenė
+LT-03;Alytus
+LT-04;Anykščiai;r:^ANYKSH?CH?[EI]AI
+LT-06;Biržai;r:^BIRZH?AI
+LT-09;Ignalina;r:^IGNALIN[AO];r:^INGEL[AEI]N
+LT-10;Jonava
+LT-11;Joniškis;r:^JU?[AO]N[EI]S(H?KIS|ZKI)
+LT-12;Jurbarkas;r:^J[OU]RBAR[CK]A?S
+LT-13;Kaišiadorys;r:^[CK]AISH?[EI]ADORYS
+LT-16;Kaunas
+LT-18;Kėdainiai
+LT-19;Kelmė;r:^KI?ELM[EY]
+LT-21;Klaipėda;r:^KLAIPI?EDA;MEMEL
+LT-22;Kretinga
+LT-23;Kupiškis;r:^KUPISH?KIS
+LT-24;Lazdijai
+LT-26;Mažeikiai;r:^M[AO]ZH?E[IJ]K[EI]
+LT-27;Molėtai;r:^M[AOU]L[AE](T(AI|Y)|U)
+LT-30;Pakruojis
+LT-33;Panevėžys;r:^PANEVEZH?YS
+LT-34;Pasvalys
+LT-35;Plungė;r:^PL[OU]NG[EI]
+LT-36;Prienai
+LT-37;Radviliškis;r:^RADVILISH?KIS
+LT-38;Raseiniai;r:^RASEIN(IAI|E)
+LT-40;Rokiškis;r:^ROKISH?KIS
+LT-41;Šakiai;r:^SH?AK[EI]AI
+LT-42;Šalčininkai;r:^SH?[AO]LE?C[HZ]?I?NI(N[CK]A?I|K)
+LT-44;Šiauliai;r:^SH?[EI]AUL[EI]AI
+LT-45;Šilalė;r:^S[HZ]?[EIY]L[AE]LE
+LT-46;Šilutė;r:^SH?ILUTE
+LT-47;Širvintos;r:^SH?IRVINTOS
+LT-48;Skuodas;r:^SK(UO|OU)DA?S
+LT-49;Švenčionys;r:^SH?[VW]I?EN?CH?[EI](ONYS|ANY)
+LT-50;Tauragė
+LT-51;Telšiai;r:^TELS(IAI|E)
+LT-52;Trakai
+LT-53;Ukmergė;r:^(U|[VW]IL)KO?MI?[EU]R(GE|Z)
+LT-54;Utena
+LT-55;Varėna
+LT-56;Vilkaviškis;r:^VIL[CK]AVISH?KIS
+LT-58;Vilnius
+LT-60;Zarasai
+LT-05;Birštonas
+LT-07;Druskininkai
+LT-08;Elektrėnai
+LT-14;Kalvarija
+LT-17;Kazlų Rūda;r:^[CK]AZLURUD(A|OS)
+LT-25;Marijampolė
+LT-28;Neringa
+LT-29;Pagėgiai;r:^P[AO]GEG[AEI]+[IN]
+LT-39;Rietavas;r:^R[EI]+T(AVA?S|OW)
+LT-59;Visaginas
+@Luxembourg
+LU-EC-Bea;Beaufort;r:^B[EAOU]+FORT
+LU-EC-Bec;Bech
+LU-RD-Be;Beckerich;r:^BI?E[CK]+ER[EI]CH
+LU-EC-Ber;Berdorf;r:^BA?ERDO?RE?F
+LU-LU-Be;Bertrange;r:^B[AE]RTR[AE]NG
+LU-ES-Be;Bettembourg;r:^BE+T+EM?B[OUE]+RG
+LU-DI-Be;Bettendorf;r:^BET+END(O|UE)RF
+LU-GR-Be;Betzdorf;r:^BETZD[EO]R
+LU-ME-Bi;Bissen;r:^BI+S+[AEI]N
+LU-GR-Bi;Biwer
+LU-WI-Bo;Boulaide;r:^B[AO]U(S[CH]+ELT|LAIDE)
+LU-DI-Bo;Bourscheid;r:^B(OU|UE)RS[CH]+E(ID|NT)
+LU-RM-BW;Bous-Waldbredimus;r:^B[AEIOU]+[OU]S;r:^WALDBRI?ED[EI]M[AEOU]+S
+LU-CL-Cl;Clervaux;r:^[CK]L[IE]+R[VF]
+LU-ME-CB;Colmar-Berg;r:^COLM[AE]R;r:^BI?[EU]RG
+LU-EC-Co;Consdorf;r:^[CK]ONSD(OR|RE)F
+LU-LU-Co;Contern;CONTER
+LU-RM-Da;Dalheim;r:^D(A|UE)LH?EI?M
+LU-CA-Di;Dippach;r:^DIP+[AE]CH
+LU-RD-El;Ell
+LU-DI-ES;Erpeldange-sur-Sûre;r:^I?ERPELD[AE]NG
+LU-WI-ES;Esch-sur-Sûre;r:^(E[SC]+H)?(SUR)?SA?U(RE|ER)
+LU-DI-Fe;Feulen;r:^FE[EU]L[AEI]N
+LU-ME-Fi;Fischbach;r:^F[EI]S[CH]+B[AE]CH
+LU-GR-Fl;Flaxweiler;r:^FL(A|UE)(X|S+)WEILER
+LU-ES-Fr;Frisange;r:^FRE?I[SZ][AE]NG
+LU-CA-Ga;Garnich;r:^GARN[EI]CH
+LU-WI-Go;Goesdorf;r:^G(OE|EI)SDO?RE?F
+LU-RD-GW;Groussbus-Wal;r:^GROU?S+B[AEOU]+S;r:^WAH?L
+LU-CA-Ha;Habscht
+LU-ME-Hef;Heffingen;r:^HI?EF+[EI]N(G[AEI]N|ECH)
+LU-ME-Hel;Helperknapp
+LU-LU-He;Hesperange;HESPER
+LU-GR-Ju;Junglinster;r:^J[OU]NGL[EI]NSTER
+LU-CA-Ka;Käerjeng
+LU-ES-Ka;Kayl;r:^[CK][AE][EY]L
+LU-CA-Ke;Kehlen;r:^KI?EH?L[AEI]N
+LU-WI-Ki;Kiischpelt
+LU-CA-Koe;Koerich;r:^K[AO]ERI?CH
+LU-CA-Kop;Kopstal;r:^KOP(LE)?S(CH)?T
+LU-WI-La;Lac de la Haute-Sûre;r:^(LAC)?(DE)?(LA)?H(AU|UA)TESURE;r:^ST(AU|UA)SEIGEMENG
+LU-ME-La;Larochette;r:^LAROCHET+E;FIELS
+LU-RM-Le;Lenningen;r:^LEN+[EI]NG
+LU-ES-Le;Leudelange;r:^LE[IU]DEL[AE]NG
+LU-ME-Li;Lintgen;r:^L[EI]NTG[AEI]N
+LU-ME-Lo;Lorentzweiler;r:^L(O|UE)RENT?ZWEILER
+LU-CA-Ma;Mamer
+LU-GR-Ma;Manternach
+LU-ME-Me;Mersch;r:^MI?ER[SC]+H
+LU-GR-Me;Mertert;r:^MA?ERTERT
+LU-DI-Me;Mertzig;r:^MA?ERT?Z[EI]G
+LU-ES-Mo;Mondercange;r:^MON+D?ER(CANGE|ECH)
+LU-RM-MB;Mondorf-les-Bains;r:^M[OU]N+D?[EO]RE?F
+LU-LU-Ni;Niederanven;r:^NIE?D+ERA+N[VW][AEI]N
+LU-ME-No;Nommern;r:^NOU?M+ER
+LU-CL-PH;Parc Hosingen;r:^PARCHOU?S[IE]N
+LU-ES-Pe;Pétange;r:^PEI?T[AE]NG
+LU-RD-Pr;Préizerdaul
+LU-VD-Pu;Putscheid;r:^P[EU]TS[CH]+E(ID|NT)
+LU-RD-Ra;Rambrouch;r:^RAM+[BE]R(OU|E)CH
+LU-ES-Re;Reckange-sur-Mess;r:^RE[CK]+[AE]NG
+LU-RD-RA;Redange-sur-Attert;r:^REI?D[AE]N
+LU-DI-Re;Reisdorf;r:^REISD(O|UE)RF
+LU-ES-Ro;Roeser;r:^R(OE|EI)[SZ]ER
+LU-EC-RM;Rosport-Mompach;r:^ROU?SP[EO]RT;r:^MOMP[AE]CH
+LU-RD-Sa;Saeul;r:^S[AEU]+L
+LU-LU-Sa;Sandweiler
+LU-ES-Sa;Sanem;r:^S(A|UE)(N|S+)EM
+LU-RM-Sc;Schengen
+LU-DI-Sc;Schieren
+LU-ES-Sc;Schifflange;r:^S[CH]+[EI]F+L[AE]NG
+LU-LU-Sc;Schuttrange;r:^S[CH]+[EU]T+(RA|ER)
+LU-RM-St;Stadtbredimus;r:^STADT?BRI?ED[EI]M[AEOU]+S
+LU-CA-St;Steinfort;r:^STEI?N(GE)?FORT
+LU-LU-Ste;Steinsel;r:^STE[EI]N?S(AL|EL|LE)
+LU-LU-Str;Strassen;r:^STR[AO]+S+[AEI]N
+LU-VD-Ta;Tandel
+LU-CL-Tr;Troisvierges;r:^TROISVI[EU]RGES;r:^ELW[AEI]N
+LU-RD-Us;Useldange;r:^USELD[AE]NG
+LU-DI-VE;Vallée de l'Ernz;r:ERE?NZ
+LU-RD-Vi;Vichten;r:^VI+CHT[AEI]N
+LU-EC-Wa;Waldbillig;r:^WALDB[EI]L+[EI]G
+LU-LU-Wa;Walferdange;WALFER
+LU-LU-WT;Weiler-la-Tour;WEILER
+LU-CL-We;Weiswampach;r:^W[AE]ISWAMP[AE]CH
+LU-CL-Wi;Wincrange;r:^W[EI]NT?([CK]H?RAN)?GE
+LU-WI-Win;Winseler;r:^W[AI]NSELER
+LU-GR-Wo;Wormeldange;r:^W(O|UE)RME(LDANGE|R)
+LU-DI-Di;Diekirch;r:^D[IEKR]+CH
+LU-ES-Di;Differdange;r:^DE?IF+ERD[AE]NG
+LU-ES-Du;Dudelange;r:^D[IU]D+EL[AE]NG
+LU-EC-Ec;Echternach;r:^I?ECHTERNACH
+LU-ES-EA;Esch-sur-Alzette;r:^E[SC]+H
+LU-DI-Et;Ettelbruck;r:^ET+ELBR[EU]C?K
+LU-GR-Gr;Grevenmacher;r:^GREI?[VW]EN?MA+CHER
+LU-LU-Lu;Luxembourg;r:^L[UE][XT]Z?EM?B[EOU]+RG
+LU-RM-Re;Remich;r:^REI?M[EI]CH
+LU-ES-Ru;Rumelange;r:^R[EU]MEL[AE]NG
+LU-VD-Vi;Vianden;r:^V[EIA]+ND?[AEI]N
+LU-WI-Wil;Wiltz;r:^W[IO]LT?Z
+@Madagascar
+MG_AlM;Alaotra-Mangoro;ALAOTRA;MANGORO
+MG_Am;Ambatosoa
+MG_AmM;Amoron'i Mania;AMORON
+MG_Anm;Analamanga
+MG_Ann;Analanjirofo
+MG_And;Androy
+MG_Ano;Anosy
+MG_AAn;Atsimo-Andrefana;r:^(ATSIMO)?ANDREFANA
+MG_AAt;Atsimo-Atsinanana;r:^(ATSIMO)?ATSINANANA
+MG_At;Atsinanana
+MG_Be;Betsiboka
+MG_Boe;Boeny
+MG_Bon;Bongolava
+MG_Di;Diana
+MG_Fi;Fitovinany
+MG_HM;Haute Matsiatra;r:^(HAUTE|AMBONY|UP(PER)?)?MATS[EI]ATRA
+MG_Ih;Ihorombe
+MG_Ia;Itasy
+MG_Mel;Melaky
+MG_Men;Menabe
+MG_Sa;Sava
+MG_So;Sofia
+MG_Vak;Vakinankaratra
+MG_Vat;Vatovavy
+@Malawi
+MW_Bc;Blantyre
+MW_Lc;Lilongwe
+MW_Mc;Mzuzu
+MW_Zc;Zomba
+MW-BA;Balaka
+MW-BL;Blantyre
+MW-CK;Chikwawa
+MW-CR;Chiradzulu
+MW-CT;Chitipa
+MW-DE;Dedza
+MW-DO;Dowa
+MW-KR;Karonga
+MW-KS;Kasungu
+MW-LK;Likoma
+MW-LI;Lilongwe
+MW-MH;Machinga
+MW-MG;Mangochi
+MW-MC;Mchinji
+MW-MU;Mulanje
+MW-MW;Mwanza
+MW-MZ;Mzimba
+MW-NE;Neno
+MW-NB;Nkhata Bay
+MW-NK;Nkhotakota
+MW-NS;Nsanje
+MW-NU;Ntcheu
+MW-NI;Ntchisi
+MW-PH;Phalombe
+MW-RU;Rumphi
+MW-SA;Salima
+MW-TH;Thyolo
+MW-ZO;Zomba
+MW_Km;Kasungu
+MW_Lm;Luchenza
+MW_Kt;Karonga
+MW_Mtm;Mangochi
+@Malaysia
+MY-01;Johor
+MY-02;Kedah;r:^KEDA[AH];DARULAMAN
+MY-03;Kelantan;r:^[CK][AE]LAN?T[AE]
+MY-04;Malacca;r:^M[AE]L[AIU]+[CHJK]+[EI]?A
+MY-05;Negeri Sembilan;r:^N[EO]G[EO][GHR]+ISE?MB?ILAN
+MY-06;Pahang
+MY-07;Penang;r:^(PULAU)?P[AEI]NANG
+MY-08;Perak
+MY-09;Perlis;r:^P[AE]R?LI[ST]
+MY-12;Sabah
+MY-13;Sarawak
+MY-10;Selangor;SELANGOR;c:DARULEHSAN
+MY-11;Terengganu;r:^TE?R[EI]NG+ANU
+MY-14;Kuala Lumpur;r:^K[AOU]+LAL[AOU]+MP[AEOU]+R;KL
+MY-15;Labuan
+MY-16;Putrajaya;r:^PUTRAJ[AE]YA;PRANGBESAR;AIRHITAM
+@Maldives
+MV-02;Alif Alif;NORTHARI;r:^AR[EI]ATHOLHUUTHURUBURI;r:^ALIFU?ALIF
+MV-00;Alif Dhaalu;r:^S(OU|UO)THARI;r:^AR[EI]ATHOLHUDH?EKUNUBURI;r:^ALIFU?DH?A[AH]?L
+MV-20;Baa;r:^S(OU|UO)THMA[AH]?LHOSMADULU;r:^MA[AH]?LHOSMADULUDH?EKUNUBURI;BAA
+MV-17;Dhaalu;r:^S(OU|UO)THNILANDH?E;r:^NILANDH?EA?THOLHUDH?EKUNUBURI;r:^DH?A[AH]?LU
+MV-14;Faafu;r:^NORTHNILANDH?E;r:^NILANDH?EA?THOLHUUTHURUBURI;r:^FA[AH]?FU
+MV-27;Gaafu Alifu;r:^NORTHHUVADH?U;r:^HUVADH?UATHOLHUUTHURUBURI;r:^GA[AH]?FUALIF
+MV-07;Haa Alif;r:^NORTHTHILADH?UNMATHI;r:^THILADH?UNMATH(EE|IE)UTHURUBURI;r:^HA[AH]ALIF
+MV-26;Kaafu;r:^MA+LE;r:^[CK]AAFU
+MV-05;Laamu;r:^HA[AH]?D+H?UNMATHI;r:^LA[AH]?MU
+MV-03;Lhaviyani;r:^FA[AH]?DH?IP+OLHU;LHAVIYANI
+MV-12;Meemu;MULAK;r:^ME[AE]MU
+MV-25;Noonu;r:^S(OU|UO)THMILADH?UNMADULU;r:^MILADH?UNMADULUDH?EKUNUBURI;NOONU
+MV-13;Raa;r:^NORTHMA[AH]?LHOSMADULU;r:^MA[AH]?LHOSMADULUUTHURUBURI;RAA
+MV-24;Shaviyani;r:^NORTHMILADH?UNMADULU;r:^MILADH?UNMADULUUTHURUBURI;SHAVIYANI
+MV-08;Thaa;KOLHUMADULU;r:^THA[AH]
+MV-04;Vaavu;r:^FELIDH?[EU];r:^VA[AH]?VU
+MV-28;Gaafu Dhaalu;r:^S(OU|UO)THHUVADH?U;r:^HUVADH?UATHOLHUDH?EKUNUBURI;r:^GA[AH]?FUDH?A[AH]?LU;r:^THINADH?OO
+MV-29;Gnaviyani;r:^FUVAH?M+ULA[AH];GNAVIYANI
+MV-23;Haa Dhaalu;r:^S(OU|UO)THTHILADH?UNMATHI;r:^THILADH?UNMATH(EE|IE)DH?EKUNUBURI;r:^HA[AH]DH?A[AH]?LU
+MV-MLE;Malé;r:^MA+LE;r:^[CK]AAFU
+MV-01;Seenu/Addu;r:^AD+U;r:^SE[AE]NU
+@Mali
+ML-00;Bamako
+ML-17;Bandiagara
+ML-11;Bougouni
+ML-12;Dioila
+ML-19;Douentza;r:^D[OUW]+[AE]Y?[Nⁿ]T?[SZ]A
+ML-07;Gao
+ML-01;Kayes;r:^[CK]AY[EI]
+ML-08;Kidal
+ML-15;Kita
+ML-02;Koulikoro;r:^K[OU]+LIKORO
+ML-14;Koutiala;r:^K[OU]+T[EI]ALA
+ML-10;Ménaka
+ML-05;Mopti;r:^MOP?TI
+ML-16;Nara
+ML-13;Nioro
+ML-18;San
+ML-04;Ségou;r:^SEGO?U
+ML-03;Sikasso
+ML-09;Taoudénit;r:^TA[OU]+DENI
+ML-06;Tombouctou;r:^T[IOU]MB?[OU]+[CK]?TO?U
+@Malta
+MT-Ea;Eastern;EAST;LVANT
+MT-Go;Gozo
+MT-No;Northern;NORTH;TRAMUNTANA
+MT-Po;Port
+MT-So;Southern;SOUTH;NOFSINHAR
+MT-We;Western;WEST;PUNENT
+@Marshall Islands
+MH-ALL;Ailinglaplap;r:^A[EI]L[IO]N̄?G?LAPA?LAP
+MH-ALK;Ailuk;r:^A[EI]L[OU]C?K
+MH-ARN;Arno
+MH-AUR;Aur
+MH-EBO;Ebon;r:^E[BP]O+N
+MH-ENI;Enewetak | Ujelang;r:^[AE]N[EI]+W[AE]T[AO]C?K;BROWN;r:^W?UJE?LAN
+MH-JAB;Jabat;r:^J[AE]BW?[AO]T
+MH-JAL;Jaluit;r:^JAL[IOUW]+[JT]
+MH-KIL;Kili | Bikini | Ejit;r:^K[IO]L[EI];r:^[BP]IKIN+I;r:^ES[CH]+S[CH]+OLTZ;EJIT
+MH-KWA;Kwajalein;r:^KU?WAJ
+MH-LAE;Lae
+MH-LIB;Lib;r:^E?L+[EI][BP]
+MH-LIK;Likiep
+MH-MAJ;Majuro;r:^M[AEIO]JU?RO
+MH-MAL;Maloelap;r:^M̧?ALO?ELAP
+MH-MEJ;Mejit;r:^M[AE]J[EI]+[JT]
+MH-MIL;Mili;r:^MIL[EI]
+MH-NMK;Namdrik;r:^NAM̧?[DO]R?IC?K
+MH-NMU;Namu;r:^NAM̧?[OU]
+MH-RON;Rongelap;r:^RON̄?(GE)?LAP
+MH-UJA;Ujae;r:^W?UJAE
+MH-UTI;Utirik;r:^UTI?R[IO]C?K
+MH-WTH;Wotho;r:^WOT+H?O
+MH-WTJ;Wotje;r:^WO[JT]+[AE]
+@Mauritania
+MR_Noua;Nouakchott
+MR-07;Adrar
+MR-03;Assaba;r:^(EL)?A[CS]+ABA
+MR-05;Brakna
+MR-08;Dakhlet Nouadhibou;DAKHLET;r:^N[OU]+ADH?IB[OU]
+MR-04;Gorgol;r:^[GK]OR[GK][OU]L
+MR-10;Guidimaka;r:^[GK]U?ID[IY]MA[GK]H?A
+MR-01;Hodh Ech Chargui;r:^((HODH?)?[AE]([CS]H|L))?[CS]HAR[GQ]U?[IY];r:^EAST(ERN)?BASIN
+MR-02;Hodh El Gharbi;r:^((HODH?)?[AE]L)?GH[AEI]RB[IY];r:^WEST(ERN)?BASIN
+MR-12;Inchiri;r:^[EI]N?[CS]H(EE|I)R[EIY]
+MR-09;Tagant;r:^TA[GKQ]ANT
+MR-11;Tiris Zemmour;r:^TIR[AEI]SZ[AEI]M+[OU]+R
+MR-06;Trarza
+@Mauritius
+MU-FL;Flacq
+MU-GP;Grand Port
+MU-MO;Moka
+MU-PA;Pamplemousses
+MU-PL;Port Louis
+MU-RR;Rivière du Rempart
+MU-BL;Rivière Noire;RIVIERENOIRE;BLACKRIVER
+MU-SA;Savanne;r:^SAVAN+[AE]
+MU-PWbbrh;Beau Bassin-Rose Hill;r:^B([EA]+U|OW|OUGH)BAS+[AEI]N;ROSEHILL
+MU-PWcu;Curepipe;CUREPIPE;c:LUMIERE
+MU-PWqb;Quatre Bornes;r:^Q(AU|UA)TREBORNES;r:FL(U|EU|UE)RS
+MU-PWvp;Vacoas-Phoenix;VACOAS;r:^PH[EO]+N[EI]X;r:JUMEL+ES
+MU-RO;Rodrigues;r:^(ILE)?RODRIG
+MU-PWmi;Midlands
+MU-PWmo;Moka
+MU-PWsm;Seizieme Mille
+@Mexico
+MX-CMX;Mexico City
+MX-AGU;Aguascalientes;r:^AG[AU]+S?CAL+[AEI]+NT[AEI]+S
+MX-BCN;Baja California
+MX-BCS;Baja California Sur;r:^BA[HJ]A[A-Z]*SUR;r:^SOUTHBA[HJ]A
+MX-CAM;Campeche
+MX-CHP;Chiapas
+MX-CHH;Chihuahua;r:^CH[AEIOU]+[HW]+[AEIOU]+[HW]+[AEIOU]
+MX-COA;Coahuila;r:^COA[AH]?[UI]+L+A
+MX-COL;Colima;r:^COL+[EI]MA
+MX-DUR;Durango
+MX-GUA;Guanajuato;r:^G[AU]+N[AEIO][JW][AU]+T+O
+MX-GRO;Guerrero;r:^G[EU]+R+[EU]+R+O
+MX-HID;Hidalgo
+MX-JAL;Jalisco
+MX-MEX;México
+MX-MIC;Michoacán;r:^MICH[OA]+CAN
+MX-MOR;Morelos;r:^MOR+EL+OS
+MX-NAY;Nayarit
+MX-NLE;Nuevo León;r:^N[EU]+VOLEON
+MX-OAX;Oaxaca
+MX-PUE;Puebla
+MX-QUE;Querétaro;r:^Q[EU]+R+[AEIO]T[AE]RO
+MX-ROO;Quintana Roo
+MX-SLP;San Luis Potosí;r:^SANL[OUI]+SP[AEIO]T+OSI
+MX-SIN;Sinaloa
+MX-SON;Sonora
+MX-TAB;Tabasco
+MX-TAM;Tamaulipas
+MX-TLA;Tlaxcala;r:^TLA[CX]+AL+A
+MX-VER;Veracruz
+MX-YUC;Yucatán
+MX-ZAC;Zacatecas;r:^ZA[CK]+[AEI]T[AE]C[AE]S
+@Moldova
+MD-AN;Anenii Noi
+MD-BS;Basarabeasca
+MD-BR;Briceni;r:^BR[IY](C[HZ]?[AE]N[IY]|TSHAN)
+MD-CA;Cahul;r:^[CK]A[GH]UL
+MD-CL;Călărași
+MD-CT;Cantemir
+MD-CS;Căușeni
+MD-CM;Cimișlia
+MD-CR;Criuleni
+MD-DO;Dondușeni
+MD-DR;Drochia
+MD-DU;Dubăsari;r:^DUB[AO]S+AR[IY]
+MD-ED;Edineț
+MD-FA;Fălești
+MD-FL;Florești
+MD-GL;Glodeni
+MD-HI;Hîncești
+MD-IA;Ialoveni
+MD-LE;Leova
+MD-NI;Nisporeni
+MD-OC;Ocnița
+MD-OR;Orhei
+MD-RE;Rezina
+MD-RI;Rîșcani
+MD-SI;Sîngerei;r:^S[AI]NGEREI
+MD-SD;Șoldănești
+MD-SO;Soroca
+MD-SV;Ștefan Vodă
+MD-ST;Strășeni
+MD-TA;Taraclia
+MD-TE;Telenești
+MD-UN;Ungheni
+MD-BA;Bălți
+MD-CU;Chișinău
+MD-GA;Găgăuzia;c:GAGAUZ;r:^AT[BU]G;UTAG
+@Monaco
+MC-MC;Monaco
+@Mongolia
+MN-1;Ulaanbaatar
+MN-073;Arkhangai;r:^(AR[CK]H|NORTH(ERN)?)ANGA[IJY]
+MN-071;Bayan-Ulgii;r:^B[AE][JY]AN[OU]LGII;r:^[OU]LGI[IY]
+MN-069;Bayankhongor;r:^B[AE][JY]AN[CK]?HONGOR
+MN-067;Bulgan
+MN-037;Darkhan-Uul;r:^DAR[CK]HAN;r:^SA[CK]H?REDM(OU|UO)NTA(IN|NE)
+MN-061;Dornod;DORNOD;r:^(THE)?EAST
+MN-063;Dornogovi;DORNOGOV;EASTGOBI
+MN-059;Dundgovi;r:^DUND?GOVI;r:^MID+LEGOBI
+MN-065;Govi-Altai;r:^(GO[BV]I)?ALTA[IY]
+MN-064;Govisumber;r:^(GO[BV]I)?SUMBER
+MN-039;Khentii;r:^K?HENTI[IY]
+MN-043;Khovd;r:^K?HOVD
+MN-041;Khövsgöl;r:^[CK]?H[OU]VSG[OU]L
+MN-053;Ömnögovi;r:^[OU]MN[OU]GO[BV]I;r:^SOUTHGO[BV]I
+MN-035;Orkhon;r:^ORK?HON
+MN-055;Övörkhangai;r:^[OU]V[OU]R[CK]?HANGA[IJY];r:^S(OU|UO)THERNKHANGAI
+MN-049;Selenge
+MN-051;Sukhbaatar
+MN-047;Töv;r:^T[OU]V;r:^CENT(RAL|ER|RE)
+MN-046;Uvs;r:^U[VW]S
+MN-057;Zavkhan;r:^D?ZA[VW][CK]?H?AN
+@Montenegro
+ME-01;Andrijevica
+ME-02;Bar
+ME-03;Berane
+ME-04;Bijelo Polje
+ME-05;Budva
+ME-06;Cetinje
+ME-07;Danilovgrad
+ME-22;Gusinje
+ME-08;Herceg Novi
+ME-09;Kolašin;r:^KOLASH?[AEI]N
+ME-10;Kotor
+ME-11;Mojkovac
+ME-12;Nikšić;r:^NIKSH?IC
+ME-23;Petnjica
+ME-13;Plav
+ME-14;Pljevlja
+ME-15;Plužine;r:^PLUZH?INE
+ME-16;Podgorica
+ME-17;Rožaje;r:^ROZH?AJE
+ME-18;Šavnik;r:^SH?AVNIC?K
+ME-19;Tivat
+ME-24;Tuzi
+ME-20;Ulcinj
+ME-21;Žabljak;r:^ZH?ABLJAC?K
+ME-25;Zeta
+@Morocco
+MA-05;Béni Mellal-Khénifra;r:^B?[AE](NI|YT)M[AE]?L+(AL|EL|LE);r:^[XK]H?[EU]?NA?[IY]FI?RA
+MA-06;Casablanca-Settat;r:^(GRAND|GREATER)?CAS+ABLAN[CK]+A;r:^AD+ARALB[AE][IY]DA;r:^S[EI]?T+AT;ANFA
+MA-12;Dakhla-Oued Ed-Dahab;r:DA[AH]?AB;r:^D+AKH?LA;r:^O(U|EU|UE)DED;ASIFN;r:^WU[RṘ]G
+MA-08;Drâa-Tafilalet;r:^DA?RA;r:^TAFILAL[EI]?T
+MA-03;Fès-Meknès;r:^F[AE][SZ];r:^M[AE]?KN[AE]S
+MA-10;Guelmim-Oued Noun;r:^G(U|EU|UE)LMIM;r:^O(U|EU|UE)DN(OU|UO)N;r:^A[DS]IF?NUN
+MA-11;Laâyoune-Sakia El Hamra;r:^A?L[AU]*Y[OU]+N;TARGATAZGGWAGT;r:^(SA|AS)+[KQ][AEIY]+LHAMRA
+MA-07;Marrakesh-Safi;r:^M[AU]*R+[AEI]K[AEIOU]*[CS];r:^(SA|AS)FI
+MA-02;Oriental;r:^L?ORIENT(AL|EL|LE);EAST;ASHSHARQ;TAGMUDANT
+MA-04;Rabat-Salé-Kénitra;r:^E?RA?B+AT;r:^SA?L[AE];r:^[KQ]E?NITRA
+MA-09;Souss-Massa;r:^SO?US;r:^MAS+A
+MA-01;Tangier-Tétouan-Al Hoceima;r:^TAN[JG](I?ER|A);r:^T[EI]T[AOUW]+[AEI]N;r:^[AE]?LH[OU][CS][AE]?IMA
+@Mozambique
+MZ-MPM;Maputo
+MZ-P;Cabo Delgado
+MZ-G;Gaza
+MZ-I;Inhambane
+MZ-B;Manica
+MZ-L;Maputo
+MZ-N;Nampula
+MZ-A;Niassa
+MZ-S;Sofala
+MZ-T;Tete
+MZ-Q;Zambezia
+@Myanmar
+MM-07;Ayeyarwady;r:^[AEIY]+R+A?WAD+(EE|EY|IE|Y)
+MM-02;Bago;r:^[BP][AE]G[OU]
+MM-03;Magway
+MM-04;Mandalay
+MM-01;Sagaing
+MM-05;Tanintharyi;r:^T[AE]N[AI](NTHARYI|S+ERIM|O)
+MM-06;Yangon;r:^[RY]ANGO+N
+MM-14;Chin;r:^CH[AEI]N;PRANYNAI
+MM-11;Kachin;r:^[CK]ACH[AEI]N;WUNPAWNG
+MM-12;Kayah;r:^[CK]A[RY][AEI][AH];r:^[CK]AR[AEI]N
+MM-13;Kayin;r:^[CK]A[RY][AEI]N
+MM-15;Mon
+MM-16;Rakhine;r:^A?RA[CK]H?[AI]?N
+MM-17;Shan
+MM-18;Naypyidaw
+@Namibia
+NA-ER;Erongo
+NA-HA;Hardap
+NA-KE;Kavango East
+NA-KW;Kavango West
+NA-KH;Khomas
+NA-KU;Kunene
+NA-OW;Ohangwena
+NA-OH;Omaheke
+NA-OS;Omusati;OMUSATI;r:^MOPA(IN|NE)
+NA-ON;Oshana
+NA-OT;Oshikoto
+NA-OD;Otjozondjupa
+NA-CA;Zambezi;r:^(THE)?(RIVER)?ZAMBE[SZ]I;CAPRIVI
+NA-KA;ǁKaras;r:[CK]ARAS
+@Nauru
+NR-01;Aiwo;r:^A[IUW]+[EO];YANGOR
+NR-02;Anabar;r:^AN[AE]BW?[AO]R
+NR-03;Anetan
+NR-04;Anibare;r:^AN[IY]B[AO][DR][EY]
+NR-05;Baitsi;r:^B[AE]I[DT]S?I
+NR-06;Boe;r:^BO[EI]
+NR-07;Buada;BUADA;r:^ARENIBOC?K
+NR-08;Denigomodu;r:^DENI[GK]OMO[DT]U
+NR-09;Ewa;r:^E[OW]A
+NR-10;Ijuw;r:^IJU[BW]
+NR-11;Meneng;r:^MEN[AEI]N
+NR-12;Nibok;r:^E?N+IB[EO]C?K
+NR-13;Uaboe;r:^[UW][AE]BO[EI]
+NR-14;Yaren;YAREN;r:^M[AO][KQ][UW]A
+@Nepal
+NP-P3;Bagmati
+NP-P4;Gandaki
+NP-P6;Karnali
+NP-P1;Koshi
+NP-P5;Lumbini
+NP-P2;Madhesh;r:^MADH?ESH
+NP-P7;Sudurpashchim;SUDURPASHCHIM;c:WEST
+@Netherlands
+NL-BQ1;Bonaire;r:^BON[AE]IR[EU]
+NL-BQ2;Saba
+NL-BQ3;Sint Eustatius
+NL-DR;Drenthe
+NL-FL;Flevoland
+NL-FR;Friesland
+NL-GE;Gelderland
+NL-GR;Groningen
+NL-LI;Limburg
+NL-NB;North Brabant
+NL-NH;North Holland
+NL-OV;Overijssel
+NL-ZH;South Holland
+NL-UT;Utrecht
+NL-ZE;Zeeland
+@New Zealand
+NZ-CIT;Chatham Islands Territory;r:^(THE)?CHATHAM;r:^WH?ARE[CK]AURI
+NZ-AUK;Auckland;r:^AU[CK]+LAND;r:^TAMAKIMA[CK]AURAU
+NZ-BOP;Bay of Plenty;r:^(THE)?BAYOFPLENTY;TOIMOANA;BOP
+NZ-CAN;Canterbury;r:^CANTERB[EU]R+Y;r:^WAITA[AH]?A
+NZ-GIS;Gisborne;GISBORNE;GISBOURNE;r:^(TE)?TAIRAWH?ITI
+NZ-HKB;Hawke's Bay;r:^HAWKE?SBAY;r:^(TE)?MATAUAM(AU|UA)I
+NZ-MWT;Manawatū-Whanganui;r:^MAN+[AEIO]WATU;r:^WH?ANG[AEIO]NUI;HORIZONS
+NZ-MBH;Marlborough;r:^MARLB[AEIOU]+R[AEIOU]+GH
+NZ-NSN;Nelson;r:^NELS[EO]N;r:^WH?A[CK]ATU
+NZ-NTL;Northland;NORTH;r:^(TE)?TAITOKERAU
+NZ-OTA;Otago;r:^OTA[GK]O
+NZ-STL;Southland;SOUTH;r:^(TE)?TA[EI]AOTONGA
+NZ-TKI;Taranaki;r:^TAR+[AEIO]NAKI
+NZ-TAS;Tasman;r:^TASM[AE]N;r:^(TE)?TAIOAORERE
+NZ-WKO;Waikato;r:^W[AI]+K[AO]TO
+NZ-WGN;Wellington;r:^(GREATER)?WELLINGTON;r:^(TE)?PA(IN|NE)MATUATA[EI]AO
+NZ-WTC;West Coast;WESTCOAST;r:^(TE)?TAIOP(OU|UO)TINI
+NZ-TK;Tokelau
+@Nicaragua
+NI-BO;Boaco
+NI-CA;Carazo
+NI-CI;Chinandega
+NI-CO;Chontales
+NI-ES;Estelí
+NI-GR;Granada
+NI-JI;Jinotega
+NI-LE;León
+NI-MD;Madriz
+NI-MN;Managua
+NI-MS;Masaya
+NI-MT;Matagalpa
+NI-NS;Nueva Segovia
+NI-SJ;Río San Juan
+NI-RI;Rivas
+NI-AN;North Caribbean Coast;r:^NORTH(ERN)?CARIB+EA?N;r:(CARIBE|ATLANTICO)NORTE
+NI-AS;South Caribbean Coast;r:^SOUTH(ERN)?CARIB+EA?N;r:(CARIBE|ATLANTICO)SUR
+@Niger
+NE-8;Niamey
+NE-1;Agadez
+NE-2;Diffa
+NE-3;Dosso
+NE-4;Maradi
+NE-5;Tahoua
+NE-6;Tillabéri;r:^TIL+ABER[EIY]
+NE-7;Zinder
+@Nigeria
+NG-AB;Abia
+NG-AD;Adamawa
+NG-AK;Akwa Ibom
+NG-AN;Anambra
+NG-BA;Bauchi
+NG-BY;Bayelsa
+NG-BE;Benue
+NG-BO;Borno
+NG-CR;Cross River
+NG-DE;Delta
+NG-EB;Ebonyi
+NG-ED;Edo
+NG-EK;Ekiti
+NG-EN;Enugu
+NG-GO;Gombe
+NG-IM;Imo
+NG-JI;Jigawa
+NG-KD;Kaduna
+NG-KN;Kano
+NG-KT;Katsina
+NG-KE;Kebbi
+NG-KO;Kogi
+NG-KW;Kwara
+NG-LA;Lagos
+NG-NA;Nasarawa
+NG-NI;Niger
+NG-OG;Ogun
+NG-ON;Ondo;ONDO;OWO
+NG-OS;Osun
+NG-OY;Oyo
+NG-PL;Plateau;r:^PLAT+E?AU
+NG-RI;Rivers
+NG-SO;Sokoto
+NG-TA;Taraba
+NG-YO;Yobe
+NG-ZA;Zamfara
+NG-FC;Federal Capital Territory;r:CAPITAL;FCT;ABUJA
+@Niue
+NU-AN;Alofi North;ALOFINORTH;NORTHALOFI
+NU-AS;Alofi South;ALOFISOUTH;SOUTHALOFI
+NU-AV;Avatele
+NU-HA;Hakupu
+NU-HI;Hikutavake
+NU-LA;Lakepa
+NU-LI;Liku
+NU-MA;Makefu
+NU-MU;Mutalau
+NU-NA;Namukulu
+NU-TA;Tamakautoga
+NU-TO;Toi
+NU-TU;Tuapa
+NU-VA;Vaiea
+@North Korea
+KP-01;Pyongyang;r:^[FHP]+YE?ONGYANG
+KP-04;Chagang
+KP-07;Kangwon;r:^[CGK]ANGWON
+KP-09;North Hamgyong;r:^NORTH(ERN)?HAMGYONG;HAMGYONGBUK
+KP-06;North Hwanghae;r:^NORTH(ERN)?HWANGH?AE;r:^HWANGH?AEBUC?K
+KP-03;North Pyongan;r:^NORTH(ERN)?PYONGAN;r:^(PH|F+)YONGANBUK
+KP-10;Ryanggang;r:^RYANG+ANG
+KP-08;South Hamgyong;r:^SOUTH(ERN)?HAMGYONG;HAMGYONGNAM
+KP-05;South Hwanghae;r:^SOUTH(ERN)?HWANGH?AE;r:^HWANGH?AENAM
+KP-02;South Pyongan;r:^SOUTH(ERN)?PYONGAN;r:^(PH|F+)YONGAN+AM
+KP-15;Kaesong;r:^[CGK]AESE?ONG
+KP-14;Nampo;r:^NAM[FHP]+O
+KP-13;Rason;r:^RA[JS][AEIO]N
+@North Macedonia
+MK-Skopje;Skopje
+MK-802;Aračinovo;r:^ARACH?INOVO
+MK-201;Berovo
+MK-501;Bitola
+MK-401;Bogdanci
+MK-601;Bogovinje
+MK-402;Bosilovo
+MK-602;Brvenica
+MK-109;Čaška;r:^CH?ASH?KA
+MK-313;Centar Župa;r:^CENTARZH?UPA
+MK-210;Češinovo-Obleševo;r:^CH?ESH?INOVO;r:^OBLESH?EVO
+MK-816;Čučer-Sandevo;r:^CH?UCH?ER;SANDEVO
+MK-303;Debar
+MK-304;Debarca
+MK-203;Delčevo;r:^DELCH?EVO
+MK-502;Demir Hisar
+MK-103;Demir Kapija
+MK-406;Dojran
+MK-503;Dolneni
+MK-405;Gevgelija
+MK-604;Gostivar
+MK-102;Gradsko
+MK-807;Ilinden
+MK-606;Jegunovce
+MK-205;Karbinci
+MK-104;Kavadarci
+MK-307;Kičevo;r:^KICH?EVO
+MK-206;Kočani;r:^KOCH?ANI
+MK-407;Konče;r:^KONCH?E
+MK-701;Kratovo
+MK-702;Kriva Palanka
+MK-504;Krivogaštani;r:^[CK]H?RIVOGASH?TANI
+MK-505;Kruševo;r:^[CK]H?RUSH?EVO
+MK-703;Kumanovo
+MK-704;Lipkovo
+MK-105;Lozovo
+MK-207;Makedonska Kamenica;r:^(MAKEDONSKA)?[CK]AMENICA
+MK-308;Makedonski Brod;r:^(MAKEDONSKI)?BROD
+MK-607;Mavrovo and Rostuša;MAVROVO;r:^ROSTUSH?A
+MK-506;Mogila
+MK-106;Negotino
+MK-507;Novaci
+MK-408;Novo Selo
+MK-310;Ohrid
+MK-208;Pehčevo;r:^PEHCH?EVO
+MK-810;Petrovec
+MK-311;Plasnica
+MK-508;Prilep
+MK-209;Probištip;r:^PROBISH?TIP
+MK-409;Radoviš
+MK-705;Rankovce
+MK-509;Resen
+MK-107;Rosoman
+MK-812;Sopište;r:^SOPISH?TE
+MK-706;Staro Nagoričane;r:^STARONAGORICH?A(IN|NE)
+MK-211;Štip;r:^SH?TIP
+MK-312;Struga
+MK-410;Strumica
+MK-813;Studeničani;r:^STUDENICH?ANI
+MK-108;Sveti Nikole
+MK-608;Tearce
+MK-609;Tetovo
+MK-403;Valandovo
+MK-404;Vasilevo
+MK-101;Veles
+MK-301;Vevčani;r:^VEVCH?ANI
+MK-202;Vinica
+MK-603;Vrapčište;r:^VRAPCH?ISH?TE
+MK-806;Zelenikovo
+MK-605;Želino;r:^ZH?ELINO
+MK-204;Zrnovci
+@Northern Cyprus
+NorCy_Ga;Gazimağusa;r:^([FG]?A)?(ZI)?M+[AO](GUST?A|CHOSTOS)
+NorCy_Gi;Girne;r:^[KG][EIY]R[EY]?N[EIY]
+NorCy_Gu;Güzelyurt;r:^G(UE?Z)?EL[VY][EU]R[IT]
+NorCy_Is;İskele;r:^(YENI)?ISKELE;TRIKOMO
+NorCy_Lee;Lefke;r:^LEFK[AE]
+NorCy_Leo;Lefkoşa;r:^[LN][AEI]F?[CK]OS[EI]?A
+@Norway
+NO-42;Agder
+NO-32;Akershus
+NO-33;Buskerud
+NO-56;Finnmark
+NO-34;Innlandet
+NO-15;Møre og Romsdal;MORE;r:^ROMSD(AL|EL|LE)
+NO-18;Nordland
+NO-03;Oslo
+NO-31;Østfold
+NO-11;Rogaland
+NO-40;Telemark
+NO-55;Troms;r:^T?ROMS
+NO-50;Trøndelag;r:^TRO+NDELAG
+NO-39;Vestfold
+NO-46;Vestland
+NO-21;Svalbard
+@Oman
+OM-DA;Ad Dakhiliyah;r:^(A[DL])?DAK?[HḪ][AEI]LIYA;INTERIOR
+OM-ZA;Ad Dhahirah;r:^(A[DLTZ])?[DTZ]H?A[AH]?IRA
+OM-BS;Al Batinah North;r:^([AE][RL])?BATINAH?NORTH;r:^SHAMAL([AE][RL])?BATINA
+OM-BJ;Al Batinah South;r:^([AE][RL])?BATINAH?SOUTH;r:^[GJ]ANUB([AE][RL])?BATINA
+OM-BU;Al Buraymi;r:^([AE][RL])?BUR[AE][IY]MI
+OM-WU;Al Wusta;r:^([AE][RL])?[OUW]+STA;r:^CENT(RAL|ER|RE)
+OM-SS;Ash Sharqiyah North;r:^(ASH?|AL)?SH?ARQIYAH?NORTH;r:^SHAMAL(ASH)?SH?ARQIYA
+OM-SJ;Ash Sharqiyah South;r:^(ASH?|AL)?SH?ARQIYAH?SOUTH;r:^[GJ]ANUB(ASH)?SH?ARQIYA
+OM-ZU;Dhofar;r:^[DTZ]H?[OU]+FAR
+OM-MU;Musandam;r:^M[OU]+SANDAM
+OM-MA;Muscat;r:^M[AOU]S[CQ]AT
+@Pakistan
+PK-JK;Azad Jammu and Kashmir;r:^(AZAD)?JAMMU;r:^(AZAD)?KASHMIR;AJK
+PK-GB;Gilgit-Baltistan;GILGIT;BALTISTAN;NORTH
+PK-IS;Islamabad Capital Territory;c:CAPITAL;ISLAMABAD
+PK-BA;Balochistan;r:^BAL[OU]CH?[EI]STAN
+PK-KP;Khyber Pakhtunkhwa;KHYBERPAKHTUNKHWA;KP;NORTHWEST;NWF
+PK-PB;Punjab
+PK-SD;Sindh
+@Palau
+PW-002;Aimeliik
+PW-004;Airai
+PW-010;Angaur;r:^A?NG[EAOU]+R
+PW-050;Hatohobei;HATOHOBEI;TOBI;HELEN
+PW-100;Kayangel;r:^(NG)?[CK]H?[AEY]+NG(AL|EL|LE)
+PW-150;Koror;r:^K?ORE?OR;r:^ERNGU+L
+PW-212;Melekeok
+PW-214;Ngaraard
+PW-218;Ngarchelong
+PW-222;Ngardmau
+PW-224;Ngatpang
+PW-226;Ngchesar;NGCHESAR;r:^OLD[EI]AIS
+PW-227;Ngeremlengui;r:^NG[AE]REMLENGUI
+PW-228;Ngiwal
+PW-350;Peleliu;r:^[BP]EL[EI]LIO?U
+PW-370;Sonsorol
+@Palestine
+PS_Gaza;Gaza Strip;r:^GH?AZ+A
+PS-BTH;Bethlehem;r:^B[AEY]+TH?L[AEI]HE?M
+PS-HBN;Hebron;HEBRON;r:^(AL)?KHALIL
+PS-JEN;Jenin;r:^[GJ][AE]N[AEI]N
+PS-JRH;Jericho;r:^JER[AEIO]CHO;ARIHA
+PS-NBS;Nablus
+PS-QQA;Qalqiliya;r:^QALQIL[IY]+A
+PS-JEM;Quds;r:^(AL)?QUDS;r:^J[AEU]RUS[AE]L[AE]M
+PS-RBH;Ramallah and al-Bireh;r:^RAM+AL+A[AH];r:^(AL)?BIR[AE]
+PS-SLT;Salfit
+PS-TBS;Tubas
+PS-TKM;Tulkarm
+@Panama
+PA-1;Bocas del Toro
+PA-4;Chiriquí
+PA-2;Coclé
+PA-3;Colón
+PA-5;Darién
+PA-6;Herrera
+PA-7;Los Santos
+PA-8;Panamá
+PA-10;Panamá Oeste;r:^(PANAMA)?(OESTE|WEST)
+PA-9;Veraguas
+PA-EM;Emberá-Wounaan;EMBERA;r:^W(OU|UO)NA[AH]?N
+PA-KY;Guna Yala;r:^[GK]UNAYALA;SANBLAS
+PA-NT;Naso Tjër Di
+PA-NB;Ngäbe-Buglé;NGABE;BUGLE;GUAYMI
+@Papua New Guinea
+PG-NSB;Bougainville
+PG-NCD;National Capital District;r:CAPITAL;r:^(PORT|PT)MORESBE?Y;NCD
+PG-CPM;Central
+PG-CPK;Chimbu;r:^(CH|S)IMBU
+PG-EBR;East New Britain
+PG-ESW;East Sepik
+PG-EHG;Eastern Highlands
+PG-EPW;Enga
+PG-GPK;Gulf
+PG-HLA;Hela;r:^H[EU]L[AI]
+PG-JWK;Jiwaka
+PG-MPM;Madang
+PG-MRL;Manus
+PG-MBA;Milne Bay;r:^MILNEB[AE]Y;r:^MAS+IM
+PG-MPL;Morobe
+PG-NIK;New Ireland;NEWIRELAND;r:^NEWME[CK]+LENB[OUE]+RG
+PG-NPP;Oro;ORO;NORTH
+PG-SAN;Sandaun;SANDAUN;r:^WESTSEPIC?K
+PG-SHM;Southern Highlands;r:^S[AOU]+[DT]H?ER?NH[AI](GH)?L[AE]ND?S
+PG-WBK;West New Britain
+PG-WPD;Western;WESTERN;r:^FL(EE|EY|IE|Y)
+PG-WHM;Western Highlands
+@Paraguay
+PY-16;Alto Paraguay
+PY-10;Alto Paraná
+PY-13;Amambay
+PY-19;Boquerón
+PY-5;Caaguazú
+PY-6;Caazapá
+PY-14;Canindeyú
+PY-11;Central
+PY-1;Concepción
+PY-3;Cordillera
+PY-4;Guairá
+PY-7;Itapúa
+PY-8;Misiones;r:^MIS+IONES
+PY-12;Ñeembucú
+PY-9;Paraguarí
+PY-15;Presidente Hayes;r:^(PRESIDENTE?)?H[AE]YES
+PY-2;San Pedro
+PY-ASU;Distrito Capital;c:CAPITAL;r:^A[SC]+UN[SC]+ION
+@Peru
+PE-CAL;Callao;r:^(EL)?[CKQ]AL+A[OW]
+PE-AMA;Amazonas;r:^AM[AEIO][SRZ][OU][MN]([AEIO]+S|(AY)?U)
+PE-ANC;Ancash;r:^AN[CKQ]ASH
+PE-APU;Apurímac;r:^APURIMA[CQ]
+PE-ARE;Arequipa;r:^AR+[AEI][KQ]U?IPA
+PE-AYA;Ayacucho;r:^AYA[CKQ]UCH[OU]
+PE-CAJ;Cajamarca;r:^[CKQ]A(J|SH)AMAR[CK]A
+PE-CUS;Cusco;r:^[CKQ]U[SZ][CKQ][OU]
+PE-HUV;Huancavelica;r:^[HW]U?AN[CK]A[VW][EI]L+I?[CK]A
+PE-HUC;Huánuco;r:^[HW]U?ANU[CK][OU]
+PE-ICA;Ica
+PE-JUN;Junín;r:^[HJ]UN[AEI]N
+PE-LAL;La Libertad;r:^(LA)?LIBERTAD;r:^QISPI[CK]A(EE|EY|IE|Y)
+PE-LAM;Lambayeque;r:^LAM[BP]A(Y|L+)[EI]QU?[EI]
+PE-LIM;Lima;r:^(METROPOLITAN)?(MUNICIPALITY)?(OF)?LIMA
+PE-LOR;Loreto;r:^L[OU]R[EI]T[OU]
+PE-MDD;Madre de Dios;MADREDEDIOS;r:^M[AE]YUTATA
+PE-MOQ;Moquegua;r:^M[OU]Q[UW]?[EI]G?[UW]A
+PE-PAS;Pasco;r:^PAS[CQ][OU]
+PE-PIU;Piura;r:^PI[UW]RA
+PE-PUN;Puno;r:^PUN[OU]
+PE-SAM;San Martín
+PE-TAC;Tacna;r:^TA[CKQ]NA
+PE-TUM;Tumbes;r:^TUM[BP][EI]S
+PE-UCA;Ucayali;r:^U[CK]AYALI
+PE-LMA;Lima;r:^(METROPOLITAN)?(MUNICIPALITY)?(OF)?LIMA
+@Philippines
+PH-14;Bangsamoro;BANGSAMORO;MUSLIMMINDANAO;r:^[BM]ARMM
+PH-05;Bicol;r:^BI[CK][OU]L
+PH-02;Cagayan Valley;r:^CAG[AE]YAN
+PH-40;Calabarzon;CALABARZON;r:^SOUTH(ERN)?TAGALOG
+PH-13;Caraga
+PH-03;Central Luzon;r:^CENTR(AL|EL|LE)LUZON;GITNANGLUZON;r:^[CK]ALIBUDTARANGLUZON;r:^PEGL[AE]YNALUZON;TENGNGAALUZON
+PH-07;Central Visayas;r:^CENTR(AL|EL|LE)VIS[AE]YAS;r:^TUNGATUNGANG[CK]ABIS[AE]YAN
+PH-15;Cordillera;r:^[CK]ORDIL+[EI]+RA;CAR
+PH-11;Davao;r:^DAV(AO|OA);r:^S(OU|UO)THERNMINDANAO;HABAGATANGMINDANAO
+PH-08;Eastern Visayas;r:^EAST(ERN)?VIS[AE]YAS;r:^SINIRANGAN[CK]ABIS[AE]YAN;r:^SIDLA[CK]ANG[CK]ABIS[AE]YAN;r:^SILANGANG[CK]ABIS[AE]YA[AH]?N;r:^SILANGANGVIS[AE]YAS
+PH-01;Ilocos
+PH-00;Metro Manila;c:CAPITAL;r:^(METRO)?MAN+IL+A;NCR
+PH-41;Mimaropa;MIMAROPA;r:^SOUTHWEST(ERN)?TAGALOG
+PH-NIR;Negros Island;NEGROS;NIR
+PH-10;Northern Mindanao;NORTHERNMINDANAO;HILAGANGMINDANAO;AMIHANANGMINDANAO;r:^PANGOTARA[AH]?NMINDANAO
+PH-12;Soccsksargen;r:^SOC+H?SKSARG[AEI]N;r:^CENTR(AL|EL|LE)MINDANAO
+PH-06;Western Visayas;r:^WESTERNVIS[AE]YAS;r:^[CK]ABIS[AE]YANNA[CK]ATUNDAN;r:^[CK]ANLURANG[CK]ABIS[AE]YA[AH]?N;r:^[CK]ANLURANGVIS[AE]YAS
+PH-09;Zamboanga Peninsula;ZAMBOANGA
+@Poland
+PL-30;Greater Poland;r:^GREA?TERPOLAND;r:^WIELKOPOLSK(EE|EY|IE|Y)
+PL-26;Holy Cross;r:^HOL(EE|EY|IE|Y)[CK]H?ROSS;r:^SWIETO[CK]H?RZYSK(EE|EY|IE|Y)
+PL-04;Kuyavia-Pomerania;r:^KU[JY]A[VW]I?[SK]*[AEO];r:^POM[AEO]R(AI?NI|SK)[AEIY]
+PL-12;Lesser Poland;r:^LES+ERPOLAND;r:^MALOPOLSK(EE|EY|IE|Y)
+PL-10;Łódź
+PL-02;Lower Silesia;r:^LOWERSILESI[AE];r:^DOLNOSLASK(EE|EY|IE|Y)
+PL-06;Lublin;r:^LUBE?L(IN|SK(EE|EY|IE|Y))
+PL-08;Lubusz;r:^LUBUS(Z|K(EE|EY|IE|Y))
+PL-14;Masovia;r:^MA[SZ]O[VW]I[AE]
+PL-16;Opole;r:^OPOL[SK]*[EIY]
+PL-20;Podlaskie;r:^POD?LASK[EIY]
+PL-22;Pomerania;r:^POM[AEO]R(AI?NI|SK)[AEIY]
+PL-24;Silesia;r:^SI?L[AE]SI?K?[AEIY]
+PL-18;Subcarpathia;r:^SUBCARPATHI[AE];r:^POD[CK]ARPA[CK]+(EE|EY|IE|Y)
+PL-28;Warmia-Masuria;r:^WARMI(NSK)?[AEO];r:^MA[SZ]UR[SK]*I[AEY]
+PL-32;West Pomerania;r:^WESTPOMERANI[AE];r:^ZACHODNIOPOMORSK(EE|EY|IE|Y)
+@Portugal
+PT-Ale;Alentejo
+PT-Alg;Algarve;ALGARVE;FARO
+PT-Ce;Central;r:^CENTR(AL|O)
+PT-LVT;Lisboa e Vale do Tejo;r:^LISBO[AN];r:^VALE(DO)?TEJO;TAGUSVALLEY
+PT-No;North;r:^NORT[EH]
+PT-20;Azores;r:^A[CZ]ORES
+PT-30;Madeira
+@Puntland
+Punt_B;Bari
+Punt_N;Nugal;r:^(BARI)?NUGA+L
+Punt_M;Mudug
+@Qatar
+QA-ZA;Al Daayen;r:^([AE][DLRZ])?[DZ]A[AH]?[AEIY]+N
+QA-KH;Al Khor;r:^([AE][LR])?KH?[AOU]W?R
+QA-RA;Al Rayyan;r:^([AE][LR])?R[AE]Y+A+N
+QA-MS;Al Shamal;r:^([AE](L|SH))?SHAM(AL|EL|LE);NORTH
+QA-WA;Al Wakrah;r:^([AE][LR])?WA[CK]H?RA
+QA-SH;Al-Shahaniya;r:^([AE]([LR]|SH))?SHA[AH]?AN[IY]+A
+QA-DA;Doha;r:^(A[DL])?D[AO]W?HA
+QA-US;Umm Salal;UMM;r:^SA?LAL
+@Republic of the Congo
+CG-11;Bouenza
+CG-BZV;Brazzaville;r:^BA?[LR]AZ+AVIL+E
+CG_CO;Congo-Oubangui
+CG-8;Cuvette
+CG-15;Cuvette-Ouest;r:^CUVET+EO?[WU]EST;r:^O?[WU]EST(ERN)?CUVET+E
+CG_DL;Djoué-Léfini
+CG-5;Kouilou
+CG-2;Lékoumou
+CG-7;Likouala
+CG-9;Niari
+CG_NA;Nkéni-Alima
+CG-14;Plateaux;r:^PLAT+E?AU
+CG-16;Pointe-Noire;r:^(PT|POINT|POINTE|PTE)NOIR;NDINDI
+CG-12;Pool
+CG-13;Sangha
+@Romania
+RO-AB;Alba
+RO-AR;Arad
+RO-AG;Argeș
+RO-BC;Bacău
+RO-BH;Bihor
+RO-BN;Bistrița-Năsăud;BISTRITA;NASAUD
+RO-BT;Botoșani
+RO-BR;Brăila
+RO-BV;Brașov
+RO-BZ;Buzău
+RO-CL;Călărași
+RO-CS;Caraș-Severin;CARAS;r:^SEVER[AEI]N
+RO-CJ;Cluj
+RO-CT;Constanța
+RO-CV;Covasna
+RO-DB;Dâmbovița
+RO-DJ;Dolj
+RO-GL;Galați
+RO-GR;Giurgiu
+RO-GJ;Gorj
+RO-HR;Harghita
+RO-HD;Hunedoara
+RO-IL;Ialomița
+RO-IS;Iași
+RO-IF;Ilfov
+RO-MM;Maramureș
+RO-MH;Mehedinți
+RO-MS;Mureș
+RO-NT;Neamț
+RO-OT;Olt
+RO-PH;Prahova
+RO-SJ;Sălaj
+RO-SM;Satu Mare
+RO-SB;Sibiu
+RO-SV;Suceava
+RO-TR;Teleorman
+RO-TM;Timiș
+RO-TL;Tulcea
+RO-VL;Vâlcea
+RO-VS;Vaslui
+RO-VN;Vrancea
+RO-B;Bucharest;r:^BUCH?[AU]REST
+@Russia
+UA-65R;Kherson (Unrecognized);r:^[CK][EHR]+SON
+UA-23R;Zaporizhzhia (Unrecognized);r:^ZAP[OE]+RI?[HZ]+[IJY]+[EA]
+UA-14R;Donetsk (Unrecognized);r:^D[AO]N+E[CST]+K
+UA-09;Luhansk (Unrecognized);r:^L[OU]+[GH]+ANSK
+RU-YEV;Jewish;JEWISH;r:^Y?EVRE?[JY];JAO
+RU-CHU;Chukotka;r:^CH?UKOTS?K(A|I[JY])
+RU-MOW;Moscow;r:^MOSCO[WV];MOSKVA
+RU-SPE;Saint Petersburg
+UA-40;Sevastopol
+RU-ALT;Altai;r:^(GORNO)?ALTA[IJY]
+RU-KAM;Kamchatka;r:^KAMCH?ATS?[CK]+(A|I[JY])
+RU-KHA;Khabarovsk;r:^([CK]H?|H)AB[AO]R[A-Z]+SK
+RU-KDA;Krasnodar
+RU-KYA;Krasnoyarsk
+RU-PER;Perm
+RU-PRI;Primorsky;r:^PR[EI]+MOR(SKI?[JY]|YE)
+RU-STA;Stavropol
+RU-ZAB;Zabaykalsky;r:^(ZA|TRANS)B[A-Z]+K[A-Z]+([JY]|LIA)
+RU-AMU;Amur
+RU-ARK;Arkhangelsk;r:^AR([CK]H?|H)A[A-Z]+K
+RU-AST;Astrakhan;r:^ASTR[AEIO]([CK]H?|H)AN
+RU-BEL;Belgorod
+RU-BRY;Bryansk
+RU-CHE;Chelyabinsk;r:^CH?[A-Z]+BINSK
+RU-IRK;Irkutsk
+RU-IVA;Ivanovo;r:^IV[AO]N[AO]V(O|SKA[JY]A)
+RU-KGD;Kaliningrad;r:^[CK]AL+[AEI]+N[AEI]N?GRAD;r:^[CK]H?RALOVEC
+RU-KLU;Kaluga;r:^KAL+[OU]+(GA|ZH?SKA[JY]A)
+RU-KEM;Kemerovo;r:^KEM+[AEIO]ROV(O|SKA[JY]A)
+RU-KIR;Kirov
+RU-KOS;Kostroma;r:^KOSTROM+(A|SKA[JY]A)
+RU-KGN;Kurgan
+RU-KRS;Kursk
+RU-LEN;Leningrad;r:^LEN+[AEI]NGRAD
+RU-LIP;Lipetsk;r:^LIP+[EI](TS|C)K
+RU-MAG;Magadan
+RU-MOS;Moscow;r:^MOSCO[WV];MOSKVA
+RU-MUR;Murmansk
+RU-NIZ;Nizhny Novgorod;r:^NIZH?(N(EY|Y|IE|IY)|E);GORKY
+RU-NGR;Novgorod;r:^NOVG[AEIO]R[AEIO]D
+RU-NVS;Novosibirsk
+RU-OMS;Omsk
+RU-ORE;Orenburg
+RU-ORL;Oryol;r:^OR([IY][AEO]L|LOV)
+RU-PNZ;Penza;r:^PENZ[AE]
+RU-PSK;Pskov
+RU-ROS;Rostov
+RU-RYA;Ryazan;r:^R[JYA]+ZAN
+RU-SAK;Sakhalin
+RU-SAM;Samara;r:^SAMAR(A|SKA[JY]A)
+RU-SAR;Saratov
+RU-SMO;Smolensk;r:^SMOL+[EI]NSK
+RU-SVE;Sverdlovsk;r:^SVER[A-Z]+SK
+RU-TAM;Tambov;r:^T[AO]MB[AO]V
+RU-TOM;Tomsk
+RU-TUL;Tula;r:^TUL(SK)?A
+RU-TVE;Tver
+RU-TYU;Tyumen;r:^T[JUY]+M[AEI]N
+RU-ULY;Ulyanovsk;r:^UL+[JY][AEIOU]NOVSK
+RU-VLA;Vladimir;r:^VLAD[AEI]MIR
+RU-VGG;Volgograd
+RU-VLG;Vologda;r:^VOL+OGDA
+RU-VOR;Voronezh
+RU-YAR;Yaroslavl;r:^[JY]AR[AEIO]SLAV
+RU-AD;Adygea;r:^AD+[IY]G[EI][JY]?A
+RU-AL;Altai;r:^(GORNO)?ALTA[IJY]
+RU-BA;Bashkortostan;r:^BASH?K[A-Z]+STAN
+RU-BU;Buryatia;r:^B[EU]R+[IJY]AT[EI][JY]?A
+RU-CE;Chechnya;r:^CH?ET?CH?([AEI]N|N[IY]A)
+RU-CU;Chuvashia;r:^CH?[OU]+VAS[HS]
+UA-43;Crimea
+RU-DA;Dagestan
+RU-IN;Ingushetia;r:^ING[AEIOU]+SH?ET+[EI][JY]?A
+RU-KB;Kabardino-Balkaria;r:^KAR?BAR?DINO;r:^BALKAR
+RU-KL;Kalmykia;r:^KALM[IY]K[EI][JY]?A
+RU-KC;Karachay-Cherkessia;r:^KAR+[AEI]CH?A(Y|EVO);r:^CH?ERKES+(KA)?[EIJY]A
+RU-KR;Karelia;r:^KAR+EL+[EI][JY]?A
+RU-KK;Khakassia
+RU-KO;Komi
+RU-ME;Mari El;r:^MARI[JY]?[AE]L
+RU-MO;Mordovia;r:^MORDOVI[JY]?A
+RU-SE;North Ossetia–Alania;r:^(NORTH|SEVERNA[JY]A)OS+ET[EI][JY]?A;r:^AL+AN+[EI][JY]?A
+RU-SA;Sakha;r:^SAK?HA;r:^YAKUT[EI]A
+RU-TA;Tatarstan;r:^TAR?T[AE]R(STAN|IA)
+RU-TY;Tuva;r:^T[UY]VA
+RU-UD;Udmurtia;r:^UDM[EU]RT
+@Rwanda
+RW-01;Kigali;r:^(CITY|VIL+E|UMUJYI)?(OF|DE|WA)?K[AEI]GAL+I
+RW-02;Eastern;r:^[EO][AO]?ST;IBURASIRAZUBA;OOSTELIJKE
+RW-03;Northern;r:^NO+R(TH|D);AMAJYARUGURU;r:^NO+RD
+RW-05;Southern;r:^[SZ]O?UI?(TH|D);AMAJYEPFO;SUD;r:^Z(UI|IU)DELIJKE
+RW-04;Western;r:^[OUW]+EST;IBURENGERAZUBA;r:^O(U|EU|UE)ST
+@Sahrawi Republic
+EH_7;Agounit;r:^AGH?O?[UW][AE]?I?NIT
+EH_5;Bir Lehlou;r:^(BIR)?L[AE]HLO?U
+EH_6;Dougaj
+EH_4;Meharrize;r:^ME?H[AE]I?R+[EI][SZ]
+EH_3;Mijek;r:^MI[JY][EI][CK]
+EH_2;Tifariti
+EH_1;Zug;r:^[SZ]O?UG
+@Saint Kitts and Nevis
+KN-N;Nevis
+KN-01;Christ Church Nichola Town;CCN;CHRISTCHURCH;r:^NICH?OLATOWN
+KN-02;Saint Anne Sandy Point;ASP;r:^(SAINT|ST)ANNE;r:^SAND(EE|EY|IE|Y)POINT
+KN-03;Saint George Basseterre;GBA;r:^(SAINT|ST)GEORGE;r:^BAS+[AE]TER+E
+KN-06;Saint John Capisterre;JCA;r:^(SAINT|ST)JOHN
+KN-08;Saint Mary Cayon;MCA;r:^(SAINT|ST)MAR(EE|EY|IE|Y);r:^C[AE]YON
+KN-09;Saint Paul Capisterre;PCA;r:^(SAINT|ST)PAUL;r:^CAPISTER+E
+KN-11;Saint Peter Basseterre;PBS;r:^(SAINT|ST)PETER
+KN-13;Saint Thomas Middle Island;TMI;r:^(SAINT|ST)THOMAS;r:^MID+LEISLAND
+KN-15;Trinity Palmetto Point;TPP;r:^TRINIT(EE|EY|IE|Y);r:^PALMET+OPOINT
+@Saint Lucia
+LC-01;Anse la Raye
+LC-12;Canaries
+LC-02;Castries
+LC-03;Choiseul
+LC-05;Dennery
+LC-06;Gros Islet
+LC-07;Laborie
+LC-08;Micoud
+LC-10;Soufrière
+LC-11;Vieux Fort;r:^VI(U|EU|UE)X
+@Saint Vincent and the Grenadines
+VC-01;Charlotte
+VC-06;Grenadines
+VC-02;Saint Andrew;r:^(SAINT|ST)ANDREW
+VC-03;Saint David;r:^(SAINT|ST)DAVID
+VC-04;Saint George;r:^(SAINT|ST)GEORGE
+VC-05;Saint Patrick;r:^(SAINT|ST)PATRIC?K
+@Samoa
+WS-AA;Aʻana;r:^A+NA
+WS-AL;Aiga-i-le-Tai;AIGA
+WS-AT;Atua
+WS-FA;Faʻasaleleaga;r:^(FA)?ASALELEA?GA
+WS-GE;Gagaʻemauga;r:^(GAGA)?EMAUGA
+WS-GI;Gagaʻifomauga;r:^(GAGA)?IFOMAUGA
+WS-PA;Palauli
+WS-SA;Satupaʻitea;SATUPA;ITEA
+WS-TU;Tuamasaga
+WS-VF;Va'a-o-Fonoti;VAA;r:^(A?O)?FONOTI
+WS-VS;Vaisigano
+@San Marino
+SM-01;Acquaviva;r:^A[CQG]+UAVIVA
+SM-06;Borgo Maggiore;BORGO;r:^MAG+I?ORE
+SM-02;Chiesanuova;r:^CH[IE]+SANU?OVA
+SM-07;City of San Marino;r:^(CITY)?(OF|DI)?SANMARINO;CITTA
+SM-03;Domagnano;r:^DOMAG?NANO
+SM-04;Faetano
+SM-05;Fiorentino
+SM-08;Montegiardino;r:^(MONTE)?G[EI]?ARDINO
+SM-09;Serravalle
+@São Tomé and Príncipe
+ST-01;Água Grande
+ST-02;Cantagalo
+ST-03;Caué
+ST-04;Lembá
+ST-05;Lobata
+ST-06;Mé-Zóchi;r:^(ME)?ZOCHI
+ST-P;Príncipe;PRINCIPE;PAGUE
+@Saudi Arabia
+SA–11;Al-Baha;r:^([AE]L)?BAHA
+SA–12;Al-Jouf;r:^([AE]L)?[GJ][AO][UW]F
+SA–05;Al-Qassim;r:^([AE]L)?QAS+[EI]M
+SA–14;Asir;r:^AA?S[EI]+R
+SA–04;Eastern;EAST;r:^(A[LS]H?)SH[AEI]RQ[IY]
+SA–06;Hail
+SA–09;Jazan;r:^[GJ][AI]ZAN
+SA–03;Madinah;r:^([AE]L)?M[AE]DINA
+SA–02;Mecca;r:^M[AE][CK]+A
+SA–10;Najran
+SA–08;Northern Borders;NORTH;SHAMAL
+SA–01;Riyadh;r:^RIYH?AD
+SA–07;Tabuk;r:^TAB[OU]+C?K
+@Senegal
+SN-DK;Dakar
+SN-DB;Diourbel;r:^[DJ][IOU]+RB(AL|EL|LE)
+SN-FK;Fatick
+SN-KA;Kaffrine
+SN-KL;Kaolack
+SN-KE;Kédougou
+SN-KD;Kolda
+SN-LG;Louga
+SN-MT;Matam
+SN-SL;Saint-Louis
+SN-SE;Sédhiou
+SN-TC;Tambacounda
+SN-TH;Thiès
+SN-ZG;Ziguinchor
+@Serbia
+RS-00;Belgrade;r:^(GRAD|CITY(OF)?)?BE[LO]GRAD
+RS-14;Bor
+RS-11;Braničevo
+RS-23;Jablanica
+RS-09;Kolubara
+RS-08;Mačva;r:^MACH?VA
+RS-17;Moravica
+RS-20;Nišava;r:^NISH?AVA
+RS-24;Pčinja;r:^PCH?INJA
+RS-22;Pirot
+RS-10;Podunavlje;PODUNAVLJE;r:^(DANUBE|DONAU|DUNA|DANUBIO)
+RS-13;Pomoravlje
+RS-19;Rasina
+RS-18;Raška
+RS-12;Šumadija;r:^SH?UMADIJA
+RS-21;Toplica
+RS-15;Zaječar;r:^ZAJECH?AR
+RS-16;Zlatibor
+RS-VO;Vojvodina
+@Seychelles
+SC-01;Anse aux Pins;r:^ANSE?[AEIOUX]+P[AEI]N
+SC-02;Anse Boileau;r:^ANSE?B[AIOW]+L[AEOU]
+SC-03;Anse Etoile;r:^ANSE?ET[AIOW]+L
+SC-05;Anse Royale;r:^ANSE?ROYAL
+SC-04;Au Cap;r:^[AOU]+[CK]AP
+SC-06;Baie Lazare;r:^BA(IE|Y)?LAZAR
+SC-07;Baie Sainte Anne;r:^B[AE](IE|Y)?(SAINTE?|STE?|SEN)ANN;r:^ANSE?VOLBERT
+SC-08;Beau Vallon;r:^B[AEIOU]+VAL+ON
+SC-09;Bel Air;r:^BEL[AEI]+R
+SC-10;Bel Ombre;r:^BELON?M
+SC-11;Cascade;r:^[CK]AS[CK]AD
+SC-16;English River;r:^(THE)?ENGLISHRIVER;r:^(LA)?RIV[IY]ERE?ANGL[AEI]+[SZ]
+SC-12;Glacis;r:^GLA[CS]I
+SC-13;Grand'Anse Mahé;r:^GRANDE?ANS
+SC-14;Grand'Anse Praslin;r:^GRANDE?ANS
+SC-15;La Digue and Inner Islands;r:^(L[AE])?(DIGUE|PASSE);r:^(THE)?INNERISLANDS
+SC-24;Les Mamelles;r:^(LES?)?MAMEL
+SC-17;Mont Buxton;r:^MONT?B[IU](X|KS)TON
+SC-18;Mont Fleuri;r:^MONT?FLEU?RI
+SC-26;Perseverance Island I;r:^(ILE)?PERSEVERANCE
+SC-27;Perseverance Island II;r:^(ILE)?PERSEVERANCE
+SC-19;Plaisance;r:^PL[AEI]+[SZ]AN(CE|S)
+SC-20;Pointe La Rue;r:^(POINTE?|PTE?|PWENT)(LA)?R(UE|I)
+SC-21;Port Glaud;r:^(PORT?|PT)GL[AOU]
+SC-25;Roche Caiman;r:^RO(S|CHE)?[CK]AIMAN
+SC-22;Saint Louis;r:^(SAINT|ST|SEN)L[OUW]+I
+SC-23;Takamaka
+@Sierra Leone
+SL-W;Western;WEST;r:^FREETOW?N
+SL-E;Eastern;EAST
+SL-NW;North West;NORTHWEST
+SL-N;Northern;NORTH
+SL-S;Southern;SOUTH
+@Singapore
+SG-01;Central Singapore;r:^CENT(RAL|RE|ER);PUSAT
+SG-02;North East;NORTHEAST;TIMURLAUT
+SG-03;North West;NORTHWEST;BARATLAUT
+SG-04;South East;SOUTHEAST;TIMURDAYA;TENGGARA
+SG-05;South West;SOUTHWEST;BARATDAYA
+@Sint Maarten
+SX-6;Cole Bay;r:^[CK]O+LE?BA+[IY]
+SX-4;Cul de Sac
+SX-5;Little Bay;r:^(LIT+LE|KLEINE)BA+[IY]
+SX-3;Lower Prince's Quarter;r:^(LOWER|BENEDEN)PRIN[CS]EN?S?[KQ][UW]ARTI?ER
+SX-8;Lowlands;r:^(LOW|LAGE)LAND(S|EN)
+SX-1;Philipsburg
+SX-7;Simpson Bay;r:^SIMPSONBA+[IY]
+SX-2;Upper Prince's Quarter;r:^(UP+ER|BOVEN)PRIN[CS]EN?S?[KQ][UW]ARTI?ER
+@Slovakia
+SK-BC;Banská Bystrica;r:^BANSK[AO];r:^BYSTRICK?[AY]
+SK-BL;Bratislava;r:^BRAT[AEI]SLAV(SK)?[AY]
+SK-KI;Košice;r:^KOSH?ICK?[EY]
+SK-NI;Nitra;r:^NITRI?A
+SK-PV;Prešov;r:^PR[AEI]+SH?[IO]V
+SK-TC;Trenčín;r:^TRENCH?[AEI]+N
+SK-TA;Trnava;r:^TRNAV(SK)?[AY]
+SK-ZI;Žilina;r:^ZILIN(SK)?[AY]
+@Slovenia
+SI-001;Ajdovščina;r:^H?A[IJ]D[EUO][NV]?[CHS]+(INA|AFT)
+SI-213;Ankaran
+SI-195;Apače;r:^A[BP]A?(CH?E|STALL)
+SI-002;Beltinci;r:^B[EO]LA?TINC;r:^(ALT)?FEL+SDORF
+SI-148;Benedikt;r:^(SAINTE?|SH?E[NM]T?|SANKT|STE?|SVETI)?BENEDI[CK]T
+SI-149;Bistrica ob Sotli;BISTRICA;FEISTRITZ;r:^(SAINTE?|SH?E[NM]T?|SANKT|SAN|STE?|SVETI)P[AEI]+[TV](E[LR]|RO)
+SI-003;Bled;r:^[BFV](LE|EL)D
+SI-150;Bloke
+SI-004;Bohinj;r:^[BW]OC?H[AEI]+N
+SI-005;Borovnica;BOROVNICA;FRANZDORF
+SI-006;Bovec;BOVEC;r:^FLIT[SC]+H;PLEZ
+SI-151;Braslovče;r:^BRASLOVCH?E;r:^FRAS+LAU
+SI-007;Brda;BRDA;r:^COL+IO;r:^HUG(AL|EL|LE)
+SI-009;Brežice;r:^BREZH?ICE;RANN
+SI-008;Brezovica;r:^BRE[SZ]O[VW]I(CA|TZ)
+SI-152;Cankova;r:^[CK]A(LTE)?N(KOVA|BRUNN);VASHIDEGKUT
+SI-011;Celje;r:^[CSZ][EI]L+J?[EIY]
+SI-012;Cerklje na Gorenjskem;r:^[CZ][EI]RKL(JE|ACH)
+SI-013;Cerknica;r:^[CKZ][EI]R[CK]O?NI(CA|O|TZ)
+SI-014;Cerkno;r:^[CK][EI]R[CK](H+E?I)?(N[AO]|M)
+SI-153;Cerkvenjak;r:^[CK][EI]R[CK]H?(VENJAC?K|B[OUE]+RG)
+SI-196;Cirkulane;r:^[CZ]IRKULA(IN|NE);r:^ANKENSTE[AEI]N
+SI-015;Črenšovci;r:^[CK]H?[RS]E[NR](SH?|F)O(VCI|LD)
+SI-016;Črna na Koroškem;r:^[CK]H?RNA;r:^S[CH]+WARZENBACH
+SI-017;Črnomelj;r:^(TS)?[CK]H?E?RN[EO]M(ELJ|BL)
+SI-018;Destrnik;r:^DESTE?RNI(C?K|GB[OUE]+RG);WINTERDORF
+SI-019;Divača;r:^DIVACC?H?I?A
+SI-154;Dobje
+SI-020;Dobrepolje;DOBREPOLJE;GUTENFELD
+SI-155;Dobrna;DOBRNA;r:^(BAD)?N(U|EU|UE)H(AU|UA)S
+SI-021;Dobrova–Polhov Gradec;r:^DOBR[AO][VW]A;POLHOVGRADEC;r:^BIL+ICHGRATZ
+SI-156;Dobrovnik;r:^DOBROV?N[AI]C?K
+SI-022;Dol pri Ljubljani;DOL;r:^LUST+(AL|EL|LE)
+SI-157;Dolenjske Toplice;r:^(DOLENJSKE)?TOPLI[CT][EZ]
+SI-023;Domžale;r:^DOM[CHSZ]+ALE
+SI-024;Dornava;r:^DORNA(VA|U)
+SI-025;Dravograd;r:^(UNTER)?DR(A|AU|UA)(VO)?(GRAD|B[OUE]+RG)
+SI-026;Duplek;r:^(SPODNJI)?DUPLEC?K;r:^T(AU|UA)BLING
+SI-027;Gorenja Vas–Poljane;r:^GORE(N[IJ]||[IJ]N)A[VW]AS;r:^POL+J?AN[DE]
+SI-028;Gorišnica;r:^GORIS[CH]*NI(CA|TZ)
+SI-207;Gorje;r:^GOR[EIJ]?[AE]
+SI-029;Gornja Radgona;r:^(GORNJA|OBER*)?RAD?(GONA|KERSB[OUE]+RG);FELSOREGEDE
+SI-030;Gornji Grad;GORNJIGRAD;r:^OBERN?B[OUE]+RG
+SI-031;Gornji Petrovci;r:^(GORNJI)?PETE?RH?([OU]+VCI|SB[OUE]+RG|EG(EE|EY|IE|Y))
+SI-158;Grad;GRAD;r:^(GORNJA|OBER|FELSO)L[EI][MN][BD]A?(VA|CH)
+SI-032;Grosuplje;r:^GROS+L?UP(LJE|P)
+SI-159;Hajdina;r:^(ZGORNJA)?HA[IJ]D[AEI]N
+SI-160;Hoče-Slivnica;r:^(SPODNJE)?[HK]O(CH?E|T[SC]+H);r:^S[CH]*LE?IV?NI(CA|TZ)
+SI-161;Hodoš;r:^(ORI)?HODOS
+SI-162;Horjul;HORJUL;r:^B(AU|UA)MKIRCH
+SI-034;Hrastnik;r:^HRASTNIC?[GK];r:^EICHTH(AL|EL|LE)
+SI-035;Hrpelje-Kozina;r:^HE?RPEL+J?E;r:^[CK]O[SZ]INA;r:^GOS+DORF
+SI-036;Idrija;r:^(ZGORNJA|OBER)?IDR[EIJ]+A
+SI-037;Ig;IG;r:^SON+EGG
+SI-038;Ilirska Bistrica;r:^(IL+[IY]RI?([SCK]+[AH])?|VIL+A(D(AL|EL|LE))?)?(B[EI][SZ]+TE?R[EI]?[CZ][AE]|FEISTRITZ|NEVOSO)
+SI-039;Ivančna Gorica;r:^IVANCH?NA;r:^JOHAN+SBUCH(AL|EL|LE)
+SI-040;Izola;r:^I[SZ]OLA
+SI-041;Jesenice;r:^J?[AE]S+E?[LN]I(CE|NG)
+SI-163;Jezersko;r:^(ZGORNJE)?JEZERSKO;r:^(OBER)?SE[AE]LAND
+SI-042;Juršinci;r:^JURS[CH]*IN(CI|Z[AEI]N)
+SI-043;Kamnik;r:^[CK]AMNIC?K;r:^STE[AEI]N
+SI-044;Kanal ob Soči;r:^[CK]AN(AL|EL|LE)
+SI-045;Kidričevo;r:^KIDRICH?EVO
+SI-046;Kobarid;r:^[CK]J?[AO]R?([BFP]|[AOU]|[BFP][AOU])R[EI]+[DT]
+SI-047;Kobilje;r:^K[EO]B[EI]LJ?[EL];r:^L(U|EU|UE)T[SC]+H
+SI-048;Kočevje;r:^[CGK][EO][CT]+[HS]?(EV[IJ]E|[CH]+E[AE])
+SI-049;Komen;r:^[CK]OM[AEI]+N
+SI-164;Komenda;r:^[CK]OM+ENDA
+SI-050;Koper;KOPER;r:^[CK][AO]P[EO](R|DISTR[EI]A)
+SI-197;Kostanjevica na Krki;KOSTANJEVICA;LANDSTRASS
+SI-165;Kostel;r:^KOST(AL|EL|LE);GRAFENWARTH
+SI-051;Kozje;KOZJE;r:^DRACHENB[OUE]+RG
+SI-052;Kranj;r:^[CK]H?RA(N[IJ]|[IJ]N)
+SI-053;Kranjska Gora;r:^[CK]H?R[AO]N(JSKA|AU)
+SI-166;Križevci;r:^[CK]H?R[EIU]+[SZ]H?([EO]VCI|DORF)
+SI-054;Krško;r:^[CK]H?RSH?KO;GURKFELD
+SI-055;Kungota;r:^(SAINTE?|SH?E[NM]T?|SANKT|STE?|SVETI|ZGORNJA)?KUNI?G(OTA|UND)
+SI-056;Kuzma;r:^KUZ[DM][AO];BONISDORF
+SI-057;Laško;r:^L[AO]SH?KO;r:^(MARKT)?TUF+ER
+SI-058;Lenart;r:^(SAINTE?|SH?E[NM]T?|SANKT|STE?|SVETI)?LEO?NH?AR[DT]
+SI-059;Lendava;r:^(DOLE?NJA|UNTER|ALSO)?L[EI][MN][BD]A?(VA|CH)
+SI-060;Litija;r:^LIT+([IJ]+A|AI)
+SI-061;Ljubljana;r:^L(J?U|AI)[BILJ]+A(NA|CH);MOL
+SI-062;Ljubno;r:^LJ?(U|AU|UA)[BF](NO|[AEI]N)
+SI-063;Ljutomer;r:^LJ?UT+[EO][MN](ER|B[OUE]+R)
+SI-208;Log-Dragomer;r:^L[AO]+G;DRAGOMER
+SI-064;Logatec;r:^LON?G?[AI]T[EI]?S?C
+SI-065;Loška Dolina;r:^L[AO]SH?KA
+SI-066;Loški Potok;r:^L[AO]SH?(KI|ER)
+SI-167;Lovrenc na Pohorju;r:^(SAINTE?|SH?E[NM]T?|SANKT|STE?|SVETI)?L[AO][VW]?REN[CZ]
+SI-067;Luče;r:^L(U|EU|UE)[CST]+[EH]
+SI-068;Lukovica;r:^LUKO[VW]I(CA|TZ)
+SI-069;Majšperk;r:^M[AO][JN]SH?[BP][OUE]+RC?[GK]
+SI-198;Makole;r:^MA[KX](OLE|AU)
+SI-070;Maribor;r:^MARI?B[OUE]+R;MOM
+SI-168;Markovci;r:^(SAINTE?|SH?E[NM]T?|SANKT|STE?|SVETI)?MARC?[KX]
+SI-071;Medvode;MEDVODE;r:^ZWIS[CH]+ENWAS+ERN
+SI-072;Mengeš;r:^M[AE]N+S?[BG][OUE]+(RG|S)
+SI-073;Metlika;r:^M[EO]T+LI(KA|NG)
+SI-074;Mežica;r:^MI?E[SZ]+H?(ICA|DORF)
+SI-169;Miklavž na Dravskem Polju;r:^(SAINTE?|SH?E[NM]T?|SANKT|STE?|SVETI)?[MN]I[CK]H?O?LA(VZ|I|S)
+SI-075;Miren-Kostanjevica;r:^M[EI]R([AEI]N|NA);r:^[CK][AO]STAN?[GJ]N?EVI[CZ]+A
+SI-212;Mirna;MIRNA;r:^N[EUY]+DE(GG|C?K)
+SI-170;Mirna Peč;MIRNAPEC;r:^HONIGSTE[AEI]N
+SI-076;Mislinja;r:^MIS+LIN(JA|G)
+SI-199;Mokronog-Trebelno;r:^[MN][AO]([CK]H?RONOG|S+ENFUS);r:^TRE[BF]+ELN;r:^FRA(U|EU|UE)NB[OUE]+RG
+SI-077;Moravče;r:^MOR[AU]+[TV]S?C[EH]
+SI-078;Moravske Toplice;r:^(ALSO)?M[AO]RA(V(SKE|CI)|C|TZ);r:^TOPLI(CE|TZ)
+SI-079;Mozirje;MOZIRJE;r:^PRAS+B[OUE]+RG
+SI-080;Murska Sobota;r:^MUR(SK)?ASZ?[OU]M?B[AOU]+T;OLSNITZ;MS
+SI-081;Muta;MUTA;r:^HOHENM(AU|UA)TH[AEI]N
+SI-082;Naklo;r:^NAKL(O|AS)
+SI-083;Nazarje;NAZARJE;r:^ALTENB[OUE]+RG
+SI-084;Nova Gorica;r:^N(OVA|[EU]+)GOR(ICA|Z)
+SI-085;Novo Mesto;r:^N(OVO|[EU]+)(MESTO|STADTL)
+SI-086;Odranci;ODRANCI;r:^AN?DO?R(JAN[FH]A(ZA|LVA)|EITZ)
+SI-171;Oplotnica;r:^OPLOTNI(CA|TZ)
+SI-087;Ormož;r:^ORMO[SZ];FRIEDAU
+SI-088;Osilnica;r:^OS+I[LV]NI(CA|TZ)
+SI-089;Pesnica;r:^P[EO]S+NI(CA|TZ)
+SI-090;Piran;r:^PIRI?AN
+SI-091;Pivka;PIVKA;r:^(SAINTE?|SH?E[NM]T?|SANKT|SAN|STE?|SVETI)P[AEI]+[TV](E[LR]|RO)
+SI-092;Podčetrtek;r:^PODCH?ETRTEC?K;r:^(WINDI[SC]+H)?LANDSB[OUE]+RG
+SI-172;Podlehnik;r:^PODLEHNIC?K;LICHTENEGG
+SI-093;Podvelka;r:^POD[VW][EO]L+(KA|ING)
+SI-200;Poljčane;r:^POL[JT]S?CH?A(IN|NE|CH)
+SI-173;Polzela;POLZELA;r:^HEILENSTE[AEI]N
+SI-094;Postojna;r:^POST[OU]J?[MN][EI]?A;r:^ADELSB[OUE]+RG
+SI-174;Prebold;r:^PR[AE][BGW]+[AO]LD;r:^(SAINTE?|SH?E[NM]T?|SANKT|SAN|STE?|SVETI)P[AEI]+[TV](E[LR]|RO)
+SI-095;Preddvor;r:^PRED+VOR;r:^HOFLE[AEI]N
+SI-175;Prevalje;r:^PR[AE]VALJ?[EI]
+SI-096;Ptuj;r:^P(O?E)?T+(UJ|AU|OV((UI|IU)M|IO))
+SI-097;Puconci;r:^PU[CT]Z?[EIO]N(CI|DORF);r:^BAT+YAND
+SI-098;Rače-Fram;r:^([CK]H?)?RA(NI)?CH?(E|SFELD);r:^FRA(UHEI)?M
+SI-099;Radeče;r:^RA[DT][ES][CH]+(E|ACH)
+SI-100;Radenci;r:^(BAD)?RADE(NCI|[AEI]N)
+SI-101;Radlje ob Dravi;RADLJE;r:^M[AOU]H?R(EN)?B[OUE]+R?G
+SI-102;Radovljica;r:^RADO?(VLJICA|MAN+SDORF)
+SI-103;Ravne na Koroškem;RAVNE;r:^GU(TEN)?SH?T(ANJ|E[AEI]N)
+SI-176;Razkrižje;r:^RA[SZ]?[CK]+H?R?[AI](NI)?ZH?(JE|SA)
+SI-209;Rečica ob Savinji;r:^RI?E(CH?ICA|TZ)
+SI-201;Renče–Vogrsko;r:^R[AE]N(CH?E|Z[EI]ANO);r:^VOGH?E?RS[CK][AO]
+SI-104;Ribnica;r:^RE?I[BF]NI(CA|TZ)
+SI-177;Ribnica na Pohorju;r:^RE?I[BF]NI(CA|G)
+SI-106;Rogaška Slatina;r:^RO[GH][AI][CST]+(EC|KA|H);r:^SL?(A|AU|UA)(TINA|ERBRUNN)
+SI-105;Rogašovci;r:^ROGA[CS]H?OVCI;r:^REIS+[AEI]N;r:^SZARVASLAC?K
+SI-107;Rogatec;r:^RO[GH][AI][CST]+(EC|KA|H)
+SI-108;Ruše;r:^RUSH?E;r:^MAR[EI]ARAST
+SI-033;Šalovci;r:^S[CH]*(AL|LA)
+SI-178;Selnica ob Dravi;r:^[SZ]EL+NI(CA|TZ)
+SI-109;Semič;r:^SEM(EN)?I(TS)?C
+SI-183;Šempeter-Vrtojba;r:^(SAINTE?|SH?E[NM]T?|SANKT|SAN|STE?|SVETI)P[AEI]+[TV](E[LR]|RO);r:^VE?RTO[IJY]BA
+SI-117;Šenčur;r:^(SAINTE?|SH?E[NM]T?|SANKT|STE?|SVETI)((CH?|J)UR|[GJ][EOU]+RI?[GJ])
+SI-118;Šentilj;r:^(SAINTE?|SH?E[NM]T?|SANKT|STE?|SVETI|SH?)([EI][LN]?[GT][AEI](LJ|DI|N)|GILES)
+SI-119;Šentjernej;r:^(SAINTE?|SH?E[NM]T?|SANKT|STE?|SVETI)(JERNEJ|BARTH?LE?MA)
+SI-120;Šentjur;r:^(SAINTE?|SH?E[NM]T?|SANKT|STE?|SVETI)[GJ]E?[OU]R
+SI-211;Šentrupert;r:^(SAINTE?|SH?E[NM]T?|SANKT|STE?|SVETI)RUPR?E(R|CH)T
+SI-110;Sevnica;SEVNICA;LICHTENWALD
+SI-111;Sežana;r:^[SZ][EI][SZ]H?AN
+SI-121;Škocjan;r:^(SAINTE?|SH?E[NM]T?|SANKT|STE?|SVETI|SH?)[CK][AO]N?[CTZ][IJ][AE]N
+SI-122;Škofja Loka;r:^(BI)?[CHKS]+OF(JA)?L(OKA|AC?K)
+SI-123;Škofljica;r:^SH?KOFLJICA;GEWEIHTENBRUNN
+SI-112;Slovenj Gradec;r:^(SLOVENJ)?GRADEC;r:^WINDIS[CH]+GRAT?Z
+SI-113;Slovenska Bistrica;r:^(SLOVENSKA)?BISTRICA;r:^(WINDI[SC]+H)?FEISTRITZ
+SI-114;Slovenske Konjice;r:^(SLOVENSKE)?[GK]ONO?[BJ]I[CT][EZ]
+SI-124;Šmarje pri Jelšah;r:^(SAINTE?|SH?E[NM]T?|SANKT|STE?|SVETI|SH?)MAR(JE|EIN|Y)
+SI-206;Šmarješke Toplice;r:^(SH?MARJESH?KE)?TOPLI[CT][EZ]
+SI-125;Šmartno ob Paki;r:^(SAINTE?|SH?E[NM]T?|SANKT|STE?|SVETI|SH?)MART([AEI]N|NO)
+SI-194;Šmartno pri Litiji;r:^(SAINTE?|SH?E[NM]T?|SANKT|STE?|SVETI|SH?)MART([AEI]N|NO)
+SI-179;Sodražica;r:^SODE?RA?[CHSZ]+I(CA|TZ)
+SI-180;Solčava;r:^S[OU]LZ?(CH?|B)A(VA|CH)
+SI-126;Šoštanj;r:^S[CH]*ON?SH?T(ANJ|EIN)
+SI-202;Središče ob Dravi;r:^SREDISH?CH?E;POLSTRAU
+SI-115;Starše;r:^STARSH?E;ALTENDORF
+SI-127;Štore;r:^STOR(E|ACH)
+SI-203;Straža;r:^(OBER)?STRA[SZ][CH]*A
+SI-181;Sveta Ana;r:^(SAINTE?|SH?E[NM]T?|SANKT|STE?|SVET[AI])AN[AN]
+SI-204;Sveta Trojica v Slovenskih Goricah;r:^(SAINTE?|SH?E[NM]T?|SANKT|STE?|SVET[AI])TR[IO](JICA|NITY);HEILIGENDREIFALTIGKEIT;r:^GRADISH?CH?E
+SI-182;Sveti Andraž v Slovenskih Goricah;r:^(SAINTE?|SH?E[NM]T?|SANKT|STE?|SVETI)ANDR(A|EW)
+SI-116;Sveti Jurij ob Ščavnici;r:^(SAINTE?|SH?E[NM]T?|SANKT|STE?|SVETI)[GJ][EOU]+RI?[GJ];VIDEM
+SI-210;Sveti Jurij v Slovenskih Goricah;r:^(SAINTE?|SH?E[NM]T?|SANKT|STE?|SVETI)[GJ][EOU]+RI?[GJ]
+SI-205;Sveti Tomaž;r:^(SAINTE?|SH?E[NM]T?|SANKT|STE?|SVETI)?TH?OMA[SZ]
+SI-184;Tabor
+SI-010;Tišina;r:^TISH?INA;r:^CSENDLAC?K
+SI-128;Tolmin;r:^TOLM[AEI]+N
+SI-129;Trbovlje;r:^TRI?[BF][AO]V?(IL|LJE)
+SI-130;Trebnje;r:^TRE[BF]+([AEI]N|NJE)
+SI-185;Trnovska Vas;r:^TE?RNOVE?(SKA|TZDORF)
+SI-131;Tržič;r:^TRZH?IC;r:^N(U|EU|UE)MARKTL
+SI-186;Trzin;r:^TE?R[SZ]A?IN
+SI-132;Turnišče;r:^TH?[OU]RNI(SH?CH?E|TZ);BANTORNYA;PREKMURJE
+SI-133;Velenje;r:^(TITOVO)?[VW][EO]L+(ENJE|AN)
+SI-187;Velika Polana;VELIKAPOLANA;r:^T(U|EU|UE)FELSLOCH;r:^NAGY(FOLD|PALINA)
+SI-134;Velike Lašče;r:^VELIKEL[AO]SH?CH?E;r:^GROS+LAS[CH]+ITZ
+SI-188;Veržej;r:^[VW]ERN?[SZ]H?(E[EJ]|IE)
+SI-135;Videm;VIDEM;r:^(SAINTE?|SH?E[NM]T?|SANKT|STE?|SVETI)VE?I[DT]
+SI-136;Vipava;r:^[VW]IP+A(VA|C+O|CH)
+SI-137;Vitanje;r:^VITANJ(SK)?[EI];r:^(MARKT)?WEITENSTE[AEI]N
+SI-138;Vodice;r:^[VW]ODI(CE|TZ)
+SI-139;Vojnik;r:^VOJNIC?K;HOCHENEGG
+SI-189;Vransko;r:^[FV]RAN(SKO|Z)
+SI-140;Vrhnika;r:^VRH?NIKA;OBERLAIBACH;r:^N(AU|UA)PORT[AEOU]+S
+SI-141;Vuzenica;VUZENICA;r:^SALDENHOF[AEI]N
+SI-142;Zagorje ob Savi;r:^[SZ][AE]G[EO]R
+SI-190;Žalec;r:^ZH?ALEC;SACHSENFELD
+SI-143;Zavrč;r:^[SZ][AU]+V?RI?(C|T[SC]+H)
+SI-146;Železniki;r:^(ZH?)?EL?[EI][SZ]N(IKI|ERN)
+SI-191;Žetale;r:^[SZ][CH]*[EI]L?T(ALE|ERN)
+SI-147;Žiri;SAIRACH;r:^[SZ]H?[AEI]+R
+SI-192;Žirovnica;r:^[SZ][CH]*[EI]R[AOU]+V?NI(CA|TZ)
+SI-144;Zreče;r:^ZRECH?E;r:^ROTS[CH]+ACH
+SI-193;Žužemberk;r:^[SZ]H?[EIU]+[SZ]H?[EIU]+[MN]BER(C?K|G)
+@Solomon Islands
+SB-CE;Central;r:^CENT(RAL|ER|RE)
+SB-CH;Choiseul
+SB-GU;Guadalcanal
+SB-IS;Isabel;r:^[IY]SABEL
+SB-MK;Makira-Ulawa;MAKIRA;ULAWA
+SB-ML;Malaita
+SB-RB;Rennell and Bellona;r:^REN+ELL;r:^BEL+ONA;r:^MUNG[AI][KV][AI]
+SB-TE;Temotu
+SB-WE;Western;WEST
+SB-CT;Capital Territory;r:CAPITAL;r:^HON[AEI]+R+A
+@Somalia
+SO-BN;Banaadir;r:^B[AE]NA+D[EI]R;XAMAR;r:^MOGAN?DISHU
+SO_G;Galmudug
+SO_H;Hirshabelle;r:^HIRSHABE+L+E
+SO_J;Jubaland;r:^(OLTRE|DO+XADA)?[GJ]I?UB+A;r:^A[SZ]A+N[IEY]+A
+SO_N;North Eastern;NORTHEAST;KHATUMO
+SO_S;South West;SOUTHWEST;r:^KO+N?FUR(GALBE[AE]D|ORSI)
+@Somaliland
+Som_Aw;Awdal
+Som_MJ;Maroodi Jeex;r:^MARO+DIJE+[HX]
+Som_Sah;Sahil;r:^SA+[HX]IL
+Som_San;Sanaag
+Som_So;Sool
+Som_To;Togdheer;r:^T[OU][GJ]DH?[AE][EY]R
+@South Africa
+ZA-EC;Eastern Cape;r:^(EAST(ERN)?|I?M?P[OU]+MA(LANGA)?|OOS)[CK](AP[AE]|OLONI|AAP);r:^[CK]APA(BO(T[JL])?HL?AB(EL)?A|VH?U.+A)
+ZA-FS;Free State;r:^(ORANGE|I)?[FV][OU]?[LR][AEIY]+S[EI]?TA+T
+ZA-GP;Gauteng;r:^[EIK]?(G[AOU]+(T[AEI]NG|LI)|(XILUNG|I?RH?A)W[IU][NT]I)
+ZA-KZN;KwaZulu-Natal;r:^I?[GHK]W?AZ[OU]E?L[OU];r:^NAT(AL|EL|LE);r:^[GHK]ZN
+ZA-LP;Limpopo;r:^L[AEOIU]+M+P[OU]+P+O;VHEMBE
+ZA-MP;Mpumalanga;r:^(EAST|I?M?P[OU]+MALANGA|OOS);HUMADYAMBU;r:^TRANSVA+L
+ZA-NW;North West;r:^NO+R(THWEST|DWES);r:^BOKONEBO(PH|F+)IRIMA;r:^LEBO[YW]?A(LE)?BO(PH|F+|D)I[KR][EI][LM]A;NWALUNGUVUPELADYAMBU;MNTLANTSHONA;r:^I?[NT][LY]H?A[CGK](ATHO|WINI)N?T(JH)?(SHON|ING)ALANGA
+ZA-NC;Northern Cape;r:^(NORTH(ERN)?|I?[NT][LY]H?A[CGK](ATHO|WINI)|NO+RD|NYA[CK]ATHO|MNTLA)[CK](AP[AE]|OLONI|AAP);r:^[CK]APA(LEBOY?A|N?WALUNGU|BOKONE|DEVHULA)
+ZA-WC;Western Cape;r:^(WEST(ERN)?|[IN]T[JS]H[IO]NG?A(LANGA)?|WES)[CK](AP[AE]|OLONI|AAP);r:^[CK]APA[BV]H?[OU](D|PH?|F+|KO)(I[RI]*[KM]|VH?)?(EL)?A
+@South Korea
+KR-26;Busan
+KR-27;Daegu
+KR-30;Daejeon
+KR-29;Gwangju;r:^[GK]WANGJU
+KR-28;Incheon
+KR-31;Ulsan
+KR-41;Gyeonggi;r:^[GK]YE?ONG+I
+KR-43;North Chungcheong;r:^NORTH(ERN)?CHUNGCHEONG;r:^CHUNGCHE?ONG[BP]UC?K
+KR-47;North Gyeongsang;r:^NORTH(ERN)?GYEONGSANG;r:^[GK]YE?ONG(SANG)?[BP]UC?K
+KR-44;South Chungcheong;r:^SOUTH(ERN)?CHUNGCHEONG;r:^CHUNG(CHE?ONG)?NAM
+KR-48;South Gyeongsang;r:^SOUTH(ERN)?GYEONGSANG;r:^[GK]YE?ONG(SANG)?NAM
+KR-46;South Jeolla;r:^SOUTH(ERN)?JEOL+A;r:^[CJ]H?E?O[LN]+A?NAM
+KR-11;Seoul;r:^SE[OU]+L;c:CAPITAL
+KR-50;Sejong;r:^SE[CJ]H?ONG
+KR-42;Gangwon;r:^[CGK]ANGWON
+KR-49;Jeju;r:^[CJS]H?[AE]I?[JS]H?U;r:^Q(U|EU|UE)LPART
+KR-45;North Jeolla;r:^NORTH(ERN)?JEOL+A;r:^[CJ]H?E?O[LN]+A?[BP]UC?K
+@South Ossetia
+SOs_KvC;Kvaisa;r:^KVAIS[AI]
+SOs_TsC;Tskhinvali;TSKHINVAL;STALINIR
+SOs_Dz;Dzau;r:^(DZ|J)H?A[UVW]
+SOs_Le;Leningor;LENINGOR;AKHALGORI
+SOs_Ts;Tskhinvali;TSKHINVAL;STALINIR
+SOs_Zn;Znaur;r:^ZNA[UW]Y?R;r:^[KQ]ORNISI
+@South Sudan
+SS_Ab;Abyei;r:^ABYE?I
+SS_Pi;Greater Pibor;r:^(GREATER)?PIBOR
+SS_Ru;Ruweng
+SS-EC;Central Equatoria
+SS-EE;Eastern Equatoria;r:^EAST(ERN)?EQUATOR[EI]A
+SS-JG;Jonglei
+SS-LK;Lakes
+SS-BN;Northern Bahr el Ghazal;r:^NORTH(ERN)?BA[AH]?R
+SS-UY;Unity
+SS-NU;Upper Nile
+SS-WR;Warrap
+SS-BW;Western Bahr el Ghazal;r:^WEST(ERN)?BA[AH]?R
+SS-EW;Western Equatoria;r:^WEST(ERN)?EQUATOR[EI]A
+@Spain
+ES-CE;Ceuta;r:^C(EU|UE)TA;SABTAH
+ES-ML;Melilla;r:^M[AE]+L+[EI]+L+A;MRIC
+ES-AN;Andalusia
+ES-AR;Aragon;ARAGO
+ES-AS;Asturias;r:^AST[EU]RI[AE]S
+ES-IB;Balearic Islands;r:^(THE|LAS)?(I[LS]L[AE]S)?B[AEI]+L+[AEI]+R[AEI]?[SC]
+ES-PV;Basque Country;r:^(THE|EL)?(PAIS)?[BV]AS(QU|C)[EO];EUSKADI
+ES-CN;Canary Islands;r:^(THE|LAS)?(ISL[AE]S)?CANAR(Y|I[AE]S)
+ES-CB;Cantabria
+ES-CL;Castile and León;r:^(CAST(I|E|IE)L+[AE])?(AND|Y|E)?L+[IE]ON
+ES-CM;Castilla-La Mancha;r:^(CASTIL+[AE])?(Y|AND)?(LA)?MANCHA
+ES-CT;Catalonia;r:^CAT+[AEIO]L[OU]N[EHIY]?A
+ES-EX;Extremadura;r:^E[SX]TR[AEI]MAD?URA
+ES-GA;Galicia;r:^GALI[CZ]I?A
+ES-RI;La Rioja;r:^(LA)?RIOJA
+ES-MD;Madrid
+ES-MC;Murcia
+ES-NC;Navarre;r:^NA[FV]+AR+O?[AE]
+ES-VC;Valencia;r:^(THE|LA)?(COMUNI[DT]A[DT])?VALENCIA
+@Sri Lanka
+LK-2;Central;r:^CENT(ER|R(AL|E));r:^MADH?I?YA
+LK-5;Eastern;EAST;r:^KI[LḺ]A[CK]+U;r:^NA[EĔ]+GENA[AH]?IRA
+LK-7;North Central;r:^NORTHCENT(ER|R(AL|E));UTURUMEDA;WADAMATHTHIYA
+LK-6;North Western;NORTHWEST;r:^W[AE]YAMBA;r:^VADAMA(AL|EL|LE)
+LK-4;Northern;NORTH;VATA;UTURU
+LK-9;Sabaragamuwa;SABARAGAMUWA
+LK-3;Southern;SOUTH;DAKUNU;r:^THA[AEI]N
+LK-8;Uva
+LK-1;Western;WEST;r:^BASNA[AH]?IRA;r:^MA(AL|EL|LE)
+@Sudan
+SD_East;Eastern Sudan States Coordinating Council;EAST;ESSCC
+SD_Darfur;Darfur
+SD-NB;Blue Nile;BLUENILE;r:^(A[LN])?NIL(AL)?AZRAQ
+SD-GZ;Gezira;r:^(AL)?[GJ][AE]ZIRA
+SD-KH;Khartoum;r:^(AL)?KH?[AOU]RT[OU]+M
+SD-KN;North Kordofan;r:^(NORTH(ERN)?|SH?AM(AL|EL|LE))K[OU]RD[OU]FAN
+SD-NO;Northern;NORTH;r:^(ASH?|AL)?SH?AMALIY+A[AH]
+SD-NR;River Nile;r:^((THE)?(RIVER)?|(NAHR)?(AN)?)NIL
+SD-SI;Sennar;r:^S[AEI]N+AR
+SD-KS;South Kordofan;r:^(SOUTH(ERN)?|[GJ]ANUB)K[OU]RD[OU]FAN
+SD-GK;West Kordofan;r:^(WEST(ERN)?|GH?ARB)K[OU]RD[OU]FAN
+SD-NW;White Nile;r:^WH?ITENILE;r:^(AN)?NIL(AL)?ABYAD
+@Suriname
+SR-BR;Brokopondo
+SR-CM;Commewijne
+SR-CR;Coronie;r:^C[EOU]+R[EOU]+NI
+SR-MA;Marowijne
+SR-NI;Nickerie
+SR-PR;Para
+SR-PM;Paramaribo
+SR-SA;Saramacca
+SR-WA;Wanica
+SR-SIBC;Boven Coppename
+SR-SIBSa;Boven Saramacca;r:^BOV[AEI]NSARAMAC+A;MATAWAI
+SR-SIBSu;Boven Suriname
+SR-SICo;Coeroenie;r:^C[EOU]+R[EOU]+NI
+SR-SIKa;Kabalebo
+SR-SIPa;Pamacca;r:^PA+(RA)?MA+[CK]+A
+SR-SITa;Tapanahony;r:^TAPANAHON[IY]
+@Sweden
+SE-K;Blekinge
+SE-W;Dalarna
+SE-X;Gävleborg
+SE-I;Gotland
+SE-N;Halland
+SE-Z;Jämtland
+SE-F;Jönköping
+SE-H;Kalmar
+SE-G;Kronoberg
+SE-BD;Norrbotten
+SE-T;Örebro
+SE-E;Östergötland
+SE-M;Skåne
+SE-D;Södermanland;SODERMANLAND;SORMLAND
+SE-AB;Stockholm
+SE-C;Uppsala
+SE-S;Värmland
+SE-AC;Västerbotten;r:^VASTERBOT+[AEI]N;r:^WEST(ERN)?BOTHN[EI]A
+SE-Y;Västernorrland;r:^VASTERNOR+LAND;r:^WEST(ERN)?NOR+LAND
+SE-U;Västmanland;VASTMANLAND;r:^WEST(ERN)?MAN+[EI]A
+SE-O;Västra Götaland
+@Switzerland
+CH-AG;Aargau;r:^A+RG(AU|UA|GOVI[AE])
+CH-AR;Appenzell Ausserrhoden;r:^(AP+[AEI]NZEL+)?(([AO]U(S+|TH)ER)RHOD[AEI][NS]|ARH|RHODESEXTER[EIU]+RES);r:^OUTERAP+[AEI]NZEL
+CH-AI;Appenzell Innerrhoden;r:^(AP+[AEI]NZEL+)?((INNER)RHOD[AEI][NS]|IRH|RHODESINTER[EIU]+RES);r:^INNERAP+[AEI]NZEL
+CH-BL;Basel-Landschaft;r:^BA(SI?)?(EL|LE)
+CH-BS;Basel-Stadt;r:^BA(SI?)?(EL|LE)
+CH-BE;Bern
+CH-FR;Fribourg;r:^FR[EI]+B[EOU]+RG
+CH-GE;Geneva
+CH-GL;Glarus;r:^GLAR[EIOU]+S
+CH-GR;Grisons;r:^GR[AIU]+(S|BUE?ND)[AEIO]+N
+CH-JU;Jura
+CH-LU;Luzern;r:^LU[CZ]ERN
+CH-NE;Neuchâtel;r:^N[EU]+N?(CH[AEIO]TEL|B[EU]RG)
+CH-NW;Nidwalden;NIDWALD
+CH-OW;Obwalden;OBWALD
+CH-SH;Schaffhausen;r:^S[CH]+[AEOU]+F+(H?[AEOU]+S+[AEI]+N|H?OUSE)
+CH-SZ;Schwyz;r:^S[CH]+W[IY]+Z
+CH-SO;Solothurn;r:^SOL[EO](TH)?[EIOU]R[EN]
+CH-SG;St. Gallen;r:^(SAINT|SANKT|ST|SAN)GAL[EL]
+CH-TG;Thurgau;r:^TH[EU]RG(AU|OVI[AE]|UA)
+CH-TI;Ticino;r:^T[AEIO][CS]+INO;r:^TES+IN
+CH-UR;Uri;URI
+CH-VS;Valais;r:^[VW]AL+A?(IS|Y)
+CH-VD;Vaud;r:^[VW][AO]+U?[DH]
+CH-ZG;Zug;r:^Z[UO]+G
+CH-ZH;Zürich
+@Syria
+SY-HA;Al-Hasakah;r:H[AE]S[AEI][CK][AE]
+SY-HL;Aleppo;r:^H?AL+[AE][PB]
+SY-DI;Damascus;r:^D[AEI]MAS([CH][EOU]+S|Q);r:^R[AEI]+F
+SY-DR;Daraa;r:^E?D[AE]?R(A|EI)
+SY-DY;Deir ez-Zor;r:^D[AE][IY]RU?[AE]?[LZ]+(AW|[OU])R
+SY-HM;Hama;HAMA;r:^HA?MA?T
+SY-HI;Homs;r:^H?[AEIOUW]+ME?[SZ]
+SY-ID;Idlib;r:^[EI]DL[EI]B
+SY-LA;Latakia;r:^LAO?[DT][AI][CKQ][EIY]+A
+SY-QU;Quneitra;r:^[QK]UN[AE][IY]TI?RA
+SY-RA;Raqqa;r:^([AE][LR])?R[AEI][QK]+A
+SY-RD;Rif Dimashq;r:^D[AEI]MAS([CH][EOU]+S|Q);r:^R[AEI]+F
+SY-SU;Sweida;r:^(A[SL])?S[UW]+[AE][EIY]DA
+SY-TA;Tartus;r:^T[AEO]RT[OU]+S
+@Taiwan
+TW-CYI;Chiayi;r:^[CJ]H?IAY?I
+TW-HSZ;Hsinchu;r:^H?[SX]IN[CJZ]HU
+TW-KEE;Keelung;r:^[CJK]H?[AEI]+L[OU]NG
+TW-CHA;Changhua;r:^[CJZ]HANGH?UA
+TW-CYQ;Chiayi;r:^[CJ]H?IAY?I
+TW-HSQ;Hsinchu;r:^H?[SX]IN[CJZ]HU
+TW-HUA;Hualien
+TW-KIN;Kinmen;r:^[CJKQ]H?[EINU]+M[EO][NY]
+TW-LIE;Lienchiang;r:^LI[AE]N[CJ]H?[EI]ANG;r:^MA[TZ]S?U
+TW-MIA;Miaoli
+TW-NAN;Nantou
+TW-PEN;Penghu;r:^PENGH?U;PESCADORES
+TW-PIF;Pingtung;r:^PING[DT][UO]NG
+TW-TTT;Taitung;r:^TAI[DT][OU]NG
+TW-ILA;Yilan;r:^Y?ILAN
+TW-YUN;Yunlin
+TW-KHH;Kaohsiung;r:^[GK][AEIOU]+H?[SX][IOUY]+NG
+TW-NWT;New Taipei;r:^NEWT[AI]+[BP]EI;r:^H?[SX]IN[BP]EI
+TW-TXG;Taichung;r:^TAI?[CDJZ]H?[OU]NG
+TW-TNN;Tainan
+TW-TPE;Taipei;r:^T[AI]+[BP]EI
+TW-TAO;Taoyuan
+@Tajikistan
+TJ-GB;Gorno-Badakhshan;GORNO;KUHISTONI;r:^BADA[CK]HSH?[AO]N
+TJ-RAdF;Fayzabad;r:^F[AE][JY]Z[AO]B[AO]D
+TJ-RAdL;Lakhsh;r:^LA[CK]HS;r:^[CJ]IRGATOL
+TJ-RAdN;Nurobod;r:^NUR[AO]B[AO]D
+TJ-RAdRa;Rasht;r:^RASH?T
+TJ-RAdRu;Rudaki
+TJ-RAdSa;Sangvor;SANGVOR;TAVILDARA
+TJ-RAdSh;Shahrinav;r:^SHAK?H?RINAV
+TJ-RAdT;Tojikobod;r:^T[AO](J|DZ)H?I[CK][AO]B[AO]D
+TJ-RAdV;Varzob
+TJ-RAcH;Hisar;r:^[GH]IS+[AO]R
+TJ-RAcR;Roghun;r:^ROGH?UN
+TJ-RAcT;Tursunzoda;r:^TURSUNZ[AO]D[AE]
+TJ-RAcV;Vahdat;VAHDAT;KOFARNIHON
+TJ-KT;Khatlon;r:^[CK]HATLON
+TJ-SU;Sughd
+TJ-DU;Dushanbe;r:^DUSH?ANBE
+@Tanzania
+TZ_Za;Zanzibar
+TZ-01;Arusha
+TZ-02;Dar es Salaam
+TZ-03;Dodoma
+TZ-27;Geita
+TZ-04;Iringa
+TZ-05;Kagera;r:^[CK]AGERA;r:^WEST(ERN)?LAKE
+TZ-28;Katavi
+TZ-08;Kigoma
+TZ-09;Kilimanjaro
+TZ-12;Lindi
+TZ-26;Manyara
+TZ-13;Mara
+TZ-14;Mbeya
+TZ-16;Morogoro
+TZ-17;Mtwara
+TZ-18;Mwanza
+TZ-29;Njombe
+TZ-19;Pwani;PWANI;COAST
+TZ-20;Rukwa
+TZ-21;Ruvuma
+TZ-22;Shinyanga
+TZ-30;Simiyu
+TZ-23;Singida
+TZ-31;Songwe
+TZ-24;Tabora
+TZ-25;Tanga
+@Thailand
+TH-10;Bangkok
+TH-37;Amnat Charoen
+TH-15;Ang Thong
+TH-38;Bueng Kan
+TH-31;Buriram
+TH-24;Chachoengsao
+TH-18;Chai Nat
+TH-36;Chaiyaphum
+TH-22;Chanthaburi;r:^CHAN[CKT]H?ABUR?I
+TH-50;Chiang Mai
+TH-57;Chiang Rai
+TH-20;Chonburi
+TH-86;Chumphon
+TH-46;Kalasin
+TH-62;Kamphaeng Phet
+TH-71;Kanchanaburi
+TH-40;Khon Kaen
+TH-81;Krabi
+TH-52;Lampang;LAMPANG;KHELANGNAKHON
+TH-51;Lamphun
+TH-42;Loei
+TH-16;Lopburi
+TH-58;Mae Hong Son
+TH-44;Maha Sarakham
+TH-49;Mukdahan
+TH-26;Nakhon Nayok;r:^(NAKHON)?N[AE]YOC?K
+TH-73;Nakhon Pathom;r:^(NAKHON)?PATHOM
+TH-48;Nakhon Phanom;r:^(NAKHON)?(PH|F+)ANOM
+TH-30;Nakhon Ratchasima;r:^(NAKHON)?RATCHASIMA;r:^KH?ORAT
+TH-60;Nakhon Sawan;r:^(NAKHON)?SAWAN
+TH-80;Nakhon Si Thammarat;r:^(NAKHON)?SITHAM+ARAT
+TH-55;Nan
+TH-96;Narathiwat
+TH-39;Nong Bua Lamphu
+TH-43;Nong Khai
+TH-12;Nonthaburi
+TH-13;Pathum Thani
+TH-94;Pattani
+TH-82;Phang Nga
+TH-93;Phatthalung
+TH-56;Phayao
+TH-67;Phetchabun
+TH-76;Phetchaburi;r:^(PH|F+)ET(CHA)?BURI
+TH-66;Phichit
+TH-65;Phitsanulok
+TH-14;Phra Nakhon Si Ayutthaya;r:AYUT+H[AE]YA
+TH-54;Phrae
+TH-83;Phuket;PHUKET;r:^TAN?[JL][AU]NG
+TH-25;Prachinburi
+TH-77;Prachuap Khiri Khan
+TH-85;Ranong
+TH-70;Ratchaburi;r:^RAT(CHA)?BURI
+TH-21;Rayong
+TH-45;Roi Et
+TH-27;Sa Kaeo
+TH-47;Sakon Nakhon
+TH-11;Samut Prakan;r:^(SAMUT)?PRA[CK]AN
+TH-74;Samut Sakhon;r:^(SAMUT)?SAKHON
+TH-75;Samut Songkhram;r:^(SAMUT)?SONG[CK]H?RAM
+TH-19;Saraburi
+TH-91;Satun
+TH-17;Sing Buri
+TH-33;Sisaket
+TH-90;Songkhla;r:^S[IO]NG+K?H?O?[LR]A
+TH-64;Sukhothai
+TH-72;Suphan Buri
+TH-84;Surat Thani;r:^SUR(AT|YA)
+TH-32;Surin
+TH-63;Tak
+TH-92;Trang;r:^(MUEANGTHAP)?T[HR][EI]?ANG
+TH-23;Trat
+TH-34;Ubon Ratchathani;UBON
+TH-41;Udon Thani
+TH-61;Uthai Thani
+TH-53;Uttaradit
+TH-95;Yala
+TH-35;Yasothon
+@Togo
+TG-C;Centrale;r:^CENT(RAL|RE|ER)
+TG-K;Kara
+TG-M;Maritime
+TG-P;Plateaux;r:^PLAT+E?AU
+TG-S;Savanes;r:^SAVAN+[AE]H?S
+@Tonga
+TO-02;Haʻapai;r:^(HA)?APAI
+TO-01;ʻEua
+TO-03;Niua;r:^(ONGO)?NIUA
+TO-04;Tongatapu
+TO-05;Vavaʻu;VAVA
+@Transnistria (Pridnestrovie)
+TransC;Camenca;r:^[CK]AM(E|YA)N[KC]A
+TransD;Dubăsari;r:^DUB[AO]S+AR[IY]
+TransG;Grigoriopol;r:^[GH]R[IY][GH]ORIOPOL
+TransR;Rîbnița;r:^R[AIY][BM]N[IY]TS?I?A
+TransS;Slobozia;r:^SLOBOD?Z[EIY]+A
+TransB;Bender;BENDER;r:^TIGH?INA
+TransT;Tiraspol;r:^T[IY]R[AI]SPOL
+@Trinidad and Tobago
+TT-ARI;Arima
+TT-CHA;Chaguanas
+TT-DMN;Diego Martin
+TT-PTF;Point Fortin
+TT-SIP;Siparia
+TT-POS;Port of Spain
+TT-SFO;San Fernando
+TT-CTT;Couva–Tabaquite–Talparo;r:^C(OU|UO)VA;r:^TABAQ(UI|IU)TE;TALPARO;CTT
+TT-MRC;Mayaro–Rio Claro;r:^M[AE]YARO;RIOCLARO;MRC
+TT-PED;Penal–Debe;r:^PEN(AL|EL|LE);DEBE;PD
+TT-PRT;Princes Town;PRINCES
+TT-SJL;San Juan–Laventille;SANJUAN;r:^LAVENTIL+E;SJL
+TT-SGE;Sangre Grande
+TT-TUP;Tunapuna–Piarco;TUNAPUNA;r:^P[EI]ARCO;TP
+TT-TOB;Tobago
+@Tunisia
+TN-12;Ariana;r:^AR[EIY]ANA
+TN-31;Béja;r:^B[AE]JA
+TN-13;Ben Arous;r:^B[AEI]NAR[AEIOU]+S
+TN-23;Bizerte;r:^B[EI]N?[SZ][AE]RT
+TN-81;Gabès;r:^[CGKQ]A[BP]+[EI]?S
+TN-71;Gafsa;r:^[CGQ]A[FP]SA
+TN-32;Jendouba;r:^J[AEI]ND[OU]+BA;r:^SOU[KQ][AE]LARBA
+TN-41;Kairouan;r:^[KQ][AEIY]+R[AEIOUW]+N
+TN-42;Kasserine;r:^[CGKQ]AS+E?R[AEI]N
+TN-73;Kebili;r:^[GKQ][EI]?BIL+I
+TN-33;Kef;r:^[CK][AE]F
+TN-53;Mahdia;r:^MAHD[IY]+A
+TN-14;Manouba;r:^MAN+[OU]+BA
+TN-82;Medenine;r:^MEDE?N[AEI]N
+TN-52;Monastir;r:^M[OUI](NA)?STIR
+TN-21;Nabeul;r:^NAB[EIU]+L
+TN-61;Sfax;r:^SA?FA[QX]
+TN-43;Sidi Bouzid;r:^SIDIBO?UZ(I|A[IY])D
+TN-34;Siliana;r:^SIL[EIY]ANA
+TN-51;Sousse;r:^S[OU]+S+[AE]
+TN-83;Tataouine;r:^T[AEI]T+A[OUW]+[AEI]N
+TN-72;Tozeur;r:^T[AOU]+Z[AEIU]+R
+TN-11;Tunis;r:^TUN[EI]S
+TN-22;Zaghouan;r:^ZAGH?[OUW]+AN
+@Turkey
+TR-01;Adana
+TR-02;Adıyaman;r:^AD[AEIY]+M[AE]N
+TR-03;Afyonkarahisar;r:^AF[AIEOY]+N?[CK]ARA[AH]?I?SAR;r:^AF[AIEOY]+N
+TR-04;Ağrı;r:^AGR[EI]
+TR-68;Aksaray;r:^AH?[CK]SAR[AE]Y
+TR-05;Amasya;r:^AM+AS[EIJY]A
+TR-06;Ankara;r:^AN[CGK]+[AOY]RA
+TR-07;Antalya;r:^AN+TAL[EIJY]A
+TR-75;Ardahan;r:^ARDA[AH]?A?N
+TR-08;Artvin;r:^ART[EI]?V[AEI]N
+TR-09;Aydın;r:^A[IY]D[AEI]N
+TR-10;Balıkesir;r:^BAL[EI]KESIR
+TR-74;Bartın
+TR-72;Batman
+TR-69;Bayburt;r:^B[AE]Y?BURT
+TR-11;Bilecik;r:^B[EI]LECIC?K
+TR-12;Bingöl;r:^[BC][EI][NW][LG][IO][LG]
+TR-13;Bitlis;r:^[BP][IE][NT]L?[AIY]+[SN]
+TR-14;Bolu
+TR-15;Burdur;r:^B[OU]RDUR
+TR-16;Bursa
+TR-17;Çanakkale;r:^CANA?[CK]+ALE
+TR-18;Çankırı;r:^CANC?KIRI
+TR-19;Çorum;r:^COR[OU]+M
+TR-20;Denizli
+TR-21;Diyarbakır;r:^D[IY]+AR[A-Z]+IR;AMED
+TR-81;Düzce;r:^DU[CZ]+E
+TR-22;Edirne;r:^ED[EI]RNE
+TR-23;Elazığ
+TR-24;Erzincan
+TR-25;Erzurum;r:^ERZ[OU]RUM
+TR-26;Eskişehir;r:^E[SZ]K[A-Z]+HIR
+TR-27;Gaziantep;r:^(GAZI)?[AE]NS?T[AE][BP]
+TR-28;Giresun;r:^G(IR|RI)ES[OU]N
+TR-29;Gümüşhane;r:^GUMU[CSZ]HA(IN|NE)
+TR-30;Hakkâri
+TR-31;Hatay;r:^HAY?T[AE]Y
+TR-76;Iğdır
+TR-32;Isparta;c:SPARTA
+TR-34;Istanbul;r:^ISTANB[OU]+L
+TR-35;İzmir
+TR-46;Kahramanmaraş;r:^[CK]AHRA
+TR-78;Karabük
+TR-70;Karaman
+TR-36;Kars
+TR-37;Kastamonu;r:^[CK]AST[AE]?MONU
+TR-38;Kayseri;r:^[CK]A[JY]SERI
+TR-79;Kilis
+TR-71;Kırıkkale
+TR-39;Kırklareli
+TR-40;Kırşehir
+TR-41;Kocaeli;r:^KOC[AE]+LI
+TR-42;Konya;r:^KON[EIJY]A
+TR-43;Kütahya;r:^KUTA[AH]?[EIJY]A
+TR-44;Malatya;r:^M[AI]L+([AI][DT]|DI)
+TR-45;Manisa
+TR-47;Mardin;r:^M[AE]RD[AEI]N
+TR-33;Mersin
+TR-48;Muğla
+TR-49;Muş;r:^M[AEOU]+[SZ]
+TR-50;Nevşehir;r:^N[AE][VW]SH?[AE][AH]?I?R
+TR-51;Niğde;r:^NIG?DE
+TR-52;Ordu
+TR-80;Osmaniye;r:^OSMAN[EIJY]+E
+TR-53;Rize
+TR-54;Sakarya;r:^SA[CK]H?ARYA
+TR-55;Samsun
+TR-63;Şanlıurfa;r:^(S?AN?L)?R?[AEIOU]+[HR]F?A
+TR-56;Siirt;r:^S[EI]+RT
+TR-57;Sinop
+TR-58;Sivas;r:^S[EI][VW]AS
+TR-73;Şırnak
+TR-59;Tekirdağ;r:^TEKI?RDAG
+TR-60;Tokat
+TR-61;Trabzon;r:^TRAB?Z[AO]N
+TR-62;Tunceli;TUNCELI;DERSI
+TR-64;Uşak
+TR-65;Van;r:^[VW][AO]N
+TR-77;Yalova
+TR-66;Yozgat;r:^YO[SZ]GAT
+TR-67;Zonguldak;r:^ZONGUL?DAC?K
+@Turkmenistan
+TM-S;Ashgabat;r:^ASH?[GK]H?ABA[DT];r:^POLTORATSC?K
+TM-A;Ahal;r:^A[AHX]?(AL|EL|LE)
+TM-B;Balkan
+TM-D;Daşoguz;r:^DASH?O[GW]UZ
+TM-L;Lebap;r:^L[AE]B[AE]+[BP]
+TM-M;Mary
+@Tuvalu
+TV-FUN;Funafuti
+TV-NMG;Nanumanga;r:^NANUMAN?GA
+TV-NMA;Nanumea
+TV-NIT;Niutao
+TV-NUI;Nui
+TV-NKF;Nukufetau
+TV-NKL;Nukulaelae
+TV-VAI;Vaitupu
+@Uganda
+UG_AruaC;Arua
+UG_EntebbeC;Entebbe
+UG_FortPortalC;Fort Portal;r:^[CK]ABAROLE;r:^(FORT|FT)PORT(AL|EL|LE)
+UG_GuluC;Gulu
+UG_HoimaC;Hoima
+UG_JinjaC;Jinja
+UG_KabaleC;Kabale
+UG-102;Kampala
+UG_LiraC;Lira
+UG_MasakaC;Masaka
+UG_MbaleC;Mbale
+UG_MbaraC;Mbarara
+UG_MorotoC;Moroto
+UG_NakasongolaC;Nakasongola
+UG_SorotiC;Soroti
+UG_WakisoC;Wakiso
+UG-314;Abim
+UG-301;Adjumani
+UG-322;Agago
+UG-323;Alebtong
+UG-315;Amolatar
+UG-324;Amudat
+UG-216;Amuria
+UG-316;Amuru
+UG-302;Apac
+UG-303;Arua
+UG-217;Budaka
+UG-218;Bududa
+UG-201;Bugiri
+UG-235;Bugweri
+UG-420;Buhweju
+UG-117;Buikwe
+UG-219;Bukedea
+UG-118;Bukomansimbi;r:^BUKOMANSIM?BI
+UG-220;Bukwo;r:^BUKW[AO]
+UG-225;Bulambuli
+UG-416;Buliisa
+UG-401;Bundibugyo
+UG-430;Bunyangabu
+UG-402;Bushenyi
+UG-202;Busia
+UG-221;Butaleja
+UG-119;Butambala
+UG-233;Butebo
+UG-120;Buvuma
+UG-226;Buyende
+UG-317;Dokolo
+UG-121;Gomba
+UG-304;Gulu
+UG-403;Hoima
+UG-417;Ibanda
+UG-203;Iganga
+UG-418;Isingiro
+UG-204;Jinja
+UG-318;Kaabong
+UG-404;Kabale
+UG-405;Kabarole;r:^[CK]ABAROLE;r:^(FORT|FT)PORT(AL|EL|LE)
+UG-213;Kaberamaido
+UG-427;Kagadi
+UG-428;Kakumiro
+UG-237;Kalaki
+UG-101;Kalangala
+UG-222;Kaliro
+UG-122;Kalungu
+UG-205;Kamuli
+UG-413;Kamwenge
+UG-414;Kanungu
+UG-206;Kapchorwa
+UG-236;Kapelebyong
+UG-335;Karenga
+UG-126;Kasanda
+UG-406;Kasese
+UG-207;Katakwi
+UG-112;Kayunga
+UG-433;Kazo
+UG-407;Kibaale
+UG-103;Kiboga
+UG-227;Kibuku
+UG-432;Kikuube
+UG-419;Kiruhura
+UG-421;Kiryandongo
+UG-408;Kisoro
+UG-434;Kitagwenda
+UG-305;Kitgum
+UG-319;Koboko
+UG-325;Kole
+UG-306;Kotido
+UG-208;Kumi
+UG-333;Kwania
+UG-228;Kween
+UG-123;Kyankwanzi
+UG-422;Kyegegwa
+UG-415;Kyenjojo
+UG-125;Kyotera
+UG-326;Lamwo
+UG-307;Lira
+UG-229;Luuka
+UG-104;Luweero;r:^LUWE+RO
+UG-124;Lwengo
+UG-114;Lyantonde
+UG-336;Madi-Okollo;MADI;r:^OKOL+O
+UG-223;Manafwa
+UG-320;Maracha
+UG-105;Masaka
+UG-409;Masindi
+UG-214;Mayuge
+UG-209;Mbale
+UG-410;Mbarara
+UG-423;Mitooma
+UG-115;Mityana
+UG-308;Moroto
+UG-309;Moyo
+UG-106;Mpigi
+UG-107;Mubende
+UG-108;Mukono
+UG-334;Nabilatuk
+UG-311;Nakapiripirit
+UG-116;Nakaseke
+UG-109;Nakasongola
+UG-230;Namayingo
+UG-234;Namisindwa
+UG-224;Namutumba;NAMUTUMBA;BUSIKI
+UG-327;Napak
+UG-310;Nebbi
+UG-231;Ngora
+UG-424;Ntoroko
+UG-411;Ntungamo
+UG-328;Nwoya
+UG-337;Obongi
+UG-331;Omoro
+UG-329;Otuke
+UG-321;Oyam
+UG-312;Pader
+UG-332;Pakwach
+UG-210;Pallisa
+UG-110;Rakai
+UG-429;Rubanda
+UG-425;Rubirizi
+UG-431;Rukiga
+UG-412;Rukungiri
+UG-435;Rwampara
+UG-111;Sembabule;r:^S+EMBABULE
+UG-232;Serere
+UG-426;Sheema
+UG-215;Sironko
+UG-211;Soroti
+UG_Terego;Terego
+UG-212;Tororo
+UG-113;Wakiso
+UG-313;Yumbe
+UG-330;Zombo
+@Ukraine
+UA-30;Kyiv
+UA-71;Cherkasy;r:^CH?ER[CK]AS(EE|EY|I|Y)
+UA-74;Chernihiv;r:^CH?ERN[IY]+H[IY]+V
+UA-77;Chernivtsi;r:^CH?ERN[IY]+VT?[CS][IY]
+UA-12;Dnipropetrovsk
+UA-14;Donetsk;r:^D[AO]N+E[CST]+K
+UA-26;Ivano-Frankivsk;IVANO;r:^FRANK[IY]+VSC?K
+UA-63;Kharkiv
+UA-65;Kherson;r:^[CK][EHR]+SON
+UA-68;Khmelnytskyi;r:^[CK]H?MELN[IY]+[CST]+K(YI|IY|YJ|JY)
+UA-35;Kirovohrad;r:^K[IY]+ROVOH?RAD
+UA-32;Kyiv
+UA-46;Lviv
+UA-48;Mykolaiv;r:^[MN][IY]+KOL[AE][EIY]+V
+UA-51;Odesa;r:^OD+ES+(K|HCHYN)?A
+UA-53;Poltava
+UA-56;Rivne;r:^R[IY]+VNE
+UA-59;Sumy;r:^SUM(EE|EY|I|Y)
+UA-61;Ternopil;r:^TERNOP[IY]+L
+UA-05;Vinnytsia;r:^V[IY]+N+Y[CST]+[EIJY]+A
+UA-07;Volyn;r:^VOLH?[IY]+N
+UA-21;Zakarpattia;r:^(ZA|TRANS)[CK]ARPAT+[EHIJY]+A
+UA-23;Zaporizhzhia;r:^ZAP[OE]+RI?[HZ]+[IJY]+[EA]
+UA-18;Zhytomyr;r:^ZH?[IY]+TOM[IY]
+@United Arab Emirates
+AE-AZ;Abu Dhabi;r:^ABO?U[DZ]H?ABI
+AE-AJ;Ajman;r:^A[GJ]MAN
+AE-DU;Dubai;r:^DUB[AE][IY]
+AE-FU;Fujairah;r:^([AE][LR])?FUJ[AE][IY]RAH
+AE-RK;Ras Al Khaimah;r:^RA[SK]
+AE-SH;Sharjah;r:^([AE]([LR]|SH))?SH?ARI?[JQ]A[AH]
+AE-UQ;Umm Al Quwain;r:^[OU](MM|AQ)
+@United Kingdom
+GB-GLA;Greater London;r:^GREA?TERLONDON;GLA;LONDON
+GB-CAPCA;Cambridgeshire and Peterborough;CAPCA;CPCA;r:^CAMBRID?GESHIRE;r:^PETERS?B[A-Z]+GH
+GB-CWCA;Cheshire and Warrington;CWCA;CAWCA;CHESHIRE;WARRINGTON
+GB-CCA;Cumbria;CCA;CUMBRIA
+GB-GMCA;Greater Manchester;r:^(GREA?TER)?MANCHESTER;GMCA
+GB-HEYCA;Hull and East Yorkshire;r:^HA?EYCA;r:^(KINGSTON)?(UPON)?HULL;r:^EA?STYORKSHIRE
+GB-LCRCA;Liverpool City Region;LCRCA;LIVERPOOL;r:^MER[AE]YSIDE
+GB-NECA;North East;r:^NORTHEA?ST;NECA
+GB-SYMCA;South Yorkshire;r:^S(OU|UO)THYORKSHIRE;r:^SYM?CA
+GB-TVCA;Tees Valley;r:^TE[AE]SVAL+[AE]Y;TVCA
+GB-WMCA;West Midlands;WESTMIDLANDS;WMCA
+GB-WECA;West of England;WECA;WEST
+GB-WYCA;West Yorkshire;WESTYORKSHIRE;WYCA
+GB-YANYCA;York and North Yorkshire;YANYCA;YNYCA;r:^YORK;NORTHYORKSHIRE
+GB-DTCCA;Devon and Torbay;DTCCA;DATCCA;DEVON;r:^TORB[AE]Y
+GB-EMCCA;East Midlands;r:^EA?STMIDLANDS;r:^EMC+H?A
+GB-GECCA;Greater Essex;GECCA;r:^(GREA?TER)?ESSEX
+GB-GLCCA;Greater Lincolnshire;r:^(GREA?TER)?LINCOLNSHIRE;r:^GLC+H?A
+GB-HSCCA;Hampshire and the Solent;r:^HA?T?SCCA;HAMP;HANTS;r:^(THE)?SOLENT
+GB-LCCA;Lancashire;LANCASHIRE;r:^LC+H?A
+GB-NSCCA;Norfolk and Suffolk;NSCCA;NASCCA;NORFOLK;SUFFOLK
+GB-SBCCA;Sussex and Brighton;SBCCA;SABCCA;SUSSEX;BRIGHTON
+GB-NIR;Northern Ireland;r:^(NOR(TH|L)([EI]R?N)?|TUAISCEART)[AE]?IRE?L?AN[DN]
+GB-SCT;Scotland;SCOTLAND;ALBA
+GB-WLS;Wales;WALES;CYMRU
+GB-GG;Guernsey;r:^G[UE]+(RN|M)E?S(E?Y|I)
+GB-IM;Isle of Man;r:^(THE)?(ISLE|ISLAND|EL+AN)?(OF)?[MV]AN
+GB-JE;Jersey;JERSEY;JERRI
+GB-NMCGlou;Gloucestershire
+GB-NMCHert;Hertfordshire;HERTFORDSHIRE;HERTS
+GB-NMCKent;Kent
+GB-NMCLeic;Leicestershire
+GB-NMCOxf;Oxfordshire;OXFORDSHIRE;OXON
+GB-NMCStaffs;Staffordshire;r:^STAF+ORDSHIRE;r:^STAF+S
+GB-NMCSurrey;Surrey
+GB-NMCWar;Warwickshire
+GB-NMCWorcs;Worcestershire;WORCESTERSHIRE;WORCS
+GB-IoS;Isles of Scilly;r:^ISLESOFSCIL+(EE|EY|IE|Y);r:^SYL+AN
+GB-AaD;Akrotiri and Dhekelia;r:^A[CK]H?ROTIRI;r:^DH?EKEL[EI]A
+GB-AI;Anguilla
+GB-BM;Bermuda;BERMUDA;BERMY
+GB-VG;British Virgin Islands;r:VIRG[AEI]+NISLANDS;r:^(THE)?(BRITISH|UNITEDKINGDOM|UK)VI
+GB-KY;Cayman Islands;r:^(THE)?CAYMAN
+GB-FK;Falkland Islands
+GB-GI;Gibraltar
+GB-MS;Montserrat
+GB-PN;Pitcairn Islands;r:^(THE)?PIT[CK](AI|E)RN
+GB-SH;Saint Helena, Ascension and Tristan da Cunha;r:^(SAINT|ST)HEL+ENA;r:^AS[CS]?ENSION;r:^TRISTAN(DA)?CUNHA
+GB-TC;Turks and Caicos Islands;TURKS;CAICOS
+GB-UABed;Bedford
+GB-UABCP;Bournemouth, Christchurch and Poole;BCP;r:^B[OU]+RNE?MOUTH;CHRISTCHURCH;POOLE
+GB-UABF;Bracknell Forest
+GB-UABucks;Buckinghamshire;r:^BU[CK]+INGHAMSHIRE;r:^BU[CK]+S
+GB-UACBed;Central Bedfordshire
+GB-UACorn;Cornwall
+GB-UADor;Dorset
+GB-UAHere;Herefordshire
+GB-UALeic;Leicester
+GB-UALuton;Luton
+GB-UAMed;Medway
+GB-UAMK;Milton Keynes
+GB-UANNor;North Northamptonshire
+GB-UANS;North Somerset
+GB-UAPly;Plymouth
+GB-UARead;Reading
+GB-UARut;Rutland
+GB-UASalop;Shropshire;SHROPSHIRE;SALOP
+GB-UASlough;Slough
+GB-UASom;Somerset
+GB-UASoT;Stoke-on-Trent
+GB-UASwi;Swindon
+GB-UATaW;Telford and Wrekin;r:^TEL+FORD;r:^WREK[AEI]N
+GB-UAWB;West Berkshire
+GB-UAWNor;West Northamptonshire
+GB-UAWilts;Wiltshire;WILTS
+GB-UAWaM;Windsor and Maidenhead;r:^WINDS[EO]R;r:^MAIDENHEA?D
+GB-UAWok;Wokingham
+@United States
+US-DC;District of Columbia;r:^DISTRICTOFCOLUMB[EI]A;WASHINGTON;DC
+US-AL;Alabama
+US-AK;Alaska
+US-AZ;Arizona
+US-AR;Arkansas
+US-CA;California
+US-CO;Colorado
+US-CT;Connecticut
+US-DE;Delaware
+US-FL;Florida
+US-GA;Georgia
+US-HI;Hawaii
+US-ID;Idaho
+US-IL;Illinois
+US-IN;Indiana
+US-IA;Iowa
+US-KS;Kansas
+US-KY;Kentucky
+US-LA;Louisiana
+US-ME;Maine
+US-MD;Maryland
+US-MA;Massachusetts
+US-MI;Michigan
+US-MN;Minnesota
+US-MS;Mississippi
+US-MO;Missouri
+US-MT;Montana
+US-NE;Nebraska
+US-NV;Nevada
+US-NH;New Hampshire
+US-NJ;New Jersey
+US-NM;New Mexico
+US-NY;New York
+US-NC;North Carolina
+US-ND;North Dakota
+US-OH;Ohio
+US-OK;Oklahoma
+US-OR;Oregon
+US-PA;Pennsylvania
+US-RI;Rhode Island
+US-SC;South Carolina
+US-SD;South Dakota
+US-TN;Tennessee
+US-TX;Texas
+US-UT;Utah
+US-VT;Vermont
+US-VA;Virginia
+US-WA;Washington
+US-WV;West Virginia
+US-WI;Wisconsin
+US-WY;Wyoming
+US-AS;American Samoa;r:^(AMERICAN|EAST(ERN)?)?SAM(AO|OA)
+US-GU;Guam
+US-MP;Northern Mariana Islands;r:^(THE)?(NORTH(ERN)?)?MAR[AEI]+N+A
+US-PR;Puerto Rico
+US-VI;United States Virgin Islands;r:VIRG[AEI]+NISLANDS;r:^(THE)?(A|USA?|UNITEDSTATES|AMERICAN)VI
+@Uruguay
+UY-AR;Artigas
+UY-CA;Canelones
+UY-CL;Cerro Largo
+UY-CO;Colonia
+UY-DU;Durazno
+UY-FS;Flores
+UY-FD;Florida
+UY-LA;Lavalleja
+UY-MA;Maldonado
+UY-MO;Montevideo
+UY-PA;Paysandú
+UY-RN;Río Negro
+UY-RV;Rivera
+UY-RO;Rocha
+UY-SA;Salto
+UY-SJ;San José
+UY-SO;Soriano
+UY-TA;Tacuarembó
+UY-TT;Treinta y Tres;r:^TRE?INTAY?TRES;33
+@Uzbekistan
+UZ-TK;Tashkent;r:^T[AO]SHKENT
+UZ-AN;Andijan;r:^ANDI[JZ]H?[AO]N
+UZ-BU;Bukhara;r:^BU[CKX]H?[AO]R[AO]
+UZ-FA;Fergana;r:^F[AEU]RG[AO]NA
+UZ-JI;Jizzakh;r:^D?[JZ]H?IZ+A[KX]
+UZ-NG;Namangan
+UZ-NW;Navoiy;NAVOI
+UZ-QA;Qashqadaryo;r:^[CKQ]ASH[CKQ]ADARY[AO]
+UZ-SA;Samarqand;r:^SAMAR[CKQ]AND
+UZ-SI;Sirdaryo;r:^S[IY]RDARY[AO]
+UZ-SU;Surxondaryo;r:^SUR[KX]H?[AO]NDARY[AO]
+UZ-TO;Tashkent;r:^T[AO]SHKENT
+UZ-XO;Xorazm;r:^[KX]H?OR[AE]ZM
+UZ-QR;Karakalpakstan;r:^[CKQ][AO]RA[CKQ]ALP[AO][GKQ]I?ST[AO]N
+@Vanuatu
+VU-MAP;Malampa
+VU-PAM;Penama
+VU-SAM;Sanma
+VU-SEE;Shefa
+VU-TAE;Tafea
+VU-TOB;Torba
+@Vatican City
+VC-VC;Vatican City
+@Venezuela
+VE-A;Capital District;r:CAPITAL;CARACAS
+VE-Z;Amazonas;r:^AM[AEIO]ZON[AEIOU]+S
+VE-B;Anzoátegui
+VE-C;Apure
+VE-D;Aragua
+VE-E;Barinas
+VE-F;Bolívar
+VE-G;Carabobo
+VE-H;Cojedes
+VE-Y;Delta Amacuro
+VE-I;Falcón;FALCON
+VE-J;Guárico
+VE-X;La Guaira;r:^(LA)?GUAIRA;VARGAS
+VE-K;Lara
+VE-L;Mérida
+VE-M;Miranda
+VE-N;Monagas
+VE-O;Nueva Esparta
+VE-P;Portuguesa
+VE-R;Sucre
+VE-S;Táchira
+VE-T;Trujillo
+VE-U;Yaracuy
+VE-V;Zulia
+@Vietnam
+VN_mCT;Cần Thơ;r:^C[AẦ]NTHO
+VN_mDN;Da Nang
+VN_mHai;Haiphong
+VN_mHan;Hanoi
+VN_mHCM;Ho Chi Minh;HOCHIMINH;HCMC
+VN_mHu;Huế;r:^HU[EẾ]
+VN_pAG;An Giang
+VN_pBN;Bắc Ninh;r:^B[AẮ]CNINH
+VN_pCM;Cà Mau
+VN_pCB;Cao Bằng;r:^CAOB[AẰ]NG
+VN_pDL;Đắk Lắk;r:^D[AẮ]KL[AẮ]K
+VN_pDB;Điện Biên;r:^DI[EỆ]NBIEN
+VN_pDN;Đồng Nai;r:^D[OỒ]NGNAI
+VN_pDT;Đồng Tháp;r:^D[OỒ]NGTHAP
+VN_pGL;Gia Lai
+VN_pHT;Hà Tĩnh
+VN_pHY;Hưng Yên
+VN_pKH;Khánh Hòa
+VN_pLCh;Lai Châu
+VN_pLD;Lâm Đồng;r:^LAMD[OỒ]NG
+VN_pLS;Lạng Sơn;r:^L[AẠ]NGSON
+VN_pLCa;Lào Cai
+VN_pNA;Nghệ An;r:^NGH[EỆ]AN
+VN_pNB;Ninh Bình
+VN_pPT;Phú Thọ
+VN_pQNg;Quảng Ngãi;r:^QU[AẢ]NGNGAI
+VN_pQNi;Quảng Ninh;r:^QU[AẢ]NGNINH
+VN_pQT;Quảng Trị;r:^QU[AẢ]NGTRI
+VN_pSL;Sơn La
+VN_pTNi;Tây Ninh
+VN_pTNg;Thái Nguyên
+VN_pTH;Thanh Hóa
+VN_pTQ;Tuyên Quang
+VN_pVL;Vĩnh Long
+@Wa State
+Wa_171;171st military region;r:^(THE)?171;c:SOUTH;SAAC;CKKBPC;CUBKHRAWMKAINGBEENPLAKCAW
+Wa_HP;Ho Pang;r:^HO[BP]ANG
+Wa_MP;Mong Pawk;r:^M[EOU]+NG[BP]AW[GK]
+Wa_Mog;Monglin;r:^M[AO]NGL[EI]+N
+Wa_Mom;Mongmao;r:^M[EIOU]+(NGH?MA[EOUW]|[GK]NU)
+Wa_Pan;Pangkham;r:^[BP]ANG?[CK]H?A(M|NG);r:^[BP]ANGH?SANG
+@Yemen
+YE-AM;'Amran
+YE-AB;Abyan
+YE-AD;Aden;r:^AD[AEI]N
+YE-BA;Al-Bayda;r:^([AE][LR])?B[AE][IY]DH?A
+YE-HU;Al-Hudaydah;r:^([AE][LR])?H[OU]D[AE][IY]?DA;WEST
+YE-JA;Al-Jawf;r:^([AE][LR])?[GJ][AOU]+W?F
+YE-MR;Al-Mahrah;r:^([AE]L)?M[AOU]HRA
+YE-MW;Al-Mahwit;r:^([AE][LR])?M[AOU]H(WIT|RA)
+YE-DA;Dhale;r:^(A[DL])?DH?AL[EI]
+YE-DH;Dhamar;r:^[DT]H?AMAR
+YE-HD;Hadramaut;r:^HADH?RAM[AOUW]+T
+YE-HJ;Hajjah;r:^HA[GJ]+A
+YE-IB;Ibb;r:^[EI]BB
+YE-LA;Lahij;r:^LAH[EI]?[GJ]
+YE-MA;Marib;r:^MAR[EI]B
+YE-RA;Raymah;r:^R[AE][IY]MA
+YE-SD;Saada;r:^SA+DA
+YE-SN;Sanaa;SANA;AMANAT;r:^([AE][LR])?ASIM[AOU]H;AAA
+YE-SH;Shabwah;r:^SH?ABWA
+YE-SU;Socotra;r:S[OU][CQ][AOU][DT]A?RA
+YE-TA;Taiz
+YE-SA;Sanaa;SANA;AMANAT;r:^([AE][LR])?ASIM[AOU]H;AAA
+@Zambia
+ZM-02;Central;r:^CENT(RAL|RE|ER)
+ZM-08;Copperbelt
+ZM-03;Eastern;EAST
+ZM-04;Luapula
+ZM-09;Lusaka
+ZM-10;Muchinga
+ZM-06;North-Western;NORTHWEST
+ZM-05;Northern;NORTH
+ZM-07;Southern;SOUTH
+ZM-01;Western;WEST
+@Zimbabwe
+ZW-BU;Bulawayo;r:^(KO)?BULAW[AE]YO
+ZW-HA;Harare
+ZW-MA;Manicaland
+ZW-MC;Mashonaland Central;r:^MASH[A-Z]*CENTRAL
+ZW-ME;Mashonaland East;r:^MASH[A-Z]*EAST
+ZW-MW;Mashonaland West;r:^MASH[A-Z]*WEST
+ZW-MV;Masvingo;MASVINGO;VICTORIA
+ZW-MN;Matabeleland North;r:^MATA[A-Z]*NORTH
+ZW-MS;Matabeleland South;r:^MATA[A-Z]*SOUTH
+ZW-MI;Midlands

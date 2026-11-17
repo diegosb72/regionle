@@ -5845,6 +5845,19 @@ a.icon-btn {
   background: var(--accent-soft);
   color: var(--accent-ink);
 }
+/* A pattern is read sign by sign: in a face that tells each one apart, and on as many lines as it takes. */
+.ti-chip.ti-pat {
+  border-radius: 12px;
+  font: 500 12px/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: 0;
+  text-align: left;
+}
+.ti-chip.ti-pat span {
+  min-width: 0;
+}
+.ti-chip.ti-pat svg {
+  flex: none;
+}
 button.ti-chip:hover {
   border-color: var(--ink-3);
 }

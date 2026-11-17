@@ -105,12 +105,61 @@ export interface Answerable {
  * and the data give it, and those of the rule and the data that it does not answer to.
  */
 export interface ShortEdit {
-  /** As they were written: "Mass", "MA". They are short forms like any other: not taken while letters are in sight. */
+  /**
+   * As they were written: "Mass", "MA". They are short forms like any other: not taken while letters are in
+   * sight. One that begins with "r:" or "c:" is a pattern rather than a spelling: see `patternOf`.
+   */
   add?: string[];
-  /** Compared without case, dots or spaces: "ri", "R.I." */
+  /** Compared without case, dots or spaces: "ri", "R.I."; a pattern, by its text. */
   off?: string[];
   /** False to give it no initials at all, but for those among `add`. */
   rule?: boolean;
+}
+
+/** Longest pattern that is kept. */
+export const MAX_PATTERN = 160;
+
+/**
+ * A pattern among the short forms of a thing, the way the quizzes of JetPunk write them: "r:" and a regular
+ * expression ("r:^S[OU]KHUM" takes "Sukhumi" and "Sokhumi"), or "c:" and letters that only have to be found
+ * somewhere ("c:CAPITAL"). It is tried on what was typed with its letters and digits run together, capitals
+ * and accents aside. Returns it as it is kept, or null when the text is no pattern or cannot be read.
+ */
+export function patternOf(form: string): string | null {
+  const m = /^\s*([rc])\s*:(.*)$/is.exec(form);
+  if (!m) return null;
+  const body = m[1].toLowerCase() === 'c' ? fold(m[2]).replace(/ /g, '').toUpperCase() : m[2].replace(/\s+/g, '');
+  if (!body || body.length > MAX_PATTERN) return null;
+  const text = `${m[1].toLowerCase()}:${body}`;
+  return compile(text) ? text : null;
+}
+
+/** True for what is written as a pattern, readable or not: "r:^A(", "c:". */
+export function looksLikePattern(form: string): boolean {
+  return /^\s*[rc]\s*:/i.test(form);
+}
+
+interface Compiled {
+  /** Found in the text, wherever the expression says: what JetPunk asks. */
+  loose: RegExp;
+  /** Takes the text whole, to its last letter. */
+  full: RegExp;
+}
+
+const compiled = new Map<string, Compiled | null>();
+
+function compile(text: string): Compiled | null {
+  let c = compiled.get(text);
+  if (c !== undefined) return c;
+  const body = text[0] === 'c' ? text.slice(2).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : text.slice(2);
+  try {
+    // No "u" flag: the expressions are written loosely ("]" on its own), as the browser of their author took them.
+    c = { loose: new RegExp(body, 'i'), full: new RegExp(`^(?:${body})$`, 'i') };
+  } catch {
+    c = null;
+  }
+  compiled.set(text, c);
+  return c;
 }
 
 /** A short form a thing answers to before the settings have their say. */
@@ -292,7 +341,7 @@ function lettersOf(input: string): string[] {
 export function shortNote(res: 'short' | 'vague', text: string): string {
   const typed = text.trim().toUpperCase();
   return res === 'short'
-    ? L('Con letras del nombre a la vista, las abreviaturas no valen: escríbelo entero.', 'With letters of the name in sight, short forms do not count: type it in full.')
+    ? L('Con letras del nombre a la vista, las abreviaturas y las variantes no valen: escríbelo entero.', 'With letters of the name in sight, short forms and variants do not count: type it in full.')
     : L(`«${typed}» puede ser más de un nombre de este mapa: escríbelo entero.`, `"${typed}" could be more than one name on this map: type it in full.`);
 }
 
@@ -306,8 +355,15 @@ export class Matcher {
   private shared = new Set<string>();
   /** Accepted spellings that are abbreviations themselves ("EEUU", "CDMX"). */
   private caps = new Set<string>();
+  /**
+   * The spellings that are short for a thing and no name of it, as "key id". A spelling may be short for
+   * one thing and the name of another: "Gyor" for Győr-Moson-Sopron, on a map with the city of Győr.
+   */
+  private shortOf = new Set<string>();
   /** Names with the article that `key` drops, run together: "larioja". */
   private heads: string[] = [];
+  /** The patterns the settings give each thing: what they take is not a spelling that can be listed. */
+  private patterns: { id: string; loose: RegExp; full: RegExp }[] = [];
 
   /**
    * `codes: false` when the ids are not those of what is named (the capitals of the countries, under the
@@ -320,7 +376,10 @@ export class Matcher {
     const off = new Map<string, Set<string>>();
     for (const it of items) {
       const seen = new Set<string>();
-      const gone = new Set((it.short?.off ?? []).map(key));
+      /** Its spellings, by what they are: names written out, and short forms. */
+      const written = new Set<string>();
+      const brief = new Set<string>();
+      const gone = new Set((it.short?.off ?? []).filter((k) => !looksLikePattern(k)).map(key));
       off.set(it.id, gone);
       const spell = (raw: string, abbreviation: boolean) => {
         for (const part of raw.includes('/') ? [raw, ...raw.split('/')] : [raw]) {
@@ -331,8 +390,13 @@ export class Matcher {
           if (head !== variants[0]) this.heads.push(head);
           for (const k of variants) {
             if (!k) continue;
-            if (abbreviation) this.caps.add(k);
-            else named.add(k);
+            if (abbreviation) {
+              this.caps.add(k);
+              brief.add(k);
+            } else {
+              named.add(k);
+              written.add(k);
+            }
             if (seen.has(k)) continue;
             seen.add(k);
             this.keys.push([k, it.id]);
@@ -349,8 +413,18 @@ export class Matcher {
         if (abbreviation && gone.has(key(raw))) continue;
         spell(raw, abbreviation);
       }
-      // What the settings add is short for it whatever it looks like ("Mass").
-      for (const raw of it.short?.add ?? []) if (raw.trim()) spell(raw.trim(), true);
+      // What the settings add is short for it whatever it looks like ("Mass"). A pattern is kept apart.
+      for (const raw of it.short?.add ?? []) {
+        if (!raw.trim()) continue;
+        if (!looksLikePattern(raw)) {
+          spell(raw.trim(), true);
+          continue;
+        }
+        const text = patternOf(raw);
+        const c = text ? compile(text) : null;
+        if (c) this.patterns.push({ id: it.id, loose: c.loose, full: c.full });
+      }
+      for (const k of brief) if (!written.has(k)) this.shortOf.add(`${k} ${it.id}`);
     }
     for (const k of named) this.caps.delete(k);
 
@@ -402,18 +476,66 @@ export class Matcher {
     return (loose && this.exact.get(loose)) || undefined;
   }
 
+  /** True when the input is a spelling of `id` that is short for it, and no name of its own. */
+  private shortens(input: string, id: string): boolean {
+    const k = key(input);
+    const by = this.exact.has(k) ? k : looseKey(input);
+    return !!by && this.shortOf.has(`${by} ${id}`);
+  }
+
+  /**
+   * The things with a pattern that takes the input: whole, to its last letter ("sukhum" for "^S[OU]KHUM"),
+   * or the way JetPunk asks, which is found in it wherever the pattern says ("sukhumi", "sukhum city").
+   */
+  private patterned(input: string, how: 'full' | 'loose'): string[] {
+    if (!this.patterns.length) return [];
+    const texts = lettersOf(input).filter(Boolean);
+    const ids: string[] = [];
+    for (const p of this.patterns) if (!ids.includes(p.id) && texts.some((t) => p[how].test(t))) ids.push(p.id);
+    return ids;
+  }
+
   /**
    * Ids whose accepted spellings equal the input (accents, case and punctuation ignored), or the one thing
-   * the input abbreviates.
+   * the input abbreviates, or those with a pattern that takes it whole. A name written out comes before
+   * anything else: "Ribnica" is Ribnica, whatever the pattern of Ribnica na Pohorju takes.
    */
   lookup(input: string, opts: MatchOpts = {}): string[] {
     const k = key(input);
     if (!k) return [];
-    if (opts.whole && this.caps.has(k)) return [];
     const hit = this.named(input);
-    if (hit) return hit;
-    const id = opts.whole ? undefined : this.shortFor(input);
-    return id ? [id] : [];
+    if (hit) {
+      const short = hit.filter((id) => this.shortens(input, id));
+      if (!short.length) return hit;
+      // What is called so comes before what only answers to it: a game that takes one answer takes the
+      // first. With letters in sight a thing answers to its names alone.
+      const names = hit.filter((id) => !short.includes(id));
+      return opts.whole ? names : [...names, ...short];
+    }
+    if (opts.whole) return [];
+    const id = this.shortFor(input);
+    return id ? [id] : this.patterned(input, 'full');
+  }
+
+  /**
+   * The things with a pattern that the input sets off without ending where the pattern ends: "ras al
+   * khaymah" for "^RA[SK]", as in JetPunk, where the answer is taken at "ras". It is the last thing tried,
+   * after a slip of the finger: such patterns are loose on purpose.
+   */
+  loose(input: string): string[] {
+    return this.patterned(input, 'loose');
+  }
+
+  /**
+   * What is taken for these things besides their names written out: initials by the rule, and anything
+   * else (abbreviations in the data, what the settings add, patterns).
+   */
+  shortKinds(ids: ReadonlySet<string>): { initials: boolean; other: boolean } {
+    let initials = false;
+    for (const id of this.short.values()) if (ids.has(id)) initials = true;
+    let other = this.patterns.some((p) => ids.has(p.id));
+    for (const pair of this.shortOf) if (!other && ids.has(pair.slice(pair.indexOf(' ') + 1))) other = true;
+    return { initials, other };
   }
 
   /** Every abbreviation taken on this map, with the thing it stands for: initials, and spellings such as "EEUU". */
@@ -423,12 +545,18 @@ export class Matcher {
     return out;
   }
 
-  /** True when the input is taken as an abbreviation: initials, or a spelling such as "EEUU". */
-  abbreviates(input: string): boolean {
+  /**
+   * True when the input is taken for something other than a name written out, or nearly: initials, a
+   * spelling such as "EEUU", or what a pattern takes. With an `id`, when that is how the input names that
+   * thing, whatever else it is the name of.
+   */
+  abbreviates(input: string, id?: string): boolean {
     const k = key(input);
     if (!k) return false;
     if (this.caps.has(k)) return true;
-    return !this.named(input) && !!this.shortFor(input);
+    if (this.named(input)) return id !== undefined && this.shortens(input, id);
+    if (this.shortFor(input) || this.patterned(input, 'full').length) return true;
+    return !this.near(input).length && this.loose(input).length > 0;
   }
 
   /** True when the input is initials that could be several things on the map, and so the name of none of them. */
@@ -459,34 +587,47 @@ export class Matcher {
     if (!k || max === 0) return [];
     let best = max + 1;
     let ids: string[] = [];
+    /** Those it is near by something they only answer to: after the ones it nearly names. */
+    let brief: string[] = [];
     for (const [cand, id] of this.keys) {
       if (Math.abs(cand.length - k.length) > max) continue;
-      if (opts.whole && this.caps.has(cand)) continue;
+      const short = this.shortOf.has(`${cand} ${id}`);
+      if (opts.whole && short) continue;
       const d = editDistance(k, cand, Math.min(max, best));
+      if (d > max || d > best) continue;
       if (d < best) {
         best = d;
-        ids = [id];
-      } else if (d === best && d <= max && !ids.includes(id)) ids.push(id);
+        ids = [];
+        brief = [];
+      }
+      const list = short ? brief : ids;
+      if (!list.includes(id)) list.push(id);
     }
-    return best <= max ? ids : [];
+    return best <= max ? [...ids, ...brief.filter((id) => !ids.includes(id))] : [];
   }
 
-  /** Exact matches, or the nearest ones when nothing matches exactly. */
+  /** Exact matches, or the nearest ones when nothing matches exactly, or what a loose pattern takes. */
   find(input: string, opts: MatchOpts = {}): string[] {
     const exact = this.lookup(input, opts);
-    return exact.length ? exact : this.near(input, opts);
+    if (exact.length) return exact;
+    const near = this.near(input, opts);
+    return near.length || opts.whole ? near : this.loose(input);
   }
 
   /** Is the input an acceptable answer for `target`? Reports which other item it names when it is not. */
   check(input: string, target: string, opts: MatchOpts = {}): Verdict {
     const exact = this.lookup(input, opts);
     if (exact.includes(target)) return { res: 'yes' };
-    if (exact.length) return { res: 'other', id: exact[0] };
-    // Right, but for being an abbreviation: said so, and not held against the player.
+    // Right, but for being an abbreviation: said so, and not held against the player. It comes before the
+    // name of something else that the same letters may be.
     if (opts.whole && this.lookup(input).includes(target)) return { res: 'short' };
+    if (exact.length) return { res: 'other', id: exact[0] };
     const near = this.near(input, opts);
     if (near.includes(target)) return { res: 'yes' };
     if (near.length) return { res: 'other', id: near[0] };
+    const loose = this.loose(input);
+    if (loose.includes(target)) return opts.whole ? { res: 'short' } : { res: 'yes' };
+    if (loose.length && !opts.whole) return { res: 'other', id: loose[0] };
     return this.vague(input) ? { res: 'vague' } : { res: 'no' };
   }
 
@@ -508,18 +649,41 @@ export class Matcher {
    */
   typed(input: string, open: ReadonlySet<string>): { ids: string[]; wait: boolean } {
     const ids = this.lookup(input).filter((id) => open.has(id));
-    if (!ids.length) return { ids, wait: false };
+    // Nothing is named yet, but a loose pattern has been set off: Enter would take it, and that is worth saying.
+    if (!ids.length) return { ids, wait: this.loose(input).some((id) => open.has(id)) };
     const others = new Set([...open].filter((id) => !ids.includes(id)));
-    return { ids, wait: this.isPrefixOf(input, others) || (this.abbreviates(input) && this.begins(input)) };
+    // Short for one of them is enough: its own name may be going on from there ("Gyor", the city, on the
+    // way to "Győr-Moson-Sopron", which answers to "Gyor" too).
+    const short = ids.some((id) => this.abbreviates(input, id));
+    return { ids, wait: this.isPrefixOf(input, others) || (short && (this.begins(input) || this.leans(input, ids))) };
+  }
+
+  /**
+   * True when the input reads like the beginning of a longer name of one of `ids`, a slip of the finger
+   * apart: "sokhum" on the way to "Sukhumi". A pattern takes it there, and taken there the "i" would be
+   * left in the field. The slip is behind, not in the letter just typed: "balears" has left "Baleares"
+   * for good, and is a name of its own.
+   */
+  private leans(input: string, ids: readonly string[]): boolean {
+    const k = key(input);
+    const max = tolerance(k.length);
+    if (!max) return false;
+    const last = k[k.length - 1];
+    for (const [cand, id] of this.keys) {
+      if (cand.length <= k.length || !ids.includes(id)) continue;
+      for (const n of [k.length - 1, k.length, k.length + 1]) if (n < cand.length && cand[n - 1] === last && editDistance(k, cand.slice(0, n), max) <= max) return true;
+    }
+    return false;
   }
 
   /** Items whose spellings start with (or contain) the input, best first: for autocompletion. */
   suggest(input: string, limit = 6): string[] {
     const k = key(input);
     if (!k) return [];
-    // What the input abbreviates comes first: it is what Enter would take.
+    // What the input abbreviates comes first: it is what Enter would take. Then what a pattern takes.
     const short = this.named(input) ? undefined : this.shortFor(input);
     const starts: string[] = short ? [short] : [];
+    if (!this.named(input)) for (const id of [...this.patterned(input, 'full'), ...this.loose(input)]) if (!starts.includes(id)) starts.push(id);
     const inside: string[] = [];
     for (const [cand, id] of this.keys) {
       const at = cand.indexOf(k);

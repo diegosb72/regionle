@@ -1,0 +1,17 @@
+{
+  "// ": "Lo que el juego cambia de la lista de JetPunk, pieza a pieza: «add» pone type-ins que la lista no trae y «drop» quita los que trae.",
+  "// US": "Las siglas de los estados de EE. UU. con nombre de varias palabras, pedidas aparte (la lista no da ninguna); RI no, también a petición.",
+  "US-NH": { "add": ["NH"] },
+  "US-NJ": { "add": ["NJ"] },
+  "US-NM": { "add": ["NM"] },
+  "US-NY": { "add": ["NY"] },
+  "US-NC": { "add": ["NC"] },
+  "US-SC": { "add": ["SC"] },
+  "US-ND": { "add": ["ND"] },
+  "US-SD": { "add": ["SD"] },
+  "US-WV": { "add": ["WV"] },
+  "// KZ": "«Zapadno» es «occidental» en ruso: la lista se lo da también a Kazajistán Oriental, por descuido.",
+  "KZ-VOS": { "drop": ["ZAPADNO"] },
+  "// HU": "En el mapa del juego Győr y Sopron son piezas aparte (ciudades con rango de condado, que el quiz no pregunta): con estos type-ins, escribir la ciudad rellenaba también el condado.",
+  "HU-GS": { "drop": ["GYOR", "SOPRON"] }
+}

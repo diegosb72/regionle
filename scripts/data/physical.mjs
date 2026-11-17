@@ -490,6 +490,8 @@ function regionOf(id) {
 }
 
 const byCountry = new Map();
+const cityFixed = new Set();
+const SCHOLARLY = /[āēīōūġḥṭṣḍẓḳčšʿʾ]/i;
 let unplaced = 0;
 let unitless = 0;
 for (const pl of places) {
@@ -517,14 +519,21 @@ for (const pl of places) {
   const unit = region ? locate(at, region.fine.filter((u) => u.p.q !== 0), 80) : null;
   if (region && !unit) unitless++;
   const local = String(p.NAME ?? '').trim();
-  const esRaw = String(p.NAME_ES ?? '').trim() || local;
+  const fixKey = `${p.NAME}|${p.ADM0_A3}`;
+  const fix = P.CITY_FIX[fixKey] ?? {};
+  if (P.CITY_FIX[fixKey]) cityFixed.add(fixKey);
+  const en = fix.en ?? (String(p.NAME_EN ?? '').trim() || local);
+  let esRaw = fix.es ?? (String(p.NAME_ES ?? '').trim() || local);
+  // A scholarly transliteration («Herāt», «Šibarġan», «Al-Kāf») is not how a map in Spanish spells things:
+  // the plain spelling is the one the English label has. It stays as a name that is accepted.
+  const scholarly = !fix.es && SCHOLARLY.test(esRaw) && !SCHOLARLY.test(en) ? esRaw : null;
+  if (scholarly) esRaw = en;
   // Wikidata gives the long official name ("Puebla de Zaragoza", "San Miguel de Tucumán"); where Spanish is
   // spoken, the short one everybody uses is Natural Earth's own.
   let es = esRaw;
   if (SPANISH.has(country.id) && key(local) !== key(esRaw) && key(esRaw).includes(key(local)) && key(local).length >= 4) es = local;
   if (P.CITY_NAMES[local]) es = P.CITY_NAMES[local];
-  const en = String(p.NAME_EN ?? '').trim() || local;
-  const al = uniq([esRaw, local, en].map((x) => String(x ?? '').trim()).filter((x) => x && key(x) !== key(es)));
+  const al = uniq([esRaw, local, en, ...(fix.al ?? []), scholarly].map((x) => String(x ?? '').trim()).filter((x) => x && key(x) !== key(es)));
   const city = {
     i: `c${Number(p.NE_ID).toString(36)}`,
     n: en && en !== es ? { es, en } : { es },
@@ -541,6 +550,8 @@ for (const pl of places) {
   if (!byCountry.has(country.id)) byCountry.set(country.id, []);
   byCountry.get(country.id).push(city);
 }
+
+for (const k of Object.keys(P.CITY_FIX)) if (!cityFixed.has(k)) warn(`CITY_FIX: Natural Earth has no city "${k}"`);
 
 // Natural Earth lists a few places twice, and gives a few others the identity of a bigger city of the
 // same country: its Wikidata id and its names (Pyongsan appears as Pyongyang, Maradi as Niamey in English).

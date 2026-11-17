@@ -11,7 +11,6 @@ import { L, nm } from '../lib/i18n';
 import { MODE_NAME } from '../lib/modes';
 import { useStore } from '../lib/store';
 import { Matcher, fmtTime, hintMax, letterHint, nf, pick, shortNote } from '../lib/text';
-import { getTypeins } from '../lib/typeins';
 import type { Res } from '../lib/types';
 import { GameShell, Hud, Results, originOf, useElapsed, type GameProps, type ResultRow } from './common';
 
@@ -22,13 +21,16 @@ export function NameAllGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const inPool = useMemo(() => new Set(pool.map((it) => it.id)), [pool]);
   /**
    * Something to fill in can be typed by a short form: worth telling. They are the initials of the names of
-   * several words, unless the settings have switched those off and only the ones left on there count.
+   * several words where the rule gives them, and otherwise what each piece has in the settings: the list
+   * the game ships with for it, and what the player has added.
    */
   const short = useMemo(() => {
-    if (!matcher.abbreviations().some(([, id]) => inPool.has(id))) return null;
-    return getTypeins().auto
-      ? L(', y por sus siglas si el nombre tiene varias palabras', ', and by their initials when the name has several words')
-      : L(', y por las abreviaturas activadas en Configuración', ', and by the short forms switched on in Settings');
+    const kinds = matcher.shortKinds(inPool);
+    const initials = L('por sus siglas si el nombre tiene varias palabras', 'by their initials when the name has several words');
+    const other = L('por las abreviaturas y variantes que tienen en Configuración', 'by the short forms and variants they have in Settings');
+    // A map may have both: provinces the list speaks of, next to others it does not.
+    if (kinds.initials && kinds.other) return L(`, ${initials} y ${other}`, `, ${initials} and ${other}`);
+    return kinds.initials ? L(`, y ${initials}`, `, and ${initials}`) : kinds.other ? L(`, y ${other}`, `, and ${other}`) : null;
   }, [matcher, inPool]);
   const [found, setFound] = useState<string[]>([]);
   /** Named with a letter of help, or after a wrong name for the piece that was marked. */
@@ -91,6 +93,8 @@ export function NameAllGame({ deck, cfg, onExit, onAgain }: GameProps) {
    */
   const onType = (text: string) => {
     if (done || target) return false;
+    // What was said of the last thing sent is not about what is typed now: it would hide that Enter is awaited.
+    if (note) setNote(null);
     const { ids, wait } = matcher.typed(text, new Set(pool.filter((it) => !filled(it.id)).map((it) => it.id)));
     setPending(wait);
     return !wait && ids.length > 0 && accept(ids);

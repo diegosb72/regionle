@@ -13,7 +13,7 @@ import { go } from '../lib/router';
 import { useStore, type CustomList, type Length, type Opts } from '../lib/store';
 import { cx, nf, plural } from '../lib/text';
 import { SAMPLES, settingsLink } from '../lib/typeinList';
-import { SHIPPED_AUTO, editOf } from '../lib/typeins';
+import { SHIPPED_AUTO, inForce } from '../lib/typeins';
 import type { Country, Mode, Section } from '../lib/types';
 
 const levelName = (n: number): string => [L('Fácil', 'Easy'), L('Medio', 'Medium'), L('Difícil', 'Hard')][n - 1];
@@ -323,9 +323,11 @@ export function Setup({ section, world }: { section: Section; world: World }) {
     countryCapitals: L('BA por Buenos Aires', 'BA for Buenos Aires'),
     cities: L('NY por Nueva York', 'NY for New York'),
   }[sample];
-  /** Initials are promised while the settings give them, and the example is given while it has not been switched off there. */
+  /** Initials are promised while the settings give them, and the example is given while it stands there. */
   const initials = section !== 'physical' && typeinAuto;
-  const initialsSample = editOf(SAMPLES[sample].id)?.off?.includes(SAMPLES[sample].key) ? '' : `: ${sampleText}`;
+  const initialsSample = inForce(SAMPLES[sample].id, SAMPLES[sample].key) ? `: ${sampleText}` : '';
+  /** Regions come with a list of their own for each piece instead of initials by rule. */
+  const listed = sample === 'regions';
   /** The list of the settings that holds what this game asks to type. */
   const typeinsHref =
     section === 'physical'
@@ -570,12 +572,17 @@ export function Setup({ section, world }: { section: Section; world: World }) {
                   />
                   {typed && (
                     <p className="opt-hint">
-                      {initials
+                      {listed
                         ? L(
-                            `No importan tildes ni mayúsculas, y un nombre de varias palabras vale por sus siglas${initialsSample}.`,
-                            `Accents and capitals do not matter, and a name of several words can be typed by its initials${initialsSample}.`,
+                            `No importan tildes ni mayúsculas, y cada región vale también por sus abreviaturas y variantes${initialsSample}.`,
+                            `Accents and capitals do not matter, and each region also answers to its short forms and variants${initialsSample}.`,
                           )
-                        : L('No importan tildes ni mayúsculas.', 'Accents and capitals do not matter.')}{' '}
+                        : initials
+                          ? L(
+                              `No importan tildes ni mayúsculas, y un nombre de varias palabras vale por sus siglas${initialsSample}.`,
+                              `Accents and capitals do not matter, and a name of several words can be typed by its initials${initialsSample}.`,
+                            )
+                          : L('No importan tildes ni mayúsculas.', 'Accents and capitals do not matter.')}{' '}
                       <a href={typeinsHref}>{L('Elegir abreviaturas', 'Choose short forms')}</a>
                     </p>
                   )}

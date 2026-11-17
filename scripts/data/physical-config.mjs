@@ -729,8 +729,11 @@ export const REGION_CAPITALS = {
   },
 };
 
-/** Countries left without capitals of regions: Nepal's zones were abolished in 2015 and their seats are unreliable. */
-export const REGION_CAPITALS_SKIP = new Set(['NP']);
+/**
+ * Countries left without capitals of regions: Nepal's zones were abolished in 2015 and their seats are
+ * unreliable, and each of the seven emirates is called after its capital, so there is nothing to ask.
+ */
+export const REGION_CAPITALS_SKIP = new Set(['NP', 'AE']);
 
 /**
  * Capitals of regions put right by hand, `{ country: { level: { unit: names } } }`; the first name is the
@@ -746,7 +749,7 @@ export const REGION_CAPITAL_FIXES = {
   AF: { f: { 'AF-BGL': ['Pul-e Khumri', 'Puli Khumri', 'Pol-e Khomri'], 'AF-LOG': ['Pul-e Alam', 'Puli Alam', 'Pol-e Alam'], 'AF-PIA': ['Sharana', 'Sharan', 'Zareh Sharan'] } },
   AO: { f: { 'AO-LNO': ['Dundo'] } },
   AR: { f: { 'AR-R': ['Viedma'] } },
-  BD: { f: { 'BD-C': ['Dacca', 'Daca', 'Dhaka'] } },
+  BD: { f: { 'BD-C': ['Daca', 'Dacca', 'Dhaka'] } },
   BI: { f: { 'BI-MW': ['Mwaro'], 'BI-GI': ['Gitega', 'Guitega'] } },
   BZ: { f: { 'BZ-CY': ['San Ignacio'] } },
   CI: { f: { 'CI-07': ['Yamusukro', 'Yamoussoukro'] } },
@@ -798,6 +801,66 @@ export const REGION_CAPITAL_FIXES = {
 
 /** Spanish names of cities that Natural Earth gets wrong or gives in an unusual form, by its own `NAME`. */
 export const CITY_NAMES = { Castello: 'Castellón de la Plana', 'Las Palmas': 'Las Palmas de Gran Canaria', Guaira: 'Salto del Guairá' };
+
+/**
+ * Labels of cities that Natural Earth has wrong, as "NAME|ADM0_A3" → what stands for its NAME_ES (`es`)
+ * and its NAME_EN (`en`); `al` adds names that are accepted too. The label that is replaced is dropped:
+ * it does not stay as another name of the city, because it is not one.
+ *
+ * Found by listing the cities whose Spanish label, English label and own name do not resemble each
+ * other, and reading the list: most are the names a city has in Spanish (Amberes, Ratisbona) or a
+ * new name (Mumbai), and these are the rest.
+ */
+export const CITY_FIX = {
+  // The label of something else: another town, the province, a football club, the country.
+  'Puerto Plata|DOM': { es: 'Puerto Plata' }, // «El higo luperon»
+  'Coquimbo|CHL': { en: 'Coquimbo' }, // «Atlético Morelia»
+  'Vallenar|CHL': { en: 'Vallenar' }, // «Trehuaco»
+  'Tampico|MEX': { en: 'Tampico' }, // «Ciudad Madero Tamaulipas»
+  'Mazatlán|MEX': { en: 'Mazatlán' }, // «Juarez»
+  'Colón|PAN': { es: 'Colón', en: 'Colón' }, // «Bucaramanga», which is in Colombia
+  'Hail|SAU': { en: "Ha'il" }, // «Saudi Arabia»
+  'El Mansura|EGY': { en: 'Mansoura' }, // «sharkia», the governorate next door
+  'Al Amarah|IRQ': { en: 'Amarah' }, // «Thi Qar», another governorate
+  'Bafang|CMR': { en: 'Bafang' }, // «Baham»
+  'Mbanza-Ngungu|COD': { en: 'Mbanza-Ngungu' }, // «Nkamba»
+  'Sotik|KEN': { en: 'Sotik' }, // «Chamagel»
+  'Dongola|SDN': { en: 'Dongola' }, // «Karma»
+  'Quissico|MOZ': { en: 'Quissico' }, // «Zavala», its district
+  'Caibarién|CUB': { es: 'Caibarién' }, // «Placetas», a second one
+  'Kampong Spoe|KHM': { en: 'Chbar Mon', al: ['Kampong Speu'] }, // «Kam»
+  'Phnum Tbeng Meanchey|KHM': { es: 'Tbeng Meanchey' }, // «Preah Wijía», its province
+  'El Cayo|BLZ': { es: 'San Ignacio' }, // «Cayo», its district; El Cayo is what the town was called
+  'Jinxi|CHN': { es: 'Huludao', en: 'Huludao', al: ['Lianshan'] }, // «Lianshan», one of its districts
+  'El Porvenir|PAN': { es: 'El Porvenir', al: ['Gaigirgordub'] }, // its name in Guna
+  // The kind of place for the place: «Condado de Kilju», «Distrito de Sambava», «Ciudad Davao».
+  'Kilchu|PRK': { es: 'Kilju', en: 'Kilju' },
+  'Musan|PRK': { en: 'Musan' },
+  'Sambava|MDG': { es: 'Sambava' },
+  'Karibib|NAM': { es: 'Karibib' },
+  'Masindi-Port|UGA': { es: 'Masindi Port' },
+  'Buzmeyin|TKM': { en: 'Abadan' },
+  'Thongwa|MMR': { en: 'Thongwa' },
+  'El Kharga|EGY': { en: 'Kharga' },
+  'Battambang|KHM': { es: 'Battambang' },
+  'Kampot|KHM': { es: 'Kompot' },
+  'Jeju|KOR': { es: 'Jeju' },
+  'Altai|MNG': { es: 'Altai' },
+  'Yilan|TWN': { es: 'Yilan' },
+  'Roxas|PHL': { es: 'Roxas' },
+  'Davao|PHL': { es: 'Davao' },
+  'Cebu|PHL': { es: 'Cebú' },
+  'Zamboanga|PHL': { es: 'Zamboanga' },
+  'Batangas|PHL': { es: 'Batangas' },
+  'Iloilo|PHL': { es: 'Iloílo' },
+  'Cotabato|PHL': { es: 'Cotabato' },
+  'Tarlac|PHL': { es: 'Tarlac' },
+  'Surigao|PHL': { es: 'Surigao' },
+  // A spelling: the one the region of the same name has in the game, or the one the name has.
+  'Balykchy|KGZ': { es: 'Balykchy' }, // «Balikci»
+  'Umm al Qaywayn|ARE': { es: 'Umm al-Qaywayn', al: ['Um el Kaiwain'] },
+  'Ras al Khaymah|ARE': { es: 'Ras al-Jaima' },
+};
 
 /**
  * Places left out, as "NAME|ADM1NAME": entries of Natural Earth that are plainly wrong. Nearly all are a
