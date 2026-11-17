@@ -96,6 +96,31 @@ export interface Answerable {
    * None are given for what is named after its kind ("Lago Superior"): those initials would say nothing.
    */
   proper?: string[];
+  /** What has been chosen for it in the settings: see `ShortEdit`. */
+  short?: ShortEdit;
+}
+
+/**
+ * The say of the settings on the short forms of one thing: those it answers to besides the ones the rule
+ * and the data give it, and those of the rule and the data that it does not answer to.
+ */
+export interface ShortEdit {
+  /** As they were written: "Mass", "MA". They are short forms like any other: not taken while letters are in sight. */
+  add?: string[];
+  /** Compared without case, dots or spaces: "ri", "R.I." */
+  off?: string[];
+  /** False to give it no initials at all, but for those among `add`. */
+  rule?: boolean;
+}
+
+/** A short form a thing answers to before the settings have their say. */
+export interface ShortForm {
+  /** As it is compared: "pei", "eeuu". */
+  key: string;
+  /** As it is shown: "PEI", "EEUU". */
+  text: string;
+  /** Spelt by the initials of one of its names, or written among its names in the data. */
+  from: 'initials' | 'data';
 }
 
 export type Verdict =
@@ -216,10 +241,40 @@ function isAbbreviation(raw: string): boolean {
 }
 
 /**
+ * Every short form a thing answers to by rule or by the data, whatever the map and whatever the settings:
+ * the initials of its names where the one on show has several words, and the spellings among its names that
+ * are abbreviations themselves. The settings list them, and the matcher takes its initials from here.
+ */
+export function shortFormsOf(it: Answerable): ShortForm[] {
+  const proper = it.proper;
+  if (!proper) return [];
+  const out: ShortForm[] = [];
+  const seen = new Set<string>();
+  const written: ShortForm[] = [];
+  /** Its names written out: initials that spell one of them are that name, not short for it. */
+  const names = new Set<string>();
+  for (const raw of it.answers) {
+    if (!raw) continue;
+    const k = key(raw);
+    if (!k) continue;
+    if (raw === proper[0] || !isAbbreviation(raw)) names.add(k);
+    else if (!written.some((f) => f.key === k)) written.push({ key: k, text: raw, from: 'data' });
+  }
+  if (proper.length && severalWords(proper[0]))
+    for (const name of proper)
+      for (const k of initialsOf(name)) {
+        if (seen.has(k) || names.has(k) || written.some((f) => f.key === k)) continue;
+        seen.add(k);
+        out.push({ key: k, text: k.toUpperCase(), from: 'initials' });
+      }
+  return [...out, ...written.filter((f) => !names.has(f.key))];
+}
+
+/**
  * The official code of a piece: "mg" for "BR-MG", "es" for "ES". It is not an answer (nobody has to know
  * that Massachusetts is "MA"), but initials that are the code of something else are not taken for a name.
  */
-function codeOf(id: string): string {
+export function codeOf(id: string): string {
   const m = /^(?:[A-Z]{2}-)?([A-Z]{2,3})$/.exec(id);
   return m ? m[1].toLowerCase() : '';
 }
@@ -237,7 +292,7 @@ function lettersOf(input: string): string[] {
 export function shortNote(res: 'short' | 'vague', text: string): string {
   const typed = text.trim().toUpperCase();
   return res === 'short'
-    ? L('Con letras del nombre a la vista, las siglas no valen: escríbelo entero.', 'With letters of the name in sight, initials do not count: type it in full.')
+    ? L('Con letras del nombre a la vista, las abreviaturas no valen: escríbelo entero.', 'With letters of the name in sight, short forms do not count: type it in full.')
     : L(`«${typed}» puede ser más de un nombre de este mapa: escríbelo entero.`, `"${typed}" could be more than one name on this map: type it in full.`);
 }
 
@@ -261,12 +316,13 @@ export class Matcher {
   constructor(items: Answerable[], opts: { codes?: boolean } = {}) {
     /** Spellings that are the name of something written out: never an abbreviation, however short ("Po", "Uri"). */
     const named = new Set<string>();
+    /** What the settings have taken away from each thing. */
+    const off = new Map<string, Set<string>>();
     for (const it of items) {
       const seen = new Set<string>();
-      for (const raw of it.answers) {
-        if (!raw) continue;
-        // The name on show is a name whatever it looks like ("F.C.T."); any other such spelling is short for it.
-        const abbreviation = !!it.proper && raw !== it.proper[0] && isAbbreviation(raw);
+      const gone = new Set((it.short?.off ?? []).map(key));
+      off.set(it.id, gone);
+      const spell = (raw: string, abbreviation: boolean) => {
         for (const part of raw.includes('/') ? [raw, ...raw.split('/')] : [raw]) {
           const variants = [key(part)];
           const bare = part.replace(/\s*\([^)]*\)\s*/g, ' ');
@@ -285,7 +341,16 @@ export class Matcher {
             else this.exact.set(k, [it.id]);
           }
         }
+      };
+      for (const raw of it.answers) {
+        if (!raw) continue;
+        // The name on show is a name whatever it looks like ("F.C.T."); any other such spelling is short for it.
+        const abbreviation = !!it.proper && raw !== it.proper[0] && isAbbreviation(raw);
+        if (abbreviation && gone.has(key(raw))) continue;
+        spell(raw, abbreviation);
       }
+      // What the settings add is short for it whatever it looks like ("Mass").
+      for (const raw of it.short?.add ?? []) if (raw.trim()) spell(raw.trim(), true);
     }
     for (const k of named) this.caps.delete(k);
 
@@ -297,18 +362,17 @@ export class Matcher {
     }
     const spelt = new Map<string, Set<string>>();
     for (const it of items) {
-      const names = it.proper ?? [];
       // The name the player reads decides. One word has no initials: "Komi" is no "KR" for being the
       // "Komi Republic" in English, any more than Massachusetts is "MA".
-      if (!names.length || !severalWords(names[0])) continue;
-      for (const name of names)
-        for (const k of initialsOf(name)) {
-          // A spelling of something, its own or another's, stays what it is.
-          if (this.exact.has(k)) continue;
-          const ids = spelt.get(k);
-          if (ids) ids.add(it.id);
-          else spelt.set(k, new Set([it.id]));
-        }
+      if (it.short?.rule === false) continue;
+      const gone = off.get(it.id)!;
+      for (const { key: k, from } of shortFormsOf(it)) {
+        // A spelling of something, its own or another's, stays what it is.
+        if (from !== 'initials' || this.exact.has(k) || gone.has(k)) continue;
+        const ids = spelt.get(k);
+        if (ids) ids.add(it.id);
+        else spelt.set(k, new Set([it.id]));
+      }
     }
     for (const [k, ids] of spelt) {
       const [only] = ids;
@@ -376,7 +440,8 @@ export class Matcher {
   /**
    * True when what was typed may be the beginning of something rather than all of an answer: a name of the
    * map goes on from there, found or not, or a word such as "provincia" does, or a longer abbreviation
-   * ("bc" on the way to "bcs").
+   * ("bc" on the way to "bcs"). A name of the same thing counts like any other: taken at "us", the "a" of
+   * "usa" would be left in the field, and so would the rest of "massachusetts" after a "mass" added by hand.
    */
   begins(input: string): boolean {
     const tries = [...new Set([key(input), ...lettersOf(input)])].filter(Boolean);

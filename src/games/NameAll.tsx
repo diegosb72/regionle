@@ -11,6 +11,7 @@ import { L, nm } from '../lib/i18n';
 import { MODE_NAME } from '../lib/modes';
 import { useStore } from '../lib/store';
 import { Matcher, fmtTime, hintMax, letterHint, nf, pick, shortNote } from '../lib/text';
+import { getTypeins } from '../lib/typeins';
 import type { Res } from '../lib/types';
 import { GameShell, Hud, Results, originOf, useElapsed, type GameProps, type ResultRow } from './common';
 
@@ -19,8 +20,16 @@ export function NameAllGame({ deck, cfg, onExit, onAgain }: GameProps) {
   /** What has to be filled in: the whole map, or the pieces of a custom list. */
   const pool = useMemo(() => (cfg.only ? deck.items.filter((it) => cfg.only!.includes(it.id)) : deck.items), [deck, cfg.only]);
   const inPool = useMemo(() => new Set(pool.map((it) => it.id)), [pool]);
-  /** Something to fill in can be typed by its initials: worth telling. */
-  const short = useMemo(() => matcher.abbreviations().some(([, id]) => inPool.has(id)), [matcher, inPool]);
+  /**
+   * Something to fill in can be typed by a short form: worth telling. They are the initials of the names of
+   * several words, unless the settings have switched those off and only the ones left on there count.
+   */
+  const short = useMemo(() => {
+    if (!matcher.abbreviations().some(([, id]) => inPool.has(id))) return null;
+    return getTypeins().auto
+      ? L(', y por sus siglas si el nombre tiene varias palabras', ', and by their initials when the name has several words')
+      : L(', y por las abreviaturas activadas en Configuración', ', and by the short forms switched on in Settings');
+  }, [matcher, inPool]);
   const [found, setFound] = useState<string[]>([]);
   /** Named with a letter of help, or after a wrong name for the piece that was marked. */
   const [helped, setHelped] = useState<string[]>([]);
@@ -280,8 +289,8 @@ export function NameAllGame({ deck, cfg, onExit, onAgain }: GameProps) {
                 : targetItem
                   ? L(`Escribe el nombre ${fem ? 'de la' : 'del'} que has marcado y pulsa Intro. Tócal${fem ? 'a' : 'o'} otra vez para soltarl${fem ? 'a' : 'o'}.`, 'Type the name of the one you marked and press Enter. Tap it again to let it go.')
                   : L(
-                      `Sin orden: se aceptan en cuanto ${fem ? 'las' : 'los'} escribes, con o sin tildes${short ? ', y por sus siglas si el nombre tiene varias palabras' : ''}. Si prefieres elegir tú, toca en el mapa ${fem ? 'la' : 'el'} que quieras rellenar.`,
-                      `In any order: they are accepted as soon as you type them, with or without accents${short ? ', and by their initials when the name has several words' : ''}. If you would rather choose, tap the one you want to fill in on the map.`,
+                      `Sin orden: se aceptan en cuanto ${fem ? 'las' : 'los'} escribes, con o sin tildes${short ?? ''}. Si prefieres elegir tú, toca en el mapa ${fem ? 'la' : 'el'} que quieras rellenar.`,
+                      `In any order: they are accepted as soon as you type them, with or without accents${short ?? ''}. If you would rather choose, tap the one you want to fill in on the map.`,
                     ))}
           </p>
           {last.length > 0 && (

@@ -294,6 +294,7 @@ export function Progress({ world }: { world: World }) {
   const setSel = useStore((s) => s.setSel);
   const resetProgress = useStore((s) => s.resetProgress);
   const importData = useStore((s) => s.importData);
+  const hasTypeins = useStore((s) => Object.keys(s.typeins).length > 0 || s.typeinAuto !== null);
   const [confirming, setConfirming] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const file = useRef<HTMLInputElement>(null);
@@ -348,7 +349,9 @@ export function Progress({ world }: { world: World }) {
   const dailyDone = Object.values(daily).filter((d) => d.t).length;
 
   const exportData = () => {
-    const blob = new Blob([JSON.stringify({ app: 'regionle', version: 3, exported: new Date().toISOString(), stats, where: whereMap, sessions, best, favs, daily, lists, badges, tot }, null, 1)], { type: 'application/json' });
+    // The short forms chosen in the settings travel with the rest: they are read when the copy is made.
+    const { typeins, typeinAuto } = useStore.getState();
+    const blob = new Blob([JSON.stringify({ app: 'regionle', version: 3, exported: new Date().toISOString(), stats, where: whereMap, sessions, best, favs, daily, lists, badges, tot, typeins, typeinAuto }, null, 1)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `regionle-${L('progreso', 'progress')}-${new Date().toISOString().slice(0, 10)}.json`;
@@ -584,9 +587,9 @@ export function Progress({ world }: { world: World }) {
 
       <section className="block">
         <h2>{L('Copia de seguridad', 'Backup')}</h2>
-        <p className="tip-line">{L('Llévate tu progreso, tus selecciones guardadas y tus listas a otro navegador, o empieza de cero.', 'Take your progress, your saved selections and your lists to another browser, or start from scratch.')}</p>
+        <p className="tip-line">{L('Llévate tu progreso, tus selecciones guardadas, tus listas y tus abreviaturas a otro navegador, o empieza de cero.', 'Take your progress, your saved selections, your lists and your short forms to another browser, or start from scratch.')}</p>
         <div className="backup">
-          <button type="button" className="btn" onClick={exportData} disabled={empty && !favs.length && !lists.length}>
+          <button type="button" className="btn" onClick={exportData} disabled={empty && !favs.length && !lists.length && !hasTypeins}>
             <Download size={16} aria-hidden="true" />
             {L('Exportar', 'Export')}
           </button>

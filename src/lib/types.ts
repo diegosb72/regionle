@@ -1,4 +1,5 @@
 import type { Feature, LineString, MultiLineString, MultiPolygon, Point, Polygon } from 'geojson';
+import type { ShortEdit } from './text';
 
 /** [longitude, latitude] */
 export type LL = [number, number];
@@ -90,6 +91,8 @@ export interface Item {
    * the initials of each are accepted too. Empty for what is named after its kind ("Lago Superior").
    */
   proper: string[];
+  /** What the settings say about its short forms, as it stood when the item was built. */
+  short?: ShortEdit;
   country: Country;
   /** "provincia", "estado", "país"… */
   type: string;

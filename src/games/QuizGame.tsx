@@ -11,7 +11,8 @@ import { silhouette } from '../lib/geo';
 import { L, nm } from '../lib/i18n';
 import { MODE_NAME, formatName } from '../lib/modes';
 import { useStore, type Format, type Skill } from '../lib/store';
-import { Matcher, cx, fmtTime, hintMax, letterHint, mulberry32, sample, shortNote, shuffle } from '../lib/text';
+import { Matcher, cx, fmtTime, hintMax, letterHint, mulberry32, sample, shortNote, shuffle, type Answerable } from '../lib/text';
+import { capitalAnswers } from '../lib/typeins';
 import type { Item, Res } from '../lib/types';
 import { GameShell, Hud, Results, Verdict, nearest, originOf, showsCountry, useElapsed, type GameProps, type ResultRow } from './common';
 import { answersItself, capitalsNeedTyping, initQuiz, quizReducer, scoreOf } from './quiz';
@@ -101,7 +102,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
 
   const names = useMemo(() => new Matcher(deck.items), [deck]);
   // Capitals are listed under the id of their place, whose code is not theirs.
-  const capitals = useMemo(() => new Matcher(usable.filter((it) => it.capital?.length).map((it) => ({ id: it.id, answers: it.capital!, proper: it.capital! })), { codes: false }), [usable]);
+  const capitals = useMemo(() => new Matcher(usable.map((it) => capitalAnswers(it)).filter((a): a is Answerable => !!a), { codes: false }), [usable]);
   const matcher = mode === 'capital' ? capitals : names;
   /** How many letters of the answer the hints have put in sight (the first hint of an outline is the map). */
   const lettersShown = !typed ? 0 : mode === 'outline' ? Math.max(0, s.hints - 1) : s.hints;

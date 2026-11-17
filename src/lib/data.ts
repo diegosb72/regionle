@@ -4,6 +4,7 @@ import { feature, mesh } from 'topojson-client';
 import type { GeometryCollection, Topology } from 'topojson-specification';
 import { L, capName, levelNoun, nm } from './i18n';
 import type { Answerable } from './text';
+import { editOf } from './typeins';
 import type { Country, Deck, Extra, Geo, Index, Item, LL, Level, Section } from './types';
 
 type Loader = (path: string) => Promise<unknown>;
@@ -294,6 +295,7 @@ export async function buildDeck(spec: DeckSpec, onProgress?: (done: number, tota
         en: c.n.en ?? c.n.es,
         answers: [c.n.es, c.n.en ?? '', ...(c.al ?? [])],
         proper: properNames(c.n),
+        short: editOf(c.id),
         capital: capitalNames(c),
         country: c,
         type: c.cl === 'dep' ? L('territorio', 'territory') : L('país', 'country'),
@@ -357,6 +359,7 @@ export async function buildDeck(spec: DeckSpec, onProgress?: (done: number, tota
         lo: p.n.lo,
         answers: [p.n.es, p.n.en ?? '', p.n.lo ?? '', ...(p.al ?? [])],
         proper: properNames(p.n),
+        short: editOf(id),
         capital: capitals[c.id]?.[level.k]?.[id],
         country: c,
         // The data names odd units ("ciudad autónoma") in Spanish only.
@@ -443,7 +446,7 @@ export function properNames(n: { es: string; en?: string; lo?: string }): string
 
 /** A country as something to be named by typing, where it is not a piece of the deck. */
 export function countryAnswers(c: Country): Answerable {
-  return { id: c.id, answers: [c.n.es, c.n.en ?? '', ...(c.al ?? [])], proper: properNames(c.n) };
+  return { id: c.id, answers: [c.n.es, c.n.en ?? '', ...(c.al ?? [])], proper: properNames(c.n), short: editOf(c.id) };
 }
 
 /** A country as a quiz item without geometry: enough for results lists and study links. */
@@ -456,6 +459,7 @@ export function countryItem(c: Country): Item {
     en: c.n.en ?? c.n.es,
     answers: [c.n.es, c.n.en ?? '', ...(c.al ?? [])],
     proper: properNames(c.n),
+    short: editOf(c.id),
     capital: capitalNames(c),
     country: c,
     type: c.cl === 'dep' ? L('territorio', 'territory') : L('país', 'country'),

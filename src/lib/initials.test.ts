@@ -271,7 +271,6 @@ describe('abbreviations on the maps', () => {
       NJ: 'Nueva Jersey',
       NM: 'Nuevo México',
       NY: 'Nueva York',
-      RI: 'Rhode Island',
       NC: 'Carolina del Norte',
       CN: 'Carolina del Norte',
       CDN: 'Carolina del Norte',
@@ -290,11 +289,13 @@ describe('abbreviations on the maps', () => {
       WDC: 'Washington D. C.',
       DOC: 'Washington D. C.',
     });
-    // No state with a name of one word answers to its postal code.
+    // No state with a name of one word answers to its postal code, and Rhode Island does not answer to
+    // "RI" either: the game ships with that one switched off (see typeins.test.ts).
     const m = new Matcher(deck.items);
     const abbreviated = new Set(new Matcher(deck.items).abbreviations().map(([, id]) => id));
     const plain = deck.items.filter((it) => !abbreviated.has(it.id));
-    expect(plain).toHaveLength(40);
+    expect(plain).toHaveLength(41);
+    expect(plain.map((it) => it.id)).toContain('US-RI');
     for (const it of plain) expect(m.lookup(it.id.slice(3)), it.name).toEqual([]);
     for (const code of ['MA', 'TX', 'CA', 'FL', 'WA', 'PA', 'AK', 'HI']) expect(m.lookup(code), code).toEqual([]);
   });

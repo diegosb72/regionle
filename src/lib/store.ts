@@ -5,6 +5,7 @@ import { TESTS, emptyRec, streakOf, type DailyRec } from '../daily/spec';
 import type { CityPick } from './extra';
 import type { Lang } from './i18n';
 import { today } from './text';
+import { cleanTypeins, setTypeins as applyTypeins, type Typeins } from './typeins';
 import type { Mode, Res, Section } from './types';
 
 export type Length = 'all' | 10 | 20 | 50 | 'endless';
@@ -146,8 +147,14 @@ interface State {
   tot: Totals;
   /** Colours that can be told apart with colour blindness. */
   cb: boolean;
+  /** Short forms chosen in the settings for each thing, by id: those added to it and those taken from it. */
+  typeins: Typeins;
+  /** Whether names of several words get their initials unasked; null until chosen: as the game ships. */
+  typeinAuto: boolean | null;
 
   setCb(cb: boolean): void;
+  setTypeins(typeins: Typeins): void;
+  setTypeinAuto(auto: boolean | null): void;
   saveList(list: CustomList): void;
   removeList(id: string): void;
   setListOn(section: Section, id: string | null): void;
@@ -203,8 +210,12 @@ export const useStore = create<State>()(
       badges: {},
       tot: {},
       cb: false,
+      typeins: {},
+      typeinAuto: null,
 
       setCb: (cb) => set({ cb }),
+      setTypeins: (typeins) => set({ typeins }),
+      setTypeinAuto: (typeinAuto) => set({ typeinAuto }),
       saveList: (list) => set((s) => ({ lists: [...s.lists.filter((l) => l.id !== list.id), list] })),
       removeList: (id) =>
         set((s) => ({
@@ -287,6 +298,7 @@ export const useStore = create<State>()(
         if (!data || typeof data !== 'object') return false;
         const d = data as Partial<State>;
         if (typeof d.stats !== 'object' || !Array.isArray(d.sessions)) return false;
+        const hasTypeins = !!d.typeins && typeof d.typeins === 'object';
         set({
           stats: d.stats ?? {},
           where: d.where && typeof d.where === 'object' ? d.where : {},
@@ -297,6 +309,10 @@ export const useStore = create<State>()(
           lists: Array.isArray(d.lists) ? d.lists.filter(isList) : get().lists,
           badges: d.badges && typeof d.badges === 'object' ? d.badges : {},
           tot: d.tot && typeof d.tot === 'object' ? d.tot : totalsOf(d.sessions ?? []),
+          // Backups from before the settings existed say nothing about them: they stay as they are. One
+          // that has them brings both, and its "never chosen" is as the game ships.
+          typeins: hasTypeins ? cleanTypeins(d.typeins) : get().typeins,
+          typeinAuto: hasTypeins ? (typeof d.typeinAuto === 'boolean' ? d.typeinAuto : null) : get().typeinAuto,
         });
         return true;
       },
@@ -325,6 +341,8 @@ export const useStore = create<State>()(
         badges: s.badges,
         tot: s.tot,
         cb: s.cb,
+        typeins: s.typeins,
+        typeinAuto: s.typeinAuto,
       }),
       merge: (saved, current) => {
         const p = (saved ?? {}) as Partial<State>;
@@ -336,11 +354,20 @@ export const useStore = create<State>()(
           opts: { ...current.opts, ...p.opts },
           // Players from before the tallies existed start from what their latest sessions add up to.
           tot: p.tot && Object.keys(p.tot).length ? p.tot : totalsOf(p.sessions ?? []),
+          typeins: cleanTypeins(p.typeins),
+          typeinAuto: typeof p.typeinAuto === 'boolean' ? p.typeinAuto : null,
         };
       },
     },
   ),
 );
+
+// The short forms in force are read wherever a deck is built: they follow the store from the first moment.
+const followTypeins = (s: State) => applyTypeins({ auto: s.typeinAuto, edits: s.typeins });
+followTypeins(useStore.getState());
+useStore.subscribe((s, prev) => {
+  if (s.typeins !== prev.typeins || s.typeinAuto !== prev.typeinAuto) followTypeins(s);
+});
 
 /**
  * Brings what an older version saved up to date. Version 2 made typing the usual way to answer: the

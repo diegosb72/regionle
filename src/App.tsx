@@ -1,4 +1,4 @@
-import { Infinity as InfinityIcon, Moon, Sun, SunMoon } from 'lucide-react';
+import { Infinity as InfinityIcon, Moon, Settings as Gear, Sun, SunMoon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { BadgeWatcher } from './components/Badges';
 import { Spinner, Toggle } from './components/ui';
@@ -11,12 +11,14 @@ import { OfflineBar, UpdateNotice } from './components/Offline';
 import { useRoute } from './lib/router';
 import { useStore, type Theme } from './lib/store';
 import { cx, today } from './lib/text';
+import { SETTINGS_PATH } from './lib/typeinList';
 import type { Section } from './lib/types';
 import { Duel } from './screens/Duel';
 import { Home } from './screens/Home';
 import { ListLink } from './screens/ListLink';
 import { Play } from './screens/Play';
 import { Progress } from './screens/Progress';
+import { Settings } from './screens/Settings';
 import { Setup } from './screens/Setup';
 
 const THEME_NEXT: Record<Theme, Theme> = { auto: 'light', light: 'dark', dark: 'auto' };
@@ -92,6 +94,8 @@ export function App() {
   const duel = route.startsWith('duelo/') ? route.slice(6) : null;
   // "#/lista/<code>" is a custom list sent by someone else.
   const listCode = route.startsWith('lista/') ? route.slice(6) : null;
+  // "#/configuracion" is the settings; "#/configuracion/regiones/US" opens them on a list.
+  const settings = route === SETTINGS_PATH || route.startsWith(`${SETTINGS_PATH}/`);
   const ThemeIcon = THEME_ICON[theme];
 
   let page;
@@ -111,6 +115,7 @@ export function App() {
   else if (listCode != null) page = <ListLink key={listCode} code={listCode} world={world} />;
   else if (section) page = <Setup key={section} section={section} world={world} />;
   else if (route === 'progreso') page = <Progress world={world} />;
+  else if (settings) page = <Settings world={world} path={route.slice(SETTINGS_PATH.length + 1)} />;
   else page = <Home world={world} />;
 
   if ((playing || isDaily) && world && !error)
@@ -155,6 +160,9 @@ export function App() {
           <button type="button" className="icon-btn" onClick={() => setTheme(THEME_NEXT[theme])} aria-label={`${themeLabel(theme)}. ${L('Cambiar', 'Change')}`} title={themeLabel(theme)}>
             <ThemeIcon size={18} />
           </button>
+          <a className={cx('icon-btn', settings && 'on')} href={`#/${SETTINGS_PATH}`} aria-label={L('Configuración', 'Settings')} title={L('Configuración', 'Settings')} aria-current={settings ? 'page' : undefined}>
+            <Gear size={18} />
+          </a>
         </div>
       </header>
       <main id="contenido" className="main">
