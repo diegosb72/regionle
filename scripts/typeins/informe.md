@@ -3,10 +3,10 @@
 Lo escribe `scripts/typeins/build.mjs` cada vez que genera `src/lib/typeins.default.json`. La lista es la del quiz de JetPunk [ALL First-Level Subdivisions of the World With a Map](https://www.jetpunk.com/user-quizzes/309965/all-first-level-subdivisions-of-the-world-with-a-map), de Vicky.
 
 - Respuestas en la lista: **4299** (2362 con type-ins propios).
-- Casan con una pieza del juego: **3435**, que son 3420 piezas distintas.
-- Type-ins que entran: **2449** (2045 patrones y 404 escritos tal cual), en 1817 piezas.
-- Piezas de varias palabras que dejan de tener siglas automáticas: **1052**.
-- Respuestas con type-ins que no casan con nada: **527**.
+- Casan con una pieza del juego: **3437**, que son 3423 piezas distintas.
+- Type-ins que entran: **2440** (2046 patrones y 394 escritos tal cual), en 1816 piezas.
+- Piezas de varias palabras que dejan de tener siglas automáticas: **1036**.
+- Respuestas con type-ins que no casan con nada: **528**.
 
 Una respuesta casa con las piezas de su país que se llaman igual (en español, en inglés o en la lengua local), o con la que tiene su mismo código si el nombre se parece. Lo que no casa suele ser una división que el juego no tiene: el mapa del juego es el de Natural Earth, y el quiz va más al día y a veces a otro nivel.
 
@@ -20,7 +20,7 @@ Solo los países donde algo no casa; la lista entera de lo que queda fuera está
 | Algeria | 69 | 48 | Aflou, Aïn Oussera, Barika, Béni Abbès, Bir El Ater, Bordj Baji Mokhtar, Bou Saâda, Djanet, El Abiodh Sidi Cheikh, El Aricha, El Kantara, El M'Ghair… (21) |
 | Angola | 21 | 17 | Cuando, Cubango, Icolo e Bengo, Moxico Leste |
 | Aruba | 8 | 0 | Noord/Tanki Leendert, Oranjestad Oost, Oranjestad West, Paradera, San Nicolas Noord, San Nicolas Zuid, Santa Cruz, Savaneta |
-| Azerbaijan | 71 | 69 | Aghdara, Lachin |
+| Azerbaijan | 71 | 70 | Aghdara |
 | Bahamas | 57 | 29 | Grand Cay, Green Turtle Cay, Hope Town, Sweetings Cay, Bain and Grants Town, Bamboo Town, Carmichael, Centreville, Elizabeth, Englerston, Fort Charlotte, Fox Hill… (28) |
 | Bangladesh | 8 | 7 | Mymensingh |
 | Bosnia and Herzegovina | 3 | 1 | Federation of Bosnia and Herzegovina, Republika Srpska |
@@ -40,7 +40,7 @@ Solo los países donde algo no casa; la lista entera de lo que queda fuera está
 | Ethiopia | 14 | 10 | Central Ethiopia, Sidama, South Ethiopia, South West Ethiopia Peoples' Region |
 | Faroe Islands | 29 | 0 | Eiði, Eystur, Fámjin, Fuglafjørður, Fugloy, Hov, Húsavík, Hvalba, Hvannasund, Klaksvík, Kunoy, Kvívík… (29) |
 | Finland | 19 | 18 | Åland |
-| France | 24 | 20 | French Polynesia, Wallis and Futuna, French Guiana, New Caledonia |
+| France | 24 | 20 | French Polynesia, Saint Pierre and Miquelon, Wallis and Futuna, New Caledonia |
 | Ghana | 16 | 9 | Ahafo, Bono, Bono East, North East, Oti, Savannah, Western North |
 | Greece | 8 | 3 | Aegean, Epirus and Western Macedonia, Macedonia and Thrace, Peloponnese, Western Greece and the Ionian, Thessaly and Central Greece |
 | Greenland | 5 | 3 | Avannaata, Qeqertalik |
@@ -79,7 +79,7 @@ Solo los países donde algo no casa; la lista entera de lo que queda fuera está
 | Palestine | 12 | 1 | Bethlehem, Hebron, Jenin, Jericho, Nablus, Qalqiliya, Quds, Ramallah and al-Bireh, Salfit, Tubas, Tulkarm |
 | Panama | 14 | 12 | Panamá Oeste, Naso Tjër Di |
 | Papua New Guinea | 22 | 20 | Hela, Jiwaka |
-| Philippines | 18 | 16 | Caraga, Negros Island |
+| Philippines | 18 | 17 | Negros Island |
 | Portugal | 7 | 3 | Alentejo, Central, Lisboa e Vale do Tejo, North |
 | Qatar | 8 | 7 | Al-Shahaniya |
 | Republic of the Congo | 15 | 12 | Congo-Oubangui, Djoué-Léfini, Nkéni-Alima |
@@ -107,8 +107,7 @@ Solo los países donde algo no casa; la lista entera de lo que queda fuera está
 | Tuvalu | 8 | 0 | Funafuti, Nanumanga, Nanumea, Niutao, Nui, Nukufetau, Nukulaelae, Vaitupu |
 | Uganda | 151 | 124 | Entebbe, Fort Portal, Bugweri, Buliisa, Bunyangabu, Butebo, Kagadi, Kakumiro, Kalaki, Kapelebyong, Karenga, Kasanda… (27) |
 | United Kingdom | 77 | 46 | Cambridgeshire and Peterborough, Cheshire and Warrington, Cumbria, Greater Manchester, Hull and East Yorkshire, Liverpool City Region, North East, South Yorkshire, Tees Valley, West Midlands, West of England, West Yorkshire… (31) |
-| United States | 56 | 54 | American Samoa, United States Virgin Islands |
-| Vietnam | 34 | 33 | Hưng Yên |
+| United States | 56 | 53 | American Samoa, Northern Mariana Islands, United States Virgin Islands |
 | Wa State | 6 | 0 | 171st military region, Ho Pang, Mong Pawk, Monglin, Mongmao, Pangkham |
 | Yemen | 22 | 21 | Socotra |
 
@@ -124,13 +123,14 @@ Respuestas que no casan por el nombre, con la pieza a la que apuntaban su códig
 - Burundi · Bujumbura (`BI_Buj`): ¿Buyumbura Rural (BI-BL), Buyumbura Mairie (BI-BM)?
 - Central African Republic · Mambéré (`CF_Ma`): ¿Mambéré-Kadéï (CF-HS)?
 - Democratic Republic of the Congo · Kasaï (`CD-KS`): ¿Kasai Oriental (CD-KE), Kasai Occidental (CD-KW)?
-- Ethiopia · South Ethiopia (`ET_SERS`): ¿Naciones (ET-SN)?
+- Ethiopia · South Ethiopia (`ET_SERS`): ¿Naciones, Nacionalidades y Pueblos del Sur (ET-SN)?
 - Faroe Islands · Eystur (`FO-Ey`): ¿Eysturoy (FO-x1443)?
+- France · Saint Pierre and Miquelon (`FR-PM`): ¿Saint-Pierre (PM-x4866)?
 - Greece · Epirus and Western Macedonia (`GR_EWM`): ¿Macedonia Occidental (GR-C), Epiro (GR-D)?
 - Greece · Macedonia and Thrace (`GR_MT`): ¿Macedonia Oriental y Tracia (GR-A), Macedonia Central (GR-B), Macedonia Occidental (GR-C)?
 - Greece · Peloponnese, Western Greece and the Ionian (`GR_PWGI`): ¿Macedonia Occidental (GR-C), Islas Jónicas (GR-F), Grecia Occidental (GR-G), Peloponeso (GR-J)?
 - Greece · Thessaly and Central Greece (`GR_TCG`): ¿Macedonia Central (GR-B), Grecia Central (GR-H)?
-- Greenland · Avannaata (`GL-AV`): ¿Nationalparken (GL-UO)?
+- Greenland · Avannaata (`GL-AV`): ¿Parque nacional del noreste de Groenlandia (GL-UO)?
 - Iceland · Vesturbyggð (`IS-VER`): ¿Vesturland (IS-3), Vestfirðir (IS-4)?
 - Ivory Coast · Sassandra-Marahoué (`CI-SM`): ¿Marahoué (CI-12)?
 - Madagascar · Vatovavy (`MG_Vat`): ¿Vatovavy-Fitovinany (MG-x5882)?
@@ -154,9 +154,9 @@ Respuestas que no casan por el nombre, con la pieza a la que apuntaban su códig
 - Slovenia · Sveti Jurij v Slovenskih Goricah (`SI-210`): ¿Sveti Jurij (SI-116)?
 - Somalia · Jubaland (`SO_J`): ¿Jubbada Dhexe (SO-JD), Jubbada Hoose (SO-JH)?
 - Sudan · Eastern Sudan States Coordinating Council (`SD_East`): ¿Darfur del Este (SD-DE)?
-- Sudan · Darfur (`SD_Darfur`): ¿Darfur Central (SD-DC), Darfur del Este (SD-DE), Darfur del Norte (SD-DN), Darfur del Sur (SD-DS)?
+- Sudan · Darfur (`SD_Darfur`): ¿Darfur Central (SD-DC), Darfur del Este (SD-DE), Darfur del Norte (SD-DN), Darfur del Sur (SD-DS), Darfur del Oeste (SD-DW)?
 - Suriname · Coeroenie (`SR-SICo`): ¿Coronie (SR-CR)?
-- Tanzania · Zanzibar (`TZ_Za`): ¿Zanzibar North (TZ-07), Zanzibar Central/South (TZ-11), Zanzibar Urban/West (TZ-15)?
+- Tanzania · Zanzibar (`TZ_Za`): ¿Zanzíbar Norte (TZ-07), Zanzíbar Central/Sur (TZ-11), Zanzíbar Urbano/Oeste (TZ-15)?
 - Uganda · Fort Portal (`UG_FortPortalC`): ¿Kabarole (UG-405)?
 - Uganda · Buliisa (`UG-416`): mismo código, otro nombre: Ibanda
 - Uganda · Omoro (`UG-331`): mismo código, otro nombre: Zombo
@@ -167,13 +167,13 @@ Respuestas que no casan por el nombre, con la pieza a la que apuntaban su códig
 - United Kingdom · Liverpool City Region (`GB-LCRCA`): ¿Liverpool (GB-LIV)?
 - United Kingdom · West of England (`GB-WECA`): ¿Midlands Occidentales (GB-E-WM), West Berkshire (GB-WBK), West Dunbartonshire (GB-WDU), West Lothian (GB-WLN), Westminster (GB-WSM), Sussex Occidental (GB-WSX), West End (AI-x5127)?
 - United Kingdom · York and North Yorkshire (`GB-YANYCA`): ¿Yorkshire y Humber (GB-E-YH), Yorkshire del Este (GB-ERY), Yorkshire del Norte (GB-NYK), York (GB-YOR)?
-- United Kingdom · Devon and Torbay (`GB-DTCCA`): ¿Devon (GB-DEV), Torbay (GB-TOB), Devon (BM-DEV)?
+- United Kingdom · Devon and Torbay (`GB-DTCCA`): ¿Devon (GB-DEV), Torbay (GB-TOB), Devonshire (BM-DEV)?
 - United Kingdom · Greater Essex (`GB-GECCA`): ¿Essex (GB-ESS)?
 - United Kingdom · Greater Lincolnshire (`GB-GLCCA`): ¿Lincolnshire (GB-LIN)?
 - United Kingdom · Hampshire and the Solent (`GB-HSCCA`): ¿Hampshire (GB-HAM)?
 - United Kingdom · Norfolk and Suffolk (`GB-NSCCA`): ¿Norfolk (GB-NFK), Suffolk (GB-SFK)?
 - United Kingdom · Sussex and Brighton (`GB-SBCCA`): ¿Brighton & Hove (GB-BNH), Sussex Oriental (GB-ESX), Sussex Occidental (GB-WSX)?
-- United Kingdom · Saint Helena, Ascension and Tristan da Cunha (`GB-SH`): ¿Isla Ascensión (SH-AC), Saint Helena (SH-HL), Tristán de Acuña (SH-TA)?
+- United Kingdom · Saint Helena, Ascension and Tristan da Cunha (`GB-SH`): ¿Isla Ascensión (SH-AC), Isla Santa Elena (SH-HL), Tristán de Acuña (SH-TA)?
 - United Kingdom · Turks and Caicos Islands (`GB-TC`): ¿Caicos Central (TC-x5003), Caicos del Norte (TC-x5004), Caicos del Sur y Caicos del Este (TC-x5006)?
 - United Kingdom · Bournemouth, Christchurch and Poole (`GB-UABCP`): ¿Bournemouth (GB-BMH), Poole (GB-POL)?
 
@@ -183,32 +183,22 @@ Están en `match.json`: la misma división con otro nombre, o la pieza que es de
 
 - Azerbaijan · Khojavend (`AZ-XVD`) → Xocavənd (`AZ-XVD`)
 - Bahrain · Northern (`BH-17`) → Norte (`BH-17`)
-- Bahrain · Southern (`BH-14`) → Al Janūbīyah (`BH-14`)
+- Bahrain · Southern (`BH-14`) → Sur (`BH-14`)
 - Czech Republic · Central Bohemia (`CZ-20`) → Bohemia Central (`CZ-ST`)
 - Czech Republic · South Bohemia (`CZ-31`) → Bohemia Meridional (`CZ-JC`)
 - Czech Republic · South Moravia (`CZ-64`) → Moravia Meridional (`CZ-JM`)
-- Dominican Republic · Elías Piña (`DO-07`) → La Estrelleta (`DO-07`)
-- Eritrea · Northern Red Sea (`ER-SK`) → Semenawi Keyih Bahri (`ER-SK`)
 - Estonia · Hiiumaa (`EE-205`) → Hiiu (`EE-39`)
 - Estonia · Saaremaa (`EE-714`) → Saare (`EE-74`)
 - Finland · Southwest Finland (`FI-19`) → Finlandia Propia (`FI-19`)
-- Guyana · Mahaica-Berbice (`GY-MA`) → Mahaica-Berbice (`GY-MA`)
-- Italy · Trentino-South Tyrol (`IT-32`) → Trentino-Alto Adigio (`IT-32`)
-- Italy · Liguria (`IT-42`) → Liguria (`IT-42`)
 - Kosovo · Ferizaj (`KV_Fe`) → Uroševac (`XK-x5913`)
 - Kosovo · Gjakova (`KV_Gk`) → Đakovica (`XK-x5890`)
 - Kosovo · Gjilan (`KV_Gl`) → Gnjilane (`XK-x5904`)
 - Kosovo · Mitrovica (`KV_Mi`) → Kosovska Mitrovica (`XK-x5894`)
 - Kosovo · Peja (`KV_Pe`) → Peć (`XK-x5886`)
 - Latvia · Cēsis (`LV-022`) → Cesu (`LV-022`)
-- Latvia · Valmiera (`LV-113`) → Valmiera (`LV-VMR`)
-- Madagascar · Atsimo-Atsinanana (`MG_AAt`) → Atsimo-Atsinanana (`MG-x5867`)
 - Mali · Tombouctou (`ML-06`) → Tombuctú (`ML-6`)
 - Mexico · México (`MX-MEX`) → Estado de México (`MX-MEX`)
-- Moldova · Găgăuzia (`MD-GA`) → Comrat (`MD-GA`)
-- Philippines · Bangsamoro (`PH-14`) → Autonomous Region in Muslim Mindanao (ARMM) (`PH~autonomous-region-in-muslim-mindanao-armm`)
-- Philippines · Cordillera (`PH-15`) → Cordillera Administrative Region (CAR) (`PH~cordillera-administrative-region-car`)
-- Philippines · Metro Manila (`PH-00`) → Gran Manila (`PH-MNL`), National Capital Region (`PH~national-capital-region`)
+- Philippines · Metro Manila (`PH-00`) → Gran Manila (`PH-MNL`), Gran Manila (`PH~national-capital-region`)
 - Poland · Holy Cross (`PL-26`) → Santa Cruz (`PL-SK`)
 - Poland · Kuyavia-Pomerania (`PL-04`) → Cuyavia y Pomerania (`PL-KP`)
 - Poland · Lower Silesia (`PL-02`) → Baja Silesia (`PL-DS`)
@@ -220,8 +210,6 @@ Están en `match.json`: la misma división con otro nombre, o la pieza que es de
 - Qatar · Al Shamal (`QA-MS`) → Madinat ash Shamal (`QA-MS`)
 - Serbia · Pomoravlje (`RS-13`) → Pomoravski (`RS-13`)
 - Spain · Valencia (`ES-VC`) → Comunidad Valenciana (`ES-VC`)
-- Tajikistan · Sughd (`TJ-SU`) → Leninabad (`TJ-SU`)
-- United Arab Emirates · Fujairah (`AE-FU`) → Fuyaira (`AE-FU`)
 - United States · Washington (`US-WA`) → Washington (`US-WA`)
 - Vietnam · Huế (`VN_mHu`) → Thừa Thiên-Huế (`VN-26`)
 
@@ -246,8 +234,7 @@ Está en `extra.json`: lo que el juego pone o quita sobre lo que dice la lista.
 Así vienen en la lista, y así quedan: lo que se escribe rellena las dos. Con un patrón (`r:`), el nombre entero de una de ellas sigue siendo solo esa: «shanxi» es Shanxi y «shaanxi» es Shaanxi.
 
 - Argentina · `r:^(C(UI|IU)DAD(DE)?)?B[EU]+NOE?SAI?RES`: Buenos Aires (`AR-B`), Ciudad de Buenos Aires (`AR-C`)
-- Azerbaijan · `r:^L[AE]N[CK]([AE]R)?[AO]N`: Lankaran (`AZ-LA`), Lankaran (`AZ-LAN`)
-- Azerbaijan · `r:^SH?USH?[AI]`: Shusha (`AZ-SUS`), Şuşa (`AZ-x5565`)
+- Azerbaijan · `r:^SH?USH?[AI]`: Shusha (`AZ-SUS`), Shusha (`AZ-x5565`)
 - Bulgaria · `r:^SO(F|PH)[IY]+A`: Sofía-Ciudad (`BG-22`), Sofía (`BG-23`)
 - Switzerland · `r:^BA(SI?)?(EL|LE)`: Basilea-Campiña (`CH-BL`), Basilea-Ciudad (`CH-BS`)
 - China · `r:^SHA+NXI`: Shaanxi (`CN-SN`), Shanxi (`CN-SX`)
@@ -265,14 +252,14 @@ Así vienen en la lista, y así quedan: lo que se escribe rellena las dos. Con u
 - Poland · `r:^POM[AEO]R(AI?NI|SK)[AEIY]`: Cuyavia y Pomerania (`PL-KP`), Pomerania (`PL-PM`)
 - Russia · `r:^(GORNO)?ALTA[IJY]`: República de Altái (`RU-AL`), Krai de Altái (`RU-ALT`)
 - Russia · `r:^MOSCO[WV]`: Óblast de Moscú (`RU-MOS`), Moscú (`RU-MOW`)
-- Seychelles · `r:^GRANDE?ANS`: Grand' Anse (`SC-13`), Grand' Anse (`SC-14`)
+- Seychelles · `r:^GRANDE?ANS`: Grand'Anse Mahé (`SC-13`), Grand'Anse Praslin (`SC-14`)
 - Slovenia · `r:^(SAINTE?|SH?E[NM]T?|SANKT|SAN|STE?|SVETI)P[AEI]+[TV](E[LR]|RO)`: Pivka (`SI-091`), Bistrica ob Sotli (`SI-149`), Prebold (`SI-174`), Šempeter-Vrtojba (`SI-183`)
 - Slovenia · `r:^RO[GH][AI][CST]+(EC|KA|H)`: Rogaška Slatina (`SI-106`), Rogatec (`SI-107`)
-- Slovenia · `r:^(SAINTE?|SH?E[NM]T?|SANKT|STE?|SVETI|SH?)MART([AEI]N|NO)`: Municipalidad Šmartno ob Paki (`SI-125`), Šmartno pri Litiji (`SI-194`)
+- Slovenia · `r:^(SAINTE?|SH?E[NM]T?|SANKT|STE?|SVETI|SH?)MART([AEI]N|NO)`: Šmartno ob Paki (`SI-125`), Šmartno pri Litiji (`SI-194`)
 - Syria · `r:^D[AEI]MAS([CH][EOU]+S|Q)`: Damasco (`SY-DI`), Campiña de Damasco (`SY-RD`)
 - Syria · `r:^R[AEI]+F`: Damasco (`SY-DI`), Campiña de Damasco (`SY-RD`)
 - Chad · `r:^[CS]HARI`: Chari-Baguirmi (`TD-CB`), Moyen-Chari (`TD-MC`)
-- Taiwan · `r:^[CJ]H?IAY?I`: Chiayi (`TW-CYI`), Chiayai (`TW-CYQ`)
+- Taiwan · `r:^[CJ]H?IAY?I`: Chiayi (`TW-CYI`), Chiayi (`TW-CYQ`)
 - Taiwan · `r:^H?[SX]IN[CJZ]HU`: Hsinchu (`TW-HSQ`), Hsinchu (`TW-HSZ`)
 - Uzbekistan · `r:^T[AO]SHKENT`: Taskent (`UZ-TK`), Taskent (`UZ-TO`)
 - Yemen · `AMANAT`: Saná (`YE-SA`), Saná (`YE-SN`)
@@ -287,7 +274,7 @@ Con asterisco, las respuestas que traían type-ins propios.
 - **Algeria** (21): Aflou\*, Aïn Oussera\*, Barika, Béni Abbès\*, Bir El Ater\*, Bordj Baji Mokhtar\*, Bou Saâda\*, Djanet\*, El Abiodh Sidi Cheikh\*, El Aricha\*, El Kantara\*, El M'Ghair\*, El Menia\*, In Guezzam\*, In Salah\*, Ksar Chellala, Ksar El Boukhari\*, Messaâd\*, Ouled Djellal\*, Timimoun\*, Touggourt\*
 - **Angola** (4): Cuando\*, Cubango\*, Icolo e Bengo\*, Moxico Leste\*
 - **Aruba** (8): Noord/Tanki Leendert\*, Oranjestad Oost\*, Oranjestad West\*, Paradera, San Nicolas Noord\*, San Nicolas Zuid\*, Santa Cruz, Savaneta
-- **Azerbaijan** (2): Aghdara\*, Lachin\*
+- **Azerbaijan** (1): Aghdara\*
 - **Bahamas** (28): Grand Cay, Green Turtle Cay, Hope Town\*, Sweetings Cay\*, Bain and Grants Town\*, Bamboo Town, Carmichael, Centreville, Elizabeth, Englerston, Fort Charlotte, Fox Hill, Freetown\*, Garden Hills, Golden Gates, Golden Isles, Killarney, Marathon, Mount Moriah, Nassau Village\*, Pinewood, Sea Breeze, South Beach, Southern Shores, St. Anne's\*, St. Barnabas, Tall Pines, Yamacraw
 - **Bangladesh** (1): Mymensingh
 - **Bosnia and Herzegovina** (2): Federation of Bosnia and Herzegovina\*, Republika Srpska\*
@@ -307,7 +294,7 @@ Con asterisco, las respuestas que traían type-ins propios.
 - **Ethiopia** (4): Central Ethiopia\*, Sidama, South Ethiopia\*, South West Ethiopia Peoples' Region\*
 - **Faroe Islands** (29): Eiði, Eystur, Fámjin\*, Fuglafjørður\*, Fugloy\*, Hov, Húsavík\*, Hvalba\*, Hvannasund\*, Klaksvík, Kunoy, Kvívík\*, Nes, Porkeri\*, Runavík, Sandur\*, Sjóvar, Skálavík\*, Skopun\*, Skúvoy\*, Sørvágur\*, Sumba\*, Sunda, Tórshavn\*, Tvøroyri\*, Vágar\*, Vágur\*, Vestmanna, Viðareiði\*
 - **Finland** (1): Åland\*
-- **France** (4): French Polynesia\*, Wallis and Futuna\*, French Guiana, New Caledonia
+- **France** (4): French Polynesia\*, Saint Pierre and Miquelon\*, Wallis and Futuna\*, New Caledonia
 - **Ghana** (7): Ahafo, Bono, Bono East, North East, Oti, Savannah, Western North\*
 - **Greece** (5): Aegean, Epirus and Western Macedonia\*, Macedonia and Thrace\*, Peloponnese, Western Greece and the Ionian\*, Thessaly and Central Greece\*
 - **Greenland** (2): Avannaata\*, Qeqertalik\*
@@ -346,7 +333,7 @@ Con asterisco, las respuestas que traían type-ins propios.
 - **Palestine** (11): Bethlehem\*, Hebron\*, Jenin\*, Jericho\*, Nablus, Qalqiliya\*, Quds\*, Ramallah and al-Bireh\*, Salfit, Tubas, Tulkarm
 - **Panama** (2): Panamá Oeste\*, Naso Tjër Di
 - **Papua New Guinea** (2): Hela\*, Jiwaka
-- **Philippines** (2): Caraga, Negros Island\*
+- **Philippines** (1): Negros Island\*
 - **Portugal** (4): Alentejo, Central\*, Lisboa e Vale do Tejo\*, North\*
 - **Qatar** (1): Al-Shahaniya\*
 - **Republic of the Congo** (3): Congo-Oubangui, Djoué-Léfini, Nkéni-Alima
@@ -374,7 +361,6 @@ Con asterisco, las respuestas que traían type-ins propios.
 - **Tuvalu** (8): Funafuti, Nanumanga\*, Nanumea, Niutao, Nui, Nukufetau, Nukulaelae, Vaitupu
 - **Uganda** (27): Entebbe, Fort Portal\*, Bugweri, Buliisa, Bunyangabu, Butebo, Kagadi, Kakumiro, Kalaki, Kapelebyong, Karenga, Kasanda, Kazo, Kikuube, Kitagwenda, Kwania, Kyotera, Madi-Okollo\*, Nabilatuk, Namisindwa, Obongi, Omoro, Pakwach, Rubanda, Rukiga, Rwampara, Terego
 - **United Kingdom** (31): Cambridgeshire and Peterborough\*, Cheshire and Warrington\*, Cumbria\*, Greater Manchester\*, Hull and East Yorkshire\*, Liverpool City Region\*, North East\*, South Yorkshire\*, Tees Valley\*, West Midlands\*, West of England\*, West Yorkshire\*, York and North Yorkshire\*, Devon and Torbay\*, East Midlands\*, Greater Essex\*, Greater Lincolnshire\*, Hampshire and the Solent\*, Lancashire\*, Norfolk and Suffolk\*, Sussex and Brighton\*, Guernsey\*, Akrotiri and Dhekelia\*, Anguilla, Bermuda\*, Montserrat, Saint Helena, Ascension and Tristan da Cunha\*, Turks and Caicos Islands\*, Bournemouth, Christchurch and Poole\*, North Northamptonshire, West Northamptonshire
-- **United States** (2): American Samoa\*, United States Virgin Islands\*
-- **Vietnam** (1): Hưng Yên
+- **United States** (3): American Samoa\*, Northern Mariana Islands\*, United States Virgin Islands\*
 - **Wa State** (6): 171st military region\*, Ho Pang\*, Mong Pawk\*, Monglin\*, Mongmao\*, Pangkham\*
 - **Yemen** (1): Socotra\*

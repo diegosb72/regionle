@@ -315,6 +315,9 @@ export const CAPITAL_OVERRIDE = {
   CL: { es: 'Santiago', en: 'Santiago', pick: 'Santiago', alt: ['Santiago de Chile'] },
   BI: { es: 'Gitega', en: 'Gitega', ll: [29.9246, -3.4271], alt: ['Buyumbura', 'Bujumbura'] },
   KZ: { es: 'Astaná', en: 'Astana', alt: ['Nur-Sultán', 'Nursultán', 'Nur-Sultan', 'Astana'] },
+  // One spelling in Spanish for the capital and for the emirate and the division named after it.
+  AE: { es: 'Abu Dabi', en: 'Abu Dhabi', alt: ['Abu Dhabi', 'Abu Zabi'] },
+  BD: { es: 'Daca', en: 'Dhaka', alt: ['Dacca'] },
   PW: { es: 'Ngerulmud', en: 'Ngerulmud', alt: ['Melekeok'] },
   PS: { es: 'Ramala', en: 'Ramallah', ll: [35.2063, 31.9038], alt: ['Jerusalén Este', 'East Jerusalem', 'Ramallah', 'Jerusalén'] },
   SS: { es: 'Yuba', en: 'Juba', alt: ['Juba'] },
@@ -395,7 +398,227 @@ export const RECODE = [
   [(p) => p.adm0_a3 === 'ESB', { iso_3166_2: 'CY-DH' }],
   [(p) => p.adm0_a3 === 'WSB', { iso_3166_2: 'CY-AK' }],
   [(p) => p.geonunit === 'UNDOF', { iso_3166_2: 'SY-UN' }],
+  // The kind of unit, where a whole country has it wrong: the 22 regions of Madagascar are filed as the
+  // "autonomous provinces" they replaced, and five zones of Nepal as districts.
+  [(p) => p.adm0_a3 === 'MDG', { type_en: 'Region' }],
+  [(p) => p.adm0_a3 === 'NPL', { type_en: 'Administrative Zone' }],
 ];
+
+/** The same name in the three fields of the source, unless the Spanish or the English one differs. */
+const named = (name, es = name, en = name) => ({ name, name_es: es, name_en: en });
+
+/**
+ * Attributes that Natural Earth has wrong, by the `adm1_code` of the feature: the one code that no two
+ * features share and that nothing here changes. What is given replaces what the source says (after
+ * RECODE); the rest of the feature stays as it is. `wikidataid: null` takes away an id that is another
+ * place's, and the game then looks the unit up by its name.
+ *
+ * Three kinds of mistake, all found by asking a second witness which place each polygon is (`gn_name`,
+ * the name GeoNames gives it, which Natural Earth carries along; the area; the cities inside):
+ *
+ *  1. Names on the wrong polygons. In Guyana eight of the ten regions carried the name and the code of
+ *     another one (the south-eastern third of the country was "Mahaica-Berbice", which is a strip of
+ *     coast), in Eritrea four of six (Asmara lay in "Anseba") and in Ecuador Napo and Tungurahua were
+ *     swapped (Ambato was the capital of "Napo"). The capitals of regions are found by where they lie,
+ *     so each of these also taught a capital that was not the region's.
+ *  2. A name that is another place's: a district called like its neighbour (Lachin was a second
+ *     "Lankaran", Wirral a second "Halton"), like the county, the region or the country it belongs to
+ *     (St Helens was "Merseyside", Bolzano "Trentino-Alto Adigio", Saint-Pierre "San Pedro y Miquelón"),
+ *     like its capital (Gagauzia was "Comrat") or like a place of another country (Prizren was
+ *     "Plužine", which is in Montenegro).
+ *  3. A name the place no longer goes by: Leninabad (Sughd), La Estrelleta (Elías Piña), Caprivi
+ *     (Zambezi since 2013), Geylegphug (Sarpang). The old one stays as an alias in UNIT_NAME.
+ */
+export const SOURCE_FIX = {
+  // --- 1. Names on the wrong polygons ----------------------------------------------------------
+  // Guyana. GeoNames, the areas and the borders agree on every one: the polygon that touches Brazil
+  // and Suriname (36 500 km²) is East Berbice-Corentyne and not Mahaica-Berbice (4 200 km²), and so on.
+  'GUY-671': { iso_3166_2: 'GY-EB', ...named('East Berbice-Corentyne', 'Berbice Oriental-Corentyne'), wikidataid: 'Q1277758' },
+  'GUY-677': { iso_3166_2: 'GY-DE', ...named('Demerara-Mahaica'), wikidataid: 'Q1185362' },
+  'GUY-678': { iso_3166_2: 'GY-ES', ...named('Essequibo Islands-West Demerara', 'Islas Esequibo-Demerara Occidental'), wikidataid: null },
+  'GUY-679': { iso_3166_2: 'GY-MA', ...named('Mahaica-Berbice'), wikidataid: 'Q1466671' },
+  'GUY-676': { iso_3166_2: 'GY-CU', ...named('Cuyuni-Mazaruni'), wikidataid: 'Q1146777' },
+  'GUY-680': { iso_3166_2: 'GY-PM', ...named('Pomeroon-Supenaam'), wikidataid: 'Q680382' },
+  'GUY-674': { iso_3166_2: 'GY-UT', ...named('Upper Takutu-Upper Essequibo', 'Alto Takutu-Alto Esequibo'), wikidataid: 'Q1516381' },
+  'GUY-673': { iso_3166_2: 'GY-UD', ...named('Upper Demerara-Berbice', 'Alto Demerara-Berbice'), wikidataid: 'Q1309042' },
+  // Eritrea. The small polygon around Asmara is Maekel (the Central region), the one around Mendefera
+  // Debub, the one around Keren Anseba, and the northern coast with Massawa the Northern Red Sea.
+  'ERI-1561': { iso_3166_2: 'ER-MA', ...named('Maekel'), wikidataid: 'Q27710' },
+  'ERI-1564': { iso_3166_2: 'ER-DU', ...named('Debub'), wikidataid: 'Q27728' },
+  'ERI-1563': { iso_3166_2: 'ER-AN', ...named('Anseba'), wikidataid: 'Q569468' },
+  'ERI-1562': { iso_3166_2: 'ER-SK', ...named('Semenawi Keyih Bahri', 'Semenawi Keyih Bahri', 'Northern Red Sea'), wikidataid: 'Q27910' },
+  // Ecuador. The small one in the Andes (3 400 km², with Ambato) is Tungurahua; the large one in the
+  // Amazon (12 600 km², with Tena) is Napo.
+  'ECU-1289': { iso_3166_2: 'EC-T', ...named('Tungurahua'), wikidataid: 'Q504252' },
+  'ECU-1290': { iso_3166_2: 'EC-N', ...named('Napo'), wikidataid: 'Q211900' },
+
+  // --- 2. A name that is another place's -------------------------------------------------------
+  // Azerbaijan: the district between Kalbajar, Qubadli and Armenia is Lachin. The real Lankaran is on
+  // the Caspian, four hundred kilometres away, and has a polygon of its own (AZ-LA).
+  'AZE-1735': { iso_3166_2: 'AZ-LAC', ...named('Laçın', 'Lachín', 'Lachin'), wikidataid: null },
+  // United Kingdom: GB-WRL is Wirral and GB-SHN St Helens, as their codes say; and the square mile of
+  // the City is not London, which is all the boroughs around it.
+  'GBR-2108': named('Wirral'),
+  'GBR-5669': named('St Helens'),
+  'GBR-4809': named('City of London', 'City de Londres', 'City of London'),
+  // Italy: two provinces under the name of their region.
+  'ITA-5459': { ...named('Bolzano', 'Bolzano', 'South Tyrol'), wikidataid: null },
+  'ITA-5367': { name_es: 'Génova', name_en: 'Genoa', wikidataid: null },
+  // Vietnam and Nepal: three provinces under the name of the region they belong to («Đông Nam Bộ» is
+  // the south-east, «Đông Bắc» the north-east, «Đồng Bằng Sông Hồng» the Red River delta), and the zone
+  // of Kosi under that of one of its districts.
+  'VNM-497': { ...named('Đồng Nai'), type_en: 'Province' },
+  'VNM-451': { ...named('Bắc Kạn'), type_en: 'Province', wikidataid: null },
+  'VNM-461': { ...named('Hưng Yên'), type_en: 'Province' },
+  'NPL-1134': { ...named('Kosi', 'Kosi', 'Koshi'), wikidataid: null },
+  // Moldova: Gagauzia under the name of its capital. Mali: Sikasso under that of Wassoulou, a region of
+  // history that lies partly in it. Philippines: Surigao del Norte under that of the Dinagat Islands,
+  // which were part of it until 2006. Libya: the district of the capital under that of a former one.
+  'MDA-1626': named('Găgăuzia', 'Gagauzia', 'Gagauzia'),
+  'MLI-2794': { name_es: 'Sikasso', name_en: 'Sikasso' },
+  'PHL-2593': { name_es: 'Surigao del Norte', name_en: 'Surigao del Norte', wikidataid: null },
+  'LBY-2978': named('Tarabulus', 'Trípoli', 'Tripoli'),
+  // Kosovo: Pristina under the name of the Serbian province («Autónoma de Kosovo y Metohija») and
+  // Prizren under that of Plužine, in Montenegro. Serbia: Rasina, a second «Pomoravski» in the local name.
+  'KOS-5902': { name_es: 'Pristina', name_en: 'Pristina', wikidataid: null },
+  'KOS-5908': { name_es: 'Prizren', name_en: 'Prizren', wikidataid: null },
+  'SRB-833': { name: 'Rasinski' },
+  // A piece of a territory under the name of the whole of it.
+  'SPM-4866': { name_en: 'Saint-Pierre', name_es: 'Saint-Pierre', wikidataid: null },
+  'MNP-4940': { name_en: 'Northern Islands', name_es: 'Islas del Norte', wikidataid: null },
+  'DNK-3419': { name_en: 'Capital Region' }, // "Capital Region of Denmark", cut down to "Denmark"
+  // Seychelles and Malta: two districts of the same name on different islands, and the English name of
+  // one given to both (or to the wrong one). Their own names tell them apart in UNIT_NAME.
+  'SYC-5210': { ...named("Grand'Anse Mahé"), wikidataid: null },
+  'SYC-5211': named("Grand'Anse Praslin"),
+  'MLT-5977': { wikidataid: 'Q179243' }, // Żebbuġ of Gozo: the id sat on the one of Malta
+  'MLT-5946': { name_en: 'Żebbuġ', wikidataid: null },
+  // Trinidad and Tobago: Tobago is one unit (TT-TOB); the eastern and western halves were both «Tobago».
+  'TTO-50': { iso_3166_2: 'TT-TOB', ...named('Tobago') },
+  'TTO-5090': { iso_3166_2: 'TT-TOB', ...named('Tobago') },
+  // Madagascar: Atsimo-Andrefana (the south-west) under the Spanish name of Atsimo-Atsinanana (the south-east).
+  'MDG-5866': { name_es: 'Atsimo-Andrefana' },
+  // The two neutral zones on the border of the Emirates and Oman: one was «Fujairah» in English. They
+  // are not emirates either: see NON_QUIZ.
+  'ARE-344': { name_en: 'Neutral Zone' },
+  'ARE-347': { name_en: 'Neutral Zone' },
+  // Labels that are a slip of the source: a misspelling («Chiayai», «Saint Andréws», «Cusco Departament»),
+  // an abbreviation, a name in Sinhala, half a name («las Naciones», «Hermanas», «Nacional», «Ho Chi Minh»
+  // for the city), an adjective with its noun cut off («Oriental del Cabo», «Especial de Yogyakarta»), the
+  // word for the kind of place left in another language («Občina Dobrna»), the largest island for all of
+  // them («Lantau Island» for the Islands district).
+  'TWN-1170': { name_es: 'Chiayi' },
+  'COL-1342': { name_en: 'San Andrés and Providencia' },
+  'PER-571': { name_en: 'Cusco' },
+  'DOM-1985': named('Distrito Nacional'),
+  'PHL-2552': { name_en: 'Mountain Province' },
+  'ASM-5002': { name_es: 'Occidental' }, // «Occidente», beside «Oriental»
+  'ASM-4999': { name: "Manu'a", name_es: "Manu'a" }, // «Manu's»
+  'SDN-5858': { name_es: 'Darfur del Oeste', name_en: 'West Darfur' }, // «Soudan del Oeste», «West Soudan»
+  'KHM-1787': { name_en: 'Kampong Speu' }, // «Kam»
+  'CZE-10369': { name_en: 'Plzeň' }, // «Plzeň-»
+  'BMU-5136': { name_es: 'Devonshire' }, // «Devon»
+  'SYC-5213': { name_es: 'La Rivière Anglaise' }, // «La Riviere Anglaise»
+  'AIA-5126': { name_es: 'The Valley' }, // «El Valle»: the capital of Anguilla, The Valley everywhere else
+  'AIA-5119': { name_es: 'North Side' }, // «Lado norte», the only district of the fourteen that was translated
+  // A slip of the pen in one label: two letters swapped, one too many, one for another.
+  'SVN-978': { name_es: 'Postojna' }, // «Postojina»
+  'SVN-981': { name_es: 'Radlje ob Dravi' }, // «Radjle del Dravi»
+  'SVN-270': { name_es: 'Velika Polana' }, // «Vekila Polana»
+  'SWZ-537': { name_es: 'Shiselweni' }, // «Shishelweni»
+  'PLW-5259': { name_es: 'Sonsorol' }, // «Sonsoral»
+  'PLW-5247': { name: 'Hatohobei' }, // «Hatobohei»
+  'BTN-2484': { name_es: 'Trashiyangtse' }, // «Trashiyangste»
+  'ITA-5392': { name: 'Crotone' }, // «Crotene»
+  'ITA-5373': { name: 'Oristano' }, // «Oristrano»
+  'ETH-3132': { name: 'Benishangul-Gumuz', name_es: 'Benishangul-Gumuz' }, // «Benshangul-Gumaz», «Benishangul-Gumaz»
+  'FRA-5296': { name: 'Haut-Rhin' }, // «Haute-Rhin»
+  'FRA-5342': { name: 'Seine-et-Marne' }, // «Seien-et-Marne»
+  'GBR-2006': { name: 'North Ayrshire' }, // «North Ayshire»
+  'GAB-2187': { name: 'Woleu-Ntem' }, // «Wouleu-Ntem»
+  'LBR-1459': { name: 'Gbarpolu' }, // «Gbapolu»
+  'TUR-3010': { name: 'Zonguldak' }, // «Zinguldak»
+  'MHL-4968': { name: 'Ralik Chain' }, // «Railik Chain»
+  'QAT-1106': { name: 'Madinat ash Shamal' }, // «Madinat ach Shamal»
+  'IRQ-3223': { name: 'Al-Muthanna' }, // «Al-Muthannia»
+  'AZE-5563': { name: 'Şirvan', name_en: 'Shirvan' }, // the two were the other way round
+  // Zanzibar and Pemba, whose Spanish labels are English («Pemba North», «Zanzibar Urban/West»), and the
+  // two halves of Al Batinah and of Ash Sharqiyah in Oman: «Al Batnah North» beside «Al Batinah Sur», and
+  // the south of Ash Sharqiyah under the labels of the region before it was split, «Oriental».
+  'TZA-3380': { name_es: 'Pemba Norte' },
+  'TZA-3381': { name_es: 'Pemba Sur' },
+  'TZA-3383': { name_es: 'Zanzíbar Norte' },
+  'TZA-3337': { name_es: 'Zanzíbar Central/Sur' },
+  'TZA-3384': { name_es: 'Zanzíbar Urbano/Oeste' },
+  'OMN-2424': { name: 'Al Batinah North', name_es: 'Al Batinah Norte' },
+  'OMN-5497': { name: 'Al Batinah South' },
+  'OMN-2406': { name_es: 'Ash Sharqiyah Sur', name_en: 'Ash Sharqiyah South', wikidataid: null },
+  'OMN-5496': { name_es: 'Ash Sharqiyah Norte' },
+  // Shusha, the town and the district around it: the district was «Susa» in English and the town «Şuşa»
+  // in Spanish, so that the two did not look like one name (see HOMONYMS).
+  'AZE-1737': { name_en: 'Shusha' },
+  'AZE-5565': { name_es: 'Shusha' },
+  'TON-4947': { name_es: 'Niuas' }, // «Grupo Niuas», alone among the five
+  'DOM-1968': named('Hermanas Mirabal'),
+  'VNM-501': { name_en: 'Ho Chi Minh City' },
+  'IDN-540': { name_es: 'Yogyakarta' },
+  'NCL-1258': { name_es: 'Islas de la Lealtad' },
+  'SVN-239': { name_es: 'Dobrna' },
+  'SVN-1011': { name_en: 'Gorenja vas-Poljane' },
+  'CAF-807': { name_en: 'Nana-Grébizi' },
+  'KOS-5913': { name_en: 'Uroševac/Ferizaj' },
+  'HKG-5170': { name_en: 'Islands' },
+  'PAK-1110': { name_es: 'Islamabad' },
+  'LKA-2448': { name_es: 'Kandy' },
+  'ETH-3129': { name_es: 'Naciones, Nacionalidades y Pueblos del Sur', name_en: 'Southern Nations, Nationalities and Peoples' },
+  'ZAF-1926': { name_es: 'Cabo Oriental' },
+  'ZAF-1188': { name_es: 'Cabo Septentrional' },
+  'ZAF-1189': { name_es: 'Cabo Occidental' },
+  // An id that is another place's, on a unit whose names are right: the city instead of the region
+  // around it (Lima, Kiev, Saná), a namesake (the Altai Republic on the Altai Krai, the Romanian county
+  // of Călărași on the Moldovan district, the Centre of Burkina Faso on the Centrale of Togo), a
+  // neighbour (the comarca Ngäbe-Buglé on Bocas del Toro).
+  'PER-591': { wikidataid: null },
+  'UKR-321': { wikidataid: null },
+  'YEM-3496': { wikidataid: null },
+  'RUS-2399': { name_en: 'Altai Krai', wikidataid: null },
+  'MDA-1632': { wikidataid: null },
+  'TGO-89': { wikidataid: null },
+  'PAN-1958': { wikidataid: null },
+  // …or a namesake in another country: the province of Comoé in Burkina Faso on the district of Comoé
+  // in Côte d'Ivoire, the parish of Saint George in Barbados on the one in Montserrat, the parish of
+  // Saint John in Antigua on the island of Saint John in the Virgin Islands, label and all.
+  'CIV-3460': { wikidataid: null },
+  'MSR-5088': { wikidataid: null },
+  'VIR-4869': { name_es: 'San Juan', wikidataid: null },
+  // The kind of unit, where it is all that tells two pieces of one name apart: Minsk the city and Minsk
+  // the region had theirs swapped, and the cities of Tashkent and Saná and the two towns of Bermuda (the
+  // rest are its nine parishes: see FINE_LABEL) had none.
+  'BLR-4825': { type_en: 'City' },
+  'BLR-2345': { type_en: 'Region' },
+  'UZB-4828': { type_en: 'City' },
+  'YEM-3498': { type_en: 'City' },
+  'BMU-5134': { type_en: 'City' },
+  'BMU-5135': { type_en: 'Town' },
+
+  // --- 3. A name the place no longer goes by ---------------------------------------------------
+  'TJK-369': { ...named('Sughd'), wikidataid: null }, // the id was that of Khujand, its capital
+  'DOM-1972': named('Elías Piña'),
+  'NAM-3356': named('Zambezi'),
+  'BTN-2482': named('Sarpang'),
+  // Here only the local name was the old one, and it pulled the English label down with it (a label
+  // that does not resemble the local name is not believed).
+  'TKM-353': { name: 'Daşoguz' }, // Tashauz, as the Soviet province was called
+  'TKM-359': { name: 'Lebap' }, // the province of Chardzhou
+  'AZE-1680': { name: 'Göygöl' }, // Xanlar until 2008
+  'AZE-1701': { name: 'Şabran' }, // Dəvəçi until 2010
+  'BTN-2438': { name: 'Samtse' }, // Samchi
+  'PHL-2592': { name: 'Davao de Oro' }, // Compostela Valley until 2019
+  'PNG-1245': { name: 'Bougainville', name_en: 'Bougainville' }, // North Solomons; in English, «of Bougainville»
+  'NIC-657': { name: 'Costa Caribe Norte', name_es: 'Costa Caribe Norte' }, // Atlántico Norte until 2014
+  'NIC-644': { name: 'Costa Caribe Sur', name_es: 'Costa Caribe Sur' },
+  'TJK-368': { name: 'Districts of Republican Subordination', name_en: 'Districts of Republican Subordination' }, // «Tadzhikistan Territories»
+};
 
 /** Countries where units sharing an ISO code are genuinely different and must keep separate ids. */
 export const NO_ISO_MERGE = new Set(['BA', 'MG', 'LV']);
@@ -423,8 +646,11 @@ export const MERGED_NAME = {
   'MD-SN': { name: 'Transnistria', es: 'Transnistria', en: 'Transnistria' },
 };
 
-/** Units that are drawn but never asked. */
-export const NON_QUIZ = [(p) => ['CYN', 'ESB', 'WSB', 'KAS', 'SPI'].includes(p.adm0_a3)];
+/**
+ * Units that are drawn but never asked: territories nobody governs or two parties share. The two neutral
+ * zones between the Emirates and Oman were asked as an eighth and a ninth emirate, both called «Zona neutral».
+ */
+export const NON_QUIZ = [(p) => ['CYN', 'ESB', 'WSB', 'KAS', 'SPI'].includes(p.adm0_a3), (p) => p.adm1_code === 'ARE-344' || p.adm1_code === 'ARE-347'];
 
 /**
  * Territorial claims where Natural Earth's default (de facto) linework differs
@@ -494,11 +720,6 @@ export const UNIT_NAME = {
   'CL-MA': { es: 'Magallanes', en: 'Magallanes', lo: 'Magallanes y de la Antártica Chilena', al: ['Magallanes y de la Antártica Chilena', 'Magallanes y Antártica Chilena'] },
   'CL-BI': { es: 'Biobío', en: 'Biobío', al: ['Bío-Bío', 'Bio Bio'] },
   'CL-AR': { es: 'La Araucanía', al: ['Araucanía'] },
-  // Vietnam y Nepal: Natural Earth da a dos provincias el nombre de la región a la que pertenecen
-  // («Đông Nam Bộ», el sudeste; «Đông Bắc», el nordeste) y a la zona de Kosi el de uno de sus distritos.
-  'VN-39': { es: 'Đồng Nai', en: 'Đồng Nai', lo: 'Đồng Nai', al: ['Dong Nai'] },
-  'VN-53': { es: 'Bắc Kạn', en: 'Bắc Kạn', lo: 'Bắc Kạn', al: ['Bac Kan'] },
-  'NP-KO': { es: 'Kosi', en: 'Koshi', lo: 'Kosi', al: ['Koshi'] },
   // Kazajistán: la capital recuperó su nombre en 2022 y Kazajistán Meridional se llama Turkestán desde 2018
   'KZ-AST': { es: 'Astaná', en: 'Astana', lo: 'Astana', al: ['Nur-Sultán', 'Nur-Sultan', 'Nursultán', 'Astana ciudad'] },
   'KZ-YUZ': { es: 'Turkestán', en: 'Turkistan', lo: 'Türkistan', al: ['Kazajistán Meridional', 'Turquestán', 'South Kazakhstan', 'Turkestan'] },
@@ -567,7 +788,133 @@ export const UNIT_NAME = {
   'JP-13': { es: 'Tokio', en: 'Tokyo', lo: 'Tōkyō', al: ['Tokyo'] },
   'JP-26': { es: 'Kioto', en: 'Kyoto', lo: 'Kyōto', al: ['Kyoto'] },
   'JP-27': { es: 'Osaka', en: 'Osaka', lo: 'Ōsaka' },
+  // Names put right in SOURCE_FIX: other names they go by, and the one they went by before.
+  'IT-BZ': { al: ['Bozen', 'Alto Adigio', 'Alto Adige', 'Tirol del Sur', 'Südtirol'] },
+  'GB-LND': { al: ['City', 'La City', 'Square Mile'] },
+  'LY-TN': { al: ["Tajura' wa an Nawahi al Arba", 'Tripoli District'] },
+  'ET-SN': { al: ['Naciones del Sur', 'Pueblos del Sur', 'Southern Nations', 'SNNPR', 'SNNP'] },
+  'ZA-EC': { al: ['Provincia Oriental del Cabo', 'Oriental del Cabo', 'Cabo del Este'] },
+  'ZA-NC': { al: ['Provincia Septentrional del Cabo', 'Septentrional del Cabo', 'Cabo del Norte'] },
+  'ZA-WC': { al: ['Provincia Occidental del Cabo', 'Occidental del Cabo', 'Cabo del Oeste'] },
+  'TJ-SU': { al: ['Leninabad', 'Sogdia', 'Sugd'] },
+  'DO-07': { al: ['La Estrelleta'] },
+  'DO-19': { al: ['Salcedo'] },
+  'NA-CA': { al: ['Caprivi'] },
+  'BT-31': { al: ['Geylegphug', 'Gelephu'] },
+  'BT-14': { al: ['Samchi'] },
+  'TM-D': { al: ['Tashauz', 'Dashoguz'] },
+  'TM-L': { al: ['Chardzhou'] },
+  'AZ-GYG': { al: ['Xanlar', 'Khanlar'] },
+  'AZ-SBN': { al: ['Dəvəçi', 'Davachi'] },
+  'PH-COM': { al: ['Compostela Valley', 'Valle de Compostela'] },
+  'PG-NSB': { al: ['North Solomons', 'Salomón del Norte'] },
+  'NI-AN': { al: ['Atlántico Norte', 'RACCN', 'RAAN'] },
+  'NI-AS': { al: ['Atlántico Sur', 'RACCS', 'RAAS'] },
+  'TJ-x368': { es: 'Región bajo subordinación republicana', al: ['Subordinación republicana', 'Tadzhikistan Territories', 'Region of Republican Subordination', 'RRP', 'DRS'] },
+  'PK-IS': { al: ['Territorio Capital de Islamabad', 'FCT'] },
+  // Two districts of one name on different islands: the island in brackets is shown and need not be typed.
+  'MT-65': { es: 'Żebbuġ (Gozo)', en: 'Żebbuġ (Gozo)', lo: 'Iż-Żebbuġ', al: ['Żebbuġ Għawdex'] },
+  'MT-66': { es: 'Żebbuġ (Malta)', en: 'Żebbuġ (Malta)', lo: 'Ħaż-Żebbuġ' },
+  // Names the source has right in a field the rules do not believe (the country is not among those whose
+  // Spanish labels are trusted, and the label does not resemble the local name), or cut short.
+  'PM-x4866': { al: ['San Pedro'] },
+  'AE-x344': { es: 'Zona neutral', en: 'Neutral Zone' },
+  'AE-x347': { es: 'Zona neutral', en: 'Neutral Zone' },
+  'BH-14': { es: 'Sur', al: ['Meridional'] },
+  'KM-G': { es: 'Gran Comora', en: 'Grande Comore', al: ['Ngazidja'] },
+  'GM-W': { es: 'West Coast', al: ['Western'] },
+  'FJ-N': { es: 'Norte' },
+  'FJ-E': { es: 'Oriental', al: ['Este'] },
+  'FJ-W': { es: 'Occidental', al: ['Oeste'] },
+  'RU-YEV': { en: 'Jewish Autonomous Oblast' },
+  // The name in use in Spanish where the source gives another one that is right too, and the other way round.
+  'PS-WBK': { es: 'Cisjordania', al: ['Ribera Occidental'] },
+  'SD-DW': { al: ['Darfur Occidental'] },
+  'VN-SG': { al: ['Ho Chi Minh', 'Saigón', 'Saigon'] },
+  'TZ-06': { al: ['Pemba North'] },
+  'TZ-10': { al: ['Pemba South'] },
+  'TZ-07': { al: ['Zanzibar North'] },
+  'TZ-11': { al: ['Zanzibar Central/South', 'Zanzíbar Sur'] },
+  'TZ-15': { al: ['Zanzibar Urban/West', 'Zanzíbar Oeste'] },
+  'OM-BA': { al: ['Al Batnah North'] },
+  'OM-BJ': { al: ['Al Batnah South'] },
+  'OM-SH': { al: ['Oriental', 'Ash Sharqiyah'] },
+  'OM-SS': { al: ['Norte del Ash Sharqiyah'] },
+  'AI-x5126': { al: ['El Valle'] },
+  'AI-x5119': { al: ['Lado norte'] },
+  // Eritrea's two regions on the Red Sea keep their names in Tigrinya, as the other four do; what they mean is taken too.
+  'ER-SK': { al: ['Mar Rojo Septentrional', 'Mar Rojo del Norte'] },
+  'ER-DK': { al: ['Mar Rojo Meridional', 'Mar Rojo del Sur'] },
+  'AZ-XA': { al: ['Khankendi', 'Xankəndi', 'Jankendi'] },
+  'HK-x5158': { es: 'Kowloon City', al: ['Ciudad de Kowloon'] }, // not Kowloon, which is five districts
+  // The Spanish name of the capital, for the unit that is called after it.
+  'AD-07': { es: 'Andorra la Vieja' },
+  'JO-AM': { es: 'Amán' },
+  'MW-LI': { es: 'Lilongüe' },
+  'OM-MA': { es: 'Mascate' },
+  'AE-SH': { es: 'Sarja' },
+  'SS-JG': { al: ['Junqali'] },
+  'TW-PEN': { al: ['Islas Pescadores', 'Pescadores'] },
 };
+
+/**
+ * Units whose Spanish label is right although nothing in the rules says so: the country is not in
+ * TRUST_ES and the label looks nothing like the local name, because it is a translation («Nilo Azul» for
+ * Blue Nile, «Tierras Altas Orientales» for Eastern Highlands) or the name the place has in Spanish
+ * («Jartum», «Tiflis», «Yibuti», «Yamena»). Without it the game showed the English or French name and did
+ * not even take the Spanish one when typed.
+ *
+ * The build lists every label it turns down at the end of .cache/report.txt: these are the ones that,
+ * read one by one, are right. The rest of that list are labels of another place, and stay out.
+ */
+export const TRUST_ES_UNIT = new Set(
+  [
+    'SD-KH SD-NB SD-NR SD-NW SD-RS', // Jartum, Nilo Azul, Río Nilo, Nilo Blanco, Mar Rojo
+    'SS-EE SS-EW SS-LK SS-NU SS-UY', // Ecuatoria Oriental y Occidental, Lagos, Alto Nilo, Unidad
+    'GE-AB GE-KA GE-TB', // Abjasia, Kajetia, Tiflis
+    'PG-EBR PG-WBK PG-EHG PG-SHM PG-WHM PG-NIK PG-GPK', // Nueva Bretaña, Tierras Altas, Nueva Irlanda, Golfo
+    'AF-BAL AF-KHO', // Balj, Jost
+    'MR-01 MR-02', // Hod Oriental, Hod Occidental
+    'BT-15 DJ-DJ TD-ND X1-x00', // Timbu, Yibuti, Yamena, Cachemira
+    'SH-HL VI-x4869 VI-x4870 TC-x5008', // Santa Elena; San Juan, Santa Cruz; Cayo Sal
+    'PH-MOU', // La Montaña
+    'GL-UO', // Parque nacional del noreste de Groenlandia
+  ]
+    .join(' ')
+    .split(' '),
+);
+
+/**
+ * The same for the English label: the name the place has in English («Northern Red Sea», «Lower Juba»,
+ * «Capital», «French Guiana») or the usual spelling of it («Sheki», «Kratié») where the local name is in
+ * another language or another alphabet's spelling.
+ */
+export const TRUST_EN_UNIT = new Set(
+  [
+    'AZ-QAX AZ-SA AZ-SMI AZ-XAC AZ-XCI AZ-XIZ AZ-XVD', // Qakh, Sheki, Shamakhi, Khachmaz, Khojali, Khizi, Khojavend
+    'SO-JD SO-JH SO-SD SO-SH', // Middle and Lower Juba, Middle and Lower Shebelle
+    'BH-13 BH-14 BH-16 BH-17', // Capital, Southern, Central, Northern
+    'ER-DK ER-SK', // Southern and Northern Red Sea
+    'KH-10 KH-15', // Kratié, Pursat
+    'NC-x1259 NC-x559', // South, North
+    'PG-NPP SB-CT', // Oro, Honiara
+    'FR-GF LA-XA', // French Guiana, Sainyabuli
+  ]
+    .join(' ')
+    .split(' '),
+);
+
+/**
+ * Pieces that share their name with another piece of their map, and rightly so: a city and the district,
+ * the county or the region around it, each a unit of its own, both called after the city. They are told
+ * apart by the kind of unit shown under the name. The build warns of any two pieces of a level that go by
+ * one name and are not both listed here, because every other case so far was a label that had come from
+ * another place.
+ */
+export const HOMONYMS = new Set(
+  `AZ-SUS AZ-x5565  BG-22 BG-23  BM-HA BM-HAM  BY-HM BY-MI  HR-01 HR-21  HU-VE HU-VM  LA-VI LA-VT  TW-HSQ TW-HSZ  TW-CYI TW-CYQ  UA-30 UA-32  UZ-TK UZ-TO  YE-SA YE-SN
+   LV-x1081 LV-x4850  LV-x1084 LV-x4849  LV-x1085 LV-x5725  LV-x4852 LV-x934  LV-x1066 LV-x4851`.split(/\s+/),
+);
 
 // ---------------------------------------------------------------------------
 // Levels: countries that get a coarser grouping on top of their units
@@ -768,11 +1115,78 @@ export const LEVELS = {
   SI: { fine: lv('municipios', 'municipalities', 'municipio'), def: 'g1', groups: [{ id: 'g1', label: lv('regiones estadísticas', 'statistical regions', 'región'), key: (p) => p.region }] },
   LV: { fine: lv('municipios', 'municipalities', 'municipio'), def: 'g1', groups: [{ id: 'g1', label: lv('regiones', 'regions', 'región'), key: (p) => p.region }] },
   UG: { fine: lv('distritos', 'districts', 'distrito'), def: 'g1', groups: [{ id: 'g1', label: lv('regiones', 'regions', 'región'), key: (p) => p.region, es: { Central: 'Central', Eastern: 'Oriental', Northern: 'Norte', Western: 'Occidental' } }] },
-  PH: { fine: lv('provincias', 'provinces', 'provincia'), def: 'g1', groups: [{ id: 'g1', label: lv('regiones', 'regions', 'región'), key: (p) => p.region }] },
-  AZ: { fine: lv('distritos', 'districts', 'distrito'), def: 'g1', groups: [{ id: 'g1', label: lv('regiones económicas', 'economic regions', 'región'), key: (p) => p.region }] },
+  // The Philippines, Azerbaijan, Burkina Faso and Guinea are asked by region, and the name of a region
+  // was whatever the source writes in the `region` field of its provinces: «Bicol (Region V)», «Absheron
+  // Economic Region», «Centre-Est», and «Dinagat Islands (Region XIII)» for Caraga. The ids stay the ones
+  // made from those labels (a `null` first), so that nobody's progress is lost.
+  PH: {
+    fine: lv('provincias', 'provinces', 'provincia'),
+    def: 'g1',
+    groups: [
+      {
+        id: 'g1',
+        label: lv('regiones', 'regions', 'región'),
+        key: (p) => p.region,
+        names: {
+          'Autonomous Region in Muslim Mindanao (ARMM)': [null, 'Bangsamoro', 'Bangsamoro', null, ['Mindanao Musulmán', 'Muslim Mindanao', 'ARMM', 'BARMM']],
+          'Bicol (Region V)': [null, 'Bicol', 'Bicol', null, ['Bicolandia', 'Región V', 'Region V']],
+          'Cagayan Valley (Region II)': [null, 'Valle del Cagayán', 'Cagayan Valley', null, ['Valle de Cagayán', 'Cagayán', 'Región II', 'Region II']],
+          'CALABARZON (Region IV-A)': [null, 'Calabarzon', 'Calabarzon', null, ['Región IV-A', 'Region IV-A']],
+          'Central Luzon (Region III)': [null, 'Luzón Central', 'Central Luzon', null, ['Región III', 'Region III']],
+          'Central Visayas (Region VII)': [null, 'Bisayas Centrales', 'Central Visayas', null, ['Visayas Centrales', 'Región VII', 'Region VII']],
+          'Cordillera Administrative Region (CAR)': [null, 'La Cordillera', 'Cordillera', null, ['Región Administrativa de La Cordillera', 'Cordillera Administrative Region', 'CAR']],
+          'Davao (Region XI)': [null, 'Davao', 'Davao', null, ['Dávao', 'Región XI', 'Region XI']],
+          'Dinagat Islands (Region XIII)': [null, 'Caraga', 'Caraga', null, ['Región XIII', 'Region XIII']],
+          'Eastern Visayas (Region VIII)': [null, 'Bisayas Orientales', 'Eastern Visayas', null, ['Visayas Orientales', 'Región VIII', 'Region VIII']],
+          'Ilocos (Region I)': [null, 'Ilocos', 'Ilocos', null, ['Región I', 'Region I']],
+          'MIMAROPA (Region IV-B)': [null, 'Mimaropa', 'Mimaropa', null, ['Región IV-B', 'Region IV-B']],
+          'National Capital Region': [null, 'Gran Manila', 'Metro Manila', null, ['Región de la Capital Nacional', 'National Capital Region', 'NCR', 'Manila']],
+          'Northern Mindanao (Region X)': [null, 'Mindanao del Norte', 'Northern Mindanao', null, ['Mindanao Septentrional', 'Región X', 'Region X']],
+          'SOCCSKSARGEN (Region XII)': [null, 'Soccsksargen', 'Soccsksargen', null, ['Región XII', 'Region XII']],
+          'Western Visayas (Region VI)': [null, 'Bisayas Occidentales', 'Western Visayas', null, ['Visayas Occidentales', 'Región VI', 'Region VI']],
+          'Zamboanga Peninsula (Region IX)': [null, 'Península de Zamboanga', 'Zamboanga Peninsula', null, ['Zamboanga', 'Región IX', 'Region IX']],
+        },
+      },
+    ],
+  },
+  AZ: {
+    fine: lv('distritos', 'districts', 'distrito'),
+    def: 'g1',
+    groups: [
+      {
+        id: 'g1',
+        label: lv('regiones económicas', 'economic regions', 'región'),
+        key: (p) => p.region,
+        names: {
+          'Absheron Economic Region': [null, 'Absheron', 'Absheron', 'Abşeron', ['Apsheron', 'Absherón']],
+          'Aran Economic Region': [null, 'Aran', 'Aran'],
+          'Daghlig Shirvan Economic Region': [null, 'Daghlig Shirvan', 'Daghlig Shirvan', 'Dağlıq Şirvan', ['Shirvan Montañoso', 'Mountainous Shirvan']],
+          'Ganja-Gazakh Economic Region': [null, 'Ganja-Gazakh', 'Ganja-Gazakh', 'Gəncə-Qazax', ['Ganja-Qazakh', 'Ganyá-Qazaj']],
+          'Guba-Khachmaz Economic Region': [null, 'Guba-Khachmaz', 'Guba-Khachmaz', 'Quba-Xaçmaz', ['Quba-Khachmaz', 'Quba-Jachmaz']],
+          'Kalbajar-Lachin Economic Region': [null, 'Kalbajar-Lachín', 'Kalbajar-Lachin', 'Kəlbəcər-Laçın', ['Kelbajar-Lachin']],
+          'Lankaran Economic Region': [null, 'Lankaran', 'Lankaran', 'Lənkəran', ['Lenkoran']],
+          'Naxçıvan Autonomous Republic': [null, 'Najicheván', 'Nakhchivan', 'Naxçıvan', ['Nakhichevan', 'Najichevan']],
+          'Shaki-Zaqatala Economic Region': [null, 'Shaki-Zaqatala', 'Shaki-Zaqatala', 'Şəki-Zaqatala', ['Sheki-Zagatala', 'Sheki-Zaqatala']],
+          'Yukhari Garabakh Economic Region': [null, 'Alto Karabaj', 'Upper Karabakh', 'Yuxarı Qarabağ', ['Yukhari Garabakh', 'Yukhari Karabakh', 'Karabaj', 'Karabakh', 'Garabakh']],
+        },
+      },
+    ],
+  },
   MT: { fine: lv('localidades', 'localities', 'localidad'), def: 'g1', groups: [{ id: 'g1', label: lv('regiones', 'regions', 'región'), key: (p) => p.region }] },
-  BF: { fine: lv('provincias', 'provinces', 'provincia'), def: 'g1', groups: [{ id: 'g1', label: lv('regiones', 'regions', 'región'), key: (p) => p.region }] },
-  GN: { fine: lv('prefecturas', 'prefectures', 'prefectura'), def: 'g1', groups: [{ id: 'g1', label: lv('regiones', 'regions', 'región'), key: (p) => p.region }] },
+  BF: {
+    fine: lv('provincias', 'provinces', 'provincia'),
+    def: 'g1',
+    groups: [
+      {
+        id: 'g1',
+        label: lv('regiones', 'regions', 'región'),
+        key: (p) => p.region,
+        // The names in French stay as the English and the local ones.
+        es: { Centre: 'Centro', 'Centre-Est': 'Centro-Este', 'Centre-Nord': 'Centro-Norte', 'Centre-Ouest': 'Centro-Oeste', 'Centre-Sud': 'Centro-Sur', Est: 'Este', Nord: 'Norte', 'Sud-Ouest': 'Sudoeste' },
+      },
+    ],
+  },
+  GN: { fine: lv('prefecturas', 'prefectures', 'prefectura'), def: 'g1', groups: [{ id: 'g1', label: lv('regiones', 'regions', 'región'), key: (p) => p.region, es: { Boke: 'Boké', Conakry: 'Conakri' } }] },
   LK: {
     fine: lv('distritos', 'districts', 'distrito'),
     def: 'g1',
@@ -823,6 +1237,7 @@ export const LEVELS = {
 
 /** Plural noun for a country's finest level when it has no LEVELS entry. */
 export const FINE_LABEL = {
+  BM: lv('parroquias', 'parishes', 'parroquia'),
   DE: lv('estados federados', 'states', 'estado'),
   AT: lv('estados federados', 'states', 'estado'),
   CH: lv('cantones', 'cantons', 'cantón'),

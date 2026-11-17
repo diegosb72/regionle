@@ -117,6 +117,420 @@ describe('shapes', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Names of regions (scripts/data/build.mjs; config.SOURCE_FIX and HOMONYMS)
+// ---------------------------------------------------------------------------
+
+interface UnitRec {
+  id: string;
+  n: { es: string; en?: string; lo?: string };
+  al?: string[];
+  /** The kind of unit, in Spanish, when it is not the one the level is made of. */
+  t?: string;
+  q?: 0;
+  wd?: string;
+  ar: number;
+}
+
+describe('names of regions', () => {
+  const fold = (s: string) =>
+    s
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+  const topologies = new Map<string, Topology>();
+  const units = (country: string, level = 'f'): UnitRec[] => {
+    if (!topologies.has(country)) topologies.set(country, read<Topology>(`r/${country}.json`));
+    const object = topologies.get(country)!.objects[level] as GeometryCollection<Omit<UnitRec, 'id'>>;
+    return object.geometries.map((g) => ({ ...(g.properties as Omit<UnitRec, 'id'>), id: String(g.id) }));
+  };
+  const asked = (country: string, level = 'f') => units(country, level).filter((u) => u.q !== 0);
+  const unit = (id: string) => units(id.split(/[-~]/)[0]).find((u) => u.id === id)!;
+  const es = (country: string) => asked(country).map((u) => u.n.es);
+  const cities = read<{ c: Record<string, CityRec[]> }>('cities.json').c;
+  /** The region a city lies in, by the name the game gives it. */
+  const regionOf = (country: string, city: string) => {
+    const rec = cities[country].find((c) => c.n.es === city);
+    return rec?.u ? unit(rec.u).n.es : undefined;
+  };
+
+  it('gives two pieces of a map one name only where a city and the district around it share it', () => {
+    // Every other pair so far was a label that had come from another place: twenty Latvian municipalities
+    // called «Valmiera», seven regions of Madagascar called like their province, two halves of «Tobago».
+    const twins = new Set<string>();
+    for (const c of index.countries) {
+      for (const level of c.lv) {
+        for (const lang of ['es', 'en'] as const) {
+          const byName = new Map<string, UnitRec[]>();
+          for (const u of asked(c.id, level.k)) {
+            const k = fold(u.n[lang] ?? u.n.es);
+            byName.set(k, [...(byName.get(k) ?? []), u]);
+          }
+          for (const group of byName.values()) {
+            if (group.length < 2) continue;
+            twins.add(group.map((u) => u.id).join(' = '));
+            // In Spanish, where both go by one name, the kind of unit under it tells them apart.
+            if (lang === 'es') expect(new Set(group.map((u) => u.t ?? '')).size, group.map((u) => u.id).join(' = ')).toBe(group.length);
+          }
+        }
+      }
+    }
+    expect([...twins].sort()).toEqual([
+      'AZ-SUS = AZ-x5565', // Shusha: the district and the town
+      'BG-22 = BG-23', // Sofia: the city and its province (in English)
+      'BM-HA = BM-HAM', // Hamilton: the city and the parish
+      'BY-HM = BY-MI', // Minsk
+      'HR-01 = HR-21', // Zagreb
+      'HU-VE = HU-VM', // Veszprém
+      'LA-VI = LA-VT', // Vientiane (in English)
+      'LV-x1066 = LV-x4851', // Rēzekne (in English)
+      'LV-x1081 = LV-x4850', // Daugavpils
+      'LV-x1084 = LV-x4849', // Jelgava
+      'LV-x1085 = LV-x5725', // Jēkabpils
+      'LV-x4852 = LV-x934', // Ventspils
+      'TW-CYI = TW-CYQ', // Chiayi
+      'TW-HSQ = TW-HSZ', // Hsinchu
+      'UA-30 = UA-32', // Kiev
+      'UZ-TK = UZ-TO', // Tashkent
+      'YE-SA = YE-SN', // Saná
+    ]);
+  });
+
+  it('keeps one Wikidata id to one piece, so that no piece shows the article of another', () => {
+    const shared: string[] = [];
+    for (const c of index.countries) {
+      const byWd = new Map<string, string[]>();
+      for (const u of asked(c.id)) if (u.wd) byWd.set(u.wd, [...(byWd.get(u.wd) ?? []), u.id]);
+      for (const ids of byWd.values()) if (ids.length > 1) shared.push(ids.join(' = '));
+    }
+    // A city and the municipality around it, in Latvia: nothing in the data says whose the id is.
+    expect(shared.sort()).toEqual(['LV-x1066 = LV-x4851', 'LV-x1085 = LV-x5725']);
+  });
+
+  it('names every piece in full, with no stray word in front and none left alone', () => {
+    const KIND = /^(Municipalidade?|Minicipalidad|Ayuntamiento|Municipio|Estado|Ciudad|División|Provincia|Departamento|Región|Distrito|Prefectura|Condado|Cantón|Comuna)\s+/i;
+    const problems: string[] = [];
+    for (const c of index.countries) {
+      for (const level of c.lv) {
+        for (const u of units(c.id, level.k)) {
+          for (const name of [u.n.es, u.n.en, u.n.lo]) {
+            if (name === undefined) continue;
+            if (!fold(name)) problems.push(`${u.id}: a name with no letters («${name}»)`);
+            if (/^(the|an?|of|de|del|el|la|los|las)$/i.test(name.trim())) problems.push(`${u.id}: «${name}» is not a name`);
+            if (/^\p{Ll}/u.test(name)) problems.push(`${u.id}: «${name}» begins in lower case`);
+          }
+          // «Municipalidad Kamnik», «Estado Kachin»: the kind of place in front of the name it has everywhere else.
+          const rest = u.n.es.replace(KIND, '');
+          if (rest !== u.n.es && [u.n.lo, u.n.en].some((other) => other !== undefined && fold(other) === fold(rest))) problems.push(`${u.id}: «${u.n.es}» for «${rest}»`);
+        }
+      }
+    }
+    expect(problems).toEqual([]);
+    // The district of Anguilla that was «The» in English, and took whatever began with "the".
+    expect(unit('AI-x5125').n).toEqual({ es: 'The Quarter' });
+    expect(asked('SI').map((u) => u.n.es)).toEqual(expect.arrayContaining(['Kamnik', 'Maribor', 'Murska Sobota', 'Dobrepolje']));
+    expect(es('GN')).toEqual(expect.arrayContaining(['Pita', 'Koubia', 'Gaoual']));
+    expect(es('ZA')).toEqual(expect.arrayContaining(['Cabo Oriental', 'Cabo Occidental', 'Cabo Septentrional']));
+  });
+
+  it('lays the names of Guyana, Eritrea and Ecuador on the polygons they belong to', () => {
+    // In the source the names of these three countries are rotated among their polygons. A capital lies
+    // in its own region, and that is the witness here: where each city falls, by the name of the piece.
+    expect(regionOf('GY', 'Georgetown')).toBe('Demerara-Mahaica');
+    expect(regionOf('GY', 'Linden')).toBe('Alto Demerara-Berbice');
+    expect(regionOf('GY', 'Lethem')).toBe('Alto Takutu-Alto Esequibo');
+    expect(regionOf('GY', 'Bartica')).toBe('Cuyuni-Mazaruni');
+    expect(regionOf('GY', 'Anna Regina')).toBe('Pomeroon-Supenaam');
+    expect(regionOf('GY', 'Corriverton')).toBe('Berbice Oriental-Corentyne');
+    expect(regionOf('ER', 'Asmara')).toBe('Maekel');
+    expect(regionOf('ER', 'Keren')).toBe('Anseba');
+    expect(regionOf('ER', 'Mendefera')).toBe('Debub');
+    expect(regionOf('ER', 'Massawa')).toBe('Semenawi Keyih Bahri');
+    expect(regionOf('EC', 'Ambato')).toBe('Tungurahua');
+    expect(regionOf('EC', 'Tena')).toBe('Napo');
+    // …and so does the size: the strip of coast is not the third of the country that touches Brazil.
+    const area = (id: string) => unit(id).ar;
+    expect(unit('GY-MA').n.es).toBe('Mahaica-Berbice');
+    expect(area('GY-MA')).toBeLessThan(5000);
+    expect(area('GY-EB')).toBeGreaterThan(30000);
+    expect(area('GY-UT')).toBeGreaterThan(area('GY-UD') * 3);
+    expect(area('GY-CU')).toBeGreaterThan(area('GY-PM') * 5);
+    expect(area('ER-MA')).toBeLessThan(area('ER-DU'));
+    expect(area('EC-N')).toBeGreaterThan(area('EC-T') * 3);
+    expect(new Set(es('GY')).size).toBe(10);
+    // The capitals of regions are found by where they lie, so they follow.
+    const capitals = read<{ rc: Record<string, Record<string, Record<string, string[]>>> }>('capitals.json').rc;
+    expect(capitals.EC.f['EC-N'][0]).toBe('Tena');
+    expect(capitals.EC.f['EC-T'][0]).toBe('Ambato');
+    expect(capitals.ER.f['ER-MA'][0]).toBe('Asmara');
+    expect(capitals.ER.f['ER-AN'][0]).toBe('Keren');
+  });
+
+  it('calls a piece by its own name: not by its neighbour, its region, its capital or its country', () => {
+    // Latvia: one Valmiera. Madagascar: twenty-two regions, none under the name of a province.
+    expect(asked('LV').filter((u) => u.n.es === 'Valmiera').map((u) => u.id)).toEqual(['LV-VMR']);
+    expect(unit('LV-008').n.es).toBe('Amatas');
+    expect(new Set(es('MG')).size).toBe(22);
+    for (const province of asked('MG', 'g1')) expect(es('MG'), province.n.es).not.toContain(province.n.es);
+    expect(unit('MG-x5866').n.es).toBe('Atsimo-Andrefana');
+    expect(unit('MG-x5867').n.es).toBe('Atsimo-Atsinanana');
+    // A neighbour's name.
+    expect(unit('GB-WRL').n.es).toBe('Wirral');
+    expect(es('GB').filter((n) => n === 'Halton')).toHaveLength(1);
+    expect(unit('AZ-LAC').n).toEqual({ es: 'Lachín', en: 'Lachin', lo: 'Laçın' });
+    expect(unit('AZ-LA').n.es).toBe('Lankaran');
+    // The county, the region or the country it belongs to.
+    expect(unit('GB-SHN').n.es).toBe('St Helens');
+    expect(unit('GB-LND').n).toMatchObject({ es: 'City de Londres', en: 'City of London' });
+    expect(unit('IT-BZ').n).toMatchObject({ es: 'Bolzano', en: 'South Tyrol' });
+    expect(unit('IT-GE').n).toMatchObject({ es: 'Génova', en: 'Genoa' });
+    for (const region of asked('IT', 'g1')) expect(es('IT'), region.n.es).not.toContain(region.n.es);
+    expect(unit('VN-66').n.es).toBe('Hưng Yên');
+    expect(unit('PM-x4866')).toMatchObject({ n: { es: 'Saint-Pierre' }, al: ['San Pedro'] });
+    expect(unit('MP-x4940').n).toMatchObject({ es: 'Islas del Norte', en: 'Northern Islands' });
+    expect(unit('DK-84').n.en).toBe('Capital Region');
+    // Its capital, or a place of another country.
+    expect(unit('MD-GA').n.es).toBe('Gagauzia');
+    expect(unit('XK-x5902').n.es).toBe('Pristina');
+    expect(unit('XK-x5908').n.es).toBe('Prizren');
+    expect(unit('ML-3').n.es).toBe('Sikasso');
+    // Two districts of one name on two islands.
+    expect([unit('SC-13').n.es, unit('SC-14').n.es]).toEqual(["Grand'Anse Mahé", "Grand'Anse Praslin"]);
+    expect([unit('MT-65').n.es, unit('MT-66').n.es]).toEqual(['Żebbuġ (Gozo)', 'Żebbuġ (Malta)']);
+    // The name of today, with the one it had before still accepted.
+    expect(unit('TJ-SU')).toMatchObject({ n: { es: 'Sughd' }, al: expect.arrayContaining(['Leninabad']) });
+    expect(unit('DO-07')).toMatchObject({ n: { es: 'Elías Piña' }, al: ['La Estrelleta'] });
+    expect(unit('NA-CA')).toMatchObject({ n: { es: 'Zambezi' }, al: ['Caprivi'] });
+  });
+
+  it('asks the seven emirates, and Tobago once', () => {
+    expect(byId.get('AE')!.lv).toMatchObject([{ k: 'f', n: 7 }]);
+    expect(es('AE').sort()).toEqual(['Abu Dabi', 'Ajman', 'Dubái', 'Fuyaira', 'Ras al-Jaima', 'Sarja', 'Umm al-Qaywayn']);
+    // The two neutral zones on the border with Oman are drawn and not asked.
+    const zones = units('AE').filter((u) => u.q === 0);
+    expect(zones.map((u) => [u.n.es, u.n.en])).toEqual([
+      ['Zona neutral', 'Neutral Zone'],
+      ['Zona neutral', 'Neutral Zone'],
+    ]);
+    // Every emirate is called after its capital: there is no capital to ask.
+    expect(read<{ rc: Record<string, unknown> }>('capitals.json').rc.AE).toBeUndefined();
+    expect(es('TT').filter((n) => n.includes('Tobago'))).toEqual(['Tobago']);
+    expect(unit('TT-TOB').ar).toBeGreaterThan(280);
+  });
+
+  it('uses the Spanish name where the place has one, also when it looks nothing like the local one', () => {
+    // The source's Spanish label was only believed when it resembled the local name, so a translation or a
+    // Spanish name of its own was thrown away: «Norte» stood beside "Western", and Jartum was "Khartoum".
+    expect(es('ZM')).toEqual(expect.arrayContaining(['Norte', 'Sur', 'Este', 'Oeste', 'Noroeste', 'Central']));
+    expect(es('RW').sort()).toEqual(['Este', 'Kigali', 'Norte', 'Oeste', 'Sur']);
+    expect(es('BW')).toEqual(expect.arrayContaining(['Noreste', 'Noroeste', 'Sudeste', 'Sur', 'Central']));
+    for (const c of ['ZM', 'RW', 'BW', 'SL', 'HK', 'SB', 'PG', 'AS']) {
+      for (const name of es(c)) expect(name, c).not.toMatch(/^(North|South|East|West)(ern)?([- ](East|West)(ern)?)?$/);
+    }
+    expect(es('SD')).toEqual(expect.arrayContaining(['Jartum', 'Nilo Azul', 'Nilo Blanco', 'Río Nilo', 'Mar Rojo', 'Darfur del Oeste']));
+    expect(es('SS')).toEqual(expect.arrayContaining(['Ecuatoria Oriental', 'Ecuatoria Occidental', 'Alto Nilo', 'Lagos', 'Unidad']));
+    expect(es('PG')).toEqual(expect.arrayContaining(['Nueva Irlanda', 'Tierras Altas Orientales', 'Nueva Bretaña del Este', 'Golfo', 'Bougainville']));
+    expect(es('PS').sort()).toEqual(['Cisjordania', 'Gaza']);
+    // A Spanish label written in English, and the halves of a region that was split under two spellings
+    // («Al Batnah North» beside «Al Batinah Sur») or under the name of the whole («Oriental»).
+    expect(es('TZ')).toEqual(expect.arrayContaining(['Pemba Norte', 'Pemba Sur', 'Zanzíbar Norte', 'Zanzíbar Central/Sur', 'Zanzíbar Urbano/Oeste']));
+    expect(es('OM')).toEqual(expect.arrayContaining(['Al Batinah Norte', 'Al Batinah Sur', 'Ash Sharqiyah Norte', 'Ash Sharqiyah Sur']));
+    for (const name of [...es('TZ'), ...es('OM')]) expect(name).not.toMatch(/\b(North|South|East|West)\b/);
+    expect(unit('OM-SH')).toMatchObject({ n: { es: 'Ash Sharqiyah Sur', en: 'Ash Sharqiyah South' }, al: expect.arrayContaining(['Oriental']) });
+    expect(unit('TZ-07').al).toContain('Zanzibar North');
+    // What it was called before is still taken.
+    expect(unit('SD-KH')).toMatchObject({ n: { es: 'Jartum', en: 'Khartoum' } });
+    expect(unit('PS-WBK')).toMatchObject({ n: { es: 'Cisjordania', en: 'West Bank' }, al: ['Ribera Occidental'] });
+    // A unit called after the capital of its country goes by the name the game gives that capital.
+    for (const [country, id] of [
+      ['SD', 'SD-KH'],
+      ['GE', 'GE-TB'],
+      ['DJ', 'DJ-DJ'],
+      ['TD', 'TD-ND'],
+      ['BT', 'BT-15'],
+      ['AE', 'AE-AZ'],
+      ['BD', 'BD-C'],
+      ['JO', 'JO-AM'],
+      ['MW', 'MW-LI'],
+      ['OM', 'OM-MA'],
+      ['AD', 'AD-07'],
+      ['AI', 'AI-x5126'],
+      ['PM', 'PM-x4866'],
+    ]) {
+      expect(unit(id).n.es, id).toBe(byId.get(country)!.cap!.es);
+    }
+    // In English too: the name the place has in English, not the local one spelt out.
+    const en = (id: string) => unit(id).n.en ?? unit(id).n.es;
+    expect([en('ER-SK'), en('ER-DK')]).toEqual(['Northern Red Sea', 'Southern Red Sea']);
+    expect([en('SO-JD'), en('SO-SH')]).toEqual(['Middle Juba', 'Lower Shebelle']);
+    expect(['BH-13', 'BH-14', 'BH-16', 'BH-17'].map(en)).toEqual(['Capital', 'Southern', 'Central', 'Northern']);
+    expect([en('KH-5'), en('CZ-PL'), en('SD-DW'), en('PG-NSB')]).toEqual(['Kampong Speu', 'Plzeň', 'West Darfur', 'Bougainville']);
+    // A name the place no longer goes by gives way to the one it has, and is still taken.
+    expect(unit('TM-D')).toMatchObject({ n: { es: 'Daşoguz' }, al: expect.arrayContaining(['Tashauz']) });
+    expect(unit('PH-COM')).toMatchObject({ n: { es: 'Davao de Oro' }, al: expect.arrayContaining(['Compostela Valley']) });
+    expect(unit('NI-AN')).toMatchObject({ n: { es: 'Costa Caribe Norte' }, al: expect.arrayContaining(['Atlántico Norte']) });
+  });
+
+  it('spells a name the way it is spelt: no letters swapped, dropped or added in one label of the three', () => {
+    // «Vekila Polana» beside "Velika Polana", «Haute-Rhin», «Zinguldak»: one label with a slip of the pen,
+    // found by setting each name against the other two.
+    const spelt: [string, 'es' | 'lo', string][] = [
+      ['SI-094', 'es', 'Postojna'],
+      ['SI-101', 'es', 'Radlje ob Dravi'],
+      ['SI-187', 'es', 'Velika Polana'],
+      ['SZ-SH', 'es', 'Shiselweni'],
+      ['PW-370', 'es', 'Sonsorol'],
+      ['BT-TY', 'es', 'Trashiyangtse'],
+      ['ET-BE', 'es', 'Benishangul-Gumuz'],
+      ['PW-050', 'lo', 'Hatohobei'],
+      ['IT-KR', 'lo', 'Crotone'],
+      ['IT-OR', 'lo', 'Oristano'],
+      ['FR-68', 'lo', 'Haut-Rhin'],
+      ['FR-77', 'lo', 'Seine-et-Marne'],
+      ['GB-NAY', 'lo', 'North Ayrshire'],
+      ['TR-67', 'lo', 'Zonguldak'],
+    ];
+    for (const [id, lang, name] of spelt) {
+      const u = unit(id);
+      expect(u.n[lang] ?? u.n.es, `${id} ${lang}`).toBe(name);
+      // The label with the slip is not kept as another name of the piece.
+      expect((u.al ?? []).filter((a) => /Municipalidad/.test(a)), id).toEqual([]);
+    }
+    // The same letters in another order, in a name of one word, is a slip; a name of several words may be
+    // turned round on purpose («Java Central» for "Central Java").
+    const tight = (name: string) => fold(name).replace(/ /g, '');
+    const letters = (name: string) => [...tight(name)].sort().join('');
+    for (const country of index.countries) {
+      for (const u of asked(country.id)) {
+        for (const other of [u.n.en, u.n.lo]) {
+          if (!other || tight(other) === tight(u.n.es) || /\s|-/.test(u.n.es.trim())) continue;
+          if (['Argel', 'Luxemburgo', 'Friburgo'].includes(u.n.es)) continue; // Alger, Luxembourg, Fribourg
+          expect(letters(other) === letters(u.n.es), `${u.id} «${u.n.es}» / «${other}»`).toBe(false);
+        }
+      }
+    }
+    // A district of Anguilla goes by its English name, as the other thirteen do.
+    expect(unit('AI-x5119')).toMatchObject({ n: { es: 'North Side' }, al: ['Lado norte'] });
+    expect(unit('GL-UO').n).toMatchObject({ es: 'Parque nacional del noreste de Groenlandia', en: 'Northeast Greenland National Park' });
+    expect(unit('ER-SK').al).toEqual(expect.arrayContaining(['Mar Rojo Septentrional']));
+  });
+
+  it('names the regions a country is asked by, not the label of a field of the source', () => {
+    // The Philippines, Azerbaijan and Burkina Faso are asked by region, and the regions were called
+    // «Bicol (Region V)», «Absheron Economic Region», «Centre-Est»; Caraga was «Dinagat Islands (Region XIII)».
+    const named = (country: string) => asked(country, byId.get(country)!.dl).map((u) => u.n.es);
+    expect(byId.get('PH')!.dl).toBe('g1');
+    expect(named('PH').sort((a, b) => a.localeCompare(b, 'es'))).toEqual([
+      'Bangsamoro',
+      'Bicol',
+      'Bisayas Centrales',
+      'Bisayas Occidentales',
+      'Bisayas Orientales',
+      'Calabarzon',
+      'Caraga',
+      'Davao',
+      'Gran Manila',
+      'Ilocos',
+      'La Cordillera',
+      'Luzón Central',
+      'Mimaropa',
+      'Mindanao del Norte',
+      'Península de Zamboanga',
+      'Soccsksargen',
+      'Valle del Cagayán',
+    ]);
+    expect(named('AZ')).toEqual(expect.arrayContaining(['Absheron', 'Najicheván', 'Alto Karabaj', 'Kalbajar-Lachín']));
+    expect(named('BF')).toEqual(expect.arrayContaining(['Centro', 'Centro-Este', 'Este', 'Norte', 'Sudoeste', 'Sahel']));
+    expect(named('GN')).toEqual(expect.arrayContaining(['Conakri', 'Boké']));
+    // The ids are the ones these pieces had: progress is kept by id.
+    expect(asked('PH', 'g1').map((u) => u.id)).toEqual(expect.arrayContaining(['PH~dinagat-islands-region-xiii', 'PH~national-capital-region']));
+    for (const c of index.countries) {
+      for (const u of asked(c.id, c.dl)) {
+        for (const name of [u.n.es, u.n.en ?? u.n.es]) {
+          expect(name, u.id).not.toMatch(/\((Region|Región|CAR|ARMM)\b|Economic Region|Autonomous Republic$/);
+        }
+      }
+    }
+  });
+});
+
+describe('names of cities and capitals', () => {
+  const cities = read<{ c: Record<string, CityRec[]> }>('cities.json').c;
+  const all = Object.entries(cities).flatMap(([country, list]) => list.map((c) => ({ country, ...c })));
+  const city = (country: string, name: string) => cities[country].find((c) => c.n.es === name)!;
+  const SCHOLARLY = /[āēīōūġḥṭṣḍẓḳčšʿʾ]/i;
+
+  it('gives no city the label of another thing', () => {
+    // Each of these was in the game: Puerto Plata as «El higo luperon», and in English Coquimbo as
+    // "Atlético Morelia", Mazatlán as "Juarez", the Colón of Panama as "Bucaramanga", Hail as "Saudi Arabia".
+    const namesIn = (country: string) => new Set(cities[country].flatMap((c) => [c.n.es, c.n.en ?? '', ...((c as { al?: string[] }).al ?? [])]));
+    for (const [country, wrong] of [
+      ['DO', 'El higo luperon'],
+      ['CL', 'Atlético Morelia'],
+      ['CL', 'Trehuaco'],
+      ['MX', 'Juarez'],
+      ['MX', 'Ciudad Madero Tamaulipas'],
+      ['PA', 'Bucaramanga'],
+      ['SA', 'Saudi Arabia'],
+      ['EG', 'sharkia'],
+      ['IQ', 'Thi Qar'],
+      ['KH', 'Kam'],
+    ]) {
+      expect(namesIn(country).has(wrong), `${country} ${wrong}`).toBe(false);
+    }
+    expect(city('DO', 'Puerto Plata').u).toBe('DO-18');
+    expect(city('MX', 'Mazatlán').n).toEqual({ es: 'Mazatlán' });
+    expect(city('PA', 'Colón').n).toEqual({ es: 'Colón' });
+    expect(city('CU', 'Caibarién')).toBeTruthy();
+    expect(cities.CU.filter((c) => c.n.es.startsWith('Placetas'))).toHaveLength(1);
+    expect(city('BZ', 'San Ignacio')).toBeTruthy();
+    // The capitals of regions are cities, and take their names from them.
+    const capitals = read<{ rc: Record<string, Record<string, Record<string, string[]>>> }>('capitals.json').rc;
+    expect(capitals.DO.f['DO-18']).toEqual(['Puerto Plata']);
+    expect(capitals.SA.f['SA-06']).not.toContain('Saudi Arabia');
+    expect(capitals.PA.f['PA-3']).toEqual(['Colón']);
+  });
+
+  it('writes every city name as a name: a capital letter first, no scholarly marks, no kind of place in front', () => {
+    const problems: string[] = [];
+    for (const c of all) {
+      for (const name of [c.n.es, c.n.en]) {
+        if (name === undefined) continue;
+        // «'s-Hertogenbosch» and «'Alayat Sama’il» begin with an apostrophe, and rightly.
+        if (/^\p{Ll}/u.test(name)) problems.push(`${c.country} «${name}» begins in lower case`);
+      }
+      if (SCHOLARLY.test(c.n.es) && !SCHOLARLY.test(c.n.en ?? c.n.es)) problems.push(`${c.country} «${c.n.es}» for «${c.n.en}»`);
+      if (/^(Condado|Distrito|Municipio|Provincia|Prefectura|Departamento)\s/.test(c.n.es) && c.n.en !== undefined) problems.push(`${c.country} «${c.n.es}»`);
+    }
+    expect(problems).toEqual([]);
+    expect(cities.AF.map((c) => c.n.es)).toEqual(expect.arrayContaining(['Herat', 'Kunduz', 'Baghlan', 'Sheberghan']));
+    expect(cities.PH.map((c) => c.n.es)).toEqual(expect.arrayContaining(['Davao', 'Cebú', 'Zamboanga', 'Ciudad Quezon']));
+  });
+
+  it('spells a capital the way the unit called after it is spelt, and takes no scrap of a name for it', () => {
+    expect(byId.get('AE')!.cap).toMatchObject({ es: 'Abu Dabi', en: 'Abu Dhabi' });
+    expect(byId.get('BD')!.cap).toMatchObject({ es: 'Daca', al: ['Dacca'] });
+    expect(city('AE', 'Abu Dabi')).toBeTruthy();
+    expect(cities.AE.map((c) => c.n.es)).toEqual(expect.arrayContaining(['Ras al-Jaima', 'Umm al-Qaywayn', 'Sarja', 'Fuyaira']));
+    // The source cuts its other names at the first letter that is not ASCII: Hanoi also answered to «H».
+    for (const c of index.countries) {
+      const cap = c.cap as { es: string; en?: string; al?: string[] } | undefined;
+      for (const a of cap?.al ?? []) {
+        expect(a.length, `${c.id} «${a}»`).toBeGreaterThan(1);
+        expect(a, c.id).not.toMatch(/[()]/);
+        for (const full of [cap!.es, cap!.en ?? cap!.es]) {
+          const cut = full.length > a.length && full.startsWith(a) && /[^\x00-\x7f]/.test(full[a.length]);
+          expect(cut, `${c.id} «${a}» of «${full}»`).toBe(false);
+        }
+      }
+    }
+    expect(byId.get('VN')!.cap).toEqual({ es: 'Hanói', en: 'Hanoi', ll: [105.848, 21.035] });
+    expect(byId.get('MX')!.cap).toMatchObject({ es: 'Ciudad de México', al: ['México', 'México D. F.', 'CDMX', 'Mexico DF'] });
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Cities and physical geography (scripts/data/physical.mjs)
 // ---------------------------------------------------------------------------
 
@@ -408,7 +822,7 @@ describe('capitals.json', () => {
     // Each of these was wrong as the source marks it, and was put right after comparing with GeoNames.
     const first = (id: string, unit: string, level = 'f') => file.rc[id][level][unit]?.[0];
     expect(first('CY', 'CY-01')).toBe('Nicosia');
-    expect(first('BD', 'BD-C')).toBe('Dacca');
+    expect(first('BD', 'BD-C')).toBe('Daca');
     expect(first('NL', 'NL-FL')).toBe('Lelystad');
     expect(first('NL', 'NL-NH')).toBe('Haarlem');
     expect(first('NL', 'NL-ZH')).toBe('La Haya');

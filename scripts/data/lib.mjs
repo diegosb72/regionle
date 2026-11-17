@@ -44,11 +44,55 @@ export function similar(a, b) {
   return lev(a, b) <= Math.floor(Math.max(a.length, b.length) * 0.34);
 }
 
+// The points of the compass and the words that go with them, in English and French, and the Spanish
+// words that say the same.
+const COMPASS = {};
+for (const [words, es] of [
+  ['north northern nord', 'norte septentrional'],
+  ['south southern sud', 'sur meridional'],
+  ['east eastern est', 'este oriental'],
+  ['west western ouest', 'oeste occidental'],
+  ['northeast northeastern nordest', 'noreste nordeste nororiental'],
+  ['northwest northwestern nordouest', 'noroeste noroccidental'],
+  ['southeast southeastern sudest', 'sureste sudeste suroriental'],
+  ['southwest southwestern sudouest', 'suroeste sudoeste suroccidental'],
+  ['central centre center', 'central centro'],
+  ['upper', 'alto alta superior'],
+  ['lower', 'bajo baja inferior'],
+])
+  for (const w of words.split(' ')) COMPASS[w] = es.split(' ');
+const COMPASS_FILL = new Set('de del la el the of and y et du le'.split(' '));
+const compassWords = (s) =>
+  norm(s)
+    .replace(/\b(north|south|nord|sud) (east|west|est|ouest)(ern)?\b/g, '$1$2$3')
+    .split(' ')
+    .filter((w) => w && !COMPASS_FILL.has(w));
+
+/**
+ * Whether a Spanish label says, word for word, what a name made of points of the compass says:
+ * «Noroeste» for "North-Western", «Meridional» for "Southern", «Central y Occidental» for "Central and
+ * Western". `similar` cannot see that the two are one name, and without this a map came out half
+ * translated: «Norte», which looks like "Northern", beside "Western" and "Southern", which look like
+ * nothing in Spanish.
+ */
+export function translates(es, other) {
+  const left = compassWords(es);
+  const words = compassWords(other);
+  if (!words.length || words.length !== left.length) return false;
+  for (const w of words) {
+    const i = left.findIndex((x) => (COMPASS[w] || []).includes(x));
+    if (i < 0) return false;
+    left.splice(i, 1);
+  }
+  return true;
+}
+
 const cap = (s) => (s ? s[0].toLocaleUpperCase('es') + s.slice(1) : s);
 
 const ES_GENERIC =
-  'Municipalidad|Minicipalidad|Municipio metropolitano|Municipio|Parroquia|Voivodato|Zona|Estado|Ciudad|Ayuntamiento|Periferia|Krai|División|Provincia|Departamento|Región|Prefectura autónoma|Prefectura|Condado|Distrito autónomo|Distrito|Gobernación|Óblast|Cantón|Comuna|Raión|República autónoma|Emirato|Consejo';
+  'Municipalidade|Municipalidad|Minicipalidad|Municipio metropolitano|Municipio|Parroquia|Voivodato|Zona|Estado|Ciudad|Ayuntamiento|Periferia|Krai|División|Provincia|Departamento|Región|Prefectura autónoma|Prefectura|Condado|Distrito autónomo|Distrito|Gobernación|Óblast|Cantón|Comuna|Raión|República autónoma|Emirato|Consejo';
 const ES_PREFIX = new RegExp(`^(?:${ES_GENERIC})\\s+(?:de\\s+la\\s+|de\\s+los\\s+|de\\s+las\\s+|del\\s+|de\\s+|d')`, 'iu');
+const ES_KIND = new RegExp(`^(?:(?:${ES_GENERIC})\\s+)+`, 'iu');
 
 /** Tidy a Wikidata-style Spanish label into a short map label. */
 export function cleanEs(raw) {
@@ -63,9 +107,23 @@ export function cleanEs(raw) {
   return s.replace(/\s+/g, ' ').trim();
 }
 
+/**
+ * "Municipalidad Kamnik", "Estado Kachin", "Ayuntamiento Pita": some Spanish labels put the kind of place
+ * in front of its name with no "de" in between, which `cleanEs` leaves alone because "Distrito Federal"
+ * and "Estado Libre" are built the same way. What tells them apart is whether the rest is the name the
+ * place goes by: returns that rest when it is one of `names`, and the label as it came otherwise.
+ */
+export function dropKind(es, names) {
+  const rest = String(es ?? '').replace(ES_KIND, '');
+  if (!rest || rest === es) return es;
+  const k = norm(rest);
+  return names.some((n) => n && norm(n) === k) ? cap(rest) : es;
+}
+
 const EN_SUFFIX = /\s+(?:Prefecture|Voivodeship|Province|Region|County|Oblast|Krai|District|Department|Governorate|Municipality|Canton|Parish|Zone|Quarter|State)$/i;
 const EN_PREFIX = /^(?:Province|Department|State|Region|Canton|County|Republic|Emirate|Community|Free Hanseatic|Autonomous Republic|Autonomous Community) of (?:the )?/i;
-const EN_BARE = /^(?:Federal|Capital|National|Special|Metropolitan|Autonomous|Free|New|North|South|East|West|Central|Northern|Southern|Eastern|Western|Upper|Lower|Greater)$/i;
+// What must not be left standing alone: "Federal District" is not "Federal", and "The Quarter" is not "The".
+const EN_BARE = /^(?:The|An?|Federal|Capital|National|Special|Metropolitan|Autonomous|Free|Neutral|Mountain|New|North|South|East|West|Central|Northern|Southern|Eastern|Western|Upper|Lower|Greater)$/i;
 
 /** Tidy an English label ("Aichi Prefecture" → "Aichi"). */
 export function cleanEn(raw) {
