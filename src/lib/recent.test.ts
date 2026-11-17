@@ -73,6 +73,9 @@ describe('what is kept of a game to play it again', () => {
     expect(isRecent({ t: 1, section: 'regions', mode: 'pin', countries: [], levels: {}, o: {}, ok: 0, total: 0 })).toBe(false);
     expect(isRecent({ t: 1, section: 'regions', mode: 'pin', countries: ['ES'], o: {}, ok: 0, total: 0 })).toBe(false);
     expect(isRecent({ t: 1, section: 'regions', mode: 'pin', countries: [3], levels: {}, o: {}, ok: 0, total: 0 })).toBe(false);
+    // A section the game does not have: nothing could be said of it, nor started.
+    expect(isRecent({ t: 1, section: 'oceans', mode: 'pin', countries: ['ES'], levels: {}, o: {}, ok: 0, total: 0 })).toBe(false);
+    expect(isRecent({ t: 1, section: 'toString', mode: 'pin', countries: ['ES'], levels: {}, o: {}, ok: 0, total: 0 })).toBe(false);
   });
 });
 
@@ -105,6 +108,12 @@ describe('the saved state keeps the maps played lately', () => {
     expect(s.opts.format).toBe('lives');
     // The other sections are left alone.
     expect(s.sel.countries.length).toBeGreaterThan(2);
+  });
+
+  it('puts away a list in use in that section, and no other', () => {
+    useStore.setState({ listOn: { regions: 'a', cities: 'b' } });
+    useStore.getState().resume(recentOf(game(), session())!);
+    expect(useStore.getState().listOn).toEqual({ cities: 'b' });
   });
 
   it('brings them back from a backup, and keeps its own when the backup is from before', () => {

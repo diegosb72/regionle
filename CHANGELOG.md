@@ -9,6 +9,11 @@ Lo que ha traído cada versión, de la más reciente a la primera. Es la misma l
 - La portada descarga menos de la mitad de código que antes: cada pantalla se pide cuando hace falta.
 - El enlace del juego se comparte con título, descripción e imagen, y hay una página para cada idioma.
 - Imagen para compartir el resultado del reto del día.
+- La portada recuerda los últimos mapas jugados y las selecciones guardadas, para seguir con un clic.
+- En Progreso, lo que más fallas, mapa por mapa, con una partida para practicarlo; y el repaso se descarga en CSV.
+- Los menús dicen cuánto dura la partida elegida y qué porcentaje aciertas a la primera en ese modo.
+- Atajos de teclado en cualquier pantalla (1 a 5, R, P y T) y «?» para verlos todos.
+- Sonidos y vibración al responder, si se activan en el pie de página.
 - Página «Acerca de» con las novedades, las licencias y qué se guarda y dónde.
 - Bienvenida para quien entra por primera vez.
 - Si una pantalla falla, lo dice y deja seguir; una dirección que no existe lo dice en lugar de enseñar la portada.

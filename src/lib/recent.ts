@@ -2,6 +2,7 @@
  * The maps played lately, kept so that the first page can offer them again. A session only says what a
  * game was called; this keeps what it takes to start it: which countries, at which level, in which game.
  */
+import { PATHS } from './routes';
 import { FORMAT_MODES } from './rules';
 import type { GameConfig, Opts, SessionRec } from './store';
 import type { Mode, Section } from './types';
@@ -81,6 +82,7 @@ export function isRecent(x: unknown): x is Recent {
     typeof r === 'object' &&
     typeof r.t === 'number' &&
     typeof r.section === 'string' &&
+    Object.hasOwn(PATHS, r.section) &&
     typeof r.mode === 'string' &&
     Array.isArray(r.countries) &&
     r.countries.length > 0 &&

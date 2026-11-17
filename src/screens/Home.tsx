@@ -132,9 +132,14 @@ function Recents({ world }: { world: World }) {
   const resume = useStore((s) => s.resume);
   const setSel = useStore((s) => s.setSel);
   const setLevel = useStore((s) => s.setLevel);
-  // A map whose countries the data no longer has cannot be played again.
-  const shown = recent.filter((r) => r.section === 'physical' || countriesOf(specOf(r), world).length > 0).slice(0, RECENT_SHOWN);
-  if (!shown.length && !favs.length) return null;
+  // A game this version does not have, or a map whose countries the data no longer has, cannot be played again.
+  const shown = recent
+    .filter((r) => MODES[r.section]?.some((m) => m.id === r.mode))
+    .filter((r) => r.section === 'physical' || countriesOf(specOf(r), world).length > 0)
+    .slice(0, RECENT_SHOWN);
+  // What is kept may come from another version, or from a file edited by hand: only what can be shown is.
+  const saved = favs.filter((f) => !!f && typeof f.name === 'string' && Object.hasOwn(SECTIONS, f.section) && Array.isArray(f.ids) && f.ids.length > 0);
+  if (!shown.length && !saved.length) return null;
 
   const again = (r: Recent) => {
     resume(r);
@@ -185,11 +190,11 @@ function Recents({ world }: { world: World }) {
           })}
         </ul>
       )}
-      {favs.length > 0 && (
+      {saved.length > 0 && (
         <div className="recent-favs">
           {shown.length > 0 && <h3>{L('Tus selecciones guardadas', 'Your saved selections')}</h3>}
           <ul>
-            {favs.map((fav) => (
+            {saved.map((fav) => (
               <li key={`${fav.section}:${fav.name}`}>
                 <button type="button" className="chip" onClick={() => openFav(fav)} title={L(`${fav.ids.length} países guardados`, `${fav.ids.length} countries saved`)}>
                   <Star size={13} aria-hidden="true" />

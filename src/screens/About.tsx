@@ -92,8 +92,8 @@ export function About() {
           <li>
             <b>{L('Qué sale de aquí.', 'What leaves it.')}</b>{' '}
             {L(
-              'Solo lo que tú envías: el enlace de un reto o de una lista lleva dentro las preguntas, tu resultado y tu nombre, y la copia de seguridad es un archivo que guardas tú.',
-              'Only what you send yourself: the link of a challenge or of a list carries the questions, your result and your name, and the backup is a file that you keep.',
+              'Solo lo que tú envías: el enlace de un reto o de una lista lleva dentro las preguntas, tu resultado y tu nombre; la copia de seguridad, la tabla del repaso y la imagen del reto del día son archivos que guardas tú.',
+              'Only what you send yourself: the link of a challenge or of a list carries the questions, your result and your name; the backup, the table of the review and the picture of the daily challenge are files that you keep.',
             )}
           </li>
           <li>

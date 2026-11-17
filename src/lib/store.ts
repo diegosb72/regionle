@@ -296,7 +296,11 @@ export const useStore = create<State>()(
       resume: (r) =>
         set((s) => {
           const cfg = recentConfig(r, s.opts);
+          // It was not played on a list: one in use in that section would hide the map that comes back.
+          const listOn = { ...s.listOn };
+          delete listOn[r.section];
           return {
+            listOn,
             sel: { ...s.sel, [r.section]: cfg.countries },
             levels: { ...s.levels, ...cfg.levels },
             mode: { ...s.mode, [r.section]: r.mode },
