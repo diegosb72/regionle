@@ -1046,8 +1046,8 @@ button.chip.on:hover:not(:disabled) {
 
 .why {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 28px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px 36px;
   margin-top: 44px;
   padding-top: 28px;
   border-top: 1px solid var(--line);
@@ -1066,6 +1066,11 @@ button.chip.on:hover:not(:disabled) {
 .why p {
   color: var(--ink-2);
   font-size: 15.5px;
+}
+.why p a {
+  color: var(--brand);
+  font-weight: 600;
+  white-space: nowrap;
 }
 .home-last {
   margin-top: 36px;
@@ -4843,6 +4848,46 @@ a.d-cal-day:hover {
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
+}
+/* The steps of something that is done elsewhere in the game: how a challenge is sent, how a list is made. */
+.how-steps {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--card);
+  box-shadow: var(--shadow-1);
+  counter-reset: how;
+}
+.how-steps > li {
+  position: relative;
+  min-height: 26px;
+  padding-left: 40px;
+  color: var(--ink-2);
+  font-size: 15.5px;
+  line-height: 1.5;
+  text-wrap: pretty;
+  counter-increment: how;
+}
+.how-steps > li::before {
+  content: counter(how);
+  position: absolute;
+  top: -1px;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: var(--on-brand);
+  font-size: 14px;
+  font-weight: 700;
+}
+.how-steps b {
+  color: var(--ink);
 }
 
 /* ------------------------------------------- progress: knowledge map, review */

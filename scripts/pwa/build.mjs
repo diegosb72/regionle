@@ -4,7 +4,8 @@
  *   node scripts/pwa/build.mjs <build folder>
  *
  * Writes into the build folder:
- *   sw.js         the service worker (scripts/pwa/sw.js) with the version and the files of the application
+ *   sw.js         the service worker (scripts/pwa/sw.js) with the version, the files of the application and
+ *                 the page that answers a visit to each page of the site
  *   offline.json  what "download everything" has to fetch (maps of every country, cities, physical
  *                 geography, flags) and how much it weighs once compressed
  */
@@ -33,8 +34,28 @@ function walk(dir, base = '') {
 }
 
 const GENERATED = new Set(['sw.js', 'offline.json']);
-/** Read by search engines and social networks, never by the game: neither stored nor counted in the version. */
-const forCrawlers = (f) => f === 'robots.txt' || f === 'sitemap.xml' || /^social-[\w-]+\.png$/.test(f);
+
+/**
+ * The pages next to the first one. `es.html` and `en.html` are the game in one language, each named after the
+ * language it is written in. Any other (`regiones.html`, `regions.html`…) is the page of a screen: the page
+ * of its language with the title and the description of that screen, which the game opens by its address.
+ */
+const langOf = (f) => /<html lang="([a-z]+)"/.exec(fs.readFileSync(path.join(out, f), 'utf8'))?.[1] ?? '';
+const beside = walk(out)
+  .filter((f) => /^[^/]+\.html$/.test(f) && f !== 'index.html')
+  .sort();
+const langPages = beside.filter((f) => f === `${langOf(f)}.html`);
+const screenPages = beside.filter((f) => !langPages.includes(f) && langPages.includes(`${langOf(f)}.html`));
+/** Which page answers a visit to each of them, asked for with or without its extension. */
+const pages = {};
+for (const f of langPages) pages[f] = pages[f.slice(0, -5)] = f;
+for (const f of screenPages) pages[f] = pages[f.slice(0, -5)] = `${langOf(f)}.html`;
+
+/**
+ * Read by search engines and social networks, never by the game, which answers a visit to the page of a
+ * screen with the page of its language: neither stored nor counted in the version.
+ */
+const forCrawlers = (f) => f === 'robots.txt' || f === 'sitemap.xml' || /^social-[\w-]+\.png$/.test(f) || screenPages.includes(f);
 const files = walk(out)
   .filter((f) => !GENERATED.has(f) && !f.startsWith('.') && !forCrawlers(f))
   .sort();
@@ -58,6 +79,7 @@ const fresh = shell.filter((f) => !f.startsWith('assets/') && !WORLD.includes(f)
 const version = createHash('sha1')
   .update(digest(files))
   .update(JSON.stringify(offline))
+  .update(JSON.stringify(pages))
   .update(fs.readFileSync(path.join(here, 'sw.js')))
   .digest('hex')
   .slice(0, 12);
@@ -66,12 +88,14 @@ const source = fs
   .readFileSync(path.join(here, 'sw.js'), 'utf8')
   .replace("'__VERSION__'", JSON.stringify(version))
   .replace('__SHELL__', JSON.stringify(shell))
-  .replace('__FRESH__', JSON.stringify(fresh));
-if (/__(VERSION|SHELL|FRESH)__/.test(source)) throw new Error('sw.js: quedan marcas sin sustituir');
+  .replace('__FRESH__', JSON.stringify(fresh))
+  .replace('__PAGES__', JSON.stringify(pages));
+if (/__(VERSION|SHELL|FRESH|PAGES)__/.test(source)) throw new Error('sw.js: quedan marcas sin sustituir');
 fs.writeFileSync(path.join(out, 'sw.js'), source);
 
 const kb = (n) => `${Math.round(n / 1024)} kB`;
 const shellBytes = shell.reduce((n, f) => n + zipped(f), 0);
 console.log(`pwa · versión ${version}`);
 console.log(`pwa · aplicación: ${shell.length} archivos, ${kb(shellBytes)} comprimidos`);
+console.log(`pwa · páginas: ${langPages.length} de idioma, guardadas; ${screenPages.length} de pantalla, que contesta la de su idioma`);
 console.log(`pwa · descarga completa: ${pack.length} archivos, ${kb(offline.bytes)} comprimidos`);

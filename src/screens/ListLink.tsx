@@ -1,15 +1,61 @@
-/** A custom list received by link: what it holds, and the way to keep it and play it. */
-import { ArrowLeft, ListChecks, Play } from 'lucide-react';
+/** A custom list received by link: what it holds, and the way to keep it and play it. Without a link, how one is made. */
+import { ArrowLeft, ArrowRight, ListChecks, Play } from 'lucide-react';
 import { useMemo } from 'react';
 import { Flag } from '../components/ui';
 import type { World } from '../lib/data';
 import { countriesOf, describeMap } from '../lib/describe';
 import { L } from '../lib/i18n';
-import { decodeList, sameList } from '../lib/lists';
+import { LIST_SECTIONS, decodeList, sameList } from '../lib/lists';
 import { PATHS, SECTIONS } from '../lib/modes';
 import { go } from '../lib/router';
 import { useStore } from '../lib/store';
-import { nf } from '../lib/text';
+import { listed, nf } from '../lib/text';
+
+/**
+ * `#/lista` on its own: what a custom list is, where it is made and how it is passed on. Lists are made
+ * inside the menu of each section, where whoever has never opened one would not look for them.
+ */
+function ListHow() {
+  const sections = listed(LIST_SECTIONS.map((id) => SECTIONS[id].name), L('y', 'and'));
+  return (
+    <div className="duel-page">
+      <p className="kicker">
+        <ListChecks size={15} aria-hidden="true" /> {L('Listas a medida', 'Custom lists')}
+      </p>
+      <h1>{L('Solo las piezas que tú elijas', 'Just the pieces you choose')}</h1>
+      <p className="lead">
+        {L(
+          'Las doce provincias del examen del jueves, los países de un viaje, los ríos que no te salen: una lista guarda esas piezas y nada más, y se pasa a otros con un enlace.',
+          'The twelve provinces for Thursday’s exam, the countries of a trip, the rivers you keep missing: a list keeps those pieces and nothing else, and is passed on with a link.',
+        )}
+      </p>
+      <ol className="how-steps">
+        <li>
+          <b>{L('Entra en una sección y elige el mapa.', 'Open a section and choose the map.')}</b>{' '}
+          {L(`Hay listas en ${sections}: «Nueva lista» está arriba, junto a «Listas a medida».`, `There are lists in ${sections}: “New list” is at the top, next to “Custom lists”.`)}
+        </li>
+        <li>
+          <b>{L('Marca las piezas en el mapa y ponle nombre.', 'Mark the pieces on the map and give it a name.')}</b>{' '}
+          {L('Con la lista en uso, los juegos preguntan solo por ellas; el resto del mapa sigue a la vista, de contexto.', 'With the list in use, games only ask about them; the rest of the map stays in view, as context.')}
+        </li>
+        <li>
+          <b>{L('Pulsa «Compartir» para pasarla.', 'Press “Share” to pass it on.')}</b>{' '}
+          {L('Quien abra el enlace la guarda junto a las suyas y juega con ella en el modo que prefiera.', 'Whoever opens the link keeps it with their own lists and plays it in the mode they prefer.')}
+        </li>
+      </ol>
+      <p className="duel-rules">{L('Las listas se guardan en este navegador, como todo lo demás, y entran en la copia de seguridad de Progreso.', 'Lists are kept in this browser, like everything else, and are part of the backup in Progress.')}</p>
+      <div className="duel-actions">
+        <a className="btn btn-primary btn-lg" href={`#/${PATHS.regions}`}>
+          {L('Hacer una lista', 'Make a list')}
+          <ArrowRight size={18} aria-hidden="true" />
+        </a>
+        <a className="btn btn-ghost" href="#/">
+          {L('Ir al inicio', 'Go to the home page')}
+        </a>
+      </div>
+    </div>
+  );
+}
 
 export function ListLink({ code, world }: { code: string; world: World }) {
   const lists = useStore((s) => s.lists);
@@ -19,6 +65,7 @@ export function ListLink({ code, world }: { code: string; world: World }) {
   const countries = useMemo(() => (list ? countriesOf(list, world) : []), [list, world]);
   const valid = !!list && (list.section === 'physical' || countries.length > 0);
 
+  if (!code) return <ListHow />;
   if (!valid || !list) {
     return (
       <div className="duel-page">

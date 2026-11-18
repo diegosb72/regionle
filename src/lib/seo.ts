@@ -7,8 +7,18 @@
  * may be used.
  */
 export type SeoLang = 'es' | 'en';
-/** The first page, which follows the language of whoever opens it, or the page of one language. */
-export type SeoPage = 'index' | SeoLang;
+/** The screens that have a page of their own, each by the address it has in the game (what follows `#/`). */
+export type ScreenId = 'regiones' | 'paises' | 'ciudades' | 'fisica' | 'poblaciones' | 'reto' | 'acerca';
+/** The page of one screen in one language: `regiones.html`, `regions.html`. */
+export interface ScreenPage {
+  screen: ScreenId;
+  lang: SeoLang;
+}
+/**
+ * A page of the site: the first one, which follows the language of whoever opens it; the page of one
+ * language; or the page of one screen in one language.
+ */
+export type SeoPage = 'index' | SeoLang | ScreenPage;
 
 export interface SeoText {
   /** `<title>` of the first page. */
@@ -23,6 +33,8 @@ export interface SeoText {
   genre: string[];
   /** Shown instead of the game when the browser runs no scripts. */
   noscript: string;
+  /** How that message ends on the page of a screen, after its description. */
+  needsScripts: string;
 }
 
 export const SITE_NAME = 'Regionle ∞';
@@ -36,6 +48,7 @@ export const SEO: Record<SeoLang, SeoText> = {
     locale: 'es_ES',
     genre: ['Geografía', 'Educación'],
     noscript: 'Regionle ∞ es un juego de geografía para aprender los países del mundo y sus regiones, capitales, banderas, ciudades, ríos, mares y montañas. Necesita JavaScript para funcionar.',
+    needsScripts: 'Es una pantalla de Regionle ∞, que necesita JavaScript para funcionar.',
   },
   en: {
     title: 'Regionle ∞ — Learn the regions of the world',
@@ -45,6 +58,7 @@ export const SEO: Record<SeoLang, SeoText> = {
     locale: 'en_GB',
     genre: ['Geography', 'Education'],
     noscript: 'Regionle ∞ is a geography game to learn the countries of the world and their regions, capitals, flags, cities, rivers, seas and mountains. It needs JavaScript to work.',
+    needsScripts: 'It is a screen of Regionle ∞, which needs JavaScript to work.',
   },
 };
 
@@ -52,6 +66,114 @@ export const SEO_LANGS: readonly SeoLang[] = ['es', 'en'];
 
 /** The page of each language, next to the first one: `es.html` is the game in Spanish whatever the browser asks for. */
 export const LANG_PAGE: Record<SeoLang, string> = { es: 'es.html', en: 'en.html' };
+
+export interface ScreenText {
+  /** The name of its page, without `.html`: a word of the language, which the game also takes after `#/`. */
+  file: string;
+  /** How its title starts, and what it is called in the trail of pages. */
+  name: string;
+  description: string;
+}
+
+/**
+ * The screens with a page of their own, which opens the game on them: what comes after `#` never reaches a
+ * server, so without these pages a search engine, or whoever is sent a link, only ever sees the first page.
+ * The game reads the name and the description of each screen from here as well (`pageMeta.ts`), so that the
+ * page says the same before and after the game starts.
+ */
+export const SCREENS: Record<ScreenId, Record<SeoLang, ScreenText>> = {
+  regiones: {
+    es: {
+      file: 'regiones',
+      name: 'Regiones, provincias y estados',
+      description: 'Aprende las provincias, estados y regiones de casi todos los países, juntas en un mismo mapa: señalar, identificar, rellenar el mapa, siluetas, vecinos y rutas.',
+    },
+    en: {
+      file: 'regions',
+      name: 'Regions, provinces and states',
+      description: 'Learn the provinces, states and regions of almost every country, together on one map: pin them, identify them, fill in the map, outlines, neighbours and routes.',
+    },
+  },
+  paises: {
+    es: {
+      file: 'paises',
+      name: 'Países, capitales y banderas',
+      description: 'Sitúa, nombra y reconoce en el mapa los países del mundo, o solo los que te interesen: capitales, banderas, siluetas, vecinos y rutas de un país a otro.',
+    },
+    en: {
+      file: 'countries',
+      name: 'Countries, capitals and flags',
+      description: 'Place, name and recognise the countries of the world on the map, or just the ones you care about: capitals, flags, outlines, neighbours and routes.',
+    },
+  },
+  ciudades: {
+    es: {
+      file: 'ciudades',
+      name: 'Ciudades y capitales',
+      description: 'Las ciudades más pobladas y las capitales de los países que elijas, punto a punto en el mapa: señálalas, identifícalas o sitúalas a ciegas, sin puntos.',
+    },
+    en: {
+      file: 'cities',
+      name: 'Cities and capitals',
+      description: 'The largest cities and the capitals of the countries you choose, dot by dot on the map: pin them, identify them or place them blind, with no dots.',
+    },
+  },
+  fisica: {
+    es: {
+      file: 'fisica',
+      name: 'Ríos, mares y montañas',
+      description: 'Aprende en el mapa los ríos, lagos, mares, cordilleras, picos, desiertos e islas del mundo o de un continente: señalar, identificar y rellenar el mapa.',
+    },
+    en: {
+      file: 'physical',
+      name: 'Rivers, seas and mountains',
+      description: 'Learn on the map the rivers, lakes, seas, mountain ranges, peaks, deserts and islands of the world or of one continent: pin, identify and fill in the map.',
+    },
+  },
+  poblaciones: {
+    es: {
+      file: 'cifras',
+      name: 'Población y superficie',
+      description: 'Juega con la población y la superficie de los países: mayor o menor, ordena cinco, acierta la cifra exacta o adivina el país por su cifra.',
+    },
+    en: {
+      file: 'figures',
+      name: 'Population and area',
+      description: 'Play with the population and the area of countries: higher or lower, sort five, hit the exact figure or guess the country from its figure.',
+    },
+  },
+  reto: {
+    es: {
+      file: 'reto',
+      name: 'Reto del día',
+      description: 'El reto del día de Regionle ∞: un país y cinco pruebas, las mismas para todo el mundo, con puntos, racha y resultado para compartir.',
+    },
+    en: {
+      file: 'daily',
+      name: 'Daily challenge',
+      description: 'The daily challenge of Regionle ∞: one country and five tests, the same for everyone, with points, a streak and a result to share.',
+    },
+  },
+  acerca: {
+    es: {
+      file: 'acerca',
+      name: 'Acerca de',
+      description: 'Acerca de Regionle ∞: novedades de cada versión, atajos de teclado, qué datos se guardan y dónde, y fuentes y licencias.',
+    },
+    en: {
+      file: 'about',
+      name: 'About',
+      description: 'About Regionle ∞: what each version brought, keyboard shortcuts, what data is kept and where, and sources and licences.',
+    },
+  },
+};
+
+export const SCREEN_IDS = Object.keys(SCREENS) as ScreenId[];
+
+/** Every page of the site, the first one first. */
+export const SITE_PAGES: readonly SeoPage[] = ['index', ...SEO_LANGS, ...SCREEN_IDS.flatMap((screen) => SEO_LANGS.map((lang): ScreenPage => ({ screen, lang })))];
+
+const isScreen = (page: SeoPage): page is ScreenPage => typeof page === 'object';
 
 /** The picture of the card, 1200 × 630 (`npm run social` draws them). */
 export const SOCIAL_IMAGE: Record<SeoLang, string> = { es: 'social-es.png', en: 'social-en.png' };
@@ -63,7 +185,7 @@ export function pageTitle(name: string): string {
 }
 
 /** The language a page is written in before the game starts: the first page is written in Spanish. */
-export const pageLangOf = (page: SeoPage): SeoLang => (page === 'index' ? 'es' : page);
+export const pageLangOf = (page: SeoPage): SeoLang => (page === 'index' ? 'es' : isScreen(page) ? page.lang : page);
 
 /** Where the site is published, ending in a slash; null when it has not been said (`homepage` in package.json). */
 export function siteUrl(raw: string | null | undefined): string | null {
@@ -72,17 +194,75 @@ export function siteUrl(raw: string | null | undefined): string | null {
   return url.endsWith('/') ? url : `${url}/`;
 }
 
+/** The file a page is written to. */
+export function pageFile(page: SeoPage): string {
+  if (page === 'index') return 'index.html';
+  return isScreen(page) ? `${SCREENS[page.screen][page.lang].file}.html` : LANG_PAGE[page];
+}
+
 /** Address of a page: the first one is the folder itself. */
 export function pageUrl(site: string, page: SeoPage): string {
-  return page === 'index' ? site : `${site}${LANG_PAGE[page]}`;
+  return page === 'index' ? site : `${site}${pageFile(page)}`;
+}
+
+/** The page that goes by a name, with or without its `.html` ("en", "regions.html"); null when none does. */
+export function pageNamed(name: string): SeoLang | ScreenPage | null {
+  const word = name.replace(/\.html$/, '');
+  for (const lang of SEO_LANGS) if (LANG_PAGE[lang] === `${word}.html`) return lang;
+  for (const screen of SCREEN_IDS) for (const lang of SEO_LANGS) if (SCREENS[screen][lang].file === word) return { screen, lang };
+  return null;
+}
+
+/** What a page says of itself: the first page and those of a language speak of the game; that of a screen, of the screen. */
+export function pageText(page: SeoPage): { title: string; description: string; cardTitle: string; noscript: string } {
+  const t = SEO[pageLangOf(page)];
+  if (!isScreen(page)) return { title: t.title, description: t.description, cardTitle: t.cardTitle, noscript: t.noscript };
+  const screen = SCREENS[page.screen][page.lang];
+  const title = pageTitle(screen.name);
+  return { title, description: screen.description, cardTitle: title, noscript: `${screen.description} ${t.needsScripts}` };
+}
+
+/**
+ * The same page for each language, and the one for a reader of neither: the first page, which follows the
+ * browser, or the Spanish page of a screen, Spanish being what the game speaks when it has to choose.
+ */
+export function alternates(site: string, page: SeoPage): { lang: string; url: string }[] {
+  const of = (lang: SeoLang): string => pageUrl(site, isScreen(page) ? { screen: page.screen, lang } : lang);
+  return [...SEO_LANGS.map((lang) => ({ lang: lang as string, url: of(lang) })), { lang: 'x-default', url: isScreen(page) ? of('es') : site }];
 }
 
 const esc = (text: string): string => text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-/** What a search engine is told the game is (schema.org). */
+/**
+ * What a search engine is told a page is (schema.org): the game itself, or one of its screens, with the way
+ * back to the game.
+ */
 export function jsonLd(page: SeoPage, site: string, version: string): Record<string, unknown> {
   const lang = pageLangOf(page);
   const t = SEO[lang];
+  const image = `${site}${SOCIAL_IMAGE[lang]}`;
+  if (isScreen(page)) {
+    const screen = SCREENS[page.screen][page.lang];
+    const url = pageUrl(site, page);
+    const home = pageUrl(site, lang);
+    return {
+      '@context': 'https://schema.org',
+      '@type': page.screen === 'acerca' ? 'AboutPage' : 'WebPage',
+      name: pageTitle(screen.name),
+      url,
+      description: screen.description,
+      inLanguage: lang,
+      isPartOf: { '@type': 'WebApplication', name: SITE_NAME, url: home, applicationCategory: 'EducationalApplication', operatingSystem: 'Any', softwareVersion: version },
+      breadcrumb: {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: SITE_NAME, item: home },
+          { '@type': 'ListItem', position: 2, name: screen.name, item: url },
+        ],
+      },
+      image,
+    };
+  }
   return {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
@@ -97,7 +277,7 @@ export function jsonLd(page: SeoPage, site: string, version: string): Record<str
     softwareVersion: version,
     isAccessibleForFree: true,
     offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
-    image: `${site}${SOCIAL_IMAGE[lang]}`,
+    image,
   };
 }
 
@@ -110,18 +290,18 @@ export function seoHead(page: SeoPage, site: string | null, version: string): st
   const lang = pageLangOf(page);
   const other: SeoLang = lang === 'es' ? 'en' : 'es';
   const t = SEO[lang];
-  const lines = [`<title>${esc(t.title)}</title>`, `<meta name="description" content="${esc(t.description)}" />`, `<meta name="application-name" content="${esc(SITE_NAME)}" />`];
+  const own = pageText(page);
+  const lines = [`<title>${esc(own.title)}</title>`, `<meta name="description" content="${esc(own.description)}" />`, `<meta name="application-name" content="${esc(SITE_NAME)}" />`];
   if (site) {
     const url = pageUrl(site, page);
     const image = `${site}${SOCIAL_IMAGE[lang]}`;
     lines.push(
       `<link rel="canonical" href="${esc(url)}" />`,
-      ...SEO_LANGS.map((l) => `<link rel="alternate" hreflang="${l}" href="${esc(pageUrl(site, l))}" />`),
-      `<link rel="alternate" hreflang="x-default" href="${esc(site)}" />`,
+      ...alternates(site, page).map((a) => `<link rel="alternate" hreflang="${a.lang}" href="${esc(a.url)}" />`),
       `<meta property="og:type" content="website" />`,
       `<meta property="og:site_name" content="${esc(SITE_NAME)}" />`,
-      `<meta property="og:title" content="${esc(t.cardTitle)}" />`,
-      `<meta property="og:description" content="${esc(t.description)}" />`,
+      `<meta property="og:title" content="${esc(own.cardTitle)}" />`,
+      `<meta property="og:description" content="${esc(own.description)}" />`,
       `<meta property="og:url" content="${esc(url)}" />`,
       `<meta property="og:locale" content="${t.locale}" />`,
       `<meta property="og:locale:alternate" content="${SEO[other].locale}" />`,
@@ -131,8 +311,8 @@ export function seoHead(page: SeoPage, site: string | null, version: string): st
       `<meta property="og:image:height" content="${SOCIAL_SIZE[1]}" />`,
       `<meta property="og:image:alt" content="${esc(t.imageAlt)}" />`,
       `<meta name="twitter:card" content="summary_large_image" />`,
-      `<meta name="twitter:title" content="${esc(t.cardTitle)}" />`,
-      `<meta name="twitter:description" content="${esc(t.description)}" />`,
+      `<meta name="twitter:title" content="${esc(own.cardTitle)}" />`,
+      `<meta name="twitter:description" content="${esc(own.description)}" />`,
       `<meta name="twitter:image" content="${esc(image)}" />`,
       `<meta name="twitter:image:alt" content="${esc(t.imageAlt)}" />`,
       // "<" is written as an escape so that nothing in the text can close the script.
@@ -157,15 +337,18 @@ export function localise(html: string, page: SeoPage, site: string | null, versi
   if (!/<html lang="[a-z-]*"/.test(html)) throw new Error('index.html: falta <html lang="…">');
   let out = html.replace(/<html lang="[a-z-]*"/, `<html lang="${lang}"`);
   out = between(out, 'seo', `\n    ${seoHead(page, site, version)}\n    `);
-  out = between(out, 'noscript', esc(SEO[lang].noscript));
+  out = between(out, 'noscript', esc(pageText(page).noscript));
   return out;
 }
 
-/** The pages a search engine should know: the three there are, each with its versions in other languages. */
+/** The pages a search engine should know: every one there is, each with its versions in other languages. */
 export function sitemap(site: string, lastmod: string): string {
-  const pages: SeoPage[] = ['index', ...SEO_LANGS];
-  const links = [...SEO_LANGS.map((l) => `    <xhtml:link rel="alternate" hreflang="${l}" href="${esc(pageUrl(site, l))}" />`), `    <xhtml:link rel="alternate" hreflang="x-default" href="${esc(site)}" />`].join('\n');
-  const urls = pages.map((p) => `  <url>\n    <loc>${esc(pageUrl(site, p))}</loc>\n    <lastmod>${lastmod}</lastmod>\n${links}\n  </url>`).join('\n');
+  const urls = SITE_PAGES.map((page) => {
+    const links = alternates(site, page)
+      .map((a) => `    <xhtml:link rel="alternate" hreflang="${a.lang}" href="${esc(a.url)}" />`)
+      .join('\n');
+    return `  <url>\n    <loc>${esc(pageUrl(site, page))}</loc>\n    <lastmod>${lastmod}</lastmod>\n${links}\n  </url>`;
+  }).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls}\n</urlset>\n`;
 }
 

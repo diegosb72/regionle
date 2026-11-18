@@ -26,7 +26,7 @@ export interface Challenge {
 /** Version of the rules that decide what is asked. Links without it come from before version 2. */
 const RULES = 2;
 
-const SECTIONS: Section[] = ['regions', 'countries', 'cities', 'physical'];
+export const CHALLENGE_SECTIONS: Section[] = ['regions', 'countries', 'cities', 'physical'];
 /** Games that ask one thing after another and end with a score: the ones that can be compared. */
 export const CHALLENGE_MODES: Mode[] = ['pin', 'identify', 'outline', 'puzzle', 'capital', 'flag'];
 
@@ -62,7 +62,7 @@ export function seedOf(cfg: GameConfig): number {
 }
 
 export function canChallenge(cfg: GameConfig): boolean {
-  return SECTIONS.includes(cfg.section) && CHALLENGE_MODES.includes(cfg.mode) && !cfg.only && !cfg.daily && cfg.opts.length !== 'endless';
+  return CHALLENGE_SECTIONS.includes(cfg.section) && CHALLENGE_MODES.includes(cfg.mode) && !cfg.only && !cfg.daily && cfg.opts.length !== 'endless';
 }
 
 export function encodeChallenge(cfg: GameConfig, result?: { score: number; ms: number }, from?: string): string {
@@ -94,7 +94,7 @@ export function decodeChallenge(code: string): Challenge | null {
     return null;
   }
   if (!wire || typeof wire !== 'object') return null;
-  if (!SECTIONS.includes(wire.s as Section) || !CHALLENGE_MODES.includes(wire.m as Mode)) return null;
+  if (!CHALLENGE_SECTIONS.includes(wire.s as Section) || !CHALLENGE_MODES.includes(wire.m as Mode)) return null;
   if (!isStr(wire.c) || !wire.c || wire.c.length > 1200) return null;
   const countries = wire.c.includes('.') || wire.s === 'physical' ? wire.c.split('.') : (wire.c.match(/.{1,2}/g) ?? []);
   if (!countries.length || countries.length > 300 || !countries.every((id) => /^[A-Za-z0-9]{1,8}$/.test(id))) return null;

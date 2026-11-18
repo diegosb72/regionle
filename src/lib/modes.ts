@@ -19,8 +19,9 @@ import {
   Waypoints,
   type LucideIcon,
 } from 'lucide-react';
-import { L } from './i18n';
+import { L, getLang } from './i18n';
 import { PATHS } from './routes';
+import { SCREENS } from './seo';
 import type { Format } from './store';
 import type { Mode, Section } from './types';
 
@@ -186,47 +187,50 @@ export const formatName = (f: Format): string => (f === 'timed' ? L('Contrarrelo
 
 export interface SectionInfo {
   path: string;
+  /** Its short name, as the menu says it. */
   name: string;
+  /** The heading of its screen, which is also how the title of its page starts (`seo.ts`). */
   title: string;
   blurb: string;
 }
 
 function sectionInfo(section: Section): SectionInfo {
   const path = PATHS[section];
+  const title = SCREENS[path][getLang()].name;
   switch (section) {
     case 'regions':
       return {
         path,
         name: L('Regiones', 'Regions'),
-        title: L('Regiones, provincias y estados', 'Regions, provinces and states'),
+        title,
         blurb: L('Las divisiones internas de los países que elijas, todas juntas en un mismo mapa.', 'The internal divisions of the countries you choose, all together on one map.'),
       };
     case 'countries':
       return {
         path,
         name: L('Países', 'Countries'),
-        title: L('Países, capitales y banderas', 'Countries, capitals and flags'),
+        title,
         blurb: L('Sitúa, nombra y reconoce los países del mundo o solo los que te interesen.', 'Place, name and recognise the countries of the world, or just the ones you care about.'),
       };
     case 'cities':
       return {
         path,
         name: L('Ciudades', 'Cities'),
-        title: L('Ciudades y capitales', 'Cities and capitals'),
+        title,
         blurb: L('Las ciudades más pobladas y las capitales de los países que elijas, punto a punto.', 'The largest cities and the capitals of the countries you choose, dot by dot.'),
       };
     case 'physical':
       return {
         path,
         name: L('Física', 'Physical'),
-        title: L('Ríos, mares y montañas', 'Rivers, seas and mountains'),
+        title,
         blurb: L('Ríos, lagos, mares, cordilleras, picos, desiertos e islas del mundo o de un continente.', 'Rivers, lakes, seas, mountain ranges, peaks, deserts and islands of the world or of one continent.'),
       };
     default:
       return {
         path,
         name: L('Cifras', 'Figures'),
-        title: L('Población y superficie', 'Population and area'),
+        title,
         blurb: L('Compara, ordena y afina las cifras de cada país.', 'Compare, sort and pin down the figures of each country.'),
       };
   }

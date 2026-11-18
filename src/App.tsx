@@ -9,8 +9,8 @@ import { PULSES, TONES, buzz, canBuzz, play, prime } from './lib/feedback';
 import { L, getLang } from './lib/i18n';
 import { SECTIONS, SECTION_IDS } from './lib/modes';
 import { applyMeta } from './lib/pageMeta';
-import { go, leaveLangPage, useRoute } from './lib/router';
-import { ABOUT_PATH, PROGRESS_PATH, SETTINGS_PATH, routeOf } from './lib/routes';
+import { followLang, go, inGame, useRoute } from './lib/router';
+import { ABOUT_PATH, PROGRESS_PATH, SETTINGS_PATH, routeOf, screenPage } from './lib/routes';
 import { shortcutOf } from './lib/shortcuts';
 import { useStore, type Theme } from './lib/store';
 import { cx, today } from './lib/text';
@@ -216,7 +216,16 @@ export function App() {
 
   return (
     <div className="app">
-      <a className="skip" href="#contenido">
+      <a
+        className="skip"
+        href="#contenido"
+        onClick={(e) => {
+          // What comes after "#" is the address of the screen: followed as it is, this link would ask for a
+          // screen called "contenido" instead of moving down the page.
+          e.preventDefault();
+          content.current?.focus();
+        }}
+      >
         {L('Saltar al contenido', 'Skip to content')}
       </a>
       <header className="top">
@@ -249,7 +258,7 @@ export function App() {
                 title={code === 'es' ? 'Español' : 'English'}
                 onClick={() => {
                   setLang(code);
-                  leaveLangPage();
+                  followLang(code, true);
                 }}
               >
                 {code.toUpperCase()}
@@ -319,7 +328,7 @@ export function App() {
           )}
         </p>
         <p className="foot-about">
-          <a href={`#/${ABOUT_PATH}`} aria-current={about ? 'page' : undefined}>
+          <a href={screenPage(ABOUT_PATH, lang)} onClick={inGame(ABOUT_PATH)} aria-current={about ? 'page' : undefined}>
             {L('Acerca de, privacidad y licencias', 'About, privacy and licences')}
           </a>
           <span aria-hidden="true"> · </span>

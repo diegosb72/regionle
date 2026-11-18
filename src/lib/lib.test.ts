@@ -4,7 +4,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { buildDeck, deckGraph, eligible, loadIndex, setLoader } from './data';
 import { buildCityDeck, buildPhysicalDeck, parsePhys, physTokens } from './extra';
 import { bfs, capOf, cheapestPath, makeView, onShortest, pickRoute, shortestPath } from './geo';
-import { Matcher, editDistance, fmtBig, fmtTime, judgeAmount, key, mulberry32, norm, parseNumber } from './text';
+import { Matcher, editDistance, fmtBig, fmtTime, judgeAmount, key, listed, mulberry32, norm, parseNumber } from './text';
 
 describe('text', () => {
   it('normalises accents, case and punctuation', () => {
@@ -13,6 +13,13 @@ describe('text', () => {
     expect(key("Saint John's")).toBe(key('St. Johns'));
     expect(key('Baden-Württemberg')).toBe('badenwurttemberg');
     expect(key('Łódź')).toBe('lodz');
+  });
+
+  it('writes names in a row', () => {
+    expect(listed(['Regiones', 'Países', 'Ciudades', 'Física'], 'o')).toBe('Regiones, Países, Ciudades o Física');
+    expect(listed(['Capitals', 'Flags'], 'and')).toBe('Capitals and Flags');
+    expect(listed(['Regiones'], 'y')).toBe('Regiones');
+    expect(listed([], 'y')).toBe('');
   });
 
   it('measures typos', () => {
