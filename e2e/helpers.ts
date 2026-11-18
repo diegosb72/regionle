@@ -38,3 +38,17 @@ export async function triesLeft(page: Page): Promise<number> {
   const text = (await page.locator('.q').textContent()) ?? '';
   return Number(/Te quedan? (\d+) intento/.exec(text)?.[1] ?? -1);
 }
+
+/** Any game seeded as the one in course, and its screen once it is ready. */
+export async function start(page: Page, game: Record<string, unknown>): Promise<void> {
+  await seed(page, { game: { levels: {}, nonce: 1, ...game, opts: { ...OPTS, ...((game.opts as object) ?? {}) } } });
+  await page.goto('./#/jugar');
+  await expect(page.locator('main#contenido')).toBeVisible();
+  await expect(page.locator('.play-loading')).toHaveCount(0, { timeout: 30_000 });
+}
+
+/** Writes an answer and sends it. */
+export async function type(page: Page, text: string): Promise<void> {
+  await page.locator('.answer-input').fill(text);
+  await page.keyboard.press('Enter');
+}

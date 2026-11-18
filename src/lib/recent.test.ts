@@ -43,6 +43,13 @@ describe('what is kept of a game to play it again', () => {
     expect(recentOf(game({ mode: 'pin', opts: { ...DEFAULT_OPTS, axis: 'we', countdown: 300 } }), session())?.o).toEqual({ format: 'normal' });
   });
 
+  it('keeps that it was an exam, which is another game on the same map', () => {
+    const exam = recentOf(game({ opts: { ...DEFAULT_OPTS, format: 'exam' } }), session({ note: 'exam' }));
+    expect(exam?.o).toEqual({ format: 'exam' });
+    expect(recentKey(exam!)).not.toBe(recentKey(recentOf(game(), session())!));
+    expect(recentConfig(exam!, DEFAULT_OPTS).opts.format).toBe('exam');
+  });
+
   it('keeps the figure of a game about countries, which true or false does not have', () => {
     const top = recentOf(game({ section: 'pops', mode: 'topten', countries: ['ES', 'FR'], opts: { ...DEFAULT_OPTS, metric: 'density' } }), session({ section: 'pops', mode: 'topten' }));
     expect(top?.o).toEqual({ metric: 'density' });

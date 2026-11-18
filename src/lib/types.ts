@@ -166,6 +166,8 @@ export type Mode =
   | 'blind'
   /** Not a game: the screen where a custom list is put together. */
   | 'edit'
+  /** Not a game either: the map without names, laid out on paper to be printed. */
+  | 'print'
   | 'pin'
   | 'identify'
   | 'nameall'

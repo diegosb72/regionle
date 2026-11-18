@@ -10,6 +10,7 @@ import { metricNoun, metricOrder } from '../lib/metricNames';
 import { L, getLang } from '../lib/i18n';
 import { MODES, SECTIONS, SECTION_IDS, formatName, modeNameIn } from '../lib/modes';
 import { recentKey, type Recent } from '../lib/recent';
+import { NOT_GAMES } from '../lib/rules';
 import { go, inGame } from '../lib/router';
 import { DUEL_PATH, LIST_PATH, PATHS, PLAY_PATH, screenPage } from '../lib/routes';
 import { useStore, type Fav } from '../lib/store';
@@ -224,7 +225,8 @@ export function Home({ world }: { world: World }) {
     return {
       countries: cs.length,
       units: cs.reduce((n, c) => n + (c.lv[c.lv.length - 1]?.n ?? 0), 0),
-      modes: new Set(SECTION_IDS.flatMap((s) => MODES[s].map((m) => m.id))).size,
+      // The sheet to print is in the menus and is not a way to play.
+      modes: new Set(SECTION_IDS.flatMap((s) => MODES[s].map((m) => m.id)).filter((id) => !NOT_GAMES.includes(id))).size,
     };
   }, [world]);
 

@@ -1,5 +1,5 @@
 /** Setup: 1 what to play with, 2 mode, 3 options. */
-import { Check, ChevronDown, Infinity as InfinityIcon, ListChecks, ListPlus, Pencil, Play, Share2, Target, Timer, Trash2, X } from 'lucide-react';
+import { Check, ChevronDown, Infinity as InfinityIcon, ListChecks, ListPlus, Pencil, Play, Printer, Share2, Target, Timer, Trash2, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Picker } from '../components/Picker';
 import { Flag, Seg, Toggle, capitalise } from '../components/ui';
@@ -367,15 +367,19 @@ export function Setup({ section, world }: { section: Section; world: World }) {
           ? settingsLink(section, selected[0])
           : settingsLink('countries');
   /** Against the clock or with lives: the game has no fixed number of questions. */
-  const paced = FORMAT_MODES.includes(def.id) && opts.format !== 'normal';
-  const finite = FINITE_MODES.includes(def.id);
+  const paced = FORMAT_MODES.includes(def.id) && (opts.format === 'timed' || opts.format === 'lives');
+  /** An exam: nothing is said until it is handed in. */
+  const exam = FORMAT_MODES.includes(def.id) && opts.format === 'exam';
+  // An exam has an end, like the games that cannot go on for ever.
+  const finite = FINITE_MODES.includes(def.id) || exam;
   const show = {
     answer: ANSWER_MODES.includes(def.id),
     format: FORMAT_MODES.includes(def.id),
     // A list is asked whole, and a paced game ends when the clock or the lives say so.
     length: LENGTH_MODES.includes(def.id) && !paced && !active,
     suggest: (typed && def.id !== 'learn') || SUGGEST_MODES.includes(def.id),
-    labels: def.id === 'pin' || def.id === 'identify' || def.id === 'puzzle' || def.id === 'blind',
+    // An exam writes nothing on its map.
+    labels: (def.id === 'pin' || def.id === 'identify' || def.id === 'puzzle' || def.id === 'blind') && !exam,
     pinBy: def.id === 'pin' && section === 'countries',
     blind: def.id === 'travel',
     metric: section === 'pops' && FIGURE_MODES.includes(def.id),
@@ -383,7 +387,8 @@ export function Setup({ section, world }: { section: Section; world: World }) {
     // A review and a list are filled in at their own pace.
     countdown: def.id === 'nameall',
     cities: section === 'cities' && !active,
-    wiki: WIKI_MODES.includes(def.id) && !(paced && opts.format === 'timed'),
+    // Nor is there a moment for the card against the clock, or a miss to show it after in an exam.
+    wiki: WIKI_MODES.includes(def.id) && !(paced && opts.format === 'timed') && !exam,
   };
   const anyOption = Object.values(show).some(Boolean);
   const endless = { value: 'endless' as Length, label: <InfinityIcon size={16} aria-label={L('Sin fin', 'Endless')} /> };
@@ -492,11 +497,16 @@ export function Setup({ section, world }: { section: Section; world: World }) {
                           </span>
                           <span className="mode-name">
                             {m.name}
-                            <span className="mode-level" title={levelName(m.level)} aria-label={levelName(m.level)}>
-                              {[1, 2, 3].map((n) => (
-                                <i key={n} className={n <= m.level ? 'on' : undefined} />
-                              ))}
-                            </span>
+                            {/* What is not played is neither easy nor hard. */}
+                            {m.level > 0 ? (
+                              <span className="mode-level" title={levelName(m.level)} aria-label={levelName(m.level)}>
+                                {[1, 2, 3].map((n) => (
+                                  <i key={n} className={n <= m.level ? 'on' : undefined} />
+                                ))}
+                              </span>
+                            ) : (
+                              <span className="mode-level mode-paper">{L('en papel', 'on paper')}</span>
+                            )}
                           </span>
                         </button>
                       );
@@ -505,7 +515,8 @@ export function Setup({ section, world }: { section: Section; world: World }) {
               </div>
             ))}
             <p className="mode-about" aria-live="polite">
-              <strong>{levelName(def.level)}.</strong> {def.desc}
+              {def.level > 0 && <strong>{levelName(def.level)}. </strong>}
+              {def.desc}
             </p>
             {(estimate || questions != null || pace.first != null) && (
               <ul className="mode-facts">
@@ -660,11 +671,17 @@ export function Setup({ section, world }: { section: Section; world: World }) {
                       { value: 'normal', label: L('Normal', 'Standard') },
                       { value: 'timed', label: L('Contrarreloj', 'Time attack'), title: L('Todas las que puedas en 60 segundos', 'As many as you can in 60 seconds') },
                       { value: 'lives', label: L('Supervivencia', 'Survival'), title: L('Hasta que falles tres veces', 'Until you miss three times') },
+                      { value: 'exam', label: L('Examen', 'Exam'), title: L('Sin pistas ni corrección hasta el final', 'No hints and no marking until the end') },
                     ]}
                   />
-                  {paced && (
+                  {(paced || exam) && (
                     <p className="opt-hint">
-                      {opts.format === 'timed'
+                      {exam
+                        ? L(
+                            'Como un examen: un intento por pregunta, sin pistas y sin saber si aciertas hasta entregarlo. Al final, la nota sobre 10 y la corrección, con lo que respondiste en cada fallo.',
+                            'Like an exam: one try per question, no hints and no telling whether you are right until you hand it in. At the end, a mark out of 10 and the marking, with what you answered where you were wrong.',
+                          )
+                        : opts.format === 'timed'
                         ? L('60 segundos, un intento por pregunta y sin pistas. Se guarda tu récord en cada mapa.', '60 seconds, one try per question and no hints. Your record on each map is kept.')
                         : L('Tres vidas: cada fallo quita una. Un intento por pregunta y sin pistas. Se guarda tu récord en cada mapa.', 'Three lives: each miss takes one. One try per question and no hints. Your record on each map is kept.')}
                     </p>
@@ -725,7 +742,7 @@ export function Setup({ section, world }: { section: Section; world: World }) {
               )}
               {show.blind && (
                 <Toggle checked={opts.blind} onChange={(blind) => set({ blind })} hint={L('Sin fronteras interiores hasta que aciertas: solo para valientes.', 'No inner borders until you get them right: for the brave only.')}>
-                  {L('Mapa mudo', 'Blank map')}
+                  {L('Mapa sin fronteras', 'Map without borders')}
                 </Toggle>
               )}
               {show.wiki && (
@@ -751,7 +768,7 @@ export function Setup({ section, world }: { section: Section; world: World }) {
               {(active || (section !== 'countries' && section !== 'pops')) && units > 0 ? ` · ${plural(units, noun[0], noun[1])}` : ''}
             </strong>
             <span>
-              <b className={problem ? 'problem' : undefined}>{problem ?? `${def.name}${paced ? ` · ${formatName(opts.format).toLowerCase()}` : show.length && opts.length === 'endless' && !finite ? ` · ${L('sin fin', 'endless')}` : ''}`}</b>
+              <b className={problem ? 'problem' : undefined}>{problem ?? `${def.name}${paced || exam ? ` · ${formatName(opts.format).toLowerCase()}` : show.length && opts.length === 'endless' && !finite ? ` · ${L('sin fin', 'endless')}` : ''}`}</b>
               <ChevronDown size={14} aria-hidden="true" />
             </span>
           </button>
@@ -762,8 +779,9 @@ export function Setup({ section, world }: { section: Section; world: World }) {
             {flags.length > 7 && <small>+{flags.length - 7}</small>}
           </div>
           <button type="button" className="btn btn-primary btn-lg" onClick={begin} disabled={!!problem}>
-            <Play size={18} aria-hidden="true" />
-            {L('Empezar', 'Start')}
+            {/* The sheet is not started: it is laid out to be looked at and sent to the printer. */}
+            {def.id === 'print' ? <Printer size={18} aria-hidden="true" /> : <Play size={18} aria-hidden="true" />}
+            {def.id === 'print' ? L('Ver la hoja', 'See the sheet') : L('Empezar', 'Start')}
           </button>
         </div>
       </aside>

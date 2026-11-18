@@ -27,6 +27,22 @@ describe('what the games played say about a mode', () => {
   });
 });
 
+describe('how many questions an exam has', () => {
+  it('is counted like a game at ease, unlike the clock and the lives', () => {
+    expect(questionsOf(size({ mode: 'pin', units: 52, length: 'all', format: 'exam' }))).toBe(52);
+    expect(questionsOf(size({ mode: 'capital', units: 52, length: 20, format: 'exam' }))).toBe(20);
+    expect(questionsOf(size({ mode: 'pin', units: 52, length: 'all', format: 'timed' }))).toBeNull();
+    expect(questionsOf(size({ mode: 'pin', units: 52, length: 'all', format: 'lives' }))).toBeNull();
+  });
+
+  it('has an end where no end was chosen for the other games', () => {
+    expect(questionsOf(size({ mode: 'identify', units: 19, length: 'endless', format: 'exam' }))).toBe(19);
+    expect(questionsOf(size({ mode: 'identify', units: 19, length: 'endless', format: 'normal' }))).toBeNull();
+    // A format means nothing to a game that has none.
+    expect(questionsOf(size({ mode: 'regionle', units: 19, length: 'endless', format: 'exam' }))).toBeNull();
+  });
+});
+
 describe('how many statements true or false makes', () => {
   it('is the number chosen whatever the countries, and twenty when none is', () => {
     expect(questionsOf(size({ mode: 'truefalse', units: 5, length: 50 }))).toBe(50);

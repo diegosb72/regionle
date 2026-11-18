@@ -55,6 +55,8 @@ export interface QuizState {
   endless: boolean;
   /** Show where the item was after a miss and wait for the player (pin mode). */
   reveal: boolean;
+  /** An exam: an answer is taken without a word and the next question comes; what is missed is not asked again. */
+  exam: boolean;
   streak: number;
   bestStreak: number;
   ok: number;
@@ -71,8 +73,9 @@ export type QuizAction =
   | { type: 'next'; rng?: Rng }
   | { type: 'finish' };
 
-export function initQuiz(pool: string[], length: number | 'all' | 'endless', reveal: boolean, rng: Rng = Math.random): QuizState {
-  const endless = length === 'endless';
+export function initQuiz(pool: string[], length: number | 'all' | 'endless', reveal: boolean, rng: Rng = Math.random, exam = false): QuizState {
+  // An exam has an end: it is handed in.
+  const endless = length === 'endless' && !exam;
   const n = typeof length === 'number' ? Math.min(length, pool.length) : pool.length;
   const queue = shuffle(pool, rng).slice(0, n);
   const cur = queue.shift() ?? null;
@@ -92,7 +95,8 @@ export function initQuiz(pool: string[], length: number | 'all' | 'endless', rev
     asked: 0,
     total: endless ? Infinity : n,
     endless,
-    reveal,
+    reveal: reveal && !exam,
+    exam,
     streak: 0,
     bestStreak: 0,
     ok: 0,
@@ -122,39 +126,50 @@ function settle(s: QuizState, res: Res): QuizState {
       const queue = s.queue.slice();
       queue.splice(Math.min(queue.length, 3), 0, id);
       next.queue = queue;
-    } else next.again = [...s.again, id];
+    } else if (!s.exam) next.again = [...s.again, id];
   }
   return next;
 }
 
+/** The question after one that is settled: the next in line, a new lap, the round of misses or the end. */
+function advance(s: QuizState, rng?: Rng): QuizState {
+  const fresh = { tries: 0, hints: 0, last: null, phase: 'ask' as const, n: s.n + 1 };
+  if (s.queue.length) return { ...s, ...fresh, cur: s.queue[0], queue: s.queue.slice(1) };
+  if (s.endless) {
+    // New lap: clean map, the items missed last time first.
+    const order = shuffle(s.pool, rng);
+    order.sort((x, y) => Number(s.marks[y] === 'bad') - Number(s.marks[x] === 'bad'));
+    const queue = order[0] === s.cur && order.length > 1 ? [...order.slice(1), order[0]] : order;
+    return { ...s, ...fresh, cur: queue[0], queue: queue.slice(1), marks: {}, lap: s.lap + 1 };
+  }
+  if (s.round === 1 && s.again.length) return { ...s, ...fresh, round: 2, cur: s.again[0], queue: s.again.slice(1), again: [] };
+  return { ...s, phase: 'end' };
+}
+
+/** A question settled: in an exam the next one comes at once, with nothing said about this one. */
+const settled = (s: QuizState, res: Res): QuizState => (s.exam ? advance(settle(s, res)) : settle(s, res));
+
 export function quizReducer(s: QuizState, a: QuizAction): QuizState {
   switch (a.type) {
     case 'right':
-      return s.phase === 'ask' && s.cur ? settle(s, s.tries === 0 && s.hints === 0 ? 'ok' : 'warn') : s;
+      return s.phase === 'ask' && s.cur ? settled(s, s.tries === 0 && s.hints === 0 ? 'ok' : 'warn') : s;
     case 'wrong':
       if (s.phase !== 'ask' || !s.cur) return s;
-      return s.tries + 1 >= a.max ? settle({ ...s, tries: s.tries + 1 }, 'bad') : { ...s, tries: s.tries + 1 };
+      return s.tries + 1 >= a.max ? settled({ ...s, tries: s.tries + 1 }, 'bad') : { ...s, tries: s.tries + 1 };
     case 'hint':
       return s.phase === 'ask' ? { ...s, hints: s.hints + 1 } : s;
     case 'giveup':
-      return s.phase === 'ask' && s.cur ? settle(s, 'bad') : s;
+      return s.phase === 'ask' && s.cur ? settled(s, 'bad') : s;
     case 'finish':
       return { ...s, phase: 'end' };
-    case 'next': {
-      if (s.phase === 'ask' || s.phase === 'end') return s;
-      const fresh = { tries: 0, hints: 0, last: null, phase: 'ask' as const, n: s.n + 1 };
-      if (s.queue.length) return { ...s, ...fresh, cur: s.queue[0], queue: s.queue.slice(1) };
-      if (s.endless) {
-        // New lap: clean map, the items missed last time first.
-        const order = shuffle(s.pool, a.rng);
-        order.sort((x, y) => Number(s.marks[y] === 'bad') - Number(s.marks[x] === 'bad'));
-        const queue = order[0] === s.cur && order.length > 1 ? [...order.slice(1), order[0]] : order;
-        return { ...s, ...fresh, cur: queue[0], queue: queue.slice(1), marks: {}, lap: s.lap + 1 };
-      }
-      if (s.round === 1 && s.again.length) return { ...s, ...fresh, round: 2, cur: s.again[0], queue: s.again.slice(1), again: [] };
-      return { ...s, phase: 'end' };
-    }
+    case 'next':
+      return s.phase === 'ask' || s.phase === 'end' ? s : advance(s, a.rng);
   }
+}
+
+/** The mark of an exam, out of ten and to one decimal: what was left unanswered counts as wrong. */
+export function gradeOf(ok: number, total: number): number {
+  return total ? Math.round((ok / total) * 100) / 10 : 0;
 }
 
 /** Share of the score: full credit for first-time answers, half for answers that needed help. */

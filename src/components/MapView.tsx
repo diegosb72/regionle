@@ -4,7 +4,7 @@ import { zoom as d3zoom, zoomIdentity, zoomTransform, type ZoomBehavior, type Zo
 import { Maximize, Minus, Plus } from 'lucide-react';
 import { forwardRef, memo, useCallback, useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import type { GeoPermissibleObjects } from 'd3-geo';
-import { NOMINAL, coarsePath, countPoints, graticule, makeView } from '../lib/geo';
+import { NOMINAL, coarsePath, countPoints, graticule, landBox, makeView } from '../lib/geo';
 import { L } from '../lib/i18n';
 import { ARROWS, inOrder, moveFrom, movesOf, nearestTo, type Moves } from '../lib/mapKeys';
 import { cx } from '../lib/text';
@@ -91,48 +91,10 @@ const SEEN = 14;
 const HALO_BELOW = 30;
 const HALO_GONE = 46;
 
-/** Size in view units of the biggest polygon of a multi-part shape, from the corners of its lon/lat box. */
+/** Size in view units of the biggest polygon of a multi-part shape: the larger side of its box. */
 function biggestPiece(geo: AnyGeo, project: (p: LL) => [number, number] | null): number | null {
-  if (geo.geometry.type !== 'MultiPolygon' || geo.geometry.coordinates.length < 2) return null;
-  let best: [number, number, number, number] | null = null;
-  let bestArea = -1;
-  for (const poly of geo.geometry.coordinates) {
-    let w = Infinity;
-    let e = -Infinity;
-    let south = Infinity;
-    let north = -Infinity;
-    for (const pt of poly[0]) {
-      if (pt[0] < w) w = pt[0];
-      if (pt[0] > e) e = pt[0];
-      if (pt[1] < south) south = pt[1];
-      if (pt[1] > north) north = pt[1];
-    }
-    const area = (e - w) * Math.cos((((south + north) / 2) * Math.PI) / 180) * (north - south);
-    if (area > bestArea) {
-      bestArea = area;
-      best = [w, south, e, north];
-    }
-  }
-  if (!best) return null;
-  const [w, south, e, north] = best;
-  let x0 = Infinity;
-  let y0 = Infinity;
-  let x1 = -Infinity;
-  let y1 = -Infinity;
-  for (const corner of [
-    [w, south],
-    [e, south],
-    [w, north],
-    [e, north],
-  ] as LL[]) {
-    const q = project(corner);
-    if (!q) continue;
-    if (q[0] < x0) x0 = q[0];
-    if (q[0] > x1) x1 = q[0];
-    if (q[1] < y0) y0 = q[1];
-    if (q[1] > y1) y1 = q[1];
-  }
-  return Number.isFinite(x0) ? Math.max(x1 - x0, y1 - y0, 0.02) : null;
+  const box = landBox(geo, project);
+  return box ? Math.max(box[0], box[1], 0.02) : null;
 }
 
 /** Prefix that keeps the ids of national outlines apart from those of the shapes. */

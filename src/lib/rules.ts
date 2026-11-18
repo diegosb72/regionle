@@ -4,6 +4,9 @@ import type { Mode } from './types';
 /** Games that can also be played against the clock or until the lives run out. */
 export const FORMAT_MODES: readonly Mode[] = ['pin', 'identify', 'outline', 'puzzle', 'capital', 'flag', 'parent'];
 
+/** What sits in the menus without being a game: it is not counted among them, and leaves nothing in the progress. */
+export const NOT_GAMES: readonly Mode[] = ['print', 'edit'];
+
 /** Games that ask as many questions as the player chooses under "Preguntas". */
 export const LENGTH_MODES: readonly Mode[] = ['pin', 'identify', 'outline', 'regionle', 'puzzle', 'neighbours', 'capital', 'flag', 'blind', 'exact', 'which', 'rank', 'compass', 'parent', 'truefalse'];
 

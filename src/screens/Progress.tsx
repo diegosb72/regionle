@@ -550,7 +550,7 @@ export function Progress({ world }: { world: World }) {
     // Every other record is about a map: "nameall:<map>", "regionle:<map>", "blind:<map>|<n>", "timed:<mode>:<map>".
     let mapKey = what;
     let mode: Mode | null = null;
-    if (kind === 'timed' || kind === 'lives') {
+    if (kind === 'timed' || kind === 'lives' || kind === 'exam') {
       mode = rest[0] as Mode;
       mapKey = rest.slice(1).join(':');
     }
@@ -568,7 +568,10 @@ export function Progress({ world }: { world: World }) {
     }
     const hits = (n: number) => L(`${n} ${n === 1 ? 'acierto' : 'aciertos'}`, `${n} right`);
     const [game, value] =
-      kind === 'timed' || kind === 'lives'
+      kind === 'exam'
+        ? // Kept in tenths: 85 is an 8,5.
+          [`${MODE_NAME[mode!] ?? ''} · ${formatName('exam').toLowerCase()}`, L(`nota ${nf(v / 10, 1)}`, `mark ${nf(v / 10, 1)}`)]
+        : kind === 'timed' || kind === 'lives'
         ? [`${MODE_NAME[mode!] ?? ''} · ${formatName(kind).toLowerCase()}`, hits(v)]
         : kind === 'regionle'
           ? [MODE_NAME.regionle, L(`racha de ${v}`, `streak of ${v}`)]
@@ -723,7 +726,7 @@ export function Progress({ world }: { world: World }) {
                       <tr key={s.t}>
                         <td>{when(s.t)}</td>
                         <td>{Object.hasOwn(SECTIONS, s.section) ? modeNameIn(s.section, s.mode) : MODE_NAME[s.mode]}</td>
-                        <td>{s.note === 'timed' || s.note === 'lives' ? `${s.label} · ${formatName(s.note).toLowerCase()}` : s.note ? `${s.label} · ${s.note}` : s.label}</td>
+                        <td>{s.note === 'timed' || s.note === 'lives' || s.note === 'exam' ? `${s.label} · ${formatName(s.note).toLowerCase()}` : s.note ? `${s.label} · ${s.note}` : s.label}</td>
                         <td className="num">
                           {s.ok} / {s.total}
                         </td>

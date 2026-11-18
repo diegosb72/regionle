@@ -11,11 +11,11 @@ import { silhouette } from '../lib/geo';
 import { L, nm } from '../lib/i18n';
 import { MODE_NAME, formatName } from '../lib/modes';
 import { useStore, type Format, type Skill } from '../lib/store';
-import { Matcher, cx, fmtTime, hintMax, letterHint, mulberry32, sample, shortNote, shuffle, type Answerable } from '../lib/text';
+import { Matcher, cx, fmtTime, hintMax, letterHint, mulberry32, nf, sample, shortNote, shuffle, type Answerable } from '../lib/text';
 import { capitalAnswers } from '../lib/typeins';
 import type { Belongs, Item, Res } from '../lib/types';
 import { GameShell, Hud, Results, Verdict, answered, nearest, originOf, showsCountry, useElapsed, type GameProps, type ResultRow } from './common';
-import { answersItself, belongsItself, capitalsNeedTyping, initQuiz, quizReducer, scoreOf } from './quiz';
+import { answersItself, belongsItself, capitalsNeedTyping, gradeOf, initQuiz, quizReducer, scoreOf } from './quiz';
 
 type QuizMode = 'pin' | 'puzzle' | 'identify' | 'outline' | 'capital' | 'flag' | 'parent';
 
@@ -38,7 +38,12 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const seed = useMemo(() => seedOf(cfg), [cfg]);
   // Reviews, challenges and the repeat of what was missed are always a plain set of questions.
   const format: Format = cfg.review || cfg.challenge || (cfg.only && !cfg.list) ? 'normal' : (opts.format ?? 'normal');
-  const paced = format !== 'normal';
+  /** Against the clock or with lives: the game lasts what the clock or the lives say. */
+  const paced = format === 'timed' || format === 'lives';
+  /** An exam: nothing is said about an answer until it is handed in. */
+  const exam = format === 'exam';
+  /** One go at each question, and no hints. */
+  const strict = paced || exam;
 
   /** Items that can be offered as wrong options in this mode. */
   const usable = useMemo(
@@ -77,8 +82,11 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
       // Against the clock there is no time to be shown where each miss was.
       clicky && format !== 'timed',
       mulberry32(seed),
+      exam,
     ),
   );
+  /** What was answered to each question of an exam that went wrong, to be read in the marking. */
+  const given = useRef<Record<string, string>>({});
   const item = s.cur ? (deck.byId.get(s.cur) ?? null) : null;
   const ended = s.phase === 'end';
   const ms = useElapsed(!ended);
@@ -117,8 +125,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
   /** How many letters of the answer the hints have put in sight (the first hint of an outline is the map). */
   const lettersShown = !typed ? 0 : mode === 'outline' ? Math.max(0, s.hints - 1) : s.hints;
   const answerOf = (it: Item) => (mode === 'capital' ? it.capital![0] : mode === 'parent' ? it.belongs!.name : it.name);
-  // A paced game moves fast: one go at each question.
-  const maxTries = paced ? 1 : clicky || typed ? 3 : 1;
+  // A paced game moves fast, and an exam is an exam: one go at each question.
+  const maxTries = strict ? 1 : clicky || typed ? 3 : 1;
   const several = showsCountry(deck);
   const fem = deck.noun.fem;
   const one = deck.noun.one;
@@ -148,7 +156,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
       cands = nearest(item, cands, cands.length).filter((o) => !seen.has(answerOf(o)) && !!seen.add(answerOf(o)));
     } else {
       // What is already solved is labelled on the map and could be ruled out without knowing anything.
-      const open = cands.filter((o) => !s.marks[o.id]);
+      // An exam labels nothing: every piece stays an option to the end.
+      const open = exam ? cands : cands.filter((o) => !s.marks[o.id]);
       if (open.length >= 3) cands = open;
     }
     const rng = mulberry32(seed + s.n * 7919);
@@ -178,6 +187,16 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
     return () => clearTimeout(t);
   }, [s.phase, s.last, s.n, mode, format, spent]);
 
+  // An exam says nothing about an answer but that it has been taken: the question changes at once, and
+  // without a word it could pass unnoticed.
+  useEffect(() => {
+    if (!exam || s.n === 0 || ended) return;
+    setNote(L('Respuesta anotada.', 'Answer noted.'));
+    const t = setTimeout(() => setNote(null), 1600);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [s.n]);
+
   useEffect(() => {
     if (retired.length) forget('cap', retired);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -201,7 +220,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
       warn: s.warn,
       bad: s.bad,
       ms,
-      ...(paced ? { note: format } : {}),
+      ...(format !== 'normal' ? { note: format } : {}),
     });
     if (paced && !cfg.list) {
       const key = `${format}:${mode}:${deck.key}`;
@@ -210,12 +229,21 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
       // A game without a single right answer sets no record.
       setMark(hits > 0 && setBest(key, hits) ? 'new' : (prev ?? null));
     }
+    // The best mark of a map is that of an exam on all of it, answered to the end.
+    if (exam && !cfg.list && s.total === pool.length && s.asked === s.total) {
+      const key = `exam:${mode}:${deck.key}`;
+      const prev = useStore.getState().best[key];
+      const tenths = Math.round(gradeOf(s.ok, s.total) * 10);
+      setMark(tenths > 0 && setBest(key, tenths) ? 'new' : (prev ?? null));
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ended]);
 
   const settled = (res: Res, it: Item) => {
     const skill = SKILL[mode];
     if (s.round === 1 && skill) record(skill, it.id, res, originOf(it, cfg));
+    // An exam keeps what it knows to itself until it is handed in.
+    if (exam) return;
     setFlash({ id: it.id, kind: res === 'bad' ? 'bad' : 'ok', n: Date.now() });
     if (!clicky || res === 'bad') map.current?.focus([it.id], { passing: clicky });
   };
@@ -232,7 +260,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
     const failed = s.tries + 1 >= maxTries;
     dispatch({ type: 'wrong', max: maxTries });
     setNote(failed ? null : message);
-    setShake((n) => n + 1);
+    // A field that shakes says "wrong": not in an exam.
+    if (!exam) setShake((n) => n + 1);
     if (failed) settled('bad', item);
     else {
       // Wrong with tries left: its own short sound, apart from the one that settles the question.
@@ -260,6 +289,11 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
     if (id === item.id) return right();
     const other = deck.byId.get(id);
     if (!other) return;
+    if (exam) {
+      // Any piece can be the answer, also one already given to another question: nothing says how that went.
+      given.current[item.id] = other.name;
+      return wrong(null);
+    }
     if (s.marks[id] && !hidden.has(id)) {
       setNote(L(`${other.name} ya está ${fem ? 'resuelta' : 'resuelto'}.`, `${other.name} is already solved.`));
       return;
@@ -282,6 +316,12 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
       setNote(shortNote(v.res, text));
       return;
     }
+    if (exam) {
+      // What was written, by its proper name where it is the name of something else here.
+      const meant = v.res !== 'other' ? undefined : mode === 'parent' ? groups.get(v.id)?.name : deck.byId.get(v.id) && answerOf(deck.byId.get(v.id)!);
+      given.current[item.id] = meant || text.trim();
+      return wrong(null);
+    }
     if (v.res === 'other') {
       if (mode === 'parent') {
         const group = groups.get(v.id)?.name ?? text.trim();
@@ -297,13 +337,15 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
     if (!item || s.phase !== 'ask') return;
     if (id === item.id) right();
     else {
+      const other = deck.byId.get(id);
+      if (exam && other) given.current[item.id] = answerOf(other);
       setPicked(id);
       wrong(null);
     }
   };
 
   const hint = () => {
-    if (!item || s.phase !== 'ask' || paced) return;
+    if (!item || s.phase !== 'ask' || strict) return;
     dispatch({ type: 'hint' });
     if (clicky) {
       // Narrow the search: the answer and a few of its nearest neighbours stay lit.
@@ -340,7 +382,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
 
   const paint = useMemo(() => {
     const p: Record<string, Paint> = {};
-    for (const [id, res] of Object.entries(s.marks)) if (!hidden.has(id)) p[id] = res;
+    // The map of an exam stays as blank as the sheet it is: how each answer went is seen at the end.
+    if (!exam || ended) for (const [id, res] of Object.entries(s.marks)) if (!hidden.has(id)) p[id] = res;
     if (item && !ended) {
       // A city lit up on a map of several countries would show which one it is in, and that is the question.
       const shown = mode === 'identify' || mode === 'capital' || (mode === 'parent' && item.kind !== 'city') || (mode === 'outline' && showMap);
@@ -348,13 +391,13 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
       if (narrow && s.phase === 'ask') for (const it of deck.items) if (!narrow.has(it.id) && !p[it.id]) p[it.id] = 'dim';
     }
     return p;
-  }, [s.marks, s.phase, hidden, item, ended, mode, showMap, narrow, deck]);
+  }, [s.marks, s.phase, hidden, item, ended, mode, showMap, narrow, deck, exam]);
 
   const labels = useMemo(() => {
     if (ended) return 'all' as const;
-    if (!opts.labels) return undefined;
+    if (!opts.labels || exam) return undefined;
     return new Set(Object.keys(s.marks).filter((id) => !hidden.has(id)));
-  }, [ended, opts.labels, s.marks, hidden]);
+  }, [ended, opts.labels, s.marks, hidden, exam]);
 
   const pinned = useMemo(() => (item && !ended && s.phase !== 'ask' ? new Set([item.id]) : undefined), [item, ended, s.phase]);
 
@@ -407,7 +450,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
         pinned={pinned}
         flash={flash}
         blind={mode === 'puzzle' && !ended}
-        tip={(id) => (ended || (s.marks[id] && !hidden.has(id)) ? deck.byId.get(id)?.name : null)}
+        tip={(id) => (ended || (!exam && s.marks[id] && !hidden.has(id)) ? deck.byId.get(id)?.name : null)}
       />
       {mode === 'outline' && item && !ended && s.phase === 'ask' && !showMap && (
         <div className="outline-stage">
@@ -420,9 +463,21 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
   );
 
   if (ended) {
-    const rows: ResultRow[] = Object.entries(s.results).map(([id, res]) => ({ item: deck.byId.get(id)!, res }));
+    /** The marking of an exam: the answer where the name of the piece is not it, and what was answered where it was wrong. */
+    const marking = (it: Item, res: Res): string | undefined => {
+      if (!exam) return undefined;
+      const said = given.current[it.id];
+      const parts = [
+        mode === 'capital' || mode === 'parent' ? answerOf(it) : '',
+        res !== 'bad' ? '' : !said ? L('en blanco', 'left blank') : clicky ? L(`señalaste ${said}`, `you picked ${said}`) : L(`respondiste «${said}»`, `you answered “${said}”`),
+      ];
+      return parts.filter(Boolean).join(' · ') || undefined;
+    };
+    const rows: ResultRow[] = Object.entries(s.results).map(([id, res]) => ({ item: deck.byId.get(id)!, res, note: marking(deck.byId.get(id)!, res) }));
     const score = scoreOf(s.ok, s.warn, s.asked);
     const hits = s.ok + s.warn;
+    const grade = gradeOf(s.ok, s.total);
+    const blank = Number.isFinite(s.total) ? s.total - s.asked : 0;
     return (
       <GameShell
         title={title}
@@ -435,7 +490,9 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
             title={
               !rows.length
                 ? L('Sin preguntas', 'No questions')
-                : paced
+                : exam
+                  ? L(`Nota: ${nf(grade, 1)}`, `Mark: ${nf(grade, 1)} out of 10`)
+                  : paced
                   ? L(`${hits} ${hits === 1 ? 'acierto' : 'aciertos'}${format === 'timed' ? ' en un minuto' : ''}`, `${hits} right${format === 'timed' ? ' in a minute' : ''}`)
                   : s.bad === 0 && s.warn === 0
                     ? L('¡Pleno!', 'Full marks!')
@@ -449,6 +506,22 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
                     `Lo que tocaba repasar eran capitales que se llaman como su ${one}: ya no se preguntan, así que salen del repaso.`,
                     `What was due were capitals named after their ${one}: they are no longer asked, so they leave the review.`,
                   )
+                : exam && rows.length
+                  ? [
+                      blank > 0
+                        ? L(
+                            `Entregaste con ${nf(blank)} ${blank === 1 ? 'pregunta' : 'preguntas'} sin responder, que ${blank === 1 ? 'cuenta' : 'cuentan'} como en blanco.`,
+                            `You handed it in with ${nf(blank)} ${blank === 1 ? 'question' : 'questions'} unanswered, which ${blank === 1 ? 'counts' : 'count'} as left blank.`,
+                          )
+                        : L(`${nf(s.ok)} de ${nf(s.total)} bien.`, `${nf(s.ok)} of ${nf(s.total)} right.`),
+                      mark === 'new'
+                        ? L('Es tu mejor nota en este mapa.', 'It is your best mark on this map.')
+                        : typeof mark === 'number'
+                          ? L(`Tu mejor nota en este mapa: ${nf(mark / 10, 1)}.`, `Your best mark on this map: ${nf(mark / 10, 1)}.`)
+                          : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')
                 : !paced || !rows.length
                 ? undefined
                 : mark === 'new'
@@ -459,6 +532,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
             }
             deck={deck}
             rows={rows}
+            // An exam is marked over all its questions: the ones not reached count with the misses.
+            counts={exam && rows.length ? { ok: s.ok, warn: 0, bad: s.total - s.ok } : undefined}
             ms={ms}
             stats={[{ label: L('Mejor racha', 'Best streak'), value: s.bestStreak }]}
             again={rows.length > 0 || !retired.length}
@@ -466,7 +541,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
             onReview={(ids) => onAgain({ only: ids, list: undefined, challenge: undefined })}
             onExit={onExit}
           >
-            {rows.length > 0 && !paced && s.asked >= s.total && <ChallengeBox cfg={cfg} score={score} ms={ms} what={`${deck.title} · ${title}`} />}
+            {rows.length > 0 && format === 'normal' && s.asked >= s.total && <ChallengeBox cfg={cfg} score={score} ms={ms} what={`${deck.title} · ${title}`} />}
           </Results>
         }
       />
@@ -606,7 +681,9 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
 
       {asking && clicky && (
         <p className="q-how">
-          <MapPin size={15} aria-hidden="true" /> {mode === 'puzzle' ? L('Haz clic en su sitio en el mapa.', 'Click where it goes on the map.') : L(`Haz clic en ${theOne}.`, `Click ${theOne}.`)} {left(maxTries - s.tries)}
+          <MapPin size={15} aria-hidden="true" /> {mode === 'puzzle' ? L('Haz clic en su sitio en el mapa.', 'Click where it goes on the map.') : L(`Haz clic en ${theOne}.`, `Click ${theOne}.`)}{' '}
+          {/* In an exam every question has its one try: counting it down to nothing would say nothing. */}
+          {exam ? L('El primer clic es tu respuesta.', 'Your first click is your answer.') : left(maxTries - s.tries)}
         </p>
       )}
 
@@ -650,7 +727,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
       {asking && note && (
         <p className="q-note" role="status">
           {note}
-          {typed && ` ${left(maxTries - s.tries)}`}
+          {typed && !exam && ` ${left(maxTries - s.tries)}`}
         </p>
       )}
 
@@ -664,14 +741,14 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
       <div className="q-actions">
         {asking ? (
           <>
-            {(clicky || typed || mode === 'outline') && !paced && (
+            {(clicky || typed || mode === 'outline') && !strict && (
               <button type="button" className="btn btn-sm" onClick={hint} disabled={clicky ? s.hints > 0 : mode === 'outline' && !typed ? showMap : s.hints >= hintMax(answer)}>
                 <Lightbulb size={15} aria-hidden="true" />
                 {clicky ? L('Pista', 'Hint') : mode === 'outline' && (!showMap || !typed) ? L('Ver en el mapa', 'Show on the map') : L('Una letra', 'A letter')}
               </button>
             )}
             <button type="button" className="btn btn-sm" onClick={giveUp}>
-              {L('No lo sé', "I don't know")}
+              {exam ? L('Dejar en blanco', 'Leave it blank') : L('No lo sé', "I don't know")}
             </button>
           </>
         ) : (
@@ -682,7 +759,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
         )}
         <button type="button" className="btn btn-sm btn-ghost q-end" onClick={() => dispatch({ type: 'finish' })}>
           <FlagIcon size={15} aria-hidden="true" />
-          {L('Terminar', 'Finish')}
+          {exam ? L('Entregar', 'Hand in') : L('Terminar', 'Finish')}
         </button>
       </div>
     </div>
@@ -717,7 +794,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
             </span>
           </>
         ) : (
-          <Hud ms={ms} streak={s.streak} progress={s.round === 2 ? L('Repaso', 'Review') : Number.isFinite(s.total) ? `${turn} / ${s.total}` : `${turn} · ${L('vuelta', 'lap')} ${s.lap}`} />
+          // The streak of an exam would say how each answer went.
+          <Hud ms={ms} streak={exam ? undefined : s.streak} progress={s.round === 2 ? L('Repaso', 'Review') : Number.isFinite(s.total) ? `${turn} / ${s.total}` : `${turn} · ${L('vuelta', 'lap')} ${s.lap}`} />
         )
       }
       panel={panel}

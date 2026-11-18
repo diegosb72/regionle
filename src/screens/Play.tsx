@@ -9,6 +9,7 @@ import { ListEditor } from '../games/ListEditor';
 import { NameAllGame } from '../games/NameAll';
 import { NeighboursGame } from '../games/Neighbours';
 import { FigGame } from '../games/PopGames';
+import { PrintSheet } from '../games/PrintSheet';
 import { QuizGame } from '../games/QuizGame';
 import { RegionleGame } from '../games/Regionle';
 import { TravelGame } from '../games/Travel';
@@ -167,6 +168,8 @@ function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
     );
   }
   if (cfg.mode === 'edit') return <ListEditor deck={deck} cfg={cfg} onExit={onExit} onAgain={onAgain} />;
+  // A sheet can be printed of any map, also of one with a single piece.
+  if (cfg.mode === 'print') return <PrintSheet deck={deck} cfg={cfg} onExit={onExit} onAgain={onAgain} />;
   if (deck.items.length < 2 && cfg.mode !== 'explore') {
     return <Message title={L('Este mapa tiene una sola pieza', 'This map has a single piece')} text={L('Elige más países o un nivel con más divisiones para poder jugar.', 'Choose more countries or a level with more divisions to play.')} onExit={onExit} />;
   }

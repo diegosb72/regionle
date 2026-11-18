@@ -15,6 +15,26 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.8.0',
+    date: '2026-11-18',
+    es: [
+      'Modo examen en Señalar, Identificar, Silueta, Puzle, Capitales, Banderas y ¿A qué pertenece?: un intento por pregunta, sin pistas ni corrección hasta entregar.',
+      'Al entregar el examen, la nota sobre 10 y la corrección, con lo que respondiste en cada fallo; se guarda la mejor nota de cada mapa.',
+      'Mapa mudo para imprimir en Regiones, Países, Ciudades y Geografía física: el mapa numerado, una línea para cada nombre y, si quieres, la hoja de soluciones.',
+      'En la hoja, lo que queda lejos va en un recuadro (Canarias, Alaska y Hawái, Azores y Madeira) y el papel se tumba cuando el mapa lo pide.',
+      'La hoja se saca también de una lista a medida, con el título que le pongas, o sin números, para escribir o colorear encima.',
+      'El interruptor «Mapa mudo» de Ruta se llama ahora «Mapa sin fronteras».',
+    ],
+    en: [
+      'Exam format in Pin it, Identify, Outline, Jigsaw, Capitals, Flags and Where does it belong?: one try per question, no hints and no marking until handed in.',
+      'When the exam is handed in, a mark out of 10 and the marking, with what you answered where you were wrong; the best mark on each map is kept.',
+      'Blank map to print in Regions, Countries, Cities and Physical geography: the numbered map, a line for each name and, if you want it, the answer sheet.',
+      'On the sheet, what lies far away goes in a box (the Canaries, Alaska and Hawaii, the Azores and Madeira) and the paper lies down when the map calls for it.',
+      'The sheet can also be made from a custom list, with the title you give it, or without numbers, to write or colour on.',
+      'The “Blank map” switch of Route is now called “Map without borders”.',
+    ],
+  },
+  {
     version: '1.7.0',
     date: '2026-11-18',
     es: [

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { setLang } from './i18n';
 import { GROUP_NAME, MODES, MODE_GROUPS, MODE_NAME, SECTION_IDS, modeNameIn } from './modes';
 import { TYPICAL_S } from './pace';
-import { FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, ROUND_MODES } from './rules';
+import { FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, NOT_GAMES, ROUND_MODES } from './rules';
 import type { Mode } from './types';
 
 beforeEach(() => setLang('es'));
@@ -11,10 +11,10 @@ const ids = (section: (typeof SECTION_IDS)[number]): Mode[] => MODES[section].ma
 
 describe('the games of each section', () => {
   it('are these, in the order of the menu', () => {
-    expect(ids('regions')).toEqual(['explore', 'learn', 'pin', 'identify', 'nameall', 'puzzle', 'outline', 'regionle', 'neighbours', 'travel', 'parent', 'compass', 'capital', 'hilo', 'rank', 'exact', 'which', 'topten']);
-    expect(ids('countries')).toEqual(['explore', 'learn', 'pin', 'identify', 'nameall', 'puzzle', 'outline', 'regionle', 'neighbours', 'travel', 'compass', 'capital', 'flag']);
-    expect(ids('cities')).toEqual(['explore', 'learn', 'pin', 'blind', 'identify', 'nameall', 'parent', 'compass', 'hilo', 'rank', 'exact', 'which', 'topten']);
-    expect(ids('physical')).toEqual(['explore', 'learn', 'pin', 'identify', 'nameall', 'hilo', 'rank', 'exact', 'which', 'topten']);
+    expect(ids('regions')).toEqual(['explore', 'learn', 'print', 'pin', 'identify', 'nameall', 'puzzle', 'outline', 'regionle', 'neighbours', 'travel', 'parent', 'compass', 'capital', 'hilo', 'rank', 'exact', 'which', 'topten']);
+    expect(ids('countries')).toEqual(['explore', 'learn', 'print', 'pin', 'identify', 'nameall', 'puzzle', 'outline', 'regionle', 'neighbours', 'travel', 'compass', 'capital', 'flag']);
+    expect(ids('cities')).toEqual(['explore', 'learn', 'print', 'pin', 'blind', 'identify', 'nameall', 'parent', 'compass', 'hilo', 'rank', 'exact', 'which', 'topten']);
+    expect(ids('physical')).toEqual(['explore', 'learn', 'print', 'pin', 'identify', 'nameall', 'hilo', 'rank', 'exact', 'which', 'topten']);
     expect(ids('pops')).toEqual(['hilo', 'rank', 'exact', 'which', 'topten', 'truefalse']);
   });
 
@@ -26,7 +26,8 @@ describe('the games of each section', () => {
         expect(m.name.length, `${section}/${m.id}`).toBeGreaterThan(2);
         expect(m.desc.length, `${section}/${m.id}`).toBeGreaterThan(20);
         expect(m.icon, `${section}/${m.id}`).toBeTruthy();
-        expect([1, 2, 3], `${section}/${m.id}`).toContain(m.level);
+        // What is not a game has no difficulty to speak of.
+        expect(NOT_GAMES.includes(m.id) ? [0] : [1, 2, 3], `${section}/${m.id}`).toContain(m.level);
         expect(MODE_GROUPS, `${section}/${m.id}`).toContain(m.group);
       }
     }
@@ -82,7 +83,9 @@ describe('what a game is called', () => {
     expect(MODE_NAME.parent).toBe('¿A qué pertenece?');
     expect(MODE_NAME.truefalse).toBe('Verdadero o falso');
     expect(MODE_NAME.topten).toBe('Los diez primeros');
+    expect(MODE_NAME.print).toBe('Mapa mudo');
     setLang('en');
+    expect(MODE_NAME.print).toBe('Blank map');
     expect(MODE_NAME.compass).toBe('North–south');
     expect(MODE_NAME.parent).toBe('Where does it belong?');
     expect(MODE_NAME.truefalse).toBe('True or false');
@@ -102,6 +105,15 @@ describe('the rules the menus go by', () => {
     for (const id of [...ROUND_MODES, 'truefalse', 'parent'] as Mode[]) expect(LENGTH_MODES, id).toContain(id);
     // Lists typed from memory have the length of the list.
     for (const id of ['nameall', 'topten', 'hilo'] as Mode[]) expect(LENGTH_MODES, id).not.toContain(id);
+  });
+
+  it('keep the sheet to print out of everything a game has', () => {
+    // Where the map is drawn there is a sheet of it; a section of figures alone has none.
+    for (const section of SECTION_IDS) expect(ids(section).includes('print'), section).toBe(section !== 'pops');
+    for (const section of SECTION_IDS) for (const m of MODES[section]) if (m.id === 'print') expect(m.group, section).toBe('study');
+    for (const list of [FORMAT_MODES, LENGTH_MODES, FIGURE_MODES, ROUND_MODES]) expect(list, 'print').not.toContain('print');
+    expect(TYPICAL_S.print).toBeUndefined();
+    expect(NOT_GAMES).toEqual(['print', 'edit']);
   });
 
   it('give a typical pace to every game with a number of questions', () => {

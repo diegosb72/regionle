@@ -7211,3 +7211,340 @@ kbd {
 .hud-strikes svg.on {
   color: var(--bad);
 }
+
+/* sheet to print (games/PrintSheet.tsx) */
+
+.mode-paper {
+  font: 650 10px/1 var(--sans);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.sheet-tools .options {
+  margin-top: 4px;
+}
+/* The button of the top bar is for the phone, where the one of the panel is a scroll away. */
+.sheet-print {
+  display: none;
+}
+@media (max-width: 860px) {
+  .sheet-print {
+    display: inline-flex;
+  }
+  .play-top .sheet-print span {
+    display: inline;
+  }
+}
+.sheets {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+  align-content: start;
+  padding: 12px;
+  background: var(--bg-2);
+}
+/* Paper: white with black ink whatever the theme, drawn at its real size and shrunk to the room there is. */
+.sheet {
+  box-sizing: content-box;
+  padding: 12mm;
+  background: #fff;
+  color: #111;
+  color-scheme: light;
+  box-shadow: var(--shadow-2);
+  zoom: var(--fit, 1);
+  font: 400 10pt/1.3 var(--sans);
+}
+/* A height of its own, whatever the title: the map below is worked out for it (HEADER in lib/sheet.ts). */
+.sheet-head {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 13mm;
+  margin-bottom: 4mm;
+}
+.sheet-head h2 {
+  margin: 0;
+  overflow: hidden;
+  font: 600 16pt/1.15 var(--serif);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #111;
+}
+.sheet-head h2.long {
+  font-size: 11.5pt;
+}
+.sheet-sub {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8mm;
+  margin-top: 1mm;
+}
+.sheet-head p {
+  margin: 0;
+  font-size: 9pt;
+  color: #444;
+}
+.sheet-head .sheet-fields {
+  display: flex;
+  flex: none;
+  gap: 5mm;
+  margin: 0;
+  color: #111;
+  white-space: nowrap;
+}
+.sheet-fields span {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2mm;
+}
+.sheet-fields i {
+  display: inline-block;
+  width: 48mm;
+  border-bottom: 0.25mm solid #555;
+}
+.sheet-fields i.short {
+  width: 22mm;
+}
+.sheet-map {
+  display: block;
+  margin: 0 auto;
+  background: #fff;
+}
+/* The sizes here are the ones lib/sheet.ts works the map out with: the gap over the list, the width and
+   the gap of its columns, the height of its lines (`--row`). */
+.sheet-list {
+  margin: 6mm 0 0;
+  padding: 0;
+  list-style: none;
+  column-gap: 6mm;
+}
+.sheet-body.side {
+  display: flex;
+  align-items: flex-start;
+  gap: 6mm;
+}
+.sheet-body.side .sheet-map {
+  flex: none;
+  margin: 0;
+}
+.sheet-body.side .sheet-list {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+.sheet-list li {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.5mm;
+  height: var(--row, 7mm);
+  break-inside: avoid;
+}
+.sheet-list b {
+  flex: none;
+  min-width: 5mm;
+  text-align: right;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.sheet-list i {
+  flex: 1;
+  border-bottom: 0.2mm solid #777;
+}
+/* The answers: a long name takes a second line before it is cut. */
+.sheet-key .sheet-list {
+  font-size: 9pt;
+  line-height: 1.15;
+}
+.sheet-key .sheet-list li {
+  height: auto;
+  min-height: var(--row, 7mm);
+  align-items: baseline;
+  padding-top: 1mm;
+}
+.sheet-key .sheet-list b {
+  line-height: inherit;
+}
+.sheet-key .sheet-list span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.sheet-foot {
+  margin: 3mm 0 0;
+  font-size: 7pt;
+  color: #777;
+  text-align: right;
+}
+
+/* The map of the sheet: `--mm` is how many of its units make a millimetre of paper. */
+.sm-sphere {
+  fill: none;
+  stroke: #999;
+  stroke-width: calc(var(--mm) * 0.2px);
+}
+.sm-ctx path {
+  fill: #ececec;
+  stroke: #b0b0b0;
+  stroke-width: calc(var(--mm) * 0.15px);
+  stroke-linejoin: round;
+}
+.sm-base path {
+  fill: #fff;
+  stroke: #555;
+  stroke-width: calc(var(--mm) * 0.2px);
+  stroke-linejoin: round;
+}
+/* On a physical map the borders of the countries are there to find one's way, and no more. */
+.of-physical .sm-base path {
+  stroke: #a6a6a6;
+  stroke-width: calc(var(--mm) * 0.14px);
+}
+.sm-under path {
+  fill: none;
+  stroke: #777;
+  stroke-width: calc(var(--mm) * 0.2px);
+  stroke-dasharray: calc(var(--mm) * 0.3px) calc(var(--mm) * 0.9px);
+  stroke-linecap: round;
+}
+.sm-area path {
+  fill: #fff;
+  stroke: #1a1a1a;
+  stroke-width: calc(var(--mm) * 0.22px);
+  stroke-linejoin: round;
+}
+.sm-area path.k-lake {
+  fill: #d4d4d4;
+  stroke: #333;
+}
+.sm-area path.k-range,
+.sm-area path.k-desert {
+  fill: none;
+  stroke: #444;
+  stroke-width: calc(var(--mm) * 0.25px);
+  stroke-dasharray: calc(var(--mm) * 1.4px) calc(var(--mm) * 0.8px);
+}
+.sm-area path.k-desert {
+  stroke-dasharray: calc(var(--mm) * 0.3px) calc(var(--mm) * 0.8px);
+  stroke-linecap: round;
+}
+.sm-extra path {
+  fill: #f3f3f3;
+  stroke: #777;
+  stroke-width: calc(var(--mm) * 0.18px);
+  stroke-dasharray: calc(var(--mm) * 0.8px) calc(var(--mm) * 0.6px);
+}
+.sm-outline path {
+  fill: none;
+  stroke: #000;
+  stroke-width: calc(var(--mm) * 0.4px);
+  stroke-linejoin: round;
+}
+.sm-line path {
+  fill: none;
+  stroke: #1a1a1a;
+  stroke-width: calc(var(--mm) * 0.35px);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.sm-dot circle,
+.sm-dot path {
+  fill: #111;
+  stroke: #fff;
+  stroke-width: calc(var(--mm) * 0.15px);
+}
+.sm-num text {
+  font-family: var(--sans);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  fill: #000;
+  stroke: #fff;
+  stroke-width: calc(var(--mm) * 0.7px);
+  stroke-linejoin: round;
+  paint-order: stroke;
+}
+.sm-ring {
+  fill: none;
+  stroke: #000;
+  stroke-width: calc(var(--mm) * 0.2px);
+}
+.sm-lead line {
+  stroke: #000;
+  stroke-width: calc(var(--mm) * 0.15px);
+}
+.sm-lead circle {
+  fill: #000;
+}
+.sm-edge {
+  fill: none;
+  stroke: #000;
+  stroke-width: calc(var(--mm) * 0.3px);
+}
+
+/* On paper nothing is left but the sheets, one to a page. */
+@media print {
+  html.sheet-on,
+  html.sheet-on body {
+    height: auto;
+    overflow: visible;
+    background: #fff;
+  }
+  html.sheet-on .app-play {
+    position: static;
+    display: block;
+    min-height: 0;
+    overflow: visible;
+  }
+  html.sheet-on .play-main,
+  html.sheet-on .play,
+  html.sheet-on .play-body {
+    display: block;
+    height: auto;
+    background: none;
+  }
+  html.sheet-on .play-top,
+  html.sheet-on .panel,
+  html.sheet-on .toast,
+  html.sheet-on .keys-dialog {
+    display: none !important;
+  }
+  html.sheet-on .stage {
+    position: static;
+    min-height: 0;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+    background: none;
+  }
+  html.sheet-on .sheets {
+    position: static;
+    display: block;
+    overflow: visible;
+    padding: 0;
+    background: none;
+  }
+  html.sheet-on .sheet {
+    zoom: 1;
+    margin: 0 auto;
+    padding: 0;
+    box-shadow: none;
+    break-after: page;
+  }
+  html.sheet-on .sheet:last-of-type {
+    break-after: auto;
+  }
+  /* A list too long to share the page of its map starts the next one. */
+  html.sheet-on .sheet-list.split {
+    break-before: page;
+  }
+}
+
+/* A box with the far pieces of the map: paper of its own over whatever the main map has there. */
+.sm-paper {
+  fill: #fff;
+}

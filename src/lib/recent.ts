@@ -52,7 +52,7 @@ function optsOf(game: GameConfig): RecentOpts {
  * what is current, and the editor of lists is not a game.
  */
 export function recentOf(game: GameConfig, rec: SessionRec): Recent | null {
-  if (game.review || game.daily || game.challenge || game.only || game.list || game.listId || game.mode === 'edit') return null;
+  if (game.review || game.daily || game.challenge || game.only || game.list || game.listId || game.mode === 'edit' || game.mode === 'print') return null;
   if (game.section !== rec.section || game.mode !== rec.mode || !game.countries.length) return null;
   // Levels are those of the regions of a country: the other maps are the same whatever they say.
   const levels: Record<string, string> = {};

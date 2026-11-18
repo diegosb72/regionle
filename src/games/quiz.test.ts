@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mulberry32 } from '../lib/text';
-import { answersItself, belongsItself, capitalsNeedTyping, initQuiz, quizReducer, scoreOf, type QuizAction, type QuizState } from './quiz';
+import { answersItself, belongsItself, capitalsNeedTyping, gradeOf, initQuiz, quizReducer, scoreOf, type QuizAction, type QuizState } from './quiz';
 
 const run = (s: QuizState, ...actions: QuizAction[]) => actions.reduce(quizReducer, s);
 
@@ -56,6 +56,60 @@ describe('quiz state machine', () => {
     expect(s.phase).toBe('done');
     expect(s.lap).toBeGreaterThan(3);
     expect(s.asked).toBe(41);
+  });
+});
+
+describe('an exam', () => {
+  const exam = (pool: string[], length: number | 'all' | 'endless' = 'all') => initQuiz(pool, length, true, mulberry32(3), true);
+
+  it('takes each answer without a word and asks the next one', () => {
+    let s = exam(['a', 'b', 'c']);
+    const first = s.cur;
+    s = run(s, { type: 'wrong', max: 1 });
+    // No pause to look at the answer, right or wrong: the next question is already there.
+    expect(s.phase).toBe('ask');
+    expect(s.cur).not.toBe(first);
+    expect(s.results[first!]).toBe('bad');
+    expect(s.asked).toBe(1);
+    s = run(s, { type: 'right' });
+    expect(s.phase).toBe('ask');
+    expect(s.asked).toBe(2);
+  });
+
+  it('ends with the last answer, without asking again what was missed', () => {
+    let s = exam(['a', 'b', 'c']);
+    s = run(s, { type: 'wrong', max: 1 }, { type: 'giveup' }, { type: 'right' });
+    expect(s.phase).toBe('end');
+    expect(s.round).toBe(1);
+    expect(s.again).toEqual([]);
+    expect([s.ok, s.warn, s.bad]).toEqual([1, 0, 2]);
+    expect(Object.keys(s.results)).toHaveLength(3);
+  });
+
+  it('never waits on the map after a miss, and has an end whatever was asked for', () => {
+    const s = exam(['a', 'b', 'c', 'd'], 'endless');
+    expect(s.reveal).toBe(false);
+    expect(s.endless).toBe(false);
+    expect(s.total).toBe(4);
+    expect(exam(['a', 'b', 'c', 'd'], 2).total).toBe(2);
+  });
+
+  it('is marked out of ten, and what was not answered counts as wrong', () => {
+    expect(gradeOf(15, 20)).toBe(7.5);
+    expect(gradeOf(19, 19)).toBe(10);
+    expect(gradeOf(1, 3)).toBe(3.3);
+    expect(gradeOf(0, 10)).toBe(0);
+    expect(gradeOf(0, 0)).toBe(0);
+    // Handed in after four of ten, all right: a four.
+    expect(gradeOf(4, 10)).toBe(4);
+  });
+
+  it('leaves the other games as they were', () => {
+    let s = initQuiz(['a', 'b'], 'all', false, mulberry32(3));
+    expect(s.exam).toBe(false);
+    s = run(s, { type: 'wrong', max: 1 });
+    expect(s.phase).toBe('done');
+    expect(s.again).toHaveLength(1);
   });
 });
 

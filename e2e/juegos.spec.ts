@@ -1,18 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
-import { OPTS, open, seed } from './helpers';
-
-/** A game seeded as the one in course, and its screen once it is ready. */
-async function start(page: Page, game: Record<string, unknown>): Promise<void> {
-  await seed(page, { game: { levels: {}, nonce: 1, ...game, opts: { ...OPTS, ...((game.opts as object) ?? {}) } } });
-  await page.goto('./#/jugar');
-  await expect(page.locator('main#contenido')).toBeVisible();
-  await expect(page.locator('.play-loading')).toHaveCount(0, { timeout: 30_000 });
-}
-
-const type = async (page: Page, text: string) => {
-  await page.locator('.answer-input').fill(text);
-  await page.keyboard.press('Enter');
-};
+import { expect, test } from '@playwright/test';
+import { open, seed, start, type } from './helpers';
 
 /** The eight the games about countries are played with here: by people, Germany, France, Italy, Spain, Poland, the Netherlands, Belgium, Portugal. */
 const EIGHT = ['ES', 'FR', 'DE', 'IT', 'PT', 'NL', 'BE', 'PL'];

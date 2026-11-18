@@ -77,12 +77,14 @@ export function questionsOf({ mode, units, length, format, list }: GameSize): nu
   if (units <= 0) return null;
   if (mode === 'nameall') return units;
   if (!LENGTH_MODES.includes(mode)) return null;
-  if (format !== 'normal' && FORMAT_MODES.includes(mode)) return null;
+  // Against the clock or with lives a game lasts what it lasts; an exam has its questions counted.
+  if ((format === 'timed' || format === 'lives') && FORMAT_MODES.includes(mode)) return null;
   if (list) return units;
   if (ROUND_MODES.includes(mode)) return length === 'all' ? RANK_ROUNDS : length === 'endless' ? null : length;
   // Statements are made up as the game goes: as many as are asked for, whatever the countries chosen.
   if (mode === 'truefalse') return length === 'all' ? TRUE_FALSE_ROUND : length === 'endless' ? null : length;
-  if (length === 'endless') return null;
+  // An exam has an end even where "no end" was the choice for the other games.
+  if (length === 'endless') return format === 'exam' && FORMAT_MODES.includes(mode) ? units : null;
   return length === 'all' ? units : Math.min(length, units);
 }
 

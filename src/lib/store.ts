@@ -12,7 +12,8 @@ import type { Mode, Res, Section } from './types';
 export type Length = 'all' | 10 | 20 | 50 | 'endless';
 export type Theme = 'auto' | 'light' | 'dark';
 /** How a question-by-question game is paced: a set of questions, against the clock, or until the lives run out. */
-export type Format = 'normal' | 'timed' | 'lives';
+/** How a game of questions is played: at ease, against the clock, until the lives run out, or as an exam. */
+export type Format = 'normal' | 'timed' | 'lives' | 'exam';
 
 export interface Opts {
   /** How names are answered: four options or typing. */

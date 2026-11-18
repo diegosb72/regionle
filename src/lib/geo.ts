@@ -87,6 +87,53 @@ export function graticule() {
   return geoGraticule10();
 }
 
+/**
+ * Width and height in view units of the biggest polygon of a multi-part shape, from the corners of its
+ * lon/lat box: what the eye finds in an archipelago. Null for anything that is a single piece.
+ */
+export function landBox(geo: AnyGeo, project: (p: LL) => [number, number] | null): [number, number] | null {
+  if (geo.geometry.type !== 'MultiPolygon' || geo.geometry.coordinates.length < 2) return null;
+  let best: [number, number, number, number] | null = null;
+  let bestArea = -1;
+  for (const poly of geo.geometry.coordinates) {
+    let w = Infinity;
+    let e = -Infinity;
+    let south = Infinity;
+    let north = -Infinity;
+    for (const pt of poly[0]) {
+      if (pt[0] < w) w = pt[0];
+      if (pt[0] > e) e = pt[0];
+      if (pt[1] < south) south = pt[1];
+      if (pt[1] > north) north = pt[1];
+    }
+    const area = (e - w) * Math.cos((((south + north) / 2) * Math.PI) / 180) * (north - south);
+    if (area > bestArea) {
+      bestArea = area;
+      best = [w, south, e, north];
+    }
+  }
+  if (!best) return null;
+  const [w, south, e, north] = best;
+  let x0 = Infinity;
+  let y0 = Infinity;
+  let x1 = -Infinity;
+  let y1 = -Infinity;
+  for (const corner of [
+    [w, south],
+    [e, south],
+    [w, north],
+    [e, north],
+  ] as LL[]) {
+    const q = project(corner);
+    if (!q) continue;
+    if (q[0] < x0) x0 = q[0];
+    if (q[0] > x1) x1 = q[0];
+    if (q[1] < y0) y0 = q[1];
+    if (q[1] > y1) y1 = q[1];
+  }
+  return Number.isFinite(x0) ? [x1 - x0, y1 - y0] : null;
+}
+
 /** Number of coordinates in a set of shapes: a measure of how heavy they are to draw. */
 export function countPoints(geos: AnyGeo[]): number {
   let n = 0;

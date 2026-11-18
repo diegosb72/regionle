@@ -14,6 +14,7 @@ import {
   MapPin,
   Navigation,
   PaintBucket,
+  Printer,
   Puzzle,
   Route,
   ScanSearch,
@@ -38,8 +39,8 @@ export interface ModeDef {
   name: string;
   desc: string;
   icon: LucideIcon;
-  /** 1 easy … 3 hard */
-  level: 1 | 2 | 3;
+  /** 1 easy … 3 hard; 0 for what is not played and so is neither. */
+  level: 0 | 1 | 2 | 3;
   group: ModeGroup;
 }
 
@@ -72,6 +73,18 @@ function modesOf(section: Section): ModeDef[] {
     desc: L('Por lecciones: cinco piezas nuevas cada vez, que primero te presentamos y luego te preguntamos mezcladas con las que ya sabes.', 'In lessons: five new pieces at a time, first shown to you and then asked mixed with the ones you already know.'),
     icon: GraduationCap,
     level: 1,
+    group: 'study',
+  };
+  /** Not a game: the same map on paper. It sits with what is there to study with. */
+  const print: ModeDef = {
+    id: 'print',
+    name: L('Mapa mudo', 'Blank map'),
+    desc: L(
+      'Para imprimir: el mapa sin nombres, con un número en cada pieza y una línea para escribir cada nombre. Si quieres, sin números y con las soluciones en otra hoja.',
+      'To print: the map without names, a number on each piece and a line to write each name on. If you like, without numbers and with the answers on another sheet.',
+    ),
+    icon: Printer,
+    level: 0,
     group: 'study',
   };
   const pin: ModeDef = { id: 'pin', name: L('Señalar', 'Pin it'), desc: L('Te damos un nombre y lo buscas en el mapa.', 'You get a name and find it on the map.'), icon: MapPin, level: 1, group: 'map' };
@@ -127,6 +140,7 @@ function modesOf(section: Section): ModeDef[] {
       return [
         explore,
         learn,
+        print,
         pin,
         identify,
         nameall,
@@ -161,6 +175,7 @@ function modesOf(section: Section): ModeDef[] {
       return [
         explore,
         learn,
+        print,
         pin,
         identify,
         nameall,
@@ -177,6 +192,7 @@ function modesOf(section: Section): ModeDef[] {
       return [
         explore,
         learn,
+        { ...print, desc: L('Para imprimir: el mapa con un punto numerado por ciudad y una línea para escribir cada nombre. Si quieres, sin números y con las soluciones en otra hoja.', 'To print: the map with a numbered dot for each city and a line to write each name on. If you like, without numbers and with the answers on another sheet.') },
         { ...pin, desc: L('Te damos una ciudad y la buscas entre los puntos del mapa.', 'You get a city and find it among the dots on the map.') },
         {
           id: 'blind',
@@ -203,6 +219,7 @@ function modesOf(section: Section): ModeDef[] {
       return [
         explore,
         learn,
+        { ...print, desc: L('Para imprimir: ríos, mares, cordilleras y picos sin nombre, con un número en cada uno y una línea para escribirlo. Si quieres, sin números y con las soluciones en otra hoja.', 'To print: rivers, seas, ranges and peaks without names, a number on each and a line to write it on. If you like, without numbers and with the answers on another sheet.') },
         pin,
         { ...identify, desc: L('Se ilumina un río, un mar o una cordillera y dices cuál es.', 'A river, a sea or a range lights up and you say which one it is.') },
         nameall,
@@ -239,6 +256,8 @@ function modeName(mode: Mode): string {
       return L('Situar a ciegas', 'Place it blind');
     case 'edit':
       return L('Lista a medida', 'Custom list');
+    case 'print':
+      return L('Mapa mudo', 'Blank map');
     case 'nameall':
       return L('Rellenar el mapa', 'Fill the map');
     case 'outline':
@@ -272,7 +291,8 @@ function modeName(mode: Mode): string {
   }
 }
 
-export const formatName = (f: Format): string => (f === 'timed' ? L('Contrarreloj', 'Time attack') : f === 'lives' ? L('Supervivencia', 'Survival') : L('Normal', 'Standard'));
+export const formatName = (f: Format): string =>
+  f === 'timed' ? L('Contrarreloj', 'Time attack') : f === 'lives' ? L('Supervivencia', 'Survival') : f === 'exam' ? L('Examen', 'Exam') : L('Normal', 'Standard');
 
 export interface SectionInfo {
   path: string;
@@ -332,7 +352,7 @@ function lazy<K extends string, V>(keys: readonly K[], make: (key: K) => V): Rec
   return out;
 }
 
-const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'neighbours', 'capital', 'flag', 'blind', 'edit', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'topten'];
+const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'neighbours', 'capital', 'flag', 'blind', 'edit', 'print', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'topten'];
 
 export const MODES: Record<Section, ModeDef[]> = lazy(SECTION_IDS, modesOf);
 export const MODE_NAME: Record<Mode, string> = lazy(MODE_IDS, modeName);
