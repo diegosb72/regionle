@@ -13,6 +13,50 @@ import { today } from './text';
 import { cleanTypeins, setTypeins as applyTypeins, type Typeins } from './typeinPrefs';
 import type { Mode, Res, Section } from './types';
 
+/**
+ * The flags of the album (see lib/album.ts): id of the country → when its flag was learnt. A flag that
+ * has gone in stays, even if it is missed afterwards: the answers say what is known now, the album what
+ * has been learnt at some time.
+ */
+export type FlagAlbum = Record<string, number>;
+
+/**
+ * Room for every country and territory there is, and no more: what is stored cannot grow without end.
+ * Up here, before the store is made: what is kept in the browser is read while it is being made, and a
+ * constant further down would not exist yet.
+ */
+export const ALBUM_MAX = 400;
+
+/** The album with the flags that `stats` has learnt and were not in it; the same album when there is none. */
+export function withFlags(album: FlagAlbum, stats: Record<string, Stat>): FlagAlbum {
+  let out = album;
+  let room = ALBUM_MAX - Object.keys(album).length;
+  for (const [key, stat] of Object.entries(stats)) {
+    if (room <= 0) break;
+    if (!key.startsWith('flag:') || !isLearnt(stat)) continue;
+    const id = key.slice(5);
+    if (out[id]) continue;
+    if (out === album) out = { ...album };
+    out[id] = stat[3] || 1;
+    room--;
+  }
+  return out;
+}
+
+/** What a stored album may hold: ids with the time they went in. */
+export function cleanAlbum(raw: unknown): FlagAlbum {
+  const out: FlagAlbum = {};
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
+  let n = 0;
+  for (const [id, at] of Object.entries(raw as Record<string, unknown>)) {
+    if (n >= ALBUM_MAX) break;
+    if (!id || id.length > 12 || typeof at !== 'number' || !Number.isFinite(at) || at <= 0) continue;
+    out[id] = at;
+    n++;
+  }
+  return out;
+}
+
 export type Length = 'all' | 10 | 20 | 50 | 'endless';
 export type Theme = 'auto' | 'light' | 'dark';
 /** How a question-by-question game is paced: a set of questions, against the clock, or until the lives run out. */
@@ -195,6 +239,8 @@ interface State {
   goals: Goal[];
   /** The player's own notes about a piece, by its id (see lib/notes.ts). */
   notes: Notes;
+  /** The flags learnt at some time, which stay in the album (see `FlagAlbum`). */
+  album: FlagAlbum;
   /** Achievements earned: id → when. */
   badges: Record<string, number>;
   /** g games · q answers · ok first-time right · warn right with help · ms time · and one-off counters (lessons, regionle1, near…). */
@@ -292,6 +338,7 @@ export const useStore = create<State>()(
       listOn: {},
       goals: [],
       notes: {},
+      album: {},
       badges: {},
       tot: {},
       cb: false,
@@ -403,8 +450,11 @@ export const useStore = create<State>()(
         set((s) => {
           const k = `${skill}:${id}`;
           const [seen, ok, run] = s.stats[k] ?? [0, 0, 0, 0];
-          const stats: Record<string, Stat> = { ...s.stats, [k]: [seen + 1, ok + (res === 'ok' ? 1 : 0), res === 'ok' ? run + 1 : 0, Date.now()] };
-          return origin && s.where[id] !== origin ? { stats, where: { ...s.where, [id]: origin } } : { stats };
+          const now = Date.now();
+          const stats: Record<string, Stat> = { ...s.stats, [k]: [seen + 1, ok + (res === 'ok' ? 1 : 0), res === 'ok' ? run + 1 : 0, now] };
+          // A flag that has just been learnt goes into the album, and stays there.
+          const album = skill === 'flag' && !s.album[id] && isLearnt(stats[k]) && Object.keys(s.album).length < ALBUM_MAX ? { ...s.album, [id]: now } : s.album;
+          return origin && s.where[id] !== origin ? { stats, album, where: { ...s.where, [id]: origin } } : { stats, album };
         }),
       mixUp: (skill, asked, given) => set((s) => ({ mix: withMix(s.mix, s.stats, skill, asked, given, Date.now()) })),
       forget: (skill, ids) =>
@@ -443,7 +493,7 @@ export const useStore = create<State>()(
         if (better) set((s) => ({ best: { ...s.best, [key]: value } }));
         return better;
       },
-      resetProgress: () => set({ stats: {}, where: {}, mix: {}, sessions: [], recent: [], best: {}, daily: {}, days: {}, badges: {}, tot: {} }),
+      resetProgress: () => set({ stats: {}, where: {}, mix: {}, sessions: [], recent: [], best: {}, daily: {}, days: {}, badges: {}, tot: {}, album: {} }),
       importData: (data) => {
         if (!data || typeof data !== 'object') return false;
         const d = data as Partial<State>;
@@ -466,6 +516,8 @@ export const useStore = create<State>()(
           goals: Array.isArray(d.goals) ? cleanGoals(d.goals) : get().goals,
           // Nor does one from before there were notes: what has been written stays.
           notes: d.notes && typeof d.notes === 'object' ? cleanNotes(d.notes) : get().notes,
+          // The album of the copy, and the flags its answers have learnt: one from before the album has those.
+          album: withFlags(cleanAlbum(d.album), d.stats ?? {}),
           badges: d.badges && typeof d.badges === 'object' ? d.badges : {},
           tot: d.tot && typeof d.tot === 'object' ? d.tot : totalsOf(d.sessions ?? []),
           // Backups from before the settings existed say nothing about them: they stay as they are. One
@@ -503,6 +555,7 @@ export const useStore = create<State>()(
         listOn: s.listOn,
         goals: s.goals,
         notes: s.notes,
+        album: s.album,
         badges: s.badges,
         tot: s.tot,
         cb: s.cb,
@@ -544,6 +597,8 @@ export function mergeSaved(saved: unknown, current: State): State {
     dayGoal: isDayGoal(p.dayGoal) ? p.dayGoal : DAY_GOAL_DEFAULT,
     goals: cleanGoals(p.goals),
     notes: cleanNotes(p.notes),
+    // Players from before the album start with the flags they have learnt.
+    album: withFlags(cleanAlbum(p.album), p.stats && typeof p.stats === 'object' ? p.stats : {}),
     hotkeys: p.hotkeys !== false,
     sound: p.sound === true,
     haptic: p.haptic === true,

@@ -16,9 +16,10 @@ const ALBUM_GAME = 20;
 
 export function AlbumBlock({ world }: { world: World }) {
   const stats = useStore((s) => s.stats);
+  const kept = useStore((s) => s.album);
   const opts = useStore((s) => s.opts);
   const start = useStore((s) => s.start);
-  const album = useMemo(() => albumOf(world.index, stats, L('Otros territorios', 'Other territories')), [world, stats]);
+  const album = useMemo(() => albumOf(world.index, kept, stats, L('Otros territorios', 'Other territories')), [world, kept, stats]);
   const [open, setOpen] = useState(false);
   const pagesId = useId();
 
@@ -34,8 +35,8 @@ export function AlbumBlock({ world }: { world: World }) {
       <h2>{L('Álbum de banderas', 'Flag album')}</h2>
       <p className="tip-line">
         {L(
-          `Llevas ${nf(album.got)} de las ${nf(album.total)} banderas de los países del mundo. Una bandera entra en el álbum cuando la aprendes: dos aciertos seguidos a la primera en «${MODE_NAME.flag}» o en las tarjetas.`,
-          `You have ${nf(album.got)} of the ${nf(album.total)} flags of the countries of the world. A flag goes into the album once you learn it: right first time twice in a row in “${MODE_NAME.flag}” or on the flashcards.`,
+          `Llevas ${nf(album.got)} de las ${nf(album.total)} banderas de los países del mundo. Una bandera entra en el álbum cuando la aprendes (dos aciertos seguidos a la primera en «${MODE_NAME.flag}» o en las tarjetas) y ya no sale, aunque luego la falles.`,
+          `You have ${nf(album.got)} of the ${nf(album.total)} flags of the countries of the world. A flag goes into the album once you learn it (right first time twice in a row in “${MODE_NAME.flag}” or on the flashcards) and stays there, even if you miss it later.`,
         )}
       </p>
       <ul className="album-pages">

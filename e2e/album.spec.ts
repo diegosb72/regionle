@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
-import { OPTS, open, seed, start, type } from './helpers';
+import { OPTS, open, restart, seed, start, type } from './helpers';
 
 /** Noon of Wednesday 18 November 2026 in Madrid, where the browser of these tests is. */
 const NOW = new Date('2026-11-18T12:00:00+01:00');
@@ -103,7 +103,7 @@ test.describe('the flag album', () => {
     expect(only.every((id) => members('EU').includes(id))).toBe(true);
   });
 
-  test('takes a flag in once it is learnt in a game', async ({ page }) => {
+  test('takes a flag in once it is learnt in a game, and keeps it when it is missed later', async ({ page }) => {
     const game = { section: 'countries', mode: 'flag', countries: ['FR', 'IT'], only: ['FR'], opts: { answer: 'type' } };
     // Right once already: the second in a row is what makes it learnt.
     await seed(page, { ...PLAYED, stats: { 'flag:FR': st(1, 1, 1) }, where: { FR: 'c' }, game: { levels: {}, nonce: 1, ...game, opts: { ...OPTS, ...game.opts } } });
@@ -115,6 +115,19 @@ test.describe('the flag album', () => {
     await type(page, 'Francia');
     await expect(page.locator('.verdict')).toHaveClass(/verdict-ok/);
 
+    await open(page, '/progreso');
+    await expect(page.locator('.album .tip-line')).toContainText('Llevas 1 de las 193 banderas');
+    await expect(page.locator('.album .tip-line')).toContainText('y ya no sale, aunque luego la falles.');
+    await page.getByRole('button', { name: 'Abrir el álbum' }).click();
+    await expect(albumPage(page, 'Europa').locator('.album-grid li.got')).toHaveText(['Francia']);
+
+    // Missed the next time: the answer is to be learnt again, the flag stays where it is.
+    await restart(page, game);
+    for (const wrong of ['Italia', 'Bélgica', 'Alemania']) await type(page, wrong);
+    await expect(page.locator('.verdict')).toHaveClass(/verdict-bad/);
+    const state = await page.evaluate(() => JSON.parse(localStorage.getItem('regionle:v1')!).state as { stats: Record<string, number[]>; album: Record<string, number> });
+    expect(state.stats['flag:FR'].slice(0, 3)).toEqual([3, 2, 0]);
+    expect(Object.keys(state.album)).toEqual(['FR']);
     await open(page, '/progreso');
     await expect(page.locator('.album .tip-line')).toContainText('Llevas 1 de las 193 banderas');
     await page.getByRole('button', { name: 'Abrir el álbum' }).click();

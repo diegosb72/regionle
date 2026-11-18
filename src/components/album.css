@@ -32,6 +32,8 @@
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
   text-transform: none;
+  /* A long name takes a second line; the count stays whole. */
+  white-space: nowrap;
 }
 .album-open {
   justify-self: start;
