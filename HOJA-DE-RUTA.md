@@ -77,8 +77,8 @@ servicio de fuera).
 
 ## Para aprender mejor
 
-- [ ] 55. Lo que confundes
-- [ ] 56. Objetivo con fecha
+- [x] 55. Lo que confundes: las parejas que se toman una por otra, en «Progreso» y al momento, y un botón para practicarlas juntas — **1.9.0**
+- [x] 56. Objetivo con fecha: un mapa o una lista para un día, con lo que toca aprender y repasar cada día y un examen de prueba — **1.9.0**
 - [ ] 57. Apuntes propios
 - [ ] 58. Prueba de nivel inicial
 - [ ] 59. Lecciones a tu gusto

@@ -3,6 +3,13 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.9.0 — 18 de noviembre de 2026
+
+- Lo que confundes: si respondes otra pieza del mapa, el juego apunta la pareja; «Progreso» las enseña, las más confundidas primero, y deja practicarlas juntas.
+- A la segunda vez que tomas una pieza por otra, el juego lo dice en el momento.
+- Objetivo con fecha: «Poner fecha» hace del mapa elegido, o de una lista, un objetivo para un día; la portada dice cada día cuánto toca aprender y repasar.
+- Cada objetivo tiene su examen de prueba con todas las piezas, y su fecha se puede mover.
+
 ## 1.8.0 — 18 de noviembre de 2026
 
 - Modo examen en Señalar, Identificar, Silueta, Puzle, Capitales, Banderas y ¿A qué pertenece?: un intento por pregunta, sin pistas ni corrección hasta entregar.
