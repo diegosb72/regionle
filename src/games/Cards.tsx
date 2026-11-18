@@ -6,6 +6,7 @@ import { Check, Eye, Flag as FlagIcon, Minus, X } from 'lucide-react';
 import { useEffect, useMemo, useReducer, useRef, useState, type CSSProperties } from 'react';
 import { MapView, type MapHandle, type Paint } from '../components/MapView';
 import { SpeakButton } from '../components/Speak';
+import { PieceNote } from '../components/Note';
 import { Flag, StudyLinks } from '../components/ui';
 import { seedOf } from '../lib/challenge';
 import { L, nm } from '../lib/i18n';
@@ -53,6 +54,7 @@ export function CardsGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const card = useRef<HTMLDivElement>(null);
   const record = useStore((st) => st.record);
   const addSession = useStore((st) => st.addSession);
+  const bump = useStore((st) => st.bump);
   const several = showsCountry(deck);
   const fem = deck.noun.fem;
   const one = deck.noun.one;
@@ -91,7 +93,11 @@ export function CardsGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const grade = (res: Res) => {
     if (!item || !turned || s.phase !== 'ask') return;
     // What is kept for the review is the first time a card comes up, as in the games that mark the answers.
-    if (s.round === 1) record(SKILL[ask], item.id, res, originOf(item, cfg));
+    if (s.round === 1) {
+      record(SKILL[ask], item.id, res, originOf(item, cfg));
+      // Cards gone through, for the achievement: the ones that come back are the same cards.
+      bump({ cards: 1 });
+    }
     if (res === 'warn') dispatch({ type: 'hint' });
     dispatch(res === 'bad' ? { type: 'giveup', reveal: false } : { type: 'right' });
     dispatch({ type: 'next' });
@@ -229,6 +235,7 @@ export function CardsGame({ deck, cfg, onExit, onAgain }: GameProps) {
                   )}
                 </div>
                 <ItemFacts item={item} />
+                <PieceNote key={item.id} id={item.id} />
                 <StudyLinks item={item} />
               </div>
             )}

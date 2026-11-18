@@ -1,7 +1,9 @@
 /** Explore: no questions, just the map with names, facts and links to study. */
-import { Search } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import { NotebookPen, Search } from 'lucide-react';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { PieceHistory } from '../components/History';
 import { MapView, type MapHandle, type Paint } from '../components/MapView';
+import { PieceNote } from '../components/Note';
 import { SpeakButton } from '../components/Speak';
 import { WikiCard } from '../components/WikiCard';
 import { Flag, LinkPill, StudyLinks, Toggle, capitalise } from '../components/ui';
@@ -19,7 +21,9 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const [names, setNames] = useState(true);
   const map = useRef<MapHandle>(null);
   const stats = useStore((s) => s.stats);
+  const notes = useStore((s) => s.notes);
   const item = sel ? deck.byId.get(sel) : null;
+  const nameOf = useCallback((id: string) => deck.byId.get(id)?.name, [deck]);
   const several = showsCountry(deck);
   const fem = deck.noun.fem;
 
@@ -155,6 +159,8 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
                   </ul>
                 </>
               )}
+              <PieceNote key={`note:${item.id}`} id={item.id} open />
+              <PieceHistory id={item.id} nameOf={nameOf} />
               {cfg.opts.wiki && <WikiCard key={item.id} item={item} />}
               <p className="label">{L('Para aprender más', 'To learn more')}</p>
               <StudyLinks item={item} />
@@ -187,6 +193,7 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
                   {(it.kind === 'country' || several) && <Flag code={it.country.fl} size="sm" />}
                   {it.kind === 'feature' && <i className={`kdot kdot-${it.cat}`} aria-hidden="true" />}
                   <span>{it.name}</span>
+                  {notes[it.id] && <NotebookPen className="noted" size={13} aria-label={L('Con apunte', 'With a note')} />}
                   {learnt(it) && <i className="learnt" title={L('Aprendido: lo sitúas y lo nombras', 'Learnt: you can place it and name it')} />}
                 </button>
               </li>

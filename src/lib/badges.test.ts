@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { BADGE_GROUPS, LEVEL_AT, POINTS, badgesOf, isEarned, levelOfPoints, pointsOf, type BadgeCtx } from './badges';
+import { BADGE_GROUPS, EARTH_IDS, LEVEL_AT, POINTS, badgesOf, isEarned, levelOfPoints, pointsOf, type BadgeCtx } from './badges';
+import type { Days } from './days';
 import type { SessionRec, Stat } from './store';
 import type { Index } from './types';
 
@@ -96,6 +97,95 @@ describe('achievements', () => {
     expect(earned(ctx({ lists: [{ id: 'l1', name: 'x', section: 'regions', countries: ['ES'], levels: {}, ids: ['a', 'b'] }] }))).toEqual(['list']);
     // Progress never shows more than the goal.
     expect(badge(ctx({ best: { 'lives:pin:r:ES.g1': 300 } }), 'lives30').done).toBe(30);
+  });
+
+  it('reward the cards, the medley, the game by ear and a ten in an exam', () => {
+    const played = (mode: SessionRec['mode'], total: number, ok: number): SessionRec => ({ ...session(total, ok), mode });
+    expect(badge(ctx({ tot: { cards: 99 } }), 'cards100')).toMatchObject({ done: 99, goal: 100 });
+    expect(earned(ctx({ tot: { cards: 100 } }))).toEqual(['cards100']);
+    // A medley and a game by ear of ten or more, all right first time: each its own, on top of the full marks of any game.
+    expect(earned(ctx({ sessions: [played('mix', 10, 10)] }))).toEqual(['perfect', 'mixfull']);
+    expect(earned(ctx({ sessions: [played('listen', 12, 12)] }))).toEqual(['perfect', 'ear']);
+    expect(earned(ctx({ sessions: [played('mix', 9, 9), played('listen', 10, 9), played('pin', 10, 10)] }))).toEqual(['perfect']);
+    // The mark of an exam is kept in tenths, and only that of a whole map.
+    expect(earned(ctx({ best: { 'exam:pin:r:ES.g1': 99 } }))).toEqual([]);
+    expect(earned(ctx({ best: { 'exam:pin:r:ES.g1': 85, 'exam:mix:c:FR,ES': 100 } }))).toEqual(['exam10']);
+  });
+
+  it('reward the days in a row, by the longest run written down or still on the calendar', () => {
+    const on = (first: string, n: number): Days => Object.fromEntries(Array.from({ length: n }, (_, i) => [new Date(Date.parse(`${first}T00:00:00Z`) + i * 864e5).toISOString().slice(0, 10), [1, 5, 5, 100, 0]]));
+    expect(earned(ctx({ best: { 'study:streak': 6 } }))).toEqual([]);
+    expect(earned(ctx({ best: { 'study:streak': 7 } }))).toEqual(['study7']);
+    expect(earned(ctx({ best: { 'study:streak': 30 } }))).toEqual(['study7', 'study30']);
+    // A player from before the calendar has days and no run written down.
+    expect(earned(ctx({ days: on('2026-11-01', 7) }))).toEqual(['study7']);
+    expect(badge(ctx({ days: on('2026-11-01', 4), best: { 'study:streak': 2 } }), 'study30')).toMatchObject({ done: 4, goal: 30 });
+    // A run that is no longer on the calendar still counts.
+    expect(badge(ctx({ days: on('2026-11-01', 2), best: { 'study:streak': 12 } }), 'study30').done).toBe(12);
+    // The run of daily challenges is another thing.
+    expect(earned(ctx({ best: { 'daily:streak': 7 } }))).not.toContain('study7');
+  });
+
+  it('reward ten days with the daily goal met', () => {
+    const days: Days = {};
+    for (let i = 1; i <= 9; i++) days[`2026-11-${String(i).padStart(2, '0')}`] = [1, 20, 10, 100, 1];
+    days['2026-11-20'] = [3, 400, 300, 100, 0];
+    expect(badge(ctx({ days }), 'goal10')).toMatchObject({ done: 9, goal: 10 });
+    days['2026-11-21'] = [1, 20, 20, 100, 1];
+    expect(earned(ctx({ days }))).toContain('goal10');
+    // Without the calendar there is nothing to count, and nothing breaks.
+    expect(badge(ctx(), 'goal10').done).toBe(0);
+  });
+
+  it('reward the capitals and the flags of the whole world, and the continents with their oceans', () => {
+    const members = index.countries.filter((c) => c.cl === 'un');
+    const stats: Record<string, Stat> = {};
+    for (const c of members) stats[`flag:${c.id}`] = learnt;
+    // The flag of a territory and a capital seen once add nothing.
+    stats['flag:GI'] = learnt;
+    stats['cap:FR'] = once;
+    stats['cap:ES'] = learnt;
+    // The capital of a region is a capital learnt, not one of the 193.
+    stats['cap:ES-M'] = learnt;
+    const c = ctx({ stats });
+    expect(badge(c, 'flagsUN')).toMatchObject({ done: members.length, goal: members.length });
+    expect(badge(c, 'capsUN')).toMatchObject({ done: 1, goal: 193 });
+    expect(earned(c)).toEqual(['flags50', 'flagsUN']);
+
+    const sea: Record<string, Stat> = {};
+    const where: Record<string, string> = {};
+    for (const id of EARTH_IDS) {
+      sea[`loc:${id}`] = learnt;
+      where[id] = 'p';
+    }
+    // Named, not placed: another skill.
+    sea['name:c:europe'] = learnt;
+    expect(badge(ctx({ stats: sea, where }), 'earth')).toMatchObject({ done: 11, goal: 11 });
+    delete sea['loc:s:southern-ocean'];
+    expect(badge(ctx({ stats: sea, where }), 'earth').done).toBe(10);
+  });
+
+  it('keep what was earned: a medal given is not taken back', () => {
+    // Full marks are read from the latest sessions, and the game keeps only so many.
+    const once = ctx({ sessions: [session(10, 10)] });
+    expect(earned(once)).toEqual(['perfect']);
+    const later = ctx({ sessions: [session(10, 3)], earned: { perfect: NOW } });
+    expect(earned(later)).toEqual(['perfect']);
+    expect(badge(later, 'perfect')).toMatchObject({ done: 1, goal: 1 });
+    // A list that was made and deleted, a continent learnt and then missed, a goal met on a day no longer kept.
+    expect(earned(ctx({ earned: { list: NOW, 'ct-EU': NOW, goal10: NOW } }))).toEqual(['ct-EU', 'goal10', 'list']);
+    const europe = index.countries.filter((c) => c.cl === 'un' && c.ct === 'EU');
+    expect(badge(ctx({ earned: { 'ct-EU': NOW } }), 'ct-EU')).toMatchObject({ done: europe.length, goal: europe.length });
+    // What was never earned is still counted as it is, and a date for a medal that does not exist adds nothing.
+    expect(badge(later, 'g25').done).toBe(0);
+    expect(earned(ctx({ earned: { nothing: NOW } }))).toEqual([]);
+  });
+
+  it('name the continents and the oceans as the physical map does', () => {
+    const phys = JSON.parse(fs.readFileSync('public/data/physical.json', 'utf8')) as { f: { i: string; k: string }[] };
+    const whole = phys.f.filter((f) => f.k === 'continent' || f.k === 'ocean').map((f) => f.i);
+    expect([...EARTH_IDS].sort()).toEqual(whole.sort());
+    expect(EARTH_IDS).toHaveLength(11);
   });
 });
 

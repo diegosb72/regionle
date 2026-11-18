@@ -80,14 +80,14 @@ servicio de fuera).
 
 - [x] 55. Lo que confundes: las parejas que se toman una por otra, en «Progreso» y al momento, y un botón para practicarlas juntas — **1.9.0**
 - [x] 56. Objetivo con fecha: un mapa o una lista para un día, con lo que toca aprender y repasar cada día y un examen de prueba — **1.9.0**
-- [ ] 57. Apuntes propios
+- [x] 57. Apuntes propios: una línea por pieza, que se escribe en su ficha, tras una respuesta, en una lección o en una tarjeta, y sale cuando se pregunta por ella — **1.14.0**
 - [ ] 58. Prueba de nivel inicial
 - [ ] 59. Lecciones a tu gusto
 - [ ] 60. Repaso ajustable
 - [ ] 61. Sesión del día
 - [ ] 62. Más tipos de pista
-- [ ] 63. Las que más te cuestan
-- [ ] 64. Ficha de cada pieza con tu historial
+- [x] 63. Las que más te cuestan: «Lo que más fallas» estaba en Progreso desde la 1.5.0; ahora la portada dice cuántas son y las practica con un clic — **1.14.0**
+- [x] 64. Ficha de cada pieza con tu historial: en Explorar, cómo va cada tipo de pregunta, cuándo vuelve al repaso y con qué se confunde — **1.14.0**
 - [ ] 65. Modo infantil
 
 ## Con otras personas y para clase
@@ -105,12 +105,12 @@ servicio de fuera).
 
 ## Progreso y logros
 
-- [ ] 76. Más logros
-- [ ] 77. Racha de estudio y calendario de actividad
-- [ ] 78. Gráficas de evolución
-- [ ] 79. Álbum de banderas
-- [ ] 80. Resumen del mes y del año
-- [ ] 81. Meta diaria
+- [x] 76. Más logros: once nuevos, y ya son 40; uno conseguido ya no se pierde — **1.13.0**
+- [x] 77. Racha de estudio y calendario de actividad: días seguidos jugando, mejor racha y un cuadro por cada día del último año — **1.13.0**
+- [x] 78. Gráficas de evolución: respuestas de cada semana y cómo crece lo aprendido — **1.13.0**
+- [x] 79. Álbum de banderas: en Progreso, una página por continente; cada bandera entra al aprenderla y ya no sale — **1.14.0**
+- [x] 80. Resumen del mes y del año: lo que suman este mes y este año, y la tabla de cada mes — **1.13.0**
+- [x] 81. Meta diaria: 10, 20, 50 o 100 respuestas al día, o ninguna; se ve en Progreso y en la portada — **1.13.0**
 
 ## El mapa
 

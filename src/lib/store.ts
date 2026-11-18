@@ -2,14 +2,60 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { TESTS, emptyRec, streakOf, type DailyRec } from '../daily/spec';
+import { DAY_GOAL_DEFAULT, cleanDays, dailyWork, daysFrom, isDayGoal, studyStreak, withDay, type Days } from './days';
 import type { CityPick } from './extra';
 import { GOALS_MAX, cleanGoals, goalWithout, sameGoal, withMark, type Goal } from './goals';
 import type { Lang } from './i18n';
 import { cleanMix, dropMix, withMix, type Mix } from './mix';
+import { cleanNotes, dropNotes, withNote, type Notes } from './notes';
 import { RECENT_MAX, isRecent, recentConfig, recentOf, withRecent, type Recent } from './recent';
 import { today } from './text';
 import { cleanTypeins, setTypeins as applyTypeins, type Typeins } from './typeinPrefs';
 import type { Mode, Res, Section } from './types';
+
+/**
+ * The flags of the album (see lib/album.ts): id of the country → when its flag was learnt. A flag that
+ * has gone in stays, even if it is missed afterwards: the answers say what is known now, the album what
+ * has been learnt at some time.
+ */
+export type FlagAlbum = Record<string, number>;
+
+/**
+ * Room for every country and territory there is, and no more: what is stored cannot grow without end.
+ * Up here, before the store is made: what is kept in the browser is read while it is being made, and a
+ * constant further down would not exist yet.
+ */
+export const ALBUM_MAX = 400;
+
+/** The album with the flags that `stats` has learnt and were not in it; the same album when there is none. */
+export function withFlags(album: FlagAlbum, stats: Record<string, Stat>): FlagAlbum {
+  let out = album;
+  let room = ALBUM_MAX - Object.keys(album).length;
+  for (const [key, stat] of Object.entries(stats)) {
+    if (room <= 0) break;
+    if (!key.startsWith('flag:') || !isLearnt(stat)) continue;
+    const id = key.slice(5);
+    if (out[id]) continue;
+    if (out === album) out = { ...album };
+    out[id] = stat[3] || 1;
+    room--;
+  }
+  return out;
+}
+
+/** What a stored album may hold: ids with the time they went in. */
+export function cleanAlbum(raw: unknown): FlagAlbum {
+  const out: FlagAlbum = {};
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
+  let n = 0;
+  for (const [id, at] of Object.entries(raw as Record<string, unknown>)) {
+    if (n >= ALBUM_MAX) break;
+    if (!id || id.length > 12 || typeof at !== 'number' || !Number.isFinite(at) || at <= 0) continue;
+    out[id] = at;
+    n++;
+  }
+  return out;
+}
 
 export type Length = 'all' | 10 | 20 | 50 | 'endless';
 export type Theme = 'auto' | 'light' | 'dark';
@@ -185,8 +231,16 @@ interface State {
   /** Custom lists, and the one in use in each section. */
   lists: CustomList[];
   listOn: Partial<Record<Section, string>>;
+  /** What was done each day: the calendar of activity, the days in a row and the daily goal (see lib/days.ts). */
+  days: Days;
+  /** Answers a day to aim at; 0 when the player wants no goal. */
+  dayGoal: number;
   /** Goals with a date: a map to be known by a day (see lib/goals.ts). */
   goals: Goal[];
+  /** The player's own notes about a piece, by its id (see lib/notes.ts). */
+  notes: Notes;
+  /** The flags learnt at some time, which stay in the album (see `FlagAlbum`). */
+  album: FlagAlbum;
   /** Achievements earned: id → when. */
   badges: Record<string, number>;
   /** g games · q answers · ok first-time right · warn right with help · ms time · and one-off counters (lessons, regionle1, near…). */
@@ -207,6 +261,7 @@ interface State {
   typeinAuto: boolean | null;
 
   setCb(cb: boolean): void;
+  setDayGoal(goal: number): void;
   setWelcomed(): void;
   setHotkeys(on: boolean): void;
   setSound(on: boolean): void;
@@ -222,6 +277,8 @@ interface State {
   setGoalDate(id: string, date: string): void;
   /** Notes, once a day, how much of each goal had been seen when the day began. */
   markGoals(): void;
+  /** Writes the note of a piece; an empty one takes it away. False when there is no room for a new one. */
+  setNote(id: string, text: string): boolean;
   /** Marks achievements as earned now. */
   earn(ids: string[]): void;
   /** Adds to lifetime tallies. */
@@ -273,11 +330,15 @@ export const useStore = create<State>()(
       recent: [],
       best: {},
       daily: {},
+      days: {},
+      dayGoal: DAY_GOAL_DEFAULT,
       lang: null,
       nick: '',
       lists: [],
       listOn: {},
       goals: [],
+      notes: {},
+      album: {},
       badges: {},
       tot: {},
       cb: false,
@@ -289,6 +350,13 @@ export const useStore = create<State>()(
       typeinAuto: null,
 
       setCb: (cb) => set({ cb }),
+      setDayGoal: (goal) => set({ dayGoal: isDayGoal(goal) ? goal : DAY_GOAL_DEFAULT }),
+      setNote: (id, text) => {
+        const notes = withNote(get().notes, id, text);
+        if (!notes) return false;
+        if (notes !== get().notes) set({ notes });
+        return true;
+      },
       setWelcomed: () => set({ welcomed: true }),
       setHotkeys: (hotkeys) => set({ hotkeys }),
       setSound: (sound) => set({ sound }),
@@ -340,13 +408,20 @@ export const useStore = create<State>()(
           const rec: DailyRec = { ...prev, p: prev.p.slice(), k: prev.k.slice() };
           rec.p[test] = points;
           rec.k[test] = figure;
+          let days = s.days;
           if (rec.p.every((x) => x != null) && !rec.t) {
             rec.t = Date.now();
             if (date !== today()) rec.late = 1;
+            // The challenge is work of the day it was finished on, whatever day of the calendar it was.
+            days = withDay(days, rec.t, dailyWork(rec.p), s.dayGoal, learntIn(s.stats));
           }
           const daily = { ...s.daily, [date]: rec };
+          const best = { ...s.best };
           const streak = streakOf(daily, today());
-          return { daily, best: streak > (s.best['daily:streak'] ?? 0) ? { ...s.best, 'daily:streak': streak } : s.best };
+          if (streak > (best['daily:streak'] ?? 0)) best['daily:streak'] = streak;
+          const run = studyStreak(days, today());
+          if (run > (best['study:streak'] ?? 0)) best['study:streak'] = run;
+          return { daily, days, best };
         }),
       setSel: (section, ids) => set((s) => ({ sel: { ...s.sel, [section]: [...new Set(ids)] } })),
       setLevel: (country, level) => set((s) => ({ levels: { ...s.levels, [country]: level } })),
@@ -375,8 +450,11 @@ export const useStore = create<State>()(
         set((s) => {
           const k = `${skill}:${id}`;
           const [seen, ok, run] = s.stats[k] ?? [0, 0, 0, 0];
-          const stats: Record<string, Stat> = { ...s.stats, [k]: [seen + 1, ok + (res === 'ok' ? 1 : 0), res === 'ok' ? run + 1 : 0, Date.now()] };
-          return origin && s.where[id] !== origin ? { stats, where: { ...s.where, [id]: origin } } : { stats };
+          const now = Date.now();
+          const stats: Record<string, Stat> = { ...s.stats, [k]: [seen + 1, ok + (res === 'ok' ? 1 : 0), res === 'ok' ? run + 1 : 0, now] };
+          // A flag that has just been learnt goes into the album, and stays there.
+          const album = skill === 'flag' && !s.album[id] && isLearnt(stats[k]) && Object.keys(s.album).length < ALBUM_MAX ? { ...s.album, [id]: now } : s.album;
+          return origin && s.where[id] !== origin ? { stats, album, where: { ...s.where, [id]: origin } } : { stats, album };
         }),
       mixUp: (skill, asked, given) => set((s) => ({ mix: withMix(s.mix, s.stats, skill, asked, given, Date.now()) })),
       forget: (skill, ids) =>
@@ -389,21 +467,33 @@ export const useStore = create<State>()(
         set((s) => {
           const gone = new Set(ids);
           const goals = s.goals.map((g) => goalWithout(g, gone));
-          return { ...dropAnswers(s.stats, s.where, ids), mix: dropMix(s.mix, ids), ...(goals.some((g, i) => g !== s.goals[i]) ? { goals: goals.filter((g): g is Goal => !!g) } : {}) };
+          return {
+            ...dropAnswers(s.stats, s.where, ids),
+            mix: dropMix(s.mix, ids),
+            notes: dropNotes(s.notes, ids),
+            ...(goals.some((g, i) => g !== s.goals[i]) ? { goals: goals.filter((g): g is Goal => !!g) } : {}),
+          };
         }),
       addSession: (rec) =>
-        set((s) => ({
-          sessions: [rec, ...s.sessions].slice(0, 80),
-          recent: withRecentOf(s.recent, s.game, rec),
-          tot: { ...s.tot, g: (s.tot.g ?? 0) + 1, q: (s.tot.q ?? 0) + rec.total, ok: (s.tot.ok ?? 0) + rec.ok, warn: (s.tot.warn ?? 0) + rec.warn, ms: (s.tot.ms ?? 0) + rec.ms },
-        })),
+        set((s) => {
+          const days = withDay(s.days, rec.t, rec, s.dayGoal, learntIn(s.stats));
+          // The longest run of days is kept apart: the days themselves are not kept for ever.
+          const run = studyStreak(days, today(new Date(rec.t)));
+          return {
+            sessions: [rec, ...s.sessions].slice(0, 80),
+            recent: withRecentOf(s.recent, s.game, rec),
+            days,
+            ...(run > (s.best['study:streak'] ?? 0) ? { best: { ...s.best, 'study:streak': run } } : {}),
+            tot: { ...s.tot, g: (s.tot.g ?? 0) + 1, q: (s.tot.q ?? 0) + rec.total, ok: (s.tot.ok ?? 0) + rec.ok, warn: (s.tot.warn ?? 0) + rec.warn, ms: (s.tot.ms ?? 0) + rec.ms },
+          };
+        }),
       setBest: (key, value, lowerWins = false) => {
         const prev = get().best[key];
         const better = prev == null || (lowerWins ? value < prev : value > prev);
         if (better) set((s) => ({ best: { ...s.best, [key]: value } }));
         return better;
       },
-      resetProgress: () => set({ stats: {}, where: {}, mix: {}, sessions: [], recent: [], best: {}, daily: {}, badges: {}, tot: {} }),
+      resetProgress: () => set({ stats: {}, where: {}, mix: {}, sessions: [], recent: [], best: {}, daily: {}, days: {}, badges: {}, tot: {}, album: {} }),
       importData: (data) => {
         if (!data || typeof data !== 'object') return false;
         const d = data as Partial<State>;
@@ -419,9 +509,15 @@ export const useStore = create<State>()(
           best: d.best ?? {},
           favs: Array.isArray(d.favs) ? d.favs : get().favs,
           daily: d.daily && typeof d.daily === 'object' ? d.daily : get().daily,
+          // A copy from before the calendar brings what its sessions and its daily challenges add up to.
+          days: d.days && typeof d.days === 'object' ? cleanDays(d.days) : daysFrom(d.sessions ?? [], d.daily && typeof d.daily === 'object' ? d.daily : {}),
           lists: Array.isArray(d.lists) ? d.lists.filter(isList) : get().lists,
           // A copy from before there were goals says nothing about them: they stay.
           goals: Array.isArray(d.goals) ? cleanGoals(d.goals) : get().goals,
+          // Nor does one from before there were notes: what has been written stays.
+          notes: d.notes && typeof d.notes === 'object' ? cleanNotes(d.notes) : get().notes,
+          // The album of the copy, and the flags its answers have learnt: one from before the album has those.
+          album: withFlags(cleanAlbum(d.album), d.stats ?? {}),
           badges: d.badges && typeof d.badges === 'object' ? d.badges : {},
           tot: d.tot && typeof d.tot === 'object' ? d.tot : totalsOf(d.sessions ?? []),
           // Backups from before the settings existed say nothing about them: they stay as they are. One
@@ -451,11 +547,15 @@ export const useStore = create<State>()(
         recent: s.recent,
         best: s.best,
         daily: s.daily,
+        days: s.days,
+        dayGoal: s.dayGoal,
         lang: s.lang,
         nick: s.nick,
         lists: s.lists,
         listOn: s.listOn,
         goals: s.goals,
+        notes: s.notes,
+        album: s.album,
         badges: s.badges,
         tot: s.tot,
         cb: s.cb,
@@ -466,26 +566,7 @@ export const useStore = create<State>()(
         typeins: s.typeins,
         typeinAuto: s.typeinAuto,
       }),
-      merge: (saved, current) => {
-        const p = (saved ?? {}) as Partial<State>;
-        return {
-          ...current,
-          ...p,
-          sel: { ...current.sel, ...p.sel },
-          mode: { ...current.mode, ...p.mode },
-          opts: { ...current.opts, ...p.opts },
-          recent: Array.isArray(p.recent) ? p.recent.filter(isRecent).slice(0, RECENT_MAX) : [],
-          mix: cleanMix(p.mix),
-          goals: cleanGoals(p.goals),
-          hotkeys: p.hotkeys !== false,
-          sound: p.sound === true,
-          haptic: p.haptic === true,
-          // Players from before the tallies existed start from what their latest sessions add up to.
-          tot: p.tot && Object.keys(p.tot).length ? p.tot : totalsOf(p.sessions ?? []),
-          typeins: cleanTypeins(p.typeins),
-          typeinAuto: typeof p.typeinAuto === 'boolean' ? p.typeinAuto : null,
-        };
-      },
+      merge: (saved, current) => mergeSaved(saved, current),
     },
   ),
 );
@@ -498,6 +579,37 @@ useStore.subscribe((s, prev) => {
 });
 
 /**
+ * What was saved, laid over the game as it starts: what an older version did not keep is filled in, and
+ * what cannot be trusted is cleaned.
+ */
+export function mergeSaved(saved: unknown, current: State): State {
+  const p = (saved ?? {}) as Partial<State>;
+  return {
+    ...current,
+    ...p,
+    sel: { ...current.sel, ...p.sel },
+    mode: { ...current.mode, ...p.mode },
+    opts: { ...current.opts, ...p.opts },
+    recent: Array.isArray(p.recent) ? p.recent.filter(isRecent).slice(0, RECENT_MAX) : [],
+    mix: cleanMix(p.mix),
+    // Players from before the calendar start from what their latest sessions and daily challenges add up to.
+    days: p.days && typeof p.days === 'object' ? cleanDays(p.days) : daysFrom(Array.isArray(p.sessions) ? p.sessions : [], p.daily && typeof p.daily === 'object' ? p.daily : {}),
+    dayGoal: isDayGoal(p.dayGoal) ? p.dayGoal : DAY_GOAL_DEFAULT,
+    goals: cleanGoals(p.goals),
+    notes: cleanNotes(p.notes),
+    // Players from before the album start with the flags they have learnt.
+    album: withFlags(cleanAlbum(p.album), p.stats && typeof p.stats === 'object' ? p.stats : {}),
+    hotkeys: p.hotkeys !== false,
+    sound: p.sound === true,
+    haptic: p.haptic === true,
+    // Players from before the tallies existed start from what their latest sessions add up to.
+    tot: p.tot && Object.keys(p.tot).length ? p.tot : totalsOf(p.sessions ?? []),
+    typeins: cleanTypeins(p.typeins),
+    typeinAuto: typeof p.typeinAuto === 'boolean' ? p.typeinAuto : null,
+  };
+}
+
+/**
  * Brings what an older version saved up to date. Version 2 made typing the usual way to answer: the
  * choice kept from before is moved once, and the player can change it back.
  */
@@ -506,6 +618,9 @@ export function migrateSaved(saved: unknown, version: number): Record<string, un
   if (version < 2 && p.opts && typeof p.opts === 'object') p.opts = { ...(p.opts as object), answer: 'type' };
   return p;
 }
+
+/** How many answers are learnt: the figure each day writes down, for the chart of how it grows. */
+export const learntIn = (stats: Record<string, Stat>): number => Object.values(stats).reduce((n, st) => n + (isLearnt(st) ? 1 : 0), 0);
 
 /** The maps played lately once a game has ended: with it first when it is one to come back to. */
 function withRecentOf(list: Recent[], game: GameConfig | null, rec: SessionRec): Recent[] {

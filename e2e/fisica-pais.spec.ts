@@ -95,7 +95,8 @@ test.describe('the physical map of a country', () => {
     const card = page.locator('.review');
     await expect(card).toContainText('España · ríos, mares y montañas');
     await expect(card).toContainText('Ríos, mares y montañas');
-    await card.getByRole('button', { name: /España · ríos, mares y montañas/ }).click();
+    // The row of the review: what is missed most names the same map on a button of its own.
+    await card.locator('.review-list').getByRole('button', { name: /España · ríos, mares y montañas/ }).click();
     await expect(page.locator('.play-title span')).toContainText('España', { timeout: 30_000 });
     await expect(page.locator('.hud-main')).toHaveText('1 / 2');
     // The Jarama is not among the best known: the map holds it because the review asks for it.

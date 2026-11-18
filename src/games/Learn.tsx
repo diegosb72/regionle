@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowRight, Check, Flag as FlagIcon, GraduationCap, Lightbul
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnswerInput } from '../components/AnswerInput';
 import { MapView, type MapHandle, type Paint } from '../components/MapView';
+import { PieceNote } from '../components/Note';
 import { SpeakButton } from '../components/Speak';
 import { Flag } from '../components/ui';
 import { L, nm } from '../lib/i18n';
@@ -428,6 +429,7 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
                     {(it.kind === 'country' || several) && <Flag code={it.country.fl} size="md" />} {it.name} <SpeakButton text={it.name} />
                   </h2>
                   <ItemFacts item={it} />
+                  <PieceNote key={it.id} id={it.id} />
                 </>
               )}
             </div>

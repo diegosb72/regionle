@@ -1,0 +1,104 @@
+/*
+ * The album of flags (`Album.tsx`), on the Progress page. Fetched with that page, after `styles.css`, on
+ * which it stands: the bars and the buttons are drawn there.
+ */
+.album-pages {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.album-pages li {
+  display: grid;
+  gap: 5px;
+  font-size: 14.5px;
+}
+.album-pages li > span {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.album-pages b {
+  font-weight: 600;
+}
+.album-pages small,
+.album-page h3 small {
+  color: var(--ink-3);
+  font-size: 13px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  text-transform: none;
+  /* A long name takes a second line; the count stays whole. */
+  white-space: nowrap;
+}
+.album-open {
+  justify-self: start;
+}
+.album-book {
+  display: grid;
+  gap: 26px;
+}
+.album-book[hidden] {
+  display: none;
+}
+.album-page {
+  display: grid;
+  gap: 12px;
+}
+.album-page header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.album-page h3 {
+  font-size: 19px;
+}
+.album-full {
+  color: var(--ok-ink);
+  font-size: 14px;
+  font-weight: 600;
+}
+.album-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 16px 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.album-grid li {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 6px;
+  color: var(--ink-3);
+  font-size: 12.5px;
+  line-height: 1.25;
+  text-align: center;
+  /* A long word is broken only when it does not fit its place, and then where a hyphen can go. */
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+.album-grid li.got {
+  color: var(--ink);
+  font-weight: 500;
+}
+.album-grid .flag,
+.album-slot {
+  width: 60px;
+  height: 45px;
+  border-radius: 5px;
+}
+/* A place still empty: the outline of where the flag will go. */
+.album-slot {
+  border: 1.5px dashed var(--line-2);
+  background: color-mix(in srgb, var(--bg-2) 55%, transparent);
+}

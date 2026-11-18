@@ -1,6 +1,8 @@
 /** What has been learnt so far, where on the map, what is due for review, recent games, and backup of the saved data. */
 import { ArrowLeftRight, ArrowRight, CalendarClock, Download, FileSpreadsheet, Trash2, Upload } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityBlock, EvolutionBlock, MonthsBlock } from '../components/Activity';
+import { AlbumBlock } from '../components/Album';
 import { BadgeBoard } from '../components/Badges';
 import { MapView, type Paint } from '../components/MapView';
 import { groupPlace } from '../components/ReviewCard';
@@ -26,7 +28,7 @@ const skillName = (id: Skill): string =>
   id === 'loc' ? L('Situar en el mapa', 'Placing on the map') : id === 'name' ? L('Nombrar', 'Naming') : id === 'cap' ? L('Capitales', 'Capitals') : id === 'flag' ? L('Banderas', 'Flags') : L('Vecinos', 'Neighbours');
 const skillHint = (id: Skill): string =>
   id === 'loc'
-    ? `${MODE_NAME.pin}, ${MODE_NAME.puzzle}`
+    ? `${MODE_NAME.pin}, ${MODE_NAME.listen}, ${MODE_NAME.puzzle}`
     : id === 'name'
       ? `${MODE_NAME.identify}, ${MODE_NAME.outline}, ${MODE_NAME.nameall}`
       : id === 'cap'
@@ -369,6 +371,14 @@ function MissBlock({ world }: { world: World }) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listed]);
+  // Reached from the review of the home page ("#/progreso?ver=fallos"): the page opens on this block. It
+  // waits a moment, since a new screen is first taken to its top.
+  const top = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!/[?&]ver=fallos(&|$)/.test(window.location.hash)) return;
+    const timer = window.setTimeout(() => top.current?.scrollIntoView({ block: 'start' }), 120);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   if (!groups.length) return null;
   const total = groups.reduce((n, g) => n + g.ids.length, 0);
@@ -378,7 +388,7 @@ function MissBlock({ world }: { world: World }) {
   };
 
   return (
-    <section className="block miss">
+    <section className="block miss" ref={top}>
       <h2>{L('Lo que más fallas', 'What you miss most')}</h2>
       <p className="tip-line">
         {L(
@@ -591,8 +601,8 @@ export function Progress({ world }: { world: World }) {
 
   const exportData = () => {
     // The short forms chosen in the settings travel with the rest: they are read when the copy is made.
-    const { typeins, typeinAuto, recent, mix, goals } = useStore.getState();
-    const data = { app: 'regionle', version: 3, exported: new Date().toISOString(), stats, where: whereMap, mix, sessions, recent, best, favs, daily, lists, goals, badges, tot, typeins, typeinAuto };
+    const { typeins, typeinAuto, recent, mix, goals, days, notes, album } = useStore.getState();
+    const data = { app: 'regionle', version: 3, exported: new Date().toISOString(), stats, where: whereMap, mix, sessions, recent, best, favs, daily, days, lists, goals, notes, album, badges, tot, typeins, typeinAuto };
     download(JSON.stringify(data, null, 1), `regionle-${L('progreso', 'progress')}-${new Date().toISOString().slice(0, 10)}.json`, 'application/json');
   };
 
@@ -621,6 +631,14 @@ export function Progress({ world }: { world: World }) {
       return (
         <li key={k}>
           <b>{L('Reto diario', 'Daily challenge')}</b> · {L('mejor racha', 'best streak')}
+          <span>{L(`${v} ${v === 1 ? 'día' : 'días'}`, `${v} ${v === 1 ? 'day' : 'days'}`)}</span>
+        </li>
+      );
+    }
+    if (kind === 'study') {
+      return (
+        <li key={k}>
+          <b>{L('Días seguidos jugando', 'Days in a row playing')}</b> · {L('mejor racha', 'longest run')}
           <span>{L(`${v} ${v === 1 ? 'día' : 'días'}`, `${v} ${v === 1 ? 'day' : 'days'}`)}</span>
         </li>
       );
@@ -675,7 +693,10 @@ export function Progress({ world }: { world: World }) {
     );
   };
 
-  const empty = !sessions.length && !Object.keys(stats).length;
+  // Someone who has only done daily challenges has no session and no answer kept, and has days all the same.
+  const hasDays = useStore((s) => Object.keys(s.days).length > 0);
+  const hasNotes = useStore((s) => Object.keys(s.notes).length > 0);
+  const empty = !sessions.length && !Object.keys(stats).length && !hasDays;
 
   return (
     <div className="progress">
@@ -718,7 +739,9 @@ export function Progress({ world }: { world: World }) {
             </div>
           </dl>
 
+          <ActivityBlock />
           <BadgeBoard world={world} />
+          <AlbumBlock world={world} />
           {Object.keys(stats).length > 0 && <KnowledgeMap world={world} />}
           {Object.keys(stats).length > 0 && <ReviewBlock world={world} />}
           <MissBlock world={world} />
@@ -759,6 +782,8 @@ export function Progress({ world }: { world: World }) {
             )}
           </section>
 
+          <EvolutionBlock />
+
           {regionRows.length > 0 && (
             <section className="block">
               <h2>{L('Regiones por país', 'Regions by country')}</h2>
@@ -788,6 +813,8 @@ export function Progress({ world }: { world: World }) {
               </ul>
             </section>
           )}
+
+          <MonthsBlock />
 
           {records.length > 0 && (
             <section className="block">
@@ -836,7 +863,7 @@ export function Progress({ world }: { world: World }) {
         <h2>{L('Copia de seguridad', 'Backup')}</h2>
         <p className="tip-line">{L('Llévate tu progreso, tus selecciones guardadas, tus listas y tus abreviaturas a otro navegador, o empieza de cero.', 'Take your progress, your saved selections, your lists and your short forms to another browser, or start from scratch.')}</p>
         <div className="backup">
-          <button type="button" className="btn" onClick={exportData} disabled={empty && !favs.length && !lists.length && !hasTypeins}>
+          <button type="button" className="btn" onClick={exportData} disabled={empty && !favs.length && !lists.length && !hasTypeins && !hasNotes}>
             <Download size={16} aria-hidden="true" />
             {L('Exportar', 'Export')}
           </button>

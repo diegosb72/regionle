@@ -1095,6 +1095,44 @@ button.chip.on:hover:not(:disabled) {
   font-size: 14.5px;
 }
 
+/* What today adds up to, under the review: the days in a row and how far the daily target is. */
+.today {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-top: 16px;
+  padding: 11px clamp(18px, 3vw, 34px);
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--card);
+  color: var(--ink-2);
+  font-size: 14.5px;
+  text-decoration: none;
+}
+.today:hover {
+  border-color: var(--brand);
+}
+.today b {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ink);
+  font-weight: 600;
+}
+.today b svg {
+  flex: none;
+  color: var(--accent);
+}
+.today .bar {
+  flex: 0 0 160px;
+}
+@media (max-width: 560px) {
+  .today .bar {
+    flex-basis: 100%;
+  }
+}
+
 @media (max-width: 1000px) {
   .sections,
   .why {
@@ -1878,6 +1916,7 @@ button.chip.on:hover:not(:disabled) {
   align-items: center;
   gap: 8px;
 }
+
 .confirm {
   display: inline-flex;
   flex-wrap: wrap;
@@ -4709,6 +4748,39 @@ a.d-cal-day:hover {
 .review-go {
   justify-self: start;
 }
+/* What is missed most, across the foot of the card. */
+.review-hard {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 18px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: 14.5px;
+  line-height: 1.45;
+}
+.review-hard p {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+.review-hard b {
+  color: var(--ink);
+}
+.review-hard .btn {
+  flex: none;
+  max-width: 100%;
+}
+.review-hard .btn small {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-3);
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .review-next {
   display: flex;
   flex-wrap: wrap;
@@ -6044,6 +6116,11 @@ a.d-cal-day:hover {
 }
 .level-chip + .home-last {
   margin-top: 14px;
+}
+/* Its room, while it is on its way. */
+.level-wait {
+  visibility: hidden;
+  min-height: 58px;
 }
 
 .toast {

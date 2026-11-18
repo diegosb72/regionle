@@ -1,11 +1,11 @@
-import { ArrowRight, BookOpen, CalendarClock, Filter, Infinity as InfinityIcon, ListChecks, Star, Swords, X } from 'lucide-react';
+import { ArrowRight, BookOpen, CalendarClock, Filter, Flame, Infinity as InfinityIcon, ListChecks, Star, Swords, X } from 'lucide-react';
 import { Suspense, useMemo } from 'react';
-import { LevelChip } from '../components/Badges';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { lazyScreen } from '../components/lazy';
 import { ReviewCard } from '../components/ReviewCard';
 import { Flag } from '../components/ui';
 import { DailyCard } from '../daily/Card';
+import { studyStreak } from '../lib/days';
 import { countriesOf, describeMap, type MapSpec } from '../lib/describe';
 import { commonPlace, type World } from '../lib/world';
 import { metricNoun, metricOrder } from '../lib/metricNames';
@@ -16,7 +16,7 @@ import { NOT_GAMES } from '../lib/rules';
 import { go, inGame } from '../lib/router';
 import { DUEL_PATH, LIST_PATH, PATHS, PLAY_PATH, screenPage } from '../lib/routes';
 import { useStore, type Fav } from '../lib/store';
-import { nf } from '../lib/text';
+import { nf, today } from '../lib/text';
 import type { Mode, Section } from '../lib/types';
 
 const SAMPLE: Record<Section, string[]> = {
@@ -221,6 +221,44 @@ const goLabel = (id: Section): string => (id === 'physical' ? L('Elegir qué y d
 
 /** The goals with a date are fetched only by those who have one. */
 const GoalCards = lazyScreen(() => import('../components/GoalCard').then((m) => m.GoalCards));
+/** The level, at the foot of the page: it comes with the achievements, which the first page does not carry. */
+const LevelChip = lazyScreen(() => import('../components/Badges').then((m) => m.LevelChip));
+
+/**
+ * What today adds up to, in a line that opens Progress: the days played in a row and how far the daily
+ * target is. Nothing until there is a day with something done.
+ */
+function TodayLine() {
+  const days = useStore((s) => s.days);
+  const goal = useStore((s) => s.dayGoal);
+  if (!Object.keys(days).length) return null;
+  const now = today();
+  const streak = studyStreak(days, now);
+  const done = days[now]?.[1] ?? 0;
+  const answers = L(`${nf(done)} ${done === 1 ? 'respuesta' : 'respuestas'}`, `${nf(done)} ${done === 1 ? 'answer' : 'answers'}`);
+  return (
+    <a className="today" href="#/progreso">
+      {streak > 0 && (
+        <b>
+          <Flame size={17} aria-hidden="true" />
+          {streak === 1 ? L('Racha de 1 día', 'A run of 1 day') : L(`${nf(streak)} días seguidos`, `${nf(streak)} days in a row`)}
+        </b>
+      )}
+      {goal > 0 && (
+        <span className="bar" aria-hidden="true">
+          <i style={{ width: `${Math.min(100, Math.round((done / goal) * 100))}%` }} />
+        </span>
+      )}
+      <span>
+        {goal <= 0
+          ? L(`Hoy llevas ${answers}.`, `${answers} today.`)
+          : done >= goal
+            ? L(`Meta de hoy cumplida: ${answers}.`, `Today’s target met: ${answers}.`)
+            : L(`Hoy llevas ${nf(done)} de ${nf(goal)} respuestas.`, `${nf(done)} of ${nf(goal)} answers today.`)}
+      </span>
+    </a>
+  );
+}
 
 export function Home({ world }: { world: World }) {
   const sessions = useStore((s) => s.sessions);
@@ -254,6 +292,7 @@ export function Home({ world }: { world: World }) {
         </ErrorBoundary>
       )}
       <ReviewCard world={world} />
+      <TodayLine />
 
       <section className="hero">
         <p className="kicker">{L('Geografía para aprender jugando', 'Geography you learn by playing')}</p>
@@ -406,7 +445,14 @@ export function Home({ world }: { world: World }) {
         </article>
       </section>
 
-      {last && <LevelChip world={world} />}
+      {last && (
+        <ErrorBoundary fallback={() => null}>
+          {/* Its room is kept while it comes, so that what is under it does not jump. */}
+          <Suspense fallback={<span className="level-chip level-wait" aria-hidden="true" />}>
+            <LevelChip world={world} />
+          </Suspense>
+        </ErrorBoundary>
+      )}
       {last && (
         <p className="home-last">
           {L('Última partida', 'Last game')}: <b>{modeNameIn(last.section, last.mode)}</b> · {last.label} · {L(`${last.ok} de ${last.total} a la primera`, `${last.ok} of ${last.total} first time`)}. <a href="#/progreso">{L('Ver tu progreso', 'See your progress')}</a>

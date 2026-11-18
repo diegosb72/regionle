@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import type { World } from '../lib/world';
 import { L, levelNoun, nm } from '../lib/i18n';
 import { MODE_NAME } from '../lib/modes';
-import { dueCount, dueGroups, forecast, reviewConfig, type ReviewGroup } from '../lib/review';
+import { REVIEW_MAX, dueCount, dueGroups, forecast, missGroups, reviewConfig, type ReviewGroup } from '../lib/review';
 import { go } from '../lib/router';
 import { useStore } from '../lib/store';
 import { nf } from '../lib/text';
@@ -38,8 +38,19 @@ function useDue() {
   }, [stats, where]);
 }
 
+/** What keeps being missed: the answers missed twice or more and not learnt since, as games that can be played. */
+function useHard() {
+  const stats = useStore((s) => s.stats);
+  const where = useStore((s) => s.where);
+  return useMemo(() => {
+    const groups = missGroups(stats, where);
+    return { groups, n: groups.reduce((sum, g) => sum + g.ids.length, 0) };
+  }, [stats, where]);
+}
+
 export function ReviewCard({ world }: { world: World }) {
   const { groups, due, ahead, any } = useDue();
+  const hard = useHard();
   const opts = useStore((s) => s.opts);
   const start = useStore((s) => s.start);
   if (!any) return null;
@@ -110,7 +121,37 @@ export function ReviewCard({ world }: { world: World }) {
           </button>
         </>
       )}
+      {hard.n > 0 && <Hard groups={hard.groups} n={hard.n} world={world} onPlay={play} />}
     </section>
+  );
+}
+
+/**
+ * What is missed most, under the review of the day: how many answers keep slipping and a game with those
+ * of the map that has the most. Which ones they are is listed on the Progress page.
+ */
+function Hard({ groups, n, world, onPlay }: { groups: ReviewGroup[]; n: number; world: World; onPlay: (g: ReviewGroup) => void }) {
+  const first = groups[0];
+  const place = groupPlace(first, world);
+  const size = Math.min(first.ids.length, REVIEW_MAX);
+  return (
+    <div className="review-hard">
+      <p>
+        <b>{L('Lo que más fallas', 'What you miss most')}:</b>{' '}
+        {L(
+          `${n === 1 ? '1 respuesta que has fallado' : `${nf(n)} respuestas que has fallado`} dos veces o más y aún no te sabes${groups.length > 1 ? `, en ${groups.length} mapas` : ''}.`,
+          `${n === 1 ? '1 answer' : `${nf(n)} answers`} you have missed twice or more and do not know yet${groups.length > 1 ? `, on ${groups.length} maps` : ''}.`,
+        )}{' '}
+        <a href="#/progreso?ver=fallos">{L('Ver cuáles', 'See which')}</a>
+      </p>
+      <button type="button" className="btn btn-sm" onClick={() => onPlay(first)} title={`${place.text} · ${MODE_NAME[first.mode]}`}>
+        {L(size === 1 ? 'Practicarla' : `Practicar ${size}`, size === 1 ? 'Practise it' : `Practise ${size}`)}
+        <small>
+          {place.text} · {MODE_NAME[first.mode]}
+        </small>
+        <ArrowRight size={15} aria-hidden="true" />
+      </button>
+    </div>
   );
 }
 

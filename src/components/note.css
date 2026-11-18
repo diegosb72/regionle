@@ -1,0 +1,175 @@
+/*
+ * The player's own notes about a piece (`Note.tsx`) and what they know of it (`History.tsx`): the card of
+ * a piece in Explore, a lesson, the back of a flashcard and the verdict after an answer. Fetched with the
+ * games, after `styles.css`, on which it stands.
+ */
+.note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 100%;
+  padding: 8px 10px;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--r-1) var(--r-1) 0;
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  color: var(--ink);
+  font-size: 14.5px;
+  line-height: 1.45;
+  text-align: left;
+}
+.note > svg {
+  flex: none;
+  margin-top: 3px;
+  color: var(--accent);
+}
+.note > span {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.note b {
+  font-weight: 600;
+}
+.note-edit {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin: -3px -4px -3px 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+.note-edit:hover {
+  background: color-mix(in srgb, var(--ink) 9%, transparent);
+  color: var(--ink);
+}
+.note-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-self: start;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 14px;
+  text-decoration: underline;
+  text-decoration-color: var(--line-2);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.note-add:hover {
+  color: var(--ink);
+  text-decoration-color: currentColor;
+}
+.note-form,
+.note-open {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  justify-self: stretch;
+}
+.note-form textarea,
+.note-open textarea {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-2);
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.45;
+  resize: vertical;
+}
+.note-form textarea:focus-visible,
+.note-open textarea:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
+}
+.note-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: var(--bad-ink);
+}
+.note-hint {
+  color: var(--ink-3);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.note-hint[role='alert'] {
+  color: var(--bad-ink);
+}
+/* In the list of Explore, the pieces with a note say so. */
+.index .noted {
+  flex: none;
+  color: var(--accent);
+}
+
+/* What is known of a piece, on its card. */
+.history {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  justify-self: stretch;
+}
+.history-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.history-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1px 10px;
+  align-items: baseline;
+  font-size: 14.5px;
+}
+.history-list b {
+  font-weight: 600;
+}
+.history-list small {
+  grid-column: 1 / -1;
+  color: var(--ink-3);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.history-grade {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--bg-2);
+  color: var(--ink-2);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.history-grade.g-known {
+  background: color-mix(in srgb, var(--ok) 16%, transparent);
+  color: var(--ok-ink, var(--ok));
+}
+.history-grade.g-due {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--bad-ink);
+}
+.history-mix {
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.history-mix b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.history-mix small {
+  color: var(--ink-3);
+}
