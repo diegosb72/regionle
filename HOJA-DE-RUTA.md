@@ -3,7 +3,8 @@
 Lo que se ha pedido añadir, con la numeración de la lista que se propuso, y cómo va cada cosa.
 Se hace por lotes: cada lote sale como una versión, con sus pruebas, y se apunta aquí.
 
-- `[x]` hecho y publicado en la versión que se indica · `[~]` hecho en parte (se dice qué falta) · `[ ]` pendiente
+- `[x]` hecho, en la versión que se indica · `[~]` hecho en parte (se dice qué falta) · `[ ]` pendiente
+- Hecho no quiere decir publicado: la versión que está en la web es la que dice el pie de página del juego
 - **datos**: hay que conseguir datos nuevos · **decisión**: falta que el dueño del proyecto elija algo
 
 Fuera del encargo, por decisión expresa: 17 (ortografía estricta), 82 (globo), 86 (capas de contexto),
