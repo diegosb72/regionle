@@ -53,6 +53,7 @@ export function CardsGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const card = useRef<HTMLDivElement>(null);
   const record = useStore((st) => st.record);
   const addSession = useStore((st) => st.addSession);
+  const bump = useStore((st) => st.bump);
   const several = showsCountry(deck);
   const fem = deck.noun.fem;
   const one = deck.noun.one;
@@ -91,7 +92,11 @@ export function CardsGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const grade = (res: Res) => {
     if (!item || !turned || s.phase !== 'ask') return;
     // What is kept for the review is the first time a card comes up, as in the games that mark the answers.
-    if (s.round === 1) record(SKILL[ask], item.id, res, originOf(item, cfg));
+    if (s.round === 1) {
+      record(SKILL[ask], item.id, res, originOf(item, cfg));
+      // Cards gone through, for the achievement: the ones that come back are the same cards.
+      bump({ cards: 1 });
+    }
     if (res === 'warn') dispatch({ type: 'hint' });
     dispatch(res === 'bad' ? { type: 'giveup', reveal: false } : { type: 'right' });
     dispatch({ type: 'next' });

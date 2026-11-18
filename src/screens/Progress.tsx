@@ -1,6 +1,7 @@
 /** What has been learnt so far, where on the map, what is due for review, recent games, and backup of the saved data. */
 import { ArrowLeftRight, ArrowRight, CalendarClock, Download, FileSpreadsheet, Trash2, Upload } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityBlock, EvolutionBlock, MonthsBlock } from '../components/Activity';
 import { BadgeBoard } from '../components/Badges';
 import { MapView, type Paint } from '../components/MapView';
 import { groupPlace } from '../components/ReviewCard';
@@ -26,7 +27,7 @@ const skillName = (id: Skill): string =>
   id === 'loc' ? L('Situar en el mapa', 'Placing on the map') : id === 'name' ? L('Nombrar', 'Naming') : id === 'cap' ? L('Capitales', 'Capitals') : id === 'flag' ? L('Banderas', 'Flags') : L('Vecinos', 'Neighbours');
 const skillHint = (id: Skill): string =>
   id === 'loc'
-    ? `${MODE_NAME.pin}, ${MODE_NAME.puzzle}`
+    ? `${MODE_NAME.pin}, ${MODE_NAME.listen}, ${MODE_NAME.puzzle}`
     : id === 'name'
       ? `${MODE_NAME.identify}, ${MODE_NAME.outline}, ${MODE_NAME.nameall}`
       : id === 'cap'
@@ -591,8 +592,8 @@ export function Progress({ world }: { world: World }) {
 
   const exportData = () => {
     // The short forms chosen in the settings travel with the rest: they are read when the copy is made.
-    const { typeins, typeinAuto, recent, mix, goals } = useStore.getState();
-    const data = { app: 'regionle', version: 3, exported: new Date().toISOString(), stats, where: whereMap, mix, sessions, recent, best, favs, daily, lists, goals, badges, tot, typeins, typeinAuto };
+    const { typeins, typeinAuto, recent, mix, goals, days } = useStore.getState();
+    const data = { app: 'regionle', version: 3, exported: new Date().toISOString(), stats, where: whereMap, mix, sessions, recent, best, favs, daily, days, lists, goals, badges, tot, typeins, typeinAuto };
     download(JSON.stringify(data, null, 1), `regionle-${L('progreso', 'progress')}-${new Date().toISOString().slice(0, 10)}.json`, 'application/json');
   };
 
@@ -621,6 +622,14 @@ export function Progress({ world }: { world: World }) {
       return (
         <li key={k}>
           <b>{L('Reto diario', 'Daily challenge')}</b> · {L('mejor racha', 'best streak')}
+          <span>{L(`${v} ${v === 1 ? 'día' : 'días'}`, `${v} ${v === 1 ? 'day' : 'days'}`)}</span>
+        </li>
+      );
+    }
+    if (kind === 'study') {
+      return (
+        <li key={k}>
+          <b>{L('Días seguidos jugando', 'Days in a row playing')}</b> · {L('mejor racha', 'longest run')}
           <span>{L(`${v} ${v === 1 ? 'día' : 'días'}`, `${v} ${v === 1 ? 'day' : 'days'}`)}</span>
         </li>
       );
@@ -718,6 +727,7 @@ export function Progress({ world }: { world: World }) {
             </div>
           </dl>
 
+          <ActivityBlock />
           <BadgeBoard world={world} />
           {Object.keys(stats).length > 0 && <KnowledgeMap world={world} />}
           {Object.keys(stats).length > 0 && <ReviewBlock world={world} />}
@@ -759,6 +769,8 @@ export function Progress({ world }: { world: World }) {
             )}
           </section>
 
+          <EvolutionBlock />
+
           {regionRows.length > 0 && (
             <section className="block">
               <h2>{L('Regiones por país', 'Regions by country')}</h2>
@@ -788,6 +800,8 @@ export function Progress({ world }: { world: World }) {
               </ul>
             </section>
           )}
+
+          <MonthsBlock />
 
           {records.length > 0 && (
             <section className="block">

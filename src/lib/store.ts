@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { TESTS, emptyRec, streakOf, type DailyRec } from '../daily/spec';
+import { DAY_GOAL_DEFAULT, cleanDays, dailyWork, daysFrom, isDayGoal, studyStreak, withDay, type Days } from './days';
 import type { CityPick } from './extra';
 import { GOALS_MAX, cleanGoals, goalWithout, sameGoal, withMark, type Goal } from './goals';
 import type { Lang } from './i18n';
@@ -185,6 +186,10 @@ interface State {
   /** Custom lists, and the one in use in each section. */
   lists: CustomList[];
   listOn: Partial<Record<Section, string>>;
+  /** What was done each day: the calendar of activity, the days in a row and the daily goal (see lib/days.ts). */
+  days: Days;
+  /** Answers a day to aim at; 0 when the player wants no goal. */
+  dayGoal: number;
   /** Goals with a date: a map to be known by a day (see lib/goals.ts). */
   goals: Goal[];
   /** Achievements earned: id → when. */
@@ -207,6 +212,7 @@ interface State {
   typeinAuto: boolean | null;
 
   setCb(cb: boolean): void;
+  setDayGoal(goal: number): void;
   setWelcomed(): void;
   setHotkeys(on: boolean): void;
   setSound(on: boolean): void;
@@ -273,6 +279,8 @@ export const useStore = create<State>()(
       recent: [],
       best: {},
       daily: {},
+      days: {},
+      dayGoal: DAY_GOAL_DEFAULT,
       lang: null,
       nick: '',
       lists: [],
@@ -289,6 +297,7 @@ export const useStore = create<State>()(
       typeinAuto: null,
 
       setCb: (cb) => set({ cb }),
+      setDayGoal: (goal) => set({ dayGoal: isDayGoal(goal) ? goal : DAY_GOAL_DEFAULT }),
       setWelcomed: () => set({ welcomed: true }),
       setHotkeys: (hotkeys) => set({ hotkeys }),
       setSound: (sound) => set({ sound }),
@@ -340,13 +349,20 @@ export const useStore = create<State>()(
           const rec: DailyRec = { ...prev, p: prev.p.slice(), k: prev.k.slice() };
           rec.p[test] = points;
           rec.k[test] = figure;
+          let days = s.days;
           if (rec.p.every((x) => x != null) && !rec.t) {
             rec.t = Date.now();
             if (date !== today()) rec.late = 1;
+            // The challenge is work of the day it was finished on, whatever day of the calendar it was.
+            days = withDay(days, rec.t, dailyWork(rec.p), s.dayGoal, learntIn(s.stats));
           }
           const daily = { ...s.daily, [date]: rec };
+          const best = { ...s.best };
           const streak = streakOf(daily, today());
-          return { daily, best: streak > (s.best['daily:streak'] ?? 0) ? { ...s.best, 'daily:streak': streak } : s.best };
+          if (streak > (best['daily:streak'] ?? 0)) best['daily:streak'] = streak;
+          const run = studyStreak(days, today());
+          if (run > (best['study:streak'] ?? 0)) best['study:streak'] = run;
+          return { daily, days, best };
         }),
       setSel: (section, ids) => set((s) => ({ sel: { ...s.sel, [section]: [...new Set(ids)] } })),
       setLevel: (country, level) => set((s) => ({ levels: { ...s.levels, [country]: level } })),
@@ -392,18 +408,25 @@ export const useStore = create<State>()(
           return { ...dropAnswers(s.stats, s.where, ids), mix: dropMix(s.mix, ids), ...(goals.some((g, i) => g !== s.goals[i]) ? { goals: goals.filter((g): g is Goal => !!g) } : {}) };
         }),
       addSession: (rec) =>
-        set((s) => ({
-          sessions: [rec, ...s.sessions].slice(0, 80),
-          recent: withRecentOf(s.recent, s.game, rec),
-          tot: { ...s.tot, g: (s.tot.g ?? 0) + 1, q: (s.tot.q ?? 0) + rec.total, ok: (s.tot.ok ?? 0) + rec.ok, warn: (s.tot.warn ?? 0) + rec.warn, ms: (s.tot.ms ?? 0) + rec.ms },
-        })),
+        set((s) => {
+          const days = withDay(s.days, rec.t, rec, s.dayGoal, learntIn(s.stats));
+          // The longest run of days is kept apart: the days themselves are not kept for ever.
+          const run = studyStreak(days, today(new Date(rec.t)));
+          return {
+            sessions: [rec, ...s.sessions].slice(0, 80),
+            recent: withRecentOf(s.recent, s.game, rec),
+            days,
+            ...(run > (s.best['study:streak'] ?? 0) ? { best: { ...s.best, 'study:streak': run } } : {}),
+            tot: { ...s.tot, g: (s.tot.g ?? 0) + 1, q: (s.tot.q ?? 0) + rec.total, ok: (s.tot.ok ?? 0) + rec.ok, warn: (s.tot.warn ?? 0) + rec.warn, ms: (s.tot.ms ?? 0) + rec.ms },
+          };
+        }),
       setBest: (key, value, lowerWins = false) => {
         const prev = get().best[key];
         const better = prev == null || (lowerWins ? value < prev : value > prev);
         if (better) set((s) => ({ best: { ...s.best, [key]: value } }));
         return better;
       },
-      resetProgress: () => set({ stats: {}, where: {}, mix: {}, sessions: [], recent: [], best: {}, daily: {}, badges: {}, tot: {} }),
+      resetProgress: () => set({ stats: {}, where: {}, mix: {}, sessions: [], recent: [], best: {}, daily: {}, days: {}, badges: {}, tot: {} }),
       importData: (data) => {
         if (!data || typeof data !== 'object') return false;
         const d = data as Partial<State>;
@@ -419,6 +442,8 @@ export const useStore = create<State>()(
           best: d.best ?? {},
           favs: Array.isArray(d.favs) ? d.favs : get().favs,
           daily: d.daily && typeof d.daily === 'object' ? d.daily : get().daily,
+          // A copy from before the calendar brings what its sessions and its daily challenges add up to.
+          days: d.days && typeof d.days === 'object' ? cleanDays(d.days) : daysFrom(d.sessions ?? [], d.daily && typeof d.daily === 'object' ? d.daily : {}),
           lists: Array.isArray(d.lists) ? d.lists.filter(isList) : get().lists,
           // A copy from before there were goals says nothing about them: they stay.
           goals: Array.isArray(d.goals) ? cleanGoals(d.goals) : get().goals,
@@ -451,6 +476,8 @@ export const useStore = create<State>()(
         recent: s.recent,
         best: s.best,
         daily: s.daily,
+        days: s.days,
+        dayGoal: s.dayGoal,
         lang: s.lang,
         nick: s.nick,
         lists: s.lists,
@@ -466,26 +493,7 @@ export const useStore = create<State>()(
         typeins: s.typeins,
         typeinAuto: s.typeinAuto,
       }),
-      merge: (saved, current) => {
-        const p = (saved ?? {}) as Partial<State>;
-        return {
-          ...current,
-          ...p,
-          sel: { ...current.sel, ...p.sel },
-          mode: { ...current.mode, ...p.mode },
-          opts: { ...current.opts, ...p.opts },
-          recent: Array.isArray(p.recent) ? p.recent.filter(isRecent).slice(0, RECENT_MAX) : [],
-          mix: cleanMix(p.mix),
-          goals: cleanGoals(p.goals),
-          hotkeys: p.hotkeys !== false,
-          sound: p.sound === true,
-          haptic: p.haptic === true,
-          // Players from before the tallies existed start from what their latest sessions add up to.
-          tot: p.tot && Object.keys(p.tot).length ? p.tot : totalsOf(p.sessions ?? []),
-          typeins: cleanTypeins(p.typeins),
-          typeinAuto: typeof p.typeinAuto === 'boolean' ? p.typeinAuto : null,
-        };
-      },
+      merge: (saved, current) => mergeSaved(saved, current),
     },
   ),
 );
@@ -498,6 +506,34 @@ useStore.subscribe((s, prev) => {
 });
 
 /**
+ * What was saved, laid over the game as it starts: what an older version did not keep is filled in, and
+ * what cannot be trusted is cleaned.
+ */
+export function mergeSaved(saved: unknown, current: State): State {
+  const p = (saved ?? {}) as Partial<State>;
+  return {
+    ...current,
+    ...p,
+    sel: { ...current.sel, ...p.sel },
+    mode: { ...current.mode, ...p.mode },
+    opts: { ...current.opts, ...p.opts },
+    recent: Array.isArray(p.recent) ? p.recent.filter(isRecent).slice(0, RECENT_MAX) : [],
+    mix: cleanMix(p.mix),
+    // Players from before the calendar start from what their latest sessions and daily challenges add up to.
+    days: p.days && typeof p.days === 'object' ? cleanDays(p.days) : daysFrom(Array.isArray(p.sessions) ? p.sessions : [], p.daily && typeof p.daily === 'object' ? p.daily : {}),
+    dayGoal: isDayGoal(p.dayGoal) ? p.dayGoal : DAY_GOAL_DEFAULT,
+    goals: cleanGoals(p.goals),
+    hotkeys: p.hotkeys !== false,
+    sound: p.sound === true,
+    haptic: p.haptic === true,
+    // Players from before the tallies existed start from what their latest sessions add up to.
+    tot: p.tot && Object.keys(p.tot).length ? p.tot : totalsOf(p.sessions ?? []),
+    typeins: cleanTypeins(p.typeins),
+    typeinAuto: typeof p.typeinAuto === 'boolean' ? p.typeinAuto : null,
+  };
+}
+
+/**
  * Brings what an older version saved up to date. Version 2 made typing the usual way to answer: the
  * choice kept from before is moved once, and the player can change it back.
  */
@@ -506,6 +542,9 @@ export function migrateSaved(saved: unknown, version: number): Record<string, un
   if (version < 2 && p.opts && typeof p.opts === 'object') p.opts = { ...(p.opts as object), answer: 'type' };
   return p;
 }
+
+/** How many answers are learnt: the figure each day writes down, for the chart of how it grows. */
+export const learntIn = (stats: Record<string, Stat>): number => Object.values(stats).reduce((n, st) => n + (isLearnt(st) ? 1 : 0), 0);
 
 /** The maps played lately once a game has ended: with it first when it is one to come back to. */
 function withRecentOf(list: Recent[], game: GameConfig | null, rec: SessionRec): Recent[] {

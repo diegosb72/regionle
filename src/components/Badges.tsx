@@ -4,10 +4,12 @@ import {
   Building2,
   CalendarCheck,
   Crosshair,
+  Ear,
   Earth,
   Flag,
   Flame,
   Footprints,
+  GalleryVerticalEnd,
   Globe,
   GraduationCap,
   Hash,
@@ -19,6 +21,7 @@ import {
   MountainSnow,
   PaintBucket,
   Shapes,
+  Shuffle,
   Star,
   Target,
   Timer,
@@ -57,6 +60,17 @@ const ICONS: Record<string, LucideIcon> = {
   timed20: Timer,
   lives30: Heart,
   list: ListChecks,
+  capsUN: Landmark,
+  flagsUN: Flag,
+  earth: Globe,
+  q5000: Hash,
+  study7: CalendarCheck,
+  study30: CalendarCheck,
+  goal10: Target,
+  exam10: GraduationCap,
+  cards100: GalleryVerticalEnd,
+  mixfull: Shuffle,
+  ear: Ear,
 };
 const iconOf = (id: string): LucideIcon => ICONS[id] ?? (id.startsWith('ct-') ? Globe : Award);
 
@@ -68,7 +82,9 @@ export function useBadges(world: World): Badge[] {
   const best = useStore((s) => s.best);
   const tot = useStore((s) => s.tot);
   const lists = useStore((s) => s.lists);
-  return useMemo(() => badgesOf({ stats, where, sessions, best, tot, lists, index: world.index }), [stats, where, sessions, best, tot, lists, world]);
+  const days = useStore((s) => s.days);
+  const earned = useStore((s) => s.badges);
+  return useMemo(() => badgesOf({ stats, where, sessions, best, tot, lists, days, earned, index: world.index }), [stats, where, sessions, best, tot, lists, days, earned, world]);
 }
 
 /**
