@@ -3,6 +3,15 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.10.0 — 18 de noviembre de 2026
+
+- Geografía física de España, como en un atlas escolar: 81 ríos, las cordilleras, las mesetas y depresiones, cabos, islas, golfos, picos y embalses.
+- La física de un país: en Geografía física se elige también un país, y el mapa se centra en él con sus ríos, sus cordilleras y sus mares.
+- Dos clases nuevas de pieza: cabos, y mesetas y llanuras. De momento, las de España.
+- El mapa mudo de la física de España se imprime con las Canarias en su recuadro.
+- El estrecho de Gibraltar, Bab el-Mandeb, el canal de Yucatán y el mar del Scotia eran una mota en el mapa: ahora tienen su contorno y se pueden señalar.
+- Los Pirineos, la Cordillera Cantábrica y Sierra Morena siguen el relieve, y el Tajo, el Ebro, el Duero, el Guadiana, el Guadalquivir y el Miño ganan detalle.
+
 ## 1.9.0 — 18 de noviembre de 2026
 
 - Lo que confundes: si respondes otra pieza del mapa, el juego apunta la pareja; «Progreso» las enseña, las más confundidas primero, y deja practicarlas juntas.

@@ -49,9 +49,9 @@ servicio de fuera).
 
 ## Contenido nuevo
 
-- [ ] 33. Geografía física de España (**datos**)
-- [ ] 34. Física de cualquier país (**datos**)
-- [ ] 35. Más accidentes: picos que faltan, cabos, penínsulas, cataratas, longitud de los ríos (**datos**)
+- [x] 33. Geografía física de España: ríos, cordilleras, mesetas y depresiones, cabos, islas, golfos, picos y embalses, del Atlas Nacional de España — **1.10.0**
+- [x] 34. Física de cualquier país: el mapa de un país con lo que le toca de los mapas de los continentes (57 países) — **1.10.0**
+- [~] 35. Más accidentes: picos que faltan, cabos, penínsulas, cataratas, longitud de los ríos (**datos**) — los cabos y las mesetas y llanuras de España, en **1.10.0**; falta el resto del mundo, los picos que no trae la fuente, las penínsulas, las cataratas y las longitudes
 - [ ] 36. Continentes y océanos
 - [ ] 37. Banderas de regiones (**datos**)
 - [ ] 38. Mapas al día: Kenia, Ghana, Marruecos, Sudán del Sur (**datos**)
