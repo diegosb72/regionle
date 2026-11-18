@@ -15,6 +15,22 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.9.0',
+    date: '2026-11-18',
+    es: [
+      'Lo que confundes: si respondes otra pieza del mapa, el juego apunta la pareja; «Progreso» las enseña, las más confundidas primero, y deja practicarlas juntas.',
+      'A la segunda vez que tomas una pieza por otra, el juego lo dice en el momento.',
+      'Objetivo con fecha: «Poner fecha» hace del mapa elegido, o de una lista, un objetivo para un día; la portada dice cada día cuánto toca aprender y repasar.',
+      'Cada objetivo tiene su examen de prueba con todas las piezas, y su fecha se puede mover.',
+    ],
+    en: [
+      'What you mix up: when your answer is another piece of the map, the game notes the pair; “Progress” shows them, the most mixed up first, to practise together.',
+      'The second time you take one piece for another, the game says so on the spot.',
+      'Goal with a date: “Set a date” turns the chosen map, or a list, into a goal for a day; the first page says each day how much to learn and to review.',
+      'Each goal has its mock exam with every piece, and its date can be moved.',
+    ],
+  },
+  {
     version: '1.8.0',
     date: '2026-11-18',
     es: [

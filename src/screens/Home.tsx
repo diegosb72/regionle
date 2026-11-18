@@ -1,6 +1,8 @@
 import { ArrowRight, BookOpen, CalendarClock, Filter, Infinity as InfinityIcon, ListChecks, Star, Swords, X } from 'lucide-react';
-import { useMemo } from 'react';
+import { Suspense, useMemo } from 'react';
 import { LevelChip } from '../components/Badges';
+import { ErrorBoundary } from '../components/ErrorBoundary';
+import { lazyScreen } from '../components/lazy';
 import { ReviewCard } from '../components/ReviewCard';
 import { Flag } from '../components/ui';
 import { DailyCard } from '../daily/Card';
@@ -214,8 +216,12 @@ function Recents({ world }: { world: World }) {
 
 const goLabel = (id: Section): string => (id === 'physical' ? L('Elegir qué y dónde', 'Choose what and where') : L('Elegir países', 'Choose countries'));
 
+/** The goals with a date are fetched only by those who have one. */
+const GoalCards = lazyScreen(() => import('../components/GoalCard').then((m) => m.GoalCards));
+
 export function Home({ world }: { world: World }) {
   const sessions = useStore((s) => s.sessions);
+  const hasGoals = useStore((s) => s.goals.length > 0);
   const game = useStore((s) => s.game);
   // Someone who has never played: no game finished or in course, no daily challenge, nothing answered.
   const fresh = useStore((s) => !s.welcomed && !s.sessions.length && !s.game && !s.tot.g && !Object.keys(s.daily).length && !Object.keys(s.stats).length);
@@ -237,6 +243,13 @@ export function Home({ world }: { world: World }) {
       {/* The first heading of the page; the headline further down is drawn as large as ever. */}
       <h1 className="sr-only">{L('Regionle ∞: juego de geografía para aprender el mapa del mundo', 'Regionle ∞: a geography game to learn the map of the world')}</h1>
       <DailyCard world={world} />
+      {hasGoals && (
+        <ErrorBoundary>
+          <Suspense fallback={null}>
+            <GoalCards />
+          </Suspense>
+        </ErrorBoundary>
+      )}
       <ReviewCard world={world} />
 
       <section className="hero">

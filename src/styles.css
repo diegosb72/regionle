@@ -4591,6 +4591,137 @@ a.d-cal-day:hover {
   }
 }
 
+/* ------------------------------------------------------- goals with a date */
+.goals {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  padding: clamp(16px, 2.2vw, 22px) clamp(18px, 3vw, 34px);
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--card);
+  box-shadow: var(--shadow-1);
+}
+.goals > .kicker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.goals > ul {
+  display: grid;
+  gap: 16px;
+}
+.goal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  min-width: 0;
+}
+.goal + .goal {
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.goal-main {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.goal h3 {
+  font-size: clamp(20px, 2.4vw, 26px);
+  letter-spacing: -0.015em;
+  overflow-wrap: anywhere;
+}
+.goal h3 small {
+  color: var(--ink-3);
+  font-family: var(--sans);
+  font-size: 14.5px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.goal-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 560px;
+}
+.goal-bar .bar {
+  flex: 1;
+}
+.goal-bar b {
+  flex: none;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.goal-plan {
+  color: var(--ink-2);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.goal-plan strong {
+  color: var(--ink);
+}
+.goal-plan svg {
+  vertical-align: -2px;
+  color: var(--ok);
+}
+.goal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+}
+.goal-over h3,
+.goal-over .goal-plan strong {
+  color: var(--ink-2);
+}
+.goal-date,
+.goal-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px 14px;
+}
+.goal-form {
+  margin: -4px 0 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--card);
+}
+.goal-form-row {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+.goal-form .opt-hint {
+  flex: 1 1 100%;
+}
+.goal-date input,
+.goal-form input {
+  min-height: 40px;
+  font-size: 15px;
+}
+.goalbar-made {
+  color: var(--ink-2);
+}
+.goalbar-made svg {
+  vertical-align: -2px;
+  color: var(--ok);
+}
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-ink);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 /* ------------------------------------------------------- jigsaw, neighbours */
 
 .piece {
@@ -6733,6 +6864,15 @@ kbd {
   border-bottom: 0;
   color: var(--ink-3);
   font-size: 14px;
+}
+/* Two names taken for each other. */
+.mix-pair svg {
+  margin: 0 2px;
+  vertical-align: -2px;
+  color: var(--ink-3);
+}
+.mix .miss-items li small {
+  color: var(--ink-3);
 }
 @media (max-width: 720px) {
   .miss-list {

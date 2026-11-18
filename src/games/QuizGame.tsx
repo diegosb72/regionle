@@ -9,6 +9,7 @@ import { Flag } from '../components/ui';
 import { seedOf } from '../lib/challenge';
 import { silhouette } from '../lib/geo';
 import { L, nm } from '../lib/i18n';
+import { timesMixed } from '../lib/mix';
 import { MODE_NAME, formatName } from '../lib/modes';
 import { useStore, type Format, type Skill } from '../lib/store';
 import { Matcher, cx, fmtTime, hintMax, letterHint, mulberry32, nf, sample, shortNote, shuffle, type Answerable } from '../lib/text';
@@ -92,6 +93,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const ms = useElapsed(!ended);
   const map = useRef<MapHandle>(null);
   const record = useStore((st) => st.record);
+  const mixUp = useStore((st) => st.mixUp);
   const forget = useStore((st) => st.forget);
   const addSession = useStore((st) => st.addSession);
   const setBest = useStore((st) => st.setBest);
@@ -270,6 +272,19 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
     }
   };
 
+  /**
+   * Another piece of the map was the answer: written down as a mix-up of the two, which the progress
+   * shows and offers to practise. Returns what there is to say when it is not the first time.
+   */
+  const mixed = (given: string): string => {
+    const skill = SKILL[mode];
+    if (!item || !skill || given === item.id || !deck.byId.has(given)) return '';
+    const before = timesMixed(useStore.getState().mix, skill, item.id, given);
+    mixUp(skill, item.id, given);
+    // Nothing is said in an exam, and the first time is just a miss.
+    return exam || before < 1 ? '' : ` ${L(`Ya van ${before + 1} veces que confundes ${fem ? 'las' : 'los'} dos.`, `That makes ${before + 1} times you have mixed the two up.`)}`;
+  };
+
   const giveUp = () => {
     if (!item || s.phase !== 'ask') return;
     dispatch({ type: 'giveup' });
@@ -290,6 +305,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
     const other = deck.byId.get(id);
     if (!other) return;
     if (exam) {
+      mixed(id);
       // Any piece can be the answer, also one already given to another question: nothing says how that went.
       given.current[item.id] = other.name;
       return wrong(null);
@@ -302,7 +318,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
       setNote(L(`${other.name} está ${fem ? 'descartada' : 'descartado'}: busca entre ${fem ? 'las iluminadas' : 'los iluminados'}.`, `${other.name} is ruled out: look among the lit ones.`));
       return;
     }
-    wrong(L(`Eso es ${other.name}.`, `That is ${other.name}.`), id);
+    wrong(`${L(`Eso es ${other.name}.`, `That is ${other.name}.`)}${mixed(id)}`, id);
   };
 
   const onSubmit = (text: string) => {
@@ -320,6 +336,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
       // What was written, by its proper name where it is the name of something else here.
       const meant = v.res !== 'other' ? undefined : mode === 'parent' ? groups.get(v.id)?.name : deck.byId.get(v.id) && answerOf(deck.byId.get(v.id)!);
       given.current[item.id] = meant || text.trim();
+      if (v.res === 'other' && mode !== 'parent') mixed(v.id);
       return wrong(null);
     }
     if (v.res === 'other') {
@@ -328,8 +345,9 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
         return wrong(L(`No es ${group}.`, `It is not ${group}.`));
       }
       const other = deck.byId.get(v.id)!;
-      if (mode === 'capital') wrong(L(`${other.capital![0]} es la capital de ${other.name}.`, `${other.capital![0]} is the capital of ${other.name}.`));
-      else wrong(L(`No es ${other.name}.`, `It is not ${other.name}.`), mode === 'identify' ? v.id : undefined);
+      const again = mixed(v.id);
+      if (mode === 'capital') wrong(`${L(`${other.capital![0]} es la capital de ${other.name}.`, `${other.capital![0]} is the capital of ${other.name}.`)}${again}`);
+      else wrong(`${L(`No es ${other.name}.`, `It is not ${other.name}.`)}${again}`, mode === 'identify' ? v.id : undefined);
     } else wrong(L('No es correcto.', 'That is not right.'));
   };
 
@@ -339,6 +357,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
     else {
       const other = deck.byId.get(id);
       if (exam && other) given.current[item.id] = answerOf(other);
+      if (other) mixed(id);
       setPicked(id);
       wrong(null);
     }

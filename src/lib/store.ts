@@ -3,7 +3,9 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { TESTS, emptyRec, streakOf, type DailyRec } from '../daily/spec';
 import type { CityPick } from './extra';
+import { GOALS_MAX, cleanGoals, goalWithout, sameGoal, withMark, type Goal } from './goals';
 import type { Lang } from './i18n';
+import { cleanMix, dropMix, withMix, type Mix } from './mix';
 import { RECENT_MAX, isRecent, recentConfig, recentOf, withRecent, type Recent } from './recent';
 import { today } from './text';
 import { cleanTypeins, setTypeins as applyTypeins, type Typeins } from './typeinPrefs';
@@ -151,6 +153,8 @@ interface State {
    * needs to draw its map again.
    */
   where: Record<string, string>;
+  /** What has been taken for what: asked about one piece, the answer was another (see lib/mix.ts). */
+  mix: Mix;
   sessions: SessionRec[];
   /** The maps played lately, the last one first: what the first page offers to play again. */
   recent: Recent[];
@@ -164,6 +168,8 @@ interface State {
   /** Custom lists, and the one in use in each section. */
   lists: CustomList[];
   listOn: Partial<Record<Section, string>>;
+  /** Goals with a date: a map to be known by a day (see lib/goals.ts). */
+  goals: Goal[];
   /** Achievements earned: id → when. */
   badges: Record<string, number>;
   /** g games · q answers · ok first-time right · warn right with help · ms time · and one-off counters (lessons, regionle1, near…). */
@@ -193,6 +199,12 @@ interface State {
   saveList(list: CustomList): void;
   removeList(id: string): void;
   setListOn(section: Section, id: string | null): void;
+  /** Sets a goal; one about the same pieces and skill is replaced, and the oldest goes when there are too many. */
+  saveGoal(goal: Goal): void;
+  removeGoal(id: string): void;
+  setGoalDate(id: string, date: string): void;
+  /** Notes, once a day, how much of each goal had been seen when the day began. */
+  markGoals(): void;
   /** Marks achievements as earned now. */
   earn(ids: string[]): void;
   /** Adds to lifetime tallies. */
@@ -214,6 +226,8 @@ interface State {
   /** Forgets the game in course. */
   leave(): void;
   record(skill: Skill, id: string, res: Res, origin?: string): void;
+  /** Writes down that `given` was the answer to a question about `asked`. */
+  mixUp(skill: Skill, asked: string, given: string): void;
   /** Drops what is known about some answers: questions that are no longer asked must not stay due. */
   forget(skill: Skill, ids: string[]): void;
   /** Drops everything known about things that are no longer in the data, whatever the skill. */
@@ -237,6 +251,7 @@ export const useStore = create<State>()(
       game: null,
       stats: {},
       where: {},
+      mix: {},
       sessions: [],
       recent: [],
       best: {},
@@ -245,6 +260,7 @@ export const useStore = create<State>()(
       nick: '',
       lists: [],
       listOn: {},
+      goals: [],
       badges: {},
       tot: {},
       cb: false,
@@ -274,6 +290,15 @@ export const useStore = create<State>()(
           if (id) listOn[section] = id;
           else delete listOn[section];
           return { listOn };
+        }),
+      saveGoal: (goal) => set((s) => ({ goals: [...s.goals.filter((g) => g.id !== goal.id && !sameGoal(g, goal)), withMark(goal, s.stats, Date.now())].slice(-GOALS_MAX) })),
+      removeGoal: (id) => set((s) => ({ goals: s.goals.filter((g) => g.id !== id) })),
+      setGoalDate: (id, date) => set((s) => ({ goals: s.goals.map((g) => (g.id === id ? { ...g, date } : g)) })),
+      markGoals: () =>
+        set((s) => {
+          const now = Date.now();
+          const goals = s.goals.map((g) => withMark(g, s.stats, now));
+          return goals.some((g, i) => g !== s.goals[i]) ? { goals } : {};
         }),
       earn: (ids) =>
         set((s) => {
@@ -336,13 +361,19 @@ export const useStore = create<State>()(
           const stats: Record<string, Stat> = { ...s.stats, [k]: [seen + 1, ok + (res === 'ok' ? 1 : 0), res === 'ok' ? run + 1 : 0, Date.now()] };
           return origin && s.where[id] !== origin ? { stats, where: { ...s.where, [id]: origin } } : { stats };
         }),
+      mixUp: (skill, asked, given) => set((s) => ({ mix: withMix(s.mix, s.stats, skill, asked, given, Date.now()) })),
       forget: (skill, ids) =>
         set((s) => {
           const stats = { ...s.stats };
           for (const id of ids) delete stats[`${skill}:${id}`];
           return { stats };
         }),
-      drop: (ids) => set((s) => dropAnswers(s.stats, s.where, ids)),
+      drop: (ids) =>
+        set((s) => {
+          const gone = new Set(ids);
+          const goals = s.goals.map((g) => goalWithout(g, gone));
+          return { ...dropAnswers(s.stats, s.where, ids), mix: dropMix(s.mix, ids), ...(goals.some((g, i) => g !== s.goals[i]) ? { goals: goals.filter((g): g is Goal => !!g) } : {}) };
+        }),
       addSession: (rec) =>
         set((s) => ({
           sessions: [rec, ...s.sessions].slice(0, 80),
@@ -355,7 +386,7 @@ export const useStore = create<State>()(
         if (better) set((s) => ({ best: { ...s.best, [key]: value } }));
         return better;
       },
-      resetProgress: () => set({ stats: {}, where: {}, sessions: [], recent: [], best: {}, daily: {}, badges: {}, tot: {} }),
+      resetProgress: () => set({ stats: {}, where: {}, mix: {}, sessions: [], recent: [], best: {}, daily: {}, badges: {}, tot: {} }),
       importData: (data) => {
         if (!data || typeof data !== 'object') return false;
         const d = data as Partial<State>;
@@ -364,6 +395,7 @@ export const useStore = create<State>()(
         set({
           stats: d.stats ?? {},
           where: d.where && typeof d.where === 'object' ? d.where : {},
+          mix: cleanMix(d.mix),
           sessions: d.sessions ?? [],
           // A copy from before the maps played lately were kept says nothing about them: they stay.
           recent: Array.isArray(d.recent) ? d.recent.filter(isRecent).slice(0, RECENT_MAX) : get().recent,
@@ -371,6 +403,8 @@ export const useStore = create<State>()(
           favs: Array.isArray(d.favs) ? d.favs : get().favs,
           daily: d.daily && typeof d.daily === 'object' ? d.daily : get().daily,
           lists: Array.isArray(d.lists) ? d.lists.filter(isList) : get().lists,
+          // A copy from before there were goals says nothing about them: they stay.
+          goals: Array.isArray(d.goals) ? cleanGoals(d.goals) : get().goals,
           badges: d.badges && typeof d.badges === 'object' ? d.badges : {},
           tot: d.tot && typeof d.tot === 'object' ? d.tot : totalsOf(d.sessions ?? []),
           // Backups from before the settings existed say nothing about them: they stay as they are. One
@@ -395,6 +429,7 @@ export const useStore = create<State>()(
         game: s.game,
         stats: s.stats,
         where: s.where,
+        mix: s.mix,
         sessions: s.sessions,
         recent: s.recent,
         best: s.best,
@@ -403,6 +438,7 @@ export const useStore = create<State>()(
         nick: s.nick,
         lists: s.lists,
         listOn: s.listOn,
+        goals: s.goals,
         badges: s.badges,
         tot: s.tot,
         cb: s.cb,
@@ -422,6 +458,8 @@ export const useStore = create<State>()(
           mode: { ...current.mode, ...p.mode },
           opts: { ...current.opts, ...p.opts },
           recent: Array.isArray(p.recent) ? p.recent.filter(isRecent).slice(0, RECENT_MAX) : [],
+          mix: cleanMix(p.mix),
+          goals: cleanGoals(p.goals),
           hotkeys: p.hotkeys !== false,
           sound: p.sound === true,
           haptic: p.haptic === true,

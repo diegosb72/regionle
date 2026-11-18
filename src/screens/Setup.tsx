@@ -1,6 +1,7 @@
 /** Setup: 1 what to play with, 2 mode, 3 options. */
 import { Check, ChevronDown, Infinity as InfinityIcon, ListChecks, ListPlus, Pencil, Play, Printer, Share2, Target, Timer, Trash2, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { GoalBar } from '../components/GoalBar';
 import { Picker } from '../components/Picker';
 import { Flag, Seg, Toggle, capitalise } from '../components/ui';
 import { eligible, levelOf, loadFile, type World } from '../lib/data';
@@ -462,10 +463,14 @@ export function Setup({ section, world }: { section: Section; world: World }) {
           <span className="step-n">01</span> {active ? L('Lista', 'List') : isPhys ? L('Qué y dónde', 'What and where') : L('Países', 'Countries')}
         </h2>
         {active ? (
-          <ListCard key={active.id} list={active} others={mine.filter((l) => l.id !== active.id)} world={world} onEdit={() => editList(active)} onLeave={() => setListOn(section, null)} onRemove={() => removeList(active.id)} onUse={(id) => setListOn(section, id)} />
+          <>
+            <ListCard key={active.id} list={active} others={mine.filter((l) => l.id !== active.id)} world={world} onEdit={() => editList(active)} onLeave={() => setListOn(section, null)} onRemove={() => removeList(active.id)} onUse={(id) => setListOn(section, id)} />
+            <GoalBar key={`goal:${active.id}`} section={section} mode={def.id} config={listConfig(active, 'pin', opts)} />
+          </>
         ) : (
           <>
             {section !== 'pops' && <ListBar lists={mine} canNew={!noMap} onUse={(id) => setListOn(section, id)} onNew={newList} />}
+            {section !== 'pops' && <GoalBar section={section} mode={def.id} config={noMap ? null : current('pin')} />}
             {isPhys ? (
               <PhysPicker spec={spec} file={physical} world={world} onChange={(next) => setSel(section, physTokens(next))} />
             ) : (
