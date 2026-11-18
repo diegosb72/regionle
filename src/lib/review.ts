@@ -4,6 +4,7 @@
  * wait: a miss comes back the same day, each right answer pushes the next one further away.
  */
 import type { CityPick } from './extra';
+import { countryToken } from './phys';
 import type { GameConfig, Opts, Skill, Stat } from './store';
 import type { Mode, Section } from './types';
 
@@ -50,7 +51,7 @@ export interface ReviewGroup {
   section: Section;
   skill: Skill;
   mode: Mode;
-  /** Regions and cities of a single country. */
+  /** Regions and cities of a single country; rivers and mountains learnt on the map of one. */
   country?: string;
   /** Level of detail of the regions. */
   level?: string;
@@ -72,14 +73,14 @@ interface Origin {
 }
 
 /**
- * Reads "r|ES|g1", "c", "t|ES|top" or "p"; when there is none (answers stored by earlier versions),
+ * Reads "r|ES|g1", "c", "t|ES|top", "p" or "p|ES"; when there is none (answers stored by earlier versions),
  * the id itself says enough for countries and regions.
  */
 export function parseOrigin(id: string, origin: string | undefined): Origin | null {
   if (origin) {
     const [kind, country, extra] = origin.split('|');
     if (kind === 'c') return { section: 'countries', country: id };
-    if (kind === 'p') return { section: 'physical' };
+    if (kind === 'p') return { section: 'physical', country: country || undefined };
     if (kind === 't' && country) return { section: 'cities', country, pick: extra === 'caps' || extra === 'regcaps' ? extra : 'top' };
     if (kind === 'r' && country) return { section: 'regions', country, level: extra || undefined };
     return null;
@@ -132,7 +133,7 @@ function gather(stats: Record<string, Stat>, where: Record<string, string>, pick
     const origin = parseOrigin(id, where[id]);
     if (!origin) continue;
     const { section, country, pick: cities } = origin;
-    const one = section === 'regions' || (section === 'cities' && cities !== 'caps');
+    const one = section === 'regions' || (section === 'cities' && cities !== 'caps') || (section === 'physical' && !!country);
     const gk = [section, skill, ...(one ? [country] : []), ...(section === 'cities' ? [cities] : [])].join(':');
     let g = groups.get(gk);
     if (!g) {
@@ -203,7 +204,8 @@ export function reviewConfig(group: ReviewGroup, opts: Opts, max = REVIEW_MAX): 
     section: group.section,
     mode: group.mode,
     // Countries and capitals: the map is widened to their continents when it is built (see `deckFor`).
-    countries: group.section === 'countries' ? ids : (one ?? group.countries),
+    // Rivers and mountains: the map is drawn around them, on the country they were learnt on if it was one.
+    countries: group.section === 'countries' ? ids : group.section === 'physical' ? (group.country ? [countryToken(group.country)] : []) : (one ?? group.countries),
     levels: group.country && group.level ? { [group.country]: group.level } : {},
     opts: { ...opts, length: 'all', ...(group.pick ? { cityPick: group.pick } : {}) },
     only: ids,

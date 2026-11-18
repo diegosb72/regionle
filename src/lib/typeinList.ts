@@ -3,7 +3,7 @@
  * the map it is played on, which is what decides whether a short form says one thing only.
  */
 import { buildDeck, countryAnswers, countryItem, eligible, loadIndex } from './data';
-import { PHYS_KINDS, buildCityDeck, buildPhysicalDeck, kindNoun, loadCapitals, loadCities, type PhysKind } from './extra';
+import { PHYS_KINDS, buildCityDeck, buildPhysicalDeck, countryToken, kindNoun, loadCapitals, loadCities, loadPhysical, type PhysKind } from './extra';
 import { L, getLang, levelNoun, nm } from './i18n';
 import { SETTINGS_PATH } from './routes';
 import { spellingsOf, type Spellings } from './spellings';
@@ -125,11 +125,15 @@ export async function typeinGroups(tab: TypeinTab, scope = ''): Promise<TypeinGr
     return [{ key: 'cc', title: L('Capitales de país', 'Capitals of countries'), rows: byName(rows), codes: false }];
   }
   if (tab === 'physical') {
-    const deck = await buildPhysicalDeck([...PHYS_KINDS, 'all']);
+    // Everything a continent shows, and what is only asked on the map of its own country.
+    const file = await loadPhysical();
+    const homes = [...new Set(file.f.filter((f) => f.r === 3).flatMap((f) => f.co ?? []))];
+    const decks = await Promise.all([buildPhysicalDeck([...PHYS_KINDS, 'all']), ...homes.map((id) => buildPhysicalDeck([...PHYS_KINDS, 'all', countryToken(id)]))]);
+    const items = [...new Map(decks.flatMap((deck) => deck.items).map((it) => [it.id, it])).values()];
     return PHYS_KINDS.map((kind: PhysKind) => ({
       key: `p:${kind}`,
       title: cap(kindNoun(kind).many),
-      rows: byName(deck.items.filter((it) => it.cat === kind).map((it) => pieceRow(it))),
+      rows: byName(items.filter((it) => it.cat === kind).map((it) => pieceRow(it))),
       codes: true,
     })).filter((g) => g.rows.length);
   }

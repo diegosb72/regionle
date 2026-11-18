@@ -1,7 +1,7 @@
 /** Decks that are not made of countries or their divisions: cities, and rivers, lakes, seas, ranges, peaks, deserts and islands. */
 import { belongsToCountry, commonPlace, divisionsOf, frameForCountries, frameForLand, loadFile, loadIndex, loadWorldGeo, properNames } from './data';
 import { L, nm } from './i18n';
-import { PHYS_KINDS, kindNoun, parsePhys, physTokens, type PhysKind, type PhysSpec } from './phys';
+import { PHYS_KINDS, kindNoun, parsePhys, physMatches, physTokens, type PhysKind, type PhysSpec } from './phys';
 import { editOf } from './typeins';
 import type { AnyGeo, Country, Deck, Geo, Item, LL, Named } from './types';
 
@@ -115,7 +115,7 @@ export async function buildCityDeck(ids: string[], pick: CityPick, count: number
 // ---------------------------------------------------------------------------
 
 // What a physical map is made of, in words and as a selection, is in `phys.ts`: the first page reads it too.
-export { PHYS_KINDS, PHYS_PLACES, kindNoun, parsePhys, physTokens, type PhysKind, type PhysSpec } from './phys';
+export { PHYS_COUNTRY_MIN, PHYS_KINDS, PHYS_PLACES, countryToken, kindNoun, parsePhys, physCountries, physMatches, physTokens, type PhysKind, type PhysSpec } from './phys';
 
 
 interface PhysRec {
@@ -124,8 +124,14 @@ interface PhysRec {
   n: Named;
   al?: string[];
   ct: string[];
-  /** 1 = the ones met at school · 2 = the rest */
-  r: 1 | 2;
+  /** 1 = the ones met at school · 2 = the rest · 3 = only on the map of its own country */
+  r: 1 | 2 | 3;
+  /** One of the best known on the map of its country. */
+  h?: 1;
+  /** The countries it is asked in. */
+  co?: string[];
+  /** 'res' for a reservoir among the lakes. */
+  t?: string;
   wd?: string;
   ar?: number;
   /** Peaks: metres above sea level. */
@@ -163,20 +169,25 @@ function geometryOf(rec: PhysRec, scale: number): AnyGeo['geometry'] {
 
 /** How many features a selection holds, without building anything. */
 export function countPhys(file: PhysFile, spec: PhysSpec): number {
-  return file.f.filter((f) => matches(f, spec)).length;
+  return file.f.filter((f) => physMatches(f, spec)).length;
 }
 
-const matches = (f: PhysRec, spec: PhysSpec): boolean =>
-  spec.kinds.includes(f.k) && (spec.all || f.r === 1) && (!spec.places.length || f.ct.some((c) => spec.places.includes(c)));
+/** Seas first and rivers last: what is drawn later lies on top and gets the click. A plain lies under the ranges that cross it. */
+const ORDER: Record<PhysKind, number> = { sea: 0, desert: 1, plain: 1.5, range: 2, island: 3, lake: 4, river: 5, peak: 6, cape: 7 };
 
-/** Seas first and rivers last: what is drawn later lies on top and gets the click. */
-const ORDER: Record<PhysKind, number> = { sea: 0, desert: 1, range: 2, island: 3, lake: 4, river: 5, peak: 6 };
-
-/** The selection that a set of features fits in: their kinds, their continents (the world if they are many), everything if any is little known. */
-function specAround(file: PhysFile, ids: string[]): PhysSpec {
+/**
+ * The selection that a set of features fits in: their kinds, their continents (the world if they are many),
+ * everything if any is little known. With `country`, on the map of that country: what is only asked there
+ * would be a speck on a continent.
+ */
+function specAround(file: PhysFile, ids: string[], country?: string): PhysSpec {
   const recs = file.f.filter((f) => ids.includes(f.i));
+  const kinds = PHYS_KINDS.filter((k) => recs.some((f) => f.k === k));
+  // Features of one country alone, with any that no continent shows: the map of that country, though nobody said so.
+  const shared = country ?? (recs.some((f) => f.r === 3) ? recs[0]?.co?.find((c) => recs.every((f) => f.co?.includes(c))) : undefined);
+  if (shared) return { kinds, places: [], all: recs.some((f) => f.r !== 1 && !f.h), country: shared };
   const places = [...new Set(recs.map((f) => f.ct[0]))];
-  return { kinds: PHYS_KINDS.filter((k) => recs.some((f) => f.k === k)), places: places.length > 2 ? [] : places, all: recs.some((f) => f.r === 2) };
+  return { kinds, places: places.length > 2 ? [] : places, all: recs.some((f) => f.r === 2) };
 }
 
 /**
@@ -184,14 +195,17 @@ function specAround(file: PhysFile, ids: string[]): PhysSpec {
  * `keep`, the map is the one the tokens ask for and those features are added to it (a custom list).
  */
 export async function buildPhysicalDeck(tokens: string[], must?: string[], keep = false): Promise<Deck> {
-  const [{ index }, world, file] = await Promise.all([loadIndex(), loadWorldGeo(), loadPhysical()]);
-  const around = must?.length && !keep ? specAround(file, must) : null;
-  const spec = around?.kinds.length ? around : parsePhys(tokens);
+  const [{ index, byId }, world, file] = await Promise.all([loadIndex(), loadWorldGeo(), loadPhysical()]);
+  const asked = parsePhys(tokens);
+  const around = must?.length && !keep ? specAround(file, must, asked.country) : null;
+  const spec = around?.kinds.length ? around : asked;
+  const land = spec.country ? byId.get(spec.country) : undefined;
   const continent = (id: string): Country => ({ id: `@${id}`, a3: '', n: index.continents[id] ?? { es: id }, ct: id, sr: '', cl: 'other', ar: 0, lp: [0, 0], fp: [], lv: [], dl: 'f' });
   const pseudo = new Map<string, Country>();
   const home = (rec: PhysRec): Country => {
     const id = rec.ct.find((c) => spec.places.includes(c)) ?? rec.ct[0];
-    if (!pseudo.has(id)) pseudo.set(id, continent(id));
+    // On the map of a country every feature is of that country, by name: it has no flag to show here.
+    if (!pseudo.has(id)) pseudo.set(id, land ? { ...continent(id), id: `@in:${land.id}`, n: land.n } : continent(id));
     return pseudo.get(id)!;
   };
   const size = (rec: PhysRec): number => {
@@ -207,7 +221,7 @@ export async function buildPhysicalDeck(tokens: string[], must?: string[], keep 
     }
     return (e - w) * (n - s);
   };
-  const recs = file.f.filter((f) => matches(f, spec) || must?.includes(f.i)).sort((a, b) => ORDER[a.k] - ORDER[b.k] || (b.ar ?? size(b)) - (a.ar ?? size(a)));
+  const recs = file.f.filter((f) => physMatches(f, spec) || must?.includes(f.i)).sort((a, b) => ORDER[a.k] - ORDER[b.k] || (b.ar ?? size(b)) - (a.ar ?? size(a)));
   const items: Item[] = recs.map((rec) => ({
     id: rec.i,
     kind: 'feature',
@@ -222,7 +236,7 @@ export async function buildPhysicalDeck(tokens: string[], must?: string[], keep 
     // …but those the player gives it in the settings.
     short: editOf(rec.i),
     country: home(rec),
-    type: kindNoun(rec.k).one,
+    type: rec.t === 'res' ? L('embalse', 'reservoir') : kindNoun(rec.k).one,
     geo: { type: 'Feature', id: rec.i, properties: {}, geometry: geometryOf(rec, file.scale) } as AnyGeo,
     lp: rec.lp,
     fp: rec.fp,
@@ -233,24 +247,47 @@ export async function buildPhysicalDeck(tokens: string[], must?: string[], keep 
     wd: rec.wd,
   }));
 
+  const single = spec.kinds.length === 1 ? kindNoun(spec.kinds[0]) : null;
+  const many = single?.many ?? L('geografía física', 'physical geography');
+  const noun = single ?? { one: L('elemento', 'feature'), many: L('elementos', 'features'), fem: false };
+  const title = (where: string) => `${many[0].toUpperCase()}${many.slice(1)} · ${where}`;
+  const common = { key: `p:${physTokens(spec).join(',')}`, scope: 'physical' as const, items, byId: new Map(items.map((it) => [it.id, it])), extras: [], outline: [], countries: [], noun };
+
+  if (land) {
+    // One country: its land stands out from the rest, and sets the frame with whatever of it lies in sight.
+    const base: Geo[] = [];
+    const context: Geo[] = [];
+    for (const [id, g] of world) (id === land.id ? base : context).push(g);
+    // What is asked has to be in sight, but only as far as the country reaches and a little more: the Rhine is
+    // not followed to the sea on the map of France, nor the Atlantic to its far shore on any.
+    const g = world.get(land.id)?.geometry;
+    const rings = !g ? [] : g.type === 'Polygon' ? [g.coordinates[0]] : g.coordinates.map((poly) => poly[0]);
+    let w = Infinity;
+    let e = -Infinity;
+    let s = Infinity;
+    let n = -Infinity;
+    for (const ring of rings)
+      for (const p of ring) {
+        w = Math.min(w, p[0]);
+        e = Math.max(e, p[0]);
+        s = Math.min(s, p[1]);
+        n = Math.max(n, p[1]);
+      }
+    const pad = Math.max(e - w, n - s) * 0.12;
+    const near = (p: LL) => p[0] >= w - pad && p[0] <= e + pad && p[1] >= s - pad && p[1] <= n + pad;
+    const sight = items.flatMap((it) => (it.cat === 'sea' ? [it.lp] : it.fp)).filter(near);
+    return { ...common, context, base, frame: frameForLand([land], world, sight), title: title(nm(land.n)) };
+  }
+
   // The frame is the continents asked about, not the features: the Atlantic would otherwise open the map of Europe to both poles.
   const lands = index.countries.filter((c) => c.cl === 'un' && (!spec.places.length || spec.places.includes(c.ct)));
-  const single = spec.kinds.length === 1 ? kindNoun(spec.kinds[0]) : null;
   const where = !spec.places.length ? L('Mundo', 'World') : spec.places.map((p) => (index.continents[p] ? nm(index.continents[p]) : p)).join(', ');
-  const many = single?.many ?? L('geografía física', 'physical geography');
   return {
-    key: `p:${physTokens(spec).join(',')}`,
-    scope: 'physical',
-    items,
-    byId: new Map(items.map((it) => [it.id, it])),
-    extras: [],
+    ...common,
     context: [],
     base: [...world.values()],
-    outline: [],
     // …but what is asked has to be in sight: the Ural or the rivers of Siberia lie outside the countries of their continent.
     frame: spec.places.length ? [...frameForCountries(lands), ...items.filter((it) => it.cat !== 'sea').flatMap((it) => it.fp)] : lands.flatMap((c) => c.fp),
-    countries: [],
-    title: `${many[0].toUpperCase()}${many.slice(1)} · ${where}`,
-    noun: single ?? { one: L('elemento', 'feature'), many: L('elementos', 'features'), fem: false },
+    title: title(where),
   };
 }

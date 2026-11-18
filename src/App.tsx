@@ -315,7 +315,11 @@ export function App() {
           <a href="https://www.naturalearthdata.com" target="_blank" rel="noopener noreferrer">
             Natural Earth
           </a>{' '}
-          {L('(dominio público), población del Banco Mundial y datos de países de', '(public domain), population from the World Bank and country data from')}{' '}
+          {L('(dominio público), ríos y relieve de España del', '(public domain), rivers and relief of Spain from the')}{' '}
+          <a href="https://www.ign.es/web/ane-area-ane" target="_blank" rel="noopener noreferrer">
+            Atlas Nacional de España
+          </a>{' '}
+          {L('(CC BY 4.0 ign.es), población del Banco Mundial y datos de países de', '(CC BY 4.0 ign.es), population from the World Bank and country data from')}{' '}
           <a href="https://www.geonames.org" target="_blank" rel="noopener noreferrer">
             GeoNames
           </a>{' '}

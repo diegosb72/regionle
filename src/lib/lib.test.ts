@@ -2,7 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { buildDeck, deckGraph, divisionsOf, eligible, loadIndex, setLoader } from './data';
-import { buildCityDeck, buildPhysicalDeck, parsePhys, physTokens } from './extra';
+import { buildCityDeck, buildPhysicalDeck, loadPhysical, parsePhys, physCountries, physMatches, physTokens } from './extra';
+import { placeQuery } from './links';
 import { bfs, capOf, cheapestPath, makeView, onShortest, pickRoute, shortestPath } from './geo';
 import { Matcher, editDistance, fmtBig, fmtTime, judgeAmount, key, listed, mulberry32, norm, parseNumber } from './text';
 
@@ -313,6 +314,106 @@ describe('data', () => {
     expect(parsePhys([])).toEqual({ kinds: ['river'], places: [], all: false });
     expect(parsePhys(['all', 'AM', 'sea', 'lake', 'zzz'])).toEqual({ kinds: ['lake', 'sea'], places: ['AM'], all: true });
     expect(physTokens(parsePhys(['all', 'AM', 'sea', 'lake']))).toEqual(['lake', 'sea', 'AM', 'all']);
+    // One country instead of continents: AF, AS and AM are continents here, so a country has a word of its own.
+    expect(parsePhys(['river', 'cape', 'in:ES'])).toEqual({ kinds: ['river', 'cape'], places: [], all: false, country: 'ES' });
+    expect(parsePhys(['river', 'EU', 'in:ES', 'all'])).toEqual({ kinds: ['river'], places: [], all: true, country: 'ES' });
+    expect(physTokens(parsePhys(['all', 'in:FR', 'peak', 'plain']))).toEqual(['plain', 'peak', 'in:FR', 'all']);
+    expect(parsePhys(['river', 'in:es', 'in:ESP', 'ES']).country).toBeUndefined();
+    // The kinds that came later sit among the others without moving them: a map chosen before reads the same.
+    expect(physTokens(parsePhys(['island', 'desert', 'peak', 'range', 'sea', 'lake', 'river']))).toEqual(['river', 'lake', 'sea', 'range', 'peak', 'desert', 'island']);
+  });
+
+  it('chooses what a map of the world, of a continent or of a country asks about', () => {
+    const tagus = { k: 'river', ct: ['EU'], r: 1, co: ['ES', 'PT'] } as const;
+    const minho = { k: 'river', ct: ['EU'], r: 2, h: 1, co: ['ES', 'PT'] } as const;
+    const jarama = { k: 'river', ct: ['EU'], r: 3, h: 1, co: ['ES'] } as const;
+    const manzanares = { k: 'river', ct: ['EU'], r: 3, co: ['ES'] } as const;
+    const seine = { k: 'river', ct: ['EU'], r: 1, co: ['FR'] } as const;
+    const all = [tagus, minho, jarama, manzanares, seine];
+    const pick = (tokens: string[]) => all.filter((f) => physMatches(f, parsePhys(tokens)));
+    // A continent: what is known everywhere, or all that has room on it. What belongs to the map of a country never.
+    expect(pick(['river', 'EU'])).toEqual([tagus, seine]);
+    expect(pick(['river', 'EU', 'all'])).toEqual([tagus, minho, seine]);
+    expect(pick(['river', 'all'])).toEqual([tagus, minho, seine]);
+    expect(pick(['river', 'AS', 'all'])).toEqual([]);
+    // A country: its best known, which are more than the continent's, or everything on it.
+    expect(pick(['river', 'in:ES'])).toEqual([tagus, minho, jarama]);
+    expect(pick(['river', 'in:ES', 'all'])).toEqual([tagus, minho, jarama, manzanares]);
+    expect(pick(['river', 'in:PT', 'all'])).toEqual([tagus, minho]);
+    expect(pick(['river', 'in:FR'])).toEqual([seine]);
+    expect(pick(['lake', 'in:ES', 'all'])).toEqual([]);
+  });
+
+  it('offers a map of its own to the countries with enough on it', async () => {
+    const file = await loadPhysical();
+    const lands = physCountries(file.f);
+    expect(lands.get('ES')).toBeGreaterThanOrEqual(150);
+    for (const id of ['FR', 'IT', 'DE', 'US', 'RU', 'CN', 'BR', 'MX', 'AR', 'PT', 'GB']) expect(lands.get(id) ?? 0, id).toBeGreaterThanOrEqual(6);
+    // A handful of features is no game: Andorra has the Pyrenees and little else.
+    expect(lands.has('AD')).toBe(false);
+    expect(lands.size).toBeGreaterThan(50);
+    expect(lands.size).toBeLessThan(120);
+  });
+
+  it('builds the physical map of a country around its own land', async () => {
+    const spain = await buildPhysicalDeck(['river', 'range', 'plain', 'cape', 'in:ES']);
+    expect(spain.title).toBe('Geografía física · España');
+    expect(spain.key).toBe('p:river,range,plain,cape,in:ES');
+    expect(spain.items.length).toBeGreaterThanOrEqual(60);
+    for (const id of ['r:tagus', 'r:jarama', 'r:central-system', 'r:pyrenees', 'p:northern-meseta', 'c:cape-gata']) expect(spain.byId.has(id), id).toBe(true);
+    // Not what «Todos» adds, nor the rivers of the neighbours.
+    for (const id of ['r:manzanares', 'r:seine', 'r:garonne', 'c:cape-ortegal']) expect(spain.byId.has(id), id).toBe(false);
+    // The country stands out from the rest of the world, and every feature is filed under its name.
+    expect(spain.base?.map((g) => g.id)).toEqual(['ES']);
+    expect(spain.context.length).toBeGreaterThan(150);
+    expect(new Set(spain.items.map((it) => it.country.n.es))).toEqual(new Set(['España']));
+    expect(spain.items.every((it) => !it.country.fl)).toBe(true);
+    // Rivers alone: the frame is the peninsula, without the Canary Islands that nothing asks about…
+    const rivers = await buildPhysicalDeck(['river', 'in:ES']);
+    expect(Math.min(...rivers.frame.map((p) => p[1]))).toBeGreaterThan(35);
+    expect(Math.min(...rivers.frame.map((p) => p[0]))).toBeGreaterThan(-10);
+    // …and with their islands or the Teide, it reaches them.
+    const peaks = await buildPhysicalDeck(['peak', 'in:ES']);
+    expect(Math.min(...peaks.frame.map((p) => p[1]))).toBeLessThan(29);
+    // A plain lies under the ranges that cross it, a cape on top of everything: the click goes to what is on top.
+    const order = spain.items.map((it) => it.cat);
+    expect(order.indexOf('plain')).toBeLessThan(order.indexOf('range'));
+    expect(order.lastIndexOf('range')).toBeLessThan(order.indexOf('river'));
+    expect(order[order.length - 1]).toBe('cape');
+    expect(spain.byId.get('c:cape-gata')!.shape).toBe('point');
+
+    const all = await buildPhysicalDeck(['river', 'lake', 'in:ES', 'all']);
+    expect(all.byId.has('r:manzanares')).toBe(true);
+    // A reservoir is called what it is, and looked up by its own name.
+    const serena = all.byId.get('l:la-serena-reservoir')!;
+    expect(serena.type).toBe('embalse');
+    expect(placeQuery(serena)).toBe('Embalse de La Serena, España');
+    expect(placeQuery(all.byId.get('r:jarama')!)).toBe('río Jarama, España');
+    // On a continent, as ever: the kind in front of a river, nothing after it.
+    const europe = await buildPhysicalDeck(['river', 'lake', 'EU', 'all']);
+    expect(placeQuery(europe.byId.get('r:danube')!)).toBe('río Danubio');
+    expect(placeQuery(europe.byId.get('l:lake-geneva')!)).toBe('Lago Lemán');
+
+    // The map of France shows the Rhine without going to the sea after it.
+    const france = await buildPhysicalDeck(['river', 'in:FR', 'all']);
+    expect(france.byId.has('r:rhine')).toBe(true);
+    expect(Math.max(...france.frame.map((p) => p[1]))).toBeLessThan(52.5);
+  });
+
+  it('draws a review on the map of the country its answers were learnt on', async () => {
+    // Asked with the country: the map of Spain, with the kinds of what is reviewed and room for the least known.
+    const review = await buildPhysicalDeck(['in:ES'], ['r:manzanares', 'c:cape-gata']);
+    expect(review.title).toContain('España');
+    expect(review.byId.has('r:manzanares')).toBe(true);
+    expect(review.byId.has('r:tagus')).toBe(true);
+    expect(new Set(review.items.map((it) => it.cat))).toEqual(new Set(['river', 'cape']));
+    // Asked without it (answers kept by a version that knew of no countries): what no continent shows still gets its own map.
+    const old = await buildPhysicalDeck([], ['r:jarama', 'r:tagus']);
+    expect(old.title).toContain('España');
+    // What a continent shows stays on the continent.
+    const europe = await buildPhysicalDeck([], ['r:tagus', 'r:danube']);
+    expect(europe.title).toContain('Europa');
+    expect(europe.byId.has('r:jarama')).toBe(false);
   });
 
   it('gives every country a name, a label point and a level', async () => {

@@ -441,8 +441,12 @@ describe('the lists of the settings', () => {
     expect(cities.rows).toHaveLength(96);
     expect(cities.rows.map((r) => r.name)).toContain('Nueva York');
     const physical = await typeinGroups('physical');
-    expect(physical.map((g) => g.title)).toEqual(['Ríos', 'Lagos', 'Mares y océanos', 'Cordilleras', 'Picos y volcanes', 'Desiertos', 'Islas']);
-    expect(physical.reduce((n, g) => n + g.rows.length, 0)).toBe(593);
+    expect(physical.map((g) => g.title)).toEqual(['Ríos', 'Lagos', 'Mares y océanos', 'Cordilleras', 'Mesetas y llanuras', 'Picos y volcanes', 'Cabos', 'Desiertos', 'Islas']);
+    // What is only asked on the map of its country can be given a short form too.
+    const rows = physical.flatMap((g) => g.rows.map((r) => r.id));
+    for (const id of ['r:jarama', 'c:cape-gata', 'p:northern-meseta', 'r:central-system', 's:cantabrian-sea', 'i:la-gomera']) expect(rows, id).toContain(id);
+    expect(new Set(rows).size).toBe(rows.length);
+    expect(physical.reduce((n, g) => n + g.rows.length, 0)).toBe(725);
     expect(row(physical, 'r:nile')).toMatchObject({ name: 'Nilo', also: ['Nile', 'Nilo Blanco', 'White Nile'] });
     expect(shown(physical[0], 'r:nile', { auto: true, edits: { 'r:nile': { add: ['NL'] } } })).toEqual(['NL']);
     expect(await typeinGroups('regions', 'ZZ')).toEqual([]);

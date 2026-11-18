@@ -645,7 +645,8 @@ export function Progress({ world }: { world: World }) {
     let label: string;
     if (mapKey.startsWith('p:')) {
       const spec = parsePhys(mapKey.slice(2).split(','));
-      label = `${spec.kinds.map((x) => capitalise(kindNoun(x).many)).join(', ')} · ${spec.places.length ? spec.places.map((p) => (world.index.continents[p] ? nm(world.index.continents[p]) : p)).join(', ') : L('mundo', 'world')}`;
+      const land = spec.country ? world.byId.get(spec.country) : undefined;
+      label = `${spec.kinds.map((x) => capitalise(kindNoun(x).many)).join(', ')} · ${land ? nm(land.n) : spec.places.length ? spec.places.map((p) => (world.index.continents[p] ? nm(world.index.continents[p]) : p)).join(', ') : L('mundo', 'world')}`;
     } else {
       const ids = mapKey.replace(/^[rct]:/, '').split('|')[0].split(',');
       const names = ids.slice(0, 3).map((id) => {

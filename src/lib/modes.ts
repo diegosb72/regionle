@@ -333,7 +333,10 @@ function sectionInfo(section: Section): SectionInfo {
         path,
         name: L('Física', 'Physical'),
         title,
-        blurb: L('Ríos, lagos, mares, cordilleras, picos, desiertos e islas del mundo o de un continente.', 'Rivers, lakes, seas, mountain ranges, peaks, deserts and islands of the world or of one continent.'),
+        blurb: L(
+          'Ríos, lagos, mares, cordilleras, picos, desiertos e islas del mundo, de un continente o de un país. España, con el detalle de un atlas escolar.',
+          'Rivers, lakes, seas, mountain ranges, peaks, deserts and islands of the world, of one continent or of one country. Spain, in the detail of a school atlas.',
+        ),
       };
     default:
       return {

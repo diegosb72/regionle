@@ -392,6 +392,8 @@ const Overlay = memo(
               <g key={s.id} transform={`translate(${s.x} ${s.y})`}>
                 {s.cls === 'peak' ? (
                   <path d="M0 -6.4 6.2 4.6H-6.2Z" data-id={s.id} className={cx('m-dot', 'k-peak', paint?.[s.id] && `st-${paint[s.id]}`)} />
+                ) : s.cls === 'cape' ? (
+                  <path d="M0 -6 6 0 0 6 -6 0Z" data-id={s.id} className={cx('m-dot', 'k-cape', paint?.[s.id] && `st-${paint[s.id]}`)} />
                 ) : (
                   <circle r={4.6} data-id={s.id} className={cx('m-dot', paint?.[s.id] && `st-${paint[s.id]}`)} />
                 )}

@@ -8,7 +8,7 @@ import { dueCount, dueGroups, forecast, reviewConfig, type ReviewGroup } from '.
 import { go } from '../lib/router';
 import { useStore } from '../lib/store';
 import { nf } from '../lib/text';
-import { Flag } from './ui';
+import { Flag, capitalise } from './ui';
 
 /** What a group is about: "España · provincias". */
 export function groupPlace(g: ReviewGroup, world: World): { flag?: string; text: string } {
@@ -24,7 +24,8 @@ export function groupPlace(g: ReviewGroup, world: World): { flag?: string; text:
     const what = g.pick === 'regcaps' ? L('capitales de región', 'regional capitals') : L('ciudades', 'cities');
     return { flag: c?.fl, text: c ? `${nm(c.n)} · ${what}` : what };
   }
-  return { text: L('Ríos, mares y montañas', 'Rivers, seas and mountains') };
+  const what = L('ríos, mares y montañas', 'rivers, seas and mountains');
+  return c ? { flag: c.fl, text: `${nm(c.n)} · ${what}` } : { text: capitalise(what) };
 }
 
 function useDue() {

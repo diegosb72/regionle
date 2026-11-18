@@ -136,7 +136,9 @@ const INSET_H = 0.34;
  * Islands, Alaska) goes in boxes, as on a school map, so that the rest is not printed the size of a stamp.
  */
 function plan(deck: Deck): Plan {
-  const boxed = deck.scope === 'regions' || deck.scope === 'cities';
+  /** The physical map of one country: its land is the base, and the rest of the world lies around it. */
+  const land = deck.scope === 'physical' && deck.base?.length === 1 && deck.context.length > 0;
+  const boxed = deck.scope === 'regions' || deck.scope === 'cities' || land;
   let groups: Item[][] = [];
   /** The points each group is framed by; the main map keeps the rest. */
   let frames: LL[][] = [];
@@ -150,7 +152,11 @@ function plan(deck: Deck): Plan {
   } else if (boxed) {
     // Cities reach nowhere: what lies apart is the land they stand on.
     const rings = (deck.base ?? []).flatMap((f) => (f.geometry.type === 'Polygon' ? [f.geometry.coordinates[0]] : f.geometry.coordinates.map((poly) => poly[0])));
-    const { places, landOf, boxOf } = landPlaces(rings, deck.items);
+    // On the physical map of a country, a river, a peak or a cape stands on its land as a city does; a sea
+    // stands on none, and stays on the main map with whatever else lies off the country.
+    const within = (p: LL) => rings.some((ring) => ring.some((q) => q[0] <= p[0]) && ring.some((q) => q[0] >= p[0]) && ring.some((q) => q[1] <= p[1]) && ring.some((q) => q[1] >= p[1]));
+    const standing = land ? deck.items.filter((it) => it.cat !== 'sea' && within(it.lp)) : deck.items;
+    const { places, landOf, boxOf } = landPlaces(rings, standing);
     const far = farGroups(places);
     const groupOf = new Map(far.flatMap((lands, i) => lands.map((land) => [land, i] as const)));
     groups = far.map(() => []);
@@ -202,6 +208,8 @@ function plan(deck: Deck): Plan {
 
 /** A peak: a triangle standing on the place. */
 const peak = (x: number, y: number, r: number) => `M${x},${y - r * 1.15}L${x + r},${y + r * 0.75}L${x - r},${y + r * 0.75}Z`;
+/** A cape: a diamond on the tip of the land. */
+const cape = (x: number, y: number, r: number) => `M${x},${y - r}L${x + r},${y}L${x},${y + r}L${x - r},${y}Z`;
 
 /**
  * What one view draws, from the bottom up; the numbers last, over everything. A map without numbers keeps
@@ -252,7 +260,9 @@ function Layers({ g, placed, font, bare }: { g: Drawn; placed: Numbered[]; font:
           <path key={l.id} d={l.d} />
         ))}
       </g>
-      <g className="sm-dot">{g.dots.map((d) => (d.cat === 'peak' ? <path key={d.id} d={peak(d.x, d.y, r * 1.25)} /> : <circle key={d.id} cx={d.x} cy={d.y} r={r} />))}</g>
+      <g className="sm-dot">
+        {g.dots.map((d) => (d.cat === 'peak' ? <path key={d.id} d={peak(d.x, d.y, r * 1.25)} /> : d.cat === 'cape' ? <path key={d.id} d={cape(d.x, d.y, r * 1.3)} /> : <circle key={d.id} cx={d.x} cy={d.y} r={r} />))}
+      </g>
       <g className="sm-num" style={{ fontSize: font }}>
         {placed.map((p) => {
           const s = g.spots.get(p.id);

@@ -2,14 +2,32 @@
 // which continent. Natural Earth supplies the shapes; the names here are editorial, because its own
 // Spanish labels are uneven and its rivers come cut in stretches under local names.
 //
-// Every entry: [Spanish name, English name, continents, rank, sources, extra spellings?]
+// Every entry: [Spanish name, English name, continents, rank, sources, extra spellings?, options?]
 //   continents  EU AS AF AM OC AN, space separated (a sea can wash several)
-//   rank        1 = the ones everybody meets at school · 2 = the rest
+//   rank        1 = the ones everybody meets at school · 2 = the rest · 3 = only on the map of its own
+//               country, where a continent would have no room for it
 //   sources     Natural Earth `name` values to merge; "Name@w,s,e,n" keeps only the pieces whose
 //               bounding box touches that lon/lat box (needed where several rivers share a name),
 //               "Name#w,s,e,n" only the stretches inside the box and "Name!w,s,e,n" the ones outside;
-//               a list of [lon, lat] is an outline drawn by hand, for the two straits that Natural
-//               Earth only marks with a label
+//               a list of [lon, lat] is an outline drawn by hand, for the straits and gulfs that
+//               Natural Earth only marks with a label or does not have. And, for Spain, what the
+//               Atlas Nacional de España draws (see spain.mjs):
+//                 "siane:<code>"   a river by the code the atlas knows it by (several, for the one that
+//                                  goes on into Portugal under another code)
+//                 "agua:<name>"    a reservoir or a lagoon by the label the atlas gives it
+//                 { relief }       the land between two heights inside a box drawn by hand
+//                 { land, at }     the island of that country that the point stands on
+//                 { coast, box, to }  the corner of the coast of that country that reaches farthest
+//                                  towards N, S, E, W… inside the box: a cape
+//   options     h: 1       one of the best known on the map of its country, though not on a continent's
+//               co: 'ES'   the countries it is asked in, when the ones worked out from the map are not
+//                          the ones wanted
+//               t: 'res'   a reservoir, not a lake
+//               area: 0    no surface: the outline is only where to click
+
+/** The land above 1000 m on both sides of the border, between the Bay of Biscay and the Mediterranean. */
+const PYRENEES = { min: 1000, close: 8, within: [[-2.0, 43.25], [-1.2, 43.3], [0.0, 43.2], [1.5, 43.1], [2.6, 42.85], [3.2, 42.55], [3.2, 42.3], [2.3, 42.1], [1.2, 41.95], [0.2, 42.05], [-0.8, 42.3], [-1.7, 42.65]] };
+const CANTABRIAN = { min: 1000, close: 8, within: [[-7.1, 43.15], [-6.0, 43.35], [-4.8, 43.4], [-3.9, 43.35], [-3.3, 43.25], [-3.3, 42.82], [-4.0, 42.7], [-5.0, 42.75], [-6.2, 42.7], [-7.0, 42.6]] };
 
 export const RIVERS = [
   // Africa
@@ -89,12 +107,12 @@ export const RIVERS = [
   ['Po', 'Po', 'EU', 1, ['Po']],
   ['Tíber', 'Tiber', 'EU', 2, ['Tevere']],
   ['Támesis', 'Thames', 'EU', 1, ['Thames']],
-  ['Tajo', 'Tagus', 'EU', 1, ['Tajo', 'Tejo'], ['Tejo']],
-  ['Ebro', 'Ebro', 'EU', 1, ['Ebro']],
-  ['Duero', 'Douro', 'EU', 1, ['Duero'], ['Duero', 'Douro']],
-  ['Guadalquivir', 'Guadalquivir', 'EU', 1, ['Guadalquivir']],
-  ['Guadiana', 'Guadiana', 'EU', 1, ['Guadiana']],
-  ['Miño', 'Minho', 'EU', 2, ['Minho'], ['Miño']],
+  ['Tajo', 'Tagus', 'EU', 1, ['siane:1006', 'siane:PT301'], ['Tejo']],
+  ['Ebro', 'Ebro', 'EU', 1, ['siane:2004'], ['Ebre']],
+  ['Duero', 'Douro', 'EU', 1, ['siane:1004', 'siane:PT201'], ['Duero', 'Douro']],
+  ['Guadalquivir', 'Guadalquivir', 'EU', 1, ['siane:10094']],
+  ['Guadiana', 'Guadiana', 'EU', 1, ['siane:1008', 'siane:PT401']],
+  ['Miño', 'Minho', 'EU', 2, ['siane:10038'], ['Miño'], { h: 1 }],
   ['Dvina Septentrional', 'Northern Dvina', 'EU', 2, ['Severnaya Dvina'], ['Dvina del Norte']],
   ['Daugava', 'Daugava', 'EU', 2, ['Daugava'], ['Dvina Occidental', 'Western Dvina']],
   ['Pechora', 'Pechora', 'EU', 2, ['Pechora']],
@@ -198,6 +216,90 @@ export const RIVERS = [
   ['Waikato', 'Waikato', 'OC', 2, ['Waikato']],
   ['Sepik', 'Sepik', 'OC', 2, ['Sepik']],
   ['Fly', 'Fly', 'OC', 2, ['Fly']],
+
+  // Spain, from the Atlas Nacional de España: the slope of the Bay of Biscay
+  ['Bidasoa', 'Bidasoa', 'EU', 3, ['siane:1003712'], [], { h: 1 }],
+  ['Nervión', 'Nervión', 'EU', 3, ['siane:100372'], ['Nerbioi'], { h: 1 }],
+  ['Pas', 'Pas', 'EU', 3, ['siane:1003732']],
+  ['Saja', 'Saja', 'EU', 3, ['siane:1003734']],
+  ['Deva', 'Deva', 'EU', 3, ['siane:1003736']],
+  ['Sella', 'Sella', 'EU', 3, ['siane:1003738']],
+  ['Nalón', 'Nalón', 'EU', 3, ['siane:100374'], [], { h: 1 }],
+  ['Narcea', 'Narcea', 'EU', 3, ['siane:1003742']],
+  ['Navia', 'Navia', 'EU', 3, ['siane:100376'], [], { h: 1 }],
+  ['Eo', 'Eo', 'EU', 3, ['siane:1003772'], [], { h: 1 }],
+  // Galicia and the Sil, which the Miño takes in
+  ['Tambre', 'Tambre', 'EU', 3, ['siane:1003778'], [], { h: 1 }],
+  ['Ulla', 'Ulla', 'EU', 3, ['siane:100378'], [], { h: 1 }],
+  ['Lérez', 'Lérez', 'EU', 3, ['siane:1003794']],
+  ['Sil', 'Sil', 'EU', 3, ['siane:100384'], [], { h: 1 }],
+  // The Duero and what it gathers
+  ['Pisuerga', 'Pisuerga', 'EU', 3, ['siane:10048'], [], { h: 1 }],
+  ['Esla', 'Esla', 'EU', 3, ['siane:10044'], [], { h: 1 }],
+  ['Tormes', 'Tormes', 'EU', 3, ['siane:10042'], [], { h: 1 }],
+  ['Órbigo', 'Órbigo', 'EU', 3, ['siane:100444']],
+  ['Bernesga', 'Bernesga', 'EU', 3, ['siane:1004478']],
+  ['Tera', 'Tera', 'EU', 3, ['siane:100442']],
+  ['Carrión', 'Carrión', 'EU', 3, ['siane:100484']],
+  ['Adaja', 'Adaja', 'EU', 3, ['siane:10046']],
+  ['Eresma', 'Eresma', 'EU', 3, ['siane:100462']],
+  ['Águeda', 'Águeda', 'EU', 3, ['siane:1004176']],
+  // The Tagus
+  ['Jarama', 'Jarama', 'EU', 3, ['siane:10068'], [], { h: 1 }],
+  ['Alberche', 'Alberche', 'EU', 3, ['siane:100672'], [], { h: 1 }],
+  ['Alagón', 'Alagón', 'EU', 3, ['siane:10064'], [], { h: 1 }],
+  ['Henares', 'Henares', 'EU', 3, ['siane:100686']],
+  ['Manzanares', 'Manzanares', 'EU', 3, ['siane:100684']],
+  ['Tajuña', 'Tajuña', 'EU', 3, ['siane:100682']],
+  ['Guadarrama', 'Guadarrama', 'EU', 3, ['siane:100674']],
+  ['Tiétar', 'Tiétar', 'EU', 3, ['siane:10066']],
+  ['Almonte', 'Almonte', 'EU', 3, ['siane:10065422']],
+  // What the Guadiana gathers
+  ['Zújar', 'Zújar', 'EU', 3, ['siane:10084'], [], { h: 1 }],
+  ['Cigüela', 'Cigüela', 'EU', 3, ['siane:10086'], ['Gigüela']],
+  ['Záncara', 'Záncara', 'EU', 3, ['siane:10088']],
+  ['Jabalón', 'Jabalón', 'EU', 3, ['siane:100854']],
+  ['Matachel', 'Matachel', 'EU', 3, ['siane:100836']],
+  // The Guadalquivir and the Atlantic coast of Andalusia
+  ['Genil', 'Genil', 'EU', 3, ['siane:100942'], [], { h: 1 }],
+  ['Guadalimar', 'Guadalimar', 'EU', 3, ['siane:100946']],
+  ['Guadiana Menor', 'Guadiana Menor', 'EU', 3, ['siane:100948']],
+  ['Jándula', 'Jándula', 'EU', 3, ['siane:100944']],
+  ['Guadiato', 'Guadiato', 'EU', 3, ['siane:1009434']],
+  ['Odiel', 'Odiel', 'EU', 3, ['siane:10092'], [], { h: 1 }],
+  ['Tinto', 'Tinto', 'EU', 3, ['siane:100922'], ['Río Tinto'], { h: 1 }],
+  ['Guadalete', 'Guadalete', 'EU', 3, ['siane:10096'], [], { h: 1 }],
+  // The Mediterranean coast, from the Strait to the Ebro
+  ['Guadiaro', 'Guadiaro', 'EU', 3, ['siane:200116']],
+  ['Guadalhorce', 'Guadalhorce', 'EU', 3, ['siane:20012'], [], { h: 1 }],
+  ['Guadalfeo', 'Guadalfeo', 'EU', 3, ['siane:200134']],
+  ['Andarax', 'Andarax', 'EU', 3, ['siane:200138']],
+  ['Almanzora', 'Almanzora', 'EU', 3, ['siane:20014'], [], { h: 1 }],
+  ['Segura', 'Segura', 'EU', 3, ['siane:20016'], [], { h: 1 }],
+  ['Mundo', 'Mundo', 'EU', 3, ['siane:200168']],
+  ['Guadalentín', 'Guadalentín', 'EU', 3, ['siane:200162'], ['Sangonera']],
+  ['Vinalopó', 'Vinalopó', 'EU', 3, ['siane:20018']],
+  ['Júcar', 'Júcar', 'EU', 3, ['siane:2002'], ['Xúquer'], { h: 1 }],
+  ['Cabriel', 'Cabriel', 'EU', 3, ['siane:20026']],
+  ['Turia', 'Turia', 'EU', 3, ['siane:20034'], ['Túria', 'Guadalaviar'], { h: 1 }],
+  ['Palancia', 'Palancia', 'EU', 3, ['siane:20036']],
+  ['Mijares', 'Mijares', 'EU', 3, ['siane:20038'], ['Millars'], { h: 1 }],
+  // The Ebro and Catalonia
+  ['Aragón', 'Aragón', 'EU', 3, ['siane:20048'], [], { h: 1 }],
+  ['Gállego', 'Gállego', 'EU', 3, ['siane:20044'], [], { h: 1 }],
+  ['Cinca', 'Cinca', 'EU', 3, ['siane:200422'], [], { h: 1 }],
+  ['Segre', 'Segre', 'EU', 3, ['siane:20042'], [], { h: 1 }],
+  ['Jalón', 'Jalón', 'EU', 3, ['siane:20046'], [], { h: 1 }],
+  ['Arga', 'Arga', 'EU', 3, ['siane:200482']],
+  ['Ega', 'Ega', 'EU', 3, ['siane:200492']],
+  ['Jiloca', 'Jiloca', 'EU', 3, ['siane:200464']],
+  ['Guadalope', 'Guadalope', 'EU', 3, ['siane:200434']],
+  ['Noguera Pallaresa', 'Noguera Pallaresa', 'EU', 3, ['siane:200426']],
+  ['Noguera Ribagorzana', 'Noguera Ribagorzana', 'EU', 3, ['siane:200424'], ['Noguera Ribagorçana']],
+  ['Francolí', 'Francolí', 'EU', 3, ['siane:200512']],
+  ['Llobregat', 'Llobregat', 'EU', 3, ['siane:20052'], [], { h: 1 }],
+  ['Ter', 'Ter', 'EU', 3, ['siane:20054'], [], { h: 1 }],
+  ['Fluvià', 'Fluvià', 'EU', 3, ['siane:200552'], ['Fluviá']],
 ];
 
 /** Lakes: Natural Earth `name` (lakes layer, or the marine layer for the two lagoons that sit there). */
@@ -282,9 +384,32 @@ export const LAKES = [
   ['Lago Eyre', 'Lake Eyre', 'OC', 1, ['Lake Eyre North', 'Lake Eyre South'], ['Kati Thanda']],
   ['Lago Taupo', 'Lake Taupo', 'OC', 2, ['Lake Taupo'], ['Taupō']],
   ['Lago Torrens', 'Lake Torrens', 'OC', 2, ['Lake Torrens']],
+
+  // Spain: the reservoirs every map of the country shows, and its best-known lagoon
+  ['Embalse de La Serena', 'La Serena Reservoir', 'EU', 3, ['agua:Embalse de la Serena'], ['La Serena'], { h: 1, t: 'res' }],
+  ['Embalse de Alcántara', 'Alcántara Reservoir', 'EU', 3, ['agua:Embalse de Alcántara 2'], ['Alcántara', 'Embalse de José María de Oriol'], { h: 1, t: 'res' }],
+  ['Embalse de Mequinenza', 'Mequinenza Reservoir', 'EU', 3, ['agua:Embalse de Mequinenza'], ['Mequinenza', 'Mar de Aragón'], { h: 1, t: 'res' }],
+  ['Embalse de Almendra', 'Almendra Reservoir', 'EU', 3, ['agua:Embalse de Almendra'], ['Almendra'], { t: 'res' }],
+  ['Embalse de Buendía', 'Buendía Reservoir', 'EU', 3, ['agua:Embalse de Buendía'], ['Buendía'], { t: 'res' }],
+  ['Embalse de Ricobayo', 'Ricobayo Reservoir', 'EU', 3, ['agua:Embalse de Ricobayo'], ['Ricobayo'], { t: 'res' }],
+  ['Embalse de Alarcón', 'Alarcón Reservoir', 'EU', 3, ['agua:Embalse de Alarcón'], ['Alarcón'], { t: 'res' }],
+  ['Embalse de Cíjara', 'Cíjara Reservoir', 'EU', 3, ['agua:Embalse de Cijara'], ['Cíjara'], { t: 'res' }],
+  ['Embalse de Valdecañas', 'Valdecañas Reservoir', 'EU', 3, ['agua:Embalse de Valdecañas'], ['Valdecañas'], { t: 'res' }],
+  ['Embalse de Iznájar', 'Iznájar Reservoir', 'EU', 3, ['agua:Embalse de Iznájar'], ['Iznájar'], { t: 'res' }],
+  ['Embalse del Ebro', 'Ebro Reservoir', 'EU', 3, ['agua:Embalse del Ebro'], [], { t: 'res' }],
+  ['Embalse de Gabriel y Galán', 'Gabriel y Galán Reservoir', 'EU', 3, ['agua:Embalse de Gabriel y Galán'], ['Gabriel y Galán'], { t: 'res' }],
+  ['Embalse de Entrepeñas', 'Entrepeñas Reservoir', 'EU', 3, ['agua:Embalse de Entrepeñas'], ['Entrepeñas'], { t: 'res' }],
+  ['Embalse de Riaño', 'Riaño Reservoir', 'EU', 3, ['agua:Embalse de Riaño'], ['Riaño'], { t: 'res' }],
+  ['Embalse de Yesa', 'Yesa Reservoir', 'EU', 3, ['agua:Embalse de Yesa'], ['Yesa'], { t: 'res' }],
+  ['Albufera de Valencia', 'Albufera of Valencia', 'EU', 3, ["agua:l'Albufera"], ['Albufera', 'La Albufera', "L'Albufera"], { h: 1 }],
 ];
 
-/** Seas, gulfs and straits: `name` in the 1:10m marine layer. */
+/**
+ * Seas, gulfs and straits: `name` in the 1:10m marine layer. Natural Earth has some of them only as a
+ * speck that carries the label (the Strait of Gibraltar, Bab el-Mandeb, the Yucatán Channel, the Scotia
+ * Sea, the Luzon Strait, the Drake Passage): those are outlines drawn by hand over the water, with no
+ * surface to compare. The land is drawn on top of every sea, so an outline may run inland.
+ */
 export const SEAS = [
   ['Océano Atlántico', 'Atlantic Ocean', 'EU AF AM', 1, ['North Atlantic Ocean', 'South Atlantic Ocean'], ['Atlántico']],
   ['Océano Pacífico', 'Pacific Ocean', 'AS AM OC', 1, ['North Pacific Ocean', 'South Pacific Ocean'], ['Pacífico']],
@@ -304,12 +429,13 @@ export const SEAS = [
   ['Mar Egeo', 'Aegean Sea', 'EU AS', 1, ['Aegean Sea'], ['Egeo']],
   ['Mar Tirreno', 'Tyrrhenian Sea', 'EU', 1, ['Tyrrhenian Sea'], ['Tirreno']],
   ['Mar Jónico', 'Ionian Sea', 'EU', 1, ['Ionian Sea'], ['Jónico']],
-  ['Golfo de Vizcaya', 'Bay of Biscay', 'EU', 1, ['Bay of Biscay'], ['Mar Cantábrico', 'Cantábrico']],
+  // On the map of Spain the sea off its northern coast goes by its own name: see `Mar Cantábrico` below.
+  ['Golfo de Vizcaya', 'Bay of Biscay', 'EU', 1, ['Bay of Biscay'], ['Mar Cantábrico', 'Cantábrico'], { co: 'FR' }],
   ['Canal de la Mancha', 'English Channel', 'EU', 1, ['English Channel'], ['La Mancha']],
-  ['Estrecho de Gibraltar', 'Strait of Gibraltar', 'EU AF', 1, ['Strait of Gibraltar'], ['Gibraltar']],
+  ['Estrecho de Gibraltar', 'Strait of Gibraltar', 'EU AF', 1, [[[-6.03, 36.19], [-5.92, 35.78], [-5.6, 35.75], [-5.28, 35.88], [-5.33, 36.13], [-5.6, 36.1]]], ['Gibraltar'], { area: 0 }],
   ['Mar Balear', 'Balearic Sea', 'EU', 2, ['Balearic Sea']],
   ['Mar de Alborán', 'Alboran Sea', 'EU AF', 2, ['Alboran Sea'], ['Alborán']],
-  ['Golfo de León', 'Gulf of Lion', 'EU', 2, ['Golfe du Lion']],
+  ['Golfo de León', 'Gulf of Lion', 'EU', 2, ['Golfe du Lion'], [], { co: 'FR' }],
   ['Mar de Liguria', 'Ligurian Sea', 'EU', 2, ['Ligurian Sea'], ['Mar Ligur']],
   ['Mar de Creta', 'Sea of Crete', 'EU', 2, ['Sea of Crete']],
   ['Mar de Azov', 'Sea of Azov', 'EU', 2, ['Sea of Azov'], ['Azov']],
@@ -332,7 +458,7 @@ export const SEAS = [
   ['Golfo de Adén', 'Gulf of Aden', 'AF AS', 2, ['Gulf of Aden']],
   ['Golfo de Suez', 'Gulf of Suez', 'AF', 2, ['Gulf of Suez']],
   ['Golfo de Áqaba', 'Gulf of Aqaba', 'AF AS', 2, ['Gulf of Aqaba'], ['Golfo de Aqaba', 'Golfo de Eilat']],
-  ['Bab el-Mandeb', 'Bab-el-Mandeb', 'AF AS', 2, ['Bab el Mandeb'], ['Estrecho de Bab el-Mandeb', 'Bab el Mandeb']],
+  ['Bab el-Mandeb', 'Bab-el-Mandeb', 'AF AS', 2, [[[43.05, 12.95], [43.1, 12.5], [43.3, 12.3], [43.65, 12.45], [43.6, 12.8], [43.35, 13.05]]], ['Estrecho de Bab el-Mandeb', 'Bab el Mandeb'], { area: 0 }],
 
   ['Mar Arábigo', 'Arabian Sea', 'AS', 1, ['Arabian Sea'], ['Mar de Arabia', 'Mar de Omán']],
   ['Golfo de Bengala', 'Bay of Bengal', 'AS', 1, ['Bay of Bengal'], ['Bahía de Bengala']],
@@ -379,7 +505,7 @@ export const SEAS = [
   ['Bahía de Fundy', 'Bay of Fundy', 'AM', 2, ['Bay of Fundy']],
   ['Mar de los Sargazos', 'Sargasso Sea', 'AM', 2, ['Sargasso Sea']],
   ['Estrecho de Florida', 'Straits of Florida', 'AM', 2, ['Straits of Florida'], ['Estrecho de la Florida', 'Florida Strait']],
-  ['Canal de Yucatán', 'Yucatán Channel', 'AM', 2, ['Yucatan Channel'], ['Estrecho de Yucatán']],
+  ['Canal de Yucatán', 'Yucatán Channel', 'AM', 2, [[[-87.1, 22.4], [-87.1, 21.0], [-86.7, 20.8], [-84.9, 21.3], [-84.8, 22.4]]], ['Estrecho de Yucatán'], { area: 0 }],
   ['Golfo de Campeche', 'Bay of Campeche', 'AM', 2, ['Bahía de Campeche'], ['Bahía de Campeche', 'Sonda de Campeche']],
   ['Golfo de Honduras', 'Gulf of Honduras', 'AM', 2, ['Gulf of Honduras']],
   ['Golfo de Panamá', 'Gulf of Panama', 'AM', 2, ['Golfo de Panamá']],
@@ -404,21 +530,28 @@ export const SEAS = [
   ['Mar de Ross', 'Ross Sea', 'AN', 2, ['Ross Sea']],
   ['Mar de Bellingshausen', 'Bellingshausen Sea', 'AN', 2, ['Bellingshausen Sea']],
   ['Mar de Amundsen', 'Amundsen Sea', 'AN', 2, ['Amundsen Sea']],
-  ['Mar del Scotia', 'Scotia Sea', 'AN AM', 2, ['Scotia Sea'], ['Mar de Scotia', 'Mar de Escocia']],
+  ['Mar del Scotia', 'Scotia Sea', 'AN AM', 2, [[[-58, -55.2], [-48, -53.2], [-38, -53.6], [-28, -55.5], [-26, -58.5], [-30, -60.5], [-44, -61], [-55, -61.2], [-56.5, -58.5]]], ['Mar de Scotia', 'Mar de Escocia'], { area: 0 }],
+
+  // Spain: outlines drawn by hand over the water, as loose as the names are. The land is drawn on top.
+  ['Mar Cantábrico', 'Cantabrian Sea', 'EU', 3, [[[-7.72, 43.5], [-7.78, 44.6], [-5.0, 44.7], [-3.0, 44.6], [-1.9, 44.25], [-1.45, 43.75], [-1.4, 43.3], [-3.0, 43.0], [-5.5, 43.0], [-7.5, 43.2]]], ['Cantábrico'], { h: 1, area: 0, co: 'ES' }],
+  ['Golfo de Cádiz', 'Gulf of Cádiz', 'EU', 3, [[[-7.9, 36.9], [-7.9, 36.3], [-7.0, 35.95], [-6.25, 36.0], [-6.0, 36.15], [-5.95, 36.5], [-6.3, 37.0], [-7.0, 37.4], [-7.9, 37.3]]], ['Gulf of Cadiz'], { h: 1, area: 0, co: 'ES PT' }],
+  ['Golfo de Valencia', 'Gulf of Valencia', 'EU', 3, [[[0.25, 38.7], [0.75, 39.5], [1.0, 40.2], [0.92, 40.74], [0.3, 40.6], [-0.4, 39.6], [-0.2, 38.8]]], ['Golf de València'], { h: 1, area: 0, co: 'ES' }],
+  ['Mar Menor', 'Mar Menor', 'EU', 3, [[[-0.9, 37.62], [-0.9, 37.84], [-0.775, 37.84], [-0.745, 37.8], [-0.725, 37.72], [-0.715, 37.655], [-0.72, 37.62]]], [], { h: 1, area: 0, co: 'ES' }],
 ];
 
 /** Mountain ranges and massifs: `NAME` in the 1:10m regions layer. */
 export const RANGES = [
   ['Alpes', 'Alps', 'EU', 1, ['ALPS']],
-  ['Pirineos', 'Pyrenees', 'EU', 1, ['PYRENEES'], ['Pirineo']],
+  ['Pirineos', 'Pyrenees', 'EU', 1, [{ relief: PYRENEES }], ['Pirineo']],
   ['Apeninos', 'Apennines', 'EU', 1, ['APPENNINI']],
   ['Cárpatos', 'Carpathians', 'EU', 1, ['CARPATHIAN MOUNTAINS'], ['Montes Cárpatos', 'Carpathian Mountains']],
   ['Montes Urales', 'Ural Mountains', 'EU AS', 1, ['URAL MOUNTAINS'], ['Urales', 'Urals']],
   ['Cáucaso', 'Caucasus', 'EU AS', 1, ['CAUCASUS MTS.'], ['Gran Cáucaso', 'Caucasus Mountains']],
   ['Alpes Escandinavos', 'Scandinavian Mountains', 'EU', 1, ['KJØLEN MOUNTAINS'], ['Montes Escandinavos', 'Kjølen', 'Scandes']],
-  ['Cordillera Cantábrica', 'Cantabrian Mountains', 'EU', 1, ['Cord. Cantábrica'], ['Montes Cantábricos']],
-  ['Sierra Nevada (España)', 'Sierra Nevada (Spain)', 'EU', 2, ['S. Nevada'], ['Sierra Nevada']],
-  ['Sierra Morena', 'Sierra Morena', 'EU', 2, ['Sierra Morena']],
+  ['Cordillera Cantábrica', 'Cantabrian Mountains', 'EU', 1, [{ relief: CANTABRIAN }], ['Montes Cantábricos']],
+  // Natural Earth draws it as wide as the whole Penibaetic range, which the map of Spain has under that name.
+  ['Sierra Nevada (España)', 'Sierra Nevada (Spain)', 'EU', 2, ['S. Nevada'], ['Sierra Nevada'], { co: '' }],
+  ['Sierra Morena', 'Sierra Morena', 'EU', 2, [{ relief: { min: 400, within: [[-7.3, 37.85], [-7.0, 38.25], [-6.0, 38.3], [-5.0, 38.5], [-4.0, 38.65], [-3.2, 38.65], [-2.85, 38.7], [-2.85, 38.42], [-3.3, 38.3], [-4.1, 38.15], [-5.1, 37.95], [-6.0, 37.75], [-6.9, 37.6]] } }], [], { h: 1 }],
   ['Balcanes', 'Balkan Mountains', 'EU', 2, ['Balkan Mts.'], ['Montes Balcanes', 'Stara Planina']],
   ['Alpes Dináricos', 'Dinaric Alps', 'EU', 2, ['Dinaric Alps'], ['Dinárides']],
   ['Macizo Central', 'Massif Central', 'EU', 2, ['Massif Central'], ['Macizo Central francés']],
@@ -477,6 +610,17 @@ export const RANGES = [
   ['Gran Cordillera Divisoria', 'Great Dividing Range', 'OC', 1, ['GREAT DIVIDING RANGE'], ['Cordillera Australiana']],
   ['Alpes del Sur', 'Southern Alps', 'OC', 2, ['SOUTHERN ALPS'], ['Alpes Neozelandeses']],
   ['Montes Transantárticos', 'Transantarctic Mountains', 'AN', 2, ['Transantarctic Mountains'], ['Montañas Transantárticas']],
+
+  // Spain: the high ground of the Atlas Nacional de España inside a box drawn by hand for each range.
+  ['Sistema Central', 'Central System', 'EU', 3, [{ relief: { min: 1000, within: [[-5.9, 40.02], [-5.9, 40.7], [-5.0, 40.8], [-4.15, 41.1], [-3.45, 41.42], [-2.95, 41.38], [-2.95, 41.12], [-3.85, 40.6], [-4.5, 40.25], [-5.4, 40.02]], also: [{ min: 700, within: [[-7.05, 40.1], [-7.05, 40.5], [-5.9, 40.68], [-5.9, 40.12]] }] } }], ['Cordillera Central'], { h: 1 }],
+  ['Sistema Ibérico', 'Iberian System', 'EU', 3, [{ relief: { min: 1000, within: [[-3.65, 42.45], [-2.3, 42.42], [-1.55, 41.95], [-1.2, 41.3], [-0.3, 40.95], [0.15, 40.55], [-0.25, 39.9], [-0.9, 39.72], [-1.75, 39.7], [-2.45, 40.0], [-2.55, 40.7], [-2.7, 41.05], [-2.95, 41.12], [-2.95, 41.5], [-3.7, 42.0]] } }], ['Cordillera Ibérica'], { h: 1 }],
+  ['Montes de Toledo', 'Montes de Toledo', 'EU', 3, [{ relief: { min: 700, within: [[-5.9, 39.2], [-5.55, 39.75], [-4.6, 39.78], [-3.8, 39.62], [-3.45, 39.4], [-3.7, 39.12], [-4.6, 39.18], [-5.3, 39.08]] } }], ['Mountains of Toledo'], { h: 1 }],
+  ['Macizo Galaico', 'Galician Massif', 'EU', 3, [{ relief: { min: 400, within: [[-8.75, 41.95], [-8.65, 43.15], [-7.9, 43.7], [-7.1, 43.5], [-7.1, 43.15], [-7.0, 42.6], [-7.0, 42.55], [-6.85, 42.25], [-6.95, 41.95], [-7.7, 41.85], [-8.2, 41.85]] } }], ['Macizo Galaico-Leonés'], { h: 1 }],
+  ['Montes de León', 'Montes de León', 'EU', 3, [{ relief: { min: 1000, within: [[-6.85, 42.25], [-7.0, 42.55], [-6.4, 42.75], [-5.95, 42.45], [-6.05, 42.0], [-6.6, 41.9], [-6.95, 41.95]] } }], ['Mountains of León']],
+  ['Montes Vascos', 'Basque Mountains', 'EU', 3, [{ relief: { min: 700, within: [[-3.3, 43.3], [-1.8, 43.3], [-1.72, 42.8], [-2.4, 42.6], [-3.3, 42.82]] } }], ['Montañas Vascas']],
+  ['Cordillera Costero-Catalana', 'Catalan Coastal Range', 'EU', 3, [{ relief: { min: 400, keep: 0.5, within: [[3.05, 42.1], [3.0, 41.75], [2.1, 41.32], [1.25, 41.03], [0.7, 40.72], [0.15, 40.6], [0.05, 40.95], [0.9, 41.38], [1.6, 41.72], [2.3, 42.02]] } }], ['Cordilleras Costero-Catalanas', 'Cordilleras Costeras Catalanas', 'Sistema Costero-Catalán', 'Sistema Mediterráneo Catalán'], { h: 1 }],
+  ['Cordillera Penibética', 'Penibaetic System', 'EU', 3, [{ relief: { min: 700, close: 8, within: [[-5.55, 36.42], [-5.45, 36.9], [-4.6, 37.02], [-3.9, 37.12], [-3.0, 37.3], [-2.0, 37.42], [-1.85, 37.1], [-2.15, 36.78], [-3.0, 36.72], [-4.3, 36.68], [-5.1, 36.38]] } }], ['Sistema Penibético', 'Penibética'], { h: 1 }],
+  ['Cordillera Subbética', 'Subbaetic System', 'EU', 3, [{ relief: { min: 700, close: 8, within: [[-5.55, 36.95], [-5.0, 37.3], [-4.2, 37.62], [-3.2, 37.97], [-2.6, 38.6], [-1.8, 38.75], [-0.6, 38.87], [0.2, 38.85], [0.15, 38.5], [-0.9, 38.2], [-1.7, 37.7], [-2.0, 37.48], [-3.0, 37.36], [-3.9, 37.18], [-4.6, 37.08], [-5.45, 36.95]] } }], ['Sistema Subbético', 'Subbética'], { h: 1 }],
 ];
 
 /** Deserts: `NAME` in the 1:10m regions layer. */
@@ -512,8 +656,8 @@ export const ISLANDS = [
   ['Córcega', 'Corsica', 'EU', 1, ['Corse']],
   ['Creta', 'Crete', 'EU', 1, ['Crete']],
   ['Mallorca', 'Majorca', 'EU', 1, ['Mallorca'], ['Mallorca']],
-  ['Menorca', 'Minorca', 'EU', 2, ['Menorca'], ['Menorca']],
-  ['Ibiza', 'Ibiza', 'EU', 2, ['Ibiza'], ['Eivissa']],
+  ['Menorca', 'Minorca', 'EU', 2, ['Menorca'], ['Menorca'], { h: 1 }],
+  ['Ibiza', 'Ibiza', 'EU', 2, ['Ibiza'], ['Eivissa'], { h: 1 }],
   ['Chipre', 'Cyprus', 'EU AS', 1, ['Cyprus']],
   ['Nueva Zembla', 'Novaya Zemlya', 'EU', 2, ['NOVAYA ZEMLYA'], ['Nóvaya Zemliá']],
   ['Svalbard', 'Svalbard', 'EU', 2, ['SVALBARD'], ['Spitsbergen']],
@@ -547,6 +691,50 @@ export const ISLANDS = [
   ['Tasmania', 'Tasmania', 'OC', 1, ['TASMANIA']],
   ['Isla Norte', 'North Island', 'OC', 2, ['NORTH ISLAND'], ['Isla del Norte']],
   ['Isla Sur', 'South Island', 'OC', 2, ['SOUTH ISLAND'], ['Isla del Sur']],
+
+  // Spain: the rest of the Balearic Islands, and the Canary Islands one by one.
+  // The game's own map of the world is too coarse to have it: the countries cannot be worked out from there.
+  ['Formentera', 'Formentera', 'EU', 3, [{ land: 'ES', at: [1.45, 38.7] }], [], { h: 1, co: 'ES' }],
+  ['Tenerife', 'Tenerife', 'EU AF', 3, ['Tenerife'], [], { h: 1 }],
+  ['Gran Canaria', 'Gran Canaria', 'EU AF', 3, ['Gran Canaria'], [], { h: 1 }],
+  ['Lanzarote', 'Lanzarote', 'EU AF', 3, ['Lanzarote'], [], { h: 1 }],
+  ['Fuerteventura', 'Fuerteventura', 'EU AF', 3, ['Fuerteventura'], [], { h: 1 }],
+  ['La Palma', 'La Palma', 'EU AF', 3, ['La Palma'], [], { h: 1 }],
+  ['La Gomera', 'La Gomera', 'EU AF', 3, [{ land: 'ES', at: [-17.23, 28.12] }], ['Gomera'], { h: 1 }],
+  ['El Hierro', 'El Hierro', 'EU AF', 3, ['Hierro'], ['Hierro'], { h: 1 }],
+];
+
+/**
+ * Plains, plateaus and river basins. Only Spain has any yet: the land between two heights of the Atlas
+ * Nacional de España, inside a box drawn by hand.
+ */
+export const PLAINS = [
+  ['Submeseta Norte', 'Northern Meseta', 'EU', 3, [{ relief: { min: 700, max: 1000, within: [[-6.4, 41.2], [-6.2, 42.6], [-5.0, 42.85], [-3.9, 42.75], [-3.75, 42.2], [-3.1, 41.75], [-2.95, 41.55], [-3.5, 41.5], [-4.2, 41.12], [-5.0, 40.82], [-5.9, 40.7]] } }], ['Meseta Norte', 'Submeseta Septentrional', 'Northern Sub-plateau'], { h: 1 }],
+  ['Submeseta Sur', 'Southern Meseta', 'EU', 3, [{ relief: { min: 400, max: 1000, open: 4, within: [[-7.0, 39.7], [-6.3, 39.95], [-5.4, 40.0], [-4.5, 40.22], [-3.85, 40.57], [-3.0, 41.0], [-2.6, 40.6], [-2.45, 40.05], [-1.9, 39.65], [-1.5, 39.5], [-1.45, 38.9], [-2.85, 38.75], [-3.2, 38.68], [-4.0, 38.68], [-5.0, 38.53], [-6.0, 38.33], [-7.0, 38.28]] } }], ['Meseta Sur', 'Submeseta Meridional', 'Southern Sub-plateau'], { h: 1 }],
+  ['Depresión del Ebro', 'Ebro Depression', 'EU', 3, [{ relief: { max: 400, within: [[-2.75, 42.7], [-1.4, 42.6], [-0.3, 42.2], [0.6, 42.0], [1.2, 41.75], [1.0, 41.3], [0.3, 40.95], [-0.6, 41.1], [-1.3, 41.5], [-2.0, 42.0], [-2.8, 42.35]] } }], ['Valle del Ebro', 'Ebro Basin', 'Ebro Valley'], { h: 1 }],
+  ['Depresión del Guadalquivir', 'Guadalquivir Depression', 'EU', 3, [{ relief: { max: 400, within: [[-7.0, 37.2], [-6.4, 37.75], [-5.3, 37.95], [-4.2, 38.12], [-3.1, 38.2], [-2.9, 37.9], [-3.7, 37.72], [-4.5, 37.4], [-5.3, 37.05], [-5.9, 36.6], [-6.45, 36.7]] } }], ['Valle del Guadalquivir', 'Depresión Bética', 'Guadalquivir Basin', 'Guadalquivir Valley'], { h: 1 }],
+];
+
+/**
+ * Capes: points on the coast. Only Spain has any yet. Each one is the corner of the coastline of the
+ * game's own map that reaches farthest in one direction inside a small box, so the dot sits on the tip
+ * of the land as it is drawn; nothing is placed from memory.
+ */
+export const CAPES = [
+  ['Cabo Finisterre', 'Cape Finisterre', 'EU', 3, [{ coast: 'ES', box: [-9.4, 42.8, -9.1, 43.0], to: 'W' }], ['Finisterre', 'Cabo Fisterra', 'Fisterra', 'Cabo de Finisterre'], { h: 1 }],
+  ['Cabo Ortegal', 'Cape Ortegal', 'EU', 3, [{ coast: 'ES', box: [-7.95, 43.7, -7.82, 43.82], to: 'N' }], ['Ortegal']],
+  ['Estaca de Bares', 'Estaca de Bares', 'EU', 3, [{ coast: 'ES', box: [-7.8, 43.7, -7.6, 43.85], to: 'N' }], ['Punta de la Estaca de Bares', 'Cabo de Estaca de Bares', 'Estaca de Vares'], { h: 1 }],
+  ['Cabo de Peñas', 'Cape Peñas', 'EU', 3, [{ coast: 'ES', box: [-6.0, 43.55, -5.7, 43.7], to: 'N' }], ['Cabo Peñas', 'Peñas'], { h: 1 }],
+  ['Cabo de Ajo', 'Cape Ajo', 'EU', 3, [{ coast: 'ES', box: [-3.7, 43.45, -3.5, 43.55], to: 'N' }], ['Cabo Ajo', 'Ajo']],
+  ['Cabo Machichaco', 'Cape Matxitxako', 'EU', 3, [{ coast: 'ES', box: [-2.9, 43.4, -2.65, 43.5], to: 'N' }], ['Machichaco', 'Cabo Matxitxako', 'Matxitxako', 'Cabo de Machichaco', 'Cape Machichaco'], { h: 1 }],
+  ['Cabo de Creus', 'Cap de Creus', 'EU', 3, [{ coast: 'ES', box: [3.15, 42.2, 3.4, 42.4], to: 'E' }], ['Cap de Creus', 'Creus', 'Cape Creus'], { h: 1 }],
+  ['Cabo de Tortosa', 'Cape Tortosa', 'EU', 3, [{ coast: 'ES', box: [0.75, 40.6, 1.0, 40.8], to: 'E' }], ['Cap de Tortosa', 'Tortosa']],
+  ['Cabo de la Nao', 'Cap de la Nau', 'EU', 3, [{ coast: 'ES', box: [0.1, 38.65, 0.3, 38.8], to: 'E' }], ['Cap de la Nau', 'La Nao', 'Cabo La Nao', 'Cape La Nao'], { h: 1 }],
+  ['Cabo de Palos', 'Cape Palos', 'EU', 3, [{ coast: 'ES', box: [-0.8, 37.55, -0.6, 37.7], to: 'E' }], ['Palos', 'Cabo Palos'], { h: 1 }],
+  ['Cabo de Gata', 'Cape Gata', 'EU', 3, [{ coast: 'ES', box: [-2.3, 36.65, -2.0, 36.8], to: 'S' }], ['Gata', 'Cabo Gata'], { h: 1 }],
+  ['Punta de Tarifa', 'Punta de Tarifa', 'EU', 3, [{ coast: 'ES', box: [-5.7, 35.95, -5.5, 36.05], to: 'S' }], ['Tarifa', 'Punta Marroquí', 'Cabo de Tarifa', 'Point Tarifa'], { h: 1 }],
+  ['Cabo de Trafalgar', 'Cape Trafalgar', 'EU', 3, [{ coast: 'ES', box: [-6.1, 36.12, -5.95, 36.25], to: 'SW' }], ['Trafalgar', 'Cabo Trafalgar'], { h: 1 }],
+  ['Cabo de Formentor', 'Cap de Formentor', 'EU', 3, [{ coast: 'ES', box: [3.1, 39.9, 3.3, 40.0], to: 'NE' }], ['Cap de Formentor', 'Formentor', 'Cabo Formentor', 'Cape Formentor']],
 ];
 
 /**
@@ -581,9 +769,9 @@ export const PEAKS = [
   ['Ben Nevis', 'Ben Nevis', 'EU', 2, ['Ben Nevis']],
   ['Snowdon', 'Snowdon', 'EU', 2, ['Snowdon'], ['Yr Wyddfa']],
   ['Carrauntoohil', 'Carrauntoohil', 'EU', 2, ['Carrauntoohil'], ['Carrantuohill']],
-  ['Torrecerredo', 'Torre Cerredo', 'EU', 2, ['Torre de Cerredo'], ['Torre de Cerredo']],
-  ['Almanzor', 'Pico Almanzor', 'EU', 2, ['Pico de Almanzor'], ['Pico de Almanzor']],
-  ['Moncayo', 'Moncayo', 'EU', 2, ['Moncayo']],
+  ['Torrecerredo', 'Torre Cerredo', 'EU', 2, ['Torre de Cerredo'], ['Torre de Cerredo', 'Torre Cerredo'], { h: 1 }],
+  ['Almanzor', 'Pico Almanzor', 'EU', 2, ['Pico de Almanzor'], ['Pico de Almanzor', 'Moro Almanzor'], { h: 1 }],
+  ['Moncayo', 'Moncayo', 'EU', 2, ['Moncayo'], ['Pico de San Miguel'], { h: 1 }],
   ['Puig Major', 'Puig Major', 'EU', 2, ['Puig Mayor'], ['Puig Mayor']],
   ['Corno Grande', 'Corno Grande', 'EU', 2, ['Corno Grande'], ['Gran Sasso']],
   ['Monte Cinto', 'Monte Cinto', 'EU', 2, ['Monte Cinto'], ['Cinto']],
@@ -668,6 +856,10 @@ export const PEAKS = [
   ['Uluru', 'Uluru', 'OC', 2, ['Uluru (Ayers Rock)'], ['Ayers Rock']],
   ['Macizo Vinson', 'Vinson Massif', 'AN', 1, ['Vinson Massif'], ['Monte Vinson', 'Mount Vinson', 'Vinson']],
   ['Monte Erebus', 'Mount Erebus', 'AN', 2, ['Mount Erebus'], ['Erebus']],
+
+  // Spain: two more tops of its ranges that Natural Earth has.
+  ['San Lorenzo', 'San Lorenzo', 'EU', 3, ['Mount San Lorenzo'], ['Pico San Lorenzo', 'Monte San Lorenzo', 'Mount San Lorenzo']],
+  ['Teleno', 'Teleno', 'EU', 3, ['El Teleno'], ['El Teleno', 'Monte Teleno']],
 ];
 
 /**

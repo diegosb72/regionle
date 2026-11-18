@@ -15,6 +15,26 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.10.0',
+    date: '2026-11-18',
+    es: [
+      'Geografía física de España, como en un atlas escolar: 81 ríos, las cordilleras, las mesetas y depresiones, cabos, islas, golfos, picos y embalses.',
+      'La física de un país: en Geografía física se elige también un país, y el mapa se centra en él con sus ríos, sus cordilleras y sus mares.',
+      'Dos clases nuevas de pieza: cabos, y mesetas y llanuras. De momento, las de España.',
+      'El mapa mudo de la física de España se imprime con las Canarias en su recuadro.',
+      'El estrecho de Gibraltar, Bab el-Mandeb, el canal de Yucatán y el mar del Scotia eran una mota en el mapa: ahora tienen su contorno y se pueden señalar.',
+      'Los Pirineos, la Cordillera Cantábrica y Sierra Morena siguen el relieve, y el Tajo, el Ebro, el Duero, el Guadiana, el Guadalquivir y el Miño ganan detalle.',
+    ],
+    en: [
+      'Physical geography of Spain, as in a school atlas: 81 rivers, the ranges, the plateaus and basins, capes, islands, gulfs, peaks and reservoirs.',
+      'The physical map of a country: Physical geography takes a country too, and the map centres on it with its rivers, its ranges and its seas.',
+      'Two new kinds of feature: capes, and plateaus and plains. Those of Spain, for the time being.',
+      'The blank map of the physical geography of Spain prints with the Canary Islands in their box.',
+      'The Strait of Gibraltar, Bab el-Mandeb, the Yucatán Channel and the Scotia Sea were a speck on the map: they now have a shape and can be pointed at.',
+      'The Pyrenees, the Cantabrian Mountains and Sierra Morena follow the relief, and the Tagus, Ebro, Douro, Guadiana, Guadalquivir and Minho gain detail.',
+    ],
+  },
+  {
     version: '1.9.0',
     date: '2026-11-18',
     es: [

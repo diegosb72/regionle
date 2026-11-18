@@ -7,6 +7,9 @@
 //       https://github.com/nvkelso/natural-earth-vector @ ca96624 (v5.1.2+)
 //   · World Bank total population (SP.POP.TOTL), as packaged by datasets/population (ODC-PDDL)
 //       https://github.com/datasets/population @ d4b1a4a
+//   · Atlas Nacional de España (ANE), CartoBase at 1:3 000 000: rivers, reservoirs and heights of Spain
+//     (CC BY 4.0 ign.es), as the Instituto Geográfico Nacional published them and rOpenSpain keeps them
+//       https://github.com/rOpenSpain/mapSpain/tree/sianedata @ 3652863
 //
 // Files are fetched by Git blob SHA, so the build is reproducible and the
 // download is verified for free. With a GitHub token available (GH_TOKEN,
@@ -24,6 +27,7 @@ const OUT = path.join(ROOT, '.cache/src');
 
 const NE = { repo: 'nvkelso/natural-earth-vector', commit: 'ca96624a56bd078437bca8184e78163e5039ad19', dir: 'geojson/' };
 const POP = { repo: 'datasets/population', commit: 'd4b1a4a9a17e2123baf0ef119de05bceced1ab1b', dir: 'data/' };
+const ANE = { repo: 'rOpenSpain/mapSpain', commit: '365286363cab2266d81f981093525edd50e2ce15', dir: 'data-raw/2020/SIANE_CARTO_BASE_S_3M/todo/' };
 
 const FILES = [
   { ...NE, file: 'ne_10m_admin_1_states_provinces_lakes.geojson', sha: 'c4a7366cd343d5e3df150c048e0a4e0f3bf02b1b' },
@@ -40,6 +44,13 @@ const FILES = [
   { ...NE, file: 'ne_50m_geography_marine_polys.geojson', sha: '530f9f9e07f0a9015e2075a8d0db480dc44a22b3' },
   { ...NE, file: 'ne_10m_geography_regions_elevation_points.geojson', sha: '86076ef74c48d1adca1eadefd2b22894795d070c' },
   { ...POP, file: 'population.csv', sha: '4a07ae0fbf5610d7bd2de9aea41f783ee1e0aea7' },
+  // Spain in detail (scripts/data/spain.mjs): each layer is a shapefile and its table.
+  { ...ANE, file: 'se89_3_hidro_rio_l_x.shp', sha: 'e7ef7a6152d0a08258bc8cdc0db7e6fe1802419e' },
+  { ...ANE, file: 'se89_3_hidro_rio_l_x.dbf', sha: '489dbf75e314c6c7484d66fca171348e9e87234a' },
+  { ...ANE, file: 'se89_3_hidro_rio_a_x.shp', sha: 'fd7fbc6dab849a6d6f981d5328e520329a7ff671' },
+  { ...ANE, file: 'se89_3_hidro_rio_a_x.dbf', sha: 'f944c6ef59166f70b8f676064ce0de4c5a4b8245' },
+  { ...ANE, file: 'se89_3_orog_hipso_a_x.shp', sha: 'd22c78152948bf57106c028ba318dab6ae756629' },
+  { ...ANE, file: 'se89_3_orog_hipso_a_x.dbf', sha: 'b6b37d27a820dd8d2f3841a674ab3ac3529f900e' },
 ];
 
 function token() {

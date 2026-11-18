@@ -53,6 +53,7 @@
   --k-water: #6fa9d0;
   --k-rock: #a9795a;
   --k-sand: #e6bd62;
+  --k-grass: #a9bd62;
   --lbl: #14262a;
   --lbl-halo: rgba(253, 246, 227, 0.92);
 
@@ -113,6 +114,7 @@
   --k-water: #3f86b5;
   --k-rock: #8a6248;
   --k-sand: #a8842f;
+  --k-grass: #6f8436;
   --lbl: #f4f7f3;
   --lbl-halo: rgba(10, 21, 27, 0.88);
   color-scheme: dark;
@@ -2208,6 +2210,11 @@ button.chip.on:hover:not(:disabled) {
 .m-items path.k-desert {
   fill: color-mix(in srgb, var(--k-sand) 60%, transparent);
   stroke: color-mix(in srgb, var(--k-sand) 70%, var(--ink));
+  stroke-width: 0.8px;
+}
+.m-items path.k-plain {
+  fill: color-mix(in srgb, var(--k-grass) 48%, transparent);
+  stroke: color-mix(in srgb, var(--k-grass) 70%, var(--ink));
   stroke-width: 0.8px;
 }
 .m-items path.k-island {
@@ -4407,6 +4414,19 @@ a.d-cal-day:hover {
 .kdot-desert {
   background: var(--k-sand);
 }
+.kdot-plain {
+  width: 14px;
+  height: 8px;
+  border-radius: 3px;
+  background: var(--k-grass);
+}
+.kdot-cape {
+  width: 11px;
+  height: 11px;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--k-water) 40%, var(--ink));
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
 .kdot-island {
   background: color-mix(in srgb, var(--m-sel) 45%, var(--land));
   box-shadow: inset 0 0 0 1.5px var(--outline);
@@ -4414,6 +4434,10 @@ a.d-cal-day:hover {
 .chip.on .kdot-sea,
 .chip.on .kdot-island {
   box-shadow: inset 0 0 0 1.5px var(--bg);
+}
+/* Dark on a dark chip: the diamond takes the colour of the water there. */
+.chip.on .kdot-cape {
+  background: color-mix(in srgb, var(--k-water) 75%, var(--bg));
 }
 .scard-kinds {
   align-items: center;
@@ -5301,8 +5325,14 @@ a.d-cal-day:hover {
   fill: var(--k-rock);
   stroke: color-mix(in srgb, var(--k-rock) 45%, var(--ink));
 }
+/* A cape: a diamond on the tip of the land, dark enough to show on land and on sea. */
+.m-dot.k-cape:not([class*='st-']) {
+  fill: color-mix(in srgb, var(--k-water) 40%, var(--ink));
+  stroke: var(--land);
+}
 @media (hover: hover) {
-  .pickable .m-dot.k-peak.hot:not([class*='st-']) {
+  .pickable .m-dot.k-peak.hot:not([class*='st-']),
+  .pickable .m-dot.k-cape.hot:not([class*='st-']) {
     fill: var(--accent);
     stroke: var(--accent);
   }
@@ -7562,6 +7592,7 @@ kbd {
   stroke: #333;
 }
 .sm-area path.k-range,
+.sm-area path.k-plain,
 .sm-area path.k-desert {
   fill: none;
   stroke: #444;
@@ -7571,6 +7602,10 @@ kbd {
 .sm-area path.k-desert {
   stroke-dasharray: calc(var(--mm) * 0.3px) calc(var(--mm) * 0.8px);
   stroke-linecap: round;
+}
+.sm-area path.k-plain {
+  stroke: #777;
+  stroke-dasharray: calc(var(--mm) * 2.4px) calc(var(--mm) * 0.7px) calc(var(--mm) * 0.4px) calc(var(--mm) * 0.7px);
 }
 .sm-extra path {
   fill: #f3f3f3;

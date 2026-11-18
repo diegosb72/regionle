@@ -7,8 +7,10 @@
 //   npm run data:fetch && npm run data:physical
 //
 // It reads the Natural Earth layers in .cache/src and the files that `data:build` has already written
-// (index.json, world.json, r/<ID>.json), which say which region every city belongs to. What is in the
-// physical file, and under which names, is decided in physical-config.mjs.
+// (index.json, world.json, r/<ID>.json), which say which region every city belongs to and which country
+// every river runs through. Spain is drawn in more detail than Natural Earth has, from the Atlas Nacional
+// de España (spain.mjs). What is in the physical file, and under which names, is decided in
+// physical-config.mjs.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -18,6 +20,7 @@ import { geoArea, geoContains, geoDistance, geoLength } from 'd3-geo';
 import polylabel from 'polylabel';
 import { norm, round, uniq } from './lib.mjs';
 import * as P from './physical-config.mjs';
+import { loadSpain } from './spain.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const SRC = path.join(ROOT, '.cache/src');
@@ -177,6 +180,92 @@ function fitPoints(list) {
 }
 
 // ---------------------------------------------------------------------------
+// The countries, as the game draws them
+// ---------------------------------------------------------------------------
+
+const idx = readJson('index.json');
+const countries = idx.countries.filter((c) => c.cl !== 'other');
+const byA3 = new Map(countries.map((c) => [c.a3, c]));
+const worldTopo = readJson('world.json');
+const worldShapes = topo.feature(worldTopo, worldTopo.objects.c).features.map((f) => {
+  const polys = polysOf(f.geometry);
+  return { id: String(f.id), f, box: bboxOf(polys.map((p) => p[0])), rings: polys.map((p) => p[0]) };
+});
+
+const shapeOf = new Map(worldShapes.map((s) => [s.id, s]));
+const inBox = (p, b, pad = 0) => p[0] >= b[0] - pad && p[0] <= b[2] + pad && p[1] >= b[1] - pad && p[1] <= b[3] + pad;
+/** Squared distance in rough kilometres from a point to the nearest corner of some rings. */
+function nearRings(p, rings) {
+  const cos = Math.cos((p[1] * Math.PI) / 180);
+  let best = Infinity;
+  for (const ring of rings)
+    for (const q of ring) {
+      let dx = Math.abs(q[0] - p[0]);
+      if (dx > 180) dx = 360 - dx;
+      const d = (dx * cos) ** 2 + (q[1] - p[1]) ** 2;
+      if (d < best) best = d;
+    }
+  return Math.sqrt(best) * 111.2;
+}
+
+function locate(p, shapes, maxKm) {
+  for (const s of shapes) if (inBox(p, s.box) && geoContains(s.f, p)) return s;
+  let best = null;
+  let bestKm = maxKm;
+  for (const s of shapes) {
+    if (!inBox(p, s.box, 1.5)) continue;
+    const km = nearRings(p, s.rings);
+    if (km < bestKm) {
+      bestKm = km;
+      best = s;
+    }
+  }
+  return best;
+}
+
+/** Distance in rough kilometres from a point to the outline of some rings, measured to their sides. */
+function nearSides(p, rings) {
+  const cos = Math.cos((p[1] * Math.PI) / 180);
+  let best = Infinity;
+  for (const ring of rings)
+    for (let i = 0; i < ring.length - 1; i++) {
+      const ax = (ring[i][0] - p[0]) * cos;
+      const ay = ring[i][1] - p[1];
+      const bx = (ring[i + 1][0] - p[0]) * cos;
+      const by = ring[i + 1][1] - p[1];
+      if (Math.abs(ax) > 20 && Math.abs(bx) > 20) continue;
+      const dx = bx - ax;
+      const dy = by - ay;
+      const len2 = dx * dx + dy * dy;
+      const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, -(ax * dx + ay * dy) / len2));
+      const d = Math.hypot(ax + t * dx, ay + t * dy);
+      if (d < best) best = d;
+    }
+  return best * 111.2;
+}
+
+/** The countries a point stands in, or within `km` of: both sides of a border, the shore of a lake. */
+function countriesAt(p, km = 0) {
+  const pad = km / 80;
+  const out = [];
+  for (const s of worldShapes) {
+    if (!inBox(p, s.box, pad)) continue;
+    if (geoContains(s.f, p) || (km > 0 && nearSides(p, s.rings) <= km)) out.push(s.id);
+  }
+  return out;
+}
+
+const inRingFlat = (p, ring) => {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i];
+    const [xj, yj] = ring[j];
+    if (yi > p[1] !== yj > p[1] && p[0] < ((xj - xi) * (p[1] - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+};
+
+// ---------------------------------------------------------------------------
 // Physical features
 // ---------------------------------------------------------------------------
 
@@ -202,13 +291,47 @@ const marineByName = index(marine, 'name');
 const regionByName = index(regions, 'NAME');
 const marine50ByName = index(load('ne_50m_geography_marine_polys'), 'name');
 
+let atlas = null;
+let landByCountry = null;
+/** The Atlas Nacional de España, read the first time something asks for it. */
+const spain = () => (atlas ??= loadSpain(SRC));
+const asArea = (rings) => ({ type: 'Feature', properties: {}, geometry: { type: 'MultiPolygon', coordinates: rings.map((ring) => [ring]) } });
+
 /**
  * Looks a source up by name. "Name@w,s,e,n" keeps only the pieces whose bounding box touches that box;
  * "Name#w,s,e,n" keeps the stretches of line inside the box and "Name!w,s,e,n" the ones outside it
  * (Natural Earth draws the Paraguay as one more stretch of the Paraná, for instance).
  */
 function find(source, lookups, what) {
-  if (Array.isArray(source)) return [{ type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [source] } }];
+  if (Array.isArray(source)) {
+    // An outline drawn by hand: closed here if the entry left it open.
+    const last = source[source.length - 1];
+    const ring = last[0] === source[0][0] && last[1] === source[0][1] ? source : [...source, source[0]];
+    return [{ type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [ring] } }];
+  }
+  if (typeof source === 'object') {
+    // The land between two heights, from the atlas of Spain.
+    if (source.relief) {
+      const rings = spain().relief(source.relief);
+      if (!rings.length) warn(`${what}: no land between those heights in that box`);
+      return rings.length ? [asArea(rings)] : [];
+    }
+    // The island of a country that a point stands on, as Natural Earth draws that country: the game's own
+    // map of the world is too coarse for the smallest ones.
+    if (source.land) {
+      landByCountry ??= new Map(load('ne_10m_admin_0_countries_lakes').map((f) => [f.properties.ISO_A2_EH, polysOf(f.geometry).map((poly) => poly[0])]));
+      const ring = landByCountry.get(source.land)?.find((r) => inRingFlat(source.at, r));
+      if (!ring) warn(`${what}: no land of ${source.land} at ${source.at}`);
+      return ring ? [asArea([ring])] : [];
+    }
+    warn(`${what}: a source that nothing knows how to read`);
+    return [];
+  }
+  if (source.startsWith('agua:')) {
+    const rings = spain().water(source.slice(5));
+    if (!rings.length) warn(`${what}: the atlas of Spain has no water called "${source.slice(5)}"`);
+    return rings.length ? [asArea(rings)] : [];
+  }
   const m = source.match(/^(.*?)([@#!])(.+)$/);
   const name = m ? m[1] : source;
   const op = m?.[2];
@@ -252,6 +375,20 @@ function find(source, lookups, what) {
 
 const features = [];
 const usedIds = new Set();
+/** What every feature carries whatever its kind: names, continents, rank and what the options of its entry say. */
+const common = (kind, [es, en, cts, rank, , al = [], opts = {}]) => ({
+  i: idFor(kind, en),
+  k: kind,
+  n: { es, en },
+  al: uniq(al.filter((a) => key(a) !== key(es) && key(a) !== key(en))),
+  ct: cts.split(' '),
+  r: rank,
+  h: opts.h ? 1 : undefined,
+  t: opts.t,
+  // The countries it is asked in, when the entry says so; worked out from the map otherwise, below.
+  co: opts.co == null ? undefined : opts.co.split(' ').filter(Boolean),
+  given: opts.co != null,
+});
 function idFor(kind, en) {
   const base = `${kind[0]}:${norm(en).replace(/ /g, '-')}`;
   let id = base;
@@ -260,27 +397,37 @@ function idFor(kind, en) {
   return id;
 }
 
-function addLines(kind, [es, en, cts, rank, sources, al = []]) {
-  const found = sources.flatMap((s) => find(s, [riverByName], `${kind} ${es}`));
-  let lines = found.flatMap((f) => linesOf(f.geometry)).filter((l) => l.length >= 2);
-  if (!lines.length) return;
-  const [w, s, e, n] = bboxOf(lines);
-  const size = Math.max(e - w, n - s);
-  const tol = Math.max(0.004, Math.min(0.02, size / 500));
+function addLines(kind, row) {
+  const [es, , , , sources] = row;
+  // A river of the atlas of Spain comes whole, by its codes; one of Natural Earth, in stretches by name.
+  const codes = sources.filter((src) => typeof src === 'string' && src.startsWith('siane:')).map((src) => src.slice(6));
+  let lines;
+  let tol;
+  if (codes.length) {
+    const { lines: found, notes } = spain().river(codes);
+    if (!found.length) return warn(`${kind} ${es}: the atlas of Spain has no river with the code ${codes.join(', ')}`);
+    if (found.length > 1 || notes.gaps.length) warn(`${kind} ${es}: in ${found.length} pieces, with gaps of ${notes.gaps.join(', ')} km`);
+    lines = found;
+    // The atlas is drawn for a map of Spain alone: its bends are kept, down to half a kilometre.
+    tol = 0.005;
+  } else {
+    const found = sources.flatMap((src) => find(src, [riverByName], `${kind} ${es}`));
+    lines = found.flatMap((f) => linesOf(f.geometry)).filter((l) => l.length >= 2);
+    if (!lines.length) return;
+    const [w, s, e, n] = bboxOf(lines);
+    const size = Math.max(e - w, n - s);
+    tol = Math.max(0.004, Math.min(0.02, size / 500));
+  }
   lines = lines.map((l) => simplifyLine(l, tol)).filter((l) => l.length >= 2);
   const longest = lines.reduce((a, b) => (geoLength({ type: 'LineString', coordinates: b }) > geoLength({ type: 'LineString', coordinates: a }) ? b : a));
   features.push({
-    i: idFor(kind, en),
-    k: kind,
-    n: { es, en },
-    al: uniq(al.filter((a) => key(a) !== key(es) && key(a) !== key(en))),
-    ct: cts.split(' '),
-    r: rank,
+    ...common(kind, row),
     lp: ll(longest[Math.floor(longest.length / 2)]),
     fp: fitPoints(lines),
     // A stretch shorter than the precision of the file collapses into a single point: it draws nothing.
     g: ['L', lines.map(encode).filter((flat) => flat.length >= 4)],
     points: lines.reduce((sum, l) => sum + l.length, 0),
+    shape: lines,
   });
 }
 
@@ -303,7 +450,8 @@ function densify(ring, step = 4) {
  * Areas keep their outer rings only (an island in a lake or in a sea is drawn by the land anyway), each one
  * as Natural Earth has it: cut at the antimeridian where it crosses it, which fills right and needs no sewing.
  */
-function addAreas(kind, [es, en, cts, rank, sources, al = []], lookups, withArea) {
+function addAreas(kind, row, lookups, withArea) {
+  const [es, , , , sources, , opts = {}] = row;
   const found = sources.flatMap((s) => find(s, lookups, `${kind} ${es}`));
   if (!found.length) return;
   const rings = found.flatMap((f) => polysOf(f.geometry).map((p) => p[0]));
@@ -330,24 +478,22 @@ function addAreas(kind, [es, en, cts, rank, sources, al = []], lookups, withArea
   const geo = { type: 'MultiPolygon', coordinates: out.map((r) => [r]) };
   if (geoArea(geo) > 2 * Math.PI) warn(`${kind} ${es}: covers more than half the globe`);
   features.push({
-    i: idFor(kind, en),
-    k: kind,
-    n: { es, en },
-    al: uniq(al.filter((a) => key(a) !== key(es) && key(a) !== key(en))),
-    ct: cts.split(' '),
-    r: rank,
+    ...common(kind, row),
     wd: wds.length === 1 && found.length === 1 ? wds[0] : undefined,
-    ar: withArea ? Math.round(geoArea(geo) * R_KM * R_KM) : undefined,
+    // A reservoir as the atlas of Spain draws it at its scale is a picture, not a measure: half as big again as it is.
+    ar: withArea && opts.area !== 0 && !sources.some((src) => typeof src === 'string' && src.startsWith('agua:')) ? Math.round(geoArea(geo) * R_KM * R_KM) : undefined,
     lp: ll([pole[0], pole[1]]),
     fp: fitPoints(out),
     g: ['A', out.map(encode)],
     points: out.reduce((sum, r) => sum + r.length, 0),
+    shape: out,
   });
 }
 
 for (const row of P.SEAS) addAreas('sea', row, [marineByName, marine50ByName], true);
 for (const row of P.DESERTS) addAreas('desert', row, [regionByName], false);
 for (const row of P.RANGES) addAreas('range', row, [regionByName], false);
+for (const row of P.PLAINS) addAreas('plain', row, [regionByName], false);
 for (const row of P.ISLANDS) addAreas('island', row, [regionByName], true);
 for (const row of P.LAKES) addAreas('lake', row, [lakeByName, marineByName], true);
 for (const row of P.RIVERS) addLines('river', row);
@@ -357,7 +503,8 @@ const peakByName = index(
   load('ne_10m_geography_regions_elevation_points').filter((f) => f.properties.featurecla === 'mountain'),
   'name',
 );
-function addPeak([es, en, cts, rank, sources, al = []]) {
+function addPeak(row) {
+  const [es, , , , sources] = row;
   const m = sources[0].match(/^(.*?)@(.+)$/);
   const name = m ? m[1] : sources[0];
   let found = peakByName.get(key(name)) ?? [];
@@ -373,45 +520,161 @@ function addPeak([es, en, cts, rank, sources, al = []]) {
   const at = ll(f.geometry.coordinates);
   const el = Math.round(f.properties.elevation);
   if (!(el > 0)) return warn(`peak ${es}: no height`);
-  features.push({
-    i: idFor('peak', en),
-    k: 'peak',
-    n: { es, en },
-    al: uniq(al.filter((a) => key(a) !== key(es) && key(a) !== key(en))),
-    ct: cts.split(' '),
-    r: rank,
-    wd: f.properties.wikidataid || undefined,
-    el,
-    lp: at,
-    fp: [at],
-    points: 1,
-  });
+  features.push({ ...common('peak', row), wd: f.properties.wikidataid || undefined, el, lp: at, fp: [at], points: 1 });
 }
 for (const row of P.PEAKS) addPeak(row);
-// Two peaks too close together would be one dot on the map of a continent.
-{
-  const peaks = features.filter((f) => f.k === 'peak');
-  for (let i = 0; i < peaks.length; i++)
-    for (let j = i + 1; j < peaks.length; j++) {
-      const km = geoDistance(peaks[i].lp, peaks[j].lp) * R_KM;
-      if (km < 55) warn(`peaks ${peaks[i].n.es} and ${peaks[j].n.es} are ${Math.round(km)} km apart`);
+
+/** A cape is the corner of the coast of a country that reaches farthest one way inside a box. */
+const TOWARDS = { N: [0, 1], S: [0, -1], E: [1, 0], W: [-1, 0], NE: [1, 1], NW: [-1, 1], SE: [1, -1], SW: [-1, -1] };
+function addCape(row) {
+  const [es, , , , [{ coast, box, to }]] = row;
+  const [w, s, e, n] = box;
+  const [dx, dy] = TOWARDS[to];
+  let tip = null;
+  let far = -Infinity;
+  for (const ring of shapeOf.get(coast)?.rings ?? [])
+    for (const p of ring) {
+      if (p[0] < w || p[0] > e || p[1] < s || p[1] > n) continue;
+      const reach = p[0] * dx * Math.cos((p[1] * Math.PI) / 180) + p[1] * dy;
+      if (reach > far) {
+        far = reach;
+        tip = p;
+      }
+    }
+  if (!tip) return warn(`cape ${es}: the coast of ${coast} has no corner in that box`);
+  const at = ll(tip);
+  features.push({ ...common('cape', row), lp: at, fp: [at], points: 1 });
+}
+for (const row of P.CAPES) addCape(row);
+
+// Two dots too close together would be one: on the map of a continent for the peaks asked there, on the
+// map of a country for the rest.
+for (const kind of ['peak', 'cape']) {
+  const dots = features.filter((f) => f.k === kind);
+  for (let i = 0; i < dots.length; i++)
+    for (let j = i + 1; j < dots.length; j++) {
+      const km = geoDistance(dots[i].lp, dots[j].lp) * R_KM;
+      if (km < (dots[i].r < 3 && dots[j].r < 3 ? 55 : 12)) warn(`${kind}s ${dots[i].n.es} and ${dots[j].n.es} are ${Math.round(km)} km apart`);
     }
 }
 
-const kinds = ['river', 'lake', 'sea', 'range', 'peak', 'desert', 'island'];
+// ---------------------------------------------------------------------------
+// The countries of each feature
+// ---------------------------------------------------------------------------
+
+/** Points every `km` or so along some lines. */
+function along(lines, km) {
+  const out = [];
+  for (const line of lines) {
+    let left = 0;
+    for (let i = 0; i < line.length - 1; i++) {
+      const a = line[i];
+      const b = line[i + 1];
+      const len = geoDistance(a, b) * R_KM;
+      for (let at = left; at < len; at += km) out.push([a[0] + ((b[0] - a[0]) * at) / len, a[1] + ((b[1] - a[1]) * at) / len]);
+      left = (((left - len) % km) + km) % km;
+    }
+  }
+  return out;
+}
+
+/** Points in a grid inside some rings (no holes: an island in a lake is a detail here), and what each one stands for in km². */
+function within(rings, side = 22) {
+  const [w, s, e, n] = bboxOf(rings);
+  const step = Math.max((e - w) / side, (n - s) / side, 0.02);
+  const out = [];
+  for (let y = s + step / 2; y < n; y += step) for (let x = w + step / 2; x < e; x += step) if (rings.some((ring) => inRingFlat([x, y], ring))) out.push([x, y]);
+  return { points: out, cell: step * step * 111.2 * 111.2 * Math.cos((((s + n) / 2) * Math.PI) / 180) };
+}
+
+const areaOf = new Map(countries.map((c) => [c.id, c.ar]));
+/** Share of the tally each country has. */
+const shares = (tally) => {
+  const total = [...tally.values()].reduce((a, b) => a + b, 0) || 1;
+  return [...tally].map(([id, n]) => ({ id, n, share: n / total })).sort((a, b) => b.n - a.n);
+};
+const count = (tally, ids) => {
+  for (const id of ids) tally.set(id, (tally.get(id) ?? 0) + 1);
+};
+
+/**
+ * A river belongs to the countries that have a tenth of its course or 150 km of it, both banks of a border
+ * counting; a range, a desert or an island, to those that hold a tenth of it or that it covers a seventh of;
+ * a lake, to those with a tenth of its shore; a peak or a cape, to the country it stands in and to any other
+ * within 4 km, which is as fine as the borders of the map are. A sea, to every country with coast on it.
+ */
+function countriesOf(f) {
+  const tally = new Map();
+  if (f.k === 'peak' || f.k === 'cape') return countriesAt(f.lp, f.k === 'cape' ? 12 : 4);
+  if (f.k === 'river') {
+    const step = 8;
+    for (const p of along(f.shape, step)) count(tally, countriesAt(p, 3));
+    return shares(tally)
+      .filter((c) => c.share >= 0.1 || c.n * step >= 150)
+      .map((c) => c.id);
+  }
+  if (f.k === 'lake') {
+    for (const p of along(f.shape, 6)) count(tally, countriesAt(p, 8));
+    return shares(tally)
+      .filter((c) => c.share >= 0.1)
+      .map((c) => c.id);
+  }
+  if (f.k === 'sea') {
+    const [w, s, e, n] = bboxOf(f.shape);
+    const out = [];
+    // Two corners of the coast have to be on it, or one where the sea is a strait or a bay with room for no more.
+    const small = Math.max(e - w, n - s) < 2;
+    const need = small ? 1 : 2;
+    for (const c of worldShapes) {
+      if (c.box[2] < w - 0.3 || c.box[0] > e + 0.3 || c.box[3] < s - 0.3 || c.box[1] > n + 0.3) continue;
+      // A corner of the coast is on this sea if the water a dozen kilometres off it, on any side, is this sea's.
+      let hits = 0;
+      for (const ring of c.rings)
+        for (let i = 0; i < ring.length && hits < need; i += small ? 1 : 2) {
+          const p = ring[i];
+          if (p[0] < w - 0.2 || p[0] > e + 0.2 || p[1] < s - 0.2 || p[1] > n + 0.2) continue;
+          const dx = 0.12 / Math.max(0.2, Math.cos((p[1] * Math.PI) / 180));
+          const around = [p, [p[0] + dx, p[1]], [p[0] - dx, p[1]], [p[0], p[1] + 0.12], [p[0], p[1] - 0.12]];
+          if (around.some((q) => f.shape.some((ring2) => inRingFlat(q, ring2)) && !geoContains(c.f, q))) hits++;
+        }
+      if (hits >= need) out.push(c.id);
+    }
+    return out;
+  }
+  const { points, cell } = within(f.shape);
+  for (const p of points) count(tally, countriesAt(p));
+  return shares(tally)
+    .filter((c) => c.share >= 0.1 || (c.n * cell) / (areaOf.get(c.id) || Infinity) >= 0.14)
+    .map((c) => c.id);
+}
+for (const f of features) {
+  if (!f.given) f.co = countriesOf(f).sort();
+  // What is only asked on the map of its country has to have one.
+  if (f.r === 3 && !f.co.length) warn(`${f.k} ${f.n.es}: only for the map of its country, and it stands in none`);
+}
+
+const kinds = ['river', 'lake', 'sea', 'range', 'plain', 'peak', 'desert', 'island', 'cape'];
 say('Physical features');
 for (const k of kinds) {
   const list = features.filter((f) => f.k === k);
   const basic = list.filter((f) => f.r === 1).length;
+  const home = list.filter((f) => f.r === 3).length;
   const pts = list.reduce((sum, f) => sum + f.points, 0);
   const byCt = {};
   for (const f of list) for (const c of f.ct) byCt[c] = (byCt[c] ?? 0) + 1;
-  say(`  ${k.padEnd(7)} ${String(list.length).padStart(3)} (${basic} basic) · ${pts} points · ${Object.entries(byCt).map(([c, n]) => `${c} ${n}`).join(', ')}`);
+  say(`  ${k.padEnd(7)} ${String(list.length).padStart(3)} (${basic} basic, ${home} only on the map of their country) · ${pts} points · ${Object.entries(byCt).map(([c, n]) => `${c} ${n}`).join(', ')}`);
+}
+{
+  // Countries with something to ask on a map of their own.
+  const per = new Map();
+  for (const f of features) for (const c of f.co ?? []) per.set(c, (per.get(c) ?? 0) + 1);
+  const list = [...per].sort((a, b) => b[1] - a[1]);
+  say(`  countries with 5 features or more: ${list.filter((x) => x[1] >= 5).length} · the fullest: ${list.slice(0, 12).map(([c, n]) => `${c} ${n}`).join(', ')}`);
 }
 const physical = {
   v: 1,
   scale: SCALE,
-  f: features.map(({ points, ...f }) => {
+  f: features.map(({ points, shape, given, ...f }) => {
     for (const k of Object.keys(f)) if (f[k] == null || (Array.isArray(f[k]) && !f[k].length)) delete f[k];
     return f;
   }),
@@ -423,46 +686,6 @@ say(`  physical.json ${(physicalText.length / 1024).toFixed(0)} kB, ${features.l
 // ---------------------------------------------------------------------------
 // Cities
 // ---------------------------------------------------------------------------
-
-const idx = readJson('index.json');
-const countries = idx.countries.filter((c) => c.cl !== 'other');
-const byA3 = new Map(countries.map((c) => [c.a3, c]));
-const worldTopo = readJson('world.json');
-const worldShapes = topo.feature(worldTopo, worldTopo.objects.c).features.map((f) => {
-  const polys = polysOf(f.geometry);
-  return { id: String(f.id), f, box: bboxOf(polys.map((p) => p[0])), rings: polys.map((p) => p[0]) };
-});
-
-const shapeOf = new Map(worldShapes.map((s) => [s.id, s]));
-const inBox = (p, b, pad = 0) => p[0] >= b[0] - pad && p[0] <= b[2] + pad && p[1] >= b[1] - pad && p[1] <= b[3] + pad;
-/** Squared distance in rough kilometres from a point to the nearest corner of some rings. */
-function nearRings(p, rings) {
-  const cos = Math.cos((p[1] * Math.PI) / 180);
-  let best = Infinity;
-  for (const ring of rings)
-    for (const q of ring) {
-      let dx = Math.abs(q[0] - p[0]);
-      if (dx > 180) dx = 360 - dx;
-      const d = (dx * cos) ** 2 + (q[1] - p[1]) ** 2;
-      if (d < best) best = d;
-    }
-  return Math.sqrt(best) * 111.2;
-}
-
-function locate(p, shapes, maxKm) {
-  for (const s of shapes) if (inBox(p, s.box) && geoContains(s.f, p)) return s;
-  let best = null;
-  let bestKm = maxKm;
-  for (const s of shapes) {
-    if (!inBox(p, s.box, 1.5)) continue;
-    const km = nearRings(p, s.rings);
-    if (km < bestKm) {
-      bestKm = km;
-      best = s;
-    }
-  }
-  return best;
-}
 
 const SPANISH = new Set('ES MX AR CO PE CL VE EC BO PY UY CU DO GT HN SV NI CR PA PR GQ'.split(' '));
 /** 3 = capital of the country · 2 = its other capital, where there are two · 1 = capital of a region */

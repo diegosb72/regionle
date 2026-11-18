@@ -36,7 +36,7 @@ describe('challenge by link', () => {
   });
 
   it('keeps the tokens of a physical map, whatever their length', () => {
-    for (const tokens of [['river', 'EU'], ['all'], ['EU'], ['sea', 'lake', 'AM', 'AS', 'all']]) {
+    for (const tokens of [['river', 'EU'], ['all'], ['EU'], ['sea', 'lake', 'AM', 'AS', 'all'], ['river', 'cape', 'in:ES'], ['plain', 'in:ES', 'all']]) {
       const back = decodeChallenge(encodeChallenge(game({ section: 'physical', countries: tokens, levels: {} })))!;
       expect(back.section).toBe('physical');
       expect(back.countries).toEqual(tokens);

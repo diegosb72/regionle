@@ -6,7 +6,7 @@ import { Picker } from '../components/Picker';
 import { Flag, Seg, Toggle, capitalise } from '../components/ui';
 import { eligible, levelOf, loadFile, type World } from '../lib/data';
 import { countriesOf, describeMap } from '../lib/describe';
-import { CITY_COUNTS, PHYS_KINDS, PHYS_PLACES, kindNoun, loadCities, loadPhysical, parsePhys, physTokens, type PhysKind, type PhysSpec } from '../lib/extra';
+import { CITY_COUNTS, PHYS_KINDS, PHYS_PLACES, kindNoun, loadCities, loadPhysical, parsePhys, physCountries, physMatches, physTokens, type PhysKind, type PhysSpec } from '../lib/extra';
 import { L, getLang, levelNoun, nm } from '../lib/i18n';
 import { encodeList, listConfig, listPlayable, listUrl } from '../lib/lists';
 import { GROUP_NAME, MODES, MODE_GROUPS, SECTIONS, formatName } from '../lib/modes';
@@ -35,18 +35,31 @@ type Cities = Awaited<ReturnType<typeof loadCities>>;
 type Physical = Awaited<ReturnType<typeof loadPhysical>>;
 type Capitals = Record<string, Record<string, Record<string, string[]>>>;
 
-/** What a physical map is made of: kinds of feature, continents and how many. */
+/** The country whose physical map comes first among the countries: the one this game was made for. */
+const PHYS_HOME = 'ES';
+
+/** What a physical map is made of: kinds of feature, where (continents, or one country) and how many. */
 function PhysPicker({ spec, file, world, onChange }: { spec: PhysSpec; file: Physical | null; world: World; onChange(spec: PhysSpec): void }) {
-  const inPlace = (ct: string[]) => !spec.places.length || ct.some((c) => spec.places.includes(c));
-  const list = file ? file.f.filter((f) => spec.kinds.includes(f.k) && (spec.all || f.r === 1) && inPlace(f.ct)) : [];
+  const list = file ? file.f.filter((f) => physMatches(f, spec)) : [];
+  /** Countries with enough to ask about for a map of their own, by name. */
+  const lands = useMemo(() => {
+    if (!file) return [];
+    const count = physCountries(file.f);
+    return [...count]
+      .map(([id, n]) => ({ c: world.byId.get(id), n }))
+      .filter((x): x is { c: Country; n: number } => !!x.c)
+      .sort((a, b) => nm(a.c.n).localeCompare(nm(b.c.n), getLang()));
+  }, [file, world]);
+  const home = lands.find((x) => x.c.id === PHYS_HOME);
   const toggleKind = (k: PhysKind) => {
     const kinds = spec.kinds.includes(k) ? spec.kinds.filter((x) => x !== k) : [...spec.kinds, k];
     if (kinds.length) onChange({ ...spec, kinds: PHYS_KINDS.filter((x) => kinds.includes(x)) });
   };
   const togglePlace = (p: string) => {
-    if (p === 'W') return onChange({ ...spec, places: [] });
-    onChange({ ...spec, places: spec.places.includes(p) ? spec.places.filter((x) => x !== p) : [...spec.places, p] });
+    if (p === 'W') return onChange({ ...spec, places: [], country: undefined });
+    onChange({ ...spec, country: undefined, places: spec.places.includes(p) ? spec.places.filter((x) => x !== p) : [...spec.places, p] });
   };
+  const setCountry = (id: string) => onChange({ ...spec, places: [], country: id || undefined });
   return (
     <div className="phys">
       <div className="frow">
@@ -54,12 +67,15 @@ function PhysPicker({ spec, file, world, onChange }: { spec: PhysSpec; file: Phy
         <div className="frow-chips">
           {PHYS_KINDS.map((k) => {
             const on = spec.kinds.includes(k);
-            const n = file ? file.f.filter((f) => f.k === k && (spec.all || f.r === 1) && inPlace(f.ct)).length : null;
+            const n = file ? list.filter((f) => f.k === k).length : null;
+            const shown = file ? file.f.filter((f) => physMatches(f, { ...spec, kinds: [k] })).length : null;
+            // A kind the place has none of is not offered: there are no deserts in Europe, nor capes yet outside Spain.
+            if (file && !on && !file.f.some((f) => physMatches(f, { ...spec, kinds: [k], all: true }))) return null;
             return (
               <button key={k} type="button" aria-pressed={on} className={cx('chip', `chip-${k}`, on && 'on')} onClick={() => toggleKind(k)}>
                 <i className={`kdot kdot-${k}`} aria-hidden="true" />
                 {capitalise(kindNoun(k).many)}
-                {n != null && <small>{n}</small>}
+                {(on ? n : shown) != null && <small>{on ? n : shown}</small>}
               </button>
             );
           })}
@@ -69,7 +85,7 @@ function PhysPicker({ spec, file, world, onChange }: { spec: PhysSpec; file: Phy
         <span className="frow-label">{L('Dónde', 'Where')}</span>
         <div className="frow-chips">
           {PHYS_PLACES.map((p) => {
-            const on = p === 'W' ? !spec.places.length : spec.places.includes(p);
+            const on = !spec.country && (p === 'W' ? !spec.places.length : spec.places.includes(p));
             return (
               <button key={p} type="button" aria-pressed={on} className={cx('chip', on && 'on')} onClick={() => togglePlace(p)}>
                 {p === 'W' ? L('Todo el mundo', 'The whole world') : nm(world.index.continents[p])}
@@ -78,6 +94,33 @@ function PhysPicker({ spec, file, world, onChange }: { spec: PhysSpec; file: Phy
           })}
         </div>
       </div>
+      {lands.length > 0 && (
+        <div className="frow">
+          <span className="frow-label">{L('O un país', 'Or a country')}</span>
+          <div className="frow-chips">
+            {home && (
+              <button type="button" aria-pressed={spec.country === PHYS_HOME} className={cx('chip', spec.country === PHYS_HOME && 'on')} onClick={() => setCountry(spec.country === PHYS_HOME ? '' : PHYS_HOME)}>
+                <Flag code={home.c.fl} size="sm" />
+                {nm(home.c.n)}
+                <small>{home.n}</small>
+              </button>
+            )}
+            <label className="select phys-land">
+              <span className="sr-only">{L('Otro país', 'Another country')}</span>
+              <select value={spec.country && spec.country !== PHYS_HOME ? spec.country : ''} onChange={(e) => setCountry(e.target.value)}>
+                <option value="">{L('Otro país…', 'Another country…')}</option>
+                {lands
+                  .filter((x) => x.c.id !== PHYS_HOME)
+                  .map((x) => (
+                    <option key={x.c.id} value={x.c.id}>
+                      {nm(x.c.n)} · {x.n}
+                    </option>
+                  ))}
+              </select>
+            </label>
+          </div>
+        </div>
+      )}
       <div className="frow">
         <span className="frow-label">{L('Cuántos', 'How many')}</span>
         <Seg
@@ -112,7 +155,7 @@ function PhysPicker({ spec, file, world, onChange }: { spec: PhysSpec; file: Phy
             );
           })
         ) : (
-          <p className="empty">{L('No hay nada de eso ahí: prueba con «Todos» o con otro continente.', 'There is nothing like that there: try “All of them” or another continent.')}</p>
+          <p className="empty">{L('No hay nada de eso ahí: prueba con «Todos» o con otro sitio.', 'There is nothing like that there: try “All of them” or another place.')}</p>
         )}
       </div>
     </div>
@@ -274,7 +317,7 @@ export function Setup({ section, world }: { section: Section; world: World }) {
       if (opts.cityPick === 'regcaps') return all.filter((x) => (x.k ?? 0) >= 1).length;
       return Math.min(opts.cityCount, all.length);
     }
-    if (isPhys) return physical ? physical.f.filter((f) => spec.kinds.includes(f.k) && (spec.all || f.r === 1) && (!spec.places.length || f.ct.some((c) => spec.places.includes(c)))).length : 0;
+    if (isPhys) return physical ? physical.f.filter((f) => physMatches(f, spec)).length : 0;
     return chosen.length;
   }, [active, section, chosen, levels, cities, physical, opts.cityPick, opts.cityCount, spec, isPhys]);
 
@@ -302,7 +345,7 @@ export function Setup({ section, world }: { section: Section; world: World }) {
   /** The number games need things that share a figure: among rivers and ranges there is none. */
   const noFigures = useMemo(() => {
     if (!isPhys || !physical || !FIGURE_MODES.includes(def.id)) return false;
-    const list = physical.f.filter((f) => spec.kinds.includes(f.k) && (spec.all || f.r === 1) && (!spec.places.length || f.ct.some((c) => spec.places.includes(c))));
+    const list = physical.f.filter((f) => physMatches(f, spec));
     const high = list.filter((f) => (f.el ?? 0) > 0).length;
     const wide = list.filter((f) => f.el == null && (f.ar ?? 0) > 0).length;
     return high < figMin && wide < figMin;
@@ -443,7 +486,7 @@ export function Setup({ section, world }: { section: Section; world: World }) {
   const summary = active
     ? active.name
     : isPhys
-    ? `${spec.kinds.map((k) => capitalise(kindNoun(k).many)).join(', ')} · ${spec.places.length ? spec.places.map((p) => nm(world.index.continents[p])).join(', ') : L('mundo', 'world')}`
+    ? `${spec.kinds.map((k) => capitalise(kindNoun(k).many)).join(', ')} · ${spec.country && world.byId.get(spec.country) ? nm(world.byId.get(spec.country)!.n) : spec.places.length ? spec.places.map((p) => nm(world.index.continents[p])).join(', ') : L('mundo', 'world')}`
     : chosen.length === 0
       ? L('Nada elegido', 'Nothing chosen')
       : chosen.length === 1

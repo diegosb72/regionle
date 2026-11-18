@@ -122,12 +122,12 @@ export const SCREENS: Record<ScreenId, Record<SeoLang, ScreenText>> = {
     es: {
       file: 'fisica',
       name: 'Ríos, mares y montañas',
-      description: 'Aprende en el mapa los ríos, lagos, mares, cordilleras, picos, desiertos e islas del mundo o de un continente, y compara alturas y superficies.',
+      description: 'Aprende en el mapa los ríos, mares, cordilleras, picos, cabos e islas del mundo, de un continente o de un país, con la geografía física de España al detalle.',
     },
     en: {
       file: 'physical',
       name: 'Rivers, seas and mountains',
-      description: 'Learn on the map the rivers, lakes, seas, mountain ranges, peaks, deserts and islands of the world or of one continent, and compare heights and sizes.',
+      description: 'Learn on the map the rivers, seas, mountain ranges, peaks, capes and islands of the world, of one continent or of one country, with Spain in full detail.',
     },
   },
   poblaciones: {

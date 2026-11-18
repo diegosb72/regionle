@@ -540,9 +540,15 @@ interface PhysRec {
   n: { es: string; en?: string };
   ct: string[];
   r: number;
+  /** One of the best known on the map of its country. */
+  h?: number;
+  /** The countries it is asked in. */
+  co?: string[];
+  t?: string;
+  ar?: number;
   lp: [number, number];
   fp: [number, number][];
-  /** Lines and surfaces; a peak is the point its name hangs from and has none. */
+  /** Lines and surfaces; a peak or a cape is the point its name hangs from and has none. */
   g?: ['L' | 'A', number[][]];
   /** Height of a peak, in metres. */
   el?: number;
@@ -560,7 +566,9 @@ interface CityRec {
 
 describe('physical.json', () => {
   const file = read<{ scale: number; f: PhysRec[] }>('physical.json');
-  const KINDS = ['river', 'lake', 'sea', 'range', 'peak', 'desert', 'island'];
+  const KINDS = ['river', 'lake', 'sea', 'range', 'plain', 'peak', 'cape', 'desert', 'island'];
+  /** Drawn as a dot: there is no shape to them. */
+  const DOTS = ['peak', 'cape'];
   const PLACES = ['EU', 'AS', 'AF', 'AM', 'OC', 'AN'];
   const byKind = (k: string) => file.f.filter((f) => f.k === k);
   /** Undoes the storage: the first point and then the steps, in whole fractions of a degree. */
@@ -582,9 +590,149 @@ describe('physical.json', () => {
       expect(f.n.es, f.i).toBeTruthy();
       expect(f.n.en, f.i).toBeTruthy();
       expect(KINDS, f.i).toContain(f.k);
-      expect([1, 2], f.i).toContain(f.r);
+      expect([1, 2, 3], f.i).toContain(f.r);
       expect(f.ct.length, f.i).toBeGreaterThan(0);
       for (const c of f.ct) expect(PLACES, f.i).toContain(c);
+    }
+  });
+
+  it('keeps the ids that the answers already learnt are stored under', () => {
+    // An id is where the progress of a player hangs from: new features must not push an old one to another name.
+    for (const id of ['r:tagus', 'r:ebro', 'r:douro', 'r:guadalquivir', 'r:guadiana', 'r:minho', 'r:pyrenees', 'r:cantabrian-mountains', 'r:sierra-morena', 'i:majorca', 'i:ibiza', 'p:teide', 'p:mulhacen', 'p:aneto', 's:strait-of-gibraltar', 's:bay-of-biscay'])
+      expect(file.f.some((f) => f.i === id), id).toBe(true);
+  });
+
+  it('says in which countries each feature is asked, with countries that exist', () => {
+    const problems: string[] = [];
+    for (const f of file.f) {
+      for (const c of f.co ?? []) if (!byId.has(c)) problems.push(`${f.i}: in ${c}, which is no country`);
+      if (new Set(f.co ?? []).size !== (f.co ?? []).length) problems.push(`${f.i}: a country twice`);
+      // What no continent shows has to be on the map of some country, or it would never be asked.
+      if (f.r === 3 && !f.co?.length) problems.push(`${f.i}: only for the map of its country, and it has none`);
+      if (f.h != null && f.h !== 1) problems.push(`${f.i}: h is ${f.h}`);
+    }
+    expect(problems).toEqual([]);
+    const of = (id: string) => file.f.find((f) => f.i === id)?.co ?? [];
+    // Rivers by the countries they run through, a border counting for both sides.
+    expect(of('r:tagus')).toEqual(['ES', 'PT']);
+    expect(of('r:minho')).toEqual(['ES', 'PT']);
+    expect(of('r:danube')).toEqual(expect.arrayContaining(['DE', 'AT', 'HU', 'RO']));
+    expect(of('r:nile')).toEqual(expect.arrayContaining(['EG', 'SD']));
+    // The Garonne rises in Spain and leaves it at once: it is a river of France.
+    expect(of('r:garonne')).toEqual(['FR']);
+    // Ranges and islands by the land they stand on; a small country counts when the range covers a good part of it.
+    expect(of('r:pyrenees')).toEqual(['AD', 'ES', 'FR']);
+    expect(of('r:alps')).toEqual(expect.arrayContaining(['AT', 'CH', 'FR', 'IT']));
+    expect(of('i:borneo')).toEqual(['BN', 'ID', 'MY']);
+    expect(of('i:ireland')).toEqual(['GB', 'IE']);
+    // Lakes by their shores, peaks by the border they stand on, seas by the coasts they wash.
+    expect(of('l:lake-victoria')).toEqual(['KE', 'TZ', 'UG']);
+    expect(of('p:mont-blanc')).toEqual(['FR', 'IT']);
+    expect(of('p:mount-everest')).toEqual(['CN', 'NP']);
+    expect(of('s:strait-of-gibraltar')).toEqual(expect.arrayContaining(['ES', 'MA']));
+    expect(of('s:black-sea')).toEqual(expect.arrayContaining(['BG', 'GE', 'RO', 'RU', 'TR', 'UA']));
+    // On the map of Spain the sea off its north coast has a name of its own.
+    expect(of('s:bay-of-biscay')).toEqual(['FR']);
+    expect(of('s:cantabrian-sea')).toEqual(['ES']);
+  });
+
+  it('has the physical map of Spain that a school atlas has', () => {
+    const spain = file.f.filter((f) => f.co?.includes('ES'));
+    const known = spain.filter((f) => f.r === 1 || f.h === 1);
+    const names = (list: PhysRec[], kind: string) => list.filter((f) => f.k === kind).map((f) => f.n.es);
+    expect(spain.length).toBeGreaterThanOrEqual(150);
+    for (const [kind, all, first] of [
+      ['river', 75, 35],
+      ['range', 12, 10],
+      ['plain', 4, 4],
+      ['cape', 12, 9],
+      ['island', 11, 11],
+      ['sea', 8, 6],
+      ['peak', 8, 6],
+      ['lake', 12, 3],
+    ] as const) {
+      expect(names(spain, kind).length, kind).toBeGreaterThanOrEqual(all);
+      expect(names(known, kind).length, kind).toBeGreaterThanOrEqual(first);
+    }
+    // What every pupil is asked to place.
+    expect(names(known, 'river')).toEqual(expect.arrayContaining(['Miño', 'Duero', 'Tajo', 'Guadiana', 'Guadalquivir', 'Ebro', 'Júcar', 'Segura', 'Turia', 'Sil', 'Pisuerga', 'Esla', 'Tormes', 'Jarama', 'Genil', 'Segre', 'Cinca', 'Gállego', 'Jalón', 'Nalón', 'Nervión', 'Llobregat', 'Ter']));
+    expect(names(known, 'range')).toEqual(
+      expect.arrayContaining(['Pirineos', 'Cordillera Cantábrica', 'Macizo Galaico', 'Sistema Central', 'Sistema Ibérico', 'Montes de Toledo', 'Sierra Morena', 'Cordillera Subbética', 'Cordillera Penibética', 'Cordillera Costero-Catalana']),
+    );
+    expect(names(known, 'plain').sort()).toEqual(['Depresión del Ebro', 'Depresión del Guadalquivir', 'Submeseta Norte', 'Submeseta Sur']);
+    expect(names(known, 'cape')).toEqual(expect.arrayContaining(['Cabo Finisterre', 'Estaca de Bares', 'Cabo de Peñas', 'Cabo de Creus', 'Cabo de la Nao', 'Cabo de Palos', 'Cabo de Gata', 'Punta de Tarifa', 'Cabo de Trafalgar']));
+    expect(names(known, 'island').sort()).toEqual(['El Hierro', 'Formentera', 'Fuerteventura', 'Gran Canaria', 'Ibiza', 'La Gomera', 'La Palma', 'Lanzarote', 'Mallorca', 'Menorca', 'Tenerife']);
+    expect(names(known, 'sea')).toEqual(expect.arrayContaining(['Mar Cantábrico', 'Mar Mediterráneo', 'Océano Atlántico', 'Estrecho de Gibraltar', 'Golfo de Cádiz', 'Golfo de Valencia']));
+    expect(names(known, 'peak')).toEqual(expect.arrayContaining(['Teide', 'Mulhacén', 'Aneto']));
+    // One name, one feature: nothing on the map of Spain is called as something else there is.
+    for (const lang of ['es', 'en'] as const) {
+      const all = spain.map((f) => (f.n[lang] ?? f.n.es).toLowerCase());
+      expect(all.filter((n, i) => all.indexOf(n) !== i), lang).toEqual([]);
+    }
+    // Reservoirs say that they are one.
+    for (const f of spain.filter((x) => x.k === 'lake')) expect(f.t === 'res', f.i).toBe(f.n.es.startsWith('Embalse'));
+  });
+
+  it('draws the rivers of Spain whole, from the atlas of the country', () => {
+    const line = (id: string) => (file.f.find((f) => f.i === id)?.g?.[1] ?? []).map(decode);
+    /** Kilometres from a place to a stretch of line, on a plane: fine at this size. */
+    const off = (at: [number, number], a: [number, number], b: [number, number]) => {
+      const cos = Math.cos((at[1] * Math.PI) / 180);
+      const [ax, ay, bx, by] = [(a[0] - at[0]) * cos, a[1] - at[1], (b[0] - at[0]) * cos, b[1] - at[1]];
+      const len2 = (bx - ax) ** 2 + (by - ay) ** 2;
+      const t = len2 ? Math.max(0, Math.min(1, -(ax * (bx - ax) + ay * (by - ay)) / len2)) : 0;
+      return Math.hypot(ax + t * (bx - ax), ay + t * (by - ay)) * 111.2;
+    };
+    /** How near a river passes to a place. */
+    const passes = (id: string, at: [number, number]) => Math.min(...line(id).flatMap((pts) => pts.slice(1).map((p, i) => off(at, pts[i], p))));
+    // One line each, source to mouth: the atlas cuts them at every reservoir and the build sews them back.
+    for (const id of ['r:tagus', 'r:ebro', 'r:douro', 'r:guadiana', 'r:guadalquivir', 'r:minho', 'r:jucar', 'r:segura', 'r:jarama', 'r:navia']) expect(line(id).length, id).toBe(1);
+    // Each river by a town that stands on it.
+    expect(passes('r:tagus', [-4.02, 39.86])).toBeLessThan(5); // Toledo
+    expect(passes('r:ebro', [-0.88, 41.65])).toBeLessThan(5); // Zaragoza
+    expect(passes('r:douro', [-8.61, 41.15])).toBeLessThan(5); // Oporto
+    expect(passes('r:guadalquivir', [-5.98, 37.39])).toBeLessThan(5); // Sevilla
+    expect(passes('r:guadiana', [-6.97, 38.88])).toBeLessThan(5); // Badajoz
+    expect(passes('r:pisuerga', [-4.72, 41.65])).toBeLessThan(5); // Valladolid
+    expect(passes('r:tormes', [-5.66, 40.96])).toBeLessThan(5); // Salamanca
+    expect(passes('r:segura', [-1.13, 37.99])).toBeLessThan(5); // Murcia
+    expect(passes('r:genil', [-3.6, 37.18])).toBeLessThan(5); // Granada
+    expect(passes('r:manzanares', [-3.7, 40.42])).toBeLessThan(6); // Madrid
+    expect(passes('r:nervion', [-2.93, 43.26])).toBeLessThan(5); // Bilbao
+    expect(passes('r:arga', [-1.64, 42.82])).toBeLessThan(5); // Pamplona
+  });
+
+  it('puts every cape on the coast of its country', () => {
+    const world = read<Topology>('world.json');
+    const shapes = new Map(feature(world, world.objects.c as GeometryCollection).features.map((f) => [String(f.id), f.geometry]));
+    const capes = byKind('cape');
+    expect(capes.length).toBeGreaterThanOrEqual(12);
+    for (const f of capes) {
+      expect(f.g, f.i).toBeUndefined();
+      expect(f.fp, f.i).toEqual([f.lp]);
+      const g = shapes.get(f.co![0])!;
+      const rings = g.type === 'Polygon' ? g.coordinates : g.type === 'MultiPolygon' ? g.coordinates.flat() : [];
+      const near = Math.min(...rings.flatMap((ring) => ring.map((p) => Math.hypot((p[0] - f.lp[0]) * Math.cos((f.lp[1] * Math.PI) / 180), p[1] - f.lp[1]) * 111.2)));
+      // The file keeps two decimals of a degree: a kilometre, give or take.
+      expect(near, f.i).toBeLessThan(1.5);
+    }
+  });
+
+  it('gives a shape of their own size to the straits that the source only labels', () => {
+    // Natural Earth has them as specks along the coast: 20 km² of Strait of Gibraltar, which nobody could click.
+    for (const [id, least] of [
+      ['s:strait-of-gibraltar', 0.5],
+      ['s:bab-el-mandeb', 0.4],
+      ['s:yucatan-channel', 1.5],
+      ['s:scotia-sea', 20],
+    ] as const) {
+      const f = file.f.find((x) => x.i === id)!;
+      const pts = f.g![1].flatMap(decode);
+      const wide = Math.max(...pts.map((p) => p[0])) - Math.min(...pts.map((p) => p[0]));
+      expect(f.g![1].length, id).toBe(1);
+      expect(wide, id).toBeGreaterThan(least);
+      // Drawn by hand over water and land alike: no surface to compare.
+      expect(f.ar, id).toBeUndefined();
     }
   });
 
@@ -608,7 +756,7 @@ describe('physical.json', () => {
   it('draws rivers as lines and everything else as surfaces, inside the globe', () => {
     const problems: string[] = [];
     for (const f of file.f) {
-      if (f.k === 'peak') continue;
+      if (DOTS.includes(f.k)) continue;
       if (!f.g) {
         problems.push(`${f.i}: nothing to draw`);
         continue;
@@ -661,7 +809,9 @@ describe('physical.json', () => {
       const h = Math.sin(((b[1] - a[1]) * rad) / 2) ** 2 + Math.cos(a[1] * rad) * Math.cos(b[1] * rad) * Math.sin(((b[0] - a[0]) * rad) / 2) ** 2;
       return 2 * 6371 * Math.asin(Math.sqrt(h));
     };
-    for (let i = 0; i < peaks.length; i++) for (let j = i + 1; j < peaks.length; j++) if (km(peaks[i].lp, peaks[j].lp) < 55) problems.push(`${peaks[i].i} and ${peaks[j].i}: too close`);
+    // On the map of a continent they need more room than on the map of a country.
+    for (let i = 0; i < peaks.length; i++)
+      for (let j = i + 1; j < peaks.length; j++) if (km(peaks[i].lp, peaks[j].lp) < (peaks[i].r < 3 && peaks[j].r < 3 ? 55 : 12)) problems.push(`${peaks[i].i} and ${peaks[j].i}: too close`);
     expect(problems).toEqual([]);
     // Heights that anyone can check.
     const height = (id: string) => peaks.find((f) => f.i === id)?.el;

@@ -11,11 +11,20 @@ export interface StudyLink {
 
 const q = encodeURIComponent;
 
+/** A name that already says what the thing is: "Lago Ladoga", "Embalse de Alcántara", "Mar Muerto". */
+const SAYS_KIND = /^(lago|laguna|lagunas|embalse|albufera|mar|gran lago|lake|loch|lough|reservoir|sea)\b|\b(lake|reservoir|sea)$/i;
+
 /** How an item is looked up by name: "Sevilla, España", "río Ebro". */
 export function placeQuery(item: Item): string {
   if (item.kind === 'country') return item.name;
-  if (item.kind === 'feature') return item.cat === 'river' || item.cat === 'lake' ? `${item.type} ${item.name.replace(/\s*\(.*\)$/, '')}` : item.name.replace(/\s*\(.*\)$/, '');
-  return `${item.name.replace(/\s*\(.*\)$/, '')}, ${nm(item.country.n)}`;
+  const name = item.name.replace(/\s*\(.*\)$/, '');
+  if (item.kind === 'feature') {
+    // A river or a lake goes with its kind in front, or "Ebro" would be the valley and "Como" the city.
+    const what = item.cat === 'river' || (item.cat === 'lake' && !SAYS_KIND.test(name)) ? `${item.type} ${name}` : name;
+    // On the map of a country it goes with the country too: "Sistema Central" alone could be anybody's.
+    return item.country.id.startsWith('@in:') ? `${what}, ${nm(item.country.n)}` : what;
+  }
+  return `${name}, ${nm(item.country.n)}`;
 }
 
 function wikipedia(wd: string | undefined, query: string): string {

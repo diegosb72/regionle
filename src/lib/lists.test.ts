@@ -36,6 +36,10 @@ describe('custom lists by link', () => {
     expect(back(cities)).toEqual(cities);
     const physical = list({ section: 'physical', countries: ['river', 'peak', 'EU', 'all'], levels: {}, ids: ['r:ebro', 'p:teide', 'r:tagus'] });
     expect(back(physical)).toEqual(physical);
+    // The physical map of one country: its token has a colon in it.
+    const spain = list({ section: 'physical', countries: ['river', 'cape', 'in:ES', 'all'], levels: {}, ids: ['r:jarama', 'c:cape-gata', 'r:tagus'] });
+    expect(back(spain)).toEqual(spain);
+    expect(decodeList(encodeList({ ...spain, countries: ['river', 'in:es'] }))).toBeNull();
   });
 
   it('only sends the levels of the countries of the list', () => {
