@@ -2,6 +2,7 @@
 import { ArrowLeftRight, ArrowRight, CalendarClock, Download, FileSpreadsheet, Trash2, Upload } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityBlock, EvolutionBlock, MonthsBlock } from '../components/Activity';
+import { AlbumBlock } from '../components/Album';
 import { BadgeBoard } from '../components/Badges';
 import { MapView, type Paint } from '../components/MapView';
 import { groupPlace } from '../components/ReviewCard';
@@ -370,6 +371,14 @@ function MissBlock({ world }: { world: World }) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listed]);
+  // Reached from the review of the home page ("#/progreso?ver=fallos"): the page opens on this block. It
+  // waits a moment, since a new screen is first taken to its top.
+  const top = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!/[?&]ver=fallos(&|$)/.test(window.location.hash)) return;
+    const timer = window.setTimeout(() => top.current?.scrollIntoView({ block: 'start' }), 120);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   if (!groups.length) return null;
   const total = groups.reduce((n, g) => n + g.ids.length, 0);
@@ -379,7 +388,7 @@ function MissBlock({ world }: { world: World }) {
   };
 
   return (
-    <section className="block miss">
+    <section className="block miss" ref={top}>
       <h2>{L('Lo que más fallas', 'What you miss most')}</h2>
       <p className="tip-line">
         {L(
@@ -732,6 +741,7 @@ export function Progress({ world }: { world: World }) {
 
           <ActivityBlock />
           <BadgeBoard world={world} />
+          <AlbumBlock world={world} />
           {Object.keys(stats).length > 0 && <KnowledgeMap world={world} />}
           {Object.keys(stats).length > 0 && <ReviewBlock world={world} />}
           <MissBlock world={world} />
