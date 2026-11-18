@@ -3,6 +3,17 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.14.0 — 18 de noviembre de 2026
+
+- Apuntes propios: escribe en cada pieza un truco para acordarte. Se escribe en su ficha de Explorar, tras una respuesta, en una lección o en una tarjeta.
+- Tu apunte sale cuando respondes sobre esa pieza, en el reverso de su tarjeta y en su lección, y ahí mismo se cambia. Solo lo ves tú.
+- Los apuntes van en la copia de seguridad y siguen ahí si borras el progreso. En la lista de Explorar, una marca dice qué piezas tienen uno.
+- Tu historial de cada pieza: su ficha de Explorar dice cómo te va en el mapa, con su nombre, su capital y su bandera, y cuándo vuelve al repaso.
+- La ficha dice también con qué otras piezas la confundes, y cuántas veces.
+- Álbum de banderas: en Progreso, una página por continente con un hueco para la bandera de cada país. Se llena cuando la aprendes y ya no se vacía.
+- Desde cada página del álbum se juega con las banderas que le faltan, de veinte en veinte.
+- Lo que más fallas, también en la portada: bajo el repaso de hoy, cuántas respuestas se te resisten y un botón para practicarlas.
+
 ## 1.13.0 — 18 de noviembre de 2026
 
 - Calendario de actividad: en Progreso, un cuadro por cada día del último año, más oscuro cuanto más respondiste. Al pasar por un día dice lo que hiciste.

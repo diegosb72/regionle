@@ -15,6 +15,30 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.14.0',
+    date: '2026-11-18',
+    es: [
+      'Apuntes propios: escribe en cada pieza un truco para acordarte. Se escribe en su ficha de Explorar, tras una respuesta, en una lección o en una tarjeta.',
+      'Tu apunte sale cuando respondes sobre esa pieza, en el reverso de su tarjeta y en su lección, y ahí mismo se cambia. Solo lo ves tú.',
+      'Los apuntes van en la copia de seguridad y siguen ahí si borras el progreso. En la lista de Explorar, una marca dice qué piezas tienen uno.',
+      'Tu historial de cada pieza: su ficha de Explorar dice cómo te va en el mapa, con su nombre, su capital y su bandera, y cuándo vuelve al repaso.',
+      'La ficha dice también con qué otras piezas la confundes, y cuántas veces.',
+      'Álbum de banderas: en Progreso, una página por continente con un hueco para la bandera de cada país. Se llena cuando la aprendes y ya no se vacía.',
+      'Desde cada página del álbum se juega con las banderas que le faltan, de veinte en veinte.',
+      'Lo que más fallas, también en la portada: bajo el repaso de hoy, cuántas respuestas se te resisten y un botón para practicarlas.',
+    ],
+    en: [
+      'Notes of your own: write on each piece a trick to remember it, on its Explore card, after an answer, in a lesson or on a flashcard.',
+      'Your note shows when you answer about that piece, on the back of its flashcard and in its lesson, and can be changed right there. Only you see it.',
+      'Notes travel with the backup and stay if you delete your progress. In the Explore list, a mark says which pieces have one.',
+      'Your history of each piece: its Explore card says how you do on the map, with its name, its capital and its flag, and when it comes back for review.',
+      'The card also says which other pieces you mix it up with, and how often.',
+      'Flag album: on Progress, a page for each continent with a place for the flag of each country. It is filled once you learn it, and stays filled.',
+      'From each page of the album you play the flags it lacks, twenty at a time.',
+      'What you miss most, on the home page too: under the review of the day, how many answers keep slipping and a button to practise them.',
+    ],
+  },
+  {
     version: '1.13.0',
     date: '2026-11-18',
     es: [
