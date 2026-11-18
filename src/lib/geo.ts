@@ -386,6 +386,52 @@ export function distanceKm(a: LL, b: LL): number {
   return geoDistance(a, b) * 6371;
 }
 
+/**
+ * How far a point is from a shape, in kilometres: nothing when it falls inside a surface; otherwise the
+ * distance to the nearest point of its edge, of its line (a river) or to the dot itself (a city).
+ *
+ * The nearest point is looked for on a flat sheet laid around the point, which is exact nearby and good
+ * enough far away; the distance to it is then measured on the globe.
+ */
+export function kmToShape(at: LL, geo: AnyGeo): number {
+  const g = geo.geometry;
+  if (g.type === 'Point') return distanceKm(at, g.coordinates as LL);
+  if ((g.type === 'Polygon' || g.type === 'MultiPolygon') && geoContains(geo, at)) return 0;
+  const lines = g.type === 'LineString' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates.flat() : g.coordinates;
+  const [lon0, lat0] = at;
+  const cos = Math.max(0.05, Math.cos(lat0 / DEG));
+  /** Degrees of longitude from one meridian to another, the short way round. */
+  const turn = (d: number) => (d > 180 ? d - 360 : d < -180 ? d + 360 : d);
+  let best = Infinity;
+  let bx = 0;
+  let by = 0;
+  const near = (x: number, y: number) => {
+    const d = x * x + y * y;
+    if (d < best) {
+      best = d;
+      bx = x;
+      by = y;
+    }
+  };
+  for (const line of lines) {
+    for (let i = 0; i < line.length; i++) {
+      // Each stretch on its own: its first end the short way from the point, its second the short way from the first.
+      const px = turn(line[i][0] - lon0) * cos;
+      const py = line[i][1] - lat0;
+      if (i + 1 >= line.length) {
+        near(px, py);
+        break;
+      }
+      const vx = turn(line[i + 1][0] - line[i][0]) * cos;
+      const vy = line[i + 1][1] - line[i][1];
+      const len = vx * vx + vy * vy;
+      const t = len ? Math.max(0, Math.min(1, -(px * vx + py * vy) / len)) : 0;
+      near(px + t * vx, py + t * vy);
+    }
+  }
+  return Number.isFinite(best) ? distanceKm(at, [lon0 + bx / cos, Math.max(-90, Math.min(90, lat0 + by))]) : Infinity;
+}
+
 /** Roughly the longest distance between two of the points: the farthest from any one of them, and the farthest from that. */
 export function spanKm(points: LL[]): number {
   if (points.length < 2) return 1;

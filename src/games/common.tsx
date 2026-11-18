@@ -215,8 +215,9 @@ const VERDICT_ICON = { ok: Check, warn: CircleAlert, bad: X } as const;
 /**
  * `wiki` adds what Wikipedia says about the item: worth it when the answer was missed and there is time to read.
  * `say` is the name the loudspeaker reads out, when it is not the name of the item (a capital).
+ * `lead` is a line about the answer itself, said right under the heading.
  */
-export function Verdict({ res, title, item, wiki, say, children }: { res: Res; title: ReactNode; item?: Item | null; wiki?: boolean; say?: string; children?: ReactNode }) {
+export function Verdict({ res, title, lead, item, wiki, say, children }: { res: Res; title: ReactNode; lead?: ReactNode; item?: Item | null; wiki?: boolean; say?: string; children?: ReactNode }) {
   const Icon = VERDICT_ICON[res];
   const aloud = say ?? item?.name;
   // A verdict comes up when a question is settled: that is when it sounds, for those who asked for it.
@@ -230,6 +231,7 @@ export function Verdict({ res, title, item, wiki, say, children }: { res: Res; t
         <span>{title}</span>
         {aloud && <SpeakButton key={aloud} text={aloud} />}
       </div>
+      {lead}
       {item && <ItemFacts item={item} />}
       {item && <PieceNote key={item.id} id={item.id} />}
       {item && wiki && res !== 'ok' && <WikiCard item={item} />}

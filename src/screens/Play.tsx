@@ -1,6 +1,7 @@
 /** Runs the game stored in the configuration: builds the deck and hands it to the right game. */
 import { useEffect, useMemo, useState } from 'react';
 import { Spinner } from '../components/ui';
+import { BearingGame } from '../games/Bearings';
 import { BlindGame } from '../games/Blind';
 import { CardsGame } from '../games/Cards';
 import { ExploreGame } from '../games/Explore';
@@ -250,7 +251,10 @@ function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
     case 'regionle':
       return <RegionleGame {...props} />;
     case 'blind':
+    case 'hotcold':
       return <BlindGame {...props} />;
+    case 'bearing':
+      return <BearingGame {...props} />;
     case 'cards':
       return <CardsGame {...props} />;
     case 'pin':

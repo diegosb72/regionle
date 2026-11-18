@@ -51,6 +51,18 @@ describe('what is kept of a game to play it again', () => {
     expect(recentOf(game({ mode: 'pin', opts: { ...DEFAULT_OPTS, axis: 'we', countdown: 300 } }), session())?.o).toEqual({ format: 'normal' });
   });
 
+  it('keeps what distances and bearings asked', () => {
+    const both = recentOf(game({ mode: 'bearing' }), session({ mode: 'bearing' }));
+    expect(both?.o).toEqual({ bearingAsk: 'both' });
+    const far = recentOf(game({ mode: 'bearing', opts: { ...DEFAULT_OPTS, bearingAsk: 'dist' } }), session({ mode: 'bearing' }));
+    expect(far?.o).toEqual({ bearingAsk: 'dist' });
+    expect(recentKey(both!)).not.toBe(recentKey(far!));
+    // A game kept before the option existed asked both.
+    const { bearingAsk: _, ...old } = DEFAULT_OPTS;
+    expect(recentOf(game({ mode: 'bearing', opts: old as typeof DEFAULT_OPTS }), session({ mode: 'bearing' }))?.o).toEqual({ bearingAsk: 'both' });
+    expect(recentOf(game({ mode: 'pin', opts: { ...DEFAULT_OPTS, bearingAsk: 'dir' } }), session())?.o).toEqual({ format: 'normal' });
+  });
+
   it('keeps that it was an exam, which is another game on the same map', () => {
     const exam = recentOf(game({ opts: { ...DEFAULT_OPTS, format: 'exam' } }), session({ note: 'exam' }));
     expect(exam?.o).toEqual({ format: 'exam' });

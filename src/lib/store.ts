@@ -93,10 +93,13 @@ export interface Opts {
   flagLook: FlagLook;
   /** What a flashcard asks for: the name of what the map shows, where it is, its capital, or whose flag it is. */
   cardAsk: CardAsk;
+  /** What "distances and bearings" asks: which way, how far, or one and the other in turn. */
+  bearingAsk: BearingAsk;
 }
 
 export type FlagLook = 'plain' | 'grey' | 'blur';
 export type CardAsk = 'name' | 'where' | 'capital' | 'flag';
+export type BearingAsk = 'both' | 'dir' | 'dist';
 
 export interface GameConfig {
   section: Section;
@@ -189,6 +192,7 @@ export const DEFAULT_OPTS: Opts = {
   turned: false,
   flagLook: 'plain',
   cardAsk: 'name',
+  bearingAsk: 'both',
 };
 
 /** `stats` and `where` without anything about the given ids ("loc:x", "name:x"… and the map x was learnt on). */

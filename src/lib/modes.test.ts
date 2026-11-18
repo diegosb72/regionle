@@ -11,10 +11,10 @@ const ids = (section: (typeof SECTION_IDS)[number]): Mode[] => MODES[section].ma
 
 describe('the games of each section', () => {
   it('are these, in the order of the menu', () => {
-    expect(ids('regions')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'identify', 'nameall', 'puzzle', 'mix', 'outline', 'regionle', 'neighbours', 'travel', 'parent', 'compass', 'capital', 'hilo', 'rank', 'exact', 'which', 'topten']);
-    expect(ids('countries')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'identify', 'nameall', 'puzzle', 'mix', 'outline', 'regionle', 'neighbours', 'travel', 'compass', 'capital', 'flag']);
-    expect(ids('cities')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'blind', 'identify', 'nameall', 'mix', 'parent', 'compass', 'hilo', 'rank', 'exact', 'which', 'topten']);
-    expect(ids('physical')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'identify', 'nameall', 'mix', 'hilo', 'rank', 'exact', 'which', 'topten']);
+    expect(ids('regions')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'puzzle', 'mix', 'outline', 'regionle', 'neighbours', 'travel', 'parent', 'compass', 'bearing', 'capital', 'hilo', 'rank', 'exact', 'which', 'topten']);
+    expect(ids('countries')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'puzzle', 'mix', 'outline', 'regionle', 'neighbours', 'travel', 'compass', 'bearing', 'capital', 'flag']);
+    expect(ids('cities')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'mix', 'parent', 'compass', 'bearing', 'hilo', 'rank', 'exact', 'which', 'topten']);
+    expect(ids('physical')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'mix', 'hilo', 'rank', 'exact', 'which', 'topten']);
     expect(ids('pops')).toEqual(['hilo', 'rank', 'exact', 'which', 'topten', 'truefalse']);
   });
 

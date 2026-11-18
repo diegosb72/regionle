@@ -13,7 +13,7 @@ import type { Deck, Mode, Section } from '../lib/types';
 import { Seg } from './ui';
 
 /** The skill a game practises, where it is one a goal can be about. */
-const SKILL_OF: Partial<Record<Mode, GoalSkill>> = { pin: 'loc', puzzle: 'loc', blind: 'loc', identify: 'name', outline: 'name', nameall: 'name', capital: 'cap', flag: 'flag' };
+const SKILL_OF: Partial<Record<Mode, GoalSkill>> = { pin: 'loc', puzzle: 'loc', blind: 'loc', hotcold: 'loc', identify: 'name', outline: 'name', nameall: 'name', capital: 'cap', flag: 'flag' };
 
 /** The pieces of a map that can be asked about for a skill: a capital named after its place is not. */
 export function goalIds(deck: Deck, skill: GoalSkill, only?: readonly string[]): string[] {
