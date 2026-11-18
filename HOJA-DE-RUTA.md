@@ -5,7 +5,7 @@ Se hace por lotes: cada lote sale como una versión, con sus pruebas, y se apunt
 
 - `[x]` hecho, en la versión que se indica · `[~]` hecho en parte (se dice qué falta) · `[ ]` pendiente
 - Hecho no quiere decir publicado: la versión que está en la web es la que dice el pie de página del juego
-- **datos**: hay que conseguir datos nuevos · **decisión**: falta que el dueño del proyecto elija algo
+- **datos**: hay que conseguir datos nuevos · **decisión**: falta que el dueño del proyecto elija algo · **decidido**: lo eligió quien hace el encargo, porque el dueño lo dejó en sus manos
 
 Fuera del encargo, por decisión expresa: 17 (ortografía estricta), 82 (globo), 86 (capas de contexto),
 89 (celebración), 91 (entrada por voz), 93 (leer cada pregunta) y 104–110 (lo que necesita un servidor o un
@@ -13,12 +13,12 @@ servicio de fuera).
 
 ## Modos de juego en el mapa
 
-- [ ] 1. Situar a ciegas en regiones, países y física
+- [x] 1. Situar a ciegas en regiones, países y física: el mapa sin fronteras, ríos ni mares; dentro de la pieza es acierto y fuera se mide hasta su borde o su curso — **1.15.0**
 - [x] 2. ¿A qué pertenece?: de cada provincia, su comunidad; de cada ciudad, su región o su país — **1.7.0**
 - [ ] 3. Marca el grupo
 - [x] 4. Norte–sur y este–oeste — **1.7.0**
-- [ ] 5. Distancias y rumbos
-- [ ] 6. Caliente y frío
+- [x] 5. Distancias y rumbos: hacia dónde queda un sitio desde otro, entre los ocho rumbos, y a cuántos kilómetros, entre cuatro distancias; en regiones, países y ciudades — **1.15.0**
+- [x] 6. Caliente y frío: seis clics para encontrar cada cosa en el mapa vacío, y cada uno dice lo cerca que ha caído — **1.15.0**
 - [ ] 7. ¿Quién soy?
 - [ ] 8. Fronteras
 - [ ] 9. Cadena de vecinos
@@ -61,7 +61,10 @@ servicio de fuera).
 - [ ] 41. Mapas históricos (**datos** y licencia)
 - [ ] 42. Mapas temáticos: husos horarios, placas tectónicas, aeropuertos y puertos (**datos**)
 - [ ] 43. Lugares famosos (**datos**)
-- [ ] 44. Tercer idioma (**decisión**: cuál)
+- [ ] 44. Tercer idioma (**decidido**: francés). Es el segundo idioma extranjero que más se estudia en España y es oficial en más de veinte países; y Natural Earth, de donde salen los mapas, ya trae en francés los nombres de países, regiones y ciudades (en catalán, gallego o euskera habría que buscarlos en otra fuente). Es lo más largo de la lista y va en tres partes:
+  - [ ] 44a. Que el juego admita un tercer idioma: el selector de la cabecera, fechas y cifras, y unos textos que solo se descargan al elegirlo (hoy van los dos idiomas juntos en cada frase, unas 2.000)
+  - [ ] 44b. Los textos del juego en francés
+  - [ ] 44c. Los nombres en francés de países, regiones, ciudades y accidentes, y que se acepten al escribir (**datos**: Natural Earth y GeoNames)
 
 ## Reto del día y retos
 
@@ -136,7 +139,7 @@ servicio de fuera).
 - [ ] 100. Ayuda y tutorial de cada modo
 - [ ] 101. Copia de seguridad más cómoda
 - [ ] 102. Pruebas y publicación automáticas en GitHub
-- [ ] 103. Licencia del repositorio (**decisión**: cuál)
+- [x] 103. Licencia del repositorio (**decidido**: MIT): el código se puede usar, cambiar y redistribuir citando al autor; los datos de los mapas siguen las condiciones de sus fuentes — **1.15.0**
 
 ## Arreglos pendientes
 

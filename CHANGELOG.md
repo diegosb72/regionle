@@ -3,6 +3,17 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.15.0 — 18 de noviembre de 2026
+
+- Situar a ciegas, también en regiones, países y geografía física: el mapa no enseña fronteras, ríos ni mares, y haces clic donde crees que está cada cosa.
+- Dentro de la pieza es acierto; fuera, se mide hasta su borde o hasta el curso del río. Con lo muy pequeño basta con quedarse cerca.
+- Un mar cuenta con los mares que forman parte de él: el Mediterráneo también se acierta en el mar Balear, y se te dice que esa parte tiene nombre propio.
+- Caliente y frío: seis clics para encontrar cada cosa en el mapa vacío. Cada uno dice si te quemas o te hielas, y si te acercas o te alejas.
+- Distancias y rumbos: sin mirar el mapa, ¿hacia dónde queda un sitio desde otro y a cuántos kilómetros? Al responder, el mapa enseña los dos y su línea.
+- En los rumbos eliges entre los ocho puntos de la brújula; el de al lado cuenta como acierto con ayuda cuando el sitio cae hacia él.
+- Los tres juegos se llevan con el teclado: una cruz que mueven las flechas para marcar un punto, y el teclado numérico para los rumbos.
+- El código del juego tiene ya licencia: MIT. Los datos de los mapas siguen las condiciones de sus fuentes.
+
 ## 1.14.0 — 18 de noviembre de 2026
 
 - Apuntes propios: escribe en cada pieza un truco para acordarte. Se escribe en su ficha de Explorar, tras una respuesta, en una lección o en una tarjeta.

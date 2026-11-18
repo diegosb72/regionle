@@ -1,9 +1,10 @@
 {
   "name": "regionle",
   "private": true,
-  "version": "1.14.0",
+  "version": "1.15.0",
   "homepage": "https://diegosb72.github.io/regionle/",
   "description": "Regionle ∞ — juego de geografía ilimitado para aprender países y regiones del mundo",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",

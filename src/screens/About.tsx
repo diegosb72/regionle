@@ -114,6 +114,13 @@ export function About() {
         <h2 id="about-src">{L('Fuentes y licencias', 'Sources and licences')}</h2>
         <dl className="about-src">
           <div>
+            <dt>{L('Este juego', 'This game')}</dt>
+            <dd>
+              {L('Código libre:', 'Free software:')} <Out href={`${REPO}/blob/main/LICENSE`}>{L('licencia MIT', 'MIT licence')}</Out> ·{' '}
+              {L('los datos de los mapas siguen las condiciones de sus fuentes, que son estas', 'the data of the maps keep the terms of their sources, which are these')}
+            </dd>
+          </div>
+          <div>
             <dt>{L('Mapas, ciudades y geografía física', 'Maps, cities and physical geography')}</dt>
             <dd>
               <Out href="https://www.naturalearthdata.com/">Natural Earth</Out> · {L('dominio público', 'public domain')}
