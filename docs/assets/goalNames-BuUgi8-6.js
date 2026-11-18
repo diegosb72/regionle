@@ -1,1 +1,0 @@
-import{Yt as e}from"./store-B4detM_v.js";var t=()=>({loc:e(`Situar en el mapa`,`Placing on the map`),name:e(`Nombrar`,`Naming`),cap:e(`Capitales`,`Capitals`),flag:e(`Banderas`,`Flags`)});export{t};
