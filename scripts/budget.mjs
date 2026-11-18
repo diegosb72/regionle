@@ -13,7 +13,7 @@ import zlib from 'node:zlib';
 
 /** kB, compressed. */
 export const LIMITS = {
-  /** The page itself. */
+  /** The page itself: the heaviest of the pages of the site, which only differ in their head. */
   html: 5,
   /** Scripts fetched before anything is drawn: the entry and what it imports from the start. */
   script: 130,
@@ -50,8 +50,13 @@ const lazy = assets.filter((f) => f.endsWith('.js') && !first.script.includes(f)
 const heaviest = lazy.sort((a, b) => b.bytes - a.bytes)[0] ?? { file: '—', bytes: 0 };
 
 const sum = (files) => files.reduce((n, f) => n + gz(f), 0);
+const pages = fs
+  .readdirSync(out)
+  .filter((f) => f.endsWith('.html'))
+  .map((f) => ({ file: f, bytes: gz(f) }))
+  .sort((a, b) => b.bytes - a.bytes);
 const rows = [
-  ['html', 'página', zlib.gzipSync(html, { level: 9 }).length, 'index.html'],
+  ['html', 'página', pages[0].bytes, `${pages[0].file}, la mayor de ${pages.length}`],
   ['script', 'guiones de la primera carga', sum(first.script), `${first.script.length} archivos`],
   ['style', 'estilos', sum(first.style), `${first.style.length} archivos`],
   ['fonts', 'tipografías pedidas con la página', sum(first.fonts), `${first.fonts.length} archivos`],

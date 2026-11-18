@@ -20,7 +20,7 @@ Todo funciona en el navegador: no hay servidor, registro ni anuncios, y el progr
 - **Reto del día**: cada día un país y cinco pruebas cortas, las mismas para todo el mundo (adivinar una región por su silueta, señalar cinco, una ruta entre dos países, un país por su población y cinco preguntas de banderas y capitales). Hasta 100 puntos, racha, calendario con los días anteriores y resultado para compartir, como texto o como **imagen**: una tarjeta cuadrada con el país, su mapa, los puntos y las cinco pruebas, que se dibuja en el propio navegador (en el ordenador se descarga; en el móvil se comparte directamente).
 - **Sin límite**: todo lo demás se puede repetir, barajar y jugar en modo sin fin, en el que lo fallado vuelve a salir hasta que se acierta. **Regionle** es el juego clásico tantas veces como se quiera: una silueta, seis intentos y, en cada fallo, la distancia y la dirección. El modo Ruta conserva su «ruta del día» y, después, todas las rutas que se quieran.
 - **Aprender**: lecciones de cinco piezas nuevas. Primero se enseñan una a una, luego se pregunta dónde está cada una y cómo se llama, y al final se mezclan con las de lecciones anteriores. Lo que se falla vuelve a salir hasta que se acierta, y la lección siguiente empieza donde se dejó.
-- **Listas a medida**: se marcan en el mapa las piezas que se quieren practicar («las doce del examen del jueves»), se les pone nombre y se juega solo con ellas en cualquier modo. Una lista se comparte con un enlace que la contiene entera.
+- **Listas a medida**: se marcan en el mapa las piezas que se quieren practicar («las doce del examen del jueves»), se les pone nombre y se juega solo con ellas en cualquier modo. Una lista se comparte con un enlace que la contiene entera. La portada lo cuenta y `#/lista` explica cómo se hace una.
 - **Contrarreloj y supervivencia**: en Señalar, Identificar, Silueta, Puzle, Capitales y Banderas se puede jugar un minuto contra el reloj o hasta el tercer fallo, con un intento por pregunta y sin pistas. Se guarda el récord de cada mapa.
 - **Las preguntas no se contestan solas**: la respuesta se escribe (las cuatro opciones siguen en los ajustes). En Vecinos el mapa no dibuja las fronteras interiores y cada nombre se envía y se juzga; en Puzle, el puntero no ilumina las piezas del mapa mudo; las capitales que se llaman como su región o su país («Madrid», «Ciudad de México») no se preguntan, y con cuatro opciones tampoco las que se parecen a ella («Valencia», «Brasilia»); donde no hay tres capitales falsas que haya que saberse (Costa Rica, Portugal, Turquía…), la capital se escribe aunque se hayan pedido opciones; en los mapas físicos, las opciones falsas son del mismo tipo que la buena (ríos entre ríos).
 - **Abreviaturas y variantes al escribir**: además de por su nombre (con o sin tildes, en español, en inglés o en la lengua local), cada pieza responde a una lista de formas cortas y variantes.
@@ -31,8 +31,8 @@ Todo funciona en el navegador: no hay servidor, registro ni anuncios, y el progr
 - **Situar a ciegas**: el mapa no muestra ninguna ciudad y hay que hacer clic donde se cree que está. Cuenta la distancia en kilómetros, con un margen que depende del tamaño del mapa.
 - **Repaso espaciado**: cada respuesta vuelve cuando está a punto de olvidarse (al día siguiente, a los 3 días, a los 7, 16, 35 y 75); un fallo la trae de vuelta el mismo día. La portada propone el repaso de hoy, agrupado por mapas. Si una corrección de los datos retira algo que estaba pendiente (una ciudad que la fuente situaba en el país de al lado, la capital de una división que ya no existe), sale del repaso en lugar de quedarse pendiente para siempre.
 - **Filtros**: por continente y subregión, tipo de territorio, litoral, población, superficie y número de divisiones; atajos (Mundo, Unión Europea, hispanohablantes, G20…) y selecciones guardadas.
-- **Para estudiar**: cada respuesta enlaza con Wikipedia, OpenStreetMap y vídeos, y tiene un botón para **oír el nombre** con la voz del navegador; al fallar se muestra un resumen de Wikipedia con su foto (se puede desactivar), en el idioma del juego o, si ahí no hay artículo o no dice nada, en el otro; el modo Explorar muestra la ficha y los vecinos de cada pieza, y al terminar se puede repasar solo lo fallado.
-- **Retos por enlace**: al acabar una partida se puede enviar un enlace con las mismas preguntas en el mismo orden y el resultado que hay que superar. No hace falta servidor: todo viaja en el propio enlace.
+- **Para estudiar**: cada respuesta enlaza con Wikipedia, OpenStreetMap y vídeos, y tiene un botón para **oír el nombre** con la voz del navegador, que es un interruptor: mientras suena se ve y se anuncia (`aria-pressed`), y pulsarlo otra vez lo calla; al fallar se muestra un resumen de Wikipedia con su foto (se puede desactivar), en el idioma del juego o, si ahí no hay artículo o no dice nada, en el otro; el modo Explorar muestra la ficha y los vecinos de cada pieza, y al terminar se puede repasar solo lo fallado.
+- **Retos por enlace**: al acabar una partida se puede enviar un enlace con las mismas preguntas en el mismo orden y el resultado que hay que superar. No hace falta servidor: todo viaja en el propio enlace. El botón solo aparece al acabar una partida, así que la portada lo cuenta y `#/duelo` explica cómo se envía un reto y en qué juegos.
 - **Logros y niveles**: 29 logros (continentes completos, un país al detalle, rachas del reto diario, récords de cada modo…) y diez niveles, de Turista a Atlas viviente. Se calculan con lo que ya está guardado, así que quien jugaba antes empieza con lo que tenía ganado.
 - **Progreso**: nivel y logros, mapa de lo que se sabe (aprendido, aprendiendo, toca repasar), previsión de repasos de la semana, aciertos por habilidad, últimas partidas y récords, con exportación e importación en un archivo (incluye las listas y las abreviaturas de Configuración).
 - **Lo que más fallas** (en Progreso): las respuestas falladas dos veces o más que siguen sin salir, por su nombre y mapa por mapa, con las más falladas primero y un botón que abre una partida solo con ellas. Dos aciertos seguidos a la primera las sacan de la lista.
@@ -74,14 +74,38 @@ npm run dev        # http://localhost:5173
 
 #### Páginas, buscadores y enlaces compartidos
 
-La compilación escribe tres páginas que solo se distinguen en el idioma: `index.html`, `es.html` y `en.html`. Cada una lleva su título y su descripción, su dirección canónica, las otras dos como alternativas por idioma (`hreflang`), lo que leen las redes y la mensajería para enseñar el enlace con título, descripción e imagen (Open Graph y Twitter Card, con `social-es.png` o `social-en.png`, de 1200 × 630) y los datos estructurados del juego (`WebApplication`). Se escriben también `sitemap.xml`, con las tres, y `robots.txt`. El juego habla el idioma que se haya elegido en él; si no se ha elegido ninguno, el de la página por la que se entra (`en.html`, `es.html`) y, en la portada, el del navegador.
+La compilación escribe diecisiete páginas. Todas son el mismo juego: lo que cambia de una a otra es lo que dice la cabecera, que es lo que leen los buscadores y lo que enseña un enlace al compartirlo.
+
+- **Tres del juego**, que solo se distinguen en el idioma: `index.html`, `es.html` y `en.html`.
+- **Catorce de pantalla**, una por pantalla e idioma, que abren el juego directamente en ella:
+
+  | Pantalla | Español | Inglés |
+  | --- | --- | --- |
+  | Regiones | `regiones.html` | `regions.html` |
+  | Países | `paises.html` | `countries.html` |
+  | Ciudades | `ciudades.html` | `cities.html` |
+  | Geografía física | `fisica.html` | `physical.html` |
+  | Cifras | `cifras.html` | `figures.html` |
+  | Reto del día | `reto.html` | `daily.html` |
+  | Acerca de | `acerca.html` | `about.html` |
+
+Cada una lleva su título y su descripción, su dirección canónica, sus alternativas por idioma (`hreflang`), lo que leen las redes y la mensajería para enseñar el enlace con título, descripción e imagen (Open Graph y Twitter Card, con `social-es.png` o `social-en.png`, de 1200 × 630), los datos estructurados (`WebApplication` en las del juego; `WebPage` o `AboutPage` en las de pantalla, con el juego del que forman parte y su ruta de migas) y, para quien no ejecuta guiones, un texto que dice qué hay en ella. Se escriben también `sitemap.xml`, con las diecisiete, y `robots.txt`.
+
+Los nombres, los títulos y las descripciones están una sola vez, en `SCREENS` (`src/lib/seo.ts`): de ahí los toman la compilación, el título de la pestaña y el encabezado de cada sección. Una pantalla nueva con página propia es una entrada más en esa lista.
+
+Dentro del juego las pantallas siguen yendo en el `#` de la dirección. Una página de pantalla es la puerta de entrada a una de ellas:
+
+- `regiones.html` abre Regiones en español y `regions.html`, en inglés. Al pasar a otra pantalla la dirección queda en `es.html#/paises` (o `en.html#/…`), porque `regiones.html#/paises` nombraría dos pantallas; atrás y adelante funcionan.
+- El juego habla el idioma que se haya elegido en él; si no se ha elegido ninguno, el de la página por la que se entra y, en la portada, el del navegador. Quien tiene elegido el español y abre `regions.html` ve el juego en español y la dirección pasa a `regiones.html`; al cambiar de idioma en una página de pantalla se pasa a su gemela.
+- Las tarjetas de la portada y el enlace a «Acerca de» del pie apuntan a esas páginas (es lo que siguen los buscadores), pero un clic no recarga nada: se queda en el juego.
+- `#/regions`, `#/countries`, `#/figures` y los demás nombres en inglés valen también como direcciones.
 
 Todo eso lleva la dirección pública del sitio, que sale del campo `homepage` de `package.json`. Para publicar en otro lugar se cambia ahí o se da al compilar: `SITE_URL=https://ejemplo.org/juego/ npm run build`.
 
 Dos cosas no dependen del código:
 
 - Los buscadores solo leen el `robots.txt` de la raíz del dominio. En `usuario.github.io/regionle/` el que se genera no lo lee nadie (tampoco estorba, y vale tal cual si el juego se publica en un dominio propio). El mapa del sitio se da de alta a mano en Google Search Console o en Bing Webmaster Tools.
-- Las pantallas del juego van en el `#` de la dirección, que los buscadores no siguen: lo que se indexa es la portada, en sus dos idiomas.
+- Los buscadores no siguen lo que va detrás del `#`: lo que pueden indexar son esas diecisiete páginas. Progreso, Configuración, una partida y los retos y listas recibidos no tienen página propia: son de cada jugador.
 
 #### GitHub Pages
 
@@ -110,17 +134,18 @@ El último paso de la compilación (`scripts/pwa/build.mjs`) escribe en la carpe
 
 | Qué | Cuándo se guarda | Cómo se sirve |
 | --- | --- | --- |
-| **La aplicación**: las tres páginas, los guiones de todas las pantallas, los estilos, las tipografías y los iconos | En la primera visita, al instalarse el *service worker* | Siempre de la copia |
+| **La aplicación**: las tres páginas del juego, los guiones de todas las pantallas, los estilos, las tipografías y los iconos | En la primera visita, al instalarse el *service worker* | Siempre de la copia |
 | **El índice de países y el mapa del mundo** (`data/index.json` y `data/world.json`), sin los que el juego no abre | También al instalarse | Como los mapas: primero la red |
 | **Los mapas** de cada país y los demás archivos de `data/` | La primera vez que se usan, o todos de una vez con «Descargar todo» | Primero se piden a la red; si no responde (o tarda más de 2,5 s habiendo copia), la copia |
 | **Las banderas** (`flags/`) | Igual que los mapas | De la copia si la hay: no cambian |
 | `robots.txt`, `sitemap.xml` y las imágenes para redes | Nunca | De la red: no son para quien juega |
+| Las catorce **páginas de pantalla** (`regiones.html`, `regions.html`…) | Nunca | Con la página de su idioma, que abre esa pantalla: solo cambia la cabecera, que quien juega no lee |
 
 - Lo que se guarda al instalarse son unos 40 archivos, 1 MB comprimido, en una copia que se llama `regionle-shell-<versión>`. Una versión nueva se descarga entera aparte y **no sustituye a la anterior hasta que se acepta el aviso** «Hay una versión nueva»; entonces se recarga la página y se borra la copia vieja. Así no se mezclan nunca archivos de dos versiones.
 - Los mapas y las banderas están en otra copia, `regionle-data`, que se conserva de una versión a otra.
-- Una visita a `es.html` o a `en.html` recibe esa página; cualquier otra dirección del juego, `index.html`. Los archivos que no son páginas (el mapa del sitio, una imagen) se responden como lo que son.
+- Una visita a `es.html` o a `en.html` recibe esa página; una visita a la página de una pantalla, la de su idioma (`regions.html` recibe `en.html`, y el juego abre Regiones porque lee la dirección); cualquier otra dirección del juego, `index.html`. Los archivos que no son páginas (el mapa del sitio, una imagen) se responden como lo que son.
 - Una copia se busca solo por su dirección: no cuenta lo que vaya detrás de un `?` ni la cabecera `Vary` con la que algunos servidores acompañan todo lo que sirven.
-- Para verlo en local: `npm run build && npm run preview`, y en las herramientas del navegador, *Application → Service workers* y *Cache storage*. `npm run e2e` comprueba que el juego abre sin conexión, en los dos idiomas y en pantallas que aún no se habían visitado.
+- Para verlo en local: `npm run build && npm run preview`, y en las herramientas del navegador, *Application → Service workers* y *Cache storage*. `npm run e2e` comprueba que el juego abre sin conexión, en los dos idiomas, en pantallas que aún no se habían visitado y por la página de una pantalla.
 
 ### Versiones y novedades
 
@@ -134,8 +159,8 @@ La portada no descarga el juego entero: cada pantalla va en un archivo aparte qu
 
 | | Hoy | Límite |
 | --- | --- | --- |
-| La página | 2,5 kB | 5 kB |
-| Guiones de la primera carga | 114 kB | 130 kB |
+| La página (la mayor de las diecisiete) | 2,6 kB | 5 kB |
+| Guiones de la primera carga | 116 kB | 130 kB |
 | Estilos | 20 kB | 26 kB |
 | Tipografías pedidas con la página | 102 kB | 110 kB |
 | El mayor de los guiones que se piden después | 32 kB | 60 kB |
@@ -206,7 +231,7 @@ src/lib/           Tipos, carga de datos, geometría, texto, abreviaturas, idiom
 src/components/    Mapa (d3-geo + SVG) y su teclado, selector de países, campo de respuesta, ficha de Wikipedia, voz, logros, lista de teclas y su panel, aviso de error y carga de pantallas
 src/games/         Lógica y pantallas de cada modo
 src/daily/         Reto del día y la imagen de su resultado
-src/screens/       Inicio, preparación de la partida, partida, reto o lista recibidos, progreso, configuración, acerca de y dirección desconocida
+src/screens/       Inicio, preparación de la partida, partida, reto o lista recibidos (y cómo se hace cada cosa), progreso, configuración, acerca de y dirección desconocida
 src/styles.css     Hoja de estilos única
 CHANGELOG.md       Novedades de cada versión (se escribe a partir de src/lib/changelog.ts)
 ```
@@ -229,10 +254,11 @@ Hecho con React 19, TypeScript, Vite, d3-geo, TopoJSON y Zustand. Los textos de 
 - Los **picos y volcanes** son los que trae Natural Earth: faltan algunos conocidos (Annapurna, Cotopaxi, Santa Helena, Mauna Loa…) y no se han añadido a mano.
 - El botón de **oír el nombre** usa la voz que tenga el navegador para el idioma de la interfaz: los nombres que se conservan en su lengua (Bouches-du-Rhône) suenan con ese acento, y donde no hay voz instalada no se oye nada.
 - La ficha de Wikipedia y los enlaces externos necesitan conexión; sin ella, simplemente no aparecen.
+- La **ficha de Wikipedia** se localiza por el id de Wikidata de la pieza. Las piezas que el juego forma agrupando otras (las comunidades autónomas, las regiones de Francia o de Italia) no lo traen: para ellas se pregunta a Wikidata qué elemento tiene su código ISO 3166-2 (la propiedad P300) y, solo si la pieza no tiene código o Wikidata no lo conoce, se busca por el nombre, que es menos fiable («Canarias, España» daba con el Gobierno de Canarias antes que con las islas).
 - El reto del día se calcula en el dispositivo a partir de la fecha: es el mismo para todo el mundo, pero no hay clasificación ni se comprueba en ningún servidor.
 - La **imagen del resultado** se comparte como archivo donde el navegador sabe hacerlo (los móviles) y se descarga en los demás. El enlace de un reto enseña en redes la imagen general del juego, no la del resultado: para eso haría falta un servidor.
 - Con el **teclado**, el cursor del mapa va de pieza en pieza por cercanía: en un mapa de miles de piezas se tarda en llegar lejos (AvPág, Inicio y Fin ayudan). Un lector de pantalla oye el lugar de la pieza en la cuenta («Pieza, 6 de 19») mientras se pregunta por ella, y su nombre solo donde no es la respuesta.
-- Los **buscadores** solo ven la portada, en sus dos idiomas: las demás pantallas van en el `#` de la dirección. Es lo que permite que el juego funcione en cualquier carpeta de cualquier alojamiento estático y sin conexión.
+- Los **buscadores** ven la portada y una página por sección, por el reto del día y por «Acerca de», en los dos idiomas, y de cada una leen el título, la descripción y un párrafo: el contenido lo dibuja el juego al ejecutarse. Dentro del juego las pantallas siguen yendo en el `#` de la dirección, que es lo que permite que funcione en cualquier carpeta de cualquier alojamiento estático y sin conexión.
 
 ## Fuentes y licencias
 

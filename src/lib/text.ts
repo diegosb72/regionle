@@ -731,6 +731,11 @@ export class Matcher {
   }
 }
 
+/** Names in a row, the last one after a word: "Regiones, Países o Física". */
+export function listed(names: readonly string[], last: string): string {
+  return names.length > 1 ? `${names.slice(0, -1).join(', ')} ${last} ${names[names.length - 1]}` : names.join('');
+}
+
 // ---------------------------------------------------------------------------
 // Numbers
 // ---------------------------------------------------------------------------

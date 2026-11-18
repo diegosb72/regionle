@@ -1,31 +1,38 @@
 /** Title and description of each screen: what the tab, the history and a search engine say of it. */
 import { L, fmtDay, getLang } from './i18n';
-import { SECTIONS } from './modes';
-import type { Route } from './routes';
-import { SEO, pageTitle } from './seo';
+import { ABOUT_PATH, DAILY_PATH, PATHS, type Route } from './routes';
+import { SCREENS, SEO, pageTitle, type ScreenId } from './seo';
 import { today } from './text';
+
+/**
+ * The screen of a route that has a page of its own (`regiones.html`), whose name and description are the
+ * ones that page is written with; null for the rest. A past day's challenge is not the screen of today's.
+ */
+function screenOf(route: Route, now: string): ScreenId | null {
+  if (route.kind === 'section') return PATHS[route.section];
+  if (route.kind === 'daily') return route.date === now ? DAILY_PATH : null;
+  return route.kind === 'about' ? ABOUT_PATH : null;
+}
 
 /** The name of a screen, as its title starts. Null for the first page, which goes by the name of the game. */
 export function routeName(route: Route, now: string = today()): string | null {
+  const screen = screenOf(route, now);
+  if (screen) return SCREENS[screen][getLang()].name;
   switch (route.kind) {
     case 'home':
       return null;
-    case 'section':
-      return SECTIONS[route.section].title;
     case 'play':
       return L('Partida', 'Game');
     case 'daily':
-      return route.date === now ? L('Reto del día', 'Daily challenge') : `${L('Reto del', 'Challenge of')} ${fmtDay(route.date, true)}`;
+      return `${L('Reto del', 'Challenge of')} ${fmtDay(route.date, true)}`;
     case 'duel':
-      return L('Reto recibido', 'Challenge received');
+      return route.code ? L('Reto recibido', 'Challenge received') : L('Retos entre dos', 'Challenges for two');
     case 'list':
-      return L('Lista recibida', 'List received');
+      return route.code ? L('Lista recibida', 'List received') : L('Listas a medida', 'Custom lists');
     case 'progress':
       return L('Progreso', 'Progress');
     case 'settings':
       return L('Configuración', 'Settings');
-    case 'about':
-      return L('Acerca de', 'About');
     default:
       return L('Dirección desconocida', 'Unknown address');
   }
@@ -36,23 +43,10 @@ export function routeTitle(route: Route, now?: string): string {
   return name ? pageTitle(name) : SEO[getLang()].title;
 }
 
-export function routeDescription(route: Route): string {
-  switch (route.kind) {
-    case 'section':
-      return `${SECTIONS[route.section].blurb} Regionle ∞.`;
-    case 'daily':
-      return L(
-        'El reto del día de Regionle ∞: un país y cinco pruebas, las mismas para todo el mundo, con puntos, racha y resultado para compartir.',
-        'The daily challenge of Regionle ∞: one country and five tests, the same for everyone, with points, a streak and a result to share.',
-      );
-    case 'about':
-      return L(
-        'Acerca de Regionle ∞: novedades de cada versión, atajos de teclado, qué datos se guardan y dónde, y fuentes y licencias.',
-        'About Regionle ∞: what each version brought, keyboard shortcuts, what data is kept and where, and sources and licences.',
-      );
-    default:
-      return SEO[getLang()].description;
-  }
+export function routeDescription(route: Route, now: string = today()): string {
+  // The challenge of any day is described as the challenge is.
+  const screen = route.kind === 'daily' ? DAILY_PATH : screenOf(route, now);
+  return screen ? SCREENS[screen][getLang()].description : SEO[getLang()].description;
 }
 
 /** Writes them into the page. */

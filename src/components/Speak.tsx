@@ -24,7 +24,7 @@ function voiceFor(tag: string): SpeechSynthesisVoice | undefined {
 export function speak(text: string, onEnd?: () => void): void {
   if (!canSpeak()) return onEnd?.();
   const synth = window.speechSynthesis;
-  // One name at a time: a second click starts over instead of queueing.
+  // One name at a time: the loudspeaker of another name takes the voice instead of waiting for its turn.
   synth.cancel();
   const said = new window.SpeechSynthesisUtterance(text);
   const tag = getLang() === 'en' ? 'en-GB' : 'es-ES';
@@ -37,33 +37,57 @@ export function speak(text: string, onEnd?: () => void): void {
   synth.speak(said);
 }
 
+/**
+ * The loudspeaker next to a name. It is a switch: on while the name is being said (`aria-pressed`, so that a
+ * screen reader says it too), and pressing it then stops the voice.
+ */
 export function SpeakButton({ text, className }: { text: string; className?: string }) {
   const [busy, setBusy] = useState(false);
   const timer = useRef(0);
+  /** Which time of saying it is the current one: the end of an earlier one must not switch this one off. */
+  const turn = useRef(0);
   // Whatever is being said stops when the button goes away with its question.
   useEffect(
     () => () => {
+      turn.current++;
       clearTimeout(timer.current);
       if (canSpeak()) window.speechSynthesis.cancel();
     },
     [],
   );
   if (!canSpeak()) return null;
-  const label = L(`Escuchar «${text}»`, `Listen to “${text}”`);
+
+  const stop = () => {
+    turn.current++;
+    clearTimeout(timer.current);
+    window.speechSynthesis.cancel();
+    setBusy(false);
+  };
+  const start = () => {
+    const mine = ++turn.current;
+    const done = () => {
+      if (turn.current !== mine) return;
+      clearTimeout(timer.current);
+      setBusy(false);
+    };
+    setBusy(true);
+    speak(text, done);
+    // A device without a voice for the language never says it has finished: the button must not stay lit.
+    clearTimeout(timer.current);
+    timer.current = window.setTimeout(done, 6000);
+  };
+
   return (
     <button
       type="button"
       className={cx('speak', busy && 'on', className)}
-      aria-label={label}
+      aria-label={L(`Escuchar «${text}»`, `Listen to “${text}”`)}
       aria-pressed={busy}
-      title={busy ? L('Sonando…', 'Playing…') : L('Escuchar el nombre', 'Listen to the name')}
+      title={busy ? L('Sonando: pulsa para parar', 'Playing: press to stop') : L('Escuchar el nombre', 'Listen to the name')}
       onClick={(e) => {
         e.stopPropagation();
-        setBusy(true);
-        speak(text, () => setBusy(false));
-        // A device without a voice for the language never says it has finished: the button must not stay lit.
-        clearTimeout(timer.current);
-        timer.current = window.setTimeout(() => setBusy(false), 6000);
+        if (busy) stop();
+        else start();
       }}
     >
       <Volume2 size={16} aria-hidden="true" />

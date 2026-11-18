@@ -29,7 +29,7 @@
     <meta name="twitter:description" content="Regionle ∞: juego de geografía sin límites para aprender los países del mundo y sus regiones, capitales, banderas, ciudades, ríos, mares y montañas." />
     <meta name="twitter:image" content="https://diegosb72.github.io/regionle/social-es.png" />
     <meta name="twitter:image:alt" content="Regionle ∞: el mapa del mundo, pieza a pieza. Un mapamundi con algunos países coloreados." />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Regionle ∞","url":"https://diegosb72.github.io/regionle/es.html","description":"Regionle ∞: juego de geografía sin límites para aprender los países del mundo y sus regiones, capitales, banderas, ciudades, ríos, mares y montañas.","inLanguage":"es","applicationCategory":"EducationalApplication","genre":["Geografía","Educación"],"operatingSystem":"Any","browserRequirements":"Requires JavaScript","softwareVersion":"1.5.0","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"image":"https://diegosb72.github.io/regionle/social-es.png"}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Regionle ∞","url":"https://diegosb72.github.io/regionle/es.html","description":"Regionle ∞: juego de geografía sin límites para aprender los países del mundo y sus regiones, capitales, banderas, ciudades, ríos, mares y montañas.","inLanguage":"es","applicationCategory":"EducationalApplication","genre":["Geografía","Educación"],"operatingSystem":"Any","browserRequirements":"Requires JavaScript","softwareVersion":"1.6.0","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"image":"https://diegosb72.github.io/regionle/social-es.png"}</script>
     <!--/seo-->
     <meta name="theme-color" content="#f4efe6" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0e1a21" media="(prefers-color-scheme: dark)" />
@@ -46,25 +46,27 @@
         window.__regionleIndex.catch(function () {});
       } catch (e) {}
     </script>
-    <script type="module" crossorigin src="./assets/index-BTLWY868.js"></script>
+    <script type="module" crossorigin src="./assets/index-DHHz0S1g.js"></script>
     <link rel="modulepreload" crossorigin href="./assets/rolldown-runtime-WkwZ5CU-.js">
     <link rel="modulepreload" crossorigin href="./assets/react-CenYa1ns.js">
     <link rel="modulepreload" crossorigin href="./assets/icons-BtBqBJ-l.js">
-    <link rel="modulepreload" crossorigin href="./assets/ui-M_Ok0a9r.js">
-    <link rel="stylesheet" crossorigin href="./assets/index-BujQpBzK.css">
+    <link rel="modulepreload" crossorigin href="./assets/ui-DTcTH133.js">
+    <link rel="stylesheet" crossorigin href="./assets/index-r78rwMOn.css">
     <link rel="preload" as="font" type="font/woff2" crossorigin href="./assets/dm-sans-latin-wght-normal-Xz1IZZA0.woff2">
     <link rel="preload" as="font" type="font/woff2" crossorigin href="./assets/fraunces-latin-opsz-normal-DihXLNYH.woff2">
   </head>
   <body>
     <script>
       // Before the first paint, to avoid a flash: the theme, and the language the page is going to speak
-      // (the one chosen; else the one of the page, en.html or es.html; else the browser's).
+      // (the one chosen; else the one of the page, en.html or es.html and the pages of each screen in that
+      // language, which are the ones of src/lib/seo.ts; else the browser's).
       try {
         var saved = (JSON.parse(localStorage.getItem('regionle:v1') || '{}').state || {});
         var theme = saved.theme || 'auto';
         document.documentElement.dataset.theme = theme === 'auto' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme;
-        var page = /\/(es|en)(?:\.html)?$/.exec(location.pathname);
-        var lang = saved.lang === 'es' || saved.lang === 'en' ? saved.lang : page ? page[1] : '';
+        var name = (/\/([a-z]+)(?:\.html)?$/.exec(location.pathname) || [])[1] || '';
+        var page = /^(en|regions|countries|cities|physical|figures|daily|about)$/.test(name) ? 'en' : /^(es|regiones|paises|ciudades|fisica|cifras|reto|acerca)$/.test(name) ? 'es' : '';
+        var lang = saved.lang === 'es' || saved.lang === 'en' ? saved.lang : page;
         if (!lang) {
           lang = 'es';
           var asked = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language];

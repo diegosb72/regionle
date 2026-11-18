@@ -38,27 +38,62 @@ interface Article {
 }
 
 /**
- * The articles about an item, the one in the language of the interface first. With a Wikidata id they are
- * the ones linked to it, in either language; without one, whatever a search by name finds in the
- * language of the interface (the names are only known in that one, so the other is not searched).
+ * The code a piece has in ISO 3166-2 ("ES-CN", "IT-21"), which is what the id of a subdivision is unless
+ * the game had to make one up (those carry a small x, a "~" or a second hyphen).
  */
-async function articlesOf(item: Item, lang: Lang): Promise<Article[]> {
+export function isoCodeOf(item: Pick<Item, 'id' | 'kind'>): string | null {
+  return item.kind === 'unit' && /^[A-Z]{2}-[A-Z0-9]{1,3}$/.test(item.id) ? item.id : null;
+}
+
+/** The articles linked to a Wikidata item, the one in the language of the interface first. */
+async function linkedTo(wd: string, lang: Lang): Promise<Article[]> {
   const other: Lang = lang === 'es' ? 'en' : 'es';
-  if (item.wd) {
-    const data = (await getJson(`https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${item.wd}&props=sitelinks&sitefilter=${lang}wiki%7C${other}wiki&format=json&origin=*`)) as {
-      entities?: Record<string, { sitelinks?: Record<string, { title?: string }> }>;
-    };
-    const links = data.entities?.[item.wd]?.sitelinks ?? {};
-    return [lang, other].flatMap((l) => {
-      const title = links[`${l}wiki`]?.title;
-      return title ? [{ title, lang: l }] : [];
-    });
-  }
+  const data = (await getJson(`https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${wd}&props=sitelinks&sitefilter=${lang}wiki%7C${other}wiki&format=json&origin=*`)) as {
+    entities?: Record<string, { sitelinks?: Record<string, { title?: string }> }>;
+  };
+  const links = data.entities?.[wd]?.sitelinks ?? {};
+  return [lang, other].flatMap((l) => {
+    const title = links[`${l}wiki`]?.title;
+    return title ? [{ title, lang: l }] : [];
+  });
+}
+
+/** The Wikidata item that carries a code of ISO 3166-2 (its property P300); null when none does. */
+async function itemOfCode(code: string): Promise<string | null> {
+  const data = (await getJson(`https://www.wikidata.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(`haswbstatement:P300=${code}`)}&srnamespace=0&srlimit=1&format=json&origin=*`)) as {
+    query?: { search?: { title?: string }[] };
+  };
+  const title = data.query?.search?.[0]?.title;
+  return title && /^Q\d+$/.test(title) ? title : null;
+}
+
+/** Whatever a search by name finds in the language of the interface (the names are only known in that one, so the other is not searched). */
+async function named(item: Item, lang: Lang): Promise<Article[]> {
   const data = (await getJson(`https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(placeQuery(item))}&srlimit=1&srnamespace=0&format=json&origin=*`)) as {
     query?: { search?: { title?: string }[] };
   };
   const title = data.query?.search?.[0]?.title;
   return title ? [{ title, lang }] : [];
+}
+
+/**
+ * The articles about an item, the one in the language of the interface first. With a Wikidata id they are
+ * the ones linked to it, in either language. Without one (the groupings made here out of smaller pieces:
+ * the autonomous communities of Spain, the regions of France or Italy), Wikidata is asked which item has
+ * the code of the piece, which is exact; a search by name, which is not ("Canarias, España" finds the
+ * government of the islands before the islands), is left for the pieces that have no code either, and for
+ * when that question finds nothing.
+ */
+async function articlesOf(item: Item, lang: Lang): Promise<Article[]> {
+  if (item.wd) return linkedTo(item.wd, lang);
+  const code = isoCodeOf(item);
+  if (code) {
+    const found = await itemOfCode(code)
+      .then((wd) => (wd ? linkedTo(wd, lang) : []))
+      .catch(() => []);
+    if (found.length) return found;
+  }
+  return named(item, lang);
 }
 
 /** Two or three sentences are enough next to a question. */

@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react';
 import type { Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
 import { RELEASES } from './src/lib/changelog.ts';
-import { LANG_PAGE, SEO_LANGS, localise, robots, siteUrl, sitemap, type SeoPage } from './src/lib/seo.ts';
+import { SITE_PAGES, localise, pageFile, pageNamed, robots, siteUrl, sitemap } from './src/lib/seo.ts';
 
 const FLAG_DIR = path.resolve(process.cwd(), 'node_modules/flag-icons/flags/4x3');
 
@@ -50,9 +50,13 @@ const FIRST_FONTS = /^assets\/(dm-sans-latin-wght-normal|fraunces-latin-opsz-nor
  *  · `index.html` gets its title, description, canonical address, card and schema.org data (`src/lib/seo.ts`);
  *  · `es.html` and `en.html` are the same page written for one language (the game opened from them speaks it
  *    to whoever has not chosen another), each pointing at the others with `hreflang`;
+ *  · each screen with something of its own to say has its page in each language (`regiones.html`,
+ *    `regions.html`…): the same page again with the title and the description of that screen, which the
+ *    game opens on. What comes after `#` never reaches a server, so they are the only way a search engine,
+ *    or the card of a link, gets to speak of a screen;
  *  · `sitemap.xml` and `robots.txt` list them.
  *
- * While developing, `/es.html` and `/en.html` are answered with the page of that language too.
+ * While developing, the address of any of those pages is answered with that page too.
  */
 function pages(): Plugin {
   return {
@@ -61,12 +65,12 @@ function pages(): Plugin {
     transformIndexHtml: {
       order: 'post',
       handler(html, ctx) {
-        const asked = /\/(es|en)\.html(?:$|[?#])/.exec(ctx.originalUrl ?? '');
+        const asked = /\/([a-z]+)\.html(?:$|[?#])/.exec(ctx.originalUrl ?? '');
         const fonts = Object.keys(ctx.bundle ?? {})
           .filter((file) => FIRST_FONTS.test(file))
           .sort();
         return {
-          html: localise(html, (asked?.[1] as SeoPage | undefined) ?? 'index', SITE, pkg.version),
+          html: localise(html, (asked && pageNamed(asked[1])) || 'index', SITE, pkg.version),
           tags: fonts.map((file) => ({ tag: 'link', attrs: { rel: 'preload', as: 'font', type: 'font/woff2', crossorigin: true, href: `./${file}` }, injectTo: 'head' as const })),
         };
       },
@@ -75,7 +79,7 @@ function pages(): Plugin {
       const index = bundle['index.html'];
       if (!index || index.type !== 'asset') return;
       const html = String(index.source);
-      for (const lang of SEO_LANGS) this.emitFile({ type: 'asset', fileName: LANG_PAGE[lang], source: localise(html, lang, SITE, pkg.version) });
+      for (const page of SITE_PAGES) if (page !== 'index') this.emitFile({ type: 'asset', fileName: pageFile(page), source: localise(html, page, SITE, pkg.version) });
       if (!SITE) {
         this.warn('No se sabe dónde se publica el sitio ("homepage" en package.json o SITE_URL): no se escriben canonical, Open Graph, sitemap.xml ni robots.txt.');
         return;

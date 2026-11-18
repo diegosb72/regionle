@@ -8,13 +8,16 @@
  *    installed and served from that copy: it opens without a connection, and a new version only takes
  *    over when the player accepts it. The scripts of every screen are stored then too, although each
  *    one is only run when its screen is first opened.
+ *  · The page of a screen (regiones.html, regions.html…) is the page of its language with another head,
+ *    which only search engines read: it is not stored, and a visit to it gets the page of its language,
+ *    where the game opens that screen by the address it was asked for.
  *  · The maps of each country and the other data files are asked to the network first, so that they
  *    are always the current ones, and kept: without a connection, the copy is used.
  *  · Flags never change: the copy is used whenever there is one.
  */
-const VERSION = "27b408ad1ed3";
+const VERSION = "d092006da75a";
 /** Files of the application, relative to the folder the site is served from. */
-const SHELL = ["assets/About-mJ0RiH9Q.js","assets/Daily-_6gqk2PA.js","assets/Duel-AoHHUjfP.js","assets/KeyHelp-2qdQMJ4E.js","assets/ListLink-BWhpZxsy.js","assets/Play-C7WuoulZ.js","assets/Progress-C8M8OJLI.js","assets/Settings-C35MhAxr.js","assets/Setup-CU0HRIyj.js","assets/Travel-B408c_Lx.js","assets/challenge-B31f1ljy.js","assets/data-o76_BG8E.js","assets/decks-Dqy_UEIJ.js","assets/dm-sans-latin-ext-wght-normal-BOFOeGcA.woff2","assets/dm-sans-latin-wght-normal-Xz1IZZA0.woff2","assets/extra-DRWIBQVY.js","assets/fraunces-latin-ext-opsz-normal-CJcjJNj7.woff2","assets/fraunces-latin-ext-wght-italic-BfTTTDIL.woff2","assets/fraunces-latin-opsz-normal-DihXLNYH.woff2","assets/fraunces-latin-wght-italic-Py8at3oI.woff2","assets/fraunces-vietnamese-opsz-normal-Czevyj-6.woff2","assets/fraunces-vietnamese-wght-italic-BicUS2cM.woff2","assets/icons-BtBqBJ-l.js","assets/index-BTLWY868.js","assets/index-BujQpBzK.css","assets/lists-Ddzj5Glj.js","assets/map-DT_mbZ53.js","assets/quiz-Bbcw0fBY.js","assets/react-CenYa1ns.js","assets/rolldown-runtime-WkwZ5CU-.js","assets/typeinList-CWGLtIUf.js","assets/ui-M_Ok0a9r.js","data/index.json","data/world.json","en.html","es.html","icons/apple-touch-icon.png","icons/icon-192.png","icons/icon-512.png","icons/icon.svg","icons/maskable-512.png","index.html","manifest.webmanifest","offline.json"];
+const SHELL = ["assets/About-DpbQraZx.js","assets/Daily-DfnrcztT.js","assets/Duel-cYiQAJeL.js","assets/KeyHelp-DSsA4QQW.js","assets/ListLink-gzQNl9bH.js","assets/Play-ddKatZFa.js","assets/Progress-DkVsvbdH.js","assets/Settings-C4MxYKJ0.js","assets/Setup-Bkia2enm.js","assets/Travel-8OPzBY_7.js","assets/challenge-DGJbiwxx.js","assets/data-D-jv8Mkm.js","assets/decks-DUWMJWJm.js","assets/dm-sans-latin-ext-wght-normal-BOFOeGcA.woff2","assets/dm-sans-latin-wght-normal-Xz1IZZA0.woff2","assets/extra-Cw3aCFi5.js","assets/fraunces-latin-ext-opsz-normal-CJcjJNj7.woff2","assets/fraunces-latin-ext-wght-italic-BfTTTDIL.woff2","assets/fraunces-latin-opsz-normal-DihXLNYH.woff2","assets/fraunces-latin-wght-italic-Py8at3oI.woff2","assets/fraunces-vietnamese-opsz-normal-Czevyj-6.woff2","assets/fraunces-vietnamese-wght-italic-BicUS2cM.woff2","assets/icons-BtBqBJ-l.js","assets/index-DHHz0S1g.js","assets/index-r78rwMOn.css","assets/lists-CGX5gIKG.js","assets/map-DT_mbZ53.js","assets/quiz-30kzbhz_.js","assets/react-CenYa1ns.js","assets/rolldown-runtime-WkwZ5CU-.js","assets/typeinList-L5A7d-dN.js","assets/ui-DTcTH133.js","data/index.json","data/world.json","en.html","es.html","icons/apple-touch-icon.png","icons/icon-192.png","icons/icon-512.png","icons/icon.svg","icons/maskable-512.png","index.html","manifest.webmanifest","offline.json"];
 /** The ones whose name does not change with their content: fetched past the browser's own cache. */
 const FRESH = ["en.html","es.html","icons/apple-touch-icon.png","icons/icon-192.png","icons/icon-512.png","icons/icon.svg","icons/maskable-512.png","index.html","manifest.webmanifest","offline.json"];
 
@@ -24,8 +27,11 @@ const DATA_CACHE = 'regionle-data';
 const scope = new URL(self.registration.scope);
 /** How long a slow network is waited for when there is a copy at hand. */
 const PATIENCE = 2500;
-/** The page of each language, as it is asked for with and without its extension: the rest of the visits get the first page. */
-const PAGES = { 'es.html': 'es.html', es: 'es.html', 'en.html': 'en.html', en: 'en.html' };
+/**
+ * The page that answers a visit to each page of the site, as it is asked for with and without its
+ * extension: that of its language. The rest of the visits get the first page.
+ */
+const PAGES = {"en":"en.html","en.html":"en.html","es":"es.html","es.html":"es.html","about":"en.html","about.html":"en.html","acerca":"es.html","acerca.html":"es.html","cifras":"es.html","cifras.html":"es.html","cities":"en.html","cities.html":"en.html","ciudades":"es.html","ciudades.html":"es.html","countries":"en.html","countries.html":"en.html","daily":"en.html","daily.html":"en.html","figures":"en.html","figures.html":"en.html","fisica":"es.html","fisica.html":"es.html","paises":"es.html","paises.html":"es.html","physical":"en.html","physical.html":"en.html","regiones":"es.html","regiones.html":"es.html","regions":"en.html","regions.html":"en.html","reto":"es.html","reto.html":"es.html"};
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

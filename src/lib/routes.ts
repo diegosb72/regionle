@@ -3,19 +3,20 @@
  * browser, so that it can be tested as it is.
  */
 import { dayNumber, isDate } from '../daily/spec';
+import { LANG_PAGE, SCREENS, pageNamed, type ScreenId, type SeoLang } from './seo';
 import { today } from './text';
 import type { Section } from './types';
 
-/** Address of each section; the same in every language, so that links keep working. */
-export const PATHS: Record<Section, string> = { regions: 'regiones', countries: 'paises', cities: 'ciudades', physical: 'fisica', pops: 'poblaciones' };
+/** Address of each section; the same in every language, so that links keep working. Each one has its page too (`seo.ts`). */
+export const PATHS: Record<Section, ScreenId> = { regions: 'regiones', countries: 'paises', cities: 'ciudades', physical: 'fisica', pops: 'poblaciones' };
 
 export const PLAY_PATH = 'jugar';
-export const DAILY_PATH = 'reto';
+export const DAILY_PATH = 'reto' satisfies ScreenId;
 export const DUEL_PATH = 'duelo';
 export const LIST_PATH = 'lista';
 export const PROGRESS_PATH = 'progreso';
 export const SETTINGS_PATH = 'configuracion';
-export const ABOUT_PATH = 'acerca';
+export const ABOUT_PATH = 'acerca' satisfies ScreenId;
 
 export type Route =
   | { kind: 'home' }
@@ -23,9 +24,9 @@ export type Route =
   | { kind: 'play' }
   /** `#/reto` is today's challenge; `#/reto/2026-11-10`, a past one. */
   | { kind: 'daily'; date: string }
-  /** `#/duelo/<code>`: a game sent by someone else. */
+  /** `#/duelo/<code>`: a game sent by someone else. Without a code, the screen that says how one is sent. */
   | { kind: 'duel'; code: string }
-  /** `#/lista/<code>`: a custom list sent by someone else. */
+  /** `#/lista/<code>`: a custom list sent by someone else. Without a code, the screen that says how one is made. */
   | { kind: 'list'; code: string }
   | { kind: 'progress' }
   /** `#/configuracion`, or `#/configuracion/regiones/US` to open the settings on a list. */
@@ -124,9 +125,9 @@ export function routeOf(path: string, now: string = today()): Route {
       // A date that is not one, or a day that has not come: today's challenge.
       return { kind: 'daily', date: isDate(rest) && dayNumber(rest) >= 0 && rest <= now ? rest : now };
     case DUEL_PATH:
-      return rest ? { kind: 'duel', code: rest } : { kind: 'unknown', path };
+      return { kind: 'duel', code: rest };
     case LIST_PATH:
-      return rest ? { kind: 'list', code: rest } : { kind: 'unknown', path };
+      return { kind: 'list', code: rest };
     case PROGRESS_PATH:
       return rest ? { kind: 'unknown', path } : { kind: 'progress' };
     case SETTINGS_PATH:
@@ -138,15 +139,34 @@ export function routeOf(path: string, now: string = today()): Route {
   }
 }
 
-/** The language a page is written for: `…/en.html` is the game in English, `…/es.html` in Spanish. */
-export function pageLang(pathname: string): 'es' | 'en' | null {
-  const m = /\/(es|en)(?:\.html)?$/.exec(pathname);
-  return m ? (m[1] as 'es' | 'en') : null;
+/** The page an address is of, by the name its last part has: `…/en.html`, `…/regions`. Null for the first page. */
+const pageAt = (pathname: string) => pageNamed(/\/([a-z]+)(?:\.html)?$/.exec(pathname)?.[1] ?? '');
+
+/**
+ * The language a page is written for: `…/en.html` is the game in English and `…/es.html` in Spanish, and
+ * so is the page of each screen (`…/regions.html`, `…/regiones.html`).
+ */
+export function pageLang(pathname: string): SeoLang | null {
+  const page = pageAt(pathname);
+  return page ? (typeof page === 'string' ? page : page.lang) : null;
 }
+
+/** The screen a page opens when nothing comes after `#`, as its address in the game: `…/regions.html` is `regiones`. */
+export function pageScreen(pathname: string): ScreenId | null {
+  const page = pageAt(pathname);
+  return page && typeof page !== 'string' ? page.screen : null;
+}
+
+/** The page of a screen in a language, as a link from any page of the site: `regions.html`. */
+export const screenPage = (screen: ScreenId, lang: SeoLang): string => `${SCREENS[screen][lang].file}.html`;
+
+/** The page of a language, as a link from any page of the site: `en.html`. */
+export const langPage = (lang: SeoLang): string => LANG_PAGE[lang];
 
 /**
  * Where the game lives, without anything after it: the links that are sent to others start here. The
- * page of one language is left out of them, so that they open in the language of whoever gets them.
+ * page of one language or of one screen is left out of them, so that they open in the language of whoever
+ * gets them.
  */
 export function siteRoot(href: string = typeof location === 'undefined' ? '' : location.href): string {
   if (!href) return '';
@@ -154,7 +174,7 @@ export function siteRoot(href: string = typeof location === 'undefined' ? '' : l
     const url = new URL(href);
     url.hash = '';
     url.search = '';
-    url.pathname = url.pathname.replace(/\/(es|en)(?:\.html)?$/, '/');
+    if (pageAt(url.pathname)) url.pathname = url.pathname.replace(/[^/]+$/, '');
     return url.href;
   } catch {
     return href.split(/[?#]/)[0];

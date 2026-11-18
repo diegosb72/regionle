@@ -1,4 +1,4 @@
-import { ArrowRight, BookOpen, CalendarClock, Filter, Infinity as InfinityIcon, Star, X } from 'lucide-react';
+import { ArrowRight, BookOpen, CalendarClock, Filter, Infinity as InfinityIcon, ListChecks, Star, Swords, X } from 'lucide-react';
 import { useMemo } from 'react';
 import { LevelChip } from '../components/Badges';
 import { ReviewCard } from '../components/ReviewCard';
@@ -9,8 +9,8 @@ import { commonPlace, type World } from '../lib/world';
 import { L, getLang } from '../lib/i18n';
 import { MODES, MODE_NAME, SECTIONS, SECTION_IDS, formatName } from '../lib/modes';
 import { recentKey, type Recent } from '../lib/recent';
-import { go } from '../lib/router';
-import { PATHS, PLAY_PATH } from '../lib/routes';
+import { go, inGame } from '../lib/router';
+import { DUEL_PATH, LIST_PATH, PATHS, PLAY_PATH, screenPage } from '../lib/routes';
 import { useStore, type Fav } from '../lib/store';
 import { nf } from '../lib/text';
 import type { Mode, Section } from '../lib/types';
@@ -289,7 +289,8 @@ export function Home({ world }: { world: World }) {
         {SECTION_IDS.map((id, i) => {
           const s = SECTIONS[id];
           return (
-            <a key={id} className="scard" href={`#/${s.path}`}>
+            // Written as the page of the section, which a search engine can follow; a click moves inside the game.
+            <a key={id} className="scard" href={screenPage(PATHS[id], getLang())} onClick={inGame(s.path)}>
               <span className="scard-n">{String(i + 1).padStart(2, '0')}</span>
               <h2>{id === 'physical' ? L('Geografía física', 'Physical geography') : s.name}</h2>
               <p>{s.blurb}</p>
@@ -359,6 +360,29 @@ export function Home({ world }: { world: World }) {
               'Cada respuesta enlaza con Wikipedia, el mapa y vídeos para estudiar. Tu progreso se guarda en este navegador, sin registro.',
               'Every answer links to Wikipedia, the map and videos to study. Your progress is kept in this browser, with no sign-up.',
             )}
+          </p>
+        </article>
+        {/* What can be done with someone else: neither shows until a game is over or a list is made, so it is told here. */}
+        <article>
+          <Swords size={22} aria-hidden="true" />
+          <h3>{L('Reta a quien quieras', 'Challenge anyone you like')}</h3>
+          <p>
+            {L(
+              'Al acabar una partida, «Retar a alguien» crea un enlace con tus mismas preguntas y tu resultado: quien lo abre juega contra ti, cuando quiera.',
+              'At the end of a game, “Challenge someone” makes a link with your own questions and your result: whoever opens it plays against you, whenever they like.',
+            )}{' '}
+            <a href={`#/${DUEL_PATH}`}>{L('Cómo funcionan los retos', 'How challenges work')}</a>
+          </p>
+        </article>
+        <article>
+          <ListChecks size={22} aria-hidden="true" />
+          <h3>{L('Listas para pasar', 'Lists to pass on')}</h3>
+          <p>
+            {L(
+              'Haz una lista con las piezas que tú elijas, las del examen del jueves o las de un viaje, y pásala con un enlace para que otros jueguen con ella.',
+              'Make a list with the pieces you choose, the ones for Thursday’s exam or for a trip, and pass it on with a link for others to play.',
+            )}{' '}
+            <a href={`#/${LIST_PATH}`}>{L('Cómo se hace una lista', 'How to make a list')}</a>
           </p>
         </article>
       </section>

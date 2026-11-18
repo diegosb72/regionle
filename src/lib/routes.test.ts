@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { PATHS, canonicalPath, linkTo, pageLang, routeOf, siteRoot } from './routes';
+import { PATHS, canonicalPath, langPage, linkTo, pageLang, pageScreen, routeOf, screenPage, siteRoot } from './routes';
+import { SCREENS, SCREEN_IDS, SEO_LANGS } from './seo';
 
 describe('addresses', () => {
   it('leaves the addresses of the game as they are', () => {
@@ -49,6 +50,9 @@ describe('screens', () => {
     expect(routeOf('configuracion/regiones/US', now)).toEqual({ kind: 'settings', path: 'regiones/US' });
     expect(routeOf('duelo/abc', now)).toEqual({ kind: 'duel', code: 'abc' });
     expect(routeOf('lista/abc/def', now)).toEqual({ kind: 'list', code: 'abc/def' });
+    // Without a code, the screen that says what a duel or a list is and how one is sent.
+    expect(routeOf('duelo', now)).toEqual({ kind: 'duel', code: '' });
+    expect(routeOf('lista', now)).toEqual({ kind: 'list', code: '' });
   });
 
   it('opens the challenge of a past day, and today instead of a day that is not one', () => {
@@ -61,7 +65,7 @@ describe('screens', () => {
   });
 
   it('says so when an address is nothing', () => {
-    for (const path of ['nada', 'regiones/ES', 'jugar/ya', 'duelo', 'lista', 'progreso/x']) expect(routeOf(path, now)).toEqual({ kind: 'unknown', path });
+    for (const path of ['nada', 'regiones/ES', 'jugar/ya', 'progreso/x', 'contenido']) expect(routeOf(path, now)).toEqual({ kind: 'unknown', path });
     // What the audit typed is not unknown once it has been put right.
     expect(routeOf(canonicalPath('fisico'), now)).toEqual({ kind: 'section', section: 'physical' });
     expect(routeOf(canonicalPath('figuras'), now)).toEqual({ kind: 'section', section: 'pops' });
@@ -79,6 +83,37 @@ describe('links', () => {
     expect(pageLang('/regionle/queen.html')).toBeNull();
   });
 
+  it('reads the language and the screen of the page of a screen from its name', () => {
+    expect(pageLang('/regionle/regions.html')).toBe('en');
+    expect(pageLang('/regionle/regiones.html')).toBe('es');
+    expect(pageLang('/regionle/figures')).toBe('en');
+    expect(pageScreen('/regionle/regions.html')).toBe('regiones');
+    expect(pageScreen('/regionle/cifras.html')).toBe('poblaciones');
+    expect(pageScreen('/regionle/daily')).toBe('reto');
+    expect(pageScreen('/about.html')).toBe('acerca');
+    // The page of a language, the first page and anything else are the page of no screen.
+    for (const path of ['/regionle/en.html', '/regionle/es', '/regionle/', '/regionle/index.html', '/regions/', '/regionle/regions.htm', '/regionle/poblaciones.html', '/regionle/Regions.html']) expect(pageScreen(path), path).toBeNull();
+    expect(pageLang('/regionle/poblaciones.html')).toBeNull();
+  });
+
+  it('has, for every screen with a page, an address the game knows and a name it takes after the hash too', () => {
+    const now = '2026-11-17';
+    for (const screen of SCREEN_IDS) {
+      expect(routeOf(screen, now).kind, screen).not.toBe('unknown');
+      for (const lang of SEO_LANGS) {
+        const { file } = SCREENS[screen][lang];
+        // "#/regions" opens what "regions.html" does.
+        expect(canonicalPath(file), file).toBe(screen);
+        expect(screenPage(screen, lang)).toBe(`${file}.html`);
+        expect(pageScreen(`/regionle/${screenPage(screen, lang)}`)).toBe(screen);
+        expect(pageLang(`/regionle/${screenPage(screen, lang)}`)).toBe(lang);
+      }
+    }
+    // Every section has its page.
+    for (const path of Object.values(PATHS)) expect(SCREEN_IDS).toContain(path);
+    expect([langPage('es'), langPage('en')]).toEqual(['es.html', 'en.html']);
+  });
+
   it('sends links without the page of a language, a query or a hash', () => {
     expect(siteRoot('https://diegosb72.github.io/regionle/')).toBe('https://diegosb72.github.io/regionle/');
     expect(siteRoot('https://diegosb72.github.io/regionle/#/reto')).toBe('https://diegosb72.github.io/regionle/');
@@ -87,5 +122,12 @@ describe('links', () => {
     expect(siteRoot('http://localhost:5173/index.html?x=1#/x')).toBe('http://localhost:5173/index.html');
     expect(siteRoot('')).toBe('');
     expect(linkTo('reto/2026-11-17', 'https://diegosb72.github.io/regionle/en.html#/reto')).toBe('https://diegosb72.github.io/regionle/#/reto/2026-11-17');
+    // Nor the page of a screen.
+    expect(siteRoot('https://diegosb72.github.io/regionle/regions.html')).toBe('https://diegosb72.github.io/regionle/');
+    expect(siteRoot('https://diegosb72.github.io/regionle/cifras?x=1#/reto')).toBe('https://diegosb72.github.io/regionle/');
+    expect(siteRoot('http://localhost:5173/daily.html')).toBe('http://localhost:5173/');
+    expect(linkTo('duelo/Ab9', 'https://diegosb72.github.io/regionle/regiones.html')).toBe('https://diegosb72.github.io/regionle/#/duelo/Ab9');
+    // What is not a page of the site stays.
+    expect(siteRoot('https://example.org/juego/queen.html#/x')).toBe('https://example.org/juego/queen.html');
   });
 });

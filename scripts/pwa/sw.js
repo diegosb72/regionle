@@ -8,6 +8,9 @@
  *    installed and served from that copy: it opens without a connection, and a new version only takes
  *    over when the player accepts it. The scripts of every screen are stored then too, although each
  *    one is only run when its screen is first opened.
+ *  · The page of a screen (regiones.html, regions.html…) is the page of its language with another head,
+ *    which only search engines read: it is not stored, and a visit to it gets the page of its language,
+ *    where the game opens that screen by the address it was asked for.
  *  · The maps of each country and the other data files are asked to the network first, so that they
  *    are always the current ones, and kept: without a connection, the copy is used.
  *  · Flags never change: the copy is used whenever there is one.
@@ -24,8 +27,11 @@ const DATA_CACHE = 'regionle-data';
 const scope = new URL(self.registration.scope);
 /** How long a slow network is waited for when there is a copy at hand. */
 const PATIENCE = 2500;
-/** The page of each language, as it is asked for with and without its extension: the rest of the visits get the first page. */
-const PAGES = { 'es.html': 'es.html', es: 'es.html', 'en.html': 'en.html', en: 'en.html' };
+/**
+ * The page that answers a visit to each page of the site, as it is asked for with and without its
+ * extension: that of its language. The rest of the visits get the first page.
+ */
+const PAGES = __PAGES__;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
