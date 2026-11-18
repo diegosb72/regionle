@@ -24,6 +24,7 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const pool = useMemo(() => deck.items.filter((it) => !cfg.only || cfg.only.includes(it.id)), [deck, cfg.only]);
   const matcher = useMemo(() => new Matcher(deck.items), [deck]);
   const record = useStore((s) => s.record);
+  const mixUp = useStore((s) => s.mixUp);
   const addSession = useStore((s) => s.addSession);
   const bump = useStore((s) => s.bump);
   const map = useRef<MapHandle>(null);
@@ -194,6 +195,8 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
     const other = deck.byId.get(id);
     if (!other) return;
     if (!live(id)) return setNote(L(`${fem ? 'Esa' : 'Ese'} todavía no ${fem ? 'la' : 'lo'} hemos visto: busca entre ${fem ? 'las' : 'los'} que ya conoces.`, 'We have not seen that one yet: look among the ones you know.'));
+    // One taken for another is written down, as in the games: the progress shows the pairs to tell apart.
+    mixUp('loc', item.id, id);
     wrong(L(`Eso es ${other.name}. Te queda un intento.`, `That is ${other.name}. One try left.`), id);
   };
 
@@ -209,6 +212,7 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
       setNote(shortNote(v.res, text));
       return;
     }
+    if (v.res === 'other') mixUp('name', item.id, v.id);
     wrong(v.res === 'other' ? L(`No es ${deck.byId.get(v.id)!.name}. Te queda un intento.`, `It is not ${deck.byId.get(v.id)!.name}. One try left.`) : L('No es correcto. Te queda un intento.', 'That is not right. One try left.'));
   };
 
@@ -231,6 +235,7 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
     if (!item || verdict) return;
     if (id === item.id) return right();
     setPicked(id);
+    mixUp('name', item.id, id);
     // With four options a second go would be a guess between three: one try.
     settle('bad');
   };

@@ -24,7 +24,8 @@ export function countriesOf(spec: MapSpec, world: World): Country[] {
 export function describeMap(spec: MapSpec, world: World): string {
   if (spec.section === 'physical') {
     const phys = parsePhys(spec.countries);
-    const where = phys.places.length ? phys.places.map((p) => (world.index.continents[p] ? nm(world.index.continents[p]) : p)).join(', ') : L('todo el mundo', 'the whole world');
+    const land = phys.country ? world.byId.get(phys.country) : undefined;
+    const where = land ? nm(land.n) : phys.places.length ? phys.places.map((p) => (world.index.continents[p] ? nm(world.index.continents[p]) : p)).join(', ') : L('todo el mundo', 'the whole world');
     return `${phys.kinds.map((k) => capitalise(kindNoun(k).many)).join(', ')} · ${where}`;
   }
   const countries = countriesOf(spec, world);

@@ -25,8 +25,44 @@ describe('what is kept of a game to play it again', () => {
     expect(pops?.o).toEqual({ metric: 'area' });
     const flags = recentOf(game({ section: 'countries', mode: 'pin', countries: ['ES', 'FR'], opts: { ...DEFAULT_OPTS, pinBy: 'flag', format: 'timed' } }), session({ section: 'countries' }));
     expect(flags?.o).toEqual({ pinBy: 'flag', format: 'timed' });
+    // What the cards ask is the game; nobody marks them, so they have no format to keep.
+    const cards = recentOf(game({ section: 'countries', mode: 'cards', countries: ['ES', 'FR'], opts: { ...DEFAULT_OPTS, cardAsk: 'where', format: 'timed' } }), session({ section: 'countries', mode: 'cards' }));
+    expect(cards?.o).toEqual({ cardAsk: 'where' });
+    // The medley and the game by ear are played against the clock like the games they are made of.
+    const mix = recentOf(game({ section: 'countries', mode: 'mix', countries: ['ES', 'FR'], opts: { ...DEFAULT_OPTS, format: 'lives', turned: true, flagLook: 'grey' } }), session({ section: 'countries', mode: 'mix' }));
+    expect(mix?.o).toEqual({ format: 'lives' });
+    const ear = recentOf(game({ section: 'countries', mode: 'listen', countries: ['ES', 'FR'], opts: { ...DEFAULT_OPTS, pinBy: 'flag' } }), session({ section: 'countries', mode: 'listen' }));
+    expect(ear?.o).toEqual({ format: 'normal' });
     // Nothing of how one likes to answer: that is today's taste when it is played again.
     expect(Object.keys(recentOf(game({ mode: 'nameall' }), session({ mode: 'nameall' }))!.o)).toEqual([]);
+  });
+
+  it('keeps which way five places are put in order, and the countdown of a map filled in against it', () => {
+    const ns = recentOf(game({ mode: 'compass' }), session({ mode: 'compass' }));
+    expect(ns?.o).toEqual({ axis: 'ns' });
+    const we = recentOf(game({ mode: 'compass', opts: { ...DEFAULT_OPTS, axis: 'we' } }), session({ mode: 'compass' }));
+    expect(we?.o).toEqual({ axis: 'we' });
+    // North to south and west to east are two games on the same map.
+    expect(recentKey(ns!)).not.toBe(recentKey(we!));
+    const timed = recentOf(game({ mode: 'nameall', opts: { ...DEFAULT_OPTS, countdown: 300 } }), session({ mode: 'nameall' }));
+    expect(timed?.o).toEqual({ countdown: 300 });
+    expect(recentKey(timed!)).not.toBe(recentKey(recentOf(game({ mode: 'nameall' }), session({ mode: 'nameall' }))!));
+    // The way round is of that game only.
+    expect(recentOf(game({ mode: 'pin', opts: { ...DEFAULT_OPTS, axis: 'we', countdown: 300 } }), session())?.o).toEqual({ format: 'normal' });
+  });
+
+  it('keeps that it was an exam, which is another game on the same map', () => {
+    const exam = recentOf(game({ opts: { ...DEFAULT_OPTS, format: 'exam' } }), session({ note: 'exam' }));
+    expect(exam?.o).toEqual({ format: 'exam' });
+    expect(recentKey(exam!)).not.toBe(recentKey(recentOf(game(), session())!));
+    expect(recentConfig(exam!, DEFAULT_OPTS).opts.format).toBe('exam');
+  });
+
+  it('keeps the figure of a game about countries, which true or false does not have', () => {
+    const top = recentOf(game({ section: 'pops', mode: 'topten', countries: ['ES', 'FR'], opts: { ...DEFAULT_OPTS, metric: 'density' } }), session({ section: 'pops', mode: 'topten' }));
+    expect(top?.o).toEqual({ metric: 'density' });
+    const tf = recentOf(game({ section: 'pops', mode: 'truefalse', countries: ['ES', 'FR'], opts: { ...DEFAULT_OPTS, metric: 'density' } }), session({ section: 'pops', mode: 'truefalse' }));
+    expect(tf?.o).toEqual({});
   });
 
   it('is nothing for a review, a challenge, a round of misses, a list or the editor of lists', () => {

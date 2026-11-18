@@ -56,6 +56,7 @@ describe('where an answer was learnt', () => {
     expect(parseOrigin('cj64n0v', 't|ES|top')).toEqual({ section: 'cities', country: 'ES', pick: 'top' });
     expect(parseOrigin('cj64n0v', 't|ES|caps')).toEqual({ section: 'cities', country: 'ES', pick: 'caps' });
     expect(parseOrigin('r:danube', 'p')).toEqual({ section: 'physical' });
+    expect(parseOrigin('r:jarama', 'p|ES')).toEqual({ section: 'physical', country: 'ES' });
     expect(parseOrigin('x', 'zzz')).toBeNull();
   });
 
@@ -160,6 +161,22 @@ describe("today's review", () => {
     expect(countries.countries.sort()).toEqual(['DE', 'FR']);
     expect(countries.mode).toBe('pin');
     expect(reviewConfig(byKey.get('countries:flag')!, DEFAULT_OPTS).mode).toBe('flag');
+  });
+
+  it('reviews rivers and capes on the map of the country they were learnt on', () => {
+    const stats: Record<string, Stat> = { 'loc:r:jarama': stat(0, DAY), 'loc:c:cape-gata': stat(0, 2 * DAY), 'name:r:jarama': stat(0, DAY), 'loc:r:seine': stat(0, DAY), 'loc:r:nile': stat(0, 3 * DAY), 'loc:r:danube': stat(0, DAY) };
+    const where = { 'r:jarama': 'p|ES', 'c:cape-gata': 'p|ES', 'r:seine': 'p|FR', 'r:nile': 'p', 'r:danube': 'p' };
+    const groups = dueGroups(stats, where, NOW);
+    expect(groups.map((g) => g.key).sort()).toEqual(['physical:loc', 'physical:loc:ES', 'physical:loc:FR', 'physical:name:ES']);
+    const spain = groups.find((g) => g.key === 'physical:loc:ES')!;
+    expect(spain.country).toBe('ES');
+    expect(spain.ids).toEqual(['c:cape-gata', 'r:jarama']);
+    // The map is asked for with the word the physical maps know a country by; the game adds the rest.
+    expect(reviewConfig(spain, DEFAULT_OPTS)).toMatchObject({ section: 'physical', mode: 'pin', countries: ['in:ES'], only: ['c:cape-gata', 'r:jarama'], review: true });
+    // What was learnt on a continent has no country: the map is drawn around it.
+    const world = groups.find((g) => g.key === 'physical:loc')!;
+    expect(world.country).toBeUndefined();
+    expect(reviewConfig(world, DEFAULT_OPTS).countries).toEqual([]);
   });
 
   it('never makes a review longer than the limit', () => {

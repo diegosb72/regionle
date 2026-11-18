@@ -86,7 +86,8 @@ export function decodeList(code: string): CustomList | null {
   if (!LIST_SECTIONS.includes(wire.s as Section)) return null;
   if (typeof wire.c !== 'string' || !wire.c || wire.c.length > 1200 || typeof wire.i !== 'string' || !wire.i || wire.i.length > 20_000) return null;
   const countries = wire.c.includes('.') || wire.s === 'physical' ? wire.c.split('.') : (wire.c.match(/.{1,2}/g) ?? []);
-  if (!countries.length || countries.length > 300 || !countries.every((id) => /^[A-Za-z0-9]{1,8}$/.test(id))) return null;
+  // Codes of countries, or the words a physical map is made of: "river", "EU", "all", and "in:ES" for the map of one country.
+  if (!countries.length || countries.length > 300 || !countries.every((id) => /^(?:[A-Za-z0-9]{1,12}|in:[A-Z]{2})$/.test(id))) return null;
   const prefix = typeof wire.p === 'string' ? wire.p : '';
   const ids = [...new Set(wire.i.split('.').map((id) => prefix + id))];
   if (!ids.length || ids.length > LIST_MAX || !ids.every((id) => ID.test(id))) return null;

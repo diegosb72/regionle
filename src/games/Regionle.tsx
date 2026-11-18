@@ -16,6 +16,7 @@ import { useStore } from '../lib/store';
 import { Matcher, cx, mulberry32, nf, shortNote, shuffle } from '../lib/text';
 import type { Res } from '../lib/types';
 import { GameShell, Hud, Results, Verdict, originOf, showsCountry, useElapsed, type GameProps, type ResultRow } from './common';
+import { turnOf } from './quiz';
 
 const tries = (n: number) => (n === 1 ? L('intento', 'try') : L('intentos', 'tries'));
 const COMPASS = () => [L('norte', 'north'), L('noreste', 'north-east'), L('este', 'east'), L('sureste', 'south-east'), L('sur', 'south'), L('suroeste', 'south-west'), L('oeste', 'west'), L('noroeste', 'north-west')];
@@ -56,7 +57,9 @@ export function RegionleGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const fem = deck.noun.fem;
   const several = showsCountry(deck);
   const title = MODE_NAME.regionle;
-  const shape = useMemo(() => (item ? silhouette(item.geo, 400) : ''), [item]);
+  /** Turned outlines: north is not at the top until the round is settled, and then it is seen as it lies. */
+  const turned = opts.turned && item && !over ? turnOf(seedOf(cfg), item.id) : 0;
+  const shape = useMemo(() => (item ? silhouette(item.geo, 400, 0.08, turned) : ''), [item, turned]);
   // Handy when debugging from the browser console; removed from production builds.
   if (import.meta.env.DEV) (window as unknown as { __ask?: string }).__ask = item?.id;
 
@@ -224,7 +227,10 @@ export function RegionleGame({ deck, cfg, onExit, onAgain }: GameProps) {
         <div className="q">
           <div className="q-prompt">
             <p className="kicker">Regionle</p>
-            <h2 className="q-ask">{L(`¿Qué ${deck.noun.one} es ${fem ? 'esta' : 'este'}?`, `Which ${deck.noun.one} is this?`)}</h2>
+            <h2 className="q-ask">
+              {L(`¿Qué ${deck.noun.one} es ${fem ? 'esta' : 'este'}?`, `Which ${deck.noun.one} is this?`)}
+              {opts.turned && !over && <small> {L('Está girada: el norte no queda arriba.', 'It is turned: north is not at the top.')}</small>}
+            </h2>
             {several && (guesses.length >= 3 || over) && (
               <p className="q-sub">
                 <Flag code={item.country.fl} size="sm" /> {L(`Está en ${nm(item.country.n)}`, `It is in ${nm(item.country.n)}`)}

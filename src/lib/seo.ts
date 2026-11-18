@@ -110,36 +110,36 @@ export const SCREENS: Record<ScreenId, Record<SeoLang, ScreenText>> = {
     es: {
       file: 'ciudades',
       name: 'Ciudades y capitales',
-      description: 'Las ciudades más pobladas y las capitales de los países que elijas, punto a punto en el mapa: señálalas, identifícalas o sitúalas a ciegas, sin puntos.',
+      description: 'Las ciudades más pobladas y las capitales de los países que elijas, punto a punto: señálalas, sitúalas a ciegas, ordénalas de norte a sur o por habitantes.',
     },
     en: {
       file: 'cities',
       name: 'Cities and capitals',
-      description: 'The largest cities and the capitals of the countries you choose, dot by dot on the map: pin them, identify them or place them blind, with no dots.',
+      description: 'The largest cities and the capitals of the countries you choose, dot by dot: pin them, place them blind, sort them from north to south or by people.',
     },
   },
   fisica: {
     es: {
       file: 'fisica',
       name: 'Ríos, mares y montañas',
-      description: 'Aprende en el mapa los ríos, lagos, mares, cordilleras, picos, desiertos e islas del mundo o de un continente: señalar, identificar y rellenar el mapa.',
+      description: 'Aprende en el mapa los continentes y océanos, los ríos, mares, cordilleras, penínsulas, cabos e islas del mundo o de un país, con España al detalle.',
     },
     en: {
       file: 'physical',
       name: 'Rivers, seas and mountains',
-      description: 'Learn on the map the rivers, lakes, seas, mountain ranges, peaks, deserts and islands of the world or of one continent: pin, identify and fill in the map.',
+      description: 'Learn on the map the continents and oceans, the rivers, seas, ranges, peninsulas, capes and islands of the world or of one country, with Spain in full detail.',
     },
   },
   poblaciones: {
     es: {
       file: 'cifras',
       name: 'Población y superficie',
-      description: 'Juega con la población y la superficie de los países: mayor o menor, ordena cinco, acierta la cifra exacta o adivina el país por su cifra.',
+      description: 'Juega con la población, la superficie y la densidad de los países: mayor o menor, ordena cinco, cifra exacta, los diez primeros y verdadero o falso.',
     },
     en: {
       file: 'figures',
       name: 'Population and area',
-      description: 'Play with the population and the area of countries: higher or lower, sort five, hit the exact figure or guess the country from its figure.',
+      description: 'Play with the population, area and density of countries: higher or lower, sort five, the exact figure, the top ten and true or false.',
     },
   },
   reto: {

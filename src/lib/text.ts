@@ -769,13 +769,16 @@ export function fmtBig(n: number): string {
   return nf(n >= 1000 ? sig(n, 3) : Math.round(n));
 }
 
-/** Compact form for tight spaces: "49,4 M", "94,2 mil". */
+/** Compact form for tight spaces: "49,4 M", "94,2 mil" ("94.2k" in English). */
 export function fmtShort(n: number): string {
   if (n >= 999_500) {
     const m = n / 1e6;
     return `${nf(m, m >= 100 ? 0 : m >= 10 ? 1 : 2)} M`;
   }
-  if (n >= 10_000) return `${nf(n / 1e3, n >= 100_000 ? 0 : 1)} ${L('mil', 'k')}`;
+  if (n >= 10_000) {
+    const k = nf(n / 1e3, n >= 100_000 ? 0 : 1);
+    return L(`${k} mil`, `${k}k`);
+  }
   return nf(Math.round(n));
 }
 

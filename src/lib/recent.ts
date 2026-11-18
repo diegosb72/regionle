@@ -9,9 +9,9 @@ import type { Mode, Section } from './types';
 
 /**
  * The options that say which game it was, as against how one likes to play: which cities, which figure,
- * what countries are pinned by, against the clock or with lives.
+ * what countries are pinned by, what the cards ask, against the clock or with lives.
  */
-export type RecentOpts = Partial<Pick<Opts, 'cityPick' | 'cityCount' | 'metric' | 'pinBy' | 'format'>>;
+export type RecentOpts = Partial<Pick<Opts, 'cityPick' | 'cityCount' | 'metric' | 'pinBy' | 'format' | 'axis' | 'countdown' | 'cardAsk'>>;
 
 export interface Recent {
   /** When it was last played. */
@@ -37,8 +37,13 @@ function optsOf(game: GameConfig): RecentOpts {
     o.cityPick = game.opts.cityPick;
     if (game.opts.cityPick === 'top') o.cityCount = game.opts.cityCount;
   }
-  if (game.section === 'pops') o.metric = game.opts.metric;
+  // The figure is the game where there is a choice of them; statements that are true or false are about them all.
+  if (game.section === 'pops' && game.mode !== 'truefalse') o.metric = game.opts.metric;
+  if (game.mode === 'compass') o.axis = game.opts.axis ?? 'ns';
+  if (game.mode === 'nameall' && game.opts.countdown > 0) o.countdown = game.opts.countdown;
   if (game.section === 'countries' && game.mode === 'pin') o.pinBy = game.opts.pinBy;
+  // Cards that ask where a thing is are another pack than the ones that ask its name.
+  if (game.mode === 'cards') o.cardAsk = game.opts.cardAsk ?? 'name';
   if (FORMAT_MODES.includes(game.mode)) o.format = game.opts.format ?? 'normal';
   return o;
 }
@@ -49,7 +54,7 @@ function optsOf(game: GameConfig): RecentOpts {
  * what is current, and the editor of lists is not a game.
  */
 export function recentOf(game: GameConfig, rec: SessionRec): Recent | null {
-  if (game.review || game.daily || game.challenge || game.only || game.list || game.listId || game.mode === 'edit') return null;
+  if (game.review || game.daily || game.challenge || game.only || game.list || game.listId || game.mode === 'edit' || game.mode === 'print') return null;
   if (game.section !== rec.section || game.mode !== rec.mode || !game.countries.length) return null;
   // Levels are those of the regions of a country: the other maps are the same whatever they say.
   const levels: Record<string, string> = {};

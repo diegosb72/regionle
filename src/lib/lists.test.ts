@@ -36,6 +36,14 @@ describe('custom lists by link', () => {
     expect(back(cities)).toEqual(cities);
     const physical = list({ section: 'physical', countries: ['river', 'peak', 'EU', 'all'], levels: {}, ids: ['r:ebro', 'p:teide', 'r:tagus'] });
     expect(back(physical)).toEqual(physical);
+    // The physical map of one country: its token has a colon in it.
+    const spain = list({ section: 'physical', countries: ['river', 'cape', 'in:ES', 'all'], levels: {}, ids: ['r:jarama', 'c:cape-gata', 'r:tagus'] });
+    expect(back(spain)).toEqual(spain);
+    expect(decodeList(encodeList({ ...spain, countries: ['river', 'in:es'] }))).toBeNull();
+    // The longest words a map is made of: «continent» and «peninsula» have nine letters.
+    const world = list({ section: 'physical', countries: ['continent', 'peninsula', 'fall'], levels: {}, ids: ['c:europe', 's:pacific-ocean', 'p:iberian-peninsula', 'f:angel-falls'] });
+    expect(back(world)).toEqual(world);
+    expect(decodeList(encodeList({ ...world, countries: ['continentalshelf'] }))).toBeNull();
   });
 
   it('only sends the levels of the countries of the list', () => {

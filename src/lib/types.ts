@@ -98,6 +98,8 @@ export interface Item {
   type: string;
   /** Name of the group the unit belongs to ("Andalucía"), when there is one. */
   parent?: string;
+  /** What it belongs to, for the game that asks it: the community of a province, the country of a city. */
+  belongs?: Belongs;
   geo: AnyGeo;
   lp: LL;
   fp: LL[];
@@ -110,6 +112,19 @@ export interface Item {
   /** Ids of deck items reachable by a short sea crossing. */
   sl: string[];
   wd?: string;
+}
+
+/** What something is part of, with all it takes to be an answer: its names and what it is. */
+export interface Belongs {
+  id: string;
+  name: string;
+  /** "comunidad autónoma", "país" */
+  type: string;
+  answers: string[];
+  proper: string[];
+  short?: ShortEdit;
+  /** Its flag, when it is a country. */
+  fl?: string;
 }
 
 export interface Extra {
@@ -151,6 +166,8 @@ export type Mode =
   | 'blind'
   /** Not a game: the screen where a custom list is put together. */
   | 'edit'
+  /** Not a game either: the map without names, laid out on paper to be printed. */
+  | 'print'
   | 'pin'
   | 'identify'
   | 'nameall'
@@ -163,6 +180,20 @@ export type Mode =
   | 'exact'
   | 'which'
   | 'hilo'
-  | 'rank';
+  | 'rank'
+  /** Five places put in order by where they lie: from north to south, or from west to east. */
+  | 'compass'
+  /** What each piece belongs to: the community of a province, the country of a city. */
+  | 'parent'
+  /** Statements about the countries chosen that are true or false. */
+  | 'truefalse'
+  /** The first ten by a figure, typed from memory. */
+  | 'topten'
+  /** Flashcards: a card is turned over and the player says whether they knew it. */
+  | 'cards'
+  /** A medley: each piece is asked about in a different way, by lot. */
+  | 'mix'
+  /** "Pin it" by ear: the name is said aloud and not written. */
+  | 'listen';
 
 export type Res = 'ok' | 'warn' | 'bad';

@@ -9,6 +9,7 @@ import { levelOf } from '../lib/data';
 import { signal, type Cue } from '../lib/feedback';
 import { L, capName, nm } from '../lib/i18n';
 import { divisionsLink } from '../lib/links';
+import { parsePhys } from '../lib/phys';
 import { useStore, type GameConfig } from '../lib/store';
 import { cx, fmtArea, fmtPop, fmtTime, nf } from '../lib/text';
 import type { Deck, Item, Res } from '../lib/types';
@@ -21,7 +22,11 @@ import { scoreOf } from './quiz';
  */
 export function originOf(item: Item, cfg: GameConfig): string {
   if (item.kind === 'country') return 'c';
-  if (item.kind === 'feature') return 'p';
+  // A river learnt on the map of a country comes back on that map: on a continent's it could be a speck.
+  if (item.kind === 'feature') {
+    const country = parsePhys(cfg.countries).country;
+    return country ? `p|${country}` : 'p';
+  }
   if (item.kind === 'city') return `t|${item.country.id}|${cfg.opts.cityPick}`;
   return `r|${item.country.id}|${levelOf(item.country, cfg.levels).k}`;
 }
@@ -158,7 +163,9 @@ export function ItemFacts({ item }: { item: Item }) {
   if (item.kind === 'feature') {
     return (
       <p className="facts">
-        {capitalise(item.type)} · {nm(c.n)}
+        {capitalise(item.type)}
+        {/* A continent is in none, and an ocean washes several: neither is said to be in one. */}
+        {item.cat === 'continent' || item.cat === 'ocean' ? '' : ` · ${nm(c.n)}`}
         {item.area > 0 && (
           <>
             <br />

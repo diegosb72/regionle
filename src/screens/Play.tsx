@@ -2,24 +2,30 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Spinner } from '../components/ui';
 import { BlindGame } from '../games/Blind';
+import { CardsGame } from '../games/Cards';
 import { ExploreGame } from '../games/Explore';
+import { TopTenGame, TrueFalseGame } from '../games/FactGames';
 import { LearnGame } from '../games/Learn';
 import { ListEditor } from '../games/ListEditor';
 import { NameAllGame } from '../games/NameAll';
 import { NeighboursGame } from '../games/Neighbours';
-import { PopGame } from '../games/PopGames';
+import { FigGame } from '../games/PopGames';
+import { PrintSheet } from '../games/PrintSheet';
 import { QuizGame } from '../games/QuizGame';
 import { RegionleGame } from '../games/Regionle';
 import { TravelGame } from '../games/Travel';
 import { GameShell, type GameProps } from '../games/common';
-import { answersItself, capitalsNeedTyping } from '../games/quiz';
-import { eligible, levelOf, type World } from '../lib/data';
+import { answersItself, belongsItself, capitalsNeedTyping } from '../games/quiz';
+import { countryAnswers, countryItem, eligible, levelOf, type World } from '../lib/data';
 import { deckFor } from '../lib/decks';
+import { TOP_MIN, countryFigs, deckFigs, figPlayable, metricsIn, positionFigs, type Fig } from '../lib/figures';
 import { L } from '../lib/i18n';
 import { MODE_NAME, PATHS } from '../lib/modes';
 import { goneFrom } from '../lib/review';
+import { FIGURE_MODES } from '../lib/rules';
 import { go } from '../lib/router';
 import { useStore, type GameConfig } from '../lib/store';
+import { nf } from '../lib/text';
 import type { Deck } from '../lib/types';
 
 function Message({ title, text, onExit, action }: { title: string; text: string; onExit(): void; action?: { label: string; run(): void } }) {
@@ -102,14 +108,35 @@ function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
     if (capless.length) useStore.getState().forget('cap', capless);
   }, [capless]);
 
+  /** The countries the games without a map are played with. */
+  const chosen = useMemo(() => (cfg.section === 'pops' ? cfg.countries.map((id) => world.byId.get(id)).filter((c) => c != null && eligible('pops', c)).map((c) => c!) : []), [cfg, world]);
+  const statementWorld = useMemo(() => ({ byId: world.byId, continents: world.index.continents }), [world]);
+  /** The games of figures are played with the figure of each thing, or with where it lies. */
+  const figured = FIGURE_MODES.includes(cfg.mode) || cfg.mode === 'compass';
+  const figs = useMemo((): Fig[] | null => {
+    if (!figured) return null;
+    if (cfg.section === 'pops') return countryFigs(chosen, cfg.opts.metric, countryItem, countryAnswers);
+    if (!deck) return null;
+    const all = cfg.mode === 'compass' ? positionFigs(deck, cfg.opts.axis === 'we' ? 'lon' : 'lat') : deckFigs(deck);
+    // A custom list is asked about its pieces alone.
+    const only = cfg.only ? new Set(cfg.only) : null;
+    return only ? all.filter((f) => only.has(f.id)) : all;
+  }, [figured, cfg, chosen, deck]);
+
   if (cfg.section === 'pops') {
-    const metric = cfg.opts.metric;
-    const countries = cfg.countries
-      .map((id) => world.byId.get(id))
-      .filter((c) => c != null && eligible('pops', c) && (metric === 'pop' || c.ar > 0))
-      .map((c) => c!);
-    if (countries.length < 2) return <Message title={L('Faltan países', 'Not enough countries')} text={L('Este juego necesita al menos dos países con datos.', 'This game needs at least two countries with data.')} onExit={onExit} />;
-    return <PopGame countries={countries} cfg={cfg} onExit={onExit} onAgain={onAgain} />;
+    const what = `${nf(chosen.length)} ${L('países', 'countries')}`;
+    if (cfg.mode === 'truefalse') {
+      if (chosen.length < 2) return <Message title={L('Faltan países', 'Not enough countries')} text={L('Este juego necesita al menos dos países.', 'This game needs at least two countries.')} onExit={onExit} />;
+      return <TrueFalseGame countries={chosen} world={statementWorld} cfg={cfg} onExit={onExit} />;
+    }
+    if (cfg.mode === 'topten') {
+      if (!figs || figs.length < TOP_MIN) {
+        return <Message title={L('Faltan países', 'Not enough countries')} text={L(`Para preguntar por los primeros hacen falta al menos ${TOP_MIN} países con datos.`, `Asking for the top ones takes at least ${TOP_MIN} countries with data.`)} onExit={onExit} />;
+      }
+      return <TopTenGame figs={figs} what={what} cfg={cfg} onExit={onExit} onAgain={onAgain} />;
+    }
+    if (!figs || !figPlayable(figs)) return <Message title={L('Faltan países', 'Not enough countries')} text={L('Este juego necesita al menos dos países con datos.', 'This game needs at least two countries with data.')} onExit={onExit} />;
+    return <FigGame figs={figs} cfg={cfg} what={`${nf(figs.length)} ${L('países', 'countries')}`} onExit={onExit} onAgain={onAgain} />;
   }
 
   if (error) {
@@ -142,6 +169,8 @@ function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
     );
   }
   if (cfg.mode === 'edit') return <ListEditor deck={deck} cfg={cfg} onExit={onExit} onAgain={onAgain} />;
+  // A sheet can be printed of any map, also of one with a single piece.
+  if (cfg.mode === 'print') return <PrintSheet deck={deck} cfg={cfg} onExit={onExit} onAgain={onAgain} />;
   if (deck.items.length < 2 && cfg.mode !== 'explore') {
     return <Message title={L('Este mapa tiene una sola pieza', 'This map has a single piece')} text={L('Elige más países o un nivel con más divisiones para poder jugar.', 'Choose more countries or a level with more divisions to play.')} onExit={onExit} />;
   }
@@ -163,8 +192,47 @@ function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
       />
     );
   }
+  if (cfg.mode === 'parent' && (new Set(deck.items.map((it) => it.belongs?.id).filter(Boolean)).size < 2 || !deck.items.some((it) => it.belongs && !belongsItself(it, cfg.opts.answer !== 'type')))) {
+    return (
+      <Message
+        title={L('Aquí todo pertenece a lo mismo', 'Everything here belongs to the same thing')}
+        text={
+          cfg.section === 'cities'
+            ? L('Elige varios países, o uno solo que tenga regiones en el juego.', 'Choose several countries, or a single one that has regions in the game.')
+            : L('Este juego pregunta a qué grupo pertenece cada pieza: elige un país que se juegue a varios niveles (España, Francia, Italia…) y ponlo en el más fino, el de provincias o departamentos.', 'This game asks which group each piece is in: choose a country played at several levels (Spain, France, Italy…) and set it to the finest one, that of provinces or departments.')
+        }
+        onExit={onExit}
+      />
+    );
+  }
   if (cfg.mode === 'regionle' && deck.items.filter((it) => it.shape === 'area').length < 2) {
     return <Message title={L('Este mapa no tiene siluetas', 'This map has no outlines')} text={L('Regionle necesita un mapa de regiones o de países.', 'Regionle needs a map of regions or countries.')} onExit={onExit} />;
+  }
+
+  if (figured) {
+    if (!figs || !figPlayable(figs)) {
+      return (
+        <Message
+          title={L('Aquí no hay cifras que comparar', 'There are no figures to compare here')}
+          text={
+            cfg.section === 'physical'
+              ? L('Los ríos, las cordilleras y los desiertos no tienen cifra en los datos. Elige picos (altitud) o lagos, islas y mares (superficie), y al menos dos de lo mismo.', 'Rivers, ranges and deserts have no figure in the data. Choose peaks (height) or lakes, islands and seas (area), and at least two of a kind.')
+              : L('Este mapa necesita al menos dos piezas con datos.', 'This map needs at least two pieces with data.')
+          }
+          onExit={onExit}
+        />
+      );
+    }
+    if (cfg.mode === 'topten') {
+      // One figure at a time: on a map of peaks and lakes, the one it has most things of.
+      const main = metricsIn(figs)[0];
+      const list = figs.filter((f) => f.metric === main);
+      if (list.length < TOP_MIN) {
+        return <Message title={L('Faltan piezas', 'Not enough pieces')} text={L(`Para preguntar por los primeros hacen falta al menos ${TOP_MIN} cosas con la misma cifra.`, `Asking for the top ones takes at least ${TOP_MIN} things with the same figure.`)} onExit={onExit} />;
+      }
+      return <TopTenGame figs={list} what={deck.title} cfg={cfg} onExit={onExit} onAgain={onAgain} />;
+    }
+    return <FigGame figs={figs} cfg={cfg} what={deck.title} deck={cfg.mode === 'compass' ? deck : undefined} onExit={onExit} onAgain={onAgain} />;
   }
 
   const props: GameProps = { deck, cfg, onExit, onAgain };
@@ -183,12 +251,17 @@ function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
       return <RegionleGame {...props} />;
     case 'blind':
       return <BlindGame {...props} />;
+    case 'cards':
+      return <CardsGame {...props} />;
     case 'pin':
     case 'puzzle':
     case 'identify':
     case 'outline':
     case 'capital':
     case 'flag':
+    case 'parent':
+    case 'mix':
+    case 'listen':
       return <QuizGame {...props} />;
     default:
       return <Message title={L(`«${MODE_NAME[cfg.mode]}» no está disponible aquí`, `“${MODE_NAME[cfg.mode]}” is not available here`)} text={L('Elige otro modo de juego.', 'Choose another game mode.')} onExit={onExit} />;

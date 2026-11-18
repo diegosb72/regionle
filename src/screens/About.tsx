@@ -120,6 +120,20 @@ export function About() {
             </dd>
           </div>
           <div>
+            <dt>{L('Ríos, embalses y relieve de España', 'Rivers, reservoirs and relief of Spain')}</dt>
+            <dd>
+              {L('Obra derivada de CartoBase ANE:', 'Derived from CartoBase ANE:')} <Out href="https://www.ign.es/web/ane-area-ane">Atlas Nacional de España (ANE)</Out> · CC BY 4.0 ign.es ·{' '}
+              {L('a través de', 'through')} <Out href="https://github.com/rOpenSpain/mapSpain/tree/sianedata">rOpenSpain/mapSpain</Out>
+            </dd>
+          </div>
+          <div>
+            <dt>{L('Superficie de continentes y océanos, y los mares de cada océano', 'Surface of continents and oceans, and the seas of each ocean')}</dt>
+            <dd>
+              <Out href="https://www.cia.gov/the-world-factbook/">The World Factbook</Out> · {L('dominio público', 'public domain')} · {L('a través de', 'through')}{' '}
+              <Out href="https://github.com/factbook/factbook.json">factbook/factbook.json</Out>
+            </dd>
+          </div>
+          <div>
             <dt>{L('Población', 'Population')}</dt>
             <dd>
               {L('Banco Mundial, a través de', 'World Bank, through')} <Out href="https://github.com/datasets/population">datasets/population</Out> · ODC-PDDL

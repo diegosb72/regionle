@@ -157,6 +157,17 @@ export function GameKeys() {
       </div>
       <div>
         <dt>
+          <Keys>{L('Espacio 1 2 3', 'Space 1 2 3')}</Keys>
+        </dt>
+        <dd>
+          {L(
+            'En «Tarjetas», Espacio (o Intro) da la vuelta a la tarjeta; después, 1, 2 y 3 dicen «No lo sabía», «Casi» y «Lo sabía».',
+            'In “Flashcards”, Space (or Enter) turns the card over; then 1, 2 and 3 say “I did not know”, “Nearly” and “I knew it”.',
+          )}
+        </dd>
+      </div>
+      <div>
+        <dt>
           <Keys>↑ ↓</Keys>
         </dt>
         <dd>{L('En «Mayor o menor», responden más o menos. En un campo de respuesta con sugerencias, las recorren; Esc las cierra.', 'In “Higher or lower”, they answer more or less. In an answer field with suggestions, they go through them; Esc closes them.')}</dd>

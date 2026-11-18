@@ -124,7 +124,7 @@ export function badgesOf(ctx: BadgeCtx): Badge[] {
   add('caps50', 'know', L('Capitales', 'Capitals'), L('Aprende 50 capitales.', 'Learn 50 capitals.'), caps, 50);
   add('flags50', 'know', L('Banderas', 'Flags'), L('Aprende 50 banderas.', 'Learn 50 flags.'), flags, 50);
   add('cities100', 'know', L('Cien ciudades', 'A hundred cities'), L('Sitúa 100 ciudades.', 'Place 100 cities.'), cities, 100);
-  add('phys50', 'know', L('Ríos y montañas', 'Rivers and mountains'), L('Sitúa 50 ríos, mares, cordilleras, picos, lagos, desiertos o islas.', 'Place 50 rivers, seas, ranges, peaks, lakes, deserts or islands.'), phys, 50);
+  add('phys50', 'know', L('Ríos y montañas', 'Rivers and mountains'), L('Sitúa 50 ríos, mares, cordilleras, picos, islas, cabos o lo que sea de la geografía física.', 'Place 50 rivers, seas, ranges, peaks, islands, capes or anything else of physical geography.'), phys, 50);
   add('nb25', 'know', L('Buen vecino', 'Good neighbour'), L('Aprende los vecinos de 25 países o regiones.', 'Learn the neighbours of 25 countries or regions.'), nbs, 25);
 
   add('first', 'play', L('Primer paso', 'First step'), L('Termina tu primera partida.', 'Finish your first game.'), tot.g ?? 0, 1);

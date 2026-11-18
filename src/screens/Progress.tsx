@@ -1,5 +1,5 @@
 /** What has been learnt so far, where on the map, what is due for review, recent games, and backup of the saved data. */
-import { ArrowRight, CalendarClock, Download, FileSpreadsheet, Trash2, Upload } from 'lucide-react';
+import { ArrowLeftRight, ArrowRight, CalendarClock, Download, FileSpreadsheet, Trash2, Upload } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { BadgeBoard } from '../components/Badges';
 import { MapView, type Paint } from '../components/MapView';
@@ -9,14 +9,16 @@ import { namesOf, type Named } from '../lib/answerNames';
 import { toCsv } from '../lib/csv';
 import { buildDeck, eligible, type World } from '../lib/data';
 import { kindNoun, parsePhys } from '../lib/extra';
+import { metricNoun, type MetricId } from '../lib/metricNames';
 import { L, getLang, levelNoun, nm } from '../lib/i18n';
-import { MODE_NAME, SECTIONS, formatName } from '../lib/modes';
+import { MODE_NAME, SECTIONS, formatName, modeNameIn } from '../lib/modes';
+import { mixGroups } from '../lib/mix';
 import { REVIEW_MAX, allGroups, dueCount, dueGroups, forecast, gradeOf, missGroups, missesOf, parseOrigin, reviewConfig, type Grade, type ReviewGroup } from '../lib/review';
 import { reviewTable } from '../lib/reviewTable';
 import { go } from '../lib/router';
 import { isLearnt, useStore, type Skill, type Stat } from '../lib/store';
 import { cx, fmtTime, nf } from '../lib/text';
-import type { Country, Deck, Mode } from '../lib/types';
+import type { Country, Deck, Mode, Section } from '../lib/types';
 import { scoreOf } from '../games/quiz';
 
 const SKILL_IDS: Skill[] = ['loc', 'name', 'cap', 'flag', 'nb'];
@@ -431,6 +433,93 @@ function MissBlock({ world }: { world: World }) {
   );
 }
 
+// ----------------------------------------------------------------- mixed up
+
+/** Maps shown, and pairs named on each. */
+const MIX_MAPS = 4;
+const MIX_PAIRS = 6;
+
+function MixBlock({ world }: { world: World }) {
+  const mix = useStore((s) => s.mix);
+  const stats = useStore((s) => s.stats);
+  const where = useStore((s) => s.where);
+  const opts = useStore((s) => s.opts);
+  const start = useStore((s) => s.start);
+  const groups = useMemo(() => mixGroups(mix, stats, where), [mix, stats, where]);
+  const shown = useMemo(() => groups.slice(0, MIX_MAPS), [groups]);
+  const [names, setNames] = useState<Map<string, Map<string, Named>> | null>(null);
+  // Which pairs are listed, not how often each was mixed up: the maps are not read again after every answer.
+  const listed = shown.map((g) => `${g.key}=${g.ids.join(',')}`).join('|');
+  useEffect(() => {
+    let alive = true;
+    void namesOf(shown, opts).then((m) => alive && setNames(m));
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listed]);
+
+  if (!groups.length) return null;
+  const total = groups.reduce((n, g) => n + g.pairs.length, 0);
+  const play = (g: ReviewGroup) => {
+    start(reviewConfig(g, opts));
+    go('jugar');
+  };
+
+  return (
+    <section className="block miss mix">
+      <h2>{L('Lo que confundes', 'What you mix up')}</h2>
+      <p className="tip-line">
+        {L(
+          `${total === 1 ? 'Una pareja que has tomado' : `${nf(total)} parejas que has tomado`} una por otra: te preguntaban por una y respondiste la otra. Practicarlas juntas es la manera de distinguirlas; dos aciertos seguidos a la primera ${total === 1 ? 'la' : 'las'} quitan de aquí.`,
+          `${total === 1 ? 'One pair' : `${nf(total)} pairs`} you have taken for each other: you were asked about one and answered the other. Practising them together is the way to tell them apart; two first-time right answers in a row take ${total === 1 ? 'it' : 'them'} off the list.`,
+        )}
+      </p>
+      <ul className="miss-list">
+        {shown.map((g) => {
+          const place = groupPlace(g, world);
+          const known = names?.get(g.key);
+          const n = Math.min(g.ids.length, REVIEW_MAX);
+          const nameOf = (id: string) => (names ? (known?.get(id)?.name ?? id) : '…');
+          return (
+            <li key={g.key}>
+              <div className="miss-head">
+                {place.flag && <Flag code={place.flag} size="sm" />}
+                <b>
+                  {place.text} <small>· {MODE_NAME[g.mode]}</small>
+                </b>
+                <button type="button" className="btn btn-sm" onClick={() => play(g)}>
+                  {L(`Practicar las ${n}`, `Practise all ${n}`)}
+                  <ArrowRight size={15} aria-hidden="true" />
+                </button>
+              </div>
+              <ol className="miss-items">
+                {g.pairs.slice(0, MIX_PAIRS).map((p) => (
+                  <li key={`${p.a}>${p.b}`}>
+                    <span className="mix-pair">
+                      {nameOf(p.a)} <ArrowLeftRight size={14} role="img" aria-label={L('y', 'and')} /> {nameOf(p.b)}
+                    </span>
+                    <small>{L(p.times === 1 ? '1 vez' : `${nf(p.times)} veces`, p.times === 1 ? 'once' : p.times === 2 ? 'twice' : `${nf(p.times)} times`)}</small>
+                  </li>
+                ))}
+                {g.pairs.length > MIX_PAIRS && <li className="miss-more">{L(`y ${g.pairs.length - MIX_PAIRS} más`, `and ${g.pairs.length - MIX_PAIRS} more`)}</li>}
+              </ol>
+            </li>
+          );
+        })}
+      </ul>
+      {groups.length > shown.length && (
+        <p className="tip-line">
+          {L(
+            `Y ${groups.length - shown.length === 1 ? 'otro mapa' : `otros ${groups.length - shown.length} mapas`} con parejas por distinguir.`,
+            `And ${groups.length - shown.length} more ${groups.length - shown.length === 1 ? 'map' : 'maps'} with pairs to tell apart.`,
+          )}
+        </p>
+      )}
+    </section>
+  );
+}
+
 // --------------------------------------------------------------------- page
 
 export function Progress({ world }: { world: World }) {
@@ -502,8 +591,8 @@ export function Progress({ world }: { world: World }) {
 
   const exportData = () => {
     // The short forms chosen in the settings travel with the rest: they are read when the copy is made.
-    const { typeins, typeinAuto, recent } = useStore.getState();
-    const data = { app: 'regionle', version: 3, exported: new Date().toISOString(), stats, where: whereMap, sessions, recent, best, favs, daily, lists, badges, tot, typeins, typeinAuto };
+    const { typeins, typeinAuto, recent, mix, goals } = useStore.getState();
+    const data = { app: 'regionle', version: 3, exported: new Date().toISOString(), stats, where: whereMap, mix, sessions, recent, best, favs, daily, lists, goals, badges, tot, typeins, typeinAuto };
     download(JSON.stringify(data, null, 1), `regionle-${L('progreso', 'progress')}-${new Date().toISOString().slice(0, 10)}.json`, 'application/json');
   };
 
@@ -523,6 +612,8 @@ export function Progress({ world }: { world: World }) {
   };
 
   /** A record in words: which game, on which map. */
+  /** The figures "higher or lower" keeps a record of. */
+  const HILO_METRICS: MetricId[] = ['pop', 'area', 'density', 'elev'];
   const recordLine = (k: string, v: number) => {
     const [kind, ...rest] = k.split(':');
     const what = rest.join(':');
@@ -537,7 +628,9 @@ export function Progress({ world }: { world: World }) {
     if (kind === 'hilo') {
       return (
         <li key={k}>
-          <b>{MODE_NAME.hilo}</b> · {what === 'area' ? L('superficie', 'area') : L('población', 'population')}
+          {/* "hilo:pop" for the countries; "hilo:pop:cities" for the rest, each in its section. */}
+          <b>{MODE_NAME.hilo}</b> · {HILO_METRICS.includes(rest[0] as MetricId) ? metricNoun(rest[0] as MetricId) : rest[0]}
+          {rest[1] && Object.hasOwn(SECTIONS, rest[1]) ? ` · ${SECTIONS[rest[1] as Section].name}` : ''}
           <span>{L(`racha de ${v}`, `streak of ${v}`)}</span>
         </li>
       );
@@ -545,14 +638,15 @@ export function Progress({ world }: { world: World }) {
     // Every other record is about a map: "nameall:<map>", "regionle:<map>", "blind:<map>|<n>", "timed:<mode>:<map>".
     let mapKey = what;
     let mode: Mode | null = null;
-    if (kind === 'timed' || kind === 'lives') {
+    if (kind === 'timed' || kind === 'lives' || kind === 'exam') {
       mode = rest[0] as Mode;
       mapKey = rest.slice(1).join(':');
     }
     let label: string;
     if (mapKey.startsWith('p:')) {
       const spec = parsePhys(mapKey.slice(2).split(','));
-      label = `${spec.kinds.map((x) => capitalise(kindNoun(x).many)).join(', ')} · ${spec.places.length ? spec.places.map((p) => (world.index.continents[p] ? nm(world.index.continents[p]) : p)).join(', ') : L('mundo', 'world')}`;
+      const land = spec.country ? world.byId.get(spec.country) : undefined;
+      label = `${spec.kinds.map((x) => capitalise(kindNoun(x).many)).join(', ')} · ${land ? nm(land.n) : spec.places.length ? spec.places.map((p) => (world.index.continents[p] ? nm(world.index.continents[p]) : p)).join(', ') : L('mundo', 'world')}`;
     } else {
       const ids = mapKey.replace(/^[rct]:/, '').split('|')[0].split(',');
       const names = ids.slice(0, 3).map((id) => {
@@ -563,7 +657,10 @@ export function Progress({ world }: { world: World }) {
     }
     const hits = (n: number) => L(`${n} ${n === 1 ? 'acierto' : 'aciertos'}`, `${n} right`);
     const [game, value] =
-      kind === 'timed' || kind === 'lives'
+      kind === 'exam'
+        ? // Kept in tenths: 85 is an 8,5.
+          [`${MODE_NAME[mode!] ?? ''} · ${formatName('exam').toLowerCase()}`, L(`nota ${nf(v / 10, 1)}`, `mark ${nf(v / 10, 1)}`)]
+        : kind === 'timed' || kind === 'lives'
         ? [`${MODE_NAME[mode!] ?? ''} · ${formatName(kind).toLowerCase()}`, hits(v)]
         : kind === 'regionle'
           ? [MODE_NAME.regionle, L(`racha de ${v}`, `streak of ${v}`)]
@@ -625,6 +722,7 @@ export function Progress({ world }: { world: World }) {
           {Object.keys(stats).length > 0 && <KnowledgeMap world={world} />}
           {Object.keys(stats).length > 0 && <ReviewBlock world={world} />}
           <MissBlock world={world} />
+          <MixBlock world={world} />
 
           <section className="block">
             <h2>{L('Aprendido', 'Learnt')}</h2>
@@ -717,8 +815,8 @@ export function Progress({ world }: { world: World }) {
                     {sessions.slice(0, 30).map((s) => (
                       <tr key={s.t}>
                         <td>{when(s.t)}</td>
-                        <td>{MODE_NAME[s.mode]}</td>
-                        <td>{s.note === 'timed' || s.note === 'lives' ? `${s.label} · ${formatName(s.note).toLowerCase()}` : s.note ? `${s.label} · ${s.note}` : s.label}</td>
+                        <td>{Object.hasOwn(SECTIONS, s.section) ? modeNameIn(s.section, s.mode) : MODE_NAME[s.mode]}</td>
+                        <td>{s.note === 'timed' || s.note === 'lives' || s.note === 'exam' ? `${s.label} · ${formatName(s.note).toLowerCase()}` : s.note ? `${s.label} · ${s.note}` : s.label}</td>
                         <td className="num">
                           {s.ok} / {s.total}
                         </td>

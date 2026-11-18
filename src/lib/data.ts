@@ -5,8 +5,8 @@ import type { GeometryCollection, Topology } from 'topojson-specification';
 import { L, capName, getLang, levelNoun, nm } from './i18n';
 import type { Answerable } from './text';
 import { editOf } from './typeins';
-import type { Country, Deck, Extra, Geo, Item, LL, Level } from './types';
-import { commonPlace, fetchFile, isFeminine, levelOf, loadFile, loadIndex, loadWorldGeo, once } from './world';
+import type { Belongs, Country, Deck, Extra, Geo, Item, LL, Level } from './types';
+import { commonPlace, fetchFile, fineCount, isFeminine, levelOf, loadFile, loadIndex, loadWorldGeo, once } from './world';
 
 export { commonPlace, eligible, fineCount, isFeminine, levelOf, loadFile, loadIndex, loadWorldGeo, setLoader, type World } from './world';
 
@@ -30,6 +30,8 @@ interface RegionFile {
   /** Properties of every finest-level unit. */
   fine: Map<string, UnitProps>;
   groupName: Map<string, UnitProps['n']>;
+  /** Properties of every unit of the coarser levels. */
+  groups: Map<string, UnitProps>;
   levels: Map<string, Geo[]>;
   outline?: MultiLineString;
 }
@@ -39,14 +41,18 @@ function loadRegion(id: string): Promise<RegionFile> {
     const topo = (await fetchFile(`r/${id}.json`)) as Topology;
     const fine = new Map<string, UnitProps>();
     const groupName = new Map<string, UnitProps['n']>();
+    const groups = new Map<string, UnitProps>();
     for (const [k, obj] of Object.entries(topo.objects)) {
       for (const g of (obj as GeometryCollection).geometries) {
         const p = g.properties as unknown as UnitProps;
         if (k === 'f') fine.set(String(g.id), p);
-        else groupName.set(String(g.id), p.n);
+        else {
+          groupName.set(String(g.id), p.n);
+          groups.set(String(g.id), p);
+        }
       }
     }
-    return { topo, fine, groupName, levels: new Map() };
+    return { topo, fine, groupName, groups, levels: new Map() };
   });
 }
 
@@ -159,6 +165,37 @@ export function frameForLand(chosen: Country[], world: Map<string, Geo>, cities:
   return out.length ? out : chosen.flatMap((c) => c.fp);
 }
 
+/** A division as what its pieces belong to: its names, as an answer. */
+function belongsTo(id: string, p: UnitProps, type: string): Belongs {
+  return { id, name: nm(p.n), type, answers: [p.n.es, p.n.en ?? '', p.n.lo ?? '', ...(p.al ?? [])].filter(Boolean), proper: properNames(p.n), short: editOf(id) };
+}
+
+/** A country as what its cities belong to. */
+export function belongsToCountry(c: Country): Belongs {
+  return { id: c.id, name: nm(c.n), type: L('país', 'country'), answers: [c.n.es, c.n.en ?? '', ...(c.al ?? [])].filter(Boolean), proper: properNames(c.n), short: editOf(c.id), fl: c.fl };
+}
+
+/**
+ * The division each finest unit of a country is in, at the level the country is usually played at: the
+ * community of a Spanish province, and the state itself where the states are that level. It is what a
+ * city of that country belongs to.
+ */
+export async function divisionsOf(c: Country): Promise<Map<string, Belongs>> {
+  const out = new Map<string, Belongs>();
+  if (fineCount(c) < 2) return out;
+  const file = await loadRegion(c.id);
+  const coarse = c.lv.filter((l) => l.k !== 'f');
+  const at = coarse.findIndex((l) => l.k === c.dl);
+  const fine = c.lv.find((l) => l.k === 'f') ?? c.lv[c.lv.length - 1];
+  for (const [id, p] of file.fine) {
+    if (p.q === 0) continue;
+    const gid = at >= 0 ? p.g?.[at] : undefined;
+    const group = gid ? file.groups.get(gid) : undefined;
+    out.set(id, gid && group ? belongsTo(gid, group, levelNoun(coarse[at]).one) : belongsTo(id, p, levelNoun(fine).one));
+  }
+  return out;
+}
+
 /** Names of the capital of a country: the one shown first, then every spelling accepted. */
 function capitalNames(c: Country): string[] | undefined {
   return c.cap ? [...new Set([capName(c.cap), c.cap.es, c.cap.en, ...(c.cap.al ?? [])].filter(Boolean))] : undefined;
@@ -260,6 +297,9 @@ export async function buildDeck(spec: DeckSpec, onProgress?: (done: number, tota
       for (const u of units) owner.set(u, id);
       sources.set(id, { file, units });
       const parentId = level.k === 'f' ? p.g?.[p.g.length - 1] : undefined;
+      const parentProps = parentId ? file.groups.get(parentId) : undefined;
+      // The group it is in is one of the level just above the finest.
+      const parentLevel = c.lv.length > 1 ? c.lv[c.lv.length - 2] : undefined;
       items.push({
         id,
         kind: 'unit',
@@ -275,6 +315,7 @@ export async function buildDeck(spec: DeckSpec, onProgress?: (done: number, tota
         // The data names odd units ("ciudad autónoma") in Spanish only.
         type: (getLang() === 'es') ? (p.t ?? noun.one) : noun.one,
         parent: parentId && file.groupName.has(parentId) ? nm(file.groupName.get(parentId)!) : undefined,
+        belongs: parentId && parentProps && parentLevel ? belongsTo(parentId, parentProps, levelNoun(parentLevel).one) : undefined,
         geo,
         lp: p.lp,
         fp: p.fp,

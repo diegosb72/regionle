@@ -1,14 +1,18 @@
 import { ArrowRight, BookOpen, CalendarClock, Filter, Infinity as InfinityIcon, ListChecks, Star, Swords, X } from 'lucide-react';
-import { useMemo } from 'react';
+import { Suspense, useMemo } from 'react';
 import { LevelChip } from '../components/Badges';
+import { ErrorBoundary } from '../components/ErrorBoundary';
+import { lazyScreen } from '../components/lazy';
 import { ReviewCard } from '../components/ReviewCard';
 import { Flag } from '../components/ui';
 import { DailyCard } from '../daily/Card';
 import { countriesOf, describeMap, type MapSpec } from '../lib/describe';
 import { commonPlace, type World } from '../lib/world';
+import { metricNoun, metricOrder } from '../lib/metricNames';
 import { L, getLang } from '../lib/i18n';
-import { MODES, MODE_NAME, SECTIONS, SECTION_IDS, formatName } from '../lib/modes';
+import { MODES, SECTIONS, SECTION_IDS, cardAskName, formatName, modeNameIn } from '../lib/modes';
 import { recentKey, type Recent } from '../lib/recent';
+import { NOT_GAMES } from '../lib/rules';
 import { go, inGame } from '../lib/router';
 import { DUEL_PATH, LIST_PATH, PATHS, PLAY_PATH, screenPage } from '../lib/routes';
 import { useStore, type Fav } from '../lib/store';
@@ -109,7 +113,7 @@ function recentMap(r: Recent, world: World): string {
   if (r.section === 'physical') return text;
   const chosen = countriesOf(specOf(r), world);
   const place = chosen.length > 3 ? commonPlace(chosen, world.index, r.section) : null;
-  const what = r.section === 'pops' ? ` · ${r.o.metric === 'area' ? L('superficie', 'area') : L('población', 'population')}` : '';
+  const what = r.section === 'pops' && r.o.metric ? ` · ${metricNoun(r.o.metric)}` : r.mode === 'compass' ? ` · ${metricOrder(r.o.axis === 'we' ? 'lon' : 'lat')}` : '';
   return `${place ? `${place} · ` : ''}${text}${what}`;
 }
 
@@ -158,13 +162,16 @@ function Recents({ world }: { world: World }) {
         <ul className="recent-list">
           {shown.map((r) => {
             const flags = countriesOf(specOf(r), world).slice(0, 3);
-            const paced = r.o.format && r.o.format !== 'normal' ? ` · ${formatName(r.o.format).toLowerCase()}` : '';
+            const paced = r.o.format && r.o.format !== 'normal' ? ` · ${formatName(r.o.format).toLowerCase()}` : r.o.countdown ? ` · ${r.o.countdown / 60} min` : '';
+            // Two packs of cards on the same map are told apart by what they ask.
+            const asked = r.mode === 'cards' && r.o.cardAsk ? ` · ${cardAskName(r.o.cardAsk)}` : '';
             return (
               <li key={recentKey(r)}>
                 <button type="button" onClick={() => again(r)}>
                   <span className="recent-what">
-                    {SECTIONS[r.section].name} · {MODE_NAME[r.mode]}
+                    {SECTIONS[r.section].name} · {modeNameIn(r.section, r.mode)}
                     {paced}
+                    {asked}
                   </span>
                   <span className="recent-map">
                     {r.countries.length <= 3 && flags.length > 0 && (
@@ -212,8 +219,12 @@ function Recents({ world }: { world: World }) {
 
 const goLabel = (id: Section): string => (id === 'physical' ? L('Elegir qué y dónde', 'Choose what and where') : L('Elegir países', 'Choose countries'));
 
+/** The goals with a date are fetched only by those who have one. */
+const GoalCards = lazyScreen(() => import('../components/GoalCard').then((m) => m.GoalCards));
+
 export function Home({ world }: { world: World }) {
   const sessions = useStore((s) => s.sessions);
+  const hasGoals = useStore((s) => s.goals.length > 0);
   const game = useStore((s) => s.game);
   // Someone who has never played: no game finished or in course, no daily challenge, nothing answered.
   const fresh = useStore((s) => !s.welcomed && !s.sessions.length && !s.game && !s.tot.g && !Object.keys(s.daily).length && !Object.keys(s.stats).length);
@@ -223,7 +234,8 @@ export function Home({ world }: { world: World }) {
     return {
       countries: cs.length,
       units: cs.reduce((n, c) => n + (c.lv[c.lv.length - 1]?.n ?? 0), 0),
-      modes: new Set(SECTION_IDS.flatMap((s) => MODES[s].map((m) => m.id))).size,
+      // The sheet to print is in the menus and is not a way to play.
+      modes: new Set(SECTION_IDS.flatMap((s) => MODES[s].map((m) => m.id)).filter((id) => !NOT_GAMES.includes(id))).size,
     };
   }, [world]);
 
@@ -234,6 +246,13 @@ export function Home({ world }: { world: World }) {
       {/* The first heading of the page; the headline further down is drawn as large as ever. */}
       <h1 className="sr-only">{L('Regionle ∞: juego de geografía para aprender el mapa del mundo', 'Regionle ∞: a geography game to learn the map of the world')}</h1>
       <DailyCard world={world} />
+      {hasGoals && (
+        <ErrorBoundary>
+          <Suspense fallback={null}>
+            <GoalCards />
+          </Suspense>
+        </ErrorBoundary>
+      )}
       <ReviewCard world={world} />
 
       <section className="hero">
@@ -256,7 +275,7 @@ export function Home({ world }: { world: World }) {
           </button>
           {game && !game.review && (
             <button type="button" className="btn btn-lg" onClick={() => go(PLAY_PATH)}>
-              {L('Seguir', 'Resume')}: {MODE_NAME[game.mode]}
+              {L('Seguir', 'Resume')}: {modeNameIn(game.section, game.mode)}
             </button>
           )}
         </div>
@@ -301,7 +320,7 @@ export function Home({ world }: { world: World }) {
               </ul>
               {id === 'physical' ? (
                 <span className="scard-flags scard-kinds" aria-hidden="true">
-                  {['river', 'lake', 'sea', 'range', 'peak', 'desert', 'island'].map((k) => (
+                  {['continent', 'river', 'lake', 'sea', 'range', 'plain', 'peninsula', 'peak', 'cape', 'desert', 'island', 'fall'].map((k) => (
                     <i key={k} className={`kdot kdot-${k}`} />
                   ))}
                 </span>
@@ -390,7 +409,7 @@ export function Home({ world }: { world: World }) {
       {last && <LevelChip world={world} />}
       {last && (
         <p className="home-last">
-          {L('Última partida', 'Last game')}: <b>{MODE_NAME[last.mode]}</b> · {last.label} · {L(`${last.ok} de ${last.total} a la primera`, `${last.ok} of ${last.total} first time`)}. <a href="#/progreso">{L('Ver tu progreso', 'See your progress')}</a>
+          {L('Última partida', 'Last game')}: <b>{modeNameIn(last.section, last.mode)}</b> · {last.label} · {L(`${last.ok} de ${last.total} a la primera`, `${last.ok} of ${last.total} first time`)}. <a href="#/progreso">{L('Ver tu progreso', 'See your progress')}</a>
         </p>
       )}
     </div>

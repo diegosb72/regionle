@@ -2,9 +2,11 @@
 import {
   geoAzimuthalEqualArea,
   geoCentroid,
+  geoContains,
   geoDistance,
   geoEqualEarth,
   geoGraticule10,
+  geoInterpolate,
   geoPath,
   type GeoPath,
   type GeoPermissibleObjects,
@@ -85,6 +87,189 @@ export function makeView(frame: LL[]): View {
 
 export function graticule() {
   return geoGraticule10();
+}
+
+/**
+ * A quick «no» before asking whether a place lies in a polygon, which costs a sum over every corner of it:
+ * the latitudes and the longitudes that its outline spans, with half a degree to spare for the sides, which
+ * are arcs. An outline that goes all the way round the globe holds a pole, and its span says nothing.
+ */
+function spanOf(ring: readonly (readonly number[])[]): (ll: readonly [number, number]) => boolean {
+  let s = Infinity;
+  let n = -Infinity;
+  let lon = ring[0][0];
+  let w = lon;
+  let e = lon;
+  for (let i = 0; i < ring.length; i++) {
+    const [x, y] = ring[i];
+    if (y < s) s = y;
+    if (y > n) n = y;
+    if (!i) continue;
+    // Longitudes are followed step by step, so that an outline across the antimeridian spans what it spans.
+    const d = x - ring[i - 1][0];
+    lon += d > 180 ? d - 360 : d < -180 ? d + 360 : d;
+    if (lon < w) w = lon;
+    if (lon > e) e = lon;
+  }
+  if (e - w >= 359) return () => true;
+  const SPARE = 0.5;
+  return ([x, y]) => y >= s - SPARE && y <= n + SPARE && ((((x - (w - SPARE)) % 360) + 360) % 360) <= e - w + 2 * SPARE;
+}
+
+/**
+ * Where to write the name of a shape whose own spot falls outside a frame: the Atlantic on a map of Europe, a
+ * plain that runs from France to the Urals on the map of France. For a surface, the place inside the frame
+ * with the most of the shape around it, on a grid of `side` cells; for a line, the middle of what is in
+ * sight. Null when no part of it is in the frame.
+ */
+export function spotInFrame(geo: AnyGeo, projection: GeoProjection, box: readonly [number, number, number, number], side = 18): [number, number] | null {
+  const [x0, y0, x1, y1] = box;
+  const g = geo.geometry;
+  if (g.type === 'LineString' || g.type === 'MultiLineString') {
+    const seen: [number, number][] = [];
+    for (const line of g.type === 'LineString' ? [g.coordinates] : g.coordinates)
+      for (const p of line) {
+        const q = projection(p as LL);
+        if (q && q[0] >= x0 && q[0] <= x1 && q[1] >= y0 && q[1] <= y1) seen.push(q);
+      }
+    return seen.length ? seen[seen.length >> 1] : null;
+  }
+  if ((g.type !== 'Polygon' && g.type !== 'MultiPolygon') || !projection.invert) return null;
+  const w = (x1 - x0) / side;
+  const h = (y1 - y0) / side;
+  // Piece by piece: most of an ocean or of an archipelago is nowhere near the place asked about.
+  const pieces = (g.type === 'Polygon' ? [g.coordinates] : g.coordinates).map((coordinates) => ({ shape: { type: 'Polygon' as const, coordinates }, near: spanOf(coordinates[0]) }));
+  const inside: boolean[] = [];
+  for (let j = 0; j < side; j++)
+    for (let i = 0; i < side; i++) {
+      const ll = projection.invert([x0 + (i + 0.5) * w, y0 + (j + 0.5) * h]);
+      inside.push(!!ll && pieces.some((piece) => piece.near(ll) && geoContains(piece.shape, ll)));
+    }
+  // How many rings of cells, all of the shape, lie around each cell: the edge of the frame counts as the end of it.
+  const depth = (i: number, j: number): number => {
+    for (let r = 1; ; r++)
+      for (let dj = -r; dj <= r; dj++)
+        for (let di = -r; di <= r; di++) {
+          if (Math.max(Math.abs(di), Math.abs(dj)) !== r) continue;
+          const a = i + di;
+          const b = j + dj;
+          if (a < 0 || b < 0 || a >= side || b >= side || !inside[b * side + a]) return r - 1;
+        }
+  };
+  let best = -1;
+  let at: [number, number] | null = null;
+  let off = Infinity;
+  for (let j = 0; j < side; j++)
+    for (let i = 0; i < side; i++) {
+      if (!inside[j * side + i]) continue;
+      const d = depth(i, j);
+      // Among the deepest, the one nearest the middle of the frame.
+      const far = (i + 0.5 - side / 2) ** 2 + (j + 0.5 - side / 2) ** 2;
+      if (d > best || (d === best && far < off)) {
+        best = d;
+        off = far;
+        at = [x0 + (i + 0.5) * w, y0 + (j + 0.5) * h];
+      }
+    }
+  return at;
+}
+
+/** How far into a shape that is out of sight a frame reaches, as a share of the map's radius, and by how many rounds. */
+const REACH = 0.12;
+const ROUNDS = 3;
+/** Map units, of the `NOMINAL` thousand across. */
+const HAIR = 1e-6;
+
+/**
+ * Points to add to a frame so that each of some shapes can be seen in it. A map is framed by its land, and a
+ * sea that only touches a far corner of it would be asked about with nothing of it on screen: the Arctic
+ * Ocean north of Europe, the Norwegian Sea off Shetland, the Bering Sea on a map of Asia drawn by its
+ * countries. For each shape with no part in sight the frame reaches into it, from its corner nearest the
+ * middle of the map towards its own middle `at`: all the way if that is near, a little of the map if not,
+ * and further in a second and a third round if it still cannot be seen.
+ */
+export function sightFor(frame: LL[], shapes: readonly { geo: AnyGeo; at: LL }[]): LL[] {
+  let added: LL[] = [];
+  for (let round = 1; round <= ROUNDS; round++) {
+    const points = [...frame, ...added];
+    if (!points.length) break;
+    const view = makeView(points);
+    const [x0, y0, x1, y1] = view.box;
+    const { centre, radius } = capOf(points);
+    const more: LL[] = [];
+    for (const shape of shapes) {
+      const q = view.projection(shape.at);
+      // To a hair: a middle taken in by an earlier round is a corner of the box itself.
+      if (q && q[0] >= x0 - HAIR && q[0] <= x1 + HAIR && q[1] >= y0 - HAIR && q[1] <= y1 + HAIR) continue;
+      if (spotInFrame(shape.geo, view.projection, view.box, 12)) continue;
+      const g = shape.geo.geometry;
+      const lines = g.type === 'Polygon' || g.type === 'MultiLineString' ? g.coordinates : g.type === 'MultiPolygon' ? g.coordinates.flat() : g.type === 'LineString' ? [g.coordinates] : [];
+      let near: LL | null = null;
+      let best = Infinity;
+      for (const line of lines)
+        for (const p of line) {
+          const d = geoDistance(p as LL, centre);
+          if (d < best) {
+            best = d;
+            near = p as LL;
+          }
+        }
+      if (!near) continue;
+      const far = geoDistance(near, shape.at) * DEG;
+      const reach = REACH * round * radius;
+      more.push(reach >= far ? shape.at : (geoInterpolate(near, shape.at)(reach / far) as LL));
+    }
+    if (!more.length) break;
+    added = [...added, ...more];
+  }
+  return added;
+}
+
+/**
+ * Width and height in view units of the biggest polygon of a multi-part shape, from the corners of its
+ * lon/lat box: what the eye finds in an archipelago. Null for anything that is a single piece.
+ */
+export function landBox(geo: AnyGeo, project: (p: LL) => [number, number] | null): [number, number] | null {
+  if (geo.geometry.type !== 'MultiPolygon' || geo.geometry.coordinates.length < 2) return null;
+  let best: [number, number, number, number] | null = null;
+  let bestArea = -1;
+  for (const poly of geo.geometry.coordinates) {
+    let w = Infinity;
+    let e = -Infinity;
+    let south = Infinity;
+    let north = -Infinity;
+    for (const pt of poly[0]) {
+      if (pt[0] < w) w = pt[0];
+      if (pt[0] > e) e = pt[0];
+      if (pt[1] < south) south = pt[1];
+      if (pt[1] > north) north = pt[1];
+    }
+    const area = (e - w) * Math.cos((((south + north) / 2) * Math.PI) / 180) * (north - south);
+    if (area > bestArea) {
+      bestArea = area;
+      best = [w, south, e, north];
+    }
+  }
+  if (!best) return null;
+  const [w, south, e, north] = best;
+  let x0 = Infinity;
+  let y0 = Infinity;
+  let x1 = -Infinity;
+  let y1 = -Infinity;
+  for (const corner of [
+    [w, south],
+    [e, south],
+    [w, north],
+    [e, north],
+  ] as LL[]) {
+    const q = project(corner);
+    if (!q) continue;
+    if (q[0] < x0) x0 = q[0];
+    if (q[0] > x1) x1 = q[0];
+    if (q[1] < y0) y0 = q[1];
+    if (q[1] > y1) y1 = q[1];
+  }
+  return Number.isFinite(x0) ? [x1 - x0, y1 - y0] : null;
 }
 
 /** Number of coordinates in a set of shapes: a measure of how heavy they are to draw. */
@@ -175,11 +360,16 @@ export function coarsePath(projection: GeoProjection, grid: number): CoarsePath 
   };
 }
 
-/** Outline of one feature drawn on its own, north up, inside a `size` square. */
-export function silhouette(geo: AnyGeo, size: number, pad = 0.08): string {
+/**
+ * Outline of one feature drawn on its own inside a `size` square: north up, or turned `turn` degrees
+ * clockwise for those who want it harder. Turned or not, it is fitted to the square.
+ */
+export function silhouette(geo: AnyGeo, size: number, pad = 0.08, turn = 0): string {
   const c = geoCentroid(geo);
   const projection = geoAzimuthalEqualArea()
     .rotate([-c[0], -c[1]])
+    // d3 counts the angle anticlockwise.
+    .angle(-turn)
     .precision(0.1)
     .fitExtent(
       [

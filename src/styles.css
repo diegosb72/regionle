@@ -53,6 +53,15 @@
   --k-water: #6fa9d0;
   --k-rock: #a9795a;
   --k-sand: #e6bd62;
+  --k-grass: #a9bd62;
+  --k-lilac: #9a86c9;
+  /* One colour for each continent, none of them the green, yellow or red that an answer is marked with. */
+  --c-eu: #8a78c8;
+  --c-as: #c8789c;
+  --c-af: #b08650;
+  --c-am: #8f9440;
+  --c-oc: #5b84b1;
+  --c-an: #9a9a9a;
   --lbl: #14262a;
   --lbl-halo: rgba(253, 246, 227, 0.92);
 
@@ -113,6 +122,14 @@
   --k-water: #3f86b5;
   --k-rock: #8a6248;
   --k-sand: #a8842f;
+  --k-grass: #6f8436;
+  --k-lilac: #8f7fd0;
+  --c-eu: #9a8ad6;
+  --c-as: #d184a8;
+  --c-af: #b98d55;
+  --c-am: #9aa046;
+  --c-oc: #5f8fc4;
+  --c-an: #aab0b3;
   --lbl: #f4f7f3;
   --lbl-halo: rgba(10, 21, 27, 0.88);
   color-scheme: dark;
@@ -1310,6 +1327,19 @@ button.chip.on:hover:not(:disabled) {
   min-width: 0;
   margin-right: 4px;
 }
+/* The second row of shortcuts, shown when asked for. */
+.picker-more {
+  margin-top: -4px;
+  padding: 10px 12px;
+  border: 1px dashed var(--line-2);
+  border-radius: var(--r-2);
+}
+.chip-more svg {
+  transition: transform 0.15s;
+}
+.chip-more.on svg {
+  transform: rotate(180deg);
+}
 .chip-fav {
   padding: 0;
   gap: 0;
@@ -1497,6 +1527,17 @@ button.chip.on:hover:not(:disabled) {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
+/* The games of a section, gathered under a heading for each kind. */
+.mode-group + .mode-group {
+  margin-top: 12px;
+}
+.mode-group-name {
+  margin: 0 0 6px;
+  font: 650 11px/1.2 var(--sans);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
 .mode {
   display: flex;
   align-items: center;
@@ -1616,6 +1657,11 @@ button.chip.on:hover:not(:disabled) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+/* What keeps the game from starting is read whole, however long. */
+.startbar-info span > b.problem {
+  white-space: normal;
+  text-wrap: pretty;
 }
 .startbar-info svg {
   flex: none;
@@ -2160,11 +2206,43 @@ button.chip.on:hover:not(:disabled) {
   pointer-events: none;
 }
 /* Physical features. These come before the state colours, which win. */
-.m-items path.k-sea {
+.m-items path.k-sea,
+.m-items path.k-ocean {
   fill: color-mix(in srgb, var(--k-water) 20%, var(--sea));
   stroke: color-mix(in srgb, var(--k-water) 55%, var(--sea));
   stroke-width: 0.8px;
   stroke-dasharray: 3 4;
+}
+/* A continent is the land itself, washed in a colour of its own. It has no line: the coast is drawn already,
+   and where its mainland and its islands or its two halves meet there is nothing to mark. */
+.m-items path.k-continent {
+  fill: color-mix(in srgb, var(--c-tint, var(--k-grass)) 46%, transparent);
+}
+.m-items path.k-continent,
+.m-items path.k-continent[class*='st-'] {
+  stroke: none;
+}
+/* Marked right or wrong, a continent is a shade darker than an ocean marked the same: the coast between them stays in sight. */
+.m-items path.k-continent[class*='st-'] {
+  filter: brightness(0.92);
+}
+.m-items path[data-id='c:europe'] {
+  --c-tint: var(--c-eu);
+}
+.m-items path[data-id='c:asia'] {
+  --c-tint: var(--c-as);
+}
+.m-items path[data-id='c:africa'] {
+  --c-tint: var(--c-af);
+}
+.m-items path[data-id='c:americas'] {
+  --c-tint: var(--c-am);
+}
+.m-items path[data-id='c:oceania'] {
+  --c-tint: var(--c-oc);
+}
+.m-items path[data-id='c:antarctica'] {
+  --c-tint: var(--c-an);
 }
 .m-items path.k-lake {
   fill: var(--k-water);
@@ -2179,6 +2257,17 @@ button.chip.on:hover:not(:disabled) {
 .m-items path.k-desert {
   fill: color-mix(in srgb, var(--k-sand) 60%, transparent);
   stroke: color-mix(in srgb, var(--k-sand) 70%, var(--ink));
+  stroke-width: 0.8px;
+}
+.m-items path.k-plain {
+  fill: color-mix(in srgb, var(--k-grass) 48%, transparent);
+  stroke: color-mix(in srgb, var(--k-grass) 70%, var(--ink));
+  stroke-width: 0.8px;
+}
+/* A peninsula is land that the sea all but surrounds: a colour that no water has, and a line where it joins the mainland. */
+.m-items path.k-peninsula {
+  fill: color-mix(in srgb, var(--k-lilac) 36%, transparent);
+  stroke: color-mix(in srgb, var(--k-lilac) 75%, var(--ink));
   stroke-width: 0.8px;
 }
 .m-items path.k-island {
@@ -2332,6 +2421,22 @@ button.chip.on:hover:not(:disabled) {
 .m-items path.st-dim {
   fill: var(--land-ctx);
   stroke: var(--land-ctx-line);
+}
+/* Water that is not asked yet stays water: a sea goes back to being the sea it is drawn on, and a lake pales.
+   Painted like the land that is left out, the Mediterranean would be one more country. */
+.m-items path.k-sea.st-dim,
+.m-items path.k-ocean.st-dim {
+  fill: transparent;
+  stroke: none;
+}
+.m-items path.k-lake.st-dim {
+  fill: var(--sea);
+  stroke: var(--land-ctx-line);
+}
+/* …and a continent, the bare land, with nothing over it. */
+.m-items path.k-continent.st-dim {
+  fill: transparent;
+  filter: none;
 }
 .m-ring.st-dim {
   display: none;
@@ -2609,6 +2714,33 @@ button.chip.on:hover:not(:disabled) {
 }
 .q-flag {
   margin: 4px 0 2px;
+}
+/* A flag asked about the hard way: without its colours, or out of focus. The box keeps the edge of the
+   flag sharp while what is inside it is blurred. */
+.q-flagbox {
+  display: inline-block;
+  margin: 4px 0 2px;
+  border-radius: 8px;
+  overflow: hidden;
+  line-height: 0;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 16%, transparent), var(--shadow-2);
+}
+.q-flagbox .q-flag {
+  display: block;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  transition:
+    filter 0.35s ease,
+    transform 0.35s ease;
+}
+.q-flagbox.look-grey .q-flag {
+  filter: grayscale(1) contrast(1.08);
+}
+.q-flagbox.look-blur .q-flag {
+  filter: blur(var(--flag-blur, 10px));
+  /* A little larger than its box: the blur fades towards the edges, and that part stays out of sight. */
+  transform: scale(1.14);
 }
 .q-how {
   display: flex;
@@ -4365,7 +4497,8 @@ a.d-cal-day:hover {
 .kdot-lake {
   background: var(--k-water);
 }
-.kdot-sea {
+.kdot-sea,
+.kdot-ocean {
   background: color-mix(in srgb, var(--k-water) 26%, var(--sea));
   box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--k-water) 75%, var(--ink));
 }
@@ -4378,6 +4511,42 @@ a.d-cal-day:hover {
 .kdot-desert {
   background: var(--k-sand);
 }
+.kdot-plain {
+  width: 14px;
+  height: 8px;
+  border-radius: 3px;
+  background: var(--k-grass);
+}
+/* A globe: land in the middle and the water round it. */
+.kdot-continent {
+  width: 12px;
+  height: 12px;
+  background: var(--c-am);
+  box-shadow: inset 0 0 0 2.5px var(--k-water);
+}
+/* A tongue of land. */
+.kdot-peninsula {
+  width: 9px;
+  height: 13px;
+  border-radius: 1px 1px 6px 6px;
+  background: var(--k-lilac);
+}
+/* A drop of water. */
+.kdot-fall {
+  width: 9px;
+  height: 9px;
+  margin: 0 2px;
+  border-radius: 0 50% 50% 50%;
+  background: var(--k-water);
+  transform: rotate(45deg);
+}
+.kdot-cape {
+  width: 11px;
+  height: 11px;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--k-water) 40%, var(--ink));
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
 .kdot-island {
   background: color-mix(in srgb, var(--m-sel) 45%, var(--land));
   box-shadow: inset 0 0 0 1.5px var(--outline);
@@ -4385,6 +4554,10 @@ a.d-cal-day:hover {
 .chip.on .kdot-sea,
 .chip.on .kdot-island {
   box-shadow: inset 0 0 0 1.5px var(--bg);
+}
+/* Dark on a dark chip: the diamond takes the colour of the water there. */
+.chip.on .kdot-cape {
+  background: color-mix(in srgb, var(--k-water) 75%, var(--bg));
 }
 .scard-kinds {
   align-items: center;
@@ -4560,6 +4733,137 @@ a.d-cal-day:hover {
   .review-main {
     grid-row: auto;
   }
+}
+
+/* ------------------------------------------------------- goals with a date */
+.goals {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  padding: clamp(16px, 2.2vw, 22px) clamp(18px, 3vw, 34px);
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--card);
+  box-shadow: var(--shadow-1);
+}
+.goals > .kicker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.goals > ul {
+  display: grid;
+  gap: 16px;
+}
+.goal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  min-width: 0;
+}
+.goal + .goal {
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.goal-main {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.goal h3 {
+  font-size: clamp(20px, 2.4vw, 26px);
+  letter-spacing: -0.015em;
+  overflow-wrap: anywhere;
+}
+.goal h3 small {
+  color: var(--ink-3);
+  font-family: var(--sans);
+  font-size: 14.5px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.goal-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 560px;
+}
+.goal-bar .bar {
+  flex: 1;
+}
+.goal-bar b {
+  flex: none;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.goal-plan {
+  color: var(--ink-2);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.goal-plan strong {
+  color: var(--ink);
+}
+.goal-plan svg {
+  vertical-align: -2px;
+  color: var(--ok);
+}
+.goal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+}
+.goal-over h3,
+.goal-over .goal-plan strong {
+  color: var(--ink-2);
+}
+.goal-date,
+.goal-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px 14px;
+}
+.goal-form {
+  margin: -4px 0 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--card);
+}
+.goal-form-row {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+.goal-form .opt-hint {
+  flex: 1 1 100%;
+}
+.goal-date input,
+.goal-form input {
+  min-height: 40px;
+  font-size: 15px;
+}
+.goalbar-made {
+  color: var(--ink-2);
+}
+.goalbar-made svg {
+  vertical-align: -2px;
+  color: var(--ok);
+}
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-ink);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 /* ------------------------------------------------------- jigsaw, neighbours */
@@ -5141,8 +5445,20 @@ a.d-cal-day:hover {
   fill: var(--k-rock);
   stroke: color-mix(in srgb, var(--k-rock) 45%, var(--ink));
 }
+/* A cape: a diamond on the tip of the land, dark enough to show on land and on sea. */
+.m-dot.k-cape:not([class*='st-']) {
+  fill: color-mix(in srgb, var(--k-water) 40%, var(--ink));
+  stroke: var(--land);
+}
+/* A waterfall: a drop, in the colour of the rivers. */
+.m-dot.k-fall:not([class*='st-']) {
+  fill: var(--k-water);
+  stroke: color-mix(in srgb, var(--k-water) 45%, var(--ink));
+}
 @media (hover: hover) {
-  .pickable .m-dot.k-peak.hot:not([class*='st-']) {
+  .pickable .m-dot.k-peak.hot:not([class*='st-']),
+  .pickable .m-dot.k-fall.hot:not([class*='st-']),
+  .pickable .m-dot.k-cape.hot:not([class*='st-']) {
     fill: var(--accent);
     stroke: var(--accent);
   }
@@ -5201,6 +5517,142 @@ a.d-cal-day:hover {
   height: 28px;
   margin-left: auto;
   flex: none;
+}
+/* ------------------------------------------------------------ flashcards */
+
+.fcard {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--line-2);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow-1);
+}
+.fcard-back {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  padding-top: 14px;
+  border-top: 1px dashed var(--line-2);
+  animation: fcard-in 0.22s ease-out;
+}
+@keyframes fcard-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+/* The answer itself: brought into sight when the card is turned, clear of the buttons that keep to the bottom. */
+.fcard-said {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  scroll-margin-bottom: 96px;
+}
+.fcard-answer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font: 600 clamp(26px, 3vw, 34px) / 1.1 var(--serif);
+  letter-spacing: -0.01em;
+}
+.fcard-where {
+  font-size: 15px;
+  color: var(--ink-2);
+}
+.fcard-back .facts {
+  margin: 0;
+}
+/* The three things to say stay in sight: where the panel is short (a phone, with the map below) they keep
+   to its bottom edge while the rest of the card scrolls under them. */
+.fcard-grades {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: -8px -4px;
+  padding: 8px 4px;
+  background: linear-gradient(to bottom, transparent, var(--bg) 8px);
+}
+.fcard-grade {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  position: relative;
+  min-height: 64px;
+  padding: 10px 6px 9px;
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink);
+  font: 600 14px/1.2 var(--sans);
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+.fcard-grade kbd {
+  position: absolute;
+  top: 6px;
+  left: 7px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--ink-3);
+  font: 700 11px var(--sans);
+}
+.fcard-grade.g-bad svg {
+  color: var(--bad-ink);
+}
+.fcard-grade.g-warn svg {
+  color: var(--warn-ink);
+}
+.fcard-grade.g-ok svg {
+  color: var(--ok-ink);
+}
+.fcard-grade.g-bad:hover {
+  border-color: var(--bad);
+  background: var(--bad-soft);
+}
+.fcard-grade.g-warn:hover {
+  border-color: var(--warn);
+  background: var(--warn-soft);
+}
+.fcard-grade.g-ok:hover {
+  border-color: var(--ok);
+  background: var(--ok-soft);
+}
+@media (hover: none) {
+  /* No keyboard to press 1, 2 or 3 on. */
+  .fcard-grade kbd {
+    display: none;
+  }
+}
+
+/* The loudspeaker with words on it: where the name is heard and not read, it is the question. */
+.speak.speak-wide {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  width: auto;
+  height: auto;
+  min-height: 48px;
+  margin: 2px 0;
+  padding: 10px 18px 10px 14px;
+  border-radius: 999px;
+  font: 600 16px/1.2 var(--sans);
+  color: var(--ink);
+}
+.speak.speak-wide svg {
+  flex: none;
+  color: var(--brand);
 }
 
 /* ----------------------------------------------------------------- learn */
@@ -6705,6 +7157,15 @@ kbd {
   color: var(--ink-3);
   font-size: 14px;
 }
+/* Two names taken for each other. */
+.mix-pair svg {
+  margin: 0 2px;
+  vertical-align: -2px;
+  color: var(--ink-3);
+}
+.mix .miss-items li small {
+  color: var(--ink-3);
+}
 @media (max-width: 720px) {
   .miss-list {
     grid-template-columns: minmax(0, 1fr);
@@ -6940,4 +7401,605 @@ kbd {
   color: var(--ink-3);
   font-size: inherit;
   font-weight: 400;
+}
+
+/* ------------------------------------------------- figures of anything, facts */
+
+/* What a thing is, under its name, where no flag says it: "ciudad · Francia", "pico". */
+.pcard-sub {
+  margin-top: -6px;
+  color: var(--ink-3);
+  font-size: 14px;
+}
+.pcard-sub::first-letter {
+  text-transform: uppercase;
+}
+.pcard-kind.kdot {
+  width: 30px;
+  height: 30px;
+}
+.rank-name small {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+.rank-card .kdot,
+.hl-log .kdot,
+.which-log .kdot {
+  flex: none;
+}
+.amount-unit {
+  font-weight: 650;
+  color: var(--ink-2);
+}
+
+/* True or false */
+.tf {
+  justify-items: center;
+}
+.tf-flags {
+  display: flex;
+  gap: 10px;
+  min-height: 30px;
+}
+.tf-text {
+  max-width: 26ch;
+  text-wrap: balance;
+}
+.tf-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  width: min(100%, 520px);
+}
+.tf-btn {
+  min-height: 62px;
+  justify-content: center;
+  gap: 8px;
+  font-size: 18px;
+  border-radius: var(--r-2);
+}
+.tf-btn kbd {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin-left: 4px;
+  border: 1px solid var(--line-2);
+  border-radius: 7px;
+  background: var(--bg);
+  color: var(--ink-3);
+  font: 700 12px var(--sans);
+}
+.tf-true svg {
+  color: var(--ok);
+}
+.tf-false svg {
+  color: var(--bad);
+}
+.tf-btn:disabled {
+  opacity: 1;
+  color: var(--ink-3);
+  cursor: default;
+}
+.tf-btn.right {
+  border-color: var(--ok);
+  background: var(--ok-soft);
+  color: var(--ok-ink);
+}
+.tf-btn.wrong {
+  border-color: var(--bad);
+  background: var(--bad-soft);
+  color: var(--bad-ink);
+  text-decoration: line-through;
+}
+.tf > .verdict,
+.tf > .q-actions {
+  width: min(100%, 520px);
+}
+.tf-why {
+  color: var(--ink-2);
+  font-size: 15px;
+  line-height: 1.45;
+}
+.tf-review {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+.tf-review h3 {
+  font: 650 12px/1.2 var(--sans);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.tf-review ul {
+  display: grid;
+  gap: 8px;
+}
+.tf-review li {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--card);
+}
+.tf-said {
+  font-weight: 600;
+}
+.tf-tag {
+  display: inline-block;
+  margin-right: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.tf-tag.true {
+  background: var(--ok-soft);
+  color: var(--ok-ink);
+}
+.tf-tag.false {
+  background: var(--bad-soft);
+  color: var(--bad-ink);
+}
+@media (max-width: 420px) {
+  .tf-btn {
+    font-size: 16px;
+  }
+  .tf-btn kbd {
+    display: none;
+  }
+}
+
+/* The top ten */
+.top-list {
+  display: grid;
+  gap: 6px;
+  width: min(100%, 560px);
+  justify-self: center;
+  counter-reset: none;
+}
+.top-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 6px 12px 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--card);
+  font-size: 15.5px;
+}
+.top-n {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bg-2);
+  color: var(--ink-2);
+  font: 600 15px/1 var(--serif);
+}
+.top-blank {
+  flex: 1;
+  height: 10px;
+  border-radius: 5px;
+  background: repeating-linear-gradient(90deg, var(--line) 0 10px, transparent 10px 16px);
+  opacity: 0.8;
+}
+.top-value {
+  margin-left: auto;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.top-list li.got {
+  border-color: var(--ok);
+  background: var(--ok-soft);
+}
+.top-list li.got .top-n {
+  background: var(--ok);
+  color: #fff;
+}
+.top-list li.missed {
+  border-color: var(--bad);
+  background: var(--bad-soft);
+}
+.top-list li.missed .top-n {
+  background: var(--bad);
+  color: #fff;
+}
+.results > .top-list {
+  margin-top: 16px;
+}
+.top-wrong {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  width: min(100%, 560px);
+  justify-self: center;
+  font-size: 14px;
+}
+.top-wrong li {
+  padding: 3px 10px;
+  border: 1px solid var(--bad);
+  border-radius: 999px;
+  color: var(--bad-ink);
+  background: var(--bad-soft);
+}
+.top-wrong small {
+  opacity: 0.8;
+}
+.hud-strikes {
+  gap: 2px;
+}
+.hud-strikes svg {
+  flex: none;
+  color: var(--line-2);
+}
+.hud-strikes svg.on {
+  color: var(--bad);
+}
+
+/* sheet to print (games/PrintSheet.tsx) */
+
+.mode-paper {
+  font: 650 10px/1 var(--sans);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.sheet-tools .options {
+  margin-top: 4px;
+}
+/* The button of the top bar is for the phone, where the one of the panel is a scroll away. */
+.sheet-print {
+  display: none;
+}
+@media (max-width: 860px) {
+  .sheet-print {
+    display: inline-flex;
+  }
+  .play-top .sheet-print span {
+    display: inline;
+  }
+}
+.sheets {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+  align-content: start;
+  padding: 12px;
+  background: var(--bg-2);
+}
+/* Paper: white with black ink whatever the theme, drawn at its real size and shrunk to the room there is. */
+.sheet {
+  box-sizing: content-box;
+  padding: 12mm;
+  background: #fff;
+  color: #111;
+  color-scheme: light;
+  box-shadow: var(--shadow-2);
+  zoom: var(--fit, 1);
+  font: 400 10pt/1.3 var(--sans);
+}
+/* A height of its own, whatever the title: the map below is worked out for it (HEADER in lib/sheet.ts). */
+.sheet-head {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 13mm;
+  margin-bottom: 4mm;
+}
+.sheet-head h2 {
+  margin: 0;
+  overflow: hidden;
+  font: 600 16pt/1.15 var(--serif);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #111;
+}
+.sheet-head h2.long {
+  font-size: 11.5pt;
+}
+.sheet-sub {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8mm;
+  margin-top: 1mm;
+}
+.sheet-head p {
+  margin: 0;
+  font-size: 9pt;
+  color: #444;
+}
+.sheet-head .sheet-fields {
+  display: flex;
+  flex: none;
+  gap: 5mm;
+  margin: 0;
+  color: #111;
+  white-space: nowrap;
+}
+.sheet-fields span {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2mm;
+}
+.sheet-fields i {
+  display: inline-block;
+  width: 48mm;
+  border-bottom: 0.25mm solid #555;
+}
+.sheet-fields i.short {
+  width: 22mm;
+}
+.sheet-map {
+  display: block;
+  margin: 0 auto;
+  background: #fff;
+}
+/* The sizes here are the ones lib/sheet.ts works the map out with: the gap over the list, the width and
+   the gap of its columns, the height of its lines (`--row`). */
+.sheet-list {
+  margin: 6mm 0 0;
+  padding: 0;
+  list-style: none;
+  column-gap: 6mm;
+}
+.sheet-body.side {
+  display: flex;
+  align-items: flex-start;
+  gap: 6mm;
+}
+.sheet-body.side .sheet-map {
+  flex: none;
+  margin: 0;
+}
+.sheet-body.side .sheet-list {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+.sheet-list li {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.5mm;
+  height: var(--row, 7mm);
+  break-inside: avoid;
+}
+.sheet-list b {
+  flex: none;
+  min-width: 5mm;
+  text-align: right;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.sheet-list i {
+  flex: 1;
+  border-bottom: 0.2mm solid #777;
+}
+/* The answers: a long name takes a second line before it is cut. */
+.sheet-key .sheet-list {
+  font-size: 9pt;
+  line-height: 1.15;
+}
+.sheet-key .sheet-list li {
+  height: auto;
+  min-height: var(--row, 7mm);
+  align-items: baseline;
+  padding-top: 1mm;
+}
+.sheet-key .sheet-list b {
+  line-height: inherit;
+}
+.sheet-key .sheet-list span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.sheet-foot {
+  margin: 3mm 0 0;
+  font-size: 7pt;
+  color: #777;
+  text-align: right;
+}
+
+/* The map of the sheet: `--mm` is how many of its units make a millimetre of paper. */
+.sm-sphere {
+  fill: none;
+  stroke: #999;
+  stroke-width: calc(var(--mm) * 0.2px);
+}
+.sm-ctx path {
+  fill: #ececec;
+  stroke: #b0b0b0;
+  stroke-width: calc(var(--mm) * 0.15px);
+  stroke-linejoin: round;
+}
+.sm-base path {
+  fill: #fff;
+  stroke: #555;
+  stroke-width: calc(var(--mm) * 0.2px);
+  stroke-linejoin: round;
+}
+/* On a physical map the borders of the countries are there to find one's way, and no more. */
+.of-physical .sm-base path {
+  stroke: #a6a6a6;
+  stroke-width: calc(var(--mm) * 0.14px);
+}
+.sm-under path {
+  fill: none;
+  stroke: #777;
+  stroke-width: calc(var(--mm) * 0.2px);
+  stroke-dasharray: calc(var(--mm) * 0.3px) calc(var(--mm) * 0.9px);
+  stroke-linecap: round;
+}
+.sm-area path {
+  fill: #fff;
+  stroke: #1a1a1a;
+  stroke-width: calc(var(--mm) * 0.22px);
+  stroke-linejoin: round;
+}
+.sm-area path.k-lake {
+  fill: #d4d4d4;
+  stroke: #333;
+}
+.sm-area path.k-range,
+.sm-area path.k-plain,
+.sm-area path.k-desert {
+  fill: none;
+  stroke: #444;
+  stroke-width: calc(var(--mm) * 0.25px);
+  stroke-dasharray: calc(var(--mm) * 1.4px) calc(var(--mm) * 0.8px);
+}
+.sm-area path.k-desert {
+  stroke-dasharray: calc(var(--mm) * 0.3px) calc(var(--mm) * 0.8px);
+  stroke-linecap: round;
+}
+.sm-area path.k-plain {
+  stroke: #777;
+  stroke-dasharray: calc(var(--mm) * 2.4px) calc(var(--mm) * 0.7px) calc(var(--mm) * 0.4px) calc(var(--mm) * 0.7px);
+}
+/* A peninsula is outlined like a plain, with a shorter stroke. */
+.sm-area path.k-peninsula {
+  fill: none;
+  stroke: #555;
+  stroke-width: calc(var(--mm) * 0.22px);
+  stroke-dasharray: calc(var(--mm) * 0.9px) calc(var(--mm) * 0.6px);
+}
+/* A continent is the land that is drawn already: no line of its own. A grey, darker in one and lighter in the
+   next, tells Europe from Asia and Asia from Africa where no sea does. */
+.sm-area path.k-continent {
+  fill: rgba(0, 0, 0, 0.05);
+  stroke: none;
+}
+.sm-area path[data-id='c:europe'],
+.sm-area path[data-id='c:africa'],
+.sm-area path[data-id='c:oceania'] {
+  fill: rgba(0, 0, 0, 0.15);
+}
+.sm-extra path {
+  fill: #f3f3f3;
+  stroke: #777;
+  stroke-width: calc(var(--mm) * 0.18px);
+  stroke-dasharray: calc(var(--mm) * 0.8px) calc(var(--mm) * 0.6px);
+}
+.sm-outline path {
+  fill: none;
+  stroke: #000;
+  stroke-width: calc(var(--mm) * 0.4px);
+  stroke-linejoin: round;
+}
+.sm-line path {
+  fill: none;
+  stroke: #1a1a1a;
+  stroke-width: calc(var(--mm) * 0.35px);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.sm-dot circle,
+.sm-dot path {
+  fill: #111;
+  stroke: #fff;
+  stroke-width: calc(var(--mm) * 0.15px);
+}
+.sm-num text {
+  font-family: var(--sans);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  fill: #000;
+  stroke: #fff;
+  stroke-width: calc(var(--mm) * 0.7px);
+  stroke-linejoin: round;
+  paint-order: stroke;
+}
+.sm-ring {
+  fill: none;
+  stroke: #000;
+  stroke-width: calc(var(--mm) * 0.2px);
+}
+.sm-lead line {
+  stroke: #000;
+  stroke-width: calc(var(--mm) * 0.15px);
+}
+.sm-lead circle {
+  fill: #000;
+}
+.sm-edge {
+  fill: none;
+  stroke: #000;
+  stroke-width: calc(var(--mm) * 0.3px);
+}
+
+/* On paper nothing is left but the sheets, one to a page. */
+@media print {
+  html.sheet-on,
+  html.sheet-on body {
+    height: auto;
+    overflow: visible;
+    background: #fff;
+  }
+  html.sheet-on .app-play {
+    position: static;
+    display: block;
+    min-height: 0;
+    overflow: visible;
+  }
+  html.sheet-on .play-main,
+  html.sheet-on .play,
+  html.sheet-on .play-body {
+    display: block;
+    height: auto;
+    background: none;
+  }
+  html.sheet-on .play-top,
+  html.sheet-on .panel,
+  html.sheet-on .toast,
+  html.sheet-on .keys-dialog {
+    display: none !important;
+  }
+  html.sheet-on .stage {
+    position: static;
+    min-height: 0;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+    background: none;
+  }
+  html.sheet-on .sheets {
+    position: static;
+    display: block;
+    overflow: visible;
+    padding: 0;
+    background: none;
+  }
+  html.sheet-on .sheet {
+    zoom: 1;
+    margin: 0 auto;
+    padding: 0;
+    box-shadow: none;
+    break-after: page;
+  }
+  html.sheet-on .sheet:last-of-type {
+    break-after: auto;
+  }
+  /* A list too long to share the page of its map starts the next one. */
+  html.sheet-on .sheet-list.split {
+    break-before: page;
+  }
+}
+
+/* A box with the far pieces of the map: paper of its own over whatever the main map has there. */
+.sm-paper {
+  fill: #fff;
 }

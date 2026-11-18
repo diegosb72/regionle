@@ -1,16 +1,13 @@
 /** Country picker: continents and subregions, search, filters, shortcuts and saved selections. */
-import { BookmarkPlus, Check, Search, SlidersHorizontal, Star, X } from 'lucide-react';
+import { BookmarkPlus, Check, ChevronDown, Search, SlidersHorizontal, Star, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { eligible, fineCount, levelOf, type World } from '../lib/data';
+import { MORE_SHORTCUTS, SHORTCUTS } from '../lib/groups';
 import { L, getLang, nm } from '../lib/i18n';
 import { useStore } from '../lib/store';
 import { cx, key, nf } from '../lib/text';
 import type { Country, Section } from '../lib/types';
 import { Flag } from './ui';
-
-const EU = 'AT BE BG HR CY CZ DK EE FI FR DE GR HU IE IT LV LT LU MT NL PL PT RO SK SI ES SE'.split(' ');
-const SPANISH = 'ES MX GT HN SV NI CR PA CU DO PR CO VE EC PE BO CL AR UY PY GQ'.split(' ');
-const G20 = 'AR AU BR CA CN DE FR GB ID IN IT JP KR MX RU SA TR US ZA'.split(' ');
 
 type Coast = 'any' | 'landlocked' | 'coastal' | 'island';
 interface Filters {
@@ -101,6 +98,8 @@ export function Picker({
   const [open, setOpen] = useState(false);
   const [sort, setSort] = useState<Sort>('name');
   const [naming, setNaming] = useState<string | null>(null);
+  /** The second row of shortcuts is in sight. */
+  const [more, setMore] = useState(false);
 
   const pool = useMemo(() => index.countries.filter((c) => eligible(section, c) && (!allow || allow(c))), [index, section, allow]);
   const chosen = useMemo(() => new Set(selected), [selected]);
@@ -151,25 +150,12 @@ export function Picker({
     const set = new Set(ids);
     onChange(on ? [...selected, ...ids.filter((id) => !chosen.has(id))] : selected.filter((id) => !set.has(id)));
   };
-  const only = (ids: string[]) => {
-    const ok = new Set(pool.map((c) => c.id));
-    onChange(ids.filter((id) => ok.has(id)));
-  };
-  const top = (by: (c: Country) => number) =>
-    [...pool]
-      .filter((c) => c.cl === 'un')
-      .sort((a, b) => by(b) - by(a))
-      .slice(0, 10)
-      .map((c) => c.id);
-
-  const shortcuts: [string, () => string[]][] = [
-    [L('Mundo', 'World'), () => pool.filter((c) => c.cl !== 'dep').map((c) => c.id)],
-    [L('Unión Europea', 'European Union'), () => EU],
-    [L('Hispanohablantes', 'Spanish-speaking'), () => SPANISH],
-    ['G20', () => G20],
-    [L('10 más poblados', '10 most populous'), () => top((c) => c.pop ?? 0)],
-    [L('10 más extensos', '10 largest'), () => top((c) => c.ar)],
-  ];
+  const poolIds = useMemo(() => new Set(pool.map((c) => c.id)), [pool]);
+  const only = (ids: string[]) => onChange(ids.filter((id) => poolIds.has(id)));
+  /** The shortcuts that choose something here: a group none of whose countries the section can play is left out. */
+  const usable = (list: typeof SHORTCUTS) => list.map((sc) => ({ sc, ids: sc.pick(pool).filter((id) => poolIds.has(id)) })).filter((x) => x.ids.length > 0);
+  const shortcuts = usable(SHORTCUTS);
+  const moreShortcuts = usable(MORE_SHORTCUTS);
 
   const activeFilters = Number(!f.un) + Number(!f.more) + Number(f.dep) + Number(f.coast !== 'any') + Number(f.pop > 0) + Number(f.area > 0) + Number(f.units > 0);
   const allVisibleOn = visible.length > 0 && visible.every((c) => chosen.has(c.id));
@@ -246,11 +232,17 @@ export function Picker({
 
       <div className="picker-quick">
         <span className="frow-label">{L('Atajos', 'Shortcuts')}</span>
-        {shortcuts.map(([name, ids]) => (
-          <button key={name} type="button" className="chip" onClick={() => only(ids())}>
-            {name}
+        {shortcuts.map(({ sc, ids }) => (
+          <button key={sc.id} type="button" className="chip" title={sc.title?.()} onClick={() => only(ids)}>
+            {sc.name()}
           </button>
         ))}
+        {moreShortcuts.length > 0 && (
+          <button type="button" className={cx('chip chip-more', more && 'on')} aria-expanded={more} aria-controls="mas-atajos" onClick={() => setMore((m) => !m)}>
+            {L('Más atajos', 'More shortcuts')}
+            <ChevronDown size={14} aria-hidden="true" />
+          </button>
+        )}
         {mine.map((fav) => (
           <span key={fav.name} className="chip chip-fav">
             <button
@@ -291,6 +283,16 @@ export function Picker({
           </form>
         )}
       </div>
+      {more && moreShortcuts.length > 0 && (
+        <div className="picker-quick picker-more" id="mas-atajos">
+          {moreShortcuts.map(({ sc, ids }) => (
+            <button key={sc.id} type="button" className="chip" title={sc.title?.()} onClick={() => only(ids)}>
+              {sc.name()}
+              <small>{ids.length}</small>
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="picker-actions">
         <span>
