@@ -25,6 +25,14 @@ describe('what is kept of a game to play it again', () => {
     expect(pops?.o).toEqual({ metric: 'area' });
     const flags = recentOf(game({ section: 'countries', mode: 'pin', countries: ['ES', 'FR'], opts: { ...DEFAULT_OPTS, pinBy: 'flag', format: 'timed' } }), session({ section: 'countries' }));
     expect(flags?.o).toEqual({ pinBy: 'flag', format: 'timed' });
+    // What the cards ask is the game; nobody marks them, so they have no format to keep.
+    const cards = recentOf(game({ section: 'countries', mode: 'cards', countries: ['ES', 'FR'], opts: { ...DEFAULT_OPTS, cardAsk: 'where', format: 'timed' } }), session({ section: 'countries', mode: 'cards' }));
+    expect(cards?.o).toEqual({ cardAsk: 'where' });
+    // The medley and the game by ear are played against the clock like the games they are made of.
+    const mix = recentOf(game({ section: 'countries', mode: 'mix', countries: ['ES', 'FR'], opts: { ...DEFAULT_OPTS, format: 'lives', turned: true, flagLook: 'grey' } }), session({ section: 'countries', mode: 'mix' }));
+    expect(mix?.o).toEqual({ format: 'lives' });
+    const ear = recentOf(game({ section: 'countries', mode: 'listen', countries: ['ES', 'FR'], opts: { ...DEFAULT_OPTS, pinBy: 'flag' } }), session({ section: 'countries', mode: 'listen' }));
+    expect(ear?.o).toEqual({ format: 'normal' });
     // Nothing of how one likes to answer: that is today's taste when it is played again.
     expect(Object.keys(recentOf(game({ mode: 'nameall' }), session({ mode: 'nameall' }))!.o)).toEqual([]);
   });

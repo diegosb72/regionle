@@ -360,11 +360,16 @@ export function coarsePath(projection: GeoProjection, grid: number): CoarsePath 
   };
 }
 
-/** Outline of one feature drawn on its own, north up, inside a `size` square. */
-export function silhouette(geo: AnyGeo, size: number, pad = 0.08): string {
+/**
+ * Outline of one feature drawn on its own inside a `size` square: north up, or turned `turn` degrees
+ * clockwise for those who want it harder. Turned or not, it is fitted to the square.
+ */
+export function silhouette(geo: AnyGeo, size: number, pad = 0.08, turn = 0): string {
   const c = geoCentroid(geo);
   const projection = geoAzimuthalEqualArea()
     .rotate([-c[0], -c[1]])
+    // d3 counts the angle anticlockwise.
+    .angle(-turn)
     .precision(0.1)
     .fitExtent(
       [

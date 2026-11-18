@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { setLang } from './i18n';
-import { GROUP_NAME, MODES, MODE_GROUPS, MODE_NAME, SECTION_IDS, modeNameIn } from './modes';
+import { GROUP_NAME, MODES, MODE_GROUPS, MODE_NAME, SECTION_IDS, cardAskName, modeNameIn } from './modes';
 import { TYPICAL_S } from './pace';
-import { FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, NOT_GAMES, ROUND_MODES } from './rules';
+import { FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, NOT_GAMES, ROUND_MODES, asksByFlag, turnsOutlines } from './rules';
 import type { Mode } from './types';
 
 beforeEach(() => setLang('es'));
@@ -11,10 +11,10 @@ const ids = (section: (typeof SECTION_IDS)[number]): Mode[] => MODES[section].ma
 
 describe('the games of each section', () => {
   it('are these, in the order of the menu', () => {
-    expect(ids('regions')).toEqual(['explore', 'learn', 'print', 'pin', 'identify', 'nameall', 'puzzle', 'outline', 'regionle', 'neighbours', 'travel', 'parent', 'compass', 'capital', 'hilo', 'rank', 'exact', 'which', 'topten']);
-    expect(ids('countries')).toEqual(['explore', 'learn', 'print', 'pin', 'identify', 'nameall', 'puzzle', 'outline', 'regionle', 'neighbours', 'travel', 'compass', 'capital', 'flag']);
-    expect(ids('cities')).toEqual(['explore', 'learn', 'print', 'pin', 'blind', 'identify', 'nameall', 'parent', 'compass', 'hilo', 'rank', 'exact', 'which', 'topten']);
-    expect(ids('physical')).toEqual(['explore', 'learn', 'print', 'pin', 'identify', 'nameall', 'hilo', 'rank', 'exact', 'which', 'topten']);
+    expect(ids('regions')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'identify', 'nameall', 'puzzle', 'mix', 'outline', 'regionle', 'neighbours', 'travel', 'parent', 'compass', 'capital', 'hilo', 'rank', 'exact', 'which', 'topten']);
+    expect(ids('countries')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'identify', 'nameall', 'puzzle', 'mix', 'outline', 'regionle', 'neighbours', 'travel', 'compass', 'capital', 'flag']);
+    expect(ids('cities')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'blind', 'identify', 'nameall', 'mix', 'parent', 'compass', 'hilo', 'rank', 'exact', 'which', 'topten']);
+    expect(ids('physical')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'identify', 'nameall', 'mix', 'hilo', 'rank', 'exact', 'which', 'topten']);
     expect(ids('pops')).toEqual(['hilo', 'rank', 'exact', 'which', 'topten', 'truefalse']);
   });
 
@@ -84,8 +84,17 @@ describe('what a game is called', () => {
     expect(MODE_NAME.truefalse).toBe('Verdadero o falso');
     expect(MODE_NAME.topten).toBe('Los diez primeros');
     expect(MODE_NAME.print).toBe('Mapa mudo');
+    expect(MODE_NAME.cards).toBe('Tarjetas');
+    expect(MODE_NAME.mix).toBe('Popurrí');
+    expect(MODE_NAME.listen).toBe('Oye y señala');
+    // What the cards ask is said as the question it is, the same in the setup and on the first page.
+    expect((['name', 'where', 'capital', 'flag'] as const).map(cardAskName)).toEqual(['¿Cómo se llama?', '¿Dónde está?', '¿Su capital?', '¿Qué bandera es?']);
     setLang('en');
+    expect((['name', 'where', 'capital', 'flag'] as const).map(cardAskName)).toEqual(['What is it called?', 'Where is it?', 'Its capital?', 'Which flag is it?']);
     expect(MODE_NAME.print).toBe('Blank map');
+    expect(MODE_NAME.cards).toBe('Flashcards');
+    expect(MODE_NAME.mix).toBe('Medley');
+    expect(MODE_NAME.listen).toBe('Listen and pin');
     expect(MODE_NAME.compass).toBe('North–south');
     expect(MODE_NAME.parent).toBe('Where does it belong?');
     expect(MODE_NAME.truefalse).toBe('True or false');
@@ -118,5 +127,56 @@ describe('the rules the menus go by', () => {
 
   it('give a typical pace to every game with a number of questions', () => {
     for (const id of LENGTH_MODES) expect(TYPICAL_S[id], id).toBeGreaterThan(0);
+  });
+
+  it('place the three new ones: cards to study with, the medley and the game by ear on the map', () => {
+    for (const section of ['regions', 'countries', 'cities', 'physical'] as const) {
+      const by = new Map(MODES[section].map((m) => [m.id, m]));
+      expect(by.get('cards')!.group, section).toBe('study');
+      expect(by.get('mix')!.group, section).toBe('map');
+      expect(by.get('listen')!.group, section).toBe('map');
+      // By ear comes right after "pin it", which it is a way of playing.
+      expect(ids(section).indexOf('listen'), section).toBe(ids(section).indexOf('pin') + 1);
+    }
+    // The section of figures has no map to play them on.
+    for (const id of ['cards', 'mix', 'listen'] as Mode[]) expect(ids('pops'), id).not.toContain(id);
+    // The medley is said for what each section can ask: a flag only of a country, a shape only where there are shapes.
+    const said = (section: (typeof SECTION_IDS)[number]) => MODES[section].find((m) => m.id === 'mix')!.desc;
+    expect(said('countries')).toContain('bandera');
+    expect(said('regions')).toContain('silueta');
+    expect(said('regions')).not.toContain('bandera');
+    expect(said('cities')).not.toContain('silueta');
+    expect(said('physical')).toBe(said('cities'));
+    // The medley and the game by ear can be played against the clock, with lives or as an exam; cards cannot: nobody marks them.
+    expect(FORMAT_MODES).toContain('mix');
+    expect(FORMAT_MODES).toContain('listen');
+    expect(FORMAT_MODES).not.toContain('cards');
+    for (const id of ['cards', 'mix', 'listen'] as Mode[]) expect(LENGTH_MODES, id).toContain(id);
+  });
+
+  it('say where the hard looks apply: outlines where one is drawn, flags where a country is told by its flag', () => {
+    // An outline is drawn by the two games of outlines, and by the medley where pieces have a shape.
+    for (const section of SECTION_IDS) {
+      expect(turnsOutlines(section, 'outline'), section).toBe(true);
+      expect(turnsOutlines(section, 'regionle'), section).toBe(true);
+      expect(turnsOutlines(section, 'mix'), section).toBe(section === 'regions' || section === 'countries');
+      for (const id of ['pin', 'puzzle', 'identify', 'flag', 'cards', 'listen'] as Mode[]) expect(turnsOutlines(section, id), `${section} ${id}`).toBe(false);
+    }
+    // A flag is asked about only of a country.
+    expect(asksByFlag('countries', 'flag')).toBe(true);
+    expect(asksByFlag('countries', 'mix')).toBe(true);
+    for (const section of ['regions', 'cities', 'physical', 'pops'] as const) for (const id of ['flag', 'mix', 'pin', 'cards'] as Mode[]) expect(asksByFlag(section, id, { pinBy: 'flag', cardAsk: 'flag' }), `${section} ${id}`).toBe(false);
+    // "Pin it" and the cards show one when they are set to ask by it, and not otherwise.
+    expect(asksByFlag('countries', 'pin')).toBe(false);
+    expect(asksByFlag('countries', 'pin', { pinBy: 'capital' })).toBe(false);
+    expect(asksByFlag('countries', 'pin', { pinBy: 'flag' })).toBe(true);
+    expect(asksByFlag('countries', 'cards', { cardAsk: 'where' })).toBe(false);
+    expect(asksByFlag('countries', 'cards', { cardAsk: 'flag' })).toBe(true);
+    // Each setting is its own game's: what the cards ask says nothing about "pin it".
+    expect(asksByFlag('countries', 'pin', { cardAsk: 'flag' })).toBe(false);
+    expect(asksByFlag('countries', 'cards', { pinBy: 'flag' })).toBe(false);
+    // By ear there is a name to hear, and nothing to look at.
+    expect(asksByFlag('countries', 'listen', { pinBy: 'flag', cardAsk: 'flag' })).toBe(false);
+    expect(asksByFlag('countries', 'identify', { pinBy: 'flag', cardAsk: 'flag' })).toBe(false);
   });
 });

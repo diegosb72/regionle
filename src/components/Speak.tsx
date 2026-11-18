@@ -37,11 +37,17 @@ export function speak(text: string, onEnd?: () => void): void {
   synth.speak(said);
 }
 
+/** Stops whatever is being said: a name must not go on sounding after its question has gone. */
+export function hush(): void {
+  if (canSpeak()) window.speechSynthesis.cancel();
+}
+
 /**
  * The loudspeaker next to a name. It is a switch: on while the name is being said (`aria-pressed`, so that a
- * screen reader says it too), and pressing it then stops the voice.
+ * screen reader says it too), and pressing it then stops the voice. With `label` it is a button with words
+ * on it, for where the voice is all there is to go by; `secret` keeps the name out of what it says of itself.
  */
-export function SpeakButton({ text, className }: { text: string; className?: string }) {
+export function SpeakButton({ text, className, label, secret }: { text: string; className?: string; label?: string; secret?: boolean }) {
   const [busy, setBusy] = useState(false);
   const timer = useRef(0);
   /** Which time of saying it is the current one: the end of an earlier one must not switch this one off. */
@@ -80,8 +86,8 @@ export function SpeakButton({ text, className }: { text: string; className?: str
   return (
     <button
       type="button"
-      className={cx('speak', busy && 'on', className)}
-      aria-label={L(`Escuchar «${text}»`, `Listen to “${text}”`)}
+      className={cx('speak', busy && 'on', label && 'speak-wide', className)}
+      aria-label={label ? undefined : secret ? L('Escuchar el nombre', 'Listen to the name') : L(`Escuchar «${text}»`, `Listen to “${text}”`)}
       aria-pressed={busy}
       title={busy ? L('Sonando: pulsa para parar', 'Playing: press to stop') : L('Escuchar el nombre', 'Listen to the name')}
       onClick={(e) => {
@@ -90,7 +96,8 @@ export function SpeakButton({ text, className }: { text: string; className?: str
         else start();
       }}
     >
-      <Volume2 size={16} aria-hidden="true" />
+      <Volume2 size={label ? 20 : 16} aria-hidden="true" />
+      {label && <span>{label}</span>}
     </button>
   );
 }

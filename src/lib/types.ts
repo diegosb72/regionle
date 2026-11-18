@@ -188,6 +188,12 @@ export type Mode =
   /** Statements about the countries chosen that are true or false. */
   | 'truefalse'
   /** The first ten by a figure, typed from memory. */
-  | 'topten';
+  | 'topten'
+  /** Flashcards: a card is turned over and the player says whether they knew it. */
+  | 'cards'
+  /** A medley: each piece is asked about in a different way, by lot. */
+  | 'mix'
+  /** "Pin it" by ear: the name is said aloud and not written. */
+  | 'listen';
 
 export type Res = 'ok' | 'warn' | 'bad';

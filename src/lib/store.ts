@@ -41,7 +41,16 @@ export interface Opts {
   /** Show what Wikipedia says about an answer that was missed. */
   wiki: boolean;
   format: Format;
+  /** Outlines drawn turned, without north at the top: harder to recognise. */
+  turned: boolean;
+  /** How a flag is shown while it is asked about: as it is, without its colours, or out of focus. */
+  flagLook: FlagLook;
+  /** What a flashcard asks for: the name of what the map shows, where it is, its capital, or whose flag it is. */
+  cardAsk: CardAsk;
 }
+
+export type FlagLook = 'plain' | 'grey' | 'blur';
+export type CardAsk = 'name' | 'where' | 'capital' | 'flag';
 
 export interface GameConfig {
   section: Section;
@@ -65,6 +74,11 @@ export interface GameConfig {
    * played with the questions its sender had.
    */
   challenge?: { seed: number; from?: string; score?: number; ms?: number; legacy?: boolean };
+  /**
+   * A medley of its misses: the lot the ways of asking were dealt with in the game they come from, so that
+   * each piece is asked again the way it was missed.
+   */
+  lot?: number;
   /** Changes on every start so that an identical configuration still restarts the game. */
   nonce: number;
 }
@@ -126,6 +140,9 @@ export const DEFAULT_OPTS: Opts = {
   cityCount: 25,
   wiki: true,
   format: 'normal',
+  turned: false,
+  flagLook: 'plain',
+  cardAsk: 'name',
 };
 
 /** `stats` and `where` without anything about the given ids ("loc:x", "name:x"… and the map x was learnt on). */

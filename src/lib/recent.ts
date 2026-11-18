@@ -9,9 +9,9 @@ import type { Mode, Section } from './types';
 
 /**
  * The options that say which game it was, as against how one likes to play: which cities, which figure,
- * what countries are pinned by, against the clock or with lives.
+ * what countries are pinned by, what the cards ask, against the clock or with lives.
  */
-export type RecentOpts = Partial<Pick<Opts, 'cityPick' | 'cityCount' | 'metric' | 'pinBy' | 'format' | 'axis' | 'countdown'>>;
+export type RecentOpts = Partial<Pick<Opts, 'cityPick' | 'cityCount' | 'metric' | 'pinBy' | 'format' | 'axis' | 'countdown' | 'cardAsk'>>;
 
 export interface Recent {
   /** When it was last played. */
@@ -42,6 +42,8 @@ function optsOf(game: GameConfig): RecentOpts {
   if (game.mode === 'compass') o.axis = game.opts.axis ?? 'ns';
   if (game.mode === 'nameall' && game.opts.countdown > 0) o.countdown = game.opts.countdown;
   if (game.section === 'countries' && game.mode === 'pin') o.pinBy = game.opts.pinBy;
+  // Cards that ask where a thing is are another pack than the ones that ask its name.
+  if (game.mode === 'cards') o.cardAsk = game.opts.cardAsk ?? 'name';
   if (FORMAT_MODES.includes(game.mode)) o.format = game.opts.format ?? 'normal';
   return o;
 }

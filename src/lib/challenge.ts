@@ -28,7 +28,7 @@ const RULES = 2;
 
 export const CHALLENGE_SECTIONS: Section[] = ['regions', 'countries', 'cities', 'physical'];
 /** Games that ask one thing after another and end with a score: the ones that can be compared. */
-export const CHALLENGE_MODES: Mode[] = ['pin', 'identify', 'outline', 'puzzle', 'capital', 'flag'];
+export const CHALLENGE_MODES: Mode[] = ['pin', 'identify', 'outline', 'puzzle', 'capital', 'flag', 'mix'];
 
 interface Wire {
   s: string;
@@ -36,7 +36,12 @@ interface Wire {
   /** The selection in one string, to keep the link short: country codes run together, physical tokens joined by dots. */
   c: string;
   l?: Record<string, string>;
-  o?: [string, string | number, string, string, number];
+  /**
+   * The options that change the questions: how they are answered, how many, what "pin it" shows, which
+   * cities and how many of them; and, since the hard looks came, whether outlines are turned (1) and how
+   * flags are shown. A link from before has five entries and is played plain.
+   */
+  o?: [string, string | number, string, string, number, number?, string?];
   k: number;
   f?: string;
   r?: [number, number];
@@ -74,6 +79,9 @@ export function encodeChallenge(cfg: GameConfig, result?: { score: number; ms: n
     k: seedOf(cfg),
     o: [opts.answer, opts.length, opts.pinBy, opts.cityPick, opts.cityCount],
   };
+  // The hard looks are part of the game: whoever opens the link gets the outlines turned the same way.
+  const look = opts.flagLook ?? 'plain';
+  if (opts.turned || look !== 'plain') wire.o!.push(opts.turned ? 1 : 0, look);
   const levels = Object.fromEntries(Object.entries(cfg.levels).filter(([id]) => cfg.countries.includes(id)));
   if (Object.keys(levels).length) wire.l = levels;
   // A challenge that is passed on keeps the rules it was made with.
@@ -100,14 +108,17 @@ export function decodeChallenge(code: string): Challenge | null {
   // Codes of countries, or the words of a physical map: "river", "EU", "all", and "in:ES" for the map of one country.
   if (!countries.length || countries.length > 300 || !countries.every((id) => /^(?:[A-Za-z0-9]{1,12}|in:[A-Z]{2})$/.test(id))) return null;
   if (!Number.isFinite(wire.k)) return null;
-  const opts: Partial<Opts> = {};
+  // Said or not, the hard looks are settled here: the receiver's own taste for them must not change the game.
+  const opts: Partial<Opts> = { turned: false, flagLook: 'plain' };
   if (Array.isArray(wire.o)) {
-    const [answer, length, pinBy, cityPick, cityCount] = wire.o;
+    const [answer, length, pinBy, cityPick, cityCount, turned, look] = wire.o;
     if (answer === 'choice' || answer === 'type') opts.answer = answer;
     if (length === 'all' || length === 10 || length === 20 || length === 50) opts.length = length as Length;
     if (pinBy === 'name' || pinBy === 'capital' || pinBy === 'flag') opts.pinBy = pinBy;
     if (cityPick === 'top' || cityPick === 'caps' || cityPick === 'regcaps') opts.cityPick = cityPick as CityPick;
     if (typeof cityCount === 'number' && cityCount > 0 && cityCount <= 200) opts.cityCount = cityCount;
+    opts.turned = turned === 1;
+    if (look === 'grey' || look === 'blur') opts.flagLook = look;
   }
   const levels: Record<string, string> = {};
   if (wire.l && typeof wire.l === 'object') for (const [id, lv] of Object.entries(wire.l)) if (isStr(lv) && /^[a-z0-9]{1,3}$/.test(lv)) levels[id] = lv;

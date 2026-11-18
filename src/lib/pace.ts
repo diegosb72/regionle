@@ -53,6 +53,9 @@ export const TYPICAL_S: Partial<Record<Mode, number>> = {
   compass: 30,
   parent: 7,
   truefalse: 5,
+  cards: 5,
+  mix: 8,
+  listen: 8,
   neighbours: 40,
   regionle: 45,
 };

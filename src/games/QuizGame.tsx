@@ -1,24 +1,30 @@
-/** Question-by-question games: pin on the map, jigsaw, identify, outline, capitals, flags and what each piece belongs to. */
+/**
+ * Question-by-question games: pin on the map (by its written name or by ear), jigsaw, identify, outline,
+ * capitals, flags, what each piece belongs to, and the medley that deals the others by turns.
+ */
 import { ArrowRight, Flag as FlagIcon, Heart, Lightbulb, MapPin, Timer } from 'lucide-react';
-import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { useEffect, useMemo, useReducer, useRef, useState, type CSSProperties } from 'react';
 import { AnswerInput, type Suggestion } from '../components/AnswerInput';
 import { ChallengeBox } from '../components/ChallengeBox';
 import { MapView, type MapHandle, type Paint } from '../components/MapView';
-import { SpeakButton } from '../components/Speak';
+import { SpeakButton, canSpeak, hush, speak } from '../components/Speak';
 import { Flag } from '../components/ui';
 import { seedOf } from '../lib/challenge';
 import { silhouette } from '../lib/geo';
 import { L, nm } from '../lib/i18n';
 import { timesMixed } from '../lib/mix';
 import { MODE_NAME, formatName } from '../lib/modes';
-import { useStore, type Format, type Skill } from '../lib/store';
+import { useStore, type FlagLook, type Format, type Skill } from '../lib/store';
 import { Matcher, cx, fmtTime, hintMax, letterHint, mulberry32, nf, sample, shortNote, shuffle, type Answerable } from '../lib/text';
 import { capitalAnswers } from '../lib/typeins';
 import type { Belongs, Item, Res } from '../lib/types';
 import { GameShell, Hud, Results, Verdict, answered, nearest, originOf, showsCountry, useElapsed, type GameProps, type ResultRow } from './common';
-import { answersItself, belongsItself, capitalsNeedTyping, gradeOf, initQuiz, quizReducer, scoreOf } from './quiz';
+import { FLAG_BLUR, answersItself, askOf, asksFor, belongsItself, capitalsNeedTyping, gradeOf, initQuiz, quizReducer, scoreOf, turnOf } from './quiz';
 
+/** The ways a question is asked. */
 type QuizMode = 'pin' | 'puzzle' | 'identify' | 'outline' | 'capital' | 'flag' | 'parent';
+/** What the menus call the game: one of those ways, the medley of them, or "pin it" by ear. */
+type QuizId = QuizMode | 'mix' | 'listen';
 
 /** What each game teaches, for the review. What a piece belongs to is not reviewed: it is played and that is all. */
 const SKILL: Partial<Record<QuizMode, Skill>> = { pin: 'loc', puzzle: 'loc', identify: 'name', outline: 'name', capital: 'cap', flag: 'flag' };
@@ -29,13 +35,17 @@ export const TIME_LIMIT = 60_000;
 export const LIVES = 3;
 
 export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
-  const mode = cfg.mode as QuizMode;
+  const game = cfg.mode as QuizId;
+  /** A medley: every piece is asked about in a way of its own, drawn by lot. */
+  const medley = game === 'mix';
+  /** By ear: the name is said aloud, not written. */
+  const byEar = game === 'listen';
+  /** …where there is a voice to say it: without one the name is read, as in "pin it". */
+  const voiced = byEar && canSpeak();
+  /** The one way a game asks, when it has one. */
+  const fixed: QuizMode | null = medley ? null : byEar ? 'pin' : game;
   const { opts } = cfg;
-  /** Games answered by clicking on the map. */
-  const clicky = mode === 'pin' || mode === 'puzzle';
-  const pinBy = mode === 'pin' && deck.scope === 'countries' ? opts.pinBy : 'name';
-  const needsCapital = mode === 'capital' || pinBy === 'capital';
-  const needsFlag = mode === 'flag' || pinBy === 'flag';
+  const pinBy = game === 'pin' && deck.scope === 'countries' ? opts.pinBy : 'name';
   const seed = useMemo(() => seedOf(cfg), [cfg]);
   // Reviews, challenges and the repeat of what was missed are always a plain set of questions.
   const format: Format = cfg.review || cfg.challenge || (cfg.only && !cfg.list) ? 'normal' : (opts.format ?? 'normal');
@@ -46,32 +56,62 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
   /** One go at each question, and no hints. */
   const strict = paced || exam;
 
-  /** Items that can be offered as wrong options in this mode. */
-  const usable = useMemo(
-    () => deck.items.filter((it) => (!needsCapital || it.capital?.length) && (!needsFlag || it.country.fl) && (mode !== 'puzzle' || it.shape === 'area') && (mode !== 'parent' || it.belongs)),
-    [deck, needsCapital, needsFlag, mode],
-  );
-  /**
-   * Four options are no good where the wrong ones would be capitals named after their own region: there
-   * the answer is typed, whatever the settings say.
-   */
-  const mustType = mode === 'capital' && opts.answer !== 'type' && !cfg.challenge?.legacy && capitalsNeedTyping(usable);
-  const typed = !clicky && (opts.answer === 'type' || mustType);
+  /** Items that can be offered as wrong options when asking in a given way. */
+  const usableFor = useMemo(() => {
+    const cache = new Map<QuizMode, Item[]>();
+    return (m: QuizMode): Item[] => {
+      let list = cache.get(m);
+      if (!list) {
+        const needsCapital = m === 'capital' || (m === 'pin' && pinBy === 'capital');
+        const needsFlag = m === 'flag' || (m === 'pin' && pinBy === 'flag');
+        list = deck.items.filter((it) => (!needsCapital || it.capital?.length) && (!needsFlag || it.country.fl) && (m !== 'puzzle' || it.shape === 'area') && (m !== 'parent' || it.belongs));
+        cache.set(m, list);
+      }
+      return list;
+    };
+  }, [deck, pinBy]);
+  /** How a question asked in a given way is answered, and among what. */
+  const waysOf = (m: QuizMode) => {
+    /** Answered by clicking on the map. */
+    const clicky = m === 'pin' || m === 'puzzle';
+    const usable = usableFor(m);
+    /**
+     * Four options are no good where the wrong ones would be capitals named after their own region: there
+     * the answer is typed, whatever the settings say.
+     */
+    const mustType = m === 'capital' && opts.answer !== 'type' && !cfg.challenge?.legacy && capitalsNeedTyping(usable);
+    return { clicky, usable, mustType, typed: !clicky && (opts.answer === 'type' || mustType) };
+  };
+
+  /** The way each piece of a medley is asked about. */
+  const asks = useMemo(() => {
+    if (!medley) return null;
+    // Where the map has too few capitals for four options to be fair, the medley leaves them out.
+    const rules = { capitals: opts.answer === 'type' || !capitalsNeedTyping(deck.items), loose: opts.answer !== 'type' };
+    // The misses of a medley are played again with the lot of the game they come from: each is asked the way it was missed.
+    return new Map(deck.items.map((it) => [it.id, askOf(cfg.lot ?? seed, it.id, asksFor(it, deck.scope, rules))] as const));
+  }, [medley, deck, seed, cfg.lot, opts.answer]);
+
   /** Items that can be asked: a place named after its capital would answer itself. */
   const askable = useMemo(() => {
+    // In a medley every piece is asked in a way that suits it.
+    if (!fixed) return deck.items;
+    const { usable, typed } = waysOf(fixed);
+    const needsCapital = fixed === 'capital' || pinBy === 'capital';
     // A piece named after what it belongs to would answer itself as well.
-    if (mode === 'parent') return usable.filter((it) => !belongsItself(it, !typed));
+    if (fixed === 'parent') return usable.filter((it) => !belongsItself(it, !typed));
     // A link from before this rule is played with the questions its sender had.
     if (!needsCapital || cfg.challenge?.legacy) return usable;
     // A review brings back what is due, and nothing may be left waiting for ever: the likeness that would
     // give an answer away among four options is let through, and only what answers itself is dropped.
-    if (cfg.review) return mode === 'capital' ? usable.filter((it) => !answersItself(it, false)) : usable;
+    if (cfg.review) return fixed === 'capital' ? usable.filter((it) => !answersItself(it, false)) : usable;
     return usable.filter((it) => !answersItself(it, !typed));
-  }, [usable, needsCapital, typed, mode, cfg.review, cfg.challenge]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [usableFor, fixed, pinBy, deck, opts.answer, cfg.review, cfg.challenge]);
   /** Capitals that were due for review and are no longer asked: taken off the tallies, or they would be due for ever. */
   const retired = useMemo(
-    () => (mode === 'capital' && cfg.review && cfg.only ? usable.filter((it) => cfg.only!.includes(it.id) && answersItself(it, false)).map((it) => it.id) : []),
-    [usable, mode, cfg.review, cfg.only],
+    () => (fixed === 'capital' && cfg.review && cfg.only ? usableFor('capital').filter((it) => cfg.only!.includes(it.id) && answersItself(it, false)).map((it) => it.id) : []),
+    [usableFor, fixed, cfg.review, cfg.only],
   );
   const pool = useMemo(() => (cfg.only ? askable.filter((it) => cfg.only!.includes(it.id)) : askable), [askable, cfg.only]);
 
@@ -80,15 +120,20 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
       // Sorted first: the same seed must give the same questions whatever order the map was built in.
       pool.map((it) => it.id).sort(),
       paced ? 'endless' : cfg.only ? 'all' : opts.length,
-      // Against the clock there is no time to be shown where each miss was.
-      clicky && format !== 'timed',
+      // Against the clock there is no time to be shown where each miss was. In a medley, each miss says
+      // whether it has a place on the map to show.
+      (medley || waysOf(fixed!).clicky) && format !== 'timed',
       mulberry32(seed),
       exam,
     ),
   );
+  const item = s.cur ? (deck.byId.get(s.cur) ?? null) : null;
+  /** The way the question in hand is asked. */
+  const modeOf = (it: Item | null): QuizMode => fixed ?? (it && asks?.get(it.id)) ?? 'pin';
+  const mode = modeOf(item);
+  const { clicky, usable, mustType, typed } = waysOf(mode);
   /** What was answered to each question of an exam that went wrong, to be read in the marking. */
   const given = useRef<Record<string, string>>({});
-  const item = s.cur ? (deck.byId.get(s.cur) ?? null) : null;
   const ended = s.phase === 'end';
   const ms = useElapsed(!ended);
   const map = useRef<MapHandle>(null);
@@ -115,7 +160,16 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
 
   const names = useMemo(() => new Matcher(deck.items), [deck]);
   // Capitals are listed under the id of their place, whose code is not theirs.
-  const capitals = useMemo(() => new Matcher(usable.map((it) => capitalAnswers(it)).filter((a): a is Answerable => !!a), { codes: false }), [usable]);
+  const capitals = useMemo(
+    () =>
+      new Matcher(
+        usableFor('capital')
+          .map((it) => capitalAnswers(it))
+          .filter((a): a is Answerable => !!a),
+        { codes: false },
+      ),
+    [usableFor],
+  );
   /** What the pieces belong to, once each: the answers of "¿A qué pertenece?". */
   const groups = useMemo(() => {
     const all = new Map<string, Belongs>();
@@ -126,7 +180,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const matcher = mode === 'capital' ? capitals : mode === 'parent' ? parents : names;
   /** How many letters of the answer the hints have put in sight (the first hint of an outline is the map). */
   const lettersShown = !typed ? 0 : mode === 'outline' ? Math.max(0, s.hints - 1) : s.hints;
-  const answerOf = (it: Item) => (mode === 'capital' ? it.capital![0] : mode === 'parent' ? it.belongs!.name : it.name);
+  const answerOf = (it: Item, m: QuizMode = mode) => (m === 'capital' ? it.capital![0] : m === 'parent' ? it.belongs!.name : it.name);
   // A paced game moves fast, and an exam is an exam: one go at each question.
   const maxTries = strict ? 1 : clicky || typed ? 3 : 1;
   const several = showsCountry(deck);
@@ -176,10 +230,19 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
     setNarrow(null);
     // Naming what the map shows needs a close look; for a capital, knowing where the country is will do.
     if (s.cur && mode === 'identify') map.current?.focus([s.cur]);
+    // In a medley the last question may have left the map anywhere: each one starts from the whole of it.
+    else if (medley) map.current?.reset();
     // Where the map went to show the last answer, it comes back: the next one may be at the other end.
     else if (clicky) map.current?.restore();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [s.n]);
+
+  // By ear: the name is said when the question comes up, and again whenever the loudspeaker is pressed.
+  useEffect(() => {
+    if (voiced && item && s.phase === 'ask') speak(item.name);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [s.n]);
+  useEffect(() => (voiced ? hush : undefined), [voiced]);
 
   // A first-time right answer moves on by itself; against the clock, so does a miss, after a look at the answer.
   useEffect(() => {
@@ -225,7 +288,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
       ...(format !== 'normal' ? { note: format } : {}),
     });
     if (paced && !cfg.list) {
-      const key = `${format}:${mode}:${deck.key}`;
+      const key = `${format}:${game}:${deck.key}`;
       const prev = useStore.getState().best[key];
       const hits = s.ok + s.warn;
       // A game without a single right answer sets no record.
@@ -233,7 +296,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
     }
     // The best mark of a map is that of an exam on all of it, answered to the end.
     if (exam && !cfg.list && s.total === pool.length && s.asked === s.total) {
-      const key = `exam:${mode}:${deck.key}`;
+      const key = `exam:${game}:${deck.key}`;
       const prev = useStore.getState().best[key];
       const tenths = Math.round(gradeOf(s.ok, s.total) * 10);
       setMark(tenths > 0 && setBest(key, tenths) ? 'new' : (prev ?? null));
@@ -260,7 +323,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const wrong = (message: string | null, blink?: string) => {
     if (!item || s.phase !== 'ask') return;
     const failed = s.tries + 1 >= maxTries;
-    dispatch({ type: 'wrong', max: maxTries });
+    dispatch({ type: 'wrong', max: maxTries, reveal: clicky });
     setNote(failed ? null : message);
     // A field that shakes says "wrong": not in an exam.
     if (!exam) setShake((n) => n + 1);
@@ -287,7 +350,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
 
   const giveUp = () => {
     if (!item || s.phase !== 'ask') return;
-    dispatch({ type: 'giveup' });
+    dispatch({ type: 'giveup', reveal: clicky });
     setNote(null);
     settled('bad', item);
   };
@@ -366,6 +429,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const hint = () => {
     if (!item || s.phase !== 'ask' || strict) return;
     dispatch({ type: 'hint' });
+    // By ear, the help is to read the name: the hint writes it.
+    if (voiced) return;
     if (clicky) {
       // Narrow the search: the answer and a few of its nearest neighbours stay lit.
       const open = usable.filter((it) => !s.marks[it.id] || hidden.has(it.id));
@@ -420,7 +485,9 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
 
   const pinned = useMemo(() => (item && !ended && s.phase !== 'ask' ? new Set([item.id]) : undefined), [item, ended, s.phase]);
 
-  const outlinePath = useMemo(() => (mode === 'outline' && item ? silhouette(item.geo, 400) : ''), [mode, item]);
+  /** Turned outlines: how far this one is, the same every time it is asked in this game. */
+  const turned = opts.turned && mode === 'outline' && item ? turnOf(seed, item.id) : 0;
+  const outlinePath = useMemo(() => (mode === 'outline' && item ? silhouette(item.geo, 400, 0.08, turned) : ''), [mode, item, turned]);
   /** The jigsaw piece, drawn smaller the smaller it is next to the biggest one: size is a clue too. */
   const piece = useMemo(() => {
     if (mode !== 'puzzle' || !item) return null;
@@ -453,7 +520,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
   // Handy when debugging from the browser console; removed from production builds.
   if (import.meta.env.DEV) (window as unknown as { __ask?: string }).__ask = ended ? undefined : item?.id;
 
-  const title = MODE_NAME[mode];
+  const title = MODE_NAME[game];
   const stage = (
     <>
       <MapView
@@ -484,11 +551,13 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
   if (ended) {
     /** The marking of an exam: the answer where the name of the piece is not it, and what was answered where it was wrong. */
     const marking = (it: Item, res: Res): string | undefined => {
-      if (!exam) return undefined;
+      const m = modeOf(it);
       const said = given.current[it.id];
       const parts = [
-        mode === 'capital' || mode === 'parent' ? answerOf(it) : '',
-        res !== 'bad' ? '' : !said ? L('en blanco', 'left blank') : clicky ? L(`señalaste ${said}`, `you picked ${said}`) : L(`respondiste «${said}»`, `you answered “${said}”`),
+        // A medley says how each piece was asked about.
+        medley ? MODE_NAME[m] : '',
+        (exam || medley) && (m === 'capital' || m === 'parent') ? answerOf(it, m) : '',
+        !exam || res !== 'bad' ? '' : !said ? L('en blanco', 'left blank') : waysOf(m).clicky ? L(`señalaste ${said}`, `you picked ${said}`) : L(`respondiste «${said}»`, `you answered “${said}”`),
       ];
       return parts.filter(Boolean).join(' · ') || undefined;
     };
@@ -557,7 +626,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
             stats={[{ label: L('Mejor racha', 'Best streak'), value: s.bestStreak }]}
             again={rows.length > 0 || !retired.length}
             onAgain={() => onAgain({ only: cfg.only, list: cfg.list, challenge: undefined })}
-            onReview={(ids) => onAgain({ only: ids, list: undefined, challenge: undefined })}
+            onReview={(ids) => onAgain({ only: ids, list: undefined, challenge: undefined, lot: medley ? (cfg.lot ?? seed) : undefined })}
             onExit={onExit}
           >
             {rows.length > 0 && format === 'normal' && s.asked >= s.total && <ChallengeBox cfg={cfg} score={score} ms={ms} what={`${deck.title} · ${title}`} />}
@@ -568,6 +637,20 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
   }
 
   const answer = item ? answerOf(item) : '';
+  const asking = s.phase === 'ask';
+  /** A flag is asked about as the player chose: once answered it is seen as it is. */
+  const look: FlagLook = asking ? (opts.flagLook ?? 'plain') : 'plain';
+  const flagOf = (code: string | undefined) => (
+    <span
+      className={cx('q-flagbox', look !== 'plain' && `look-${look}`)}
+      // Out of focus, it comes a little clearer with each try.
+      style={look === 'blur' ? ({ '--flag-blur': `${FLAG_BLUR[Math.min(s.tries, FLAG_BLUR.length - 1)]}px` } as CSSProperties) : undefined}
+    >
+      <Flag code={code} size="xl" className="q-flag" />
+    </span>
+  );
+  /** By ear the name is not read until the question is settled, unless the hint wrote it. */
+  const unread = voiced && asking && s.hints === 0;
   const question = (() => {
     if (!item) return null;
     const c = item.country;
@@ -576,7 +659,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
         return (
           <>
             <p className="kicker">{L('Señala el país de esta bandera', 'Pin the country of this flag')}</p>
-            <Flag code={c.fl} size="xl" className="q-flag" />
+            {flagOf(c.fl)}
           </>
         );
       if (pinBy === 'capital')
@@ -586,13 +669,26 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
             <h2 className="q-name">{item.capital![0]}</h2>
           </>
         );
+      if (unread)
+        return (
+          <>
+            <p className="kicker">{L('Escucha y señala en el mapa', 'Listen and find it on the map')}</p>
+            <SpeakButton key={item.id} text={item.name} label={L('Oír otra vez', 'Hear it again')} className="q-listen" />
+            {several && (
+              <p className="q-sub">
+                <Flag code={c.fl} size="sm" /> {L(`${item.type} de ${nm(c.n)}`, `${item.type} in ${nm(c.n)}`)}
+              </p>
+            )}
+          </>
+        );
       return (
         <>
-          <p className="kicker">{L('Señala en el mapa', 'Find it on the map')}</p>
+          <p className="kicker">{byEar ? L('Escucha y señala en el mapa', 'Listen and find it on the map') : L('Señala en el mapa', 'Find it on the map')}</p>
           <h2 className="q-name">
             {/* Once answered, the verdict below brings its own loudspeaker. */}
             {item.name} {s.phase === 'ask' && <SpeakButton key={item.id} text={item.name} />}
           </h2>
+          {byEar && !voiced && <p className="q-sub">{L('Este navegador no tiene voz: aquí el nombre se lee.', 'This browser has no voice: here the name is read.')}</p>}
           {several && (
             <p className="q-sub">
               <Flag code={c.fl} size="sm" /> {L(`${item.type} de ${nm(c.n)}`, `${item.type} in ${nm(c.n)}`)}
@@ -635,6 +731,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
           <p className="kicker">{L('Silueta', 'Outline')}</p>
           <h2 className="q-ask">
             {L(`¿Qué ${one} tiene esta forma?`, `Which ${one} has this shape?`)}
+            {opts.turned && asking && !showMap && <small> {L('Está girada: el norte no queda arriba.', 'It is turned: north is not at the top.')}</small>}
             {several && s.hints > 0 && <small> {L(`Está en ${nm(c.n)}.`, `It is in ${nm(c.n)}.`)}</small>}
           </h2>
         </>
@@ -663,12 +760,11 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
     return (
       <>
         <p className="kicker">{L('¿De qué país es esta bandera?', 'Which country does this flag belong to?')}</p>
-        <Flag code={c.fl} size="xl" className="q-flag" />
+        {flagOf(c.fl)}
       </>
     );
   })();
 
-  const asking = s.phase === 'ask';
   const turn = asking ? s.asked + 1 : s.asked;
   const verdictTitle =
     s.last === 'ok' ? (
@@ -763,7 +859,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
             {(clicky || typed || mode === 'outline') && !strict && (
               <button type="button" className="btn btn-sm" onClick={hint} disabled={clicky ? s.hints > 0 : mode === 'outline' && !typed ? showMap : s.hints >= hintMax(answer)}>
                 <Lightbulb size={15} aria-hidden="true" />
-                {clicky ? L('Pista', 'Hint') : mode === 'outline' && (!showMap || !typed) ? L('Ver en el mapa', 'Show on the map') : L('Una letra', 'A letter')}
+                {voiced ? L('Ver el nombre', 'Show the name') : clicky ? L('Pista', 'Hint') : mode === 'outline' && (!showMap || !typed) ? L('Ver en el mapa', 'Show on the map') : L('Una letra', 'A letter')}
               </button>
             )}
             <button type="button" className="btn btn-sm" onClick={giveUp}>

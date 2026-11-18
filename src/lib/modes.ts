@@ -5,7 +5,9 @@ import {
   CircleHelp,
   Compass,
   Crosshair,
+  Ear,
   Flag,
+  GalleryVerticalEnd,
   GraduationCap,
   Hash,
   Landmark,
@@ -19,6 +21,7 @@ import {
   Route,
   ScanSearch,
   Shapes,
+  Shuffle,
   Target,
   Trophy,
   Waypoints,
@@ -27,7 +30,7 @@ import {
 import { L, getLang } from './i18n';
 import { PATHS } from './routes';
 import { SCREENS } from './seo';
-import type { Format } from './store';
+import type { CardAsk, Format } from './store';
 import type { Mode, Section } from './types';
 
 /** What the modes of a section are gathered by in its menu. */
@@ -75,6 +78,18 @@ function modesOf(section: Section): ModeDef[] {
     level: 1,
     group: 'study',
   };
+  /** Nothing is typed and nothing is clicked: the player is their own judge. */
+  const cards: ModeDef = {
+    id: 'cards',
+    name: L('Tarjetas', 'Flashcards'),
+    desc: L(
+      'Una tarjeta por pieza: piensas la respuesta, le das la vuelta y dices si la sabías. Las que no, vuelven al final. Tú eliges qué pregunta cada tarjeta.',
+      'A card for each piece: think of the answer, turn it over and say whether you knew it. The ones you did not come back at the end. You choose what each card asks.',
+    ),
+    icon: GalleryVerticalEnd,
+    level: 1,
+    group: 'study',
+  };
   /** Not a game: the same map on paper. It sits with what is there to study with. */
   const print: ModeDef = {
     id: 'print',
@@ -88,6 +103,23 @@ function modesOf(section: Section): ModeDef[] {
     group: 'study',
   };
   const pin: ModeDef = { id: 'pin', name: L('Señalar', 'Pin it'), desc: L('Te damos un nombre y lo buscas en el mapa.', 'You get a name and find it on the map.'), icon: MapPin, level: 1, group: 'map' };
+  const listen: ModeDef = {
+    id: 'listen',
+    name: L('Oye y señala', 'Listen and pin'),
+    desc: L('Como «Señalar», pero de oído: el nombre no se escribe, te lo dice la voz del navegador las veces que quieras.', 'Like “Pin it”, but by ear: the name is not written, the voice of the browser says it as many times as you like.'),
+    icon: Ear,
+    level: 2,
+    group: 'map',
+  };
+  /** Each piece asked in one of the ways the section has, by lot. */
+  const mix = (desc: string): ModeDef => ({ id: 'mix', name: L('Popurrí', 'Medley'), desc, icon: Shuffle, level: 2, group: 'map' });
+  const mixShapes = mix(
+    L(
+      'Cada pieza, de una manera, según toque: señalarla, decir cuál se ilumina, colocarla como en el puzle, reconocer su silueta o dar su capital.',
+      'Each piece in a different way, as it comes: pin it, say which one lights up, place it as in the jigsaw, recognise its outline or give its capital.',
+    ),
+  );
+  const mixDots = mix(L('Cada una, de una manera, según toque: unas veces la señalas y otras dices cuál es la que se ilumina.', 'Each one in a different way, as it comes: sometimes you pin it and sometimes you say which one lights up.'));
   const identify: ModeDef = { id: 'identify', name: L('Identificar', 'Identify'), desc: L('Se ilumina una zona del mapa y dices cuál es.', 'A part of the map lights up and you say which one it is.'), icon: ScanSearch, level: 2, group: 'map' };
   const nameall: ModeDef = {
     id: 'nameall',
@@ -100,7 +132,14 @@ function modesOf(section: Section): ModeDef[] {
     level: 3,
     group: 'map',
   };
-  const outline: ModeDef = { id: 'outline', name: L('Silueta', 'Outline'), desc: L('Reconócelas solo por su forma, sin mapa alrededor.', 'Recognise them by their shape alone, with no map around.'), icon: Shapes, level: 3, group: 'shape' };
+  const outline: ModeDef = {
+    id: 'outline',
+    name: L('Silueta', 'Outline'),
+    desc: L('Reconócelas solo por su forma, sin mapa alrededor. Y si se te queda corto, giradas.', 'Recognise them by their shape alone, with no map around. And if that is not enough, turned round.'),
+    icon: Shapes,
+    level: 3,
+    group: 'shape',
+  };
   const regionle: ModeDef = {
     id: 'regionle',
     name: 'Regionle',
@@ -140,11 +179,14 @@ function modesOf(section: Section): ModeDef[] {
       return [
         explore,
         learn,
+        cards,
         print,
         pin,
+        listen,
         identify,
         nameall,
         puzzle,
+        mixShapes,
         outline,
         regionle,
         neighbours,
@@ -175,25 +217,42 @@ function modesOf(section: Section): ModeDef[] {
       return [
         explore,
         learn,
+        cards,
         print,
         pin,
+        listen,
         identify,
         nameall,
         puzzle,
+        mix(
+          L(
+            'Cada país, de una manera, según toque: señalarlo, decir cuál se ilumina, colocarlo como en el puzle, reconocer su silueta, su capital o su bandera.',
+            'Each country in a different way, as it comes: pin it, say which one lights up, place it as in the jigsaw, recognise its outline, its capital or its flag.',
+          ),
+        ),
         outline,
         regionle,
         neighbours,
         travel,
         compass,
         { id: 'capital', name: L('Capitales', 'Capitals'), desc: L('De cada país, su capital. Los que se llaman igual que su capital no se preguntan.', 'The capital of each country. The ones named after their capital are not asked.'), icon: Landmark, level: 2, group: 'facts' },
-        { id: 'flag', name: L('Banderas', 'Flags'), desc: L('¿De qué país es cada bandera?', 'Which country does each flag belong to?'), icon: Flag, level: 2, group: 'facts' },
+        {
+          id: 'flag',
+          name: L('Banderas', 'Flags'),
+          desc: L('¿De qué país es cada bandera? Para nota, en gris o desenfocadas.', 'Which country does each flag belong to? For extra credit, in grey or out of focus.'),
+          icon: Flag,
+          level: 2,
+          group: 'facts',
+        },
       ];
     case 'cities':
       return [
         explore,
         learn,
+        cards,
         { ...print, desc: L('Para imprimir: el mapa con un punto numerado por ciudad y una línea para escribir cada nombre. Si quieres, sin números y con las soluciones en otra hoja.', 'To print: the map with a numbered dot for each city and a line to write each name on. If you like, without numbers and with the answers on another sheet.') },
         { ...pin, desc: L('Te damos una ciudad y la buscas entre los puntos del mapa.', 'You get a city and find it among the dots on the map.') },
+        listen,
         {
           id: 'blind',
           name: L('Situar a ciegas', 'Place it blind'),
@@ -204,6 +263,7 @@ function modesOf(section: Section): ModeDef[] {
         },
         { ...identify, desc: L('Se ilumina un punto del mapa y dices qué ciudad es.', 'A dot lights up and you say which city it is.') },
         nameall,
+        mixDots,
         {
           id: 'parent',
           name: L('¿A qué pertenece?', 'Where does it belong?'),
@@ -219,10 +279,13 @@ function modesOf(section: Section): ModeDef[] {
       return [
         explore,
         learn,
+        cards,
         { ...print, desc: L('Para imprimir: ríos, mares, cordilleras y picos sin nombre, con un número en cada uno y una línea para escribirlo. Si quieres, sin números y con las soluciones en otra hoja.', 'To print: rivers, seas, ranges and peaks without names, a number on each and a line to write it on. If you like, without numbers and with the answers on another sheet.') },
         pin,
+        listen,
         { ...identify, desc: L('Se ilumina un río, un mar, una cordillera o un continente y dices cuál es.', 'A river, a sea, a range or a continent lights up and you say which one it is.') },
         nameall,
+        mixDots,
         ...figures(L('Aquí, por la altitud de los picos y la superficie de continentes, océanos, mares, lagos e islas.', 'Here, by the height of peaks and the area of continents, oceans, seas, lakes and islands.'), L('¿Cuál es?', 'Which one?')),
       ];
     default:
@@ -286,6 +349,12 @@ function modeName(mode: Mode): string {
       return L('Verdadero o falso', 'True or false');
     case 'topten':
       return L('Los diez primeros', 'The top ten');
+    case 'cards':
+      return L('Tarjetas', 'Flashcards');
+    case 'mix':
+      return L('Popurrí', 'Medley');
+    case 'listen':
+      return L('Oye y señala', 'Listen and pin');
     default:
       return L('¿Qué país?', 'Which country?');
   }
@@ -293,6 +362,10 @@ function modeName(mode: Mode): string {
 
 export const formatName = (f: Format): string =>
   f === 'timed' ? L('Contrarreloj', 'Time attack') : f === 'lives' ? L('Supervivencia', 'Survival') : f === 'exam' ? L('Examen', 'Exam') : L('Normal', 'Standard');
+
+/** What a pack of flashcards asks, as the question it is. */
+export const cardAskName = (ask: CardAsk): string =>
+  ask === 'where' ? L('¿Dónde está?', 'Where is it?') : ask === 'capital' ? L('¿Su capital?', 'Its capital?') : ask === 'flag' ? L('¿Qué bandera es?', 'Which flag is it?') : L('¿Cómo se llama?', 'What is it called?');
 
 export interface SectionInfo {
   path: string;
@@ -355,7 +428,7 @@ function lazy<K extends string, V>(keys: readonly K[], make: (key: K) => V): Rec
   return out;
 }
 
-const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'neighbours', 'capital', 'flag', 'blind', 'edit', 'print', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'topten'];
+const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'neighbours', 'capital', 'flag', 'blind', 'edit', 'print', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'topten', 'cards', 'mix', 'listen'];
 
 export const MODES: Record<Section, ModeDef[]> = lazy(SECTION_IDS, modesOf);
 export const MODE_NAME: Record<Mode, string> = lazy(MODE_IDS, modeName);

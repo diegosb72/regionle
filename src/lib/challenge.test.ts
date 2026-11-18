@@ -13,12 +13,39 @@ describe('challenge by link', () => {
       mode: 'pin',
       countries: ['ES'],
       levels: { ES: 'g1' },
-      opts: { answer: 'type', length: 10, pinBy: 'name', cityPick: 'top', cityCount: 25 },
+      opts: { answer: 'type', length: 10, pinBy: 'name', cityPick: 'top', cityCount: 25, turned: false, flagLook: 'plain' },
       seed: 123456,
       from: 'Diego',
       score: 85,
       ms: 61_234,
     });
+  });
+
+  it('carries the hard looks, so that both play the same game', () => {
+    const plain = encodeChallenge(game({ section: 'countries', mode: 'outline', countries: ['ES', 'FR'], levels: {} }));
+    const turned = encodeChallenge(game({ section: 'countries', mode: 'outline', countries: ['ES', 'FR'], levels: {}, opts: { ...DEFAULT_OPTS, turned: true } }));
+    const grey = encodeChallenge(game({ section: 'countries', mode: 'flag', countries: ['ES', 'FR'], levels: {}, opts: { ...DEFAULT_OPTS, flagLook: 'grey' } }));
+    const both = encodeChallenge(game({ section: 'countries', mode: 'mix', countries: ['ES', 'FR'], levels: {}, opts: { ...DEFAULT_OPTS, turned: true, flagLook: 'blur' } }));
+    expect(decodeChallenge(plain)!.opts).toMatchObject({ turned: false, flagLook: 'plain' });
+    expect(decodeChallenge(turned)!.opts).toMatchObject({ turned: true, flagLook: 'plain' });
+    expect(decodeChallenge(grey)!.opts).toMatchObject({ turned: false, flagLook: 'grey' });
+    expect(decodeChallenge(both)!).toMatchObject({ mode: 'mix', opts: { turned: true, flagLook: 'blur' } });
+    // A plain game costs the link nothing: it is as long as it was before the looks came.
+    expect(JSON.parse(atob(plain.replace(/-/g, '+').replace(/_/g, '/'))).o).toHaveLength(5);
+    // A link from before says nothing of them, and is played plain whatever the receiver likes; so is one that says nonsense.
+    const old = btoa(JSON.stringify({ s: 'countries', m: 'flag', c: 'ESFR', k: 5, v: 2, o: ['type', 10, 'name', 'top', 25] }));
+    expect(decodeChallenge(old)!.opts).toMatchObject({ turned: false, flagLook: 'plain' });
+    const odd = btoa(JSON.stringify({ s: 'countries', m: 'flag', c: 'ESFR', k: 5, v: 2, o: ['type', 10, 'name', 'top', 25, 'yes', 'sepia'] }));
+    expect(decodeChallenge(odd)!.opts).toMatchObject({ turned: false, flagLook: 'plain' });
+    expect(decodeChallenge(btoa(JSON.stringify({ s: 'countries', m: 'flag', c: 'ESFR', k: 5, v: 2 })))!.opts).toEqual({ turned: false, flagLook: 'plain' });
+  });
+
+  it('is offered for the medley, and not for the games that are not marked the same for everyone', () => {
+    expect(canChallenge(game({ mode: 'mix' }))).toBe(true);
+    // By ear, the other may have no voice; with cards, each is their own judge.
+    expect(canChallenge(game({ mode: 'listen' }))).toBe(false);
+    expect(canChallenge(game({ mode: 'cards' }))).toBe(false);
+    expect(decodeChallenge(btoa(JSON.stringify({ s: 'countries', m: 'cards', c: 'ESFR', k: 5, v: 2 })))).toBeNull();
   });
 
   it('works without a result or a name', () => {
@@ -95,7 +122,8 @@ describe('challenge by link', () => {
     const wire = (o: unknown) => Buffer.from(JSON.stringify(o)).toString('base64url');
     const back = decodeChallenge(wire({ s: 'cities', m: 'pin', c: 'ESFR', k: 3.9, o: ['shout', 'endless', 'smell', 'all', 9999], l: { ES: '<script>' }, f: '   ', r: [250, -5] }))!;
     expect(back.countries).toEqual(['ES', 'FR']);
-    expect(back.opts).toEqual({});
+    // Nothing of what it said is taken; the hard looks, which it did not ask for, are off.
+    expect(back.opts).toEqual({ turned: false, flagLook: 'plain' });
     expect(back.levels).toEqual({});
     expect(back.seed).toBe(3);
     expect(back.from).toBeUndefined();

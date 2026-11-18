@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Spinner } from '../components/ui';
 import { BlindGame } from '../games/Blind';
+import { CardsGame } from '../games/Cards';
 import { ExploreGame } from '../games/Explore';
 import { TopTenGame, TrueFalseGame } from '../games/FactGames';
 import { LearnGame } from '../games/Learn';
@@ -250,6 +251,8 @@ function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
       return <RegionleGame {...props} />;
     case 'blind':
       return <BlindGame {...props} />;
+    case 'cards':
+      return <CardsGame {...props} />;
     case 'pin':
     case 'puzzle':
     case 'identify':
@@ -257,6 +260,8 @@ function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
     case 'capital':
     case 'flag':
     case 'parent':
+    case 'mix':
+    case 'listen':
       return <QuizGame {...props} />;
     default:
       return <Message title={L(`«${MODE_NAME[cfg.mode]}» no está disponible aquí`, `“${MODE_NAME[cfg.mode]}” is not available here`)} text={L('Elige otro modo de juego.', 'Choose another game mode.')} onExit={onExit} />;

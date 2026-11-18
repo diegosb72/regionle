@@ -3,17 +3,18 @@ import { Check, ChevronDown, Infinity as InfinityIcon, ListChecks, ListPlus, Pen
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { GoalBar } from '../components/GoalBar';
 import { Picker } from '../components/Picker';
+import { canSpeak } from '../components/Speak';
 import { Flag, Seg, Toggle, capitalise } from '../components/ui';
 import { eligible, levelOf, loadFile, type World } from '../lib/data';
 import { countriesOf, describeMap } from '../lib/describe';
 import { CITY_COUNTS, PHYS_KINDS, PHYS_PLACES, kindNoun, kindsIn, loadCities, loadPhysical, parsePhys, physCountries, physMatches, physTokens, pickOf, type PhysKind, type PhysSpec } from '../lib/extra';
 import { L, getLang, levelNoun, nm } from '../lib/i18n';
 import { encodeList, listConfig, listPlayable, listUrl } from '../lib/lists';
-import { GROUP_NAME, MODES, MODE_GROUPS, SECTIONS, formatName } from '../lib/modes';
+import { GROUP_NAME, MODES, MODE_GROUPS, SECTIONS, cardAskName, formatName } from '../lib/modes';
 import { estimateOf, minutesOf, paceOf, percentOf, questionsOf } from '../lib/pace';
-import { FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, ROUND_MODES, TOP_MIN } from '../lib/rules';
+import { FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, ROUND_MODES, TOP_MIN, asksByFlag, turnsOutlines } from '../lib/rules';
 import { go } from '../lib/router';
-import { useStore, type CustomList, type Length, type Opts } from '../lib/store';
+import { useStore, type CardAsk, type CustomList, type Length, type Opts } from '../lib/store';
 import { cx, nf, plural } from '../lib/text';
 import { SAMPLES, settingsLink } from '../lib/typeinList';
 import { SHIPPED_AUTO, inForce } from '../lib/typeins';
@@ -23,13 +24,13 @@ import type { Country, Mode, Section } from '../lib/types';
 const COUNTDOWNS = [0, 120, 300, 600, 900];
 
 const levelName = (n: number): string => [L('Fácil', 'Easy'), L('Medio', 'Medium'), L('Difícil', 'Hard')][n - 1];
-const ANSWER_MODES: Mode[] = ['learn', 'identify', 'outline', 'capital', 'flag', 'parent'];
+const ANSWER_MODES: Mode[] = ['learn', 'identify', 'outline', 'capital', 'flag', 'parent', 'mix'];
 /** Games that are one round of everything: they cannot go on for ever. */
-const FINITE_MODES: Mode[] = ['neighbours', 'blind'];
+const FINITE_MODES: Mode[] = ['neighbours', 'blind', 'cards'];
 /** Games where names are typed and a list of suggestions can help. */
 const SUGGEST_MODES: Mode[] = ['travel', 'neighbours', 'regionle', 'which', 'topten'];
 /** Games that stop on a missed answer long enough to read about it. */
-const WIKI_MODES: Mode[] = ['explore', 'pin', 'identify', 'outline', 'regionle', 'puzzle', 'neighbours', 'capital', 'flag', 'blind'];
+const WIKI_MODES: Mode[] = ['explore', 'pin', 'identify', 'outline', 'regionle', 'puzzle', 'neighbours', 'capital', 'flag', 'blind', 'mix', 'listen'];
 
 type Cities = Awaited<ReturnType<typeof loadCities>>;
 type Physical = Awaited<ReturnType<typeof loadPhysical>>;
@@ -361,7 +362,7 @@ export function Setup({ section, world }: { section: Section; world: World }) {
   const noGroups = def.id === 'parent' && section === 'regions' && !chosen.some((c) => c.lv.length > 1 && levelOf(c, levels).k === 'f');
   /** Why a new list cannot be started from what is chosen now. */
   const noMap = isPhys ? !physical || units < 2 : chosen.length < 1 || (section === 'cities' && (!cities || units < 2));
-  const problem = active
+  const unplayable = active
     ? listPlayable(def.id)
       ? null
       : L(`«${def.name}» no se juega con una lista: elige otro modo o deja la lista.`, `“${def.name}” is not played with a list: choose another mode or stop using the list.`)
@@ -392,6 +393,9 @@ export function Setup({ section, world }: { section: Section; world: World }) {
           : def.id === 'travel' && units < 4
             ? L('La ruta necesita un mapa con más piezas.', 'The route needs a map with more pieces.')
             : null;
+  /** "Oye y señala" is said by the voice of the browser: where there is none, there is no game. */
+  const mute = def.id === 'listen' && !canSpeak();
+  const problem = unplayable ?? (mute ? L('Este navegador no tiene voz para decir los nombres: juega a «Señalar».', 'This browser has no voice to say the names: play “Pin it”.') : null);
 
   const typed = ANSWER_MODES.includes(def.id) && opts.answer === 'type';
   /** Initials that are taken where they are promised, and the same in both languages. */
@@ -423,14 +427,21 @@ export function Setup({ section, world }: { section: Section; world: World }) {
   const exam = FORMAT_MODES.includes(def.id) && opts.format === 'exam';
   // An exam has an end, like the games that cannot go on for ever.
   const finite = FINITE_MODES.includes(def.id) || exam;
+  /** What a flashcard can ask here: a capital where the map has them, a flag where the pieces are countries. */
+  const cardAsks: CardAsk[] = ['name', 'where', ...(section === 'countries' || (section === 'regions' && !!capitals && chosen.some((c) => capitals[c.id]?.[levelOf(c, levels).k])) ? (['capital'] as const) : []), ...(section === 'countries' ? (['flag'] as const) : [])];
+  const cardAsk: CardAsk = cardAsks.includes(opts.cardAsk) ? opts.cardAsk : 'name';
   const show = {
     answer: ANSWER_MODES.includes(def.id),
+    cardAsk: def.id === 'cards',
+    // Outlines are drawn where pieces have a shape; flags are asked about where the pieces are countries.
+    turned: turnsOutlines(section, def.id),
+    flagLook: asksByFlag(section, def.id, { pinBy: opts.pinBy, cardAsk }),
     format: FORMAT_MODES.includes(def.id),
     // A list is asked whole, and a paced game ends when the clock or the lives say so.
     length: LENGTH_MODES.includes(def.id) && !paced && !active,
     suggest: (typed && def.id !== 'learn') || SUGGEST_MODES.includes(def.id),
     // An exam writes nothing on its map.
-    labels: (def.id === 'pin' || def.id === 'identify' || def.id === 'puzzle' || def.id === 'blind') && !exam,
+    labels: (def.id === 'pin' || def.id === 'identify' || def.id === 'puzzle' || def.id === 'blind' || def.id === 'mix' || def.id === 'listen') && !exam,
     pinBy: def.id === 'pin' && section === 'countries',
     blind: def.id === 'travel',
     metric: section === 'pops' && FIGURE_MODES.includes(def.id),
@@ -612,6 +623,14 @@ export function Setup({ section, world }: { section: Section; world: World }) {
               <span className="step-n">03</span> {L('Ajustes', 'Settings')}
             </h2>
             {!anyOption && !(section === 'regions' && multi.length > 0) && <p className="tip-line">{L(`«${def.name}» no necesita ajustes.`, `“${def.name}” needs no settings.`)}</p>}
+            {def.id === 'listen' && !mute && (
+              <p className="tip-line">
+                {L(
+                  'Los nombres los dice la voz de tu dispositivo: no se descarga ni se envía nada. Si no se oye, sube el volumen; «Ver el nombre» lo escribe, y cuenta como ayuda.',
+                  'The names are said by the voice of your device: nothing is downloaded or sent. If you hear nothing, turn the volume up; “Show the name” writes it, and counts as help.',
+                )}
+              </p>
+            )}
             <div className="options">
               {section === 'regions' && multi.length > 0 && (
                 <details className="levels" open={multi.length <= 4}>
@@ -715,6 +734,52 @@ export function Setup({ section, world }: { section: Section; world: World }) {
                   />
                 </div>
               )}
+              {show.cardAsk && (
+                <div className="opt">
+                  <span className="opt-label">{L('Pregunta', 'Question')}</span>
+                  <Seg
+                    label={L('Qué pregunta cada tarjeta', 'What each card asks')}
+                    value={cardAsk}
+                    onChange={(v) => set({ cardAsk: v })}
+                    options={cardAsks.map((value) => ({
+                      value,
+                      label: cardAskName(value),
+                    }))}
+                  />
+                  <p className="opt-hint">
+                    {cardAsk === 'name'
+                      ? L('Se ilumina en el mapa y piensas su nombre.', 'It lights up on the map and you think of its name.')
+                      : cardAsk === 'where'
+                        ? L('Lees el nombre y piensas dónde está; al darle la vuelta, el mapa te lo enseña.', 'You read the name and think where it is; turned over, the map shows you.')
+                        : cardAsk === 'capital'
+                          ? L('Lees el nombre y piensas su capital.', 'You read the name and think of its capital.')
+                          : L('Ves la bandera y piensas de qué país es.', 'You see the flag and think which country it belongs to.')}{' '}
+                    {L('Nadie te corrige: tú dices si lo sabías.', 'Nobody marks you: you say whether you knew it.')}
+                  </p>
+                </div>
+              )}
+              {show.flagLook && (
+                <div className="opt">
+                  <span className="opt-label">{L('Banderas', 'Flags')}</span>
+                  <Seg
+                    label={L('Cómo se ven las banderas', 'How the flags are shown')}
+                    value={opts.flagLook ?? 'plain'}
+                    onChange={(flagLook) => set({ flagLook })}
+                    options={[
+                      { value: 'plain', label: L('Tal cual', 'As they are') },
+                      { value: 'grey', label: L('En gris', 'In grey'), title: L('Más difícil: sin sus colores', 'Harder: without their colours') },
+                      { value: 'blur', label: L('Desenfocadas', 'Out of focus'), title: L('Más difícil: solo las manchas de color', 'Harder: only the patches of colour') },
+                    ]}
+                  />
+                  {(opts.flagLook ?? 'plain') !== 'plain' && (
+                    <p className="opt-hint">
+                      {opts.flagLook === 'grey'
+                        ? L('Sin colores, una bandera se reconoce por su dibujo. Al responder la ves como es.', 'Without colours, a flag is known by its design. Once you answer you see it as it is.')
+                        : L('Desenfocada, una bandera se reconoce por sus colores y dónde van; si escribes la respuesta, se aclara un poco con cada intento. Al responder la ves como es.', 'Out of focus, a flag is known by its colours and where they go; if you type the answer, it clears a little with each try. Once you answer you see it as it is.')}
+                    </p>
+                  )}
+                </div>
+              )}
               {show.format && (
                 <div className="opt">
                   <span className="opt-label">{L('Formato', 'Format')}</span>
@@ -788,6 +853,11 @@ export function Setup({ section, world }: { section: Section; world: World }) {
               {show.suggest && (
                 <Toggle checked={opts.suggest} onChange={(suggest) => set({ suggest })} hint={L('Más fácil: eliges de una lista mientras escribes.', 'Easier: you pick from a list while typing.')}>
                   {L('Sugerencias al escribir', 'Suggestions while typing')}
+                </Toggle>
+              )}
+              {show.turned && (
+                <Toggle checked={!!opts.turned} onChange={(turned) => set({ turned })} hint={L('Más difícil: cada silueta sale girada, sin el norte arriba.', 'Harder: every outline comes turned, without north at the top.')}>
+                  {L('Siluetas giradas', 'Turned outlines')}
                 </Toggle>
               )}
               {show.labels && (

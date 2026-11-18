@@ -10,7 +10,7 @@ import { countriesOf, describeMap, type MapSpec } from '../lib/describe';
 import { commonPlace, type World } from '../lib/world';
 import { metricNoun, metricOrder } from '../lib/metricNames';
 import { L, getLang } from '../lib/i18n';
-import { MODES, SECTIONS, SECTION_IDS, formatName, modeNameIn } from '../lib/modes';
+import { MODES, SECTIONS, SECTION_IDS, cardAskName, formatName, modeNameIn } from '../lib/modes';
 import { recentKey, type Recent } from '../lib/recent';
 import { NOT_GAMES } from '../lib/rules';
 import { go, inGame } from '../lib/router';
@@ -163,12 +163,15 @@ function Recents({ world }: { world: World }) {
           {shown.map((r) => {
             const flags = countriesOf(specOf(r), world).slice(0, 3);
             const paced = r.o.format && r.o.format !== 'normal' ? ` · ${formatName(r.o.format).toLowerCase()}` : r.o.countdown ? ` · ${r.o.countdown / 60} min` : '';
+            // Two packs of cards on the same map are told apart by what they ask.
+            const asked = r.mode === 'cards' && r.o.cardAsk ? ` · ${cardAskName(r.o.cardAsk)}` : '';
             return (
               <li key={recentKey(r)}>
                 <button type="button" onClick={() => again(r)}>
                   <span className="recent-what">
                     {SECTIONS[r.section].name} · {modeNameIn(r.section, r.mode)}
                     {paced}
+                    {asked}
                   </span>
                   <span className="recent-map">
                     {r.countries.length <= 3 && flags.length > 0 && (
