@@ -54,6 +54,14 @@
   --k-rock: #a9795a;
   --k-sand: #e6bd62;
   --k-grass: #a9bd62;
+  --k-lilac: #9a86c9;
+  /* One colour for each continent, none of them the green, yellow or red that an answer is marked with. */
+  --c-eu: #8a78c8;
+  --c-as: #c8789c;
+  --c-af: #b08650;
+  --c-am: #8f9440;
+  --c-oc: #5b84b1;
+  --c-an: #9a9a9a;
   --lbl: #14262a;
   --lbl-halo: rgba(253, 246, 227, 0.92);
 
@@ -115,6 +123,13 @@
   --k-rock: #8a6248;
   --k-sand: #a8842f;
   --k-grass: #6f8436;
+  --k-lilac: #8f7fd0;
+  --c-eu: #9a8ad6;
+  --c-as: #d184a8;
+  --c-af: #b98d55;
+  --c-am: #9aa046;
+  --c-oc: #5f8fc4;
+  --c-an: #aab0b3;
   --lbl: #f4f7f3;
   --lbl-halo: rgba(10, 21, 27, 0.88);
   color-scheme: dark;
@@ -2191,11 +2206,43 @@ button.chip.on:hover:not(:disabled) {
   pointer-events: none;
 }
 /* Physical features. These come before the state colours, which win. */
-.m-items path.k-sea {
+.m-items path.k-sea,
+.m-items path.k-ocean {
   fill: color-mix(in srgb, var(--k-water) 20%, var(--sea));
   stroke: color-mix(in srgb, var(--k-water) 55%, var(--sea));
   stroke-width: 0.8px;
   stroke-dasharray: 3 4;
+}
+/* A continent is the land itself, washed in a colour of its own. It has no line: the coast is drawn already,
+   and where its mainland and its islands or its two halves meet there is nothing to mark. */
+.m-items path.k-continent {
+  fill: color-mix(in srgb, var(--c-tint, var(--k-grass)) 46%, transparent);
+}
+.m-items path.k-continent,
+.m-items path.k-continent[class*='st-'] {
+  stroke: none;
+}
+/* Marked right or wrong, a continent is a shade darker than an ocean marked the same: the coast between them stays in sight. */
+.m-items path.k-continent[class*='st-'] {
+  filter: brightness(0.92);
+}
+.m-items path[data-id='c:europe'] {
+  --c-tint: var(--c-eu);
+}
+.m-items path[data-id='c:asia'] {
+  --c-tint: var(--c-as);
+}
+.m-items path[data-id='c:africa'] {
+  --c-tint: var(--c-af);
+}
+.m-items path[data-id='c:americas'] {
+  --c-tint: var(--c-am);
+}
+.m-items path[data-id='c:oceania'] {
+  --c-tint: var(--c-oc);
+}
+.m-items path[data-id='c:antarctica'] {
+  --c-tint: var(--c-an);
 }
 .m-items path.k-lake {
   fill: var(--k-water);
@@ -2215,6 +2262,12 @@ button.chip.on:hover:not(:disabled) {
 .m-items path.k-plain {
   fill: color-mix(in srgb, var(--k-grass) 48%, transparent);
   stroke: color-mix(in srgb, var(--k-grass) 70%, var(--ink));
+  stroke-width: 0.8px;
+}
+/* A peninsula is land that the sea all but surrounds: a colour that no water has, and a line where it joins the mainland. */
+.m-items path.k-peninsula {
+  fill: color-mix(in srgb, var(--k-lilac) 36%, transparent);
+  stroke: color-mix(in srgb, var(--k-lilac) 75%, var(--ink));
   stroke-width: 0.8px;
 }
 .m-items path.k-island {
@@ -2368,6 +2421,22 @@ button.chip.on:hover:not(:disabled) {
 .m-items path.st-dim {
   fill: var(--land-ctx);
   stroke: var(--land-ctx-line);
+}
+/* Water that is not asked yet stays water: a sea goes back to being the sea it is drawn on, and a lake pales.
+   Painted like the land that is left out, the Mediterranean would be one more country. */
+.m-items path.k-sea.st-dim,
+.m-items path.k-ocean.st-dim {
+  fill: transparent;
+  stroke: none;
+}
+.m-items path.k-lake.st-dim {
+  fill: var(--sea);
+  stroke: var(--land-ctx-line);
+}
+/* …and a continent, the bare land, with nothing over it. */
+.m-items path.k-continent.st-dim {
+  fill: transparent;
+  filter: none;
 }
 .m-ring.st-dim {
   display: none;
@@ -4401,7 +4470,8 @@ a.d-cal-day:hover {
 .kdot-lake {
   background: var(--k-water);
 }
-.kdot-sea {
+.kdot-sea,
+.kdot-ocean {
   background: color-mix(in srgb, var(--k-water) 26%, var(--sea));
   box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--k-water) 75%, var(--ink));
 }
@@ -4419,6 +4489,29 @@ a.d-cal-day:hover {
   height: 8px;
   border-radius: 3px;
   background: var(--k-grass);
+}
+/* A globe: land in the middle and the water round it. */
+.kdot-continent {
+  width: 12px;
+  height: 12px;
+  background: var(--c-am);
+  box-shadow: inset 0 0 0 2.5px var(--k-water);
+}
+/* A tongue of land. */
+.kdot-peninsula {
+  width: 9px;
+  height: 13px;
+  border-radius: 1px 1px 6px 6px;
+  background: var(--k-lilac);
+}
+/* A drop of water. */
+.kdot-fall {
+  width: 9px;
+  height: 9px;
+  margin: 0 2px;
+  border-radius: 0 50% 50% 50%;
+  background: var(--k-water);
+  transform: rotate(45deg);
 }
 .kdot-cape {
   width: 11px;
@@ -5330,8 +5423,14 @@ a.d-cal-day:hover {
   fill: color-mix(in srgb, var(--k-water) 40%, var(--ink));
   stroke: var(--land);
 }
+/* A waterfall: a drop, in the colour of the rivers. */
+.m-dot.k-fall:not([class*='st-']) {
+  fill: var(--k-water);
+  stroke: color-mix(in srgb, var(--k-water) 45%, var(--ink));
+}
 @media (hover: hover) {
   .pickable .m-dot.k-peak.hot:not([class*='st-']),
+  .pickable .m-dot.k-fall.hot:not([class*='st-']),
   .pickable .m-dot.k-cape.hot:not([class*='st-']) {
     fill: var(--accent);
     stroke: var(--accent);
@@ -7606,6 +7705,24 @@ kbd {
 .sm-area path.k-plain {
   stroke: #777;
   stroke-dasharray: calc(var(--mm) * 2.4px) calc(var(--mm) * 0.7px) calc(var(--mm) * 0.4px) calc(var(--mm) * 0.7px);
+}
+/* A peninsula is outlined like a plain, with a shorter stroke. */
+.sm-area path.k-peninsula {
+  fill: none;
+  stroke: #555;
+  stroke-width: calc(var(--mm) * 0.22px);
+  stroke-dasharray: calc(var(--mm) * 0.9px) calc(var(--mm) * 0.6px);
+}
+/* A continent is the land that is drawn already: no line of its own. A grey, darker in one and lighter in the
+   next, tells Europe from Asia and Asia from Africa where no sea does. */
+.sm-area path.k-continent {
+  fill: rgba(0, 0, 0, 0.05);
+  stroke: none;
+}
+.sm-area path[data-id='c:europe'],
+.sm-area path[data-id='c:africa'],
+.sm-area path[data-id='c:oceania'] {
+  fill: rgba(0, 0, 0, 0.15);
 }
 .sm-extra path {
   fill: #f3f3f3;

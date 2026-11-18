@@ -98,7 +98,7 @@ export function decodeChallenge(code: string): Challenge | null {
   if (!isStr(wire.c) || !wire.c || wire.c.length > 1200) return null;
   const countries = wire.c.includes('.') || wire.s === 'physical' ? wire.c.split('.') : (wire.c.match(/.{1,2}/g) ?? []);
   // Codes of countries, or the words of a physical map: "river", "EU", "all", and "in:ES" for the map of one country.
-  if (!countries.length || countries.length > 300 || !countries.every((id) => /^(?:[A-Za-z0-9]{1,8}|in:[A-Z]{2})$/.test(id))) return null;
+  if (!countries.length || countries.length > 300 || !countries.every((id) => /^(?:[A-Za-z0-9]{1,12}|in:[A-Z]{2})$/.test(id))) return null;
   if (!Number.isFinite(wire.k)) return null;
   const opts: Partial<Opts> = {};
   if (Array.isArray(wire.o)) {

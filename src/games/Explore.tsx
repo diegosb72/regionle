@@ -87,9 +87,10 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
                     </dd>
                   </div>
                 )}
-                {item.kind === 'feature' && (
+                {/* Where it is: the country whose map this is, or its continent. A continent is in none, and an ocean washes several. */}
+                {item.kind === 'feature' && item.cat !== 'continent' && item.cat !== 'ocean' && (
                   <div>
-                    <dt>{L('Continente', 'Continent')}</dt>
+                    <dt>{item.country.id.startsWith('@in:') ? L('País', 'Country') : L('Continente', 'Continent')}</dt>
                     <dd>{nm(item.country.n)}</dd>
                   </div>
                 )}

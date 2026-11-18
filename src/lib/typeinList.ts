@@ -132,8 +132,9 @@ export async function typeinGroups(tab: TypeinTab, scope = ''): Promise<TypeinGr
     const items = [...new Map(decks.flatMap((deck) => deck.items).map((it) => [it.id, it])).values()];
     return PHYS_KINDS.map((kind: PhysKind) => ({
       key: `p:${kind}`,
-      title: cap(kindNoun(kind).many),
-      rows: byName(items.filter((it) => it.cat === kind).map((it) => pieceRow(it))),
+      // The oceans are listed once, with the seas, where they have always been.
+      title: kind === 'continent' ? L('Continentes', 'Continents') : cap(kindNoun(kind).many),
+      rows: byName(items.filter((it) => it.cat === kind || (kind === 'sea' && it.cat === 'ocean')).map((it) => pieceRow(it))),
       codes: true,
     })).filter((g) => g.rows.length);
   }

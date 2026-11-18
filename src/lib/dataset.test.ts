@@ -2,7 +2,7 @@
 
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { geoArea } from 'd3-geo';
+import { geoArea, geoContains } from 'd3-geo';
 import { feature } from 'topojson-client';
 import type { GeometryCollection, Topology } from 'topojson-specification';
 import { describe, expect, it } from 'vitest';
@@ -550,6 +550,8 @@ interface PhysRec {
   fp: [number, number][];
   /** Lines and surfaces; a peak or a cape is the point its name hangs from and has none. */
   g?: ['L' | 'A', number[][]];
+  /** An ocean with its seas, drawn where no sea is asked. */
+  gw?: ['A', number[][]];
   /** Height of a peak, in metres. */
   el?: number;
   wd?: string;
@@ -566,9 +568,9 @@ interface CityRec {
 
 describe('physical.json', () => {
   const file = read<{ scale: number; f: PhysRec[] }>('physical.json');
-  const KINDS = ['river', 'lake', 'sea', 'range', 'plain', 'peak', 'cape', 'desert', 'island'];
+  const KINDS = ['continent', 'ocean', 'river', 'lake', 'sea', 'range', 'plain', 'peninsula', 'peak', 'cape', 'desert', 'island', 'fall'];
   /** Drawn as a dot: there is no shape to them. */
-  const DOTS = ['peak', 'cape'];
+  const DOTS = ['peak', 'cape', 'fall'];
   const PLACES = ['EU', 'AS', 'AF', 'AM', 'OC', 'AN'];
   const byKind = (k: string) => file.f.filter((f) => f.k === k);
   /** Undoes the storage: the first point and then the steps, in whole fractions of a degree. */
@@ -639,7 +641,8 @@ describe('physical.json', () => {
   it('has the physical map of Spain that a school atlas has', () => {
     const spain = file.f.filter((f) => f.co?.includes('ES'));
     const known = spain.filter((f) => f.r === 1 || f.h === 1);
-    const names = (list: PhysRec[], kind: string) => list.filter((f) => f.k === kind).map((f) => f.n.es);
+    // The seas of a map are its seas and its oceans: the Atlantic is asked with the Cantabrian.
+    const names = (list: PhysRec[], kind: string) => list.filter((f) => f.k === kind || (kind === 'sea' && f.k === 'ocean')).map((f) => f.n.es);
     expect(spain.length).toBeGreaterThanOrEqual(150);
     for (const [kind, all, first] of [
       ['river', 75, 35],
@@ -707,14 +710,28 @@ describe('physical.json', () => {
     const shapes = new Map(feature(world, world.objects.c as GeometryCollection).features.map((f) => [String(f.id), f.geometry]));
     const capes = byKind('cape');
     expect(capes.length).toBeGreaterThanOrEqual(12);
+    /** Kilometres from a place to a stretch of coast, on a plane: fine at this size. */
+    const off = (at: [number, number], a: number[], b: number[]) => {
+      const cos = Math.cos((at[1] * Math.PI) / 180);
+      const [ax, ay, bx, by] = [(a[0] - at[0]) * cos, a[1] - at[1], (b[0] - at[0]) * cos, b[1] - at[1]];
+      const len2 = (bx - ax) ** 2 + (by - ay) ** 2;
+      const t = len2 ? Math.max(0, Math.min(1, -(ax * (bx - ax) + ay * (by - ay)) / len2)) : 0;
+      return Math.hypot(ax + t * (bx - ax), ay + t * (by - ay)) * 111.2;
+    };
     for (const f of capes) {
       expect(f.g, f.i).toBeUndefined();
       expect(f.fp, f.i).toEqual([f.lp]);
+      expect(f.co?.length, f.i).toBeGreaterThan(0);
       const g = shapes.get(f.co![0])!;
       const rings = g.type === 'Polygon' ? g.coordinates : g.type === 'MultiPolygon' ? g.coordinates.flat() : [];
-      const near = Math.min(...rings.flatMap((ring) => ring.map((p) => Math.hypot((p[0] - f.lp[0]) * Math.cos((f.lp[1] * Math.PI) / 180), p[1] - f.lp[1]) * 111.2)));
-      // The file keeps two decimals of a degree: a kilometre, give or take.
-      expect(near, f.i).toBeLessThan(1.5);
+      const corner = Math.min(...rings.flatMap((ring) => ring.map((p) => off(f.lp, p, p))));
+      const side = Math.min(...rings.flatMap((ring) => ring.slice(1).map((p, i) => off(f.lp, ring[i], p))));
+      // A cape of Spain is a corner of the coast the game draws. The file keeps two decimals of a degree: a
+      // kilometre, give or take.
+      if (f.r === 3) expect(corner, f.i).toBeLessThan(1.5);
+      // A cape of the world is where the source has it, on the nearest corner when there is one at hand. The
+      // coast drawn here is coarse: it has no Outer Banks for Cape Hatteras to stand on, nor the hook of Cape Cod.
+      else expect(side, f.i).toBeLessThan(['c:cape-hatteras', 'c:cape-cod'].includes(f.i) ? 55 : 16);
     }
   });
 
@@ -742,15 +759,357 @@ describe('physical.json', () => {
       ['lake', 60, 20],
       ['sea', 90, 35],
       ['range', 50, 18],
+      ['plain', 34, 16],
+      ['peninsula', 28, 14],
       ['peak', 90, 25],
+      ['cape', 44, 12],
       ['desert', 15, 6],
       ['island', 35, 18],
+      ['fall', 4, 4],
     ] as const) {
       expect(byKind(kind).length, kind).toBeGreaterThanOrEqual(all);
       expect(byKind(kind).filter((f) => f.r === 1).length, kind).toBeGreaterThanOrEqual(known);
     }
+    // Neither more nor fewer: the six continents as the game counts them, and the five oceans.
+    expect(byKind('continent').map((f) => f.i).sort()).toEqual(['c:africa', 'c:americas', 'c:antarctica', 'c:asia', 'c:europe', 'c:oceania']);
+    expect(byKind('ocean').map((f) => f.i).sort()).toEqual(['s:arctic-ocean', 's:atlantic-ocean', 's:indian-ocean', 's:pacific-ocean', 's:southern-ocean']);
     for (const id of ['r:danube', 'r:nile', 'r:amazon', 'r:ebro', 's:atlantic-ocean', 's:mediterranean-sea', 'd:sahara', 'i:greenland', 'r:alps', 'r:andes', 'l:lake-victoria', 'p:mount-everest', 'p:teide', 'p:mount-kilimanjaro', 'p:aconcagua'])
       expect(file.f.some((f) => f.i === id), id).toBe(true);
+  });
+
+  it('draws six continents that share out the land, each place in one of them', () => {
+    const continents = byKind('continent').map((f) => ({ ct: f.ct[0], f, geo: { type: 'MultiPolygon' as const, coordinates: f.g![1].map((flat) => [decode(flat)]) } }));
+    for (const { f } of continents) {
+      // Asked on the map of the world and nowhere else: a continent is not a feature of any country.
+      expect(f.r, f.i).toBe(1);
+      expect(f.ct.length, f.i).toBe(1);
+      expect(f.co, f.i).toBeUndefined();
+      expect(f.g![0], f.i).toBe('A');
+    }
+    const where = (p: [number, number]) => continents.filter((c) => geoContains(c.geo, p)).map((c) => c.ct).join('+') || '-';
+    const places: Record<string, [number, number, string]> = {
+      Madrid: [-3.7, 40.4, 'EU'],
+      London: [-0.1, 51.5, 'EU'],
+      Iceland: [-19, 65, 'EU'],
+      Ireland: [-8, 53.3, 'EU'],
+      Mallorca: [3, 39.6, 'EU'],
+      Sicily: [14.2, 37.6, 'EU'],
+      Crete: [24.9, 35.2, 'EU'],
+      Svalbard: [16, 78.5, 'EU'],
+      'São Miguel': [-25.5, 37.78, 'EU'],
+      Kaliningrad: [21, 54.7, 'EU'],
+      // The Urals and the river Ural.
+      Perm: [56.2, 58, 'EU'],
+      Ufa: [56, 54.7, 'EU'],
+      Samara: [50.1, 53.2, 'EU'],
+      'Novaya Zemlya': [56, 73.5, 'EU'],
+      Chelyabinsk: [61.4, 55.16, 'AS'],
+      Tyumen: [65.5, 57.15, 'AS'],
+      Aktobe: [57.2, 50.3, 'AS'],
+      Astana: [71.4, 51.2, 'AS'],
+      // The crest of the Caucasus, and the straits.
+      Krasnodar: [39, 45.04, 'EU'],
+      Grozny: [45.7, 43.3, 'EU'],
+      Tbilisi: [44.8, 41.7, 'AS'],
+      Yerevan: [44.5, 40.2, 'AS'],
+      Edirne: [26.56, 41.68, 'EU'],
+      Ankara: [32.85, 39.93, 'AS'],
+      // Islands by the land they lie off, whatever country they are.
+      Cyprus: [33.2, 35, 'AS'],
+      Tenerife: [-16.6, 28.27, 'AF'],
+      Madeira: [-16.95, 32.75, 'AF'],
+      Sakhalin: [142.8, 50, 'AS'],
+      'Wrangel Island': [-179.5, 71.2, 'AS'],
+      Kamchatka: [159, 55, 'AS'],
+      Honshu: [138.5, 36.2, 'AS'],
+      Borneo: [114, 1, 'AS'],
+      Java: [110, -7.3, 'AS'],
+      Halmahera: [127.9, 0.8, 'AS'],
+      'Sri Lanka': [80.7, 7.8, 'AS'],
+      Socotra: [53.9, 12.5, 'AS'],
+      // Africa ends at the Suez Canal.
+      Cairo: [31.24, 30.04, 'AF'],
+      'west of the canal': [32, 30.5, 'AF'],
+      Sinai: [33.8, 29.5, 'AS'],
+      Negev: [34.8, 30.8, 'AS'],
+      Madagascar: [46.5, -19.5, 'AF'],
+      Zanzibar: [39.33, -6.1, 'AF'],
+      Bioko: [8.7, 3.5, 'AF'],
+      // One America, the isthmus with it.
+      Alaska: [-150, 65, 'AM'],
+      Greenland: [-42, 72, 'AM'],
+      'Costa Rica': [-84, 10, 'AM'],
+      Panama: [-80, 8.6, 'AM'],
+      Darién: [-77.7, 8, 'AM'],
+      Bogotá: [-74.07, 4.71, 'AM'],
+      Cuba: [-79, 22, 'AM'],
+      'Tierra del Fuego': [-68.5, -54, 'AM'],
+      Falklands: [-59, -51.7, 'AM'],
+      // Oceania: Australia, New Guinea whole, and the Pacific as far as Hawaii.
+      Australia: [134, -25, 'OC'],
+      Tasmania: [146.5, -42, 'OC'],
+      'Papua New Guinea': [144, -6, 'OC'],
+      'Papua, in Indonesia': [138.5, -4, 'OC'],
+      'New Zealand': [170.5, -44, 'OC'],
+      Fiji: [178, -17.8, 'OC'],
+      Hawaii: [-155.5, 19.6, 'OC'],
+      // Antarctica goes round the pole.
+      'the South Pole': [0, -89, 'AN'],
+      'East Antarctica': [100, -75, 'AN'],
+      'the Antarctic Peninsula': [-63.5, -66, 'AN'],
+      // Water, and islands in mid-ocean that are part of none.
+      'the Atlantic': [-30, 30, '-'],
+      'the Mediterranean': [18, 35, '-'],
+      'the Black Sea': [35, 43.5, '-'],
+      'the Caspian': [51, 42, '-'],
+      'the Red Sea': [38, 21, '-'],
+      Kerguelen: [69.5, -49.3, '-'],
+      'South Georgia': [-36.8, -54.4, '-'],
+    };
+    const wrong = Object.entries(places)
+      .map(([name, [x, y, want]]) => [name, want, where([x, y])])
+      .filter(([, want, got]) => want !== got)
+      .map(([name, want, got]) => `${name}: in ${got}, not ${want}`);
+    expect(wrong).toEqual([]);
+    // Where their country puts them, every country stands on its continent: the dot of its name is inside it.
+    // (Russia is asked with Europe and the dot of its name is in Siberia; the same goes for the others listed.)
+    const split = new Set(['RU', 'CY', 'TF', 'GS', 'HM', 'BV']);
+    const astray: string[] = [];
+    for (const c of index.countries as unknown as { id: string; ct?: string; lp?: [number, number] }[]) {
+      if (!c.ct || !c.lp || split.has(c.id)) continue;
+      const got = where(c.lp);
+      // A speck of an island is not drawn as part of a continent: nothing to say of it.
+      if (got !== '-' && got !== c.ct) astray.push(`${c.id}: filed under ${c.ct}, drawn in ${got}`);
+    }
+    expect(astray).toEqual([]);
+  });
+
+  it('gives continents and oceans the surface of the books, not that of their outline', () => {
+    const ar = (id: string) => file.f.find((f) => f.i === id)!.ar!;
+    // The World Factbook, in km²: an ocean with its seas, a continent with its islands.
+    expect(ar('s:pacific-ocean')).toBe(168_723_000);
+    expect(ar('s:atlantic-ocean')).toBe(85_133_000);
+    expect(ar('s:indian-ocean')).toBe(70_560_000);
+    expect(ar('s:southern-ocean')).toBe(21_960_000);
+    expect(ar('s:arctic-ocean')).toBe(15_558_000);
+    expect(ar('c:asia')).toBe(44_568_500);
+    // America is one here: the north and the south of the book, added.
+    expect(ar('c:americas')).toBe(24_473_000 + 17_819_000);
+    expect(ar('c:africa')).toBe(30_065_000);
+    expect(ar('c:antarctica')).toBe(14_200_000);
+    expect(ar('c:europe')).toBe(9_948_000);
+    // The book has Australia alone: Oceania is measured on the map, and comes out a little bigger than it.
+    expect(ar('c:oceania')).toBeGreaterThan(8_400_000);
+    expect(ar('c:oceania')).toBeLessThan(9_200_000);
+    // The order every pupil learns.
+    const order = (kind: string) =>
+      byKind(kind)
+        .sort((a, b) => b.ar! - a.ar!)
+        .map((f) => f.n.es);
+    expect(order('ocean')).toEqual(['Océano Pacífico', 'Océano Atlántico', 'Océano Índico', 'Océano Antártico', 'Océano Ártico']);
+    expect(order('continent')).toEqual(['Asia', 'América', 'África', 'Antártida', 'Europa', 'Oceanía']);
+  });
+
+  it('draws each ocean a second time with its seas, for the map that asks no sea', () => {
+    const oceans = byKind('ocean');
+    // Only an ocean has seas to take in.
+    expect(file.f.filter((f) => f.gw).map((f) => f.i).sort()).toEqual(oceans.map((f) => f.i).sort());
+    const shape = (rings: number[][]) => ({ type: 'MultiPolygon' as const, coordinates: rings.map((flat) => [decode(flat)]) });
+    const short = (f: PhysRec) => f.i.slice(2).replace('-ocean', '');
+    const open = (p: [number, number]) => oceans.filter((f) => geoContains(shape(f.g![1]), p)).map(short).join('+') || '-';
+    const whole = (p: [number, number]) => oceans.filter((f) => geoContains(shape(f.gw![1]), p)).map(short).join('+') || '-';
+    // Which ocean each sea is counted with: The World Factbook's lists, and for what it does not name, the one it opens to.
+    const seas: Record<string, [number, number, string]> = {
+      Mediterranean: [18, 35, 'atlantic'],
+      'Black Sea': [34, 43.3, 'atlantic'],
+      Baltic: [19.5, 56.5, 'atlantic'],
+      'North Sea': [3, 56, 'atlantic'],
+      Caribbean: [-75, 15, 'atlantic'],
+      'Gulf of Mexico': [-90, 25, 'atlantic'],
+      'Hudson Bay': [-85, 60, 'atlantic'],
+      'Baffin Bay': [-68, 73, 'atlantic'],
+      'Labrador Sea': [-55, 58, 'atlantic'],
+      'Gulf of Guinea': [3, 2, 'atlantic'],
+      'Barents Sea': [40, 75, 'arctic'],
+      'Kara Sea': [70, 76, 'arctic'],
+      'Laptev Sea': [125, 76, 'arctic'],
+      'Beaufort Sea': [-140, 72, 'arctic'],
+      'Chukchi Sea': [-170, 70, 'arctic'],
+      'Norwegian Sea': [3, 68, 'arctic'],
+      'Greenland Sea': [-5, 76, 'arctic'],
+      'Arabian Sea': [64, 15, 'indian'],
+      'Bay of Bengal': [88, 14, 'indian'],
+      'Red Sea': [38.5, 20, 'indian'],
+      'Persian Gulf': [51.5, 27, 'indian'],
+      'Mozambique Channel': [41, -18, 'indian'],
+      'Andaman Sea': [96, 10, 'indian'],
+      'Timor Sea': [126, -12, 'indian'],
+      'Great Australian Bight': [130, -34, 'indian'],
+      'South China Sea': [115, 12, 'pacific'],
+      'Philippine Sea': [135, 18, 'pacific'],
+      'Sea of Japan': [135, 40, 'pacific'],
+      'East China Sea': [125, 29, 'pacific'],
+      'Sea of Okhotsk': [150, 55, 'pacific'],
+      'Bering Sea': [-175, 57, 'pacific'],
+      'Gulf of Alaska': [-145, 57, 'pacific'],
+      'Coral Sea': [155, -17, 'pacific'],
+      // Between the Great Barrier Reef and the coast of Queensland.
+      'the lagoon of the reef': [146.9, -18.6, 'pacific'],
+      'Torres Strait': [142.3, -10.2, 'pacific'],
+      'Gulf of Carpentaria': [139, -14, 'pacific'],
+      'Tasman Sea': [160, -40, 'pacific'],
+      'Java Sea': [112, -5, 'pacific'],
+      'Banda Sea': [127, -6, 'pacific'],
+      'Celebes Sea': [122, 3, 'pacific'],
+      'Arafura Sea': [135, -9, 'pacific'],
+      'Gulf of California': [-110.3, 26, 'pacific'],
+      'Weddell Sea': [-45, -72, 'southern'],
+      'Ross Sea': [-175, -75, 'southern'],
+      'Bellingshausen Sea': [-85, -72, 'southern'],
+    };
+    const wrong: string[] = [];
+    for (const [name, [x, y, ocean]] of Object.entries(seas)) {
+      // A sea is not the open ocean, and belongs to one ocean only.
+      if (open([x, y]) !== '-') wrong.push(`${name}: part of the open ${open([x, y])}`);
+      if (whole([x, y]) !== ocean) wrong.push(`${name}: with ${whole([x, y])}, not ${ocean}`);
+    }
+    // The open ocean is the same water in both.
+    const waters: Record<string, [number, number, string]> = {
+      'North Atlantic': [-35, 30, 'atlantic'],
+      'South Atlantic': [-15, -30, 'atlantic'],
+      'North Pacific': [165, 30, 'pacific'],
+      'South Pacific': [-120, -30, 'pacific'],
+      Indian: [80, -25, 'indian'],
+      Arctic: [0, 87, 'arctic'],
+      Southern: [60, -64, 'southern'],
+    };
+    for (const [name, [x, y, ocean]] of Object.entries(waters)) {
+      if (open([x, y]) !== ocean) wrong.push(`${name}: open ${open([x, y])}`);
+      if (whole([x, y]) !== ocean) wrong.push(`${name}: whole ${whole([x, y])}`);
+    }
+    // A lake, however big and however it is called.
+    if (whole([51, 41]) !== '-') wrong.push(`Caspian: with ${whole([51, 41])}`);
+    expect(wrong).toEqual([]);
+
+    for (const f of oceans) {
+      const [kind, rings] = f.gw!;
+      expect(kind, f.i).toBe('A');
+      for (const flat of rings) {
+        expect(flat.every(Number.isInteger), f.i).toBe(true);
+        const pts = decode(flat);
+        expect(pts.length, f.i).toBeGreaterThanOrEqual(4);
+        expect(pts[0], f.i).toEqual(pts[pts.length - 1]);
+        for (const [x, y] of pts) expect(x >= -180 && x <= 180 && y >= -90 && y <= 90, `${f.i} ${x},${y}`).toBe(true);
+      }
+      // Wound the right way round, and bigger than the open ocean alone: it has the same water and more.
+      expect(geoArea(shape(rings)), f.i).toBeLessThan(0.75 * 4 * Math.PI);
+      expect(geoArea(shape(rings)), f.i).toBeGreaterThan(geoArea(shape(f.g![1])));
+      // Its name is written where the open ocean has it.
+      expect(geoContains(shape(rings), f.lp), f.i).toBe(true);
+    }
+    // The coasts of the whole world, once: it must not weigh more than the continents do.
+    const points = oceans.reduce((sum, f) => sum + f.gw![1].reduce((n, flat) => n + flat.length / 2, 0), 0);
+    expect(points).toBeLessThan(12_000);
+  });
+
+  it('draws the peninsulas and the great plains, and says whose they are', () => {
+    const of = (id: string) => file.f.find((f) => f.i === id);
+    const names = (kind: string, rank: number) =>
+      byKind(kind)
+        .filter((f) => f.r <= rank)
+        .map((f) => f.n.es);
+    expect(names('peninsula', 1)).toEqual(
+      expect.arrayContaining([
+        'Península Ibérica',
+        'Península Itálica',
+        'Península Escandinava',
+        'Península Balcánica',
+        'Península Arábiga',
+        'Península del Indostán',
+        'Indochina',
+        'Anatolia',
+        'Península de Corea',
+        'Península de Kamchatka',
+        'Cuerno de África',
+        'Península de Yucatán',
+        'Península de Baja California',
+        'Península de Florida',
+      ]),
+    );
+    expect(names('peninsula', 2)).toEqual(expect.arrayContaining(['Península de Crimea', 'Península de Jutlandia', 'Peloponeso', 'Península de Bretaña', 'Península de Malaca', 'Península de Alaska']));
+    expect(names('plain', 1)).toEqual(
+      expect.arrayContaining(['Gran Llanura Europea', 'Meseta del Tíbet', 'Llanura de Siberia Occidental', 'Meseta del Decán', 'Grandes Llanuras', 'Llanura amazónica', 'La Pampa', 'Gran Chaco', 'Cuenca del Congo', 'Sahel']),
+    );
+    for (const f of [...byKind('peninsula'), ...byKind('plain')]) expect(f.g?.[0], f.i).toBe('A');
+    // A peninsula that is the whole of a country is nothing to point at on its map: Iberia in Spain, Korea in either Korea.
+    for (const id of ['p:iberian-peninsula', 'p:scandinavian-peninsula', 'p:balkan-peninsula', 'p:arabian-peninsula', 'p:korean-peninsula', 'p:horn-of-africa']) expect(of(id)?.co, id).toBeUndefined();
+    // One that is a part of it is: Italy's, Florida, Yucatán, Kamchatka, Brittany.
+    expect(of('p:italian-peninsula')?.co).toEqual(['IT']);
+    expect(of('p:florida-peninsula')?.co).toEqual(['US']);
+    expect(of('p:yucatan-peninsula')?.co).toEqual(['MX']);
+    expect(of('p:kamchatka-peninsula')?.co).toEqual(['RU']);
+    expect(of('p:brittany')?.co).toEqual(['FR']);
+    expect(of('p:malay-peninsula')?.co).toEqual(['MY', 'TH']);
+    // A great plain is asked in the countries it crosses, small or large; not in the one it covers whole.
+    expect(of('p:european-plain')?.co).toEqual(expect.arrayContaining(['FR', 'BE', 'NL', 'DE', 'PL', 'BY', 'RU']));
+    expect(of('p:european-plain')?.co).not.toContain('LT');
+    expect(of('p:congo-basin')?.co).not.toContain('CD');
+    expect(of('p:pampas')?.co).toEqual(['AR']);
+    expect(of('p:great-plains')?.co).toEqual(['CA', 'US']);
+    expect(of('p:gran-chaco')?.co).toEqual(['AR', 'BO', 'PY']);
+    // The source spreads Tibet over the Himalaya: it is asked in China.
+    expect(of('p:tibetan-plateau')?.co).toEqual(['CN']);
+    // The Alps are of everyone who has a share of them.
+    expect(of('r:alps')?.co).toEqual(['AT', 'CH', 'DE', 'FR', 'IT', 'LI', 'SI']);
+    expect(of('r:tian-shan')?.co).toEqual(['CN', 'KG', 'KZ']);
+  });
+
+  it('places the capes of the world and the waterfalls where they are', () => {
+    const of = (id: string) => file.f.find((f) => f.i === id)!;
+    /** Kilometres between two places. */
+    const km = (a: [number, number], b: [number, number]) => {
+      const rad = Math.PI / 180;
+      const h = Math.sin(((b[1] - a[1]) * rad) / 2) ** 2 + Math.cos(a[1] * rad) * Math.cos(b[1] * rad) * Math.sin(((b[0] - a[0]) * rad) / 2) ** 2;
+      return 2 * 6371 * Math.asin(Math.sqrt(h));
+    };
+    // The points of the source are written for labels, and some stand beside the cape: these are the ones
+    // that had to be found by the coast, each within a few kilometres of where the cape is.
+    for (const [id, at, co] of [
+      ['c:cape-palmas', [-7.72, 4.37], ['LR']],
+      ['c:cap-vert', [-17.52, 14.74], ['SN']],
+      ['c:cape-blanc', [-17.05, 20.77], ['EH', 'MR']],
+      ['c:cape-sao-roque', [-35.26, -5.48], ['BR']],
+      ['c:cabo-frio', [-42.02, -23.0], ['BR']],
+      // And some of those that the source has right.
+      ['c:cape-of-good-hope', [18.47, -34.36], ['ZA']],
+      ['c:cape-horn', [-67.27, -55.98], ['CL']],
+      ['c:north-cape', [25.78, 71.17], ['NO']],
+      ['c:cape-st-vincent', [-9.0, 37.02], ['PT']],
+      ['c:cape-comorin', [77.55, 8.08], ['IN']],
+      ['c:cape-york', [142.53, -10.69], ['AU']],
+      ['c:cape-guardafui', [51.28, 11.83], ['SO']],
+    ] as const) {
+      expect(km(of(id).lp, [at[0], at[1]]), id).toBeLessThan(15);
+      expect(of(id).co, id).toEqual(co);
+    }
+    // Four waterfalls, each between the countries that share it.
+    expect(byKind('fall').map((f) => [f.n.es, f.co])).toEqual([
+      ['Cataratas del Niágara', ['CA', 'US']],
+      ['Salto Ángel', ['VE']],
+      ['Cataratas del Iguazú', ['AR', 'BR']],
+      ['Cataratas Victoria', ['ZM', 'ZW']],
+    ]);
+    for (const [id, at] of [
+      ['f:niagara-falls', [-79.07, 43.08]],
+      ['f:angel-falls', [-62.54, 5.97]],
+      ['f:iguazu-falls', [-54.44, -25.69]],
+      ['f:victoria-falls', [25.86, -17.92]],
+    ] as const) {
+      const f = of(id);
+      expect(km(f.lp, [at[0], at[1]]), id).toBeLessThan(5);
+      expect(f.g, id).toBeUndefined();
+      expect(f.fp, id).toEqual([f.lp]);
+    }
   });
 
   it('draws rivers as lines and everything else as surfaces, inside the globe', () => {

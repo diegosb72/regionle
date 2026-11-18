@@ -19,11 +19,25 @@
 //                 { land, at }     the island of that country that the point stands on
 //                 { coast, box, to }  the corner of the coast of that country that reaches farthest
 //                                  towards N, S, E, W… inside the box: a cape
+//               And, where Natural Earth has no outline of its own:
+//                 { shore, a, b, by }  the coast of that country, as the game draws it, from the corner
+//                                  nearest `a` to the one nearest `b` passing by `by`, closed across
+//                                  the neck: a peninsula
+//                 { tip, to }      the corner of a Natural Earth outline that reaches farthest that way:
+//                                  a cape that the source draws as a headland instead of marking it
 //   options     h: 1       one of the best known on the map of its country, though not on a continent's
 //               co: 'ES'   the countries it is asked in, when the ones worked out from the map are not
 //                          the ones wanted
 //               t: 'res'   a reservoir, not a lake
 //               area: 0    no surface: the outline is only where to click
+//               area: 'ocean:pacific' | 'land:Asia'  the surface The World Factbook gives it, instead of the
+//                          one of the outline: an ocean with its seas (Natural Earth outlines them apart: its
+//                          Arctic Ocean is a third of the Arctic), a continent as the books count it
+//                          (Antarctica is drawn without its ice shelves). 'land:A+B' adds two of its entries
+//               area: 'outline'  for a continent, which has none otherwise: the surface of what is drawn
+//               at: [lon, lat]  where the name is written, when the middle of the biggest piece will not do
+//               wd: ''     no link to an encyclopedia, when the one the source gives is about something else
+//               kind: 'ocean'  filed under another kind than the list it is in, without changing its id
 
 /** The land above 1000 m on both sides of the border, between the Bay of Biscay and the Mediterranean. */
 const PYRENEES = { min: 1000, close: 8, within: [[-2.0, 43.25], [-1.2, 43.3], [0.0, 43.2], [1.5, 43.1], [2.6, 42.85], [3.2, 42.55], [3.2, 42.3], [2.3, 42.1], [1.2, 41.95], [0.2, 42.05], [-0.8, 42.3], [-1.7, 42.65]] };
@@ -410,12 +424,23 @@ export const LAKES = [
  * Sea, the Luzon Strait, the Drake Passage): those are outlines drawn by hand over the water, with no
  * surface to compare. The land is drawn on top of every sea, so an outline may run inland.
  */
+/**
+ * The seas that The World Factbook counts with an ocean, where it calls them otherwise than Natural Earth
+ * does. An empty name: a strait that Natural Earth does not outline.
+ */
+export const OCEAN_SEA_NAMES = {
+  'Gulf of America': 'Gulf of Mexico',
+  'Northwest Passage': 'The North Western Passages',
+  'Bering Strait': '',
+};
+
 export const SEAS = [
-  ['Océano Atlántico', 'Atlantic Ocean', 'EU AF AM', 1, ['North Atlantic Ocean', 'South Atlantic Ocean'], ['Atlántico']],
-  ['Océano Pacífico', 'Pacific Ocean', 'AS AM OC', 1, ['North Pacific Ocean', 'South Pacific Ocean'], ['Pacífico']],
-  ['Océano Índico', 'Indian Ocean', 'AF AS OC', 1, ['INDIAN OCEAN'], ['Índico']],
-  ['Océano Ártico', 'Arctic Ocean', 'EU AS AM', 1, ['Arctic Ocean'], ['Ártico', 'Océano Glacial Ártico']],
-  ['Océano Antártico', 'Southern Ocean', 'AN', 1, ['SOUTHERN OCEAN'], ['Antártico', 'Océano Austral', 'Océano Glacial Antártico', 'Antarctic Ocean']],
+  // The five oceans are a kind of their own («Continentes y océanos»), filed here because their ids begin like a sea's.
+  ['Océano Atlántico', 'Atlantic Ocean', 'EU AF AM', 1, ['North Atlantic Ocean', 'South Atlantic Ocean'], ['Atlántico'], { kind: 'ocean', area: 'ocean:atlantic' }],
+  ['Océano Pacífico', 'Pacific Ocean', 'AS AM OC', 1, ['North Pacific Ocean', 'South Pacific Ocean'], ['Pacífico'], { kind: 'ocean', area: 'ocean:pacific' }],
+  ['Océano Índico', 'Indian Ocean', 'AF AS OC', 1, ['INDIAN OCEAN'], ['Índico'], { kind: 'ocean', area: 'ocean:indian' }],
+  ['Océano Ártico', 'Arctic Ocean', 'EU AS AM', 1, ['Arctic Ocean'], ['Ártico', 'Océano Glacial Ártico'], { kind: 'ocean', area: 'ocean:arctic' }],
+  ['Océano Antártico', 'Southern Ocean', 'AN', 1, ['SOUTHERN OCEAN'], ['Antártico', 'Océano Austral', 'Océano Glacial Antártico', 'Antarctic Ocean'], { kind: 'ocean', area: 'ocean:southern' }],
 
   ['Mar Mediterráneo', 'Mediterranean Sea', 'EU AF AS', 1, ['Mediterranean Sea'], ['Mediterráneo']],
   ['Mar Negro', 'Black Sea', 'EU AS', 1, ['Black Sea']],
@@ -541,7 +566,8 @@ export const SEAS = [
 
 /** Mountain ranges and massifs: `NAME` in the 1:10m regions layer. */
 export const RANGES = [
-  ['Alpes', 'Alps', 'EU', 1, ['ALPS']],
+  // Germany holds a fifteenth of them and Slovenia a hundredth, less than the rule asks for: they are theirs all the same.
+  ['Alpes', 'Alps', 'EU', 1, ['ALPS'], [], { co: 'AT CH DE FR IT LI SI' }],
   ['Pirineos', 'Pyrenees', 'EU', 1, [{ relief: PYRENEES }], ['Pirineo']],
   ['Apeninos', 'Apennines', 'EU', 1, ['APPENNINI']],
   ['Cárpatos', 'Carpathians', 'EU', 1, ['CARPATHIAN MOUNTAINS'], ['Montes Cárpatos', 'Carpathian Mountains']],
@@ -569,7 +595,8 @@ export const RANGES = [
   ['Karakórum', 'Karakoram', 'AS', 2, ['KARAKORAM RA.'], ['Karakorum']],
   ['Hindú Kush', 'Hindu Kush', 'AS', 1, ['HINDU KUSH'], ['Hindu Kush']],
   ['Pamir', 'Pamir Mountains', 'AS', 2, ['PAMIRS'], ['Cordillera del Pamir']],
-  ['Tian Shan', 'Tian Shan', 'AS', 1, ['TIAN SHAN'], ['Tien Shan', 'Montañas Celestiales']],
+  // Kazakhstan has a twentieth of it, the ridge above Almaty: little for the rule, and the mountains of that country.
+  ['Tian Shan', 'Tian Shan', 'AS', 1, ['TIAN SHAN'], ['Tien Shan', 'Montañas Celestiales'], { co: 'CN KG KZ' }],
   ['Kunlun', 'Kunlun Mountains', 'AS', 2, ['KUNLUN MOUNTAINS'], ['Montes Kunlun']],
   ['Altái', 'Altai Mountains', 'AS', 1, ['ALTAY MOUNTAINS'], ['Macizo de Altái', 'Altay']],
   ['Montes Zagros', 'Zagros Mountains', 'AS', 1, ['ZAGROS MOUNTAINS'], ['Zagros']],
@@ -704,11 +731,49 @@ export const ISLANDS = [
   ['El Hierro', 'El Hierro', 'EU AF', 3, ['Hierro'], ['Hierro'], { h: 1 }],
 ];
 
-/**
- * Plains, plateaus and river basins. Only Spain has any yet: the land between two heights of the Atlas
- * Nacional de España, inside a box drawn by hand.
- */
+/** Plains, plateaus and river basins. */
 export const PLAINS = [
+  // The world: `NAME` in the 1:10m regions layer, among its plateaus, plains, basins and lowlands.
+  // From the Pyrenees to the Urals, as Natural Earth outlines it: its widest part is in the north of Russia,
+  // and the name is better read in the middle of the way.
+  ['Gran Llanura Europea', 'European Plain', 'EU', 1, ['NORTHERN EUROPEAN PLAIN'], ['Llanura Europea', 'Llanura Nordeuropea', 'Gran Llanura del Norte de Europa', 'Great European Plain', 'North European Plain'], { at: [21, 52.7] }],
+  ['Gran Llanura Húngara', 'Great Hungarian Plain', 'EU', 2, ['Alföld'], ['Alföld', 'Llanura Panónica', 'Pannonian Plain']],
+  ['Depresión del Caspio', 'Caspian Depression', 'EU AS', 2, ['CASPIAN DEPRESSION'], ['Depresión Cáspica', 'Caspian Lowland']],
+  // The source draws it over the Himalaya, down to the plains: two thirds of Nepal would be Tibet. On a map of
+  // Asia that is a blot in the right place; on a map of Nepal it is wrong.
+  ['Meseta del Tíbet', 'Tibetan Plateau', 'AS', 1, ['PLATEAU OF TIBET'], ['Meseta Tibetana', 'Tíbet', 'Plateau of Tibet', 'Tibet'], { co: 'CN' }],
+  ['Llanura de Siberia Occidental', 'West Siberian Plain', 'AS', 1, ['WESTERN SIBERIAN PLAIN'], ['Llanura Siberiana Occidental', 'Western Siberian Plain']],
+  ['Meseta Central Siberiana', 'Central Siberian Plateau', 'AS', 1, ['CENTRAL SIBERIAN PLATEAU'], ['Meseta de Siberia Central']],
+  ['Meseta del Decán', 'Deccan Plateau', 'AS', 1, ['DECCAN PLATEAU'], ['Decán', 'Deccan', 'Meseta del Deccan']],
+  ['Gran Llanura China', 'North China Plain', 'AS', 1, ['NORTH CHINA PLAIN'], ['Llanura del Norte de China', 'Gran Llanura del Norte de China']],
+  ['Llanura Indogangética', 'Indo-Gangetic Plain', 'AS', 1, ['GANGES PLAIN'], ['Llanura del Ganges', 'Llanura Indo-Gangética', 'Ganges Plain']],
+  ['Meseta de Mongolia', 'Mongolian Plateau', 'AS', 2, ['MONGOLIAN PLATEAU']],
+  ['Llanura de Manchuria', 'Manchurian Plain', 'AS', 2, ['MANCHURIAN PLAIN'], ['Llanura del Nordeste de China', 'Northeast China Plain']],
+  ['Estepa kazaja', 'Kazakh Steppe', 'AS', 2, ['KAZAKH STEPPE']],
+  ['Depresión de Turán', 'Turan Lowland', 'AS', 2, ['TURAN LOWLAND'], ['Llanura de Turán', 'Depresión del Turán', 'Turan Depression']],
+  ['Cuenca del Tarim', 'Tarim Basin', 'AS', 2, ['TARIM BASIN'], ['Tarim']],
+  ['Cuenca de Sichuan', 'Sichuan Basin', 'AS', 2, ['SICHUAN BASIN'], ['Cuenca Roja']],
+  ['Mesopotamia', 'Mesopotamia', 'AS', 2, ['Mesopotamia']],
+  ['Cuenca del Congo', 'Congo Basin', 'AF', 1, ['CONGO BASIN']],
+  ['Sahel', 'Sahel', 'AF', 1, ['SAHEL']],
+  ['Grandes Llanuras', 'Great Plains', 'AM', 1, ['GREAT PLAINS'], ['Grandes Praderas']],
+  ['Escudo Canadiense', 'Canadian Shield', 'AM', 1, ['CANADIAN SHIELD'], ['Escudo Laurentino', 'Laurentian Shield']],
+  ['Altiplanicie Mexicana', 'Mexican Plateau', 'AM', 1, ['ALTI-PLANICIE MEXICANA'], ['Altiplano Mexicano', 'Meseta Central de México', 'Mesa Central']],
+  ['Gran Cuenca', 'Great Basin', 'AM', 2, ['GREAT BASIN']],
+  ['Meseta del Colorado', 'Colorado Plateau', 'AM', 2, ['COLORADO PLATEAU']],
+  ['Llanura amazónica', 'Amazon Basin', 'AM', 1, ['AMAZON BASIN'], ['Cuenca del Amazonas', 'Amazonia', 'Llanura del Amazonas', 'Cuenca amazónica']],
+  ['Los Llanos', 'Llanos', 'AM', 1, ['LLANOS'], ['Llanos', 'Llanos del Orinoco']],
+  ['Gran Chaco', 'Gran Chaco', 'AM', 1, ['GRAN CHACO'], ['Chaco', 'El Chaco']],
+  ['La Pampa', 'Pampas', 'AM', 1, ['PAMPAS'], ['Pampa', 'Llanura pampeana', 'Región pampeana', 'Las Pampas', 'The Pampas']],
+  ['Meseta Brasileña', 'Brazilian Highlands', 'AM', 1, ['BRAZILIAN HIGHLANDS'], ['Macizo Brasileño', 'Planalto Brasileiro', 'Brazilian Plateau']],
+  ['Altiplano andino', 'Altiplano', 'AM', 1, ['ALTIPLANO'], ['Altiplano', 'Meseta del Collao', 'Andean Plateau']],
+  ['Meseta del Mato Grosso', 'Mato Grosso Plateau', 'AM', 2, ['PLANALTO DO MATO GROSSO'], ['Planalto do Mato Grosso']],
+  ['Gran Cuenca Artesiana', 'Great Artesian Basin', 'OC', 1, ['GREAT ARTESIAN BASIN']],
+  ['Meseta Occidental', 'Western Plateau', 'OC', 2, ['WESTERN PLATEAU'], ['Meseta Occidental Australiana', 'Meseta Australiana']],
+  ['Llanura de Nullarbor', 'Nullarbor Plain', 'OC', 2, ['NULLARBOR PLAIN'], ['Nullarbor']],
+  ['Cuenca del Murray-Darling', 'Murray–Darling Basin', 'OC', 2, ['MURRAY-DARLING BASIN'], ['Cuenca Murray-Darling', 'Murray-Darling Basin']],
+
+  // Spain: the land between two heights of the Atlas Nacional de España, inside a box drawn by hand.
   ['Submeseta Norte', 'Northern Meseta', 'EU', 3, [{ relief: { min: 700, max: 1000, within: [[-6.4, 41.2], [-6.2, 42.6], [-5.0, 42.85], [-3.9, 42.75], [-3.75, 42.2], [-3.1, 41.75], [-2.95, 41.55], [-3.5, 41.5], [-4.2, 41.12], [-5.0, 40.82], [-5.9, 40.7]] } }], ['Meseta Norte', 'Submeseta Septentrional', 'Northern Sub-plateau'], { h: 1 }],
   ['Submeseta Sur', 'Southern Meseta', 'EU', 3, [{ relief: { min: 400, max: 1000, open: 4, within: [[-7.0, 39.7], [-6.3, 39.95], [-5.4, 40.0], [-4.5, 40.22], [-3.85, 40.57], [-3.0, 41.0], [-2.6, 40.6], [-2.45, 40.05], [-1.9, 39.65], [-1.5, 39.5], [-1.45, 38.9], [-2.85, 38.75], [-3.2, 38.68], [-4.0, 38.68], [-5.0, 38.53], [-6.0, 38.33], [-7.0, 38.28]] } }], ['Meseta Sur', 'Submeseta Meridional', 'Southern Sub-plateau'], { h: 1 }],
   ['Depresión del Ebro', 'Ebro Depression', 'EU', 3, [{ relief: { max: 400, within: [[-2.75, 42.7], [-1.4, 42.6], [-0.3, 42.2], [0.6, 42.0], [1.2, 41.75], [1.0, 41.3], [0.3, 40.95], [-0.6, 41.1], [-1.3, 41.5], [-2.0, 42.0], [-2.8, 42.35]] } }], ['Valle del Ebro', 'Ebro Basin', 'Ebro Valley'], { h: 1 }],
@@ -716,12 +781,61 @@ export const PLAINS = [
 ];
 
 /**
- * Capes: points on the coast. Only Spain has any yet. Each one is the corner of the coastline of the
- * game's own map that reaches farthest in one direction inside a small box, so the dot sits on the tip
- * of the land as it is drawn; nothing is placed from memory.
+ * Capes: points on the coast. Those of the world are among the capes of Natural Earth's points layer,
+ * which says where each one is. Those of Spain are not in it: each one is the corner of the coastline of
+ * the game's own map that reaches farthest in one direction inside a small box, so the dot sits on the
+ * tip of the land as it is drawn. Nothing is placed from memory.
+ *
+ * The points layer is made for writing names on a map, and a few of its capes stand beside the cape and
+ * not on it: across a border (Palmas), on the wrong side of the headland (Verde, Blanco) or on the next
+ * corner of the coast (São Roque, Frio). Those are found like the Spanish ones, by the corner of the
+ * coast, and `named` says which point of the layer they are, for the link.
  */
 export const CAPES = [
-  ['Cabo Finisterre', 'Cape Finisterre', 'EU', 3, [{ coast: 'ES', box: [-9.4, 42.8, -9.1, 43.0], to: 'W' }], ['Finisterre', 'Cabo Fisterra', 'Fisterra', 'Cabo de Finisterre'], { h: 1 }],
+  // The world: `name` among the capes of the 1:10m points layer ("Name@w,s,e,n" where two share a name).
+  ['Cabo Norte', 'North Cape', 'EU', 1, ['Nordkapp'], ['Nordkapp']],
+  ['Cabo de San Vicente', 'Cape St. Vincent', 'EU', 1, ['Cabo de São Vicente'], ['Cabo de São Vicente', 'San Vicente', 'Cape Saint Vincent', 'Cape St Vincent']],
+  ["Land's End", "Land's End", 'EU', 2, ['Lands End'], ['Lands End', 'Fin de la Tierra']],
+  ['Cabo de Buena Esperanza', 'Cape of Good Hope', 'AF', 1, ['Cape of Good Hope'], ['Buena Esperanza']],
+  ['Cabo de las Agujas', 'Cape Agulhas', 'AF', 1, ['Cape Agulhas'], ['Cabo Agulhas', 'Agulhas', 'Las Agujas']],
+  ['Cabo Guardafui', 'Cape Guardafui', 'AF', 1, ['Gees Gwardafuy'], ['Guardafui', 'Ras Asir', 'Gees Gwardafuy']],
+  ['Cabo Bon', 'Cape Bon', 'AF', 2, ['Cap Bon'], ['Cap Bon', 'Ras Addar']],
+  ['Cabo Bojador', 'Cape Bojador', 'AF', 2, ['Cabo Bojador'], ['Bojador']],
+  // The southern end of the long spit: the source's point is half way up its western shore.
+  ['Cabo Blanco', 'Cape Blanc', 'AF', 2, [{ coast: 'MR', box: [-17.2, 20.7, -16.95, 20.9], to: 'S', named: 'Cap Blanc' }], ['Cap Blanc', 'Ras Nuadibú', 'Ras Nouadhibou']],
+  ['Cabo Delgado', 'Cape Delgado', 'AF', 2, ['Cabo Delgado']],
+  // Liberia's, by the town of Harper, some twenty kilometres west of the river that is the border: the source's
+  // point is a quarter of a degree too far east, in Côte d'Ivoire.
+  ['Cabo Palmas', 'Cape Palmas', 'AF', 2, [{ coast: 'LR', box: [-7.76, 4.33, -7.68, 4.4], to: 'S', named: 'Cape Palmas' }]],
+  // The western tip of Africa, not the bay behind it.
+  ['Cabo Verde', 'Cap-Vert', 'AF', 2, [{ coast: 'SN', box: [-17.6, 14.6, -17.3, 14.9], to: 'W', named: 'Cape Verde' }], ['Cap-Vert', 'Península de Cabo Verde', 'Cape Verde']],
+  ['Cabo Comorín', 'Cape Comorin', 'AS', 1, ['Cape Comorin'], ['Kanyakumari', 'Cabo Comorin', 'Kanniyakumari']],
+  ['Cabo Lopatka', 'Cape Lopatka', 'AS', 2, ['Cape Lopatka@155,50,158,52'], ['Lopatka']],
+  ['Cabo Cheliuskin', 'Cape Chelyuskin', 'AS', 2, [{ tip: 'Cape Chelyuskin', to: 'N' }], ['Cheliuskin', 'Cabo Chelyuskin']],
+  ['Ras al-Hadd', 'Ras al Hadd', 'AS', 2, ["Ra's al Had"], ['Ras al Had', 'Cabo Hadd', "Ra's al Hadd"]],
+  ['Cabo de Hornos', 'Cape Horn', 'AM', 1, ['Cabo de Hornos'], ['Hornos']],
+  ['Cabo Cañaveral', 'Cape Canaveral', 'AM', 1, ['Cape Canaveral'], ['Cañaveral', 'Cabo Kennedy', 'Cape Kennedy']],
+  ['Cabo Cod', 'Cape Cod', 'AM', 1, ['Cape Cod']],
+  ['Cabo San Lucas', 'Cabo San Lucas', 'AM', 1, ['Cabo San Lucas'], ['Cape San Lucas']],
+  ['Cabo Farewell', 'Cape Farewell', 'AM', 1, ['Nunap Isua'], ['Cabo Farvel', 'Nunap Isua', 'Uummannarsuaq', 'Kap Farvel']],
+  ['Cabo Hatteras', 'Cape Hatteras', 'AM', 2, ['Cape Hatteras'], ['Hatteras']],
+  ['Cabo Mendocino', 'Cape Mendocino', 'AM', 2, ['Cape Mendocino'], ['Mendocino']],
+  ['Punta Barrow', 'Point Barrow', 'AM', 2, ['Point Barrow'], ['Nuvuk', 'Cabo Barrow']],
+  ['Cabo Gracias a Dios', 'Cape Gracias a Dios', 'AM', 2, ['Cabo Gracias a Dios'], ['Gracias a Dios']],
+  // The source writes the name on the corner where Brazil's coast turns west (Touros); the cape is the next
+  // corner to the south-east.
+  ['Cabo de São Roque', 'Cape São Roque', 'AM', 2, [{ coast: 'BR', box: [-35.4, -5.6, -35.1, -5.35], to: 'E', named: 'Cabo de São Roque' }], ['Cabo San Roque', 'Cabo de San Roque']],
+  // Where the coast of Rio de Janeiro turns north: the source's point is on the headland of Búzios, the next one up.
+  ['Cabo Frío', 'Cabo Frio', 'AM', 2, [{ coast: 'BR', box: [-42.2, -23.1, -41.95, -22.85], to: 'S', named: 'Cabo Frio' }], ['Cape Frio']],
+  ['Cabo York', 'Cape York', 'OC', 1, ['Cape York@140,-12,144,-9']],
+  ['Cabo Leeuwin', 'Cape Leeuwin', 'OC', 2, ['Cape Leeuwin'], ['Leeuwin']],
+  ['Cabo Byron', 'Cape Byron', 'OC', 2, ['Cape Byron'], ['Byron']],
+  ['Cabo Reinga', 'Cape Reinga', 'OC', 2, ['Cape Reinga'], ['Te Rerenga Wairua']],
+  ['Cabo Adare', 'Cape Adare', 'AN', 2, ['Cape Adare'], ['Adare']],
+
+  // Spain: the corners of its coast, as the game draws it.
+  // Finisterre is one of the four capes of Europe that Natural Earth marks: it is asked on the continent too.
+  ['Cabo Finisterre', 'Cape Finisterre', 'EU', 2, [{ coast: 'ES', box: [-9.4, 42.8, -9.1, 43.0], to: 'W' }], ['Finisterre', 'Cabo Fisterra', 'Fisterra', 'Cabo de Finisterre'], { h: 1 }],
   ['Cabo Ortegal', 'Cape Ortegal', 'EU', 3, [{ coast: 'ES', box: [-7.95, 43.7, -7.82, 43.82], to: 'N' }], ['Ortegal']],
   ['Estaca de Bares', 'Estaca de Bares', 'EU', 3, [{ coast: 'ES', box: [-7.8, 43.7, -7.6, 43.85], to: 'N' }], ['Punta de la Estaca de Bares', 'Cabo de Estaca de Bares', 'Estaca de Vares'], { h: 1 }],
   ['Cabo de Peñas', 'Cape Peñas', 'EU', 3, [{ coast: 'ES', box: [-6.0, 43.55, -5.7, 43.7], to: 'N' }], ['Cabo Peñas', 'Peñas'], { h: 1 }],
@@ -735,6 +849,118 @@ export const CAPES = [
   ['Punta de Tarifa', 'Punta de Tarifa', 'EU', 3, [{ coast: 'ES', box: [-5.7, 35.95, -5.5, 36.05], to: 'S' }], ['Tarifa', 'Punta Marroquí', 'Cabo de Tarifa', 'Point Tarifa'], { h: 1 }],
   ['Cabo de Trafalgar', 'Cape Trafalgar', 'EU', 3, [{ coast: 'ES', box: [-6.1, 36.12, -5.95, 36.25], to: 'SW' }], ['Trafalgar', 'Cabo Trafalgar'], { h: 1 }],
   ['Cabo de Formentor', 'Cap de Formentor', 'EU', 3, [{ coast: 'ES', box: [3.1, 39.9, 3.3, 40.0], to: 'NE' }], ['Cap de Formentor', 'Formentor', 'Cabo Formentor', 'Cape Formentor']],
+];
+
+/**
+ * Peninsulas: `NAME` in the 1:10m regions layer. The Italian one is not there: it is the coast of Italy
+ * south of the line from La Spezia to Rimini, where the textbooks have the peninsula begin.
+ */
+export const PENINSULAS = [
+  ['Península Ibérica', 'Iberian Peninsula', 'EU', 1, ['PENÍNSULA IBÉRICA'], ['Iberia']],
+  ['Península Itálica', 'Italian Peninsula', 'EU', 1, [{ shore: 'IT', a: [9.83, 44.08], b: [12.57, 44.06], by: [15.65, 38.0] }], ['Península Italiana', 'Península Apenina', 'Italia peninsular', 'Apennine Peninsula']],
+  ['Península Escandinava', 'Scandinavian Peninsula', 'EU', 1, ['SCANDINAVIA'], ['Escandinavia', 'Scandinavia']],
+  ['Península Balcánica', 'Balkan Peninsula', 'EU', 1, ['BALKAN PEN.'], ['Península de los Balcanes']],
+  ['Península de Crimea', 'Crimea', 'EU', 2, ['CRIMEA'], ['Crimea', 'Crimean Peninsula']],
+  ['Península de Kola', 'Kola Peninsula', 'EU', 2, ['KOLA PENINSULA'], ['Kola']],
+  ['Península de Jutlandia', 'Jutland', 'EU', 2, ['JUTLAND'], ['Jutlandia', 'Jutland Peninsula']],
+  ['Peloponeso', 'Peloponnese', 'EU', 2, ['Pelopónnisos'], ['Península del Peloponeso', 'Morea', 'Peloponnesus']],
+  ['Península de Bretaña', 'Brittany', 'EU', 2, ['Bretagne'], ['Bretaña', 'Península Bretona', 'Brittany Peninsula']],
+  ['Península Arábiga', 'Arabian Peninsula', 'AS', 1, ['ARABIAN PENINSULA'], ['Arabia', 'Península de Arabia']],
+  ['Península del Indostán', 'Indian subcontinent', 'AS', 1, ['INDIA'], ['Indostán', 'Subcontinente indio', 'Península Índica', 'Península de la India', 'India', 'Hindustan', 'Indian Peninsula']],
+  ['Indochina', 'Indochina', 'AS', 1, ['INDOCHINA PENINSULA'], ['Península de Indochina', 'Indochinese Peninsula', 'Indochina Peninsula']],
+  ['Anatolia', 'Anatolia', 'AS', 1, ['ANATOLIA'], ['Península de Anatolia', 'Asia Menor', 'Asia Minor']],
+  // The whole of both countries: on the map of either there is nothing to point at. (The source draws its neck
+  // south of the border, and by the rule it would be asked in the North and not in the South.)
+  ['Península de Corea', 'Korean Peninsula', 'AS', 1, ['KOREA'], ['Corea', 'Korea'], { co: '' }],
+  ['Península de Kamchatka', 'Kamchatka Peninsula', 'AS', 1, ['KAMCHATKA PENINSULA'], ['Kamchatka']],
+  ['Península de Malaca', 'Malay Peninsula', 'AS', 2, ['MALAY PENINSULA'], ['Península Malaya', 'Malaca']],
+  ['Península de Taimir', 'Taymyr Peninsula', 'AS', 2, ['TAYMYR PENINSULA'], ['Taimir', 'Taymyr', 'Península de Taimyr']],
+  ['Península de Yamal', 'Yamal Peninsula', 'AS', 2, ['YAMAL PENINSULA'], ['Yamal']],
+  ['Península de Chukotka', 'Chukchi Peninsula', 'AS', 2, ['CHUKCHI PENINSULA'], ['Chukotka', 'Península de Chukchi']],
+  ['Península de Shandong', 'Shandong Peninsula', 'AS', 2, ['Shandong Pen.'], ['Shandong']],
+  // The source draws the Somali peninsula: Somalia and the east of Ethiopia. Under the name everyone knows it by,
+  // the whole of Ethiopia is in it, and its eastern third would be the wrong answer to learn on that map.
+  ['Cuerno de África', 'Horn of Africa', 'AF', 1, ['SOMALI PENINSULA'], ['Península de Somalia', 'Somali Peninsula'], { co: '' }],
+  ['Península de Yucatán', 'Yucatán Peninsula', 'AM', 1, ['PEN. DE YUCATÁN'], ['Yucatán', 'Yucatan']],
+  ['Península de Baja California', 'Baja California Peninsula', 'AM', 1, ['BAJA CALIFORNIA'], ['Baja California', 'Península de California']],
+  // The source ties its outline to the state of that name, which is more than the peninsula: no link is kept.
+  ['Península de Florida', 'Florida Peninsula', 'AM', 1, ['FLORIDA'], ['Florida', 'La Florida'], { wd: '' }],
+  ['Península de Alaska', 'Alaska Peninsula', 'AM', 2, ['ALASKA PENINSULA']],
+  ['Península de Ungava', 'Ungava Peninsula', 'AM', 2, ['PÉNINSULE D’UNGAVA'], ['Ungava']],
+  ['Península Valdés', 'Valdés Peninsula', 'AM', 2, ['Península Valdés'], ['Valdés', 'Península de Valdés', 'Valdes Peninsula']],
+  ['Península de la Guajira', 'Guajira Peninsula', 'AM', 2, ['Pen. de la Guajira'], ['La Guajira', 'Guajira']],
+  ['Península del Cabo York', 'Cape York Peninsula', 'OC', 2, ['CAPE YORK PEN.'], ['Península de York']],
+  ['Península Antártica', 'Antarctic Peninsula', 'AN', 1, ['Antarctic Peninsula'], ['Tierra de O’Higgins', 'Tierra de San Martín']],
+];
+
+/**
+ * Waterfalls: `name` among the four that the 1:10m points layer has.
+ *
+ * Two of the four are marked away from the falls, and no layer of the source has anything to find them by:
+ * `at` gives the longitude and latitude that any atlas does, to the hundredth of a degree. They are the only
+ * places in this file written down as numbers.
+ */
+export const FALLS = [
+  ['Cataratas del Niágara', 'Niagara Falls', 'AM', 1, ['Niagara Falls'], ['Niágara', 'Niagara']],
+  // The source's point is some sixty kilometres to the south-east; the falls drop from the Auyantepui at 5°58′ N, 62°32′ W.
+  ['Salto Ángel', 'Angel Falls', 'AM', 1, ['Salto Angel'], ['Salto del Ángel', 'Kerepakupai Merú', 'Kerepakupai Vená'], { at: [-62.54, 5.97] }],
+  // The source marks the town where the Iguazú meets the Paraná, at the three-way border; the falls are twenty
+  // kilometres up the river (25°41′ S, 54°26′ W), between Argentina and Brazil, and Paraguay has no part in them.
+  ['Cataratas del Iguazú', 'Iguazu Falls', 'AM', 1, ['Iguazu Falls'], ['Iguazú', 'Cataratas do Iguaçu', 'Iguaçu', 'Iguazu'], { at: [-54.44, -25.69], co: 'AR BR' }],
+  ['Cataratas Victoria', 'Victoria Falls', 'AF', 1, ['Victoria Falls'], ['Mosi-oa-Tunya', 'Cataratas de Victoria']],
+];
+
+/**
+ * Continents, as the game counts them: six, with America as one. The sources are the outlines that Natural
+ * Earth draws of each mainland; the islands are added from the game's own map (see `ISLANDS_OF`). `at` is
+ * where the name is written, when the middle of the biggest piece would not do. They belong to no country's
+ * map (`co: ''`): a continent is not a feature of Spain.
+ *
+ * Their surface is the one The World Factbook gives each landmass, the figure the books carry. It has none
+ * for Oceania, only for Australia: that one is the surface of what the map paints as Oceania, the whole of
+ * New Guinea and Hawaii included.
+ */
+export const CONTINENTS = [
+  // The widest of it is Russia: its name goes in the middle of what everybody calls Europe.
+  ['Europa', 'Europe', 'EU', 1, ['EUROPE'], ['Continente europeo'], { co: '', at: [24, 52], area: 'land:Europe' }],
+  ['Asia', 'Asia', 'AS', 1, ['ASIA'], ['Continente asiático'], { co: '', area: 'land:Asia' }],
+  ['África', 'Africa', 'AF', 1, ['AFRICA'], ['Continente africano'], { co: '', area: 'land:Africa' }],
+  // One continent in two masses: its name goes between them, not on the northern one.
+  ['América', 'Americas', 'AM', 1, ['NORTH AMERICA', 'CENTRAL AMERICA', 'Darien Gap', 'SOUTH AMERICA'], ['America', 'Continente americano', 'Américas', 'The Americas'], { co: '', at: [-85.5, 13], area: 'land:North America+South America' }],
+  ['Oceanía', 'Oceania', 'OC', 1, ['AUSTRALIA'], ['Continente oceánico'], { co: '', area: 'outline' }],
+  ['Antártida', 'Antarctica', 'AN', 1, ['ANTARCTICA'], ['Antártica', 'Continente antártico'], { co: '', area: 'land:Antarctica' }],
+];
+
+/**
+ * What Natural Earth outlines with one continent and belongs to another. The stretch of the outline of
+ * `from` that runs from the corner nearest `a` to the one nearest `b`, passing by `by`, becomes a piece of
+ * `to`. Only the Sinai: Africa ends at the Suez Canal, from Port Said to Suez.
+ */
+export const CONTINENT_MOVES = [{ what: 'the Sinai', from: 'AF', to: 'AS', a: [32.31, 31.27], b: [32.55, 29.95], by: [34.25, 27.75] }];
+
+/**
+ * The islands that those outlines leave out are of the continent of their country, as the game files it,
+ * but for these: [country, box [w, s, e, n] or null for all of them, continent or null for none].
+ */
+export const ISLANDS_OF = [
+  // Cyprus is filed under Europe and lies off Asia.
+  ['CY', null, 'AS'],
+  // Russia is filed under Europe; its islands east of the Urals are Asia.
+  ['RU', [68, 40, 180, 90], 'AS'],
+  ['RU', [-180, 40, -160, 90], 'AS'],
+  // The Canaries and Madeira lie off Africa.
+  ['ES', [-19, 27, -13, 30], 'AF'],
+  ['PT', [-18, 32, -16, 34], 'AF'],
+  // Hawaii is Polynesia. New Guinea is Oceania, though half of it is Indonesia, with the islands that stand
+  // on its shelf: the Raja Ampat, Biak and Yapen to the north, the Aru to the south. The Moluccas are Asia.
+  ['US', [-162, 18, -154, 23], 'OC'],
+  ['ID', [129.5, -2.5, 141.5, 1], 'OC'],
+  ['ID', [133.8, -9.5, 141.5, -2.5], 'OC'],
+  // Islands in mid-ocean that the game files under Antarctica for want of a better place.
+  ['TF', null, null],
+  ['GS', null, null],
+  ['HM', null, null],
+  ['BV', null, null],
 ];
 
 /**

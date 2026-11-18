@@ -317,7 +317,7 @@ export function Home({ world }: { world: World }) {
               </ul>
               {id === 'physical' ? (
                 <span className="scard-flags scard-kinds" aria-hidden="true">
-                  {['river', 'lake', 'sea', 'range', 'peak', 'desert', 'island'].map((k) => (
+                  {['continent', 'river', 'lake', 'sea', 'range', 'plain', 'peninsula', 'peak', 'cape', 'desert', 'island', 'fall'].map((k) => (
                     <i key={k} className={`kdot kdot-${k}`} />
                   ))}
                 </span>

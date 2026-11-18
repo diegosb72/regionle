@@ -4,7 +4,7 @@ import { zoom as d3zoom, zoomIdentity, zoomTransform, type ZoomBehavior, type Zo
 import { Maximize, Minus, Plus } from 'lucide-react';
 import { forwardRef, memo, useCallback, useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import type { GeoPermissibleObjects } from 'd3-geo';
-import { NOMINAL, coarsePath, countPoints, graticule, landBox, makeView } from '../lib/geo';
+import { NOMINAL, coarsePath, countPoints, graticule, landBox, makeView, spotInFrame } from '../lib/geo';
 import { L } from '../lib/i18n';
 import { ARROWS, inOrder, moveFrom, movesOf, nearestTo, type Moves } from '../lib/mapKeys';
 import { cx } from '../lib/text';
@@ -145,11 +145,14 @@ function build(deck: Deck) {
       if (q[1] < y0) y0 = q[1];
       if (q[1] > y1) y1 = q[1];
     }
-    const c = projection(it.lp) ?? [(x0 + x1) / 2, (y0 + y1) / 2];
+    let c = projection(it.lp) ?? [(x0 + x1) / 2, (y0 + y1) / 2];
     if (!Number.isFinite(x0)) {
       x0 = x1 = c[0];
       y0 = y1 = c[1];
     }
+    // A feature much bigger than the map (an ocean beside a continent, a plain of half Europe on the map of one
+    // country) has its name far away: it is written on the part that is in sight.
+    if (it.kind === 'feature' && (c[0] < view.box[0] || c[0] > view.box[2] || c[1] < view.box[1] || c[1] > view.box[3])) c = spotInFrame(it.geo, projection, view.box) ?? c;
     const size = Math.max(x1 - x0, y1 - y0, 0.02);
     shapes.push({ id: it.id, name: it.name, kind: it.shape, cls: it.cat, under: it.under, d, bb, x: c[0], y: c[1], x0, y0, x1, y1, size, land: Math.min(size, biggestPiece(it.geo, projection) ?? size) });
   }
@@ -394,6 +397,8 @@ const Overlay = memo(
                   <path d="M0 -6.4 6.2 4.6H-6.2Z" data-id={s.id} className={cx('m-dot', 'k-peak', paint?.[s.id] && `st-${paint[s.id]}`)} />
                 ) : s.cls === 'cape' ? (
                   <path d="M0 -6 6 0 0 6 -6 0Z" data-id={s.id} className={cx('m-dot', 'k-cape', paint?.[s.id] && `st-${paint[s.id]}`)} />
+                ) : s.cls === 'fall' ? (
+                  <path d="M0 -7C2.6 -3.4 5 -0.6 5 2a5 5 0 0 1-10 0C-5 -0.6 -2.6 -3.4 0 -7Z" data-id={s.id} className={cx('m-dot', 'k-fall', paint?.[s.id] && `st-${paint[s.id]}`)} />
                 ) : (
                   <circle r={4.6} data-id={s.id} className={cx('m-dot', paint?.[s.id] && `st-${paint[s.id]}`)} />
                 )}

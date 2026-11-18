@@ -6,7 +6,7 @@ import { Picker } from '../components/Picker';
 import { Flag, Seg, Toggle, capitalise } from '../components/ui';
 import { eligible, levelOf, loadFile, type World } from '../lib/data';
 import { countriesOf, describeMap } from '../lib/describe';
-import { CITY_COUNTS, PHYS_KINDS, PHYS_PLACES, kindNoun, loadCities, loadPhysical, parsePhys, physCountries, physMatches, physTokens, type PhysKind, type PhysSpec } from '../lib/extra';
+import { CITY_COUNTS, PHYS_KINDS, PHYS_PLACES, kindNoun, loadCities, loadPhysical, parsePhys, physCountries, physMatches, physTokens, pickOf, type PhysKind, type PhysSpec } from '../lib/extra';
 import { L, getLang, levelNoun, nm } from '../lib/i18n';
 import { encodeList, listConfig, listPlayable, listUrl } from '../lib/lists';
 import { GROUP_NAME, MODES, MODE_GROUPS, SECTIONS, formatName } from '../lib/modes';
@@ -67,15 +67,16 @@ function PhysPicker({ spec, file, world, onChange }: { spec: PhysSpec; file: Phy
         <div className="frow-chips">
           {PHYS_KINDS.map((k) => {
             const on = spec.kinds.includes(k);
-            const n = file ? list.filter((f) => f.k === k).length : null;
+            // What the kind brings by itself: the oceans count with the continents and with the seas alike.
             const shown = file ? file.f.filter((f) => physMatches(f, { ...spec, kinds: [k] })).length : null;
-            // A kind the place has none of is not offered: there are no deserts in Europe, nor capes yet outside Spain.
+            // A kind the place has none of is not offered: there are no deserts in Europe, and the continents
+            // are only asked on the map of the whole world.
             if (file && !on && !file.f.some((f) => physMatches(f, { ...spec, kinds: [k], all: true }))) return null;
             return (
               <button key={k} type="button" aria-pressed={on} className={cx('chip', `chip-${k}`, on && 'on')} onClick={() => toggleKind(k)}>
                 <i className={`kdot kdot-${k}`} aria-hidden="true" />
                 {capitalise(kindNoun(k).many)}
-                {(on ? n : shown) != null && <small>{on ? n : shown}</small>}
+                {shown != null && <small>{shown}</small>}
               </button>
             );
           })}
@@ -139,10 +140,11 @@ function PhysPicker({ spec, file, world, onChange }: { spec: PhysSpec; file: Phy
           <p className="tip-line">{L('Cargando…', 'Loading…')}</p>
         ) : list.length ? (
           PHYS_KINDS.filter((k) => spec.kinds.includes(k)).map((k) => {
-            const names = list
-              .filter((f) => f.k === k)
-              .map((f) => nm(f.n))
-              .sort((a, b) => a.localeCompare(b, getLang()));
+            // Each feature under the choice that brings it: the oceans with the continents, or else with the seas.
+            const own = list.filter((f) => pickOf(f, spec) === k);
+            // The continents come before the oceans; the rest, by name.
+            const last = (f: (typeof own)[number]) => Number(k === 'continent' && f.k === 'ocean');
+            const names = [...own].sort((a, b) => last(a) - last(b) || nm(a.n).localeCompare(nm(b.n), getLang())).map((f) => nm(f.n));
             if (!names.length) return null;
             return (
               <section key={k}>

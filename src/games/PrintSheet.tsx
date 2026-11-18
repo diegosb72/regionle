@@ -5,8 +5,9 @@
 import { Printer } from 'lucide-react';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Toggle } from '../components/ui';
-import { coarsePath, landBox, makeView, type View } from '../lib/geo';
+import { coarsePath, landBox, makeView, spotInFrame, type View } from '../lib/geo';
 import { L } from '../lib/i18n';
+import { isWater } from '../lib/phys';
 import { PAGE, circleOf, dotRadius, farGroups, frameOf, landPlaces, layoutOf, placeInsets, placeNumbers, readingOrder, type InsetAsk, type Numbered, type SheetLayout, type Spot } from '../lib/sheet';
 import { cx, nf } from '../lib/text';
 import type { Deck, Item, LL } from '../lib/types';
@@ -77,9 +78,12 @@ function draw(deck: Deck, view: View, items: readonly Item[], pad: number): Draw
     const framed = Number.isFinite(x0);
     let at = c ?? (framed ? [(x0 + x1) / 2, (y0 + y1) / 2] : null);
     if (!at) continue;
+    // Its middle is off the sheet: a sea or a plain much bigger than the map has its number on the part of
+    // it that is printed, where it has the most of itself around.
+    if (!inside(at) && it.kind === 'feature') at = spotInFrame(it.geo, projection, box) ?? at;
     if (!inside(at)) {
-      // Its middle is off the sheet (Russia on the usual map of Europe): the number goes into the part
-      // that is printed, half way between the edge points in sight and the nearest place to its middle.
+      // Russia on the usual map of Europe: the number goes into the part that is printed, half way between
+      // the edge points in sight and the nearest place to its middle.
       const seen = it.fp.map((q) => projection(q)).filter((q): q is [number, number] => !!q && inside(q));
       if (seen.length) {
         const mx = seen.reduce((sum, q) => sum + q[0], 0) / seen.length;
@@ -155,7 +159,7 @@ function plan(deck: Deck): Plan {
     // On the physical map of a country, a river, a peak or a cape stands on its land as a city does; a sea
     // stands on none, and stays on the main map with whatever else lies off the country.
     const within = (p: LL) => rings.some((ring) => ring.some((q) => q[0] <= p[0]) && ring.some((q) => q[0] >= p[0]) && ring.some((q) => q[1] <= p[1]) && ring.some((q) => q[1] >= p[1]));
-    const standing = land ? deck.items.filter((it) => it.cat !== 'sea' && within(it.lp)) : deck.items;
+    const standing = land ? deck.items.filter((it) => !isWater(it.cat) && within(it.lp)) : deck.items;
     const { places, landOf, boxOf } = landPlaces(rings, standing);
     const far = farGroups(places);
     const groupOf = new Map(far.flatMap((lands, i) => lands.map((land) => [land, i] as const)));
@@ -210,6 +214,9 @@ function plan(deck: Deck): Plan {
 const peak = (x: number, y: number, r: number) => `M${x},${y - r * 1.15}L${x + r},${y + r * 0.75}L${x - r},${y + r * 0.75}Z`;
 /** A cape: a diamond on the tip of the land. */
 const cape = (x: number, y: number, r: number) => `M${x},${y - r}L${x + r},${y}L${x},${y + r}L${x - r},${y}Z`;
+/** A waterfall is a drop, as on the map of the game. */
+const fall = (x: number, y: number, r: number) =>
+  `M${x},${y - r * 1.4}C${x + r * 0.52},${y - r * 0.68} ${x + r},${y - r * 0.12} ${x + r},${y + r * 0.4}A${r},${r} 0 0 1 ${x - r},${y + r * 0.4}C${x - r},${y - r * 0.12} ${x - r * 0.52},${y - r * 0.68} ${x},${y - r * 1.4}Z`;
 
 /**
  * What one view draws, from the bottom up; the numbers last, over everything. A map without numbers keeps
@@ -242,7 +249,8 @@ function Layers({ g, placed, font, bare }: { g: Drawn; placed: Numbered[]; font:
         {g.areas
           .filter((a) => !a.under)
           .map((a) => (
-            <path key={a.id} d={a.d} className={a.cat && `k-${a.cat}`} />
+            // A continent says which one it is: each is printed in its own grey.
+            <path key={a.id} d={a.d} className={a.cat && `k-${a.cat}`} data-id={a.cat === 'continent' ? a.id : undefined} />
           ))}
       </g>
       <g className="sm-extra">
@@ -261,7 +269,17 @@ function Layers({ g, placed, font, bare }: { g: Drawn; placed: Numbered[]; font:
         ))}
       </g>
       <g className="sm-dot">
-        {g.dots.map((d) => (d.cat === 'peak' ? <path key={d.id} d={peak(d.x, d.y, r * 1.25)} /> : d.cat === 'cape' ? <path key={d.id} d={cape(d.x, d.y, r * 1.3)} /> : <circle key={d.id} cx={d.x} cy={d.y} r={r} />))}
+        {g.dots.map((d) =>
+          d.cat === 'peak' ? (
+            <path key={d.id} d={peak(d.x, d.y, r * 1.25)} />
+          ) : d.cat === 'cape' ? (
+            <path key={d.id} d={cape(d.x, d.y, r * 1.3)} />
+          ) : d.cat === 'fall' ? (
+            <path key={d.id} d={fall(d.x, d.y, r * 1.2)} />
+          ) : (
+            <circle key={d.id} cx={d.x} cy={d.y} r={r} />
+          ),
+        )}
       </g>
       <g className="sm-num" style={{ fontSize: font }}>
         {placed.map((p) => {

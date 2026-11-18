@@ -19,9 +19,10 @@ test.describe('the physical map of a country', () => {
     const kinds = page.locator('.phys .frow').first();
     const places = page.locator('.phys .frow').nth(1);
     const lands = page.locator('.phys .frow').nth(2);
-    // On a continent: no capes yet, and Europe has no deserts to offer.
-    await expect(kinds.getByRole('button', { name: /Cabos/ })).toHaveCount(0);
+    // On a continent, what it has: Europe has capes to offer, but neither deserts nor waterfalls.
+    await expect(kinds.getByRole('button', { name: /Cabos/ })).toContainText('2');
     await expect(kinds.getByRole('button', { name: /Desiertos/ })).toHaveCount(0);
+    await expect(kinds.getByRole('button', { name: /Cataratas/ })).toHaveCount(0);
     await expect(places.getByRole('button', { name: 'Europa' })).toHaveAttribute('aria-pressed', 'true');
 
     await lands.getByRole('button', { name: /España/ }).click();

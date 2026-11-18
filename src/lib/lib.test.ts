@@ -1,10 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { geoContains } from 'd3-geo';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { buildDeck, deckGraph, divisionsOf, eligible, loadIndex, setLoader } from './data';
-import { buildCityDeck, buildPhysicalDeck, loadPhysical, parsePhys, physCountries, physMatches, physTokens } from './extra';
+import { buildDeck, deckGraph, divisionsOf, eligible, frameForCountries, loadIndex, setLoader } from './data';
+import { buildCityDeck, buildPhysicalDeck, countPhys, loadPhysical, parsePhys, physCountries, physMatches, physTokens, pickOf, typeNoun } from './extra';
 import { placeQuery } from './links';
-import { bfs, capOf, cheapestPath, makeView, onShortest, pickRoute, shortestPath } from './geo';
+import { bfs, capOf, cheapestPath, makeView, onShortest, pickRoute, shortestPath, sightFor, spotInFrame } from './geo';
+import type { AnyGeo, Deck, LL } from './types';
 import { Matcher, editDistance, fmtBig, fmtTime, judgeAmount, key, listed, mulberry32, norm, parseNumber } from './text';
 
 describe('text', () => {
@@ -110,6 +112,37 @@ describe('graph', () => {
     const r = pickRoute(g, mulberry32(7), 3, 5)!;
     expect(r.steps).toBe(3);
     expect(bfs(g, r.from).get(r.to)).toBe(3);
+  });
+});
+
+describe('frames', () => {
+  const square = (w: number, s: number, e: number, n: number): AnyGeo =>
+    ({ type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[[w, s], [w, n], [e, n], [e, s], [w, s]]] } }) as AnyGeo;
+  const frame: LL[] = [[0, 0], [10, 0], [10, 10], [0, 10]];
+
+  it('adds nothing to a frame for what is already in sight', () => {
+    expect(sightFor(frame, [{ geo: square(2, 2, 8, 8), at: [5, 5] }])).toEqual([]);
+    // Its own middle is outside, but a good part of it is in the picture.
+    expect(sightFor(frame, [{ geo: square(6, 2, 40, 8), at: [23, 5] }])).toEqual([]);
+    expect(sightFor(frame, [])).toEqual([]);
+  });
+
+  it('reaches into what is out of sight, towards its middle and no further than it takes', () => {
+    // Close by and small: the frame takes its middle in.
+    expect(sightFor(frame, [{ geo: square(10.5, 4.5, 11, 5.5), at: [10.75, 5] }])).toEqual([[10.75, 5]]);
+
+    // Far and big: from its nearest edge inwards, a little of the map, never as far as its middle.
+    const far = { geo: square(30, -20, 90, 30), at: [60, 5] as LL };
+    const added = sightFor(frame, [far]);
+    expect(added.length).toBeGreaterThan(0);
+    for (const p of added) {
+      expect(p[0]).toBeGreaterThan(30);
+      expect(p[0]).toBeLessThan(45);
+    }
+    const view = makeView([...frame, ...added]);
+    expect(spotInFrame(far.geo, view.projection, view.box, 12)).not.toBeNull();
+    // Once it can be seen there is nothing more to add.
+    expect(sightFor([...frame, ...added], [far])).toEqual([]);
   });
 });
 
@@ -271,10 +304,14 @@ describe('data', () => {
     const mixed = await buildPhysicalDeck(['sea', 'lake', 'range', 'desert', 'island', 'river']);
     expect(mixed.title).toContain('Mundo');
     expect(makeView(mixed.frame).world).toBe(true);
-    expect(new Set(mixed.items.map((it) => it.cat))).toEqual(new Set(['sea', 'lake', 'range', 'desert', 'island', 'river']));
+    // The oceans come with the seas, as they always did, and say what they are.
+    expect(new Set(mixed.items.map((it) => it.cat))).toEqual(new Set(['ocean', 'sea', 'lake', 'range', 'desert', 'island', 'river']));
+    expect(mixed.byId.get('s:pacific-ocean')!.type).toBe('océano');
+    expect(mixed.byId.get('s:mediterranean-sea')!.type).toBe('mar');
     // Seas lie under the land, so that coasts stay clean; rivers come last and take the click.
-    expect(mixed.items.filter((it) => it.under).every((it) => it.cat === 'sea')).toBe(true);
-    expect(mixed.items[0].cat).toBe('sea');
+    expect(new Set(mixed.items.filter((it) => it.under).map((it) => it.cat))).toEqual(new Set(['ocean', 'sea']));
+    expect(mixed.items.filter((it) => !it.under).some((it) => it.cat === 'sea' || it.cat === 'ocean')).toBe(false);
+    expect(mixed.items[0].id).toBe('s:pacific-ocean');
     expect(mixed.items[mixed.items.length - 1].cat).toBe('river');
 
     // A review draws the map around what is due, whatever the selection says.
@@ -282,6 +319,219 @@ describe('data', () => {
     expect(review.byId.has('d:sahara')).toBe(true);
     expect(review.byId.has('r:nile')).toBe(true);
     expect(review.items.some((it) => it.name === 'Danubio')).toBe(false);
+  });
+
+  it('builds the map of the continents and the oceans, on the whole world and nowhere else', async () => {
+    const deck = await buildPhysicalDeck(['continent']);
+    expect(deck.title).toBe('Continentes y océanos · Mundo');
+    expect(deck.key).toBe('p:continent');
+    expect(deck.noun.one).toBe('continente u océano');
+    expect(deck.items.map((it) => it.name).sort()).toEqual(
+      ['Asia', 'América', 'Antártida', 'Europa', 'Oceanía', 'Océano Antártico', 'Océano Atlántico', 'Océano Pacífico', 'Océano Ártico', 'Océano Índico', 'África'].sort(),
+    );
+    expect(deck.items.every((it) => it.shape === 'area' && it.kind === 'feature' && it.area > 0)).toBe(true);
+    // Each one says what it is: the choice is «continents and oceans», the thing a continent or an ocean.
+    expect(deck.byId.get('c:europe')!.type).toBe('continente');
+    expect(deck.byId.get('s:indian-ocean')!.type).toBe('océano');
+    expect(typeNoun('continent')).toBe('continente');
+    // The water under the land, the land on top: a click on Africa is a click on Africa.
+    expect(deck.items.filter((it) => it.under).map((it) => it.cat)).toEqual(['ocean', 'ocean', 'ocean', 'ocean', 'ocean']);
+    expect(deck.items.slice(5).every((it) => it.cat === 'continent')).toBe(true);
+    // The whole planet, Antarctica too: the countries alone would leave it out of the picture.
+    expect(makeView(deck.frame).world).toBe(true);
+    expect(Math.min(...deck.frame.map((p) => p[1]))).toBeLessThan(-80);
+    // Each is filed under itself: Europe under Europe, an ocean under one of the continents it washes.
+    expect(deck.byId.get('c:europe')!.country.id).toBe('@EU');
+    expect(deck.byId.get('c:antarctica')!.country.id).toBe('@AN');
+
+    // Among other things a continent lies under everything that stands on it.
+    const mixed = await buildPhysicalDeck(['continent', 'range', 'river']);
+    expect(mixed.title).toBe('Geografía física · Mundo');
+    const order = mixed.items.map((it) => it.cat);
+    expect(order.lastIndexOf('ocean')).toBeLessThan(order.indexOf('continent'));
+    expect(order.lastIndexOf('continent')).toBeLessThan(order.indexOf('range'));
+    expect(order.lastIndexOf('range')).toBeLessThan(order.indexOf('river'));
+    // With the seas chosen as well, an ocean is still there once.
+    const seas = await buildPhysicalDeck(['continent', 'sea']);
+    expect(seas.items.filter((it) => it.id === 's:atlantic-ocean')).toHaveLength(1);
+    expect(seas.items.some((it) => it.cat === 'sea')).toBe(true);
+
+    // On the map of a continent or of a country there are no continents to ask about; the oceans stay with the seas.
+    const europe = await buildPhysicalDeck(['continent', 'sea', 'EU']);
+    expect(europe.items.some((it) => it.cat === 'continent')).toBe(false);
+    expect(europe.byId.has('s:atlantic-ocean')).toBe(true);
+    const spain = await buildPhysicalDeck(['continent', 'sea', 'in:ES']);
+    expect(spain.items.some((it) => it.cat === 'continent')).toBe(false);
+    expect(spain.byId.has('s:atlantic-ocean')).toBe(true);
+    expect(spain.byId.has('s:pacific-ocean')).toBe(false);
+    const file = await loadPhysical();
+    expect(countPhys(file, parsePhys(['continent']))).toBe(11);
+    expect(countPhys(file, parsePhys(['continent', 'all']))).toBe(11);
+    expect(countPhys(file, parsePhys(['continent', 'EU']))).toBe(0);
+    expect(countPhys(file, parsePhys(['continent', 'in:ES']))).toBe(0);
+
+    // A review of a continent or of an ocean learnt with them goes back to the map of the world…
+    const review = await buildPhysicalDeck(['river', 'EU'], ['c:europe', 's:indian-ocean']);
+    expect(review.title).toBe('Continentes y océanos · Mundo');
+    expect(review.items).toHaveLength(11);
+    // …and an ocean learnt with the seas, to the seas.
+    const sea = await buildPhysicalDeck(['river', 'EU'], ['s:atlantic-ocean', 's:north-sea']);
+    expect(sea.title).toBe('Mares y océanos · Europa');
+    expect(sea.items.some((it) => it.cat === 'continent')).toBe(false);
+  });
+
+  it('takes the seas into the oceans where no sea is asked', async () => {
+    const med: [number, number] = [18, 35];
+    const caribbean: [number, number] = [-75, 15];
+    const midAtlantic: [number, number] = [-35, 30];
+    // On the map of continents and oceans every stretch of salt water answers to one of the five…
+    const world = await buildPhysicalDeck(['continent']);
+    const oceansAt = (deck: typeof world, p: [number, number]) => deck.items.filter((it) => it.cat === 'ocean' && geoContains(it.geo, p)).map((it) => it.id);
+    expect(oceansAt(world, med)).toEqual(['s:atlantic-ocean']);
+    expect(oceansAt(world, caribbean)).toEqual(['s:atlantic-ocean']);
+    expect(oceansAt(world, [88, 14])).toEqual(['s:indian-ocean']);
+    expect(oceansAt(world, [135, 18])).toEqual(['s:pacific-ocean']);
+    expect(oceansAt(world, [40, 75])).toEqual(['s:arctic-ocean']);
+    expect(oceansAt(world, [-45, -72])).toEqual(['s:southern-ocean']);
+    expect(oceansAt(world, midAtlantic)).toEqual(['s:atlantic-ocean']);
+    // …but the Caspian, which is a lake.
+    expect(oceansAt(world, [51, 41])).toEqual([]);
+    // The name stays in mid-ocean.
+    for (const it of world.items.filter((x) => x.cat === 'ocean')) expect(geoContains(it.geo, it.lp), it.id).toBe(true);
+    // With rivers or ranges on the same map, the same.
+    expect(oceansAt(await buildPhysicalDeck(['continent', 'river', 'range']), med)).toEqual(['s:atlantic-ocean']);
+
+    // On a map of seas the Mediterranean is a piece of its own, and the Atlantic is the open ocean.
+    for (const tokens of [['sea'], ['continent', 'sea'], ['sea', 'EU'], ['sea', 'river', 'in:ES']]) {
+      const seas = await buildPhysicalDeck(tokens);
+      expect(oceansAt(seas, med), tokens.join()).toEqual([]);
+      expect(geoContains(seas.byId.get('s:mediterranean-sea')!.geo, med), tokens.join()).toBe(true);
+      expect(oceansAt(seas, midAtlantic), tokens.join()).toEqual(['s:atlantic-ocean']);
+    }
+  });
+
+  it('builds maps of peninsulas, plains, capes and waterfalls', async () => {
+    const peninsulas = await buildPhysicalDeck(['peninsula', 'EU']);
+    expect(peninsulas.title).toBe('Penínsulas · Europa');
+    expect(peninsulas.noun).toMatchObject({ one: 'península', fem: true });
+    expect(peninsulas.items.map((it) => it.name)).toEqual(expect.arrayContaining(['Península Ibérica', 'Península Itálica', 'Península Escandinava', 'Península Balcánica']));
+    expect(peninsulas.items.every((it) => it.shape === 'area' && it.cat === 'peninsula')).toBe(true);
+    const more = await buildPhysicalDeck(['peninsula', 'EU', 'all']);
+    expect(more.items.map((it) => it.name)).toEqual(expect.arrayContaining(['Península de Crimea', 'Península de Jutlandia', 'Peloponeso', 'Península de Bretaña']));
+
+    const falls = await buildPhysicalDeck(['fall']);
+    expect(falls.title).toBe('Cataratas · Mundo');
+    expect(falls.noun).toMatchObject({ one: 'catarata', fem: true });
+    expect(falls.items.map((it) => it.name).sort()).toEqual(['Cataratas Victoria', 'Cataratas del Iguazú', 'Cataratas del Niágara', 'Salto Ángel']);
+    expect(falls.items.every((it) => it.shape === 'point' && it.cat === 'fall')).toBe(true);
+
+    const capes = await buildPhysicalDeck(['cape', 'AF']);
+    expect(capes.items.map((it) => it.name)).toEqual(expect.arrayContaining(['Cabo de Buena Esperanza', 'Cabo de las Agujas', 'Cabo Guardafui']));
+    expect(capes.items.every((it) => it.shape === 'point')).toBe(true);
+
+    // What lies on what: a peninsula under its plains, a plain under its ranges, the dots on top of everything.
+    const america = await buildPhysicalDeck(['peninsula', 'plain', 'range', 'river', 'peak', 'cape', 'fall', 'AM']);
+    const order = america.items.map((it) => it.cat);
+    expect(order.lastIndexOf('peninsula')).toBeLessThan(order.indexOf('plain'));
+    expect(order.lastIndexOf('plain')).toBeLessThan(order.indexOf('range'));
+    expect(order.lastIndexOf('river')).toBeLessThan(order.indexOf('peak'));
+    expect(order.slice(order.indexOf('peak')).every((cat) => ['peak', 'cape', 'fall'].includes(cat ?? ''))).toBe(true);
+
+    // On the map of a country, what the country has: the plain that France shares with half of Europe, and Brittany.
+    const france = await buildPhysicalDeck(['plain', 'peninsula', 'in:FR', 'all']);
+    expect(france.byId.has('p:european-plain')).toBe(true);
+    expect(france.byId.has('p:brittany')).toBe(true);
+    expect(france.byId.has('p:iberian-peninsula')).toBe(false);
+    // …shown as far as the country reaches, not to the Urals.
+    expect(Math.max(...france.frame.map((p) => p[0]))).toBeLessThan(15);
+  });
+
+  it('writes the name of what is bigger than the map on the part of it that is in sight', async () => {
+    const seas = await buildPhysicalDeck(['sea', 'EU']);
+    const view = makeView(seas.frame);
+    const inside = (p: [number, number] | null) => !!p && p[0] >= view.box[0] && p[0] <= view.box[2] && p[1] >= view.box[1] && p[1] <= view.box[3];
+    // The Atlantic on the map of Europe: its own spot is in mid-ocean, far from the frame…
+    const atlantic = seas.byId.get('s:atlantic-ocean')!;
+    expect(inside(view.projection(atlantic.lp))).toBe(false);
+    // …and the name goes on the water that is in the picture, west of the land.
+    const at = spotInFrame(atlantic.geo, view.projection, view.box)!;
+    expect(inside(at)).toBe(true);
+    const ll = view.projection.invert!(at)!;
+    expect(geoContains(atlantic.geo, ll)).toBe(true);
+    expect(ll[0]).toBeLessThan(-8);
+    // What is nowhere in the picture has no place in it.
+    const pacific = (await buildPhysicalDeck(['sea'])).byId.get('s:pacific-ocean')!;
+    expect(spotInFrame(pacific.geo, view.projection, view.box)).toBeNull();
+
+    // The plain that runs from France to the Urals, on the map of France: inside France's corner of it.
+    const france = await buildPhysicalDeck(['plain', 'in:FR', 'all']);
+    const fr = makeView(france.frame);
+    const plain = france.byId.get('p:european-plain')!;
+    const spot = spotInFrame(plain.geo, fr.projection, fr.box)!;
+    const where = fr.projection.invert!(spot)!;
+    expect(geoContains(plain.geo, where)).toBe(true);
+    expect(where[0]).toBeGreaterThan(-5);
+    expect(where[0]).toBeLessThan(9);
+    expect(where[1]).toBeGreaterThan(43);
+    expect(where[1]).toBeLessThan(52);
+
+    // A river: a point of its course among those in sight.
+    const rivers = await buildPhysicalDeck(['river', 'in:FR', 'all']);
+    const rv = makeView(rivers.frame);
+    const rhine = spotInFrame(rivers.byId.get('r:rhine')!.geo, rv.projection, rv.box)!;
+    expect(rhine[0]).toBeGreaterThanOrEqual(rv.box[0]);
+    expect(rhine[0]).toBeLessThanOrEqual(rv.box[2]);
+    expect(rhine[1]).toBeGreaterThanOrEqual(rv.box[1]);
+    expect(rhine[1]).toBeLessThanOrEqual(rv.box[3]);
+  });
+
+  it('brings into sight the seas that only touch a far corner of the map', async () => {
+    // What a click can reach: its own spot inside the frame, or a good piece of it.
+    const seen = (deck: Deck, id: string): boolean => {
+      const view = makeView(deck.frame);
+      const item = deck.byId.get(id)!;
+      const q = view.projection(item.lp);
+      return (!!q && q[0] >= view.box[0] && q[0] <= view.box[2] && q[1] >= view.box[1] && q[1] <= view.box[3]) || !!spotInFrame(item.geo, view.projection, view.box, 12);
+    };
+    const north = (deck: Deck) => Math.max(...deck.frame.map((p) => p[1]));
+    const south = (deck: Deck) => Math.min(...deck.frame.map((p) => p[1]));
+    const { index } = await loadIndex();
+    const byCountries = (ct: string) => frameForCountries(index.countries.filter((c) => c.cl === 'un' && c.ct === ct));
+
+    // The open Arctic Ocean begins north of Svalbard, past the edge of a map of Europe drawn by its countries.
+    const europe = await buildPhysicalDeck(['sea', 'EU']);
+    expect(Math.max(...byCountries('EU').map((p) => p[1]))).toBeLessThan(75);
+    expect(seen(europe, 's:arctic-ocean')).toBe(true);
+    expect(north(europe)).toBeGreaterThan(81);
+    // …as far as it takes to see it, not to the pole.
+    expect(north(europe)).toBeLessThan(88);
+
+    // Asia by its countries ends in Kazakhstan and Mongolia: the Bering Sea and the Arctic bring Siberia in.
+    const asia = await buildPhysicalDeck(['sea', 'AS']);
+    expect(Math.max(...byCountries('AS').map((p) => p[1]))).toBeLessThan(60);
+    for (const id of ['s:arctic-ocean', 's:bering-sea']) expect(seen(asia, id), id).toBe(true);
+    const every = await buildPhysicalDeck(['sea', 'AS', 'all']);
+    for (const id of ['s:kara-sea', 's:laptev-sea', 's:east-siberian-sea', 's:chukchi-sea']) expect(seen(every, id), id).toBe(true);
+
+    // America: the Drake Passage, south of Cape Horn.
+    expect(seen(await buildPhysicalDeck(['sea', 'AM']), 's:drake-passage')).toBe(true);
+
+    // The world: no country reaches the Southern Ocean and its seas, nor the peaks of Antarctica.
+    const world = await buildPhysicalDeck(['sea', 'all']);
+    for (const id of ['s:southern-ocean', 's:ross-sea', 's:weddell-sea', 's:amundsen-sea']) expect(seen(world, id), id).toBe(true);
+    const peaks = await buildPhysicalDeck(['peak']);
+    expect(peaks.byId.has('p:vinson-massif')).toBe(true);
+    expect(south(peaks)).toBeLessThan(-78);
+
+    // A country: the Norwegian Sea off Shetland, the Tyrrhenian Sea off Corsica, the Arctic Ocean off Canada's islands.
+    expect(seen(await buildPhysicalDeck(['sea', 'in:GB']), 's:norwegian-sea')).toBe(true);
+    expect(seen(await buildPhysicalDeck(['sea', 'in:FR']), 's:tyrrhenian-sea')).toBe(true);
+    expect(seen(await buildPhysicalDeck(['sea', 'in:CA']), 's:arctic-ocean')).toBe(true);
+
+    // Where everything was in sight nothing changes: Africa's seas on the map of its countries, as it was.
+    const africa = await buildPhysicalDeck(['sea', 'AF']);
+    expect(africa.frame).toEqual(byCountries('AF'));
+    for (const item of africa.items) expect(seen(africa, item.id), item.id).toBe(true);
   });
 
   it('builds maps of peaks: points with their height, drawn over everything else', async () => {
@@ -321,6 +571,43 @@ describe('data', () => {
     expect(parsePhys(['river', 'in:es', 'in:ESP', 'ES']).country).toBeUndefined();
     // The kinds that came later sit among the others without moving them: a map chosen before reads the same.
     expect(physTokens(parsePhys(['island', 'desert', 'peak', 'range', 'sea', 'lake', 'river']))).toEqual(['river', 'lake', 'sea', 'range', 'peak', 'desert', 'island']);
+    expect(physTokens(parsePhys(['fall', 'island', 'peninsula', 'river', 'continent', 'cape', 'plain']))).toEqual(['continent', 'river', 'plain', 'peninsula', 'cape', 'island', 'fall']);
+    // An ocean is not a choice: it comes with the seas or with the continents.
+    expect(parsePhys(['ocean', 'EU']).kinds).toEqual(['river']);
+  });
+
+  it('brings the oceans with the continents on the map of the world, and with the seas anywhere', () => {
+    const europe = { k: 'continent', ct: ['EU'], r: 1 } as const;
+    const atlantic = { k: 'ocean', ct: ['EU', 'AF', 'AM'], r: 1, co: ['ES', 'PT', 'FR'] } as const;
+    const baltic = { k: 'sea', ct: ['EU'], r: 1, co: ['DE', 'PL'] } as const;
+    const pick = (f: { k: 'continent' | 'ocean' | 'sea' }, tokens: string[]) => pickOf(f, parsePhys(tokens));
+    // A continent: on the whole world, when continents are chosen.
+    expect(pick(europe, ['continent'])).toBe('continent');
+    expect(pick(europe, ['continent', 'all'])).toBe('continent');
+    expect(pick(europe, ['continent', 'river'])).toBe('continent');
+    expect(pick(europe, ['continent', 'EU'])).toBeUndefined();
+    expect(pick(europe, ['continent', 'in:ES'])).toBeUndefined();
+    expect(pick(europe, ['sea'])).toBeUndefined();
+    // An ocean: with the continents there, with the seas everywhere, and once when both are chosen.
+    expect(pick(atlantic, ['continent'])).toBe('continent');
+    expect(pick(atlantic, ['continent', 'sea'])).toBe('continent');
+    expect(pick(atlantic, ['sea'])).toBe('sea');
+    expect(pick(atlantic, ['sea', 'EU'])).toBe('sea');
+    expect(pick(atlantic, ['continent', 'sea', 'EU'])).toBe('sea');
+    expect(pick(atlantic, ['sea', 'in:ES'])).toBe('sea');
+    expect(pick(atlantic, ['continent', 'EU'])).toBeUndefined();
+    expect(pick(atlantic, ['continent', 'in:ES'])).toBeUndefined();
+    expect(pick(atlantic, ['river'])).toBeUndefined();
+    // A sea is a sea.
+    expect(pick(baltic, ['sea'])).toBe('sea');
+    expect(pick(baltic, ['continent'])).toBeUndefined();
+    // And the rest of the choice is as for anything else: the place, and how well known.
+    expect(physMatches(europe, parsePhys(['continent']))).toBe(true);
+    expect(physMatches(europe, parsePhys(['continent', 'AS']))).toBe(false);
+    expect(physMatches(atlantic, parsePhys(['sea', 'AS']))).toBe(false);
+    expect(physMatches(atlantic, parsePhys(['sea', 'AF']))).toBe(true);
+    expect(physMatches(atlantic, parsePhys(['sea', 'in:ES']))).toBe(true);
+    expect(physMatches(atlantic, parsePhys(['sea', 'in:DE']))).toBe(false);
   });
 
   it('chooses what a map of the world, of a continent or of a country asks about', () => {

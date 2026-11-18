@@ -1,7 +1,8 @@
-/** Decks that are not made of countries or their divisions: cities, and rivers, lakes, seas, ranges, peaks, deserts and islands. */
+/** Decks that are not made of countries or their divisions: cities, and continents, rivers, lakes, seas, ranges, peaks, deserts and islands. */
 import { belongsToCountry, commonPlace, divisionsOf, frameForCountries, frameForLand, loadFile, loadIndex, loadWorldGeo, properNames } from './data';
+import { sightFor } from './geo';
 import { L, nm } from './i18n';
-import { PHYS_KINDS, kindNoun, parsePhys, physMatches, physTokens, type PhysKind, type PhysSpec } from './phys';
+import { PHYS_KINDS, isWater, kindNoun, parsePhys, physMatches, physTokens, typeNoun, type PhysSpec, type PhysType } from './phys';
 import { editOf } from './typeins';
 import type { AnyGeo, Country, Deck, Geo, Item, LL, Named } from './types';
 
@@ -115,12 +116,12 @@ export async function buildCityDeck(ids: string[], pick: CityPick, count: number
 // ---------------------------------------------------------------------------
 
 // What a physical map is made of, in words and as a selection, is in `phys.ts`: the first page reads it too.
-export { PHYS_COUNTRY_MIN, PHYS_KINDS, PHYS_PLACES, countryToken, kindNoun, parsePhys, physCountries, physMatches, physTokens, type PhysKind, type PhysSpec } from './phys';
+export { PHYS_COUNTRY_MIN, PHYS_KINDS, PHYS_PLACES, countryToken, isWater, kindNoun, parsePhys, physCountries, physMatches, physTokens, pickOf, typeNoun, type PhysKind, type PhysSpec, type PhysType } from './phys';
 
 
 interface PhysRec {
   i: string;
-  k: PhysKind;
+  k: PhysType;
   n: Named;
   al?: string[];
   ct: string[];
@@ -140,6 +141,11 @@ interface PhysRec {
   fp: LL[];
   /** 'L' lines or 'A' rings, each a flat list: the first point and then the steps, in thousandths of a degree. Peaks have none: they are the point `lp`. */
   g?: ['L' | 'A', number[][]];
+  /**
+   * An ocean with its seas, in rings like those of `g`: for the maps that ask no sea, where the Caribbean has
+   * to answer to an ocean. On a map of seas each stretch of water is one piece, and the ocean is the open one.
+   */
+  gw?: ['A', number[][]];
 }
 interface PhysFile {
   scale: number;
@@ -160,10 +166,11 @@ function decode(flat: number[], scale: number): LL[] {
   return out;
 }
 
-function geometryOf(rec: PhysRec, scale: number): AnyGeo['geometry'] {
-  if (!rec.g) return { type: 'Point', coordinates: rec.lp };
-  const parts = rec.g[1].map((flat) => decode(flat, scale));
-  if (rec.g[0] === 'L') return { type: 'MultiLineString', coordinates: parts };
+function geometryOf(rec: PhysRec, scale: number, whole = false): AnyGeo['geometry'] {
+  const g = (whole && rec.gw) || rec.g;
+  if (!g) return { type: 'Point', coordinates: rec.lp };
+  const parts = g[1].map((flat) => decode(flat, scale));
+  if (g[0] === 'L') return { type: 'MultiLineString', coordinates: parts };
   return { type: 'MultiPolygon', coordinates: parts.map((ring) => [ring]) };
 }
 
@@ -172,8 +179,11 @@ export function countPhys(file: PhysFile, spec: PhysSpec): number {
   return file.f.filter((f) => physMatches(f, spec)).length;
 }
 
-/** Seas first and rivers last: what is drawn later lies on top and gets the click. A plain lies under the ranges that cross it. */
-const ORDER: Record<PhysKind, number> = { sea: 0, desert: 1, plain: 1.5, range: 2, island: 3, lake: 4, river: 5, peak: 6, cape: 7 };
+/**
+ * Seas first and rivers last: what is drawn later lies on top and gets the click. A continent lies under
+ * everything that stands on it, a peninsula under its plains, and a plain under the ranges that cross it.
+ */
+const ORDER: Record<PhysType, number> = { ocean: 0, sea: 0, continent: 0.5, desert: 1, peninsula: 1.2, plain: 1.5, range: 2, island: 3, lake: 4, river: 5, peak: 6, cape: 7, fall: 7 };
 
 /**
  * The selection that a set of features fits in: their kinds, their continents (the world if they are many),
@@ -182,7 +192,10 @@ const ORDER: Record<PhysKind, number> = { sea: 0, desert: 1, plain: 1.5, range: 
  */
 function specAround(file: PhysFile, ids: string[], country?: string): PhysSpec {
   const recs = file.f.filter((f) => ids.includes(f.i));
-  const kinds = PHYS_KINDS.filter((k) => recs.some((f) => f.k === k));
+  // A continent is only asked on the map of the world, and there the oceans come with it; without one, with the seas.
+  const whole = recs.some((f) => f.k === 'continent');
+  const kinds = PHYS_KINDS.filter((k) => recs.some((f) => (f.k === 'ocean' ? k === (whole ? 'continent' : 'sea') : f.k === k)));
+  if (whole) return { kinds, places: [], all: recs.some((f) => f.r === 2) };
   // Features of one country alone, with any that no continent shows: the map of that country, though nobody said so.
   const shared = country ?? (recs.some((f) => f.r === 3) ? recs[0]?.co?.find((c) => recs.every((f) => f.co?.includes(c))) : undefined);
   if (shared) return { kinds, places: [], all: recs.some((f) => f.r !== 1 && !f.h), country: shared };
@@ -222,12 +235,14 @@ export async function buildPhysicalDeck(tokens: string[], must?: string[], keep 
     return (e - w) * (n - s);
   };
   const recs = file.f.filter((f) => physMatches(f, spec) || must?.includes(f.i)).sort((a, b) => ORDER[a.k] - ORDER[b.k] || (b.ar ?? size(b)) - (a.ar ?? size(a)));
+  // With no sea to ask, an ocean takes its seas in: every stretch of salt water answers to one of the five.
+  const whole = !recs.some((rec) => rec.k === 'sea');
   const items: Item[] = recs.map((rec) => ({
     id: rec.i,
     kind: 'feature',
     shape: !rec.g ? 'point' : rec.g[0] === 'L' ? 'line' : 'area',
     cat: rec.k,
-    under: rec.k === 'sea',
+    under: isWater(rec.k),
     name: nm(rec.n),
     en: rec.n.en ?? rec.n.es,
     answers: [rec.n.es, rec.n.en ?? '', ...(rec.al ?? [])],
@@ -236,8 +251,8 @@ export async function buildPhysicalDeck(tokens: string[], must?: string[], keep 
     // …but those the player gives it in the settings.
     short: editOf(rec.i),
     country: home(rec),
-    type: rec.t === 'res' ? L('embalse', 'reservoir') : kindNoun(rec.k).one,
-    geo: { type: 'Feature', id: rec.i, properties: {}, geometry: geometryOf(rec, file.scale) } as AnyGeo,
+    type: rec.t === 'res' ? L('embalse', 'reservoir') : typeNoun(rec.k),
+    geo: { type: 'Feature', id: rec.i, properties: {}, geometry: geometryOf(rec, file.scale, whole) } as AnyGeo,
     lp: rec.lp,
     fp: rec.fp,
     area: rec.ar ?? 0,
@@ -246,6 +261,10 @@ export async function buildPhysicalDeck(tokens: string[], must?: string[], keep 
     sl: [],
     wd: rec.wd,
   }));
+
+  // A frame is made of land. A sea that only touches a far corner of it is brought in as far as it takes to see it.
+  const waters = items.filter((it) => isWater(it.cat)).map((it) => ({ geo: it.geo, at: it.lp }));
+  const inSight = (frame: LL[]): LL[] => [...frame, ...sightFor(frame, waters)];
 
   const single = spec.kinds.length === 1 ? kindNoun(spec.kinds[0]) : null;
   const many = single?.many ?? L('geografía física', 'physical geography');
@@ -275,8 +294,8 @@ export async function buildPhysicalDeck(tokens: string[], must?: string[], keep 
       }
     const pad = Math.max(e - w, n - s) * 0.12;
     const near = (p: LL) => p[0] >= w - pad && p[0] <= e + pad && p[1] >= s - pad && p[1] <= n + pad;
-    const sight = items.flatMap((it) => (it.cat === 'sea' ? [it.lp] : it.fp)).filter(near);
-    return { ...common, context, base, frame: frameForLand([land], world, sight), title: title(nm(land.n)) };
+    const sight = items.flatMap((it) => (isWater(it.cat) ? [it.lp] : it.fp)).filter(near);
+    return { ...common, context, base, frame: inSight(frameForLand([land], world, sight)), title: title(nm(land.n)) };
   }
 
   // The frame is the continents asked about, not the features: the Atlantic would otherwise open the map of Europe to both poles.
@@ -286,8 +305,9 @@ export async function buildPhysicalDeck(tokens: string[], must?: string[], keep 
     ...common,
     context: [],
     base: [...world.values()],
-    // …but what is asked has to be in sight: the Ural or the rivers of Siberia lie outside the countries of their continent.
-    frame: spec.places.length ? [...frameForCountries(lands), ...items.filter((it) => it.cat !== 'sea').flatMap((it) => it.fp)] : lands.flatMap((c) => c.fp),
+    // …but what is asked has to be in sight: the Ural or the rivers of Siberia lie outside the countries of their
+    // continent, and on the map of the world no country brings in Antarctica or what is asked of it.
+    frame: inSight([...(spec.places.length ? frameForCountries(lands) : lands.flatMap((c) => c.fp)), ...items.filter((it) => !isWater(it.cat)).flatMap((it) => it.fp)]),
     title: title(where),
   };
 }

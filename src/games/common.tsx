@@ -163,7 +163,9 @@ export function ItemFacts({ item }: { item: Item }) {
   if (item.kind === 'feature') {
     return (
       <p className="facts">
-        {capitalise(item.type)} · {nm(c.n)}
+        {capitalise(item.type)}
+        {/* A continent is in none, and an ocean washes several: neither is said to be in one. */}
+        {item.cat === 'continent' || item.cat === 'ocean' ? '' : ` · ${nm(c.n)}`}
         {item.area > 0 && (
           <>
             <br />

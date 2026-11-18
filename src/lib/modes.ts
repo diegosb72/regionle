@@ -221,9 +221,9 @@ function modesOf(section: Section): ModeDef[] {
         learn,
         { ...print, desc: L('Para imprimir: ríos, mares, cordilleras y picos sin nombre, con un número en cada uno y una línea para escribirlo. Si quieres, sin números y con las soluciones en otra hoja.', 'To print: rivers, seas, ranges and peaks without names, a number on each and a line to write it on. If you like, without numbers and with the answers on another sheet.') },
         pin,
-        { ...identify, desc: L('Se ilumina un río, un mar o una cordillera y dices cuál es.', 'A river, a sea or a range lights up and you say which one it is.') },
+        { ...identify, desc: L('Se ilumina un río, un mar, una cordillera o un continente y dices cuál es.', 'A river, a sea, a range or a continent lights up and you say which one it is.') },
         nameall,
-        ...figures(L('Aquí, por la altitud de los picos y la superficie de lagos, islas y mares.', 'Here, by the height of peaks and the area of lakes, islands and seas.'), L('¿Cuál es?', 'Which one?')),
+        ...figures(L('Aquí, por la altitud de los picos y la superficie de continentes, océanos, mares, lagos e islas.', 'Here, by the height of peaks and the area of continents, oceans, seas, lakes and islands.'), L('¿Cuál es?', 'Which one?')),
       ];
     default:
       return [
@@ -334,8 +334,8 @@ function sectionInfo(section: Section): SectionInfo {
         name: L('Física', 'Physical'),
         title,
         blurb: L(
-          'Ríos, lagos, mares, cordilleras, picos, desiertos e islas del mundo, de un continente o de un país. España, con el detalle de un atlas escolar.',
-          'Rivers, lakes, seas, mountain ranges, peaks, deserts and islands of the world, of one continent or of one country. Spain, in the detail of a school atlas.',
+          'Continentes y océanos, ríos, mares, cordilleras, picos, penínsulas, cabos e islas del mundo, de un continente o de un país. España, con el detalle de un atlas escolar.',
+          'Continents and oceans, rivers, seas, mountain ranges, peaks, peninsulas, capes and islands of the world, of one continent or of one country. Spain, in the detail of a school atlas.',
         ),
       };
     default:
