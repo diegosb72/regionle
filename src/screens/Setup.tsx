@@ -8,9 +8,9 @@ import { countriesOf, describeMap } from '../lib/describe';
 import { CITY_COUNTS, PHYS_KINDS, PHYS_PLACES, kindNoun, loadCities, loadPhysical, parsePhys, physTokens, type PhysKind, type PhysSpec } from '../lib/extra';
 import { L, getLang, levelNoun, nm } from '../lib/i18n';
 import { encodeList, listConfig, listPlayable, listUrl } from '../lib/lists';
-import { MODES, SECTIONS, formatName } from '../lib/modes';
+import { GROUP_NAME, MODES, MODE_GROUPS, SECTIONS, formatName } from '../lib/modes';
 import { estimateOf, minutesOf, paceOf, percentOf, questionsOf } from '../lib/pace';
-import { FORMAT_MODES, LENGTH_MODES } from '../lib/rules';
+import { FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, ROUND_MODES, TOP_MIN } from '../lib/rules';
 import { go } from '../lib/router';
 import { useStore, type CustomList, type Length, type Opts } from '../lib/store';
 import { cx, nf, plural } from '../lib/text';
@@ -18,12 +18,15 @@ import { SAMPLES, settingsLink } from '../lib/typeinList';
 import { SHIPPED_AUTO, inForce } from '../lib/typeins';
 import type { Country, Mode, Section } from '../lib/types';
 
+/** Seconds to fill a map in, for those who want a countdown; 0 is none. */
+const COUNTDOWNS = [0, 120, 300, 600, 900];
+
 const levelName = (n: number): string => [L('Fácil', 'Easy'), L('Medio', 'Medium'), L('Difícil', 'Hard')][n - 1];
-const ANSWER_MODES: Mode[] = ['learn', 'identify', 'outline', 'capital', 'flag'];
+const ANSWER_MODES: Mode[] = ['learn', 'identify', 'outline', 'capital', 'flag', 'parent'];
 /** Games that are one round of everything: they cannot go on for ever. */
 const FINITE_MODES: Mode[] = ['neighbours', 'blind'];
 /** Games where names are typed and a list of suggestions can help. */
-const SUGGEST_MODES: Mode[] = ['travel', 'neighbours', 'regionle'];
+const SUGGEST_MODES: Mode[] = ['travel', 'neighbours', 'regionle', 'which', 'topten'];
 /** Games that stop on a missed answer long enough to read about it. */
 const WIKI_MODES: Mode[] = ['explore', 'pin', 'identify', 'outline', 'regionle', 'puzzle', 'neighbours', 'capital', 'flag', 'blind'];
 
@@ -219,6 +222,10 @@ export function Setup({ section, world }: { section: Section; world: World }) {
   const modeRef = useRef<HTMLElement>(null);
   const meta = SECTIONS[section];
   const modes = MODES[section];
+  /** Headings over the games, where there are enough of them to need telling apart. */
+  const grouped = new Set(modes.map((m) => m.group)).size > 1;
+  /** In the order they are read; among the figures of the countries, the number games come first: they are what the section is for. */
+  const groups = (section === 'pops' ? [...MODE_GROUPS].reverse() : MODE_GROUPS).filter((g) => modes.some((m) => m.group === g));
   const def = modes.find((m) => m.id === mode) ?? modes[0];
   const [cities, setCities] = useState<Cities | null>(null);
   const [physical, setPhysical] = useState<Physical | null>(null);
@@ -288,7 +295,19 @@ export function Setup({ section, world }: { section: Section; world: World }) {
           : [L('país', 'country'), L('países', 'countries')];
 
   const capitalsReady = section !== 'regions' || def.id !== 'capital' || !capitals || chosen.some((c) => capitals[c.id]?.[levelOf(c, levels).k]);
-  const need = section === 'countries' || section === 'pops' ? 2 : 1;
+  /** "Los diez primeros" takes a list long enough for its top to be a part of it. */
+  const figMin = def.id === 'topten' ? TOP_MIN : 2;
+  const need = section === 'pops' && def.id === 'topten' ? TOP_MIN : section === 'countries' || section === 'pops' ? 2 : 1;
+  /** The number games need things that share a figure: among rivers and ranges there is none. */
+  const noFigures = useMemo(() => {
+    if (!isPhys || !physical || !FIGURE_MODES.includes(def.id)) return false;
+    const list = physical.f.filter((f) => spec.kinds.includes(f.k) && (spec.all || f.r === 1) && (!spec.places.length || f.ct.some((c) => spec.places.includes(c))));
+    const high = list.filter((f) => (f.el ?? 0) > 0).length;
+    const wide = list.filter((f) => f.el == null && (f.ar ?? 0) > 0).length;
+    return high < figMin && wide < figMin;
+  }, [isPhys, physical, def.id, spec, figMin]);
+  /** "¿A qué pertenece?" asks for the group of each piece: it takes a country played at its finest level, with groups above it. */
+  const noGroups = def.id === 'parent' && section === 'regions' && !chosen.some((c) => c.lv.length > 1 && levelOf(c, levels).k === 'f');
   /** Why a new list cannot be started from what is chosen now. */
   const noMap = isPhys ? !physical || units < 2 : chosen.length < 1 || (section === 'cities' && (!cities || units < 2));
   const problem = active
@@ -298,11 +317,21 @@ export function Setup({ section, world }: { section: Section; world: World }) {
     : isPhys
     ? physical && units < 2
       ? L('Elige algo con al menos dos elementos.', 'Choose something with at least two features.')
-      : null
+      : noFigures
+        ? figMin > 2
+          ? L(`Este juego pide al menos ${figMin} picos, o ${figMin} entre lagos, islas y mares.`, `This game takes at least ${figMin} peaks, or ${figMin} lakes, islands and seas.`)
+          : L('Las cifras piden picos, lagos, islas o mares: al menos dos de lo mismo.', 'Figures take peaks, lakes, islands or seas: at least two of a kind.')
+        : null
     : chosen.length < need
       ? need === 1
         ? L('Elige al menos un país.', 'Choose at least one country.')
-        : L('Elige al menos dos países.', 'Choose at least two countries.')
+        : need === 2
+          ? L('Elige al menos dos países.', 'Choose at least two countries.')
+          : L(`Elige al menos ${need} países.`, `Choose at least ${need} countries.`)
+      : noGroups
+        ? L('Pon un país con varios niveles en el más fino: provincias, departamentos.', 'Set a country with several levels to its finest one: provinces, departments.')
+      : def.id === 'topten' && section !== 'pops' && units > 0 && units < TOP_MIN
+        ? L(`Este juego pide un mapa con al menos ${TOP_MIN} piezas.`, `This game takes a map with at least ${TOP_MIN} pieces.`)
       : section === 'cities' && cities && units < 2
         ? opts.cityPick === 'caps'
           ? L('Para jugar con capitales de país elige al menos dos países.', 'To play with national capitals choose at least two countries.')
@@ -349,7 +378,10 @@ export function Setup({ section, world }: { section: Section; world: World }) {
     labels: def.id === 'pin' || def.id === 'identify' || def.id === 'puzzle' || def.id === 'blind',
     pinBy: def.id === 'pin' && section === 'countries',
     blind: def.id === 'travel',
-    metric: section === 'pops',
+    metric: section === 'pops' && FIGURE_MODES.includes(def.id),
+    axis: def.id === 'compass',
+    // A review and a list are filled in at their own pace.
+    countdown: def.id === 'nameall',
     cities: section === 'cities' && !active,
     wiki: WIKI_MODES.includes(def.id) && !(paced && opts.format === 'timed'),
   };
@@ -357,9 +389,11 @@ export function Setup({ section, world }: { section: Section; world: World }) {
   const endless = { value: 'endless' as Length, label: <InfinityIcon size={16} aria-label={L('Sin fin', 'Endless')} /> };
 
   const lengths: { value: Length; label: ReactNode; title?: string }[] =
-    def.id === 'rank'
+    ROUND_MODES.includes(def.id)
       ? [{ value: 'all', label: L('10 rondas', '10 rounds') }, { value: 20, label: '20' }, { value: 50, label: '50' }, { ...endless, title: L('Sin fin', 'Endless') }]
-      : finite
+      : def.id === 'truefalse'
+        ? [{ value: 10, label: '10' }, { value: 20, label: '20' }, { value: 50, label: '50' }, { ...endless, title: L('Sin fin', 'Endless') }]
+        : finite
         ? [{ value: 'all', label: L('Todo', 'All') }, { value: 10, label: '10' }, { value: 20, label: '20' }, { value: 50, label: '50' }]
         : [
             { value: 'all', label: L(`Todo (${nf(units)})`, `All (${nf(units)})`) },
@@ -372,7 +406,9 @@ export function Setup({ section, world }: { section: Section; world: World }) {
   // How big the game is and how it goes for this player: the label of the mode is the same for everyone.
   const pace = useMemo(() => paceOf(sessions, section, def.id), [sessions, section, def.id]);
   const questions = problem ? null : questionsOf({ mode: def.id, units, length: finite && opts.length === 'endless' ? 'all' : opts.length, format: opts.format, list: !!active });
-  const estimate = problem ? null : estimateOf(def.id, questions, pace);
+  const guess = problem ? null : estimateOf(def.id, questions, pace);
+  // A countdown is the longest the map can take.
+  const estimate = guess && def.id === 'nameall' && opts.countdown > 0 ? { ...guess, ms: Math.min(guess.ms, opts.countdown * 1000) } : guess;
 
   /** The map that is chosen now, as a game of the given mode. */
   const current = (mode: Mode) => {
@@ -440,26 +476,34 @@ export function Setup({ section, world }: { section: Section; world: World }) {
             <h2>
               <span className="step-n">02</span> {L('Modo', 'Mode')}
             </h2>
-            <div className="modes">
-              {modes.map((m) => {
-                const Icon = m.icon;
-                return (
-                  <button key={m.id} type="button" className={cx('mode', m.id === def.id && 'on')} aria-pressed={m.id === def.id} title={m.desc} onClick={() => setMode(section, m.id)}>
-                    <span className="mode-icon">
-                      <Icon size={18} aria-hidden="true" />
-                    </span>
-                    <span className="mode-name">
-                      {m.name}
-                      <span className="mode-level" title={levelName(m.level)} aria-label={levelName(m.level)}>
-                        {[1, 2, 3].map((n) => (
-                          <i key={n} className={n <= m.level ? 'on' : undefined} />
-                        ))}
-                      </span>
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+            {/* Gathered by what each game asks for: a section with a dozen games is read by its headings. */}
+            {groups.map((g) => (
+              <div key={g} className="mode-group" role="group" aria-label={GROUP_NAME[g]}>
+                {grouped && <h3 className="mode-group-name">{GROUP_NAME[g]}</h3>}
+                <div className="modes">
+                  {modes
+                    .filter((m) => m.group === g)
+                    .map((m) => {
+                      const Icon = m.icon;
+                      return (
+                        <button key={m.id} type="button" className={cx('mode', m.id === def.id && 'on')} aria-pressed={m.id === def.id} title={m.desc} onClick={() => setMode(section, m.id)}>
+                          <span className="mode-icon">
+                            <Icon size={18} aria-hidden="true" />
+                          </span>
+                          <span className="mode-name">
+                            {m.name}
+                            <span className="mode-level" title={levelName(m.level)} aria-label={levelName(m.level)}>
+                              {[1, 2, 3].map((n) => (
+                                <i key={n} className={n <= m.level ? 'on' : undefined} />
+                              ))}
+                            </span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                </div>
+              </div>
+            ))}
             <p className="mode-about" aria-live="polite">
               <strong>{levelName(def.level)}.</strong> {def.desc}
             </p>
@@ -554,8 +598,40 @@ export function Setup({ section, world }: { section: Section; world: World }) {
                     options={[
                       { value: 'pop', label: L('Población', 'Population') },
                       { value: 'area', label: L('Superficie', 'Area') },
+                      { value: 'density', label: L('Densidad', 'Density'), title: L('Habitantes por km²', 'People per km²') },
                     ]}
                   />
+                </div>
+              )}
+              {show.countdown && (
+                <div className="opt">
+                  <span className="opt-label">{L('Tiempo', 'Time')}</span>
+                  <Seg
+                    label={L('Tiempo para rellenar el mapa', 'Time to fill the map in')}
+                    value={COUNTDOWNS.includes(opts.countdown) ? opts.countdown : 0}
+                    onChange={(countdown) => set({ countdown })}
+                    options={COUNTDOWNS.map((secs) => ({ value: secs, label: secs ? L(`${secs / 60} min`, `${secs / 60} min`) : L('Sin límite', 'No limit') }))}
+                  />
+                  {opts.countdown > 0 && <p className="opt-hint">{L('Cuenta atrás: lo que no esté escrito cuando llegue a cero se queda en blanco.', 'A countdown: what is not written when it reaches zero stays blank.')}</p>}
+                </div>
+              )}
+              {show.axis && (
+                <div className="opt">
+                  <span className="opt-label">{L('Orden', 'Order')}</span>
+                  <Seg
+                    label={L('En qué orden', 'In which order')}
+                    value={opts.axis}
+                    onChange={(axis) => set({ axis })}
+                    options={[
+                      { value: 'ns', label: L('De norte a sur', 'North to south') },
+                      { value: 'we', label: L('De oeste a este', 'West to east') },
+                    ]}
+                  />
+                  <p className="opt-hint">
+                    {section === 'cities'
+                      ? L('Cuenta dónde está cada ciudad.', 'What counts is where each city is.')
+                      : L('Cuenta el centro de cada pieza: las que quedan casi a la misma altura no salen juntas.', 'What counts is the centre of each piece: those lying almost level are not dealt together.')}
+                  </p>
                 </div>
               )}
               {show.pinBy && (
@@ -628,7 +704,13 @@ export function Setup({ section, world }: { section: Section; world: World }) {
               {show.length && (
                 <div className="opt">
                   <span className="opt-label">{L('Preguntas', 'Questions')}</span>
-                  <Seg label={L('Número de preguntas', 'Number of questions')} value={finite && opts.length === 'endless' ? 'all' : opts.length} onChange={(length) => set({ length })} options={lengths} />
+                  <Seg
+                    label={L('Número de preguntas', 'Number of questions')}
+                    // "All" is twenty statements where they are made up as the game goes.
+                    value={finite && opts.length === 'endless' ? 'all' : def.id === 'truefalse' && opts.length === 'all' ? 20 : opts.length}
+                    onChange={(length) => set({ length })}
+                    options={lengths}
+                  />
                 </div>
               )}
               {show.suggest && (
@@ -669,7 +751,7 @@ export function Setup({ section, world }: { section: Section; world: World }) {
               {(active || (section !== 'countries' && section !== 'pops')) && units > 0 ? ` · ${plural(units, noun[0], noun[1])}` : ''}
             </strong>
             <span>
-              <b>{problem ?? `${def.name}${paced ? ` · ${formatName(opts.format).toLowerCase()}` : show.length && opts.length === 'endless' && !finite ? ` · ${L('sin fin', 'endless')}` : ''}`}</b>
+              <b className={problem ? 'problem' : undefined}>{problem ?? `${def.name}${paced ? ` · ${formatName(opts.format).toLowerCase()}` : show.length && opts.length === 'endless' && !finite ? ` · ${L('sin fin', 'endless')}` : ''}`}</b>
               <ChevronDown size={14} aria-hidden="true" />
             </span>
           </button>

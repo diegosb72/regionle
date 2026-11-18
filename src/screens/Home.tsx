@@ -6,8 +6,9 @@ import { Flag } from '../components/ui';
 import { DailyCard } from '../daily/Card';
 import { countriesOf, describeMap, type MapSpec } from '../lib/describe';
 import { commonPlace, type World } from '../lib/world';
+import { metricNoun, metricOrder } from '../lib/metricNames';
 import { L, getLang } from '../lib/i18n';
-import { MODES, MODE_NAME, SECTIONS, SECTION_IDS, formatName } from '../lib/modes';
+import { MODES, SECTIONS, SECTION_IDS, formatName, modeNameIn } from '../lib/modes';
 import { recentKey, type Recent } from '../lib/recent';
 import { go, inGame } from '../lib/router';
 import { DUEL_PATH, LIST_PATH, PATHS, PLAY_PATH, screenPage } from '../lib/routes';
@@ -109,7 +110,7 @@ function recentMap(r: Recent, world: World): string {
   if (r.section === 'physical') return text;
   const chosen = countriesOf(specOf(r), world);
   const place = chosen.length > 3 ? commonPlace(chosen, world.index, r.section) : null;
-  const what = r.section === 'pops' ? ` · ${r.o.metric === 'area' ? L('superficie', 'area') : L('población', 'population')}` : '';
+  const what = r.section === 'pops' && r.o.metric ? ` · ${metricNoun(r.o.metric)}` : r.mode === 'compass' ? ` · ${metricOrder(r.o.axis === 'we' ? 'lon' : 'lat')}` : '';
   return `${place ? `${place} · ` : ''}${text}${what}`;
 }
 
@@ -158,12 +159,12 @@ function Recents({ world }: { world: World }) {
         <ul className="recent-list">
           {shown.map((r) => {
             const flags = countriesOf(specOf(r), world).slice(0, 3);
-            const paced = r.o.format && r.o.format !== 'normal' ? ` · ${formatName(r.o.format).toLowerCase()}` : '';
+            const paced = r.o.format && r.o.format !== 'normal' ? ` · ${formatName(r.o.format).toLowerCase()}` : r.o.countdown ? ` · ${r.o.countdown / 60} min` : '';
             return (
               <li key={recentKey(r)}>
                 <button type="button" onClick={() => again(r)}>
                   <span className="recent-what">
-                    {SECTIONS[r.section].name} · {MODE_NAME[r.mode]}
+                    {SECTIONS[r.section].name} · {modeNameIn(r.section, r.mode)}
                     {paced}
                   </span>
                   <span className="recent-map">
@@ -256,7 +257,7 @@ export function Home({ world }: { world: World }) {
           </button>
           {game && !game.review && (
             <button type="button" className="btn btn-lg" onClick={() => go(PLAY_PATH)}>
-              {L('Seguir', 'Resume')}: {MODE_NAME[game.mode]}
+              {L('Seguir', 'Resume')}: {modeNameIn(game.section, game.mode)}
             </button>
           )}
         </div>
@@ -390,7 +391,7 @@ export function Home({ world }: { world: World }) {
       {last && <LevelChip world={world} />}
       {last && (
         <p className="home-last">
-          {L('Última partida', 'Last game')}: <b>{MODE_NAME[last.mode]}</b> · {last.label} · {L(`${last.ok} de ${last.total} a la primera`, `${last.ok} of ${last.total} first time`)}. <a href="#/progreso">{L('Ver tu progreso', 'See your progress')}</a>
+          {L('Última partida', 'Last game')}: <b>{modeNameIn(last.section, last.mode)}</b> · {last.label} · {L(`${last.ok} de ${last.total} a la primera`, `${last.ok} of ${last.total} first time`)}. <a href="#/progreso">{L('Ver tu progreso', 'See your progress')}</a>
         </p>
       )}
     </div>

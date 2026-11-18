@@ -2,7 +2,7 @@
  * How long a game takes and how hard it is for this player, said with what the games played tell:
  * the label of a mode (easy, medium, hard) is the same for everyone, and this is not.
  */
-import { FORMAT_MODES, LENGTH_MODES } from './rules';
+import { FORMAT_MODES, LENGTH_MODES, ROUND_MODES } from './rules';
 import type { Format, Length, SessionRec } from './store';
 import type { Mode, Section } from './types';
 
@@ -50,12 +50,17 @@ export const TYPICAL_S: Partial<Record<Mode, number>> = {
   which: 6,
   exact: 15,
   rank: 30,
+  compass: 30,
+  parent: 7,
+  truefalse: 5,
   neighbours: 40,
   regionle: 45,
 };
 
 /** A round of "Ordenar" when no number is chosen. */
 const RANK_ROUNDS = 10;
+/** Statements of "true or false" when no number is chosen. */
+export const TRUE_FALSE_ROUND = 20;
 
 export interface GameSize {
   mode: Mode;
@@ -74,7 +79,9 @@ export function questionsOf({ mode, units, length, format, list }: GameSize): nu
   if (!LENGTH_MODES.includes(mode)) return null;
   if (format !== 'normal' && FORMAT_MODES.includes(mode)) return null;
   if (list) return units;
-  if (mode === 'rank') return length === 'all' ? RANK_ROUNDS : length === 'endless' ? null : length;
+  if (ROUND_MODES.includes(mode)) return length === 'all' ? RANK_ROUNDS : length === 'endless' ? null : length;
+  // Statements are made up as the game goes: as many as are asked for, whatever the countries chosen.
+  if (mode === 'truefalse') return length === 'all' ? TRUE_FALSE_ROUND : length === 'endless' ? null : length;
   if (length === 'endless') return null;
   return length === 'all' ? units : Math.min(length, units);
 }

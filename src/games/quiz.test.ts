@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mulberry32 } from '../lib/text';
-import { answersItself, capitalsNeedTyping, initQuiz, quizReducer, scoreOf, type QuizAction, type QuizState } from './quiz';
+import { answersItself, belongsItself, capitalsNeedTyping, initQuiz, quizReducer, scoreOf, type QuizAction, type QuizState } from './quiz';
 
 const run = (s: QuizState, ...actions: QuizAction[]) => actions.reduce(quizReducer, s);
 
@@ -106,5 +106,34 @@ describe('capitals that answer themselves', () => {
     // Nothing to ask where the data has no capital.
     expect(answersItself({ name: 'Madrid' }, true)).toBe(false);
     expect(answersItself({ name: 'Madrid', capital: [] }, true)).toBe(false);
+  });
+});
+
+describe('what a piece belongs to, when its own name says it', () => {
+  const in_ = (name: string, group: string, ...answers: string[]) => ({ name, belongs: { name: group, answers: [group, ...answers] } });
+
+  it('is not asked: the province of Madrid, León, the city of Mexico', () => {
+    for (const x of [in_('Madrid', 'Comunidad de Madrid'), in_('Murcia', 'Región de Murcia'), in_('La Rioja', 'La Rioja'), in_('Ciudad de México', 'México', 'Mexico'), in_('Luxemburgo', 'Luxemburgo')]) {
+      expect(belongsItself(x, false), x.name).toBe(true);
+      expect(belongsItself(x, true), x.name).toBe(true);
+    }
+  });
+
+  it('is asked typed and left out of four options where only a likeness gives it away', () => {
+    for (const x of [in_('Valencia', 'Comunidad Valenciana'), in_('León', 'Castilla y León'), in_('Argel', 'Argelia')]) {
+      expect(belongsItself(x, true), x.name).toBe(true);
+    }
+    expect(belongsItself(in_('Valencia', 'Comunidad Valenciana'), false)).toBe(false);
+  });
+
+  it('is asked where it has to be known', () => {
+    for (const x of [in_('Teruel', 'Aragón'), in_('Sevilla', 'Andalucía'), in_('Lyon', 'Francia', 'France'), in_('Álava', 'País Vasco', 'Euskadi')]) {
+      expect(belongsItself(x, false), x.name).toBe(false);
+      expect(belongsItself(x, true), x.name).toBe(false);
+    }
+  });
+
+  it('is never the case of what belongs to nothing', () => {
+    expect(belongsItself({ name: 'Madrid' }, true)).toBe(false);
   });
 });

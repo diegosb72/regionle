@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { TYPICAL_S, estimateOf, minutesOf, paceOf, percentOf, questionsOf, type GameSize } from './pace';
+import { TRUE_FALSE_ROUND, TYPICAL_S, estimateOf, minutesOf, paceOf, percentOf, questionsOf, type GameSize } from './pace';
 import type { SessionRec } from './store';
 
 const played = (patch: Partial<SessionRec> = {}): SessionRec => ({ t: 1, section: 'regions', mode: 'pin', label: 'España', total: 20, ok: 15, warn: 2, bad: 3, ms: 100_000, ...patch });
@@ -24,6 +24,27 @@ describe('what the games played say about a mode', () => {
     const pace = paceOf([played({ ms: 0 })], 'regions', 'pin');
     expect(pace).toMatchObject({ games: 1, perQuestion: null, perGame: null });
     expect(pace.first).toBe(0.75);
+  });
+});
+
+describe('how many statements true or false makes', () => {
+  it('is the number chosen whatever the countries, and twenty when none is', () => {
+    expect(questionsOf(size({ mode: 'truefalse', units: 5, length: 50 }))).toBe(50);
+    expect(questionsOf(size({ mode: 'truefalse', units: 193, length: 10 }))).toBe(10);
+    expect(questionsOf(size({ mode: 'truefalse', units: 193, length: 'all' }))).toBe(TRUE_FALSE_ROUND);
+    expect(TRUE_FALSE_ROUND).toBe(20);
+    expect(questionsOf(size({ mode: 'truefalse', units: 193, length: 'endless' }))).toBeNull();
+  });
+
+  it('is a round of five for each question of north to south, like the other game of putting in order', () => {
+    expect(questionsOf(size({ mode: 'compass', units: 52, length: 'all' }))).toBe(questionsOf(size({ mode: 'rank', units: 52, length: 'all' })));
+    expect(questionsOf(size({ mode: 'compass', units: 52, length: 20 }))).toBe(20);
+    expect(questionsOf(size({ mode: 'compass', units: 52, length: 'endless' }))).toBeNull();
+  });
+
+  it('has an idea of how long they take before the first game', () => {
+    expect(estimateOf('truefalse', 20, paceOf([], 'pops', 'truefalse'))).toEqual({ ms: 20 * TYPICAL_S.truefalse! * 1000, own: false });
+    expect(estimateOf('parent', 41, paceOf([], 'regions', 'parent'))?.ms).toBe(41 * TYPICAL_S.parent! * 1000);
   });
 });
 

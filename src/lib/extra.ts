@@ -1,5 +1,5 @@
 /** Decks that are not made of countries or their divisions: cities, and rivers, lakes, seas, ranges, peaks, deserts and islands. */
-import { commonPlace, frameForCountries, frameForLand, loadFile, loadIndex, loadWorldGeo, properNames } from './data';
+import { belongsToCountry, commonPlace, divisionsOf, frameForCountries, frameForLand, loadFile, loadIndex, loadWorldGeo, properNames } from './data';
 import { L, nm } from './i18n';
 import { PHYS_KINDS, kindNoun, parsePhys, physTokens, type PhysKind, type PhysSpec } from './phys';
 import { editOf } from './typeins';
@@ -52,8 +52,12 @@ function pickCities(file: CitiesFile, chosen: Country[], pick: CityPick, count: 
   return list;
 }
 
-/** `must` lists cities the map has to hold whatever the choice: the ones a review is about. */
-export async function buildCityDeck(ids: string[], pick: CityPick, count: number, must?: string[]): Promise<Deck> {
+/**
+ * `must` lists cities the map has to hold whatever the choice: the ones a review is about. `belongs` asks
+ * for what each city is part of: its country on a map of several, its region on a map of one (which takes
+ * the file of the regions of that country).
+ */
+export async function buildCityDeck(ids: string[], pick: CityPick, count: number, must?: string[], belongs = false): Promise<Deck> {
   const [{ index, byId }, world, file] = await Promise.all([loadIndex(), loadWorldGeo(), loadCities()]);
   const chosen = [...new Set(ids)].map((id) => byId.get(id)).filter((c): c is Country => !!c && c.cl !== 'other' && !!file.c[c.id]);
   const sel = new Set(chosen.map((c) => c.id));
@@ -63,6 +67,7 @@ export async function buildCityDeck(ids: string[], pick: CityPick, count: number
 
   const picked = pickCities(file, chosen, pick, count, must);
   const several = chosen.length > 1;
+  const divisions = belongs && !several && chosen[0] ? await divisionsOf(chosen[0]).catch(() => null) : null;
   const items: Item[] = picked.map(({ rec, country }) => ({
     id: rec.i,
     kind: 'city',
@@ -83,6 +88,7 @@ export async function buildCityDeck(ids: string[], pick: CityPick, count: number
     wd: rec.wd,
     pop: rec.p,
     cap: rec.k ?? 0,
+    belongs: !belongs ? undefined : several ? belongsToCountry(country) : rec.u ? divisions?.get(rec.u) : undefined,
   }));
   const place = commonPlace(chosen, index, 'countries') ?? (several ? L(`${chosen.length} países`, `${chosen.length} countries`) : chosen[0] ? nm(chosen[0].n) : '');
   const what =

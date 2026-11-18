@@ -1310,6 +1310,19 @@ button.chip.on:hover:not(:disabled) {
   min-width: 0;
   margin-right: 4px;
 }
+/* The second row of shortcuts, shown when asked for. */
+.picker-more {
+  margin-top: -4px;
+  padding: 10px 12px;
+  border: 1px dashed var(--line-2);
+  border-radius: var(--r-2);
+}
+.chip-more svg {
+  transition: transform 0.15s;
+}
+.chip-more.on svg {
+  transform: rotate(180deg);
+}
 .chip-fav {
   padding: 0;
   gap: 0;
@@ -1497,6 +1510,17 @@ button.chip.on:hover:not(:disabled) {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
+/* The games of a section, gathered under a heading for each kind. */
+.mode-group + .mode-group {
+  margin-top: 12px;
+}
+.mode-group-name {
+  margin: 0 0 6px;
+  font: 650 11px/1.2 var(--sans);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
 .mode {
   display: flex;
   align-items: center;
@@ -1616,6 +1640,11 @@ button.chip.on:hover:not(:disabled) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+/* What keeps the game from starting is read whole, however long. */
+.startbar-info span > b.problem {
+  white-space: normal;
+  text-wrap: pretty;
 }
 .startbar-info svg {
   flex: none;
@@ -6940,4 +6969,245 @@ kbd {
   color: var(--ink-3);
   font-size: inherit;
   font-weight: 400;
+}
+
+/* ------------------------------------------------- figures of anything, facts */
+
+/* What a thing is, under its name, where no flag says it: "ciudad · Francia", "pico". */
+.pcard-sub {
+  margin-top: -6px;
+  color: var(--ink-3);
+  font-size: 14px;
+}
+.pcard-sub::first-letter {
+  text-transform: uppercase;
+}
+.pcard-kind.kdot {
+  width: 30px;
+  height: 30px;
+}
+.rank-name small {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+.rank-card .kdot,
+.hl-log .kdot,
+.which-log .kdot {
+  flex: none;
+}
+.amount-unit {
+  font-weight: 650;
+  color: var(--ink-2);
+}
+
+/* True or false */
+.tf {
+  justify-items: center;
+}
+.tf-flags {
+  display: flex;
+  gap: 10px;
+  min-height: 30px;
+}
+.tf-text {
+  max-width: 26ch;
+  text-wrap: balance;
+}
+.tf-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  width: min(100%, 520px);
+}
+.tf-btn {
+  min-height: 62px;
+  justify-content: center;
+  gap: 8px;
+  font-size: 18px;
+  border-radius: var(--r-2);
+}
+.tf-btn kbd {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin-left: 4px;
+  border: 1px solid var(--line-2);
+  border-radius: 7px;
+  background: var(--bg);
+  color: var(--ink-3);
+  font: 700 12px var(--sans);
+}
+.tf-true svg {
+  color: var(--ok);
+}
+.tf-false svg {
+  color: var(--bad);
+}
+.tf-btn:disabled {
+  opacity: 1;
+  color: var(--ink-3);
+  cursor: default;
+}
+.tf-btn.right {
+  border-color: var(--ok);
+  background: var(--ok-soft);
+  color: var(--ok-ink);
+}
+.tf-btn.wrong {
+  border-color: var(--bad);
+  background: var(--bad-soft);
+  color: var(--bad-ink);
+  text-decoration: line-through;
+}
+.tf > .verdict,
+.tf > .q-actions {
+  width: min(100%, 520px);
+}
+.tf-why {
+  color: var(--ink-2);
+  font-size: 15px;
+  line-height: 1.45;
+}
+.tf-review {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+.tf-review h3 {
+  font: 650 12px/1.2 var(--sans);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.tf-review ul {
+  display: grid;
+  gap: 8px;
+}
+.tf-review li {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--card);
+}
+.tf-said {
+  font-weight: 600;
+}
+.tf-tag {
+  display: inline-block;
+  margin-right: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.tf-tag.true {
+  background: var(--ok-soft);
+  color: var(--ok-ink);
+}
+.tf-tag.false {
+  background: var(--bad-soft);
+  color: var(--bad-ink);
+}
+@media (max-width: 420px) {
+  .tf-btn {
+    font-size: 16px;
+  }
+  .tf-btn kbd {
+    display: none;
+  }
+}
+
+/* The top ten */
+.top-list {
+  display: grid;
+  gap: 6px;
+  width: min(100%, 560px);
+  justify-self: center;
+  counter-reset: none;
+}
+.top-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 6px 12px 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--card);
+  font-size: 15.5px;
+}
+.top-n {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bg-2);
+  color: var(--ink-2);
+  font: 600 15px/1 var(--serif);
+}
+.top-blank {
+  flex: 1;
+  height: 10px;
+  border-radius: 5px;
+  background: repeating-linear-gradient(90deg, var(--line) 0 10px, transparent 10px 16px);
+  opacity: 0.8;
+}
+.top-value {
+  margin-left: auto;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.top-list li.got {
+  border-color: var(--ok);
+  background: var(--ok-soft);
+}
+.top-list li.got .top-n {
+  background: var(--ok);
+  color: #fff;
+}
+.top-list li.missed {
+  border-color: var(--bad);
+  background: var(--bad-soft);
+}
+.top-list li.missed .top-n {
+  background: var(--bad);
+  color: #fff;
+}
+.results > .top-list {
+  margin-top: 16px;
+}
+.top-wrong {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  width: min(100%, 560px);
+  justify-self: center;
+  font-size: 14px;
+}
+.top-wrong li {
+  padding: 3px 10px;
+  border: 1px solid var(--bad);
+  border-radius: 999px;
+  color: var(--bad-ink);
+  background: var(--bad-soft);
+}
+.top-wrong small {
+  opacity: 0.8;
+}
+.hud-strikes {
+  gap: 2px;
+}
+.hud-strikes svg {
+  flex: none;
+  color: var(--line-2);
+}
+.hud-strikes svg.on {
+  color: var(--bad);
 }

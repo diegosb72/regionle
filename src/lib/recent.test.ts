@@ -29,6 +29,27 @@ describe('what is kept of a game to play it again', () => {
     expect(Object.keys(recentOf(game({ mode: 'nameall' }), session({ mode: 'nameall' }))!.o)).toEqual([]);
   });
 
+  it('keeps which way five places are put in order, and the countdown of a map filled in against it', () => {
+    const ns = recentOf(game({ mode: 'compass' }), session({ mode: 'compass' }));
+    expect(ns?.o).toEqual({ axis: 'ns' });
+    const we = recentOf(game({ mode: 'compass', opts: { ...DEFAULT_OPTS, axis: 'we' } }), session({ mode: 'compass' }));
+    expect(we?.o).toEqual({ axis: 'we' });
+    // North to south and west to east are two games on the same map.
+    expect(recentKey(ns!)).not.toBe(recentKey(we!));
+    const timed = recentOf(game({ mode: 'nameall', opts: { ...DEFAULT_OPTS, countdown: 300 } }), session({ mode: 'nameall' }));
+    expect(timed?.o).toEqual({ countdown: 300 });
+    expect(recentKey(timed!)).not.toBe(recentKey(recentOf(game({ mode: 'nameall' }), session({ mode: 'nameall' }))!));
+    // The way round is of that game only.
+    expect(recentOf(game({ mode: 'pin', opts: { ...DEFAULT_OPTS, axis: 'we', countdown: 300 } }), session())?.o).toEqual({ format: 'normal' });
+  });
+
+  it('keeps the figure of a game about countries, which true or false does not have', () => {
+    const top = recentOf(game({ section: 'pops', mode: 'topten', countries: ['ES', 'FR'], opts: { ...DEFAULT_OPTS, metric: 'density' } }), session({ section: 'pops', mode: 'topten' }));
+    expect(top?.o).toEqual({ metric: 'density' });
+    const tf = recentOf(game({ section: 'pops', mode: 'truefalse', countries: ['ES', 'FR'], opts: { ...DEFAULT_OPTS, metric: 'density' } }), session({ section: 'pops', mode: 'truefalse' }));
+    expect(tf?.o).toEqual({});
+  });
+
   it('is nothing for a review, a challenge, a round of misses, a list or the editor of lists', () => {
     expect(recentOf(game({ review: true, only: ['ES-M'] }), session())).toBeNull();
     expect(recentOf(game({ challenge: { seed: 7 } }), session())).toBeNull();

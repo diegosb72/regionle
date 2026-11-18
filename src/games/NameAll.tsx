@@ -2,7 +2,7 @@
  * Fill the map: a blank map that fills in with what the player types from memory. Names are taken in
  * any order; the player can also tap a piece first to say "this one" and then has to name that piece.
  */
-import { Flag as FlagIcon, Lightbulb, MousePointerClick, X } from 'lucide-react';
+import { Flag as FlagIcon, Lightbulb, MousePointerClick, Timer, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnswerInput } from '../components/AnswerInput';
 import { MapView, type MapHandle, type Paint } from '../components/MapView';
@@ -10,7 +10,7 @@ import { Flag } from '../components/ui';
 import { L, nm } from '../lib/i18n';
 import { MODE_NAME } from '../lib/modes';
 import { useStore } from '../lib/store';
-import { Matcher, fmtTime, hintMax, letterHint, nf, pick, shortNote } from '../lib/text';
+import { Matcher, cx, fmtTime, hintMax, letterHint, nf, pick, shortNote } from '../lib/text';
 import type { Res } from '../lib/types';
 import { GameShell, Hud, Results, originOf, useElapsed, useFlashSignal, type GameProps, type ResultRow } from './common';
 
@@ -53,6 +53,22 @@ export function NameAllGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const total = pool.length;
   const done = over || found.length + shown.length === total;
   const ms = useElapsed(!done);
+  /** Against a countdown, for those who asked for one: what is not written when it runs out stays blank. */
+  const limit = cfg.review ? 0 : Math.max(0, cfg.opts.countdown ?? 0) * 1000;
+  const left = Math.max(0, limit - ms);
+  const [timeUp, setTimeUp] = useState(false);
+  useEffect(() => {
+    if (limit && !done && ms >= limit) {
+      setTimeUp(true);
+      setOver(true);
+    }
+  }, [limit, done, ms]);
+  const clock = limit ? (
+    <span className={cx('hud-chip hud-clock', !done && left <= 10_000 && 'low')} title={L('Tiempo que queda', 'Time left')} role="timer">
+      <Timer size={14} aria-hidden="true" />
+      {fmtTime(done ? ms : left + 999)}
+    </span>
+  ) : null;
   const foundSet = useMemo(() => new Set(found), [found]);
   const shownSet = useMemo(() => new Set(shown), [shown]);
   const filled = (id: string) => foundSet.has(id) || shownSet.has(id);
@@ -181,7 +197,11 @@ export function NameAllGame({ deck, cfg, onExit, onAgain }: GameProps) {
     if (!found.length && !shown.length) return;
     const st = store.getState();
     const helpedSet = new Set(helped);
-    for (const it of pool) st.record('name', it.id, foundSet.has(it.id) ? (helpedSet.has(it.id) ? 'warn' : 'ok') : 'bad', originOf(it, cfg));
+    for (const it of pool) {
+      // What the clock left blank was not reached, which is not the same as not knowing it: it stays as it was for the review.
+      if (timeUp && !foundSet.has(it.id) && !shownSet.has(it.id)) continue;
+      st.record('name', it.id, foundSet.has(it.id) ? (helpedSet.has(it.id) ? 'warn' : 'ok') : 'bad', originOf(it, cfg));
+    }
     st.addSession({ t: Date.now(), section: cfg.section, mode: cfg.mode, label: cfg.list ? `${deck.title} · ${cfg.list}` : deck.title, total, ok: found.length - helped.length, warn: helped.length, bad: total - found.length, ms });
     if (found.length === total && !cfg.only) {
       const prev = st.best[`nameall:${deck.key}`];
@@ -239,7 +259,13 @@ export function NameAllGame({ deck, cfg, onExit, onAgain }: GameProps) {
         stage={stage}
         panel={
           <Results
-            title={found.length === total ? L('¡Mapa completo!', 'Map complete!') : L(`Te han faltado ${nf(total - found.length)}`, `You missed ${nf(total - found.length)}`)}
+            title={
+              found.length === total
+                ? L('¡Mapa completo!', 'Map complete!')
+                : timeUp
+                  ? L(`Se acabó el tiempo: ${nf(found.length)} de ${nf(total)}`, `Time is up: ${nf(found.length)} of ${nf(total)}`)
+                  : L(`Te han faltado ${nf(total - found.length)}`, `You missed ${nf(total - found.length)}`)
+            }
             note={record === 'new' ? L(`Nuevo récord: ${fmtTime(ms)}.`, `New record: ${fmtTime(ms)}.`) : typeof record === 'number' ? L(`Tu récord en este mapa: ${fmtTime(record)}.`, `Your record on this map: ${fmtTime(record)}.`) : undefined}
             deck={deck}
             rows={rows}
@@ -260,8 +286,17 @@ export function NameAllGame({ deck, cfg, onExit, onAgain }: GameProps) {
       title={title}
       subtitle={deck.title}
       onExit={onExit}
-      progress={(found.length + shown.length) / Math.max(1, total)}
-      hud={<Hud ms={ms} progress={`${found.length} / ${total}`} />}
+      progress={limit ? ms / limit : (found.length + shown.length) / Math.max(1, total)}
+      hud={
+        limit ? (
+          <>
+            <span className="hud-chip hud-main">{`${found.length} / ${total}`}</span>
+            {clock}
+          </>
+        ) : (
+          <Hud ms={ms} progress={`${found.length} / ${total}`} />
+        )
+      }
       stage={stage}
       panel={
         <div className="q">

@@ -9,14 +9,15 @@ import { namesOf, type Named } from '../lib/answerNames';
 import { toCsv } from '../lib/csv';
 import { buildDeck, eligible, type World } from '../lib/data';
 import { kindNoun, parsePhys } from '../lib/extra';
+import { metricNoun, type MetricId } from '../lib/metricNames';
 import { L, getLang, levelNoun, nm } from '../lib/i18n';
-import { MODE_NAME, SECTIONS, formatName } from '../lib/modes';
+import { MODE_NAME, SECTIONS, formatName, modeNameIn } from '../lib/modes';
 import { REVIEW_MAX, allGroups, dueCount, dueGroups, forecast, gradeOf, missGroups, missesOf, parseOrigin, reviewConfig, type Grade, type ReviewGroup } from '../lib/review';
 import { reviewTable } from '../lib/reviewTable';
 import { go } from '../lib/router';
 import { isLearnt, useStore, type Skill, type Stat } from '../lib/store';
 import { cx, fmtTime, nf } from '../lib/text';
-import type { Country, Deck, Mode } from '../lib/types';
+import type { Country, Deck, Mode, Section } from '../lib/types';
 import { scoreOf } from '../games/quiz';
 
 const SKILL_IDS: Skill[] = ['loc', 'name', 'cap', 'flag', 'nb'];
@@ -523,6 +524,8 @@ export function Progress({ world }: { world: World }) {
   };
 
   /** A record in words: which game, on which map. */
+  /** The figures "higher or lower" keeps a record of. */
+  const HILO_METRICS: MetricId[] = ['pop', 'area', 'density', 'elev'];
   const recordLine = (k: string, v: number) => {
     const [kind, ...rest] = k.split(':');
     const what = rest.join(':');
@@ -537,7 +540,9 @@ export function Progress({ world }: { world: World }) {
     if (kind === 'hilo') {
       return (
         <li key={k}>
-          <b>{MODE_NAME.hilo}</b> · {what === 'area' ? L('superficie', 'area') : L('población', 'population')}
+          {/* "hilo:pop" for the countries; "hilo:pop:cities" for the rest, each in its section. */}
+          <b>{MODE_NAME.hilo}</b> · {HILO_METRICS.includes(rest[0] as MetricId) ? metricNoun(rest[0] as MetricId) : rest[0]}
+          {rest[1] && Object.hasOwn(SECTIONS, rest[1]) ? ` · ${SECTIONS[rest[1] as Section].name}` : ''}
           <span>{L(`racha de ${v}`, `streak of ${v}`)}</span>
         </li>
       );
@@ -717,7 +722,7 @@ export function Progress({ world }: { world: World }) {
                     {sessions.slice(0, 30).map((s) => (
                       <tr key={s.t}>
                         <td>{when(s.t)}</td>
-                        <td>{MODE_NAME[s.mode]}</td>
+                        <td>{Object.hasOwn(SECTIONS, s.section) ? modeNameIn(s.section, s.mode) : MODE_NAME[s.mode]}</td>
                         <td>{s.note === 'timed' || s.note === 'lives' ? `${s.label} · ${formatName(s.note).toLowerCase()}` : s.note ? `${s.label} · ${s.note}` : s.label}</td>
                         <td className="num">
                           {s.ok} / {s.total}

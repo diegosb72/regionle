@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { buildDeck, deckGraph, eligible, loadIndex, setLoader } from './data';
+import { buildDeck, deckGraph, divisionsOf, eligible, loadIndex, setLoader } from './data';
 import { buildCityDeck, buildPhysicalDeck, parsePhys, physTokens } from './extra';
 import { bfs, capOf, cheapestPath, makeView, onShortest, pickRoute, shortestPath } from './geo';
 import { Matcher, editDistance, fmtBig, fmtTime, judgeAmount, key, listed, mulberry32, norm, parseNumber } from './text';
@@ -133,6 +133,52 @@ describe('data', () => {
     expect(coarse.noun.fem).toBe(true);
     const madrid = coarse.items.find((it) => it.name.includes('Madrid'))!;
     expect(madrid.nb.map((id) => coarse.byId.get(id)!.name).sort()).toEqual(['Castilla y León', 'Castilla-La Mancha']);
+  });
+
+  it('knows what each piece belongs to: the community of a province, the region of a department', async () => {
+    const fine = await buildDeck({ scope: 'regions', countries: ['ES'], levels: { ES: 'f' } });
+    expect(fine.byId.get('ES-TE')!.belongs).toMatchObject({ id: 'ES-AR', name: 'Aragón', type: 'comunidad autónoma' });
+    expect(fine.byId.get('ES-LE')!.belongs!.name).toBe('Castilla y León');
+    expect(fine.items.every((it) => it.belongs)).toBe(true);
+    // Nineteen communities for fifty-two provinces: that is what makes it a question.
+    expect(new Set(fine.items.map((it) => it.belongs!.id)).size).toBe(19);
+    // What is accepted when typed: every name of the community.
+    expect(fine.byId.get('ES-B')!.belongs!.answers).toEqual(expect.arrayContaining(['Cataluña', 'Catalonia', 'Catalunya']));
+    // The coarsest level belongs to nothing but its country.
+    const coarse = await buildDeck({ scope: 'regions', countries: ['ES'] });
+    expect(coarse.items.some((it) => it.belongs)).toBe(false);
+    // Three levels: a département is asked for the level just above it.
+    const fr = await buildDeck({ scope: 'regions', countries: ['FR'], levels: { FR: 'f' } });
+    expect(fr.byId.get('FR-13')!.belongs!.name).toMatch(/Provenza/);
+    // A country with a single level has no groups.
+    const pt = await buildDeck({ scope: 'regions', countries: ['PT'] });
+    expect(pt.items.some((it) => it.belongs)).toBe(false);
+  });
+
+  it('says what a city belongs to: its country on a map of several, its region on a map of one', async () => {
+    const plain = await buildCityDeck(['ES'], 'top', 10);
+    expect(plain.items.some((it) => it.belongs)).toBe(false);
+    const es = await buildCityDeck(['ES'], 'top', 25, undefined, true);
+    const of = (name: string) => es.items.find((it) => it.name === name)!.belongs;
+    expect(of('Sevilla')).toMatchObject({ name: 'Andalucía', type: 'comunidad autónoma' });
+    expect(of('Bilbao')!.name).toBe('País Vasco');
+    expect(of('Madrid')!.name).toBe('Comunidad de Madrid');
+    expect(es.items.every((it) => it.belongs)).toBe(true);
+    const several = await buildCityDeck(['ES', 'FR', 'PT'], 'top', 10, undefined, true);
+    expect(several.items.find((it) => it.name === 'Lisboa')!.belongs).toMatchObject({ id: 'PT', name: 'Portugal', type: 'país' });
+    expect(new Set(several.items.map((it) => it.belongs!.id))).toEqual(new Set(['ES', 'FR', 'PT']));
+  });
+
+  it('gives each fine unit of a country the division it is played by', async () => {
+    const { byId } = await loadIndex();
+    const es = await divisionsOf(byId.get('ES')!);
+    expect(es.get('ES-TE')!.name).toBe('Aragón');
+    expect(es.size).toBe(52);
+    // Where the states are what is played, a unit is in itself.
+    const de = await divisionsOf(byId.get('DE')!);
+    expect(de.get('DE-BY')).toMatchObject({ id: 'DE-BY', name: 'Baviera' });
+    // A country that is a single piece has nothing to tell apart.
+    expect((await divisionsOf(byId.get('MC')!)).size).toBe(0);
   });
 
   it('links regions across borders', async () => {

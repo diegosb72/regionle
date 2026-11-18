@@ -1,4 +1,4 @@
-/** Question-by-question games: pin on the map, jigsaw, identify, outline, capitals and flags. */
+/** Question-by-question games: pin on the map, jigsaw, identify, outline, capitals, flags and what each piece belongs to. */
 import { ArrowRight, Flag as FlagIcon, Heart, Lightbulb, MapPin, Timer } from 'lucide-react';
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { AnswerInput, type Suggestion } from '../components/AnswerInput';
@@ -13,13 +13,14 @@ import { MODE_NAME, formatName } from '../lib/modes';
 import { useStore, type Format, type Skill } from '../lib/store';
 import { Matcher, cx, fmtTime, hintMax, letterHint, mulberry32, sample, shortNote, shuffle, type Answerable } from '../lib/text';
 import { capitalAnswers } from '../lib/typeins';
-import type { Item, Res } from '../lib/types';
+import type { Belongs, Item, Res } from '../lib/types';
 import { GameShell, Hud, Results, Verdict, answered, nearest, originOf, showsCountry, useElapsed, type GameProps, type ResultRow } from './common';
-import { answersItself, capitalsNeedTyping, initQuiz, quizReducer, scoreOf } from './quiz';
+import { answersItself, belongsItself, capitalsNeedTyping, initQuiz, quizReducer, scoreOf } from './quiz';
 
-type QuizMode = 'pin' | 'puzzle' | 'identify' | 'outline' | 'capital' | 'flag';
+type QuizMode = 'pin' | 'puzzle' | 'identify' | 'outline' | 'capital' | 'flag' | 'parent';
 
-const SKILL: Record<QuizMode, Skill> = { pin: 'loc', puzzle: 'loc', identify: 'name', outline: 'name', capital: 'cap', flag: 'flag' };
+/** What each game teaches, for the review. What a piece belongs to is not reviewed: it is played and that is all. */
+const SKILL: Partial<Record<QuizMode, Skill>> = { pin: 'loc', puzzle: 'loc', identify: 'name', outline: 'name', capital: 'cap', flag: 'flag' };
 
 /** Against the clock: how long a game lasts. */
 export const TIME_LIMIT = 60_000;
@@ -41,7 +42,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
 
   /** Items that can be offered as wrong options in this mode. */
   const usable = useMemo(
-    () => deck.items.filter((it) => (!needsCapital || it.capital?.length) && (!needsFlag || it.country.fl) && (mode !== 'puzzle' || it.shape === 'area')),
+    () => deck.items.filter((it) => (!needsCapital || it.capital?.length) && (!needsFlag || it.country.fl) && (mode !== 'puzzle' || it.shape === 'area') && (mode !== 'parent' || it.belongs)),
     [deck, needsCapital, needsFlag, mode],
   );
   /**
@@ -52,6 +53,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const typed = !clicky && (opts.answer === 'type' || mustType);
   /** Items that can be asked: a place named after its capital would answer itself. */
   const askable = useMemo(() => {
+    // A piece named after what it belongs to would answer itself as well.
+    if (mode === 'parent') return usable.filter((it) => !belongsItself(it, !typed));
     // A link from before this rule is played with the questions its sender had.
     if (!needsCapital || cfg.challenge?.legacy) return usable;
     // A review brings back what is due, and nothing may be left waiting for ever: the likeness that would
@@ -103,10 +106,17 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const names = useMemo(() => new Matcher(deck.items), [deck]);
   // Capitals are listed under the id of their place, whose code is not theirs.
   const capitals = useMemo(() => new Matcher(usable.map((it) => capitalAnswers(it)).filter((a): a is Answerable => !!a), { codes: false }), [usable]);
-  const matcher = mode === 'capital' ? capitals : names;
+  /** What the pieces belong to, once each: the answers of "¿A qué pertenece?". */
+  const groups = useMemo(() => {
+    const all = new Map<string, Belongs>();
+    if (mode === 'parent') for (const it of usable) if (it.belongs && !all.has(it.belongs.id)) all.set(it.belongs.id, it.belongs);
+    return all;
+  }, [usable, mode]);
+  const parents = useMemo(() => new Matcher([...groups.values()]), [groups]);
+  const matcher = mode === 'capital' ? capitals : mode === 'parent' ? parents : names;
   /** How many letters of the answer the hints have put in sight (the first hint of an outline is the map). */
   const lettersShown = !typed ? 0 : mode === 'outline' ? Math.max(0, s.hints - 1) : s.hints;
-  const answerOf = (it: Item) => (mode === 'capital' ? it.capital![0] : it.name);
+  const answerOf = (it: Item) => (mode === 'capital' ? it.capital![0] : mode === 'parent' ? it.belongs!.name : it.name);
   // A paced game moves fast: one go at each question.
   const maxTries = paced ? 1 : clicky || typed ? 3 : 1;
   const several = showsCountry(deck);
@@ -132,9 +142,15 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
       const same = cands.filter((o) => o.cat === item.cat);
       if (same.length >= 3) cands = same;
     }
-    // What is already solved is labelled on the map and could be ruled out without knowing anything.
-    const open = cands.filter((o) => !s.marks[o.id]);
-    if (open.length >= 3) cands = open;
+    if (mode === 'parent') {
+      // The options are groups, not pieces: one piece stands for each of the other groups, the nearest first.
+      const seen = new Set([label]);
+      cands = nearest(item, cands, cands.length).filter((o) => !seen.has(answerOf(o)) && !!seen.add(answerOf(o)));
+    } else {
+      // What is already solved is labelled on the map and could be ruled out without knowing anything.
+      const open = cands.filter((o) => !s.marks[o.id]);
+      if (open.length >= 3) cands = open;
+    }
     const rng = mulberry32(seed + s.n * 7919);
     return shuffle([item, ...sample(nearest(item, cands, 9), 3, rng)], rng);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -198,7 +214,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
   }, [ended]);
 
   const settled = (res: Res, it: Item) => {
-    if (s.round === 1) record(SKILL[mode], it.id, res, originOf(it, cfg));
+    const skill = SKILL[mode];
+    if (s.round === 1 && skill) record(skill, it.id, res, originOf(it, cfg));
     setFlash({ id: it.id, kind: res === 'bad' ? 'bad' : 'ok', n: Date.now() });
     if (!clicky || res === 'bad') map.current?.focus([it.id], { passing: clicky });
   };
@@ -257,7 +274,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const onSubmit = (text: string) => {
     if (!item || s.phase !== 'ask') return;
     // Letters of the answer in sight would spell its abbreviation out: the name has to be written.
-    const v = matcher.check(text, item.id, { whole: lettersShown > 0 });
+    const v = matcher.check(text, mode === 'parent' ? item.belongs!.id : item.id, { whole: lettersShown > 0 });
     if (v.res === 'yes') return right();
     if (v.res === 'short' || v.res === 'vague') {
       // Not a wrong answer: an abbreviation that does not count here, and why.
@@ -266,6 +283,10 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
       return;
     }
     if (v.res === 'other') {
+      if (mode === 'parent') {
+        const group = groups.get(v.id)?.name ?? text.trim();
+        return wrong(L(`No es ${group}.`, `It is not ${group}.`));
+      }
       const other = deck.byId.get(v.id)!;
       if (mode === 'capital') wrong(L(`${other.capital![0]} es la capital de ${other.name}.`, `${other.capital![0]} is the capital of ${other.name}.`));
       else wrong(L(`No es ${other.name}.`, `It is not ${other.name}.`), mode === 'identify' ? v.id : undefined);
@@ -321,7 +342,9 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
     const p: Record<string, Paint> = {};
     for (const [id, res] of Object.entries(s.marks)) if (!hidden.has(id)) p[id] = res;
     if (item && !ended) {
-      if (s.phase === 'reveal' || (s.phase === 'ask' && (mode === 'identify' || mode === 'capital' || (mode === 'outline' && showMap)))) p[item.id] = 'target';
+      // A city lit up on a map of several countries would show which one it is in, and that is the question.
+      const shown = mode === 'identify' || mode === 'capital' || (mode === 'parent' && item.kind !== 'city') || (mode === 'outline' && showMap);
+      if (s.phase === 'reveal' || (s.phase === 'ask' && shown)) p[item.id] = 'target';
       if (narrow && s.phase === 'ask') for (const it of deck.items) if (!narrow.has(it.id) && !p[it.id]) p[it.id] = 'dim';
     }
     return p;
@@ -346,6 +369,14 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
 
   const suggest = useMemo(() => {
     if (!typed || !opts.suggest) return undefined;
+    if (mode === 'parent') {
+      return (text: string): Suggestion[] =>
+        matcher
+          .suggest(text, 6)
+          .map((id) => groups.get(id))
+          .filter((g): g is Belongs => !!g)
+          .map((g) => ({ id: g.id, label: g.name }));
+    }
     return (text: string): Suggestion[] =>
       matcher
         .suggest(text, 6)
@@ -353,7 +384,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
         .filter((it): it is Item => !!it)
         .map((it) => ({ id: it.id, label: answerOf(it), sub: mode === 'capital' ? undefined : several ? nm(it.country.n) : undefined }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [typed, opts.suggest, matcher, deck, mode, several]);
+  }, [typed, opts.suggest, matcher, deck, mode, several, groups]);
 
   // ------------------------------------------------------------------ render
 
@@ -514,6 +545,18 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
           </h2>
         </>
       );
+    if (mode === 'parent') {
+      const kind = item.belongs!.type;
+      return (
+        <>
+          <p className="kicker">{item.kind === 'city' ? L(`¿En qué ${kind} está?`, `Which ${kind} is it in?`) : L(`¿A qué ${kind} pertenece?`, `Which ${kind} does it belong to?`)}</p>
+          {/* No flag here: on a map of several countries it would be the answer. */}
+          <h2 className="q-name">
+            {item.name} {s.phase === 'ask' && <SpeakButton key={item.id} text={item.name} />}
+          </h2>
+        </>
+      );
+    }
     if (mode === 'capital')
       return (
         <>
@@ -586,7 +629,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
         <>
           <AnswerInput
             label={L('Tu respuesta', 'Your answer')}
-            placeholder={mode === 'capital' ? L('Escribe la capital…', 'Type the capital…') : L(`Escribe ${theOne}…`, `Type ${theOne}…`)}
+            placeholder={mode === 'capital' ? L('Escribe la capital…', 'Type the capital…') : mode === 'parent' ? L('Escribe tu respuesta…', 'Type your answer…') : L(`Escribe ${theOne}…`, `Type ${theOne}…`)}
             onSubmit={onSubmit}
             suggest={suggest}
             shake={shake}

@@ -11,7 +11,7 @@ import type { Mode, Section } from './types';
  * The options that say which game it was, as against how one likes to play: which cities, which figure,
  * what countries are pinned by, against the clock or with lives.
  */
-export type RecentOpts = Partial<Pick<Opts, 'cityPick' | 'cityCount' | 'metric' | 'pinBy' | 'format'>>;
+export type RecentOpts = Partial<Pick<Opts, 'cityPick' | 'cityCount' | 'metric' | 'pinBy' | 'format' | 'axis' | 'countdown'>>;
 
 export interface Recent {
   /** When it was last played. */
@@ -37,7 +37,10 @@ function optsOf(game: GameConfig): RecentOpts {
     o.cityPick = game.opts.cityPick;
     if (game.opts.cityPick === 'top') o.cityCount = game.opts.cityCount;
   }
-  if (game.section === 'pops') o.metric = game.opts.metric;
+  // The figure is the game where there is a choice of them; statements that are true or false are about them all.
+  if (game.section === 'pops' && game.mode !== 'truefalse') o.metric = game.opts.metric;
+  if (game.mode === 'compass') o.axis = game.opts.axis ?? 'ns';
+  if (game.mode === 'nameall' && game.opts.countdown > 0) o.countdown = game.opts.countdown;
   if (game.section === 'countries' && game.mode === 'pin') o.pinBy = game.opts.pinBy;
   if (FORMAT_MODES.includes(game.mode)) o.format = game.opts.format ?? 'normal';
   return o;

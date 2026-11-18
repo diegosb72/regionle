@@ -22,7 +22,12 @@ export interface Opts {
   suggest: boolean;
   /** What "pin it" shows for countries. */
   pinBy: 'name' | 'capital' | 'flag';
-  metric: 'pop' | 'area';
+  /** The figure the number games of the countries are about. */
+  metric: 'pop' | 'area' | 'density';
+  /** Which way five places are put in order: from north to south, or from west to east. */
+  axis: 'ns' | 'we';
+  /** Seconds to fill the map in; 0 for no limit. */
+  countdown: number;
   /** Route game without internal borders. */
   blind: boolean;
   /** Keep the names of solved items on the map. */
@@ -104,7 +109,21 @@ const EUROPE =
   'AD AL AT BA BE BG BY CH CY CZ DE DK EE ES FI FR GB GR HR HU IE IS IT LI LT LU LV MC MD ME MK MT NL NO PL PT RO RS RU SE SI SK SM UA'.split(' ');
 const G20 = 'AR AU BR CA CN DE ES FR GB ID IN IT JP KR MX RU SA TR US ZA'.split(' ');
 
-export const DEFAULT_OPTS: Opts = { answer: 'type', length: 'all', suggest: false, pinBy: 'name', metric: 'pop', blind: false, labels: true, cityPick: 'top', cityCount: 25, wiki: true, format: 'normal' };
+export const DEFAULT_OPTS: Opts = {
+  answer: 'type',
+  length: 'all',
+  suggest: false,
+  pinBy: 'name',
+  metric: 'pop',
+  axis: 'ns',
+  countdown: 0,
+  blind: false,
+  labels: true,
+  cityPick: 'top',
+  cityCount: 25,
+  wiki: true,
+  format: 'normal',
+};
 
 /** `stats` and `where` without anything about the given ids ("loc:x", "name:x"… and the map x was learnt on). */
 export function dropAnswers(stats: Record<string, Stat>, where: Record<string, string>, ids: readonly string[]): { stats: Record<string, Stat>; where: Record<string, string> } {

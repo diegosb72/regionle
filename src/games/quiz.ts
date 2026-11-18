@@ -15,6 +15,14 @@ export function answersItself(it: { name: string; capital?: string[] }, loose: b
 }
 
 /**
+ * The same for what a piece belongs to: the province of Madrid is in the Community of Madrid, León in
+ * Castilla y León and Mexico City in Mexico. Asking it would teach nothing.
+ */
+export function belongsItself(it: { name: string; belongs?: { name: string; answers: string[] } }, loose: boolean): boolean {
+  return !!it.belongs && answersItself({ name: it.name, capital: [it.belongs.name, ...it.belongs.answers] }, loose);
+}
+
+/**
  * Four options take three wrong capitals that have to be known. Where a map has fewer (the rest are named
  * after their own region and are ruled out at a glance, which leaves the answer standing alone), the
  * capitals can only be asked typed.
