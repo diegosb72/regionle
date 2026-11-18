@@ -15,6 +15,32 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.7.0',
+    date: '2026-11-18',
+    es: [
+      'Verdadero o falso: frases sobre los países que elijas (fronteras, capitales, tamaños, vecinos, continentes), con el porqué de cada una.',
+      'Los diez primeros: escribe de memoria los primeros de un mapa por su cifra; cada acierto ocupa su puesto y al quinto fallo se acaba.',
+      '¿A qué pertenece?: de cada provincia, su comunidad; de cada ciudad, su país o su región.',
+      'Norte–sur: cinco lugares del mapa que se ordenan de norte a sur o de oeste a este.',
+      'Los juegos de cifras ya no son solo de países: población de las ciudades, superficie de regiones, lagos, islas y mares y altitud de los picos.',
+      'Densidad de población, junto a la población y la superficie de los países.',
+      'Rellenar el mapa con cuenta atrás: 2, 5, 10 o 15 minutos.',
+      '«Más atajos» en la selección de países: OTAN, Schengen, eurozona, BRICS, Liga Árabe, antigua URSS, microestados, sin salida al mar y otros seis.',
+      'Los modos de cada sección van agrupados en el menú: para estudiar, en el mapa, por la forma, vecinos y posición, datos y cifras.',
+    ],
+    en: [
+      'True or false: statements about the countries you choose (borders, capitals, sizes, neighbours, continents), each with the reason why.',
+      'The top ten: type from memory the first ones of a map by its figure; each right one takes its place and the fifth miss ends the game.',
+      'Where does it belong?: the community of each province; the country or the region of each city.',
+      'North–south: five places on the map to put in order from north to south or from west to east.',
+      'The figure games are no longer only about countries: population of cities, area of regions, lakes, islands and seas, and height of peaks.',
+      'Population density, next to the population and the area of countries.',
+      'Filling the map against a countdown: 2, 5, 10 or 15 minutes.',
+      '“More shortcuts” when choosing countries: NATO, Schengen, the euro area, BRICS, the Arab League, the former USSR, microstates, landlocked and six more.',
+      'The modes of each section are grouped in the menu: to study, on the map, by shape, neighbours and position, facts and figures.',
+    ],
+  },
+  {
     version: '1.6.0',
     date: '2026-11-18',
     es: [

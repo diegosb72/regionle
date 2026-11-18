@@ -3,6 +3,18 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.7.0 — 18 de noviembre de 2026
+
+- Verdadero o falso: frases sobre los países que elijas (fronteras, capitales, tamaños, vecinos, continentes), con el porqué de cada una.
+- Los diez primeros: escribe de memoria los primeros de un mapa por su cifra; cada acierto ocupa su puesto y al quinto fallo se acaba.
+- ¿A qué pertenece?: de cada provincia, su comunidad; de cada ciudad, su país o su región.
+- Norte–sur: cinco lugares del mapa que se ordenan de norte a sur o de oeste a este.
+- Los juegos de cifras ya no son solo de países: población de las ciudades, superficie de regiones, lagos, islas y mares y altitud de los picos.
+- Densidad de población, junto a la población y la superficie de los países.
+- Rellenar el mapa con cuenta atrás: 2, 5, 10 o 15 minutos.
+- «Más atajos» en la selección de países: OTAN, Schengen, eurozona, BRICS, Liga Árabe, antigua URSS, microestados, sin salida al mar y otros seis.
+- Los modos de cada sección van agrupados en el menú: para estudiar, en el mapa, por la forma, vecinos y posición, datos y cifras.
+
 ## 1.6.0 — 18 de noviembre de 2026
 
 - Cada sección, el reto del día y «Acerca de» tienen página propia en cada idioma, con su título y su descripción para buscadores y enlaces.
