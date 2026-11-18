@@ -46,6 +46,8 @@ export const TYPICAL_S: Partial<Record<Mode, number>> = {
   capital: 8,
   flag: 7,
   blind: 9,
+  hotcold: 20,
+  bearing: 10,
   nameall: 5,
   which: 6,
   exact: 15,

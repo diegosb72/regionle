@@ -1,0 +1,159 @@
+/*
+ * Distances and bearings (`Bearings.tsx`): the eight points of the compass laid out as on a compass,
+ * with the place one looks from in the middle. Fetched with the game, after `styles.css`, on which it stands.
+ */
+.rose {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  max-width: 380px;
+}
+.rose-btn {
+  position: relative;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 1px;
+  min-height: 58px;
+  padding: 6px 4px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-2);
+  background: var(--card);
+  line-height: 1.15;
+  transition:
+    border-color 0.12s,
+    background 0.12s;
+}
+.rose-btn b {
+  font: 700 17px var(--sans);
+  letter-spacing: 0.02em;
+}
+/* Its key: the buttons lie as the keys of a numeric keypad do. */
+.rose-btn kbd {
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  color: var(--ink-3);
+  font: 700 10.5px var(--sans);
+  opacity: 0.8;
+}
+@media (hover: none) {
+  .rose-btn kbd {
+    display: none;
+  }
+}
+.rose-btn small {
+  color: var(--ink-3);
+  font-size: 12px;
+}
+.rose-btn:hover:not(:disabled) {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+.rose-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.rose-btn:disabled {
+  color: var(--ink-3);
+  cursor: default;
+}
+.rose-btn.right {
+  border-color: var(--ok);
+  background: var(--ok-soft);
+  color: var(--ok-ink);
+}
+.rose-btn.near {
+  border-color: var(--warn);
+  background: var(--warn-soft);
+  color: var(--warn-ink);
+}
+.rose-btn.wrong {
+  border-color: var(--bad);
+  background: var(--bad-soft);
+  color: var(--bad-ink);
+}
+.rose-btn.wrong b {
+  text-decoration: line-through;
+}
+.rose-btn.right small,
+.rose-btn.near small,
+.rose-btn.wrong small {
+  color: inherit;
+}
+/* Where one stands: the place the question looks from. */
+.rose-mid {
+  display: grid;
+  align-content: center;
+  min-width: 0;
+  max-height: 58px;
+  padding: 3px 5px;
+  border: 1px dashed var(--line-2);
+  border-radius: var(--r-2);
+  overflow: hidden;
+  color: var(--ink-2);
+  line-height: 1.1;
+  text-align: center;
+}
+.rose-mid small {
+  color: var(--ink-3);
+  font-size: 10.5px;
+}
+.rose-mid b {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 600;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+/* Where the question looks from: under the name asked about, and smaller than it. */
+.bearing-from {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  margin-top: 4px;
+  font-size: 18px;
+  line-height: 1.25;
+}
+.bearing-from span {
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.bearing-from b {
+  font-family: var(--serif);
+  font-weight: 560;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+.bearing-from small {
+  color: var(--ink-2);
+  font-size: 14.5px;
+}
+.bearing-line {
+  margin-top: 2px;
+}
+.bearing-to {
+  vertical-align: -2px;
+}
+/* On a phone the panel is half the screen: the whole compass has to be in it without a scroll. */
+@media (max-width: 860px) {
+  .rose {
+    gap: 6px;
+  }
+  .rose-btn {
+    min-height: 46px;
+    padding: 3px 4px;
+  }
+  .rose-mid {
+    max-height: 46px;
+  }
+  .rose-mid b {
+    -webkit-line-clamp: 1;
+  }
+}

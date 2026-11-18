@@ -3,6 +3,7 @@ import { belongsToCountry, commonPlace, divisionsOf, frameForCountries, frameFor
 import { sightFor } from './geo';
 import { L, nm } from './i18n';
 import { PHYS_KINDS, isWater, kindNoun, kindsIn, parsePhys, physMatches, physTokens, typeNoun, type PhysSpec, type PhysType } from './phys';
+import { seaParts } from './seas';
 import { editOf } from './typeins';
 import type { AnyGeo, Country, Deck, Geo, Item, LL, Named } from './types';
 
@@ -261,6 +262,21 @@ export async function buildPhysicalDeck(tokens: string[], must?: string[], keep 
     sl: [],
     wd: rec.wd,
   }));
+
+  // The seas inside each sea, asked here or not. An ocean that has taken its seas in is whole already.
+  const drawn = new Map(items.map((it) => [it.id, it]));
+  for (const it of items) {
+    if (!isWater(it.cat)) continue;
+    const rec = recs.find((r) => r.i === it.id);
+    if (whole && rec?.gw) continue;
+    const parts = seaParts(it.id).flatMap((id) => {
+      const part = file.f.find((f) => f.i === id);
+      if (!part?.g) return [];
+      const geo = drawn.get(id)?.geo ?? ({ type: 'Feature', id, properties: {}, geometry: geometryOf(part, file.scale) } as AnyGeo);
+      return [{ id, name: nm(part.n), geo }];
+    });
+    if (parts.length) it.parts = parts;
+  }
 
   // A frame is made of land. A sea that only touches a far corner of it is brought in as far as it takes to see it.
   const waters = items.filter((it) => isWater(it.cat)).map((it) => ({ geo: it.geo, at: it.lp }));

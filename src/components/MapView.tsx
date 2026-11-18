@@ -16,9 +16,11 @@ export type Paint = 'ok' | 'warn' | 'bad' | 'target' | 'from' | 'to' | 'sel' | '
 export interface MapHandle {
   /**
    * Brings items into view, zooming in when they are too small to see. With `passing`, the view that is
-   * left behind is remembered, so that `restore` can go back to it.
+   * left behind is remembered, so that `restore` can go back to it. `apart` is how many pixels several
+   * things must take up between them to be left as they are (36 unless said): two names need more room
+   * than two shapes. They are then brought that far apart and half as much again, and no closer.
    */
-  focus(ids: string[], opts?: { force?: boolean; fill?: number; instant?: boolean; passing?: boolean }): void;
+  focus(ids: string[], opts?: { force?: boolean; fill?: number; instant?: boolean; passing?: boolean; apart?: number }): void;
   /** Back to the whole deck. */
   reset(): void;
   /** Back to where the player was before a passing `focus`; nothing when they have moved the map since. */
@@ -49,11 +51,17 @@ interface Props {
   flash?: { id: string; kind: 'bad' | 'ok'; n: number } | null;
   /** A click anywhere on the map reports where it fell, instead of what it fell on. */
   onPoint?: (ll: LL) => void;
-  /** When given, the only dots that are drawn: the rest stay off the map (placing cities blind). */
-  dots?: ReadonlySet<string>;
-  /** Pins that are not items: where the player clicked. */
-  marks?: { ll: LL; kind: 'guess' }[];
+  /**
+   * When given, the only dots, lines and surfaces of the deck that are drawn: the rest stay off the map
+   * (placing cities, rivers or seas blind). Not for maps whose pieces are the land itself: those are left
+   * without borders with `blind`.
+   */
+  only?: ReadonlySet<string>;
+  /** Pins that are not items: where the player clicked; `heat-0` to `heat-4`, how warm that click was. */
+  marks?: { ll: LL; kind: MarkKind }[];
 }
+
+export type MarkKind = 'guess' | 'heat-0' | 'heat-1' | 'heat-2' | 'heat-3' | 'heat-4';
 
 interface Shape {
   id: string;
@@ -339,7 +347,7 @@ const Overlay = memo(
     );
 
     const k = step == null ? 0 : 2 ** (step / STEPS);
-    const rings = useMemo(() => (k ? pickRings(shapes, k, paint) : []), [shapes, k, paint]);
+    const rings = useMemo(() => (k ? pickRings(only ? shapes.filter((s) => only.has(s.id)) : shapes, k, paint) : []), [shapes, k, paint, only]);
 
     const dots = useMemo(() => shapes.filter((s) => s.kind === 'point' && (!only || only.has(s.id))), [shapes, only]);
     const named = useMemo(() => {
@@ -348,7 +356,7 @@ const Overlay = memo(
       for (const s of shapes) {
         const pin = !!pinned?.has(s.id);
         if (!pin && !(labels === 'all' || labels?.has(s.id))) continue;
-        if (only && s.kind === 'point' && !only.has(s.id)) continue;
+        if (only && !only.has(s.id)) continue;
         // A dot has no room of its own: whether its name fits depends on what lies around it, and is settled below.
         const room = s.kind === 'point' ? Infinity : Math.max(s.x1 - s.x0, (s.y1 - s.y0) * 0.6, 0.02);
         out.push({ s, pin, min: pin ? 0 : ((s.name.length * 6.3 + 8) * 0.9) / room });
@@ -455,7 +463,7 @@ const Overlay = memo(
   }),
 );
 
-export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, paint, pickable, pressable, onPick, labels, pinned, tip, blind, links, flash, onPoint, dots, marks }, ref) {
+export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, paint, pickable, pressable, onPick, labels, pinned, tip, blind, links, flash, onPoint, only, marks }, ref) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const rootRef = useRef<SVGGElement>(null);
@@ -604,7 +612,7 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
 
   /** Brings items into view, as `MapHandle.focus` says. */
   const bring = useCallback(
-    (ids: string[], opts: { force?: boolean; fill?: number; instant?: boolean; passing?: boolean } = {}) => {
+    (ids: string[], opts: { force?: boolean; fill?: number; instant?: boolean; passing?: boolean; apart?: number } = {}) => {
       const svg = svgRef.current;
       const z = zoomRef.current;
       const lay = layoutRef.current;
@@ -629,12 +637,13 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
       const one = ids.length === 1 ? g.byId.get(ids[0]) : undefined;
       const inside = x0 * t.k + t.x > 16 && y0 * t.k + t.y > 16 && x1 * t.k + t.x < w - 16 && y1 * t.k + t.y < h - 16;
       // An archipelago can span a wide box and still be a few specks: judge it by its biggest island.
-      const seen = one ? one.land * t.k >= SEEN : Math.max(bw, bh) * t.k >= 36;
+      const seen = one ? one.land * t.k >= SEEN : Math.max(bw, bh) * t.k >= (opts.apart ?? 36);
       if (!opts.force && inside && seen) return;
       const whole = Math.min(w / bw, h / bh);
       // Asked to fill the view: do so. Otherwise come just close enough to make the thing out, so that
       // as much as possible of what surrounds it stays on screen.
       let k = opts.fill != null ? Math.min(whole * opts.fill, fit.k * 60) : one ? (SEEN + 4) / one.land : whole * 0.5;
+      if (opts.apart != null && opts.fill == null && !one) k = Math.min(k, (opts.apart * 1.5) / Math.max(bw, bh));
       k = Math.min(k, whole * 0.85, z.scaleExtent()[1]);
       const target = k < fit.k * 1.3 ? fit : zoomIdentity.translate(w / 2 - (k * (x0 + x1)) / 2, h / 2 - (k * (y0 + y1)) / 2).scale(k);
       if (opts.passing) backRef.current ??= t;
@@ -742,7 +751,7 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
 
   const hotRef = useRef<Element | null>(null);
   const rawId = (target: EventTarget | null, attr: string) => (target instanceof Element ? (target.closest(`[${attr}]`)?.getAttribute(attr) ?? null) : null);
-  const dotShapes = useMemo(() => g.shapes.filter((s) => s.kind === 'point' && (!dots || dots.has(s.id))), [g, dots]);
+  const dotShapes = useMemo(() => g.shapes.filter((s) => s.kind === 'point' && (!only || only.has(s.id))), [g, only]);
   /**
    * Item under the pointer. Dots lie close together and their click areas overlap: the one nearest to
    * the pointer is meant, not the one that happens to be drawn last.
@@ -796,7 +805,7 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
   const cursor = kb?.of === g && kb.id ? g.byId.get(kb.id) : undefined;
   const cross = kb?.of === g ? kb.at : undefined;
   /** What the cursor can stand on: whatever a click can fall on. */
-  const spots = useMemo(() => g.shapes.filter((s) => s.kind !== 'point' || !dots || dots.has(s.id)), [g, dots]);
+  const spots = useMemo(() => g.shapes.filter((s) => !only || only.has(s.id)), [g, only]);
   const navRef = useRef<{ of: Shape[]; moves: Moves; order: Shape[] } | null>(null);
   /** Worked out the first time a key asks for it: a map of thousands of pieces takes a moment. */
   const nav = () => {
@@ -1036,14 +1045,14 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
           <Backdrop sphere={g.sphere} grat={g.grat} />
           {g.under.length > 0 && (
             <g className="m-items m-under">
-              {g.under.map((s) => (
+              {(only ? g.under.filter((s) => only.has(s.id)) : g.under).map((s) => (
                 <ShapePath key={s.id} id={s.id} d={s.d} st={paint?.[s.id]} cls={s.cls} />
               ))}
             </g>
           )}
           <Land ctx={g.ctx} base={g.base} />
           <g className="m-items">
-            {g.over.map((s) =>
+            {(only ? g.over.filter((s) => only.has(s.id)) : g.over).map((s) =>
               s.kind === 'line' ? (
                 <LinePath key={s.id} id={s.id} d={s.d} st={paint?.[s.id]} cls={s.cls} />
               ) : (
@@ -1083,7 +1092,7 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
             paint={paint}
             labels={labels}
             pinned={pinned}
-            only={dots}
+            only={only}
             marks={markPoints}
             cursor={keying ? cursor : null}
             cursorText={keying ? cursorText : null}

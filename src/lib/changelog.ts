@@ -15,6 +15,30 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.15.0',
+    date: '2026-11-18',
+    es: [
+      'Situar a ciegas, también en regiones, países y geografía física: el mapa no enseña fronteras, ríos ni mares, y haces clic donde crees que está cada cosa.',
+      'Dentro de la pieza es acierto; fuera, se mide hasta su borde o hasta el curso del río. Con lo muy pequeño basta con quedarse cerca.',
+      'Un mar cuenta con los mares que forman parte de él: el Mediterráneo también se acierta en el mar Balear, y se te dice que esa parte tiene nombre propio.',
+      'Caliente y frío: seis clics para encontrar cada cosa en el mapa vacío. Cada uno dice si te quemas o te hielas, y si te acercas o te alejas.',
+      'Distancias y rumbos: sin mirar el mapa, ¿hacia dónde queda un sitio desde otro y a cuántos kilómetros? Al responder, el mapa enseña los dos y su línea.',
+      'En los rumbos eliges entre los ocho puntos de la brújula; el de al lado cuenta como acierto con ayuda cuando el sitio cae hacia él.',
+      'Los tres juegos se llevan con el teclado: una cruz que mueven las flechas para marcar un punto, y el teclado numérico para los rumbos.',
+      'El código del juego tiene ya licencia: MIT. Los datos de los mapas siguen las condiciones de sus fuentes.',
+    ],
+    en: [
+      'Place it blind, now on regions, countries and physical geography too: the map shows no borders, rivers or seas, and you click where you think each thing is.',
+      'Inside the piece is right; outside, the miss is measured to its edge or to the course of the river. For very small things, close is enough.',
+      'A sea counts with the seas that are part of it: the Mediterranean is also right in the Balearic Sea, and you are told that part has a name of its own.',
+      'Hot and cold: six clicks to find each thing on the blank map. Each one says whether you are burning or freezing, and getting closer or further.',
+      'Distances and bearings: without looking at the map, which way is one place from another, and how far? Once you answer, the map shows both and their line.',
+      'For bearings you choose among the eight points of the compass; the one beside counts as right with help when the place leans that way.',
+      'All three games work with the keyboard: a cross moved by the arrow keys to mark a spot, and the numeric keypad for bearings.',
+      'The code of the game now has a licence: MIT. The data of the maps keep the terms of their sources.',
+    ],
+  },
+  {
     version: '1.14.0',
     date: '2026-11-18',
     es: [

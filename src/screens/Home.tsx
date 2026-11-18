@@ -164,7 +164,12 @@ function Recents({ world }: { world: World }) {
             const flags = countriesOf(specOf(r), world).slice(0, 3);
             const paced = r.o.format && r.o.format !== 'normal' ? ` · ${formatName(r.o.format).toLowerCase()}` : r.o.countdown ? ` · ${r.o.countdown / 60} min` : '';
             // Two packs of cards on the same map are told apart by what they ask.
-            const asked = r.mode === 'cards' && r.o.cardAsk ? ` · ${cardAskName(r.o.cardAsk)}` : '';
+            const asked =
+              r.mode === 'cards' && r.o.cardAsk
+                ? ` · ${cardAskName(r.o.cardAsk)}`
+                : r.mode === 'bearing' && r.o.bearingAsk && r.o.bearingAsk !== 'both'
+                  ? ` · ${r.o.bearingAsk === 'dir' ? L('solo rumbos', 'bearings only') : L('solo distancias', 'distances only')}`
+                  : '';
             return (
               <li key={recentKey(r)}>
                 <button type="button" onClick={() => again(r)}>

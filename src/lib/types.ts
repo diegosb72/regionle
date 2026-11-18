@@ -112,6 +112,18 @@ export interface Item {
   /** Ids of deck items reachable by a short sea crossing. */
   sl: string[];
   wd?: string;
+  /**
+   * Seas: the smaller seas that are part of it and are drawn as pieces of their own (see lib/seas.ts),
+   * whether this map asks them or not. Only where a place is judged with nothing drawn does it matter.
+   */
+  parts?: Part[];
+}
+
+/** A sea that is part of another: its name and its outline. */
+export interface Part {
+  id: string;
+  name: string;
+  geo: AnyGeo;
 }
 
 /** What something is part of, with all it takes to be an answer: its names and what it is. */
@@ -164,6 +176,10 @@ export type Mode =
   | 'learn'
   | 'regionle'
   | 'blind'
+  /** Placing blind with several clicks: each miss says how warm it was. */
+  | 'hotcold'
+  /** Which way one place lies from another, and how far: nothing of either is on the map. */
+  | 'bearing'
   /** Not a game: the screen where a custom list is put together. */
   | 'edit'
   /** Not a game either: the map without names, laid out on paper to be printed. */

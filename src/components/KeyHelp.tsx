@@ -116,8 +116,8 @@ export function GameKeys() {
         </dt>
         <dd>
           {L(
-            'En un mapa en el que hay que elegir una pieza (Señalar, Puzle, Aprender, el reto del día…), llevan el cursor a la pieza vecina por ese lado. Donde se marca un punto (Situar a ciegas) mueven una cruz; con Mayús, a pasos cortos.',
-            'On a map where a piece has to be chosen (Pin it, Jigsaw, Learn, the daily challenge…), they take the cursor to the next piece on that side. Where a spot is marked (Place it blind) they move a cross; with Shift, in short steps.',
+            'En un mapa en el que hay que elegir una pieza (Señalar, Puzle, Aprender, el reto del día…), llevan el cursor a la pieza vecina por ese lado. Donde se marca un punto (Situar a ciegas, Caliente y frío) mueven una cruz; con Mayús, a pasos cortos.',
+            'On a map where a piece has to be chosen (Pin it, Jigsaw, Learn, the daily challenge…), they take the cursor to the next piece on that side. Where a spot is marked (Place it blind, Hot and cold) they move a cross; with Shift, in short steps.',
           )}
         </dd>
       </div>
@@ -154,6 +154,17 @@ export function GameKeys() {
           <Keys>1 2 3 4</Keys>
         </dt>
         <dd>{L('Eligen entre las cuatro opciones, cuando la respuesta no se escribe.', 'They choose among the four options, when the answer is not typed.')}</dd>
+      </div>
+      <div>
+        <dt>
+          <Keys>8 6 2 4</Keys>
+        </dt>
+        <dd>
+          {L(
+            'En «Distancias y rumbos», eligen el rumbo como están en un teclado numérico: 8 norte, 6 este, 2 sur y 4 oeste; 7, 9, 3 y 1, los intermedios.',
+            'In “Distances and bearings”, they choose the bearing as they lie on a numeric keypad: 8 north, 6 east, 2 south and 4 west; 7, 9, 3 and 1, the ones in between.',
+          )}
+        </dd>
       </div>
       <div>
         <dt>

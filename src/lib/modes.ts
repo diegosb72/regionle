@@ -22,7 +22,9 @@ import {
   ScanSearch,
   Shapes,
   Shuffle,
+  Signpost,
   Target,
+  Thermometer,
   Trophy,
   Waypoints,
   type LucideIcon,
@@ -111,6 +113,26 @@ function modesOf(section: Section): ModeDef[] {
     level: 2,
     group: 'map',
   };
+  /** A click on a map that shows nothing of what is asked. */
+  const blind = (desc: string): ModeDef => ({ id: 'blind', name: L('Situar a ciegas', 'Place it blind'), desc, icon: Crosshair, level: 3, group: 'map' });
+  const blindLand = blind(
+    L(
+      'El mapa no enseña las fronteras: haz clic dentro de donde creas que está cada pieza. Las muy pequeñas valen con quedarse cerca.',
+      'The map shows no borders: click inside where you think each piece is. For the very small ones, close is enough.',
+    ),
+  );
+  /** The same with several clicks, each one answered with how warm it was. */
+  const hotcold: ModeDef = {
+    id: 'hotcold',
+    name: L('Caliente y frío', 'Hot and cold'),
+    desc: L(
+      'Como «Situar a ciegas», con seis clics para cada cosa: si no aciertas, te decimos si vas caliente o frío y si te has acercado.',
+      'Like “Place it blind”, with six clicks for each thing: if you miss, you are told whether you are hot or cold and whether you got closer.',
+    ),
+    icon: Thermometer,
+    level: 2,
+    group: 'map',
+  };
   /** Each piece asked in one of the ways the section has, by lot. */
   const mix = (desc: string): ModeDef => ({ id: 'mix', name: L('Popurrí', 'Medley'), desc, icon: Shuffle, level: 2, group: 'map' });
   const mixShapes = mix(
@@ -166,6 +188,19 @@ function modesOf(section: Section): ModeDef[] {
     level: 2,
     group: 'links',
   };
+  /** Which way and how far, with nothing on the map; `apart` says what is measured between. */
+  const bearing = (apart: string): ModeDef => ({
+    id: 'bearing',
+    name: L('Distancias y rumbos', 'Distances and bearings'),
+    desc: `${L(
+      'Sin mirar el mapa: ¿hacia dónde queda un sitio desde otro, y a cuántos kilómetros? Al responder, el mapa enseña los dos y la línea que los une.',
+      'Without looking at the map: which way is one place from another, and how many kilometres away? Once you answer, the map shows both and the line between them.',
+    )} ${apart}`,
+    icon: Signpost,
+    level: 2,
+    group: 'links',
+  });
+  const bearingLand = bearing(L('Se mide de centro a centro.', 'Measured from centre to centre.'));
   /** The number games, said for what each section measures. */
   const figures = (by: string, which: string): ModeDef[] => [
     { id: 'hilo', name: L('Mayor o menor', 'Higher or lower'), desc: `${L('Compara cada cifra con la anterior y encadena aciertos.', 'Compare each figure with the one before and keep the streak going.')} ${by}`, icon: ArrowUpDown, level: 1, group: 'figures' },
@@ -183,6 +218,8 @@ function modesOf(section: Section): ModeDef[] {
         print,
         pin,
         listen,
+        blindLand,
+        hotcold,
         identify,
         nameall,
         puzzle,
@@ -203,6 +240,7 @@ function modesOf(section: Section): ModeDef[] {
           group: 'links',
         },
         compass,
+        bearingLand,
         {
           id: 'capital',
           name: L('Capitales', 'Capitals'),
@@ -221,6 +259,8 @@ function modesOf(section: Section): ModeDef[] {
         print,
         pin,
         listen,
+        blindLand,
+        hotcold,
         identify,
         nameall,
         puzzle,
@@ -235,6 +275,7 @@ function modesOf(section: Section): ModeDef[] {
         neighbours,
         travel,
         compass,
+        bearingLand,
         { id: 'capital', name: L('Capitales', 'Capitals'), desc: L('De cada país, su capital. Los que se llaman igual que su capital no se preguntan.', 'The capital of each country. The ones named after their capital are not asked.'), icon: Landmark, level: 2, group: 'facts' },
         {
           id: 'flag',
@@ -253,14 +294,13 @@ function modesOf(section: Section): ModeDef[] {
         { ...print, desc: L('Para imprimir: el mapa con un punto numerado por ciudad y una línea para escribir cada nombre. Si quieres, sin números y con las soluciones en otra hoja.', 'To print: the map with a numbered dot for each city and a line to write each name on. If you like, without numbers and with the answers on another sheet.') },
         { ...pin, desc: L('Te damos una ciudad y la buscas entre los puntos del mapa.', 'You get a city and find it among the dots on the map.') },
         listen,
-        {
-          id: 'blind',
-          name: L('Situar a ciegas', 'Place it blind'),
-          desc: L('Sin puntos en el mapa: haz clic donde creas que está la ciudad y puntúas según los kilómetros de error.', 'No dots on the map: click where you think the city is and score by how many kilometres you are off.'),
-          icon: Crosshair,
-          level: 3,
-          group: 'map',
-        },
+        blind(
+          L(
+            'Sin puntos en el mapa: haz clic donde creas que está la ciudad y puntúas según los kilómetros de error.',
+            'No dots on the map: click where you think the city is and score by how many kilometres you are off.',
+          ),
+        ),
+        hotcold,
         { ...identify, desc: L('Se ilumina un punto del mapa y dices qué ciudad es.', 'A dot lights up and you say which city it is.') },
         nameall,
         mixDots,
@@ -273,6 +313,7 @@ function modesOf(section: Section): ModeDef[] {
           group: 'links',
         },
         compass,
+        bearing(L('De ciudad a ciudad, en línea recta.', 'From city to city, as the crow flies.')),
         ...figures(L('Aquí, por la población de cada ciudad.', 'Here, by the population of each city.'), L('¿Qué ciudad?', 'Which city?')),
       ];
     case 'physical':
@@ -283,6 +324,13 @@ function modesOf(section: Section): ModeDef[] {
         { ...print, desc: L('Para imprimir: ríos, mares, cordilleras y picos sin nombre, con un número en cada uno y una línea para escribirlo. Si quieres, sin números y con las soluciones en otra hoja.', 'To print: rivers, seas, ranges and peaks without names, a number on each and a line to write it on. If you like, without numbers and with the answers on another sheet.') },
         pin,
         listen,
+        blind(
+          L(
+            'El mapa no enseña ríos, mares ni montañas: haz clic donde creas que está cada uno. En un mar o una cordillera, dentro; en un río, sobre su curso.',
+            'The map shows no rivers, seas or mountains: click where you think each one is. Inside a sea or a range; on the course of a river.',
+          ),
+        ),
+        hotcold,
         { ...identify, desc: L('Se ilumina un río, un mar, una cordillera o un continente y dices cuál es.', 'A river, a sea, a range or a continent lights up and you say which one it is.') },
         nameall,
         mixDots,
@@ -317,6 +365,10 @@ function modeName(mode: Mode): string {
       return 'Regionle';
     case 'blind':
       return L('Situar a ciegas', 'Place it blind');
+    case 'hotcold':
+      return L('Caliente y frío', 'Hot and cold');
+    case 'bearing':
+      return L('Distancias y rumbos', 'Distances and bearings');
     case 'edit':
       return L('Lista a medida', 'Custom list');
     case 'print':
@@ -428,7 +480,7 @@ function lazy<K extends string, V>(keys: readonly K[], make: (key: K) => V): Rec
   return out;
 }
 
-const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'neighbours', 'capital', 'flag', 'blind', 'edit', 'print', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'topten', 'cards', 'mix', 'listen'];
+const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'neighbours', 'capital', 'flag', 'blind', 'hotcold', 'bearing', 'edit', 'print', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'topten', 'cards', 'mix', 'listen'];
 
 export const MODES: Record<Section, ModeDef[]> = lazy(SECTION_IDS, modesOf);
 export const MODE_NAME: Record<Mode, string> = lazy(MODE_IDS, modeName);

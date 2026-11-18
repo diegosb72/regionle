@@ -26,11 +26,11 @@ const COUNTDOWNS = [0, 120, 300, 600, 900];
 const levelName = (n: number): string => [L('Fácil', 'Easy'), L('Medio', 'Medium'), L('Difícil', 'Hard')][n - 1];
 const ANSWER_MODES: Mode[] = ['learn', 'identify', 'outline', 'capital', 'flag', 'parent', 'mix'];
 /** Games that are one round of everything: they cannot go on for ever. */
-const FINITE_MODES: Mode[] = ['neighbours', 'blind', 'cards'];
+const FINITE_MODES: Mode[] = ['neighbours', 'blind', 'hotcold', 'bearing', 'cards'];
 /** Games where names are typed and a list of suggestions can help. */
 const SUGGEST_MODES: Mode[] = ['travel', 'neighbours', 'regionle', 'which', 'topten'];
 /** Games that stop on a missed answer long enough to read about it. */
-const WIKI_MODES: Mode[] = ['explore', 'pin', 'identify', 'outline', 'regionle', 'puzzle', 'neighbours', 'capital', 'flag', 'blind', 'mix', 'listen'];
+const WIKI_MODES: Mode[] = ['explore', 'pin', 'identify', 'outline', 'regionle', 'puzzle', 'neighbours', 'capital', 'flag', 'blind', 'hotcold', 'bearing', 'mix', 'listen'];
 
 type Cities = Awaited<ReturnType<typeof loadCities>>;
 type Physical = Awaited<ReturnType<typeof loadPhysical>>;
@@ -441,11 +441,12 @@ export function Setup({ section, world }: { section: Section; world: World }) {
     length: LENGTH_MODES.includes(def.id) && !paced && !active,
     suggest: (typed && def.id !== 'learn') || SUGGEST_MODES.includes(def.id),
     // An exam writes nothing on its map.
-    labels: (def.id === 'pin' || def.id === 'identify' || def.id === 'puzzle' || def.id === 'blind' || def.id === 'mix' || def.id === 'listen') && !exam,
+    labels: (def.id === 'pin' || def.id === 'identify' || def.id === 'puzzle' || def.id === 'blind' || def.id === 'hotcold' || def.id === 'mix' || def.id === 'listen') && !exam,
     pinBy: def.id === 'pin' && section === 'countries',
     blind: def.id === 'travel',
     metric: section === 'pops' && FIGURE_MODES.includes(def.id),
     axis: def.id === 'compass',
+    bearingAsk: def.id === 'bearing',
     // A review and a list are filled in at their own pace.
     countdown: def.id === 'nameall',
     cities: section === 'cities' && !active,
@@ -732,6 +733,28 @@ export function Setup({ section, world }: { section: Section; world: World }) {
                       { value: 'flag', label: L('La bandera', 'The flag') },
                     ]}
                   />
+                </div>
+              )}
+              {show.bearingAsk && (
+                <div className="opt">
+                  <span className="opt-label">{L('Pregunta', 'Question')}</span>
+                  <Seg
+                    label={L('Qué se pregunta', 'What is asked')}
+                    value={opts.bearingAsk ?? 'both'}
+                    onChange={(bearingAsk) => set({ bearingAsk })}
+                    options={[
+                      { value: 'both', label: L('Las dos cosas', 'Both') },
+                      { value: 'dir', label: L('Rumbo', 'Bearing') },
+                      { value: 'dist', label: L('Distancia', 'Distance') },
+                    ]}
+                  />
+                  <p className="opt-hint">
+                    {(opts.bearingAsk ?? 'both') === 'dir'
+                      ? L('Hacia dónde queda cada sitio desde otro: norte, noreste, este…', 'Which way each place is from another: north, north-east, east…')
+                      : opts.bearingAsk === 'dist'
+                        ? L('A cuántos kilómetros está cada sitio de otro, entre cuatro distancias.', 'How many kilometres each place is from another, out of four distances.')
+                        : L('Una pregunta de rumbo y otra de distancia, por turnos.', 'A question about the bearing and one about the distance, in turn.')}
+                  </p>
                 </div>
               )}
               {show.cardAsk && (
