@@ -3,6 +3,17 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.11.0 — 18 de noviembre de 2026
+
+- Continentes y océanos: el mapa del mundo con los seis continentes, cada uno de un color, y los cinco océanos. Se juega a todo, y a las cifras con su superficie.
+- En ese mapa cada mar responde por su océano: el Mediterráneo y el Caribe son Atlántico, y el mar Arábigo, Índico.
+- Penínsulas: treinta, de la Ibérica a Kamchatka, y en el mapa de cada país, las suyas.
+- Mesetas, llanuras y cabos de todo el mundo, no solo de España: la Gran Llanura Europea, el Tíbet y la Pampa; Buena Esperanza, Hornos y el cabo Norte.
+- Cataratas: Niágara, Salto Ángel, Iguazú y Victoria.
+- Lo que se pregunta está siempre en pantalla: el Ártico no se veía en el mapa de Europa ni el mar de Bering en el de Asia. Ahora el mapa llega hasta ellos.
+- Cuando una pieza es mayor que el mapa (el Atlántico en el de Europa), su nombre y su número se escriben en la parte que se ve.
+- Senegal, Nicaragua, Siria, Tailandia, Uzbekistán y Serbia ya tienen mapa físico propio: son 63 países.
+
 ## 1.10.0 — 18 de noviembre de 2026
 
 - Geografía física de España, como en un atlas escolar: 81 ríos, las cordilleras, las mesetas y depresiones, cabos, islas, golfos, picos y embalses.

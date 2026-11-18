@@ -15,6 +15,30 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.11.0',
+    date: '2026-11-18',
+    es: [
+      'Continentes y océanos: el mapa del mundo con los seis continentes, cada uno de un color, y los cinco océanos. Se juega a todo, y a las cifras con su superficie.',
+      'En ese mapa cada mar responde por su océano: el Mediterráneo y el Caribe son Atlántico, y el mar Arábigo, Índico.',
+      'Penínsulas: treinta, de la Ibérica a Kamchatka, y en el mapa de cada país, las suyas.',
+      'Mesetas, llanuras y cabos de todo el mundo, no solo de España: la Gran Llanura Europea, el Tíbet y la Pampa; Buena Esperanza, Hornos y el cabo Norte.',
+      'Cataratas: Niágara, Salto Ángel, Iguazú y Victoria.',
+      'Lo que se pregunta está siempre en pantalla: el Ártico no se veía en el mapa de Europa ni el mar de Bering en el de Asia. Ahora el mapa llega hasta ellos.',
+      'Cuando una pieza es mayor que el mapa (el Atlántico en el de Europa), su nombre y su número se escriben en la parte que se ve.',
+      'Senegal, Nicaragua, Siria, Tailandia, Uzbekistán y Serbia ya tienen mapa físico propio: son 63 países.',
+    ],
+    en: [
+      'Continents and oceans: the map of the world with the six continents, each in its own colour, and the five oceans. Every game plays on it, the figures by area.',
+      'On that map every sea answers for its ocean: the Mediterranean and the Caribbean are Atlantic, and the Arabian Sea, Indian.',
+      'Peninsulas: thirty of them, from Iberia to Kamchatka, and on the map of each country, its own.',
+      'Plateaus, plains and capes of the whole world, not only of Spain: the European Plain, Tibet and the Pampas; Good Hope, Cape Horn and the North Cape.',
+      'Waterfalls: Niagara, Angel Falls, Iguazu and Victoria.',
+      'What is asked is always on screen: the Arctic Ocean could not be seen on the map of Europe, nor the Bering Sea on that of Asia. The map now reaches them.',
+      'When a piece is bigger than the map (the Atlantic on that of Europe), its name and its number are written on the part in sight.',
+      'Senegal, Nicaragua, Syria, Thailand, Uzbekistan and Serbia now have a physical map of their own: 63 countries in all.',
+    ],
+  },
+  {
     version: '1.10.0',
     date: '2026-11-18',
     es: [
