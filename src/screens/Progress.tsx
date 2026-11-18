@@ -592,8 +592,8 @@ export function Progress({ world }: { world: World }) {
 
   const exportData = () => {
     // The short forms chosen in the settings travel with the rest: they are read when the copy is made.
-    const { typeins, typeinAuto, recent, mix, goals, days } = useStore.getState();
-    const data = { app: 'regionle', version: 3, exported: new Date().toISOString(), stats, where: whereMap, mix, sessions, recent, best, favs, daily, days, lists, goals, badges, tot, typeins, typeinAuto };
+    const { typeins, typeinAuto, recent, mix, goals, days, notes } = useStore.getState();
+    const data = { app: 'regionle', version: 3, exported: new Date().toISOString(), stats, where: whereMap, mix, sessions, recent, best, favs, daily, days, lists, goals, notes, badges, tot, typeins, typeinAuto };
     download(JSON.stringify(data, null, 1), `regionle-${L('progreso', 'progress')}-${new Date().toISOString().slice(0, 10)}.json`, 'application/json');
   };
 
@@ -686,6 +686,7 @@ export function Progress({ world }: { world: World }) {
 
   // Someone who has only done daily challenges has no session and no answer kept, and has days all the same.
   const hasDays = useStore((s) => Object.keys(s.days).length > 0);
+  const hasNotes = useStore((s) => Object.keys(s.notes).length > 0);
   const empty = !sessions.length && !Object.keys(stats).length && !hasDays;
 
   return (
@@ -852,7 +853,7 @@ export function Progress({ world }: { world: World }) {
         <h2>{L('Copia de seguridad', 'Backup')}</h2>
         <p className="tip-line">{L('Llévate tu progreso, tus selecciones guardadas, tus listas y tus abreviaturas a otro navegador, o empieza de cero.', 'Take your progress, your saved selections, your lists and your short forms to another browser, or start from scratch.')}</p>
         <div className="backup">
-          <button type="button" className="btn" onClick={exportData} disabled={empty && !favs.length && !lists.length && !hasTypeins}>
+          <button type="button" className="btn" onClick={exportData} disabled={empty && !favs.length && !lists.length && !hasTypeins && !hasNotes}>
             <Download size={16} aria-hidden="true" />
             {L('Exportar', 'Export')}
           </button>

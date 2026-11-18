@@ -6,6 +6,7 @@ import { Check, Eye, Flag as FlagIcon, Minus, X } from 'lucide-react';
 import { useEffect, useMemo, useReducer, useRef, useState, type CSSProperties } from 'react';
 import { MapView, type MapHandle, type Paint } from '../components/MapView';
 import { SpeakButton } from '../components/Speak';
+import { PieceNote } from '../components/Note';
 import { Flag, StudyLinks } from '../components/ui';
 import { seedOf } from '../lib/challenge';
 import { L, nm } from '../lib/i18n';
@@ -234,6 +235,7 @@ export function CardsGame({ deck, cfg, onExit, onAgain }: GameProps) {
                   )}
                 </div>
                 <ItemFacts item={item} />
+                <PieceNote key={item.id} id={item.id} />
                 <StudyLinks item={item} />
               </div>
             )}

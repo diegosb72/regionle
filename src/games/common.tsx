@@ -1,6 +1,7 @@
 /** Pieces shared by every game: screen frame, clock, verdict box and results. */
 import { ArrowLeft, Check, CircleAlert, Flame, RotateCcw, Settings2, Timer, X } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { PieceNote } from '../components/Note';
 import { ReviewNext } from '../components/ReviewCard';
 import { SpeakButton } from '../components/Speak';
 import { WikiCard } from '../components/WikiCard';
@@ -230,6 +231,7 @@ export function Verdict({ res, title, item, wiki, say, children }: { res: Res; t
         {aloud && <SpeakButton key={aloud} text={aloud} />}
       </div>
       {item && <ItemFacts item={item} />}
+      {item && <PieceNote key={item.id} id={item.id} />}
       {item && wiki && res !== 'ok' && <WikiCard item={item} />}
       {item && <StudyLinks item={item} />}
       {children}

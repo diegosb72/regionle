@@ -7,6 +7,7 @@ import type { CityPick } from './extra';
 import { GOALS_MAX, cleanGoals, goalWithout, sameGoal, withMark, type Goal } from './goals';
 import type { Lang } from './i18n';
 import { cleanMix, dropMix, withMix, type Mix } from './mix';
+import { cleanNotes, dropNotes, withNote, type Notes } from './notes';
 import { RECENT_MAX, isRecent, recentConfig, recentOf, withRecent, type Recent } from './recent';
 import { today } from './text';
 import { cleanTypeins, setTypeins as applyTypeins, type Typeins } from './typeinPrefs';
@@ -192,6 +193,8 @@ interface State {
   dayGoal: number;
   /** Goals with a date: a map to be known by a day (see lib/goals.ts). */
   goals: Goal[];
+  /** The player's own notes about a piece, by its id (see lib/notes.ts). */
+  notes: Notes;
   /** Achievements earned: id → when. */
   badges: Record<string, number>;
   /** g games · q answers · ok first-time right · warn right with help · ms time · and one-off counters (lessons, regionle1, near…). */
@@ -228,6 +231,8 @@ interface State {
   setGoalDate(id: string, date: string): void;
   /** Notes, once a day, how much of each goal had been seen when the day began. */
   markGoals(): void;
+  /** Writes the note of a piece; an empty one takes it away. False when there is no room for a new one. */
+  setNote(id: string, text: string): boolean;
   /** Marks achievements as earned now. */
   earn(ids: string[]): void;
   /** Adds to lifetime tallies. */
@@ -286,6 +291,7 @@ export const useStore = create<State>()(
       lists: [],
       listOn: {},
       goals: [],
+      notes: {},
       badges: {},
       tot: {},
       cb: false,
@@ -298,6 +304,12 @@ export const useStore = create<State>()(
 
       setCb: (cb) => set({ cb }),
       setDayGoal: (goal) => set({ dayGoal: isDayGoal(goal) ? goal : DAY_GOAL_DEFAULT }),
+      setNote: (id, text) => {
+        const notes = withNote(get().notes, id, text);
+        if (!notes) return false;
+        if (notes !== get().notes) set({ notes });
+        return true;
+      },
       setWelcomed: () => set({ welcomed: true }),
       setHotkeys: (hotkeys) => set({ hotkeys }),
       setSound: (sound) => set({ sound }),
@@ -405,7 +417,12 @@ export const useStore = create<State>()(
         set((s) => {
           const gone = new Set(ids);
           const goals = s.goals.map((g) => goalWithout(g, gone));
-          return { ...dropAnswers(s.stats, s.where, ids), mix: dropMix(s.mix, ids), ...(goals.some((g, i) => g !== s.goals[i]) ? { goals: goals.filter((g): g is Goal => !!g) } : {}) };
+          return {
+            ...dropAnswers(s.stats, s.where, ids),
+            mix: dropMix(s.mix, ids),
+            notes: dropNotes(s.notes, ids),
+            ...(goals.some((g, i) => g !== s.goals[i]) ? { goals: goals.filter((g): g is Goal => !!g) } : {}),
+          };
         }),
       addSession: (rec) =>
         set((s) => {
@@ -447,6 +464,8 @@ export const useStore = create<State>()(
           lists: Array.isArray(d.lists) ? d.lists.filter(isList) : get().lists,
           // A copy from before there were goals says nothing about them: they stay.
           goals: Array.isArray(d.goals) ? cleanGoals(d.goals) : get().goals,
+          // Nor does one from before there were notes: what has been written stays.
+          notes: d.notes && typeof d.notes === 'object' ? cleanNotes(d.notes) : get().notes,
           badges: d.badges && typeof d.badges === 'object' ? d.badges : {},
           tot: d.tot && typeof d.tot === 'object' ? d.tot : totalsOf(d.sessions ?? []),
           // Backups from before the settings existed say nothing about them: they stay as they are. One
@@ -483,6 +502,7 @@ export const useStore = create<State>()(
         lists: s.lists,
         listOn: s.listOn,
         goals: s.goals,
+        notes: s.notes,
         badges: s.badges,
         tot: s.tot,
         cb: s.cb,
@@ -523,6 +543,7 @@ export function mergeSaved(saved: unknown, current: State): State {
     days: p.days && typeof p.days === 'object' ? cleanDays(p.days) : daysFrom(Array.isArray(p.sessions) ? p.sessions : [], p.daily && typeof p.daily === 'object' ? p.daily : {}),
     dayGoal: isDayGoal(p.dayGoal) ? p.dayGoal : DAY_GOAL_DEFAULT,
     goals: cleanGoals(p.goals),
+    notes: cleanNotes(p.notes),
     hotkeys: p.hotkeys !== false,
     sound: p.sound === true,
     haptic: p.haptic === true,
