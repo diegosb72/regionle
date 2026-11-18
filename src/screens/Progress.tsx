@@ -684,7 +684,9 @@ export function Progress({ world }: { world: World }) {
     );
   };
 
-  const empty = !sessions.length && !Object.keys(stats).length;
+  // Someone who has only done daily challenges has no session and no answer kept, and has days all the same.
+  const hasDays = useStore((s) => Object.keys(s.days).length > 0);
+  const empty = !sessions.length && !Object.keys(stats).length && !hasDays;
 
   return (
     <div className="progress">

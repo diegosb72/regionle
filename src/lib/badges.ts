@@ -166,7 +166,7 @@ export function badgesOf(ctx: BadgeCtx): Badge[] {
   add('perfect', 'play', L('Pleno', 'Full marks'), L('Termina una partida de 10 preguntas o más con todo a la primera.', 'Finish a game of 10 questions or more with everything right first time.'), perfect, 1);
   add('study7', 'play', L('Una semana sin faltar', 'A week without a miss'), L('Juega siete días seguidos.', 'Play seven days running.'), run, 7);
   add('study30', 'play', L('Un mes sin faltar', 'A month without a miss'), L('Juega treinta días seguidos.', 'Play thirty days running.'), run, 30);
-  add('goal10', 'play', L('Diez metas', 'Ten goals'), L('Cumple tu meta diaria diez días.', 'Meet your daily goal on ten days.'), goalsMet(days), 10);
+  add('goal10', 'play', L('Diez metas', 'Ten targets'), L('Cumple tu meta diaria diez días.', 'Meet your daily target on ten days.'), goalsMet(days), 10);
 
   add('streak3', 'daily', L('Tres días seguidos', 'Three days running'), L('Completa el reto diario tres días seguidos.', 'Complete the daily challenge three days running.'), streak, 3);
   add('streak7', 'daily', L('Racha de 7 días', '7-day streak'), L('Completa el reto diario siete días seguidos.', 'Complete the daily challenge seven days running.'), streak, 7);

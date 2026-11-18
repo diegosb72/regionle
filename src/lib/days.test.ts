@@ -1,27 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import {
-  DAILY_ANSWERS,
-  DAYS_MAX,
-  DAY_GOALS,
-  DAY_GOAL_DEFAULT,
-  calendarOf,
-  cleanDays,
-  dailyWork,
-  dayLevel,
-  daysFrom,
-  goalsMet,
-  isDayGoal,
-  learntOver,
-  longestStreak,
-  monthsOf,
-  scaleFor,
-  studyStreak,
-  sumDays,
-  weeksOf,
-  withDay,
-  yearsOf,
-  type Days,
-} from './days';
+import { DAILY_ANSWERS, DAYS_MAX, DAY_GOALS, DAY_GOAL_DEFAULT, cleanDays, dailyWork, daysFrom, goalsMet, isDayGoal, longestStreak, studyStreak, withDay, type Days } from './days';
+import { calendarOf, dayLevel, learntOver, monthsOf, scaleFor, sumDays, weeksOf, yearsOf } from './dayview';
 import { addDays } from './goals';
 import { mergeSaved, useStore, type SessionRec } from './store';
 import { today } from './text';
@@ -83,6 +62,18 @@ describe('what was done each day', () => {
       { day: '2026-11-18', learnt: 43 },
     ]);
     expect(learntOver({})).toEqual([]);
+    // Today is what is learnt at this moment, whatever the day wrote down, and there is always a today.
+    const kept: Days = { '2026-11-10': [1, 1, 1, 1, 0], '2026-11-12': [1, 1, 1, 1, 0, 0], '2026-11-18': [1, 1, 1, 1, 0, 43], '2026-11-19': [1, 1, 1, 1, 0, 50] };
+    expect(learntOver(kept, { day: '2026-11-18', learnt: 45 })).toEqual([
+      { day: '2026-11-12', learnt: 0 },
+      { day: '2026-11-18', learnt: 45 },
+    ]);
+    expect(learntOver(kept, { day: '2026-11-15', learnt: 7 })).toEqual([
+      { day: '2026-11-12', learnt: 0 },
+      { day: '2026-11-15', learnt: 7 },
+    ]);
+    expect(learntOver({ '2026-11-10': [1, 1, 1, 1, 0] }, { day: '2026-11-18', learnt: 12 })).toEqual([{ day: '2026-11-18', learnt: 12 }]);
+    expect(learntOver({}, { day: '2026-11-18', learnt: 0 })).toEqual([{ day: '2026-11-18', learnt: 0 }]);
   });
 
   it('keeps so many days and lets the oldest go', () => {

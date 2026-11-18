@@ -1,6 +1,5 @@
 import { Infinity as InfinityIcon, Moon, Settings as Gear, Sun, SunMoon } from 'lucide-react';
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { BadgeWatcher } from './components/Badges';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { lazyScreen, savingData, whenIdle } from './components/lazy';
 import { OfflineBar, UpdateNotice } from './components/Offline';
@@ -32,6 +31,8 @@ const About = lazyScreen(() => import('./screens/About').then((m) => m.About));
 const SCREENS = [Setup, Play, Daily, Progress, Settings, Duel, ListLink, About];
 /** The panel of keyboard shortcuts: asked for with "?" by few, so it comes when it is asked for. */
 const KeysDialog = lazyScreen(() => import('./components/KeyHelp').then((m) => m.KeysDialog));
+/** The achievements are worked out once the page is drawn: none is earned before something is played. */
+const BadgeWatcher = lazyScreen(() => import('./components/Badges').then((m) => m.BadgeWatcher));
 
 const THEME_NEXT: Record<Theme, Theme> = { auto: 'light', light: 'dark', dark: 'auto' };
 const themeLabel = (theme: Theme): string => (theme === 'auto' ? L('Tema: automático', 'Theme: automatic') : theme === 'light' ? L('Tema: claro', 'Theme: light') : L('Tema: oscuro', 'Theme: dark'));
@@ -165,6 +166,14 @@ export function App() {
       </Suspense>
     </ErrorBoundary>
   ) : null;
+  // If its code does not come, the game goes on without the notice: the achievement is worked out the next time.
+  const watcher = world ? (
+    <ErrorBoundary fallback={() => null}>
+      <Suspense fallback={null}>
+        <BadgeWatcher world={world} />
+      </Suspense>
+    </ErrorBoundary>
+  ) : null;
 
   const section = route.kind === 'section' ? route.section : null;
   const settings = route.kind === 'settings';
@@ -209,7 +218,7 @@ export function App() {
         <main id="contenido" className="play-main" ref={content} tabIndex={-1}>
           {guarded}
         </main>
-        <BadgeWatcher world={world} />
+        {watcher}
         {keys}
       </div>
     );
@@ -347,7 +356,7 @@ export function App() {
       </footer>
       <UpdateNotice />
       {keys}
-      {world && <BadgeWatcher world={world} />}
+      {watcher}
     </div>
   );
 }

@@ -4,14 +4,16 @@
  */
 import { Check, Flame, Target } from 'lucide-react';
 import { useMemo, useState, type MouseEvent, type PointerEvent } from 'react';
-import { DAYS_MAX, DAY_GOALS, calendarOf, learntOver, longestStreak, monthsOf, scaleFor, studyStreak, weeksOf, yearsOf, type DayRec, type Days, type Span } from '../lib/days';
+import { DAYS_MAX, DAY_GOALS, longestStreak, studyStreak, type DayRec, type Days } from '../lib/days';
+import { calendarOf, learntOver, monthsOf, scaleFor, weeksOf, yearsOf, type Span } from '../lib/dayview';
 import { daysBetween } from '../lib/goals';
 import { L, getLang } from '../lib/i18n';
-import { useStore } from '../lib/store';
+import { learntIn, useStore } from '../lib/store';
 import { cx, nf, today } from '../lib/text';
 import { Seg } from './ui';
+import './activity.css';
 
-/** Weeks on the calendar: a year. Narrow screens show the latest ones (see `.cal-week` in the styles). */
+/** Weeks on the calendar: a year. Narrow screens show the latest ones (see `.cal-week` in `activity.css`). */
 const WEEKS = 53;
 /** Weeks on the chart: half a year. */
 const CHART_WEEKS = 26;
@@ -128,7 +130,7 @@ export function ActivityBlock() {
             <p className={cx('act-goal-text', done >= goal && 'met')}>
               {done >= goal ? (
                 <>
-                  <Check size={15} aria-hidden="true" /> {L(`Meta de hoy cumplida: ${answersText(done)}.`, `Today's target met: ${answersText(done)}.`)}
+                  <Check size={15} aria-hidden="true" /> {L(`Meta de hoy cumplida: ${answersText(done)}.`, `Today’s target met: ${answersText(done)}.`)}
                 </>
               ) : (
                 L(`Hoy llevas ${nf(done)} de ${nf(goal)}: te ${goal - done === 1 ? 'falta' : 'faltan'} ${nf(goal - done)}.`, `${nf(done)} of ${nf(goal)} today: ${nf(goal - done)} to go.`)
@@ -269,10 +271,12 @@ function WeekChart({ days, now }: { days: Days; now: string }) {
   );
 }
 
-/** How many answers are learnt, day by day since it is written down: a line that goes up in steps. */
-function LearntChart({ days, now }: { days: Days; now: string }) {
-  const points = useMemo(() => learntOver(days).filter((p) => p.day <= now), [days, now]);
-  if (!points.length) return null;
+/**
+ * How many answers are learnt, day by day since it is written down: a line that goes up in steps, up to
+ * what is learnt right now.
+ */
+function LearntChart({ days, now, learnt }: { days: Days; now: string; learnt: number }) {
+  const points = useMemo(() => learntOver(days, { day: now, learnt }), [days, now, learnt]);
   const first = points[0];
   const last = points[points.length - 1];
   const span = Math.max(1, daysBetween(first.day, now));
@@ -294,8 +298,8 @@ function LearntChart({ days, now }: { days: Days; now: string }) {
       {points.length < 2 ? (
         <p className="tip-line">
           {L(
-            `Hoy tienes ${nf(last.learnt)} aprendidas. La gráfica se dibuja a partir del segundo día de juego: se apunta la cifra cada día que juegas.`,
-            `You have ${nf(last.learnt)} learnt today. The chart is drawn from the second day of play: the figure is written down every day you play.`,
+            `Hoy tienes ${nf(last.learnt)} ${last.learnt === 1 ? 'respuesta aprendida' : 'respuestas aprendidas'}. La cifra se apunta cada día que juegas, y la gráfica se dibuja en cuanto hay un día anterior con el que comparar.`,
+            `You have ${nf(last.learnt)} ${last.learnt === 1 ? 'answer' : 'answers'} learnt today. The figure is written down every day you play, and the chart is drawn as soon as there is an earlier day to compare with.`,
           )}
         </p>
       ) : (
@@ -338,6 +342,8 @@ function LearntChart({ days, now }: { days: Days; now: string }) {
 
 export function EvolutionBlock() {
   const days = useStore((s) => s.days);
+  const stats = useStore((s) => s.stats);
+  const learnt = useMemo(() => learntIn(stats), [stats]);
   const now = today();
   if (!Object.keys(days).length) return null;
   return (
@@ -345,7 +351,7 @@ export function EvolutionBlock() {
       <h2>{L('Evolución', 'How it is going')}</h2>
       <div className="charts">
         <WeekChart days={days} now={now} />
-        <LearntChart days={days} now={now} />
+        <LearntChart days={days} now={now} learnt={learnt} />
       </div>
     </section>
   );
@@ -381,7 +387,7 @@ export function MonthsBlock() {
       <td className="wide-only">{s.days ? nf(s.games) : '—'}</td>
       <td>{s.days ? nf(s.answers) : '—'}</td>
       <td>{share(s.ok, s.answers)}</td>
-      <td>{s.days ? fmtSpan(s.ms) : '—'}</td>
+      <td className="wide-only">{s.days ? fmtSpan(s.ms) : '—'}</td>
       <td className="wide-only">{s.met ? nf(s.met) : '—'}</td>
     </>
   );
@@ -402,7 +408,9 @@ export function MonthsBlock() {
               </th>
               <th scope="col">{L('Respuestas', 'Answers')}</th>
               <th scope="col">{L('A la primera', 'First time')}</th>
-              <th scope="col">{L('Tiempo', 'Time')}</th>
+              <th scope="col" className="wide-only">
+                {L('Tiempo', 'Time')}
+              </th>
               <th scope="col" className="wide-only">
                 {L('Metas', 'Targets')}
               </th>

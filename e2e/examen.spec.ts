@@ -85,7 +85,8 @@ test.describe('an exam', () => {
     const record = page.locator('.records li').filter({ hasText: 'Capitales · examen' });
     await expect(record).toHaveCount(1);
     await expect(record).toContainText('nota 10');
-    await expect(page.locator('.table-wrap tbody tr').first()).toContainText('· examen');
+    // The latest game, at the top of the list of games.
+    await expect(page.locator('.block', { hasText: 'Últimas partidas' }).locator('tbody tr').first()).toContainText('· examen');
   });
 
   test('leaves the map as blank as it found it until the end', async ({ page }) => {

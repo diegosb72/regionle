@@ -1095,6 +1095,44 @@ button.chip.on:hover:not(:disabled) {
   font-size: 14.5px;
 }
 
+/* What today adds up to, under the review: the days in a row and how far the daily target is. */
+.today {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-top: 16px;
+  padding: 11px clamp(18px, 3vw, 34px);
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--card);
+  color: var(--ink-2);
+  font-size: 14.5px;
+  text-decoration: none;
+}
+.today:hover {
+  border-color: var(--brand);
+}
+.today b {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ink);
+  font-weight: 600;
+}
+.today b svg {
+  flex: none;
+  color: var(--accent);
+}
+.today .bar {
+  flex: 0 0 160px;
+}
+@media (max-width: 560px) {
+  .today .bar {
+    flex-basis: 100%;
+  }
+}
+
 @media (max-width: 1000px) {
   .sections,
   .why {
@@ -1879,373 +1917,6 @@ button.chip.on:hover:not(:disabled) {
   gap: 8px;
 }
 
-/* ---------------------------------------------------------------- activity */
-
-.act-tiles dd {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.act-flame {
-  color: var(--ink-3);
-  flex: none;
-}
-.act-flame.on {
-  color: var(--accent);
-}
-.act-goal {
-  display: grid;
-  gap: 10px;
-  padding: 14px 16px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
-  background: var(--card);
-}
-.act-goal-set {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 12px;
-}
-.act-goal-set .opt-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0;
-}
-.act-goal-unit {
-  color: var(--ink-3);
-  font-size: 14px;
-}
-.act-goal-now {
-  display: grid;
-  gap: 6px;
-}
-.act-goal-text {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14.5px;
-  color: var(--ink-2);
-}
-.act-goal-text.met {
-  color: var(--ok);
-  font-weight: 600;
-}
-
-/* The calendar: a column for each week, Monday at the top. */
-.cal-wrap {
-  overflow: hidden;
-}
-.cal {
-  --cal-cell: 12px;
-  --cal-gap: 3px;
-  display: flex;
-  gap: var(--cal-gap);
-  justify-content: flex-start;
-  width: max-content;
-  max-width: 100%;
-}
-.cal-rows,
-.cal-week {
-  display: grid;
-  grid-template-rows: 16px repeat(7, var(--cal-cell));
-  gap: var(--cal-gap);
-  flex: none;
-}
-.cal-week {
-  width: var(--cal-cell);
-}
-.cal-rows {
-  width: 14px;
-  color: var(--ink-3);
-  font-size: 10px;
-  line-height: var(--cal-cell);
-}
-.cal-month {
-  /* Wider than its column: it runs over the next ones, which have no name. */
-  white-space: nowrap;
-  overflow: visible;
-  color: var(--ink-3);
-  font-size: 11px;
-  line-height: 14px;
-}
-.cal-day {
-  display: block;
-  width: var(--cal-cell);
-  height: var(--cal-cell);
-  border-radius: 3px;
-  background: var(--bg-2);
-  position: relative;
-}
-.cal-day.lv-1 {
-  background: color-mix(in srgb, var(--brand) 28%, var(--bg-2));
-}
-.cal-day.lv-2 {
-  background: color-mix(in srgb, var(--brand) 52%, var(--bg-2));
-}
-.cal-day.lv-3 {
-  background: color-mix(in srgb, var(--brand) 76%, var(--bg-2));
-}
-.cal-day.lv-4 {
-  background: var(--brand);
-}
-.cal-day.cal-future {
-  visibility: hidden;
-}
-.cal-day.cal-today {
-  outline: 1.5px solid var(--ink);
-  outline-offset: 1px;
-}
-.cal-day.cal-on {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
-}
-/* A day that met its target: a dot in the middle. */
-.cal-day.cal-met::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--card);
-}
-.cal-foot {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 18px;
-  color: var(--ink-3);
-  font-size: 12.5px;
-}
-.cal-legend {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-.cal-detail,
-.chart-detail {
-  min-height: 1.45em;
-  color: var(--ink-2);
-  font-size: 14.5px;
-  line-height: 1.45;
-}
-/* Narrower screens show the latest weeks: the column of a week goes with its month's name. */
-@media (max-width: 1020px) {
-  .cal-week:nth-last-child(n + 44) {
-    display: none;
-  }
-}
-@media (max-width: 760px) {
-  .cal-week:nth-last-child(n + 31) {
-    display: none;
-  }
-}
-@media (max-width: 520px) {
-  .cal-week:nth-last-child(n + 21) {
-    display: none;
-  }
-}
-
-/* Charts: bars and a line, with their scale behind and their labels in plain text. */
-.charts {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px 32px;
-}
-.chart {
-  display: grid;
-  gap: 10px;
-  align-content: start;
-  min-width: 0;
-}
-.chart figcaption {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 4px 14px;
-}
-.chart-key {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: var(--ink-3);
-  font-size: 12.5px;
-}
-.chart-key i {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-}
-.chart-key i + i,
-.chart-key .key-all {
-  margin-left: 8px;
-}
-.chart-key .key-ok:first-child {
-  margin-left: 0;
-}
-.key-ok,
-.bar-ok {
-  background: var(--brand);
-}
-.key-all,
-.bar-all {
-  background: color-mix(in srgb, var(--brand) 32%, var(--bg-2));
-}
-.chart-box {
-  position: relative;
-  height: 170px;
-  /* Room for the figures of the scale on the left and for the names of the months below. */
-  padding: 6px 0 20px 34px;
-}
-.chart-lines {
-  position: absolute;
-  inset: 6px 0 20px 0;
-}
-.chart-lines span {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 0;
-  border-top: 1px solid var(--line);
-  color: var(--ink-3);
-  font-size: 11px;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-.chart-lines span::first-line {
-  line-height: 0;
-}
-.chart-bars {
-  position: relative;
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  height: 100%;
-}
-.chart-col {
-  flex: 1 1 0;
-  min-width: 0;
-  height: 100%;
-  display: flex;
-  align-items: flex-end;
-  border-radius: 3px 3px 0 0;
-}
-.chart-col.on {
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
-}
-.bar-all {
-  display: flex;
-  align-items: flex-end;
-  width: 100%;
-  min-height: 0;
-  border-radius: 3px 3px 0 0;
-  overflow: hidden;
-}
-.bar-ok {
-  display: block;
-  width: 100%;
-}
-.chart-x {
-  position: absolute;
-  left: 34px;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  gap: 2px;
-  height: 16px;
-  color: var(--ink-3);
-  font-size: 11px;
-  line-height: 16px;
-}
-.chart-x span {
-  flex: 1 1 0;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: visible;
-}
-.chart-x.chart-ends {
-  justify-content: space-between;
-}
-.chart-x.chart-ends span {
-  flex: none;
-}
-.chart-line svg {
-  position: relative;
-  display: block;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-.line-area {
-  fill: color-mix(in srgb, var(--brand) 18%, transparent);
-}
-.line-stroke {
-  fill: none;
-  stroke: var(--brand);
-  stroke-width: 2;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
-}
-
-/* Month by month. */
-.months-now {
-  color: var(--ink-2);
-  line-height: 1.5;
-}
-.months-table th[scope='row'] {
-  text-transform: none;
-  letter-spacing: 0;
-  font-size: 14.5px;
-  font-weight: 500;
-  color: var(--ink);
-  border-bottom: 1px solid var(--line);
-  padding: 9px 12px 9px 0;
-}
-.months-table td,
-.months-table thead th + th {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  padding-right: 0;
-  padding-left: 12px;
-}
-.months-year th[scope='row'],
-.months-year td {
-  font-weight: 700;
-  border-bottom-color: var(--line-2);
-  background: var(--card);
-}
-.months-none th[scope='row'],
-.months-none td {
-  color: var(--ink-3);
-}
-.months-more {
-  justify-self: start;
-}
-@media (max-width: 860px) {
-  .charts {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-@media (max-width: 560px) {
-  .months-table .wide-only {
-    display: none;
-  }
-  .months-table {
-    font-size: 13.5px;
-  }
-  .months-table th[scope='row'] {
-    font-size: 13.5px;
-  }
-  .act-tiles dd svg {
-    width: 18px;
-    height: 18px;
-  }
-}
 .confirm {
   display: inline-flex;
   flex-wrap: wrap;
@@ -6412,6 +6083,11 @@ a.d-cal-day:hover {
 }
 .level-chip + .home-last {
   margin-top: 14px;
+}
+/* Its room, while it is on its way. */
+.level-wait {
+  visibility: hidden;
+  min-height: 58px;
 }
 
 .toast {
