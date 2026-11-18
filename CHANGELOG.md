@@ -3,6 +3,14 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.6.0 — 18 de noviembre de 2026
+
+- Cada sección, el reto del día y «Acerca de» tienen página propia en cada idioma, con su título y su descripción para buscadores y enlaces.
+- El altavoz de un nombre es un interruptor: se ve y se anuncia mientras suena, y al pulsarlo otra vez se calla.
+- La portada cuenta los retos entre dos y las listas a medida, y cada cosa tiene una página que explica cómo se hace.
+- La ficha de Wikipedia de las comunidades y regiones agrupadas se busca por su código ISO, para que salga la del territorio y no la de su gobierno.
+- «Saltar al contenido» lleva al contenido en lugar de a «Esa dirección no existe».
+
 ## 1.5.0 — 17 de noviembre de 2026
 
 - Los mapas se juegan también con el teclado: las flechas recorren las piezas, Intro elige y +, − y 0 mueven el zoom.

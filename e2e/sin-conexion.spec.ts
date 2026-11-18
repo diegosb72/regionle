@@ -35,5 +35,19 @@ test.describe('without a connection', () => {
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
     await expect(page).toHaveTitle('Regionle ∞ — Learn the regions of the world');
     await expect(page.locator('nav.nav a[href="#/regiones"]')).toHaveText(/Regions/);
+
+    // The page of a screen is not stored one by one: a visit to it gets the game in its language, which
+    // opens that screen by the address it was asked for.
+    expect(await page.evaluate(() => caches.match('./regions.html').then((copy) => !!copy))).toBe(false);
+    await page.goto('./regions.html');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+    await expect(page).toHaveTitle('Regions, provinces and states — Regionle ∞');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Regions, provinces and states');
+    expect(new URL(page.url()).pathname.endsWith('/regions.html')).toBe(true);
+    await page.goto('./cifras.html');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'es');
+    await expect(page).toHaveTitle('Población y superficie — Regionle ∞');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Población y superficie');
+    await expect(page.locator('.crash')).toHaveCount(0);
   });
 });

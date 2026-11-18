@@ -15,6 +15,24 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.6.0',
+    date: '2026-11-18',
+    es: [
+      'Cada sección, el reto del día y «Acerca de» tienen página propia en cada idioma, con su título y su descripción para buscadores y enlaces.',
+      'El altavoz de un nombre es un interruptor: se ve y se anuncia mientras suena, y al pulsarlo otra vez se calla.',
+      'La portada cuenta los retos entre dos y las listas a medida, y cada cosa tiene una página que explica cómo se hace.',
+      'La ficha de Wikipedia de las comunidades y regiones agrupadas se busca por su código ISO, para que salga la del territorio y no la de su gobierno.',
+      '«Saltar al contenido» lleva al contenido en lugar de a «Esa dirección no existe».',
+    ],
+    en: [
+      'Each section, the daily challenge and “About” have a page of their own in each language, with its own title and description for search engines and links.',
+      'The loudspeaker next to a name is a switch: it shows and announces that it is playing, and pressing it again stops it.',
+      'The first page tells about challenges for two and custom lists, and each has a page that explains how it is done.',
+      'The Wikipedia card of grouped regions is looked up by their ISO code, so that it shows the territory and not its government.',
+      '“Skip to content” goes to the content instead of to “That address does not exist”.',
+    ],
+  },
+  {
     version: '1.5.0',
     date: '2026-11-17',
     es: [
