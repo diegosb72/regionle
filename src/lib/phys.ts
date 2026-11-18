@@ -108,6 +108,16 @@ export function physMatches(f: PhysPick, spec: PhysSpec): boolean {
   return f.r !== 3 && (spec.all || f.r === 1) && (!spec.places.length || f.ct.some((c) => spec.places.includes(c)));
 }
 
+/**
+ * The choices that bring something into a selection, in their order: a map is called by what is on it, and a
+ * choice kept from another place (the continents on the map of Europe, the deserts there) brings nothing.
+ */
+export function kindsIn(features: readonly PhysPick[], spec: PhysSpec): PhysKind[] {
+  const found = new Set<PhysKind>();
+  for (const f of features) if (physMatches(f, spec)) found.add(pickOf(f, spec)!);
+  return PHYS_KINDS.filter((k) => found.has(k));
+}
+
 /** A country gets a map of its own from this many features up: fewer would be no game. */
 export const PHYS_COUNTRY_MIN = 6;
 

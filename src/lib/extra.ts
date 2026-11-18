@@ -2,7 +2,7 @@
 import { belongsToCountry, commonPlace, divisionsOf, frameForCountries, frameForLand, loadFile, loadIndex, loadWorldGeo, properNames } from './data';
 import { sightFor } from './geo';
 import { L, nm } from './i18n';
-import { PHYS_KINDS, isWater, kindNoun, parsePhys, physMatches, physTokens, typeNoun, type PhysSpec, type PhysType } from './phys';
+import { PHYS_KINDS, isWater, kindNoun, kindsIn, parsePhys, physMatches, physTokens, typeNoun, type PhysSpec, type PhysType } from './phys';
 import { editOf } from './typeins';
 import type { AnyGeo, Country, Deck, Geo, Item, LL, Named } from './types';
 
@@ -116,7 +116,7 @@ export async function buildCityDeck(ids: string[], pick: CityPick, count: number
 // ---------------------------------------------------------------------------
 
 // What a physical map is made of, in words and as a selection, is in `phys.ts`: the first page reads it too.
-export { PHYS_COUNTRY_MIN, PHYS_KINDS, PHYS_PLACES, countryToken, isWater, kindNoun, parsePhys, physCountries, physMatches, physTokens, pickOf, typeNoun, type PhysKind, type PhysSpec, type PhysType } from './phys';
+export { PHYS_COUNTRY_MIN, PHYS_KINDS, PHYS_PLACES, countryToken, isWater, kindNoun, kindsIn, parsePhys, physCountries, physMatches, physTokens, pickOf, typeNoun, type PhysKind, type PhysSpec, type PhysType } from './phys';
 
 
 interface PhysRec {
@@ -266,7 +266,9 @@ export async function buildPhysicalDeck(tokens: string[], must?: string[], keep 
   const waters = items.filter((it) => isWater(it.cat)).map((it) => ({ geo: it.geo, at: it.lp }));
   const inSight = (frame: LL[]): LL[] => [...frame, ...sightFor(frame, waters)];
 
-  const single = spec.kinds.length === 1 ? kindNoun(spec.kinds[0]) : null;
+  // A map is called by what is on it: a choice that brings nothing here does not make it "physical geography".
+  const kinds = kindsIn(file.f, spec);
+  const single = kinds.length === 1 ? kindNoun(kinds[0]) : spec.kinds.length === 1 ? kindNoun(spec.kinds[0]) : null;
   const many = single?.many ?? L('geografía física', 'physical geography');
   const noun = single ?? { one: L('elemento', 'feature'), many: L('elementos', 'features'), fem: false };
   const title = (where: string) => `${many[0].toUpperCase()}${many.slice(1)} · ${where}`;

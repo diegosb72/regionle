@@ -3,7 +3,7 @@ import path from 'node:path';
 import { geoContains } from 'd3-geo';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { buildDeck, deckGraph, divisionsOf, eligible, frameForCountries, loadIndex, setLoader } from './data';
-import { buildCityDeck, buildPhysicalDeck, countPhys, loadPhysical, parsePhys, physCountries, physMatches, physTokens, pickOf, typeNoun } from './extra';
+import { buildCityDeck, buildPhysicalDeck, countPhys, kindsIn, loadPhysical, parsePhys, physCountries, physMatches, physTokens, pickOf, typeNoun } from './extra';
 import { placeQuery } from './links';
 import { bfs, capOf, cheapestPath, makeView, onShortest, pickRoute, shortestPath, sightFor, spotInFrame } from './geo';
 import type { AnyGeo, Deck, LL } from './types';
@@ -360,6 +360,10 @@ describe('data', () => {
     const europe = await buildPhysicalDeck(['continent', 'sea', 'EU']);
     expect(europe.items.some((it) => it.cat === 'continent')).toBe(false);
     expect(europe.byId.has('s:atlantic-ocean')).toBe(true);
+    // …and a map is called by what is on it, not by a choice that brings nothing there.
+    expect(europe.title).toBe('Mares y océanos · Europa');
+    expect(europe.noun.many).toBe('mares y océanos');
+    expect((await buildPhysicalDeck(['continent', 'river', 'range', 'EU'])).title).toBe('Geografía física · Europa');
     const spain = await buildPhysicalDeck(['continent', 'sea', 'in:ES']);
     expect(spain.items.some((it) => it.cat === 'continent')).toBe(false);
     expect(spain.byId.has('s:atlantic-ocean')).toBe(true);
@@ -369,6 +373,13 @@ describe('data', () => {
     expect(countPhys(file, parsePhys(['continent', 'all']))).toBe(11);
     expect(countPhys(file, parsePhys(['continent', 'EU']))).toBe(0);
     expect(countPhys(file, parsePhys(['continent', 'in:ES']))).toBe(0);
+    // The choices that bring something, in the order of the list of kinds.
+    expect(kindsIn(file.f, parsePhys(['river', 'continent']))).toEqual(['continent', 'river']);
+    expect(kindsIn(file.f, parsePhys(['continent', 'sea']))).toEqual(['continent', 'sea']);
+    expect(kindsIn(file.f, parsePhys(['continent', 'sea', 'EU']))).toEqual(['sea']);
+    expect(kindsIn(file.f, parsePhys(['continent', 'EU']))).toEqual([]);
+    expect(kindsIn(file.f, parsePhys(['river', 'desert', 'fall', 'EU']))).toEqual(['river']);
+    expect(kindsIn(file.f, parsePhys(['river', 'desert', 'fall', 'AF']))).toEqual(['river', 'desert', 'fall']);
 
     // A review of a continent or of an ocean learnt with them goes back to the map of the world…
     const review = await buildPhysicalDeck(['river', 'EU'], ['c:europe', 's:indian-ocean']);

@@ -6,7 +6,7 @@ import { Picker } from '../components/Picker';
 import { Flag, Seg, Toggle, capitalise } from '../components/ui';
 import { eligible, levelOf, loadFile, type World } from '../lib/data';
 import { countriesOf, describeMap } from '../lib/describe';
-import { CITY_COUNTS, PHYS_KINDS, PHYS_PLACES, kindNoun, loadCities, loadPhysical, parsePhys, physCountries, physMatches, physTokens, pickOf, type PhysKind, type PhysSpec } from '../lib/extra';
+import { CITY_COUNTS, PHYS_KINDS, PHYS_PLACES, kindNoun, kindsIn, loadCities, loadPhysical, parsePhys, physCountries, physMatches, physTokens, pickOf, type PhysKind, type PhysSpec } from '../lib/extra';
 import { L, getLang, levelNoun, nm } from '../lib/i18n';
 import { encodeList, listConfig, listPlayable, listUrl } from '../lib/lists';
 import { GROUP_NAME, MODES, MODE_GROUPS, SECTIONS, formatName } from '../lib/modes';
@@ -323,6 +323,11 @@ export function Setup({ section, world }: { section: Section; world: World }) {
     return chosen.length;
   }, [active, section, chosen, levels, cities, physical, opts.cityPick, opts.cityCount, spec, isPhys]);
 
+  /** The choices that bring something where they are asked: those name the map. One kept from another place does not. */
+  const named = useMemo(() => {
+    const found = isPhys && physical ? kindsIn(physical.f, spec) : [];
+    return found.length ? found : spec.kinds;
+  }, [isPhys, physical, spec]);
   const shared = section === 'regions' && chosen.length > 0 && new Set(chosen.map((c) => levelOf(c, levels).es)).size === 1 ? levelOf(chosen[0], levels) : null;
   const noun: [string, string] = active
     ? [L('pieza', 'piece'), L('piezas', 'pieces')]
@@ -335,8 +340,8 @@ export function Setup({ section, world }: { section: Section; world: World }) {
           ? [L('ciudad', 'city'), L('ciudades', 'cities')]
           : [L('capital', 'capital'), L('capitales', 'capitals')]
         : isPhys
-          ? spec.kinds.length === 1
-            ? [kindNoun(spec.kinds[0]).one, kindNoun(spec.kinds[0]).many]
+          ? named.length === 1
+            ? [kindNoun(named[0]).one, kindNoun(named[0]).many]
             : [L('elemento', 'feature'), L('elementos', 'features')]
           : [L('país', 'country'), L('países', 'countries')];
 
@@ -488,7 +493,7 @@ export function Setup({ section, world }: { section: Section; world: World }) {
   const summary = active
     ? active.name
     : isPhys
-    ? `${spec.kinds.map((k) => capitalise(kindNoun(k).many)).join(', ')} · ${spec.country && world.byId.get(spec.country) ? nm(world.byId.get(spec.country)!.n) : spec.places.length ? spec.places.map((p) => nm(world.index.continents[p])).join(', ') : L('mundo', 'world')}`
+    ? `${named.map((k) => capitalise(kindNoun(k).many)).join(', ')} · ${spec.country && world.byId.get(spec.country) ? nm(world.byId.get(spec.country)!.n) : spec.places.length ? spec.places.map((p) => nm(world.index.continents[p])).join(', ') : L('mundo', 'world')}`
     : chosen.length === 0
       ? L('Nada elegido', 'Nothing chosen')
       : chosen.length === 1

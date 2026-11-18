@@ -122,8 +122,10 @@ test.describe('continents and oceans', () => {
     await expect(first).toHaveText(/^Continentes y océanos\s*0$/);
     await expect(list).toContainText('No hay nada de eso ahí');
     await expect(page.getByRole('button', { name: 'Empezar' })).toBeDisabled();
-    // …and once let go there, it is no longer offered.
+    // Kept beside another choice, it stays pressed to be let go, but the map is called by what it has.
     await kinds.getByRole('button', { name: /Ríos/ }).click();
+    await expect(page.locator('.startbar')).toContainText('Ríos · Europa · 17 ríos');
+    // …and once let go there, it is no longer offered.
     await first.click();
     await expect(kinds.getByRole('button', { name: /Continentes y océanos/ })).toHaveCount(0);
     await expect(list).toContainText('Danubio');
