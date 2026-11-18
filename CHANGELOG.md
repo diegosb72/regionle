@@ -3,6 +3,19 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.13.0 — 18 de noviembre de 2026
+
+- Calendario de actividad: en Progreso, un cuadro por cada día del último año, más oscuro cuanto más respondiste. Al pasar por un día dice lo que hiciste.
+- Días seguidos: cuántos días llevas jugando sin faltar y cuál fue tu mejor racha. Un día que solo ha empezado no la rompe.
+- Meta diaria: elige cuántas respuestas quieres dar al día: 10, 20, 50, 100 o ninguna. La portada y Progreso dicen cuánto llevas hoy.
+- Gráficas: las respuestas de cada semana del último medio año, con las que fueron a la primera, y cómo crece lo que tienes aprendido.
+- Mes a mes: lo que suman este mes y este año, y una tabla con cada mes: días de juego, partidas, respuestas, aciertos a la primera y tiempo.
+- Once logros nuevos, y ya son 40: todas las capitales, todas las banderas, continentes y océanos, cinco mil respuestas, una semana y un mes sin faltar.
+- Y también: diez metas diarias cumplidas, un 10 en un examen, cien tarjetas, y un popurrí y un «Oye y señala» sin un fallo.
+- Un logro conseguido ya no se pierde: antes podía apagarse al borrar una lista o al fallar algo que ya sabías.
+- Quien ya jugaba empieza con el calendario de sus últimas partidas y de sus retos diarios. La copia de seguridad guarda también el calendario.
+- La portada pesa menos: lo que es de los logros y de Progreso se descarga cuando hace falta.
+
 ## 1.12.0 — 18 de noviembre de 2026
 
 - Tarjetas: una por pieza, para estudiar sin escribir ni señalar. Le das la vuelta y dices tú si la sabías; lo que no sabías vuelve al final.

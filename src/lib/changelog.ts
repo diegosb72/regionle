@@ -15,6 +15,34 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.13.0',
+    date: '2026-11-18',
+    es: [
+      'Calendario de actividad: en Progreso, un cuadro por cada día del último año, más oscuro cuanto más respondiste. Al pasar por un día dice lo que hiciste.',
+      'Días seguidos: cuántos días llevas jugando sin faltar y cuál fue tu mejor racha. Un día que solo ha empezado no la rompe.',
+      'Meta diaria: elige cuántas respuestas quieres dar al día: 10, 20, 50, 100 o ninguna. La portada y Progreso dicen cuánto llevas hoy.',
+      'Gráficas: las respuestas de cada semana del último medio año, con las que fueron a la primera, y cómo crece lo que tienes aprendido.',
+      'Mes a mes: lo que suman este mes y este año, y una tabla con cada mes: días de juego, partidas, respuestas, aciertos a la primera y tiempo.',
+      'Once logros nuevos, y ya son 40: todas las capitales, todas las banderas, continentes y océanos, cinco mil respuestas, una semana y un mes sin faltar.',
+      'Y también: diez metas diarias cumplidas, un 10 en un examen, cien tarjetas, y un popurrí y un «Oye y señala» sin un fallo.',
+      'Un logro conseguido ya no se pierde: antes podía apagarse al borrar una lista o al fallar algo que ya sabías.',
+      'Quien ya jugaba empieza con el calendario de sus últimas partidas y de sus retos diarios. La copia de seguridad guarda también el calendario.',
+      'La portada pesa menos: lo que es de los logros y de Progreso se descarga cuando hace falta.',
+    ],
+    en: [
+      'Activity calendar: on Progress, a square for each day of the last year, darker the more you answered. Point at a day and it says what you did.',
+      'Days in a row: how many days you have played without a miss, and your longest run. A day that has only begun does not break it.',
+      'Daily target: choose how many answers you want to give a day: 10, 20, 50, 100 or none. The home page and Progress say how far you are today.',
+      'Charts: the answers of each week of the last half year, with those right first time, and how what you have learnt grows.',
+      'Month by month: what this month and this year add up to, and a table of each month: days of play, games, answers, right first time and time.',
+      'Eleven new achievements, 40 in all: every capital, every flag, continents and oceans, five thousand answers, a week and a month without a miss.',
+      'And also: ten daily targets met, a 10 in an exam, a hundred flashcards, and a medley and a “Listen and pin” without a miss.',
+      'An achievement earned is no longer lost: it could go out when a list was deleted or when you missed something you already knew.',
+      'Whoever played before starts with the calendar of their latest games and daily challenges. The backup keeps the calendar too.',
+      'The home page is lighter: what belongs to the achievements and to Progress is downloaded when it is needed.',
+    ],
+  },
+  {
     version: '1.12.0',
     date: '2026-11-18',
     es: [

@@ -105,12 +105,12 @@ servicio de fuera).
 
 ## Progreso y logros
 
-- [ ] 76. Más logros
-- [ ] 77. Racha de estudio y calendario de actividad
-- [ ] 78. Gráficas de evolución
+- [x] 76. Más logros: once nuevos, y ya son 40; uno conseguido ya no se pierde — **1.13.0**
+- [x] 77. Racha de estudio y calendario de actividad: días seguidos jugando, mejor racha y un cuadro por cada día del último año — **1.13.0**
+- [x] 78. Gráficas de evolución: respuestas de cada semana y cómo crece lo aprendido — **1.13.0**
 - [ ] 79. Álbum de banderas
-- [ ] 80. Resumen del mes y del año
-- [ ] 81. Meta diaria
+- [x] 80. Resumen del mes y del año: lo que suman este mes y este año, y la tabla de cada mes — **1.13.0**
+- [x] 81. Meta diaria: 10, 20, 50 o 100 respuestas al día, o ninguna; se ve en Progreso y en la portada — **1.13.0**
 
 ## El mapa
 
