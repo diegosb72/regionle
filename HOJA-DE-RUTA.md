@@ -27,7 +27,7 @@ servicio de fuera).
 - [ ] 13. Tarjetas
 - [ ] 14. Popurrí
 - [x] 15. Rellenar el mapa con cuenta atrás — **1.7.0**
-- [ ] 16. Modo examen
+- [x] 16. Modo examen: un intento por pregunta, sin pistas ni corrección hasta entregar, y nota sobre 10 — **1.8.0**
 - [ ] 18. Coordenadas
 - [ ] 19. Ruta con condiciones
 - [ ] 20. Juegos de palabras: ahorcado, sopa de letras y crucigrama
@@ -94,7 +94,7 @@ servicio de fuera).
 - [ ] 66. Dos jugadores en el mismo dispositivo
 - [ ] 67. Modo clase
 - [ ] 68. Varios perfiles en un navegador
-- [ ] 69. Mapas mudos para imprimir
+- [x] 69. Mapas mudos para imprimir: el mapa numerado con sus líneas, la hoja de soluciones y recuadros para lo que queda lejos — **1.8.0**
 - [ ] 70. Tarea con justificante
 - [ ] 71. Diploma
 - [ ] 72. Códigos QR

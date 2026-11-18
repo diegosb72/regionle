@@ -3,6 +3,15 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.8.0 — 18 de noviembre de 2026
+
+- Modo examen en Señalar, Identificar, Silueta, Puzle, Capitales, Banderas y ¿A qué pertenece?: un intento por pregunta, sin pistas ni corrección hasta entregar.
+- Al entregar el examen, la nota sobre 10 y la corrección, con lo que respondiste en cada fallo; se guarda la mejor nota de cada mapa.
+- Mapa mudo para imprimir en Regiones, Países, Ciudades y Geografía física: el mapa numerado, una línea para cada nombre y, si quieres, la hoja de soluciones.
+- En la hoja, lo que queda lejos va en un recuadro (Canarias, Alaska y Hawái, Azores y Madeira) y el papel se tumba cuando el mapa lo pide.
+- La hoja se saca también de una lista a medida, con el título que le pongas, o sin números, para escribir o colorear encima.
+- El interruptor «Mapa mudo» de Ruta se llama ahora «Mapa sin fronteras».
+
 ## 1.7.0 — 18 de noviembre de 2026
 
 - Verdadero o falso: frases sobre los países que elijas (fronteras, capitales, tamaños, vecinos, continentes), con el porqué de cada una.
