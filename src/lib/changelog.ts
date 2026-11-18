@@ -15,6 +15,30 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.12.0',
+    date: '2026-11-18',
+    es: [
+      'Tarjetas: una por pieza, para estudiar sin escribir ni señalar. Le das la vuelta y dices tú si la sabías; lo que no sabías vuelve al final.',
+      'Las tarjetas preguntan lo que elijas: cómo se llama, dónde está, su capital o de qué país es una bandera. Lo que dices cuenta para el repaso.',
+      'Popurrí: cada pieza se pregunta de una manera, por sorteo: señalarla, identificarla, colocarla, su silueta, su capital o su bandera.',
+      'Oye y señala: el nombre no se escribe, lo dice la voz de tu dispositivo. Se puede oír otra vez, y verlo escrito cuenta como ayuda.',
+      'Siluetas giradas: un ajuste de Silueta, Regionle y el popurrí que las enseña sin el norte arriba.',
+      'Banderas difíciles: en gris, para reconocerlas por el dibujo, o desenfocadas, para reconocerlas por los colores.',
+      'El popurrí y «Oye y señala» se juegan también contrarreloj, en supervivencia y como examen. El popurrí se envía como reto, con las mismas preguntas.',
+      'Un reto recibido dice si viene con siluetas giradas o con banderas difíciles: se juega como lo jugó quien lo envía.',
+    ],
+    en: [
+      'Flashcards: one per piece, to study without typing or clicking. Turn it over and say whether you knew it; what you did not know comes back at the end.',
+      'The cards ask what you choose: what it is called, where it is, its capital or which country a flag belongs to. What you say counts for the review.',
+      'Medley: each piece is asked in a way of its own, drawn by lot: pin it, identify it, place it, its outline, its capital or its flag.',
+      'Listen and pin: the name is not written, the voice of your device says it. You can hear it again, and seeing it written counts as help.',
+      'Turned outlines: a setting of Outline, Regionle and the medley that shows them without north at the top.',
+      'Hard flags: in grey, to know them by their design, or blurred, to know them by their colours.',
+      'The medley and “Listen and pin” are also played against the clock, in survival and as an exam. The medley is sent as a challenge, with the same questions.',
+      'A challenge you receive says whether it comes with turned outlines or hard flags: it is played the way its sender played it.',
+    ],
+  },
+  {
     version: '1.11.0',
     date: '2026-11-18',
     es: [

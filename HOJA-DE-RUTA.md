@@ -22,11 +22,11 @@ servicio de fuera).
 - [ ] 7. ¿Quién soy?
 - [ ] 8. Fronteras
 - [ ] 9. Cadena de vecinos
-- [ ] 10. Siluetas difíciles
-- [ ] 11. Banderas difíciles
-- [ ] 12. Oye y señala
-- [ ] 13. Tarjetas
-- [ ] 14. Popurrí
+- [x] 10. Siluetas difíciles: giradas, sin el norte arriba, en Silueta, en Regionle y en el popurrí — **1.12.0**
+- [x] 11. Banderas difíciles: en gris o desenfocadas, en Banderas, en Señalar por bandera, en las tarjetas y en el popurrí — **1.12.0**
+- [x] 12. Oye y señala: el nombre lo dice la voz del dispositivo en vez de escribirse — **1.12.0**
+- [x] 13. Tarjetas: se les da la vuelta y uno mismo dice si la sabía; preguntan el nombre, el lugar, la capital o la bandera — **1.12.0**
+- [x] 14. Popurrí: cada pieza se pregunta de una manera, por sorteo — **1.12.0**
 - [x] 15. Rellenar el mapa con cuenta atrás — **1.7.0**
 - [x] 16. Modo examen: un intento por pregunta, sin pistas ni corrección hasta entregar, y nota sobre 10 — **1.8.0**
 - [ ] 18. Coordenadas

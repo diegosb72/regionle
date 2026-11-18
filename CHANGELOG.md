@@ -3,6 +3,17 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.12.0 — 18 de noviembre de 2026
+
+- Tarjetas: una por pieza, para estudiar sin escribir ni señalar. Le das la vuelta y dices tú si la sabías; lo que no sabías vuelve al final.
+- Las tarjetas preguntan lo que elijas: cómo se llama, dónde está, su capital o de qué país es una bandera. Lo que dices cuenta para el repaso.
+- Popurrí: cada pieza se pregunta de una manera, por sorteo: señalarla, identificarla, colocarla, su silueta, su capital o su bandera.
+- Oye y señala: el nombre no se escribe, lo dice la voz de tu dispositivo. Se puede oír otra vez, y verlo escrito cuenta como ayuda.
+- Siluetas giradas: un ajuste de Silueta, Regionle y el popurrí que las enseña sin el norte arriba.
+- Banderas difíciles: en gris, para reconocerlas por el dibujo, o desenfocadas, para reconocerlas por los colores.
+- El popurrí y «Oye y señala» se juegan también contrarreloj, en supervivencia y como examen. El popurrí se envía como reto, con las mismas preguntas.
+- Un reto recibido dice si viene con siluetas giradas o con banderas difíciles: se juega como lo jugó quien lo envía.
+
 ## 1.11.0 — 18 de noviembre de 2026
 
 - Continentes y océanos: el mapa del mundo con los seis continentes, cada uno de un color, y los cinco océanos. Se juega a todo, y a las cifras con su superficie.
