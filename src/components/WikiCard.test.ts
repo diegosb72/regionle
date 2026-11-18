@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { setLang } from '../lib/i18n';
 import type { Item } from '../lib/types';
-import { shorten, wikiSummary } from './WikiCard';
+import { isoCodeOf, shorten, wikiSummary } from './WikiCard';
 
 describe('what is shown of an article', () => {
   it('keeps a short text whole', () => {
@@ -117,6 +117,62 @@ describe('which article is shown', () => {
     expect(await wikiSummary(piece())).toMatchObject({ lang: 'es', title: 'Soria' });
     expect(asked[0]).toContain(`srsearch=${encodeURIComponent('Soria, España')}`);
     expect(asked.some((url) => url.includes('wikidata.org'))).toBe(false);
+  });
+
+  it('knows which ids are codes of ISO 3166-2 and which ones the game made up', () => {
+    for (const id of ['ES-CN', 'IT-21', 'FR-ARA', 'LK-1', 'GB-ENG']) expect(isoCodeOf({ id, kind: 'unit' }), id).toBe(id);
+    for (const id of ['AE-x01', 'AZ~absheron-economic-region', 'US-R-MW', 'GB-E-EE', 'es-cn', 'ES-', 'ES-ABCD', 'ESP-CN', 'T-1']) expect(isoCodeOf({ id, kind: 'unit' }), id).toBeNull();
+    // Only subdivisions have such codes: a country is "ES", and a city or a river that looked like one would not be one.
+    for (const kind of ['country', 'city', 'feature'] as const) expect(isoCodeOf({ id: 'ES-CN', kind })).toBeNull();
+  });
+
+  it('is found by its ISO code when the piece has no Wikidata id: the islands, not their government', async () => {
+    setLang('es');
+    serve({
+      [`srsearch=${encodeURIComponent('haswbstatement:P300=ES-CN')}`]: { query: { search: [{ ns: 0, title: 'Q5813' }] } },
+      'wbgetentities&ids=Q5813': links('Q5813', { es: 'Canarias', en: 'Canary Islands' }),
+      'es.wikipedia.org/api/rest_v1/page/summary/Canarias': summary('Canarias', 'Canarias es un archipiélago del océano Atlántico.'),
+      // What a search by name finds, which must not be asked for.
+      'es.wikipedia.org/w/api.php?action=query&list=search': { query: { search: [{ title: 'Gobierno de Canarias' }] } },
+    });
+    expect(await wikiSummary(piece({ id: 'ES-CN', name: 'Canarias' }))).toMatchObject({ lang: 'es', title: 'Canarias', text: 'Canarias es un archipiélago del océano Atlántico.' });
+    expect(asked[0]).toContain('www.wikidata.org/w/api.php?action=query&list=search');
+    expect(asked[0]).toContain('origin=*');
+    expect(asked.some((url) => url.includes('wikipedia.org/w/api.php'))).toBe(false);
+    expect(asked).toHaveLength(3);
+  });
+
+  it('is found in the other language by its code when the player’s has no article', async () => {
+    setLang('en');
+    serve({
+      [`srsearch=${encodeURIComponent('haswbstatement:P300=IT-21')}`]: { query: { search: [{ title: 'Q1216' }] } },
+      'wbgetentities&ids=Q1216': links('Q1216', { es: 'Piamonte' }),
+      'es.wikipedia.org/api/rest_v1/page/summary/Piamonte': summary('Piamonte', 'El Piamonte es una región de Italia.'),
+    });
+    expect(await wikiSummary(piece({ id: 'IT-21', name: 'Piedmont' }))).toMatchObject({ lang: 'es', title: 'Piamonte' });
+  });
+
+  it('is looked up by name when the code leads nowhere', async () => {
+    setLang('es');
+    const byName = {
+      'es.wikipedia.org/w/api.php?action=query&list=search': { query: { search: [{ title: 'Chūbu' }] } },
+      'es.wikipedia.org/api/rest_v1/page/summary/Ch%C5%ABbu': summary('Chūbu', 'Chūbu es una región de Japón.'),
+    };
+    const code = (id: string) => `srsearch=${encodeURIComponent(`haswbstatement:P300=${id}`)}`;
+    for (const [id, wikidata] of [
+      // No item carries the code (one the game made up, or one Wikidata does not have).
+      ['JP-R4', { [code('JP-R4')]: { query: { search: [] } } }],
+      // What comes back is not an item.
+      ['JP-R5', { [code('JP-R5')]: { query: { search: [{ title: 'Property:P300' }] } } }],
+      // The item has no article in either language.
+      ['JP-R6', { [code('JP-R6')]: { query: { search: [{ title: 'Q77' }] } }, 'wbgetentities&ids=Q77': links('Q77', {}) }],
+      // Wikidata does not answer.
+      ['JP-R7', { 'www.wikidata.org': 503 }],
+    ] as const) {
+      serve({ ...wikidata, ...byName });
+      expect(await wikiSummary(piece({ id, name: 'Chūbu', country: { n: { es: 'Japón', en: 'Japan' } } as Item['country'] })), id).toMatchObject({ lang: 'es', title: 'Chūbu' });
+      expect(asked.some((url) => url.includes(`srsearch=${encodeURIComponent('Chūbu, Japón')}`)), id).toBe(true);
+    }
   });
 
   it('asks once for each piece and language, however many times the card is shown', async () => {
