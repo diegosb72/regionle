@@ -15,6 +15,28 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.17.0',
+    date: '2026-11-19',
+    es: [
+      'Fronteras: se ilumina una frontera y dices qué dos piezas separa, entre cuatro parejas o escribiendo los dos nombres, en el orden que quieras.',
+      'El mapa enseña enteras las dos piezas y se acerca cuando la frontera es corta. Con una lista a medida, pregunta solo las fronteras entre sus piezas.',
+      'Coordenadas: te damos una latitud y una longitud y marcas el punto en el mapa. Cuenta lo cerca que caigas; después ves la distancia y qué había allí.',
+      'El mapa lleva dibujados sus paralelos y meridianos, con los grados escritos en los bordes: de décimas de grado en un país pequeño a 30° en el mundo.',
+      'O al revés: el mapa marca un punto y eliges sus coordenadas entre cuatro. Las falsas son despistes de verdad: una línea de más, el otro hemisferio.',
+      'Si las coordenadas que eliges caen en el mapa, una cruz enseña dónde están en realidad y a cuántos kilómetros del punto.',
+      'Los dos juegos se llevan con el teclado: las teclas 1 a 4 eligen opción y, para marcar un punto, las flechas mueven una cruz.',
+    ],
+    en: [
+      'Borders: a border lights up and you say which two pieces it separates, out of four pairs or by typing both names, in whichever order.',
+      'The map shows both pieces whole and comes closer when the border is short. With a custom list, it asks only the borders between its pieces.',
+      'Coordinates: you get a latitude and a longitude and mark the point on the map. How close you fall counts; then you see the distance and what was there.',
+      'The map has its parallels and meridians drawn, with the degrees written at the edges: from tenths of a degree in a small country to 30° on the world.',
+      'Or the other way round: the map marks a point and you choose its coordinates out of four. The wrong ones are real slips: a line too far, the other hemisphere.',
+      'If the coordinates you choose are on the map, a cross shows where they really are and how many kilometres from the point.',
+      'Both games work from the keyboard: keys 1 to 4 choose an option and, to mark a point, the arrows move a cross.',
+    ],
+  },
+  {
     version: '1.16.0',
     date: '2026-11-19',
     es: [

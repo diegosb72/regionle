@@ -180,6 +180,8 @@ export type Mode =
   | 'hotcold'
   /** Which way one place lies from another, and how far: nothing of either is on the map. */
   | 'bearing'
+  /** A latitude and a longitude are given, and the point is found on a map with its grid drawn. */
+  | 'coords'
   /** Not a game: the screen where a custom list is put together. */
   | 'edit'
   /** Not a game either: the map without names, laid out on paper to be printed. */
@@ -193,6 +195,8 @@ export type Mode =
   /** A set of pieces that go together is named, and all of them are marked on the map. */
   | 'group'
   | 'neighbours'
+  /** A border lights up, and the two pieces it lies between are named. */
+  | 'border'
   /** From a piece to one that borders it, and on, never through the same one twice. */
   | 'chain'
   | 'capital'

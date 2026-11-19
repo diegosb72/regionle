@@ -63,6 +63,16 @@ describe('what is kept of a game to play it again', () => {
     expect(recentOf(game({ mode: 'pin', opts: { ...DEFAULT_OPTS, bearingAsk: 'dir' } }), session())?.o).toEqual({ format: 'normal' });
   });
 
+  it('keeps what coordinates asked', () => {
+    const mark = recentOf(game({ mode: 'coords' }), session({ mode: 'coords' }));
+    expect(mark?.o).toEqual({ coordsAsk: 'mark' });
+    const read = recentOf(game({ mode: 'coords', opts: { ...DEFAULT_OPTS, coordsAsk: 'read' } }), session({ mode: 'coords' }));
+    expect(read?.o).toEqual({ coordsAsk: 'read' });
+    expect(recentKey(mark!)).not.toBe(recentKey(read!));
+    expect(recentConfig(read!, DEFAULT_OPTS).opts.coordsAsk).toBe('read');
+    expect(recentOf(game({ mode: 'pin', opts: { ...DEFAULT_OPTS, coordsAsk: 'read' } }), session())?.o).toEqual({ format: 'normal' });
+  });
+
   it('keeps that it was an exam, which is another game on the same map', () => {
     const exam = recentOf(game({ opts: { ...DEFAULT_OPTS, format: 'exam' } }), session({ note: 'exam' }));
     expect(exam?.o).toEqual({ format: 'exam' });

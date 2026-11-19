@@ -4,6 +4,8 @@ import { zoom as d3zoom, zoomIdentity, zoomTransform, type ZoomBehavior, type Zo
 import { Maximize, Minus, Plus } from 'lucide-react';
 import { forwardRef, memo, useCallback, useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import type { GeoPermissibleObjects } from 'd3-geo';
+import type { MultiLineString } from 'geojson';
+import { fmtLat, fmtLon, gridLines } from '../lib/coords';
 import { NOMINAL, coarsePath, countPoints, graticule, landBox, makeView, spotInFrame } from '../lib/geo';
 import { L } from '../lib/i18n';
 import { ARROWS, inOrder, moveFrom, movesOf, nearestTo, type Moves } from '../lib/mapKeys';
@@ -19,12 +21,16 @@ export interface MapHandle {
    * left behind is remembered, so that `restore` can go back to it. `apart` is how many pixels several
    * things must take up between them to be left as they are (36 unless said): two names need more room
    * than two shapes. They are then brought that far apart and half as much again, and no closer.
+   * `legible` is something that must stay readable with all of that in view: where it would be drawn
+   * smaller than `px` pixels across, the map comes closer, around it, and leaves the rest half out.
    */
-  focus(ids: string[], opts?: { force?: boolean; fill?: number; instant?: boolean; passing?: boolean; apart?: number }): void;
+  focus(ids: string[], opts?: FocusOpts): void;
   /** Back to the whole deck. */
   reset(): void;
   /** Back to where the player was before a passing `focus`; nothing when they have moved the map since. */
   restore(): void;
+  /** Whether a place is on the map: in sight when the whole of it is. */
+  shows(ll: LL): boolean;
 }
 
 interface Props {
@@ -57,11 +63,38 @@ interface Props {
    * without borders with `blind`.
    */
   only?: ReadonlySet<string>;
-  /** Pins that are not items: where the player clicked; `heat-0` to `heat-4`, how warm that click was. */
+  /**
+   * Pins that are not items: where the player clicked; `heat-0` to `heat-4`, how warm that click was; `spot`,
+   * the place that was asked for; `ask`, a place the question is about.
+   */
   marks?: { ll: LL; kind: MarkKind }[];
+  /** Lines drawn over the pieces, thick enough to stand out. */
+  traces?: Trace[];
+  /**
+   * A grid of parallels and meridians over the map, this many degrees apart, each with its latitude or
+   * its longitude written where it meets an edge of what is in view: parallels on the left, meridians at
+   * the top or at the bottom.
+   */
+  grid?: number;
 }
 
-export type MarkKind = 'guess' | 'heat-0' | 'heat-1' | 'heat-2' | 'heat-3' | 'heat-4';
+export type MarkKind = 'guess' | 'spot' | 'ask' | 'heat-0' | 'heat-1' | 'heat-2' | 'heat-3' | 'heat-4';
+
+export interface FocusOpts {
+  force?: boolean;
+  fill?: number;
+  instant?: boolean;
+  passing?: boolean;
+  apart?: number;
+  legible?: { points: LL[]; px: number };
+}
+
+/** A line drawn over the map that is not one of its pieces: the border between two of them. */
+export interface Trace {
+  geo: MultiLineString;
+  /** How it is painted: as what is being asked, or as the answer turned out. */
+  st?: 'ask' | Paint;
+}
 
 interface Shape {
   id: string;
@@ -463,11 +496,172 @@ const Overlay = memo(
   }),
 );
 
-export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, paint, pickable, pressable, onPick, labels, pinned, tip, blind, links, flash, onPoint, only, marks }, ref) {
+/** A line of the grid as it is drawn, and the points it goes through, to find where it leaves the view. */
+interface GridShape {
+  kind: 'lat' | 'lon';
+  at: number;
+  d: string;
+  pts: [number, number][];
+}
+
+/** What is in view, in the units of the map, and the zoom it is seen at. */
+interface InView {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+  k: number;
+}
+
+interface GridHandle {
+  /** The map has moved or changed size: `k` is the zoom it is now seen at. */
+  moved(k: number): void;
+}
+
+/**
+ * Where a line drawn through `pts` crosses the edge `value` of the view along `axis` (0: a vertical edge,
+ * 1: a horizontal one), within the view on the other axis. Walked from the far end when `back` is set.
+ */
+function crossing(pts: [number, number][], axis: 0 | 1, value: number, lo: number, hi: number, back: boolean): [number, number] | null {
+  const other = axis === 0 ? 1 : 0;
+  for (let n = 0; n + 1 < pts.length; n++) {
+    const i = back ? pts.length - 2 - n : n;
+    const a = pts[i];
+    const b = pts[i + 1];
+    if ((a[axis] - value) * (b[axis] - value) > 0 || a[axis] === b[axis]) continue;
+    // Two points a world apart are the two ends of a line cut by the edge of the map, not a stretch of it.
+    if (Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) > NOMINAL / 3) continue;
+    const f = (value - a[axis]) / (b[axis] - a[axis]);
+    const o = a[other] + (b[other] - a[other]) * f;
+    if (o < lo || o > hi) continue;
+    return axis === 0 ? [value, o] : [o, value];
+  }
+  return null;
+}
+
+/** Of every how many lines one is named, when there is no room for all: always multiples of a round number of degrees. */
+const GRID_EVERY: Record<string, number[]> = { 1: [1, 2, 5, 10], 2: [1, 2, 5, 10], 5: [1, 2, 4, 6, 12], 15: [1, 2, 3, 6], 3: [1, 2, 3, 6] };
+
+interface GridName {
+  key: string;
+  x: number;
+  y: number;
+  text: string;
+  /** Where the name is written from the point: over a parallel, and below the top edge or above the bottom one for a meridian. */
+  dy: number;
+}
+
+/**
+ * The names of the lines of a grid: each parallel where it comes in from the left of what is in view, each
+ * meridian where it meets the top or the bottom, whichever has them farther apart (they close in towards the
+ * poles). Where the lines are too close for every name, only some are written: the multiples of a round
+ * number, so that the rest can be counted.
+ */
+function gridLabels(lines: GridShape[], step: number, win: InView): GridName[] {
+  const { x0, y0, x1, y1, k } = win;
+  const px = (n: number) => n / k;
+  const inside = (p: [number, number] | undefined): p is [number, number] => !!p && p[0] >= x0 && p[0] <= x1 && p[1] >= y0 && p[1] <= y1;
+  const digits = step < 1 ? 1 : 0;
+  type Found = { l: GridShape; x: number; y: number };
+  const left: Found[] = [];
+  const top: Found[] = [];
+  const bottom: Found[] = [];
+  /** The end of a line that is in view: its point farthest to the left, to the top or to the bottom. */
+  const end = (pts: [number, number][], axis: 0 | 1, sign: 1 | -1): [number, number] | null => {
+    let best: [number, number] | null = null;
+    for (const p of pts) if (inside(p) && (!best || (p[axis] - best[axis]) * sign < 0)) best = p;
+    return best;
+  };
+  for (const l of lines) {
+    if (!l.pts.length) continue;
+    if (l.kind === 'lat') {
+      // A line that starts inside the view (at the edge of the world) is named where it starts.
+      const at = crossing(l.pts, 0, x0 + px(6), y0, y1, false) ?? end(l.pts, 0, 1);
+      // The corners are left alone: a name cut short says nothing.
+      if (at && at[1] > y0 + px(26) && at[1] < y1 - px(22)) left.push({ l, x: at[0], y: at[1] });
+      continue;
+    }
+    const up = crossing(l.pts, 1, y0 + px(6), x0, x1, true) ?? end(l.pts, 1, 1);
+    if (up && up[0] > x0 + px(48) && up[0] < x1 - px(44)) top.push({ l, x: up[0], y: up[1] });
+    const down = crossing(l.pts, 1, y1 - px(6), x0, x1, false) ?? end(l.pts, 1, -1);
+    // The buttons of the map take the corner on the right.
+    if (down && down[0] > x0 + px(48) && down[0] < x1 - px(96)) bottom.push({ l, x: down[0], y: down[1] });
+  }
+  /** The least room, in pixels, between two lines that follow one another. */
+  const room = (list: Found[], axis: 'x' | 'y') => {
+    list.sort((a, b) => a[axis] - b[axis]);
+    let gap = Infinity;
+    for (let i = 1; i < list.length; i++) gap = Math.min(gap, (list[i][axis] - list[i - 1][axis]) * k);
+    return gap;
+  };
+  const lead = String(step).replace(/[0.]/g, '');
+  const stride = (gap: number, need: number) => {
+    const all = GRID_EVERY[lead] ?? GRID_EVERY[1];
+    return all.find((n) => gap * n >= need) ?? all[all.length - 1];
+  };
+  const out: GridName[] = [];
+  const write = (list: Found[], every: number, dy: number) => {
+    for (const f of list) {
+      if (Math.round(f.l.at / step) % every !== 0) continue;
+      out.push({ key: `${f.l.kind}${f.l.at}`, x: f.x, y: f.y, text: f.l.kind === 'lat' ? fmtLat(f.l.at, digits) : fmtLon(f.l.at, digits), dy });
+    }
+  };
+  // A name is some fifteen pixels tall and, with its letter, fifty wide.
+  write(left, stride(room(left, 'y'), 17), -4);
+  const above = room(top, 'x');
+  const below = room(bottom, 'x');
+  const onTop = top.length > 1 && (bottom.length < 2 || above >= below * 0.9);
+  if (onTop || !bottom.length) write(top, stride(above, 54), 11);
+  else write(bottom, stride(below, 54), -5);
+  return out;
+}
+
+/**
+ * The grid of parallels and meridians, and their names. The lines move and grow with the map; the names are
+ * written again, at the edges of what is then in view, once the map has stopped moving.
+ */
+const Grid = memo(
+  forwardRef<GridHandle, { lines: GridShape[]; step: number; view(): InView | null }>(function Grid({ lines, step, view }, ref) {
+    const gRef = useRef<SVGGElement>(null);
+    const timer = useRef(0);
+    const [win, setWin] = useState<InView | null>(null);
+    useImperativeHandle(
+      ref,
+      () => ({
+        moved(k) {
+          gRef.current?.style.setProperty('--ik', String(1 / k));
+          // What is in view is asked for when the names are written, not on every step of a move.
+          window.clearTimeout(timer.current);
+          timer.current = window.setTimeout(() => setWin(view()), 90);
+        },
+      }),
+      [view],
+    );
+    useEffect(() => () => window.clearTimeout(timer.current), []);
+    const names = useMemo(() => (win ? gridLabels(lines, step, win) : []), [lines, step, win]);
+    return (
+      <g ref={gRef} className="m-grid">
+        {lines.map((l) => (
+          <path key={`${l.kind}${l.at}`} className={l.at === 0 ? 'm-grid-line zero' : 'm-grid-line'} d={l.d} />
+        ))}
+        {names.map((n) => (
+          <g key={n.key} transform={`translate(${n.x} ${n.y})`}>
+            <text className="m-grid-lbl" x={4} y={n.dy}>
+              {n.text}
+            </text>
+          </g>
+        ))}
+      </g>
+    );
+  }),
+);
+
+export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, paint, pickable, pressable, onPick, labels, pinned, tip, blind, links, flash, onPoint, only, marks, traces, grid }, ref) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const rootRef = useRef<SVGGElement>(null);
   const overlayRef = useRef<OverlayHandle>(null);
+  const gridRef = useRef<GridHandle>(null);
   const tipRef = useRef<HTMLDivElement>(null);
   const zoomRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const tRef = useRef<ZoomTransform>(zoomIdentity);
@@ -541,6 +735,7 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
       // Textures are drawn in map units: undo the zoom, or the stripes would grow with it.
       svg.querySelectorAll<SVGPatternElement>('pattern[data-fixed]').forEach((el) => el.setAttribute('patternTransform', `scale(${1 / t.k}) rotate(${el.dataset.fixed})`));
       overlayRef.current?.zoomed(t.k);
+      gridRef.current?.moved(t.k);
       if (tipRef.current) tipRef.current.style.opacity = '0';
       if (!frame) {
         frame = requestAnimationFrame(() => {
@@ -612,7 +807,7 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
 
   /** Brings items into view, as `MapHandle.focus` says. */
   const bring = useCallback(
-    (ids: string[], opts: { force?: boolean; fill?: number; instant?: boolean; passing?: boolean; apart?: number } = {}) => {
+    (ids: string[], opts: FocusOpts = {}) => {
       const svg = svgRef.current;
       const z = zoomRef.current;
       const lay = layoutRef.current;
@@ -645,7 +840,29 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
       let k = opts.fill != null ? Math.min(whole * opts.fill, fit.k * 60) : one ? (SEEN + 4) / one.land : whole * 0.5;
       if (opts.apart != null && opts.fill == null && !one) k = Math.min(k, (opts.apart * 1.5) / Math.max(bw, bh));
       k = Math.min(k, whole * 0.85, z.scaleExtent()[1]);
-      const target = k < fit.k * 1.3 ? fit : zoomIdentity.translate(w / 2 - (k * (x0 + x1)) / 2, h / 2 - (k * (y0 + y1)) / 2).scale(k);
+      let cx = (x0 + x1) / 2;
+      let cy = (y0 + y1) / 2;
+      if (opts.legible) {
+        let lx0 = Infinity;
+        let ly0 = Infinity;
+        let lx1 = -Infinity;
+        let ly1 = -Infinity;
+        for (const ll of opts.legible.points) {
+          const q = g.view.projection(ll);
+          if (!q) continue;
+          lx0 = Math.min(lx0, q[0]);
+          ly0 = Math.min(ly0, q[1]);
+          lx1 = Math.max(lx1, q[0]);
+          ly1 = Math.max(ly1, q[1]);
+        }
+        const need = Number.isFinite(lx0) ? Math.min(opts.legible.px / Math.max(lx1 - lx0, ly1 - ly0, 1e-6), z.scaleExtent()[1]) : 0;
+        if (k < need) {
+          k = need;
+          cx = (lx0 + lx1) / 2;
+          cy = (ly0 + ly1) / 2;
+        }
+      }
+      const target = k < fit.k * 1.3 ? fit : zoomIdentity.translate(w / 2 - k * cx, h / 2 - k * cy).scale(k);
       if (opts.passing) backRef.current ??= t;
       else backRef.current = null;
       select(svg)
@@ -676,8 +893,16 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
         backRef.current = null;
         if (svg && z && back) select(svg).transition().duration(450).call(z.transform, back);
       },
+      shows(ll) {
+        const wrap = wrapRef.current;
+        const lay = layoutRef.current;
+        const q = g.view.projection(ll);
+        if (!wrap || !lay || !q || !Number.isFinite(q[0]) || !Number.isFinite(q[1])) return false;
+        const [x, y] = lay.fit.apply(q);
+        return x >= 0 && x <= wrap.clientWidth && y >= 0 && y <= wrap.clientHeight;
+      },
     }),
-    [bring, seeAll],
+    [bring, seeAll, g],
   );
 
   // Handy when testing from the browser console: where a place falls on screen. Removed from production builds.
@@ -738,6 +963,31 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
     }
     return out;
   }, [g, links]);
+
+  const traceLines = useMemo(() => (traces ?? []).map((t) => ({ d: g.view.path(t.geo) || '', st: t.st ?? 'ask' })).filter((t) => t.d), [g, traces]);
+
+  const gridShapes = useMemo<GridShape[] | null>(() => {
+    if (!grid) return null;
+    return gridLines(deck.frame, grid).map((l) => {
+      const pts: [number, number][] = [];
+      for (const ll of l.points) {
+        const q = g.view.projection(ll);
+        if (q && Number.isFinite(q[0]) && Number.isFinite(q[1])) pts.push([q[0], q[1]]);
+      }
+      return { kind: l.kind, at: l.at, d: g.view.path({ type: 'LineString', coordinates: l.points }) || '', pts };
+    });
+  }, [g, deck, grid]);
+  /** What the map shows now, in its own units: where the names of the grid are written. */
+  const gridView = useCallback((): InView | null => {
+    const wrap = wrapRef.current;
+    if (!wrap) return null;
+    const t = tRef.current;
+    return { x0: -t.x / t.k, y0: -t.y / t.k, x1: (wrap.clientWidth - t.x) / t.k, y1: (wrap.clientHeight - t.y) / t.k, k: t.k };
+  }, []);
+  // A grid that has just been put on the map is named for the view the map is in.
+  useEffect(() => {
+    if (gridShapes) gridRef.current?.moved(tRef.current.k);
+  }, [gridShapes]);
 
   const markPoints = useMemo(() => {
     if (!marks?.length) return undefined;
@@ -1042,7 +1292,8 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
           </pattern>
         </defs>
         <g ref={rootRef}>
-          <Backdrop sphere={g.sphere} grat={g.grat} />
+          {/* A grid of its own takes the place of the faint one under the land: two would not be told apart. */}
+          <Backdrop sphere={g.sphere} grat={grid ? '' : g.grat} />
           {g.under.length > 0 && (
             <g className="m-items m-under">
               {(only ? g.under.filter((s) => only.has(s.id)) : g.under).map((s) => (
@@ -1066,6 +1317,18 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
           {g.outlines.map((o) => (
             <OutlinePath key={o.id} d={detail?.has(o.id) ? g.fullOf(o.id) : o.d} />
           ))}
+          {gridShapes && <Grid ref={gridRef} lines={gridShapes} step={grid!} view={gridView} />}
+          {traceLines.length > 0 && (
+            <g className="m-traces">
+              {/* Each line twice: a wide pale one under it, so that it stands out over any colour. */}
+              {traceLines.map((t, i) => (
+                <path key={`c${i}`} className="m-trace-case" d={t.d} />
+              ))}
+              {traceLines.map((t, i) => (
+                <path key={i} className={`m-trace st-${t.st}`} d={t.d} />
+              ))}
+            </g>
+          )}
           {linkLines.length > 0 && (
             <g className="m-links">
               {linkLines.map(([x1, y1, x2, y2], i) => (

@@ -3,6 +3,16 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.17.0 — 19 de noviembre de 2026
+
+- Fronteras: se ilumina una frontera y dices qué dos piezas separa, entre cuatro parejas o escribiendo los dos nombres, en el orden que quieras.
+- El mapa enseña enteras las dos piezas y se acerca cuando la frontera es corta. Con una lista a medida, pregunta solo las fronteras entre sus piezas.
+- Coordenadas: te damos una latitud y una longitud y marcas el punto en el mapa. Cuenta lo cerca que caigas; después ves la distancia y qué había allí.
+- El mapa lleva dibujados sus paralelos y meridianos, con los grados escritos en los bordes: de décimas de grado en un país pequeño a 30° en el mundo.
+- O al revés: el mapa marca un punto y eliges sus coordenadas entre cuatro. Las falsas son despistes de verdad: una línea de más, el otro hemisferio.
+- Si las coordenadas que eliges caen en el mapa, una cruz enseña dónde están en realidad y a cuántos kilómetros del punto.
+- Los dos juegos se llevan con el teclado: las teclas 1 a 4 eligen opción y, para marcar un punto, las flechas mueven una cruz.
+
 ## 1.16.0 — 19 de noviembre de 2026
 
 - Marca el grupo: te damos un grupo y marcas en el mapa todas sus piezas: la Unión Europea, las provincias de Andalucía, lo que limita con Francia.

@@ -169,7 +169,9 @@ function Recents({ world }: { world: World }) {
                 ? ` · ${cardAskName(r.o.cardAsk)}`
                 : r.mode === 'bearing' && r.o.bearingAsk && r.o.bearingAsk !== 'both'
                   ? ` · ${r.o.bearingAsk === 'dir' ? L('solo rumbos', 'bearings only') : L('solo distancias', 'distances only')}`
-                  : '';
+                  : r.mode === 'coords' && r.o.coordsAsk === 'read'
+                    ? ` · ${L('leer el punto', 'reading the point')}`
+                    : '';
             return (
               <li key={recentKey(r)}>
                 <button type="button" onClick={() => again(r)}>

@@ -24,9 +24,9 @@ import type { Country, Mode, Section } from '../lib/types';
 const COUNTDOWNS = [0, 120, 300, 600, 900];
 
 const levelName = (n: number): string => [L('Fácil', 'Easy'), L('Medio', 'Medium'), L('Difícil', 'Hard')][n - 1];
-const ANSWER_MODES: Mode[] = ['learn', 'identify', 'outline', 'capital', 'flag', 'parent', 'mix'];
+const ANSWER_MODES: Mode[] = ['learn', 'identify', 'outline', 'capital', 'flag', 'parent', 'mix', 'border'];
 /** Games that are one round of everything: they cannot go on for ever. */
-const FINITE_MODES: Mode[] = ['neighbours', 'blind', 'hotcold', 'bearing', 'group', 'whoami', 'cards'];
+const FINITE_MODES: Mode[] = ['neighbours', 'blind', 'hotcold', 'bearing', 'coords', 'group', 'whoami', 'border', 'cards'];
 /** Games where names are typed and a list of suggestions can help. */
 const SUGGEST_MODES: Mode[] = ['travel', 'neighbours', 'chain', 'whoami', 'regionle', 'which', 'topten'];
 /** Games that stop on a missed answer long enough to read about it. */
@@ -449,6 +449,7 @@ export function Setup({ section, world }: { section: Section; world: World }) {
     metric: section === 'pops' && FIGURE_MODES.includes(def.id),
     axis: def.id === 'compass',
     bearingAsk: def.id === 'bearing',
+    coordsAsk: def.id === 'coords',
     // A review and a list are filled in at their own pace.
     countdown: def.id === 'nameall',
     cities: section === 'cities' && !active,
@@ -756,6 +757,25 @@ export function Setup({ section, world }: { section: Section; world: World }) {
                       : opts.bearingAsk === 'dist'
                         ? L('A cuántos kilómetros está cada sitio de otro, entre cuatro distancias.', 'How many kilometres each place is from another, out of four distances.')
                         : L('Una pregunta de rumbo y otra de distancia, por turnos.', 'A question about the bearing and one about the distance, in turn.')}
+                  </p>
+                </div>
+              )}
+              {show.coordsAsk && (
+                <div className="opt">
+                  <span className="opt-label">{L('Pregunta', 'Question')}</span>
+                  <Seg
+                    label={L('Qué se pregunta', 'What is asked')}
+                    value={opts.coordsAsk ?? 'mark'}
+                    onChange={(coordsAsk) => set({ coordsAsk })}
+                    options={[
+                      { value: 'mark', label: L('Marcar el punto', 'Mark the point') },
+                      { value: 'read', label: L('Leer el punto', 'Read the point') },
+                    ]}
+                  />
+                  <p className="opt-hint">
+                    {opts.coordsAsk === 'read'
+                      ? L('El mapa marca un punto y eliges sus coordenadas entre cuatro.', 'The map marks a point and you choose its coordinates out of four.')
+                      : L('Te damos las coordenadas y haces clic en el punto; cuenta lo cerca que caigas.', 'You get the coordinates and click on the point; how close you fall is what counts.')}
                   </p>
                 </div>
               )}

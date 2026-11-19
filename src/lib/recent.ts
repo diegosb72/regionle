@@ -11,7 +11,7 @@ import type { Mode, Section } from './types';
  * The options that say which game it was, as against how one likes to play: which cities, which figure,
  * what countries are pinned by, what the cards ask, against the clock or with lives.
  */
-export type RecentOpts = Partial<Pick<Opts, 'cityPick' | 'cityCount' | 'metric' | 'pinBy' | 'format' | 'axis' | 'countdown' | 'cardAsk' | 'bearingAsk'>>;
+export type RecentOpts = Partial<Pick<Opts, 'cityPick' | 'cityCount' | 'metric' | 'pinBy' | 'format' | 'axis' | 'countdown' | 'cardAsk' | 'bearingAsk' | 'coordsAsk'>>;
 
 export interface Recent {
   /** When it was last played. */
@@ -42,6 +42,8 @@ function optsOf(game: GameConfig): RecentOpts {
   if (game.mode === 'compass') o.axis = game.opts.axis ?? 'ns';
   // Only bearings and only distances are two games; a state kept before the option existed asks both.
   if (game.mode === 'bearing') o.bearingAsk = game.opts.bearingAsk ?? 'both';
+  // Marking a point and reading its coordinates are two games as well.
+  if (game.mode === 'coords') o.coordsAsk = game.opts.coordsAsk ?? 'mark';
   if (game.mode === 'nameall' && game.opts.countdown > 0) o.countdown = game.opts.countdown;
   if (game.section === 'countries' && game.mode === 'pin') o.pinBy = game.opts.pinBy;
   // Cards that ask where a thing is are another pack than the ones that ask its name.
