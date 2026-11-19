@@ -1,0 +1,27 @@
+/*
+ * "Coordenadas" (`Coords.tsx`): the latitude and the longitude that are asked. Fetched with the game, after
+ * `styles.css`, on which it stands (the grid and its degrees are the map's: `.m-grid` there).
+ */
+.coords-ask {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.coords-words {
+  margin-top: 2px;
+}
+.coords-answer {
+  margin-top: 2px;
+}
+/* Reading a point: the question is a sentence, not a pair of numbers. */
+.coords-read {
+  font-size: clamp(22px, 2.3vw, 28px);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+.coords-choices .choice span {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.coords-said {
+  margin-top: 6px;
+}

@@ -7,6 +7,7 @@ import {
   Crosshair,
   Ear,
   Fence,
+  Grid3x3,
   Flag,
   GalleryVerticalEnd,
   GraduationCap,
@@ -231,6 +232,19 @@ function modesOf(section: Section): ModeDef[] {
     group: 'links',
   });
   const bearingLand = bearing(L('Se mide de centro a centro.', 'Measured from centre to centre.'));
+  /** A point by its latitude and its longitude, marked or read; `what` says which points are asked. */
+  const coords = (what: string): ModeDef => ({
+    id: 'coords',
+    name: L('Coordenadas', 'Coordinates'),
+    desc: `${L(
+      'Te damos una latitud y una longitud y marcas el punto en el mapa, que lleva dibujados sus paralelos y meridianos. O al revés: el mapa marca un punto y eliges sus coordenadas. Al responder, ves qué había allí.',
+      'You get a latitude and a longitude and mark the point on the map, which has its parallels and meridians drawn. Or the other way round: the map marks a point and you choose its coordinates. Once you answer, you see what was there.',
+    )} ${what}`,
+    icon: Grid3x3,
+    level: 2,
+    group: 'links',
+  });
+  const coordsLand = coords(L('Cada punto cae dentro de una pieza del mapa.', 'Each point falls inside a piece of the map.'));
   /** The number games, said for what each section measures. */
   const figures = (by: string, which: string): ModeDef[] => [
     { id: 'hilo', name: L('Mayor o menor', 'Higher or lower'), desc: `${L('Compara cada cifra con la anterior y encadena aciertos.', 'Compare each figure with the one before and keep the streak going.')} ${by}`, icon: ArrowUpDown, level: 1, group: 'figures' },
@@ -279,6 +293,7 @@ function modesOf(section: Section): ModeDef[] {
         },
         compass,
         bearingLand,
+        coordsLand,
         {
           id: 'capital',
           name: L('Capitales', 'Capitals'),
@@ -328,6 +343,7 @@ function modesOf(section: Section): ModeDef[] {
         travel,
         compass,
         bearingLand,
+        coordsLand,
         { id: 'capital', name: L('Capitales', 'Capitals'), desc: L('De cada país, su capital. Los que se llaman igual que su capital no se preguntan.', 'The capital of each country. The ones named after their capital are not asked.'), icon: Landmark, level: 2, group: 'facts' },
         {
           id: 'flag',
@@ -373,6 +389,7 @@ function modesOf(section: Section): ModeDef[] {
         },
         compass,
         bearing(L('De ciudad a ciudad, en línea recta.', 'From city to city, as the crow flies.')),
+        coords(L('Cada punto es una ciudad.', 'Each point is a city.')),
         whoami(
           L(
             'Una ciudad habla de sí misma, pista a pista: su tamaño, su país o su región, hacia dónde cae, a cuánto está de la más grande. Adivínala con las menos pistas que puedas.',
@@ -434,6 +451,8 @@ function modeName(mode: Mode): string {
       return L('Caliente y frío', 'Hot and cold');
     case 'bearing':
       return L('Distancias y rumbos', 'Distances and bearings');
+    case 'coords':
+      return L('Coordenadas', 'Coordinates');
     case 'edit':
       return L('Lista a medida', 'Custom list');
     case 'print':
@@ -553,7 +572,7 @@ function lazy<K extends string, V>(keys: readonly K[], make: (key: K) => V): Rec
   return out;
 }
 
-const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'group', 'neighbours', 'border', 'chain', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'edit', 'print', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'topten', 'cards', 'mix', 'listen'];
+const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'group', 'neighbours', 'border', 'chain', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'coords', 'edit', 'print', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'topten', 'cards', 'mix', 'listen'];
 
 export const MODES: Record<Section, ModeDef[]> = lazy(SECTION_IDS, modesOf);
 export const MODE_NAME: Record<Mode, string> = lazy(MODE_IDS, modeName);

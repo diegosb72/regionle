@@ -180,6 +180,8 @@ export type Mode =
   | 'hotcold'
   /** Which way one place lies from another, and how far: nothing of either is on the map. */
   | 'bearing'
+  /** A latitude and a longitude are given, and the point is found on a map with its grid drawn. */
+  | 'coords'
   /** Not a game: the screen where a custom list is put together. */
   | 'edit'
   /** Not a game either: the map without names, laid out on paper to be printed. */

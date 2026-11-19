@@ -95,11 +95,14 @@ export interface Opts {
   cardAsk: CardAsk;
   /** What "distances and bearings" asks: which way, how far, or one and the other in turn. */
   bearingAsk: BearingAsk;
+  /** What "coordinates" asks: to mark the point that some coordinates name, or to read the coordinates of a marked point. */
+  coordsAsk: CoordsAsk;
 }
 
 export type FlagLook = 'plain' | 'grey' | 'blur';
 export type CardAsk = 'name' | 'where' | 'capital' | 'flag';
 export type BearingAsk = 'both' | 'dir' | 'dist';
+export type CoordsAsk = 'mark' | 'read';
 
 export interface GameConfig {
   section: Section;
@@ -193,6 +196,7 @@ export const DEFAULT_OPTS: Opts = {
   flagLook: 'plain',
   cardAsk: 'name',
   bearingAsk: 'both',
+  coordsAsk: 'mark',
 };
 
 /** `stats` and `where` without anything about the given ids ("loc:x", "name:x"… and the map x was learnt on). */

@@ -34,12 +34,13 @@ import type { Deck, Mode } from '../lib/types';
  */
 const BlindGame = lazyScreen(() => import('../games/Blind').then((m) => m.BlindGame));
 const BearingGame = lazyScreen(() => import('../games/Bearings').then((m) => m.BearingGame));
+const CoordsGame = lazyScreen(() => import('../games/Coords').then((m) => m.CoordsGame));
 const ChainGame = lazyScreen(() => import('../games/Chain').then((m) => m.ChainGame));
 const BorderGame = lazyScreen(() => import('../games/Borders').then((m) => m.BorderGame));
 const GroupGame = lazyScreen(() => import('../games/Groups').then((m) => m.GroupGame));
 const WhoAmIGame = lazyScreen(() => import('../games/WhoAmI').then((m) => m.WhoAmIGame));
 /** Which of them each mode needs: asked for while the map is being drawn, so that it is here when the map is. */
-const APART: Partial<Record<Mode, { warm(): void }>> = { blind: BlindGame, hotcold: BlindGame, bearing: BearingGame, chain: ChainGame, border: BorderGame, group: GroupGame, whoami: WhoAmIGame };
+const APART: Partial<Record<Mode, { warm(): void }>> = { blind: BlindGame, hotcold: BlindGame, bearing: BearingGame, coords: CoordsGame, chain: ChainGame, border: BorderGame, group: GroupGame, whoami: WhoAmIGame };
 
 function Message({ title, text, onExit, action }: { title: string; text: string; onExit(): void; action?: { label: string; run(): void } }) {
   return (
@@ -277,6 +278,8 @@ function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
         return <BlindGame {...props} />;
       case 'bearing':
         return <BearingGame {...props} />;
+      case 'coords':
+        return <CoordsGame {...props} />;
       case 'cards':
         return <CardsGame {...props} />;
       case 'pin':

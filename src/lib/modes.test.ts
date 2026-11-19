@@ -11,9 +11,9 @@ const ids = (section: (typeof SECTION_IDS)[number]): Mode[] => MODES[section].ma
 
 describe('the games of each section', () => {
   it('are these, in the order of the menu', () => {
-    expect(ids('regions')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'puzzle', 'group', 'mix', 'outline', 'regionle', 'neighbours', 'border', 'chain', 'travel', 'parent', 'compass', 'bearing', 'capital', 'whoami', 'hilo', 'rank', 'exact', 'which', 'topten']);
-    expect(ids('countries')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'puzzle', 'group', 'mix', 'outline', 'regionle', 'neighbours', 'border', 'chain', 'travel', 'compass', 'bearing', 'capital', 'flag', 'whoami']);
-    expect(ids('cities')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'group', 'mix', 'parent', 'compass', 'bearing', 'whoami', 'hilo', 'rank', 'exact', 'which', 'topten']);
+    expect(ids('regions')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'puzzle', 'group', 'mix', 'outline', 'regionle', 'neighbours', 'border', 'chain', 'travel', 'parent', 'compass', 'bearing', 'coords', 'capital', 'whoami', 'hilo', 'rank', 'exact', 'which', 'topten']);
+    expect(ids('countries')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'puzzle', 'group', 'mix', 'outline', 'regionle', 'neighbours', 'border', 'chain', 'travel', 'compass', 'bearing', 'coords', 'capital', 'flag', 'whoami']);
+    expect(ids('cities')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'group', 'mix', 'parent', 'compass', 'bearing', 'coords', 'whoami', 'hilo', 'rank', 'exact', 'which', 'topten']);
     expect(ids('physical')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'mix', 'hilo', 'rank', 'exact', 'which', 'topten']);
     expect(ids('pops')).toEqual(['hilo', 'rank', 'exact', 'which', 'topten', 'truefalse']);
   });
