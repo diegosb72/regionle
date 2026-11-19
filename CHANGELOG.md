@@ -3,6 +3,15 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.21.0 — 19 de noviembre de 2026
+
+- Diploma: al acabar con la mitad o más bien, «Diploma» saca una hoja para imprimir o guardar como PDF con tu nombre, el mapa, los aciertos y la fecha.
+- Códigos QR: junto a cada enlace (un mapa y un juego, una lista, un reto, tu resultado del día), un código para abrirlo con el móvil, guardarlo o imprimirlo.
+- Tamaño de la letra, al pie: normal, grande o muy grande. Crecen todos los textos, también los nombres del mapa.
+- Alto contraste, al pie: tintas más oscuras y líneas más marcadas, en claro y en oscuro. Se activa solo si tu dispositivo lo pide.
+- Tipografía para dislexia, al pie: toda la letra en Lexend, con más aire entre letras y palabras y sin cursivas.
+- Una lista desplegable o un buscador largos ya no ensanchan la página en un móvil estrecho, y la portada cabe en pantallas de 320 puntos de ancho.
+
 ## 1.20.0 — 19 de noviembre de 2026
 
 - Comodín de racha: cada 7 días seguidos de reto ganas un comodín, y guardas hasta 2. Si un día no juegas, se gasta solo y la racha sigue.

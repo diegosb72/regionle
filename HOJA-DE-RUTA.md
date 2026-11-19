@@ -16,7 +16,7 @@ servicio de fuera).
 A petición del dueño del proyecto, desde la 1.18.0 se hace primero lo que menos esfuerzo lleva y se deja para
 el final lo que más. La estimación es a ojo y cambia al abrir el código:
 
-- **Corto**: 71, 72, 92, 102
+- **Corto**: nada pendiente (del 102 falta solo que el dueño copie el flujo a su sitio)
 - **Medio**: 19, 23–26, 45, 46, 51, 54, 58, 59, 61, 62, 66, 70, 73–75, 84, 87, 94, 98, 100, 111b, 111d, 111e
 - **Largo**: 20, 44 (francés), 65, 67, 68, 83, 90
 - **Depende de conseguir datos**, lleve lo que lleve: 30–32, 37–39, 41–43, 95, y lo que falta del 29 y del 35
@@ -110,8 +110,8 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 - [ ] 68. Varios perfiles en un navegador
 - [x] 69. Mapas mudos para imprimir: el mapa numerado con sus líneas, la hoja de soluciones y recuadros para lo que queda lejos — **1.8.0**
 - [ ] 70. Tarea con justificante
-- [ ] 71. Diploma
-- [ ] 72. Códigos QR
+- [x] 71. Diploma: al acabar una partida con la mitad o más bien, una hoja apaisada para imprimir o guardar como PDF con el nombre (que no se guarda), el mapa, el juego, los aciertos, el tiempo, la fecha, un sello con el porcentaje y sitio para una firma — **1.21.0**
+- [x] 72. Códigos QR: junto al enlace a un mapa y un juego, al de una lista, al de un reto y al del resultado del día, un código que se abre grande, se guarda como imagen o se imprime; lo calcula el propio juego, sin servicios de fuera — **1.21.0**
 - [ ] 73. Bingo geográfico
 - [ ] 74. Incrustar un mapa o una lista en otra web
 - [ ] 75. Tarjeta «mi mapa del mundo»
@@ -136,7 +136,7 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 
 ## Ajustes y accesibilidad
 
-- [ ] 92. Letra grande, alto contraste y tipografía para dislexia
+- [x] 92. Letra grande, alto contraste y tipografía para dislexia: tres ajustes al pie. La letra, normal, grande o muy grande, también en los nombres del mapa; el contraste alto, en claro y en oscuro, y solo si el dispositivo lo pide; y Lexend con más aire y sin cursivas (**decidido**: Lexend y no OpenDyslexic, que es un 60 % más ancha y no cabía en un móvil) — **1.21.0**
 - [ ] 94. Reglas a medida
 - [ ] 95. Nombres en el idioma local
 - [x] 96. Millas además de kilómetros: un ajuste del pie pasa a millas y millas cuadradas todo lo que el juego dice en kilómetros; las altitudes siguen en metros — **1.19.0**
@@ -148,7 +148,7 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 - [x] 99. Botón «Avisar de un error»: bajo cada respuesta, un enlace abre un aviso en GitHub ya rellenado con la pieza, el mapa, el juego y la versión — **1.18.0**
 - [ ] 100. Ayuda y tutorial de cada modo
 - [x] 101. Copia de seguridad más cómoda: al importar se ve qué trae el archivo antes de sustituir nada, la copia lleva las preferencias, se puede enviar desde el móvil y Progreso recuerda hacerla — **1.19.0**
-- [ ] 102. Pruebas y publicación automáticas en GitHub
+- [~] 102. Pruebas y publicación automáticas en GitHub — el flujo está escrito y revisado en `scripts/ci/pruebas.yml` (**1.21.0**): prueba, compila con el control de tamaño y juega en un navegador en cada cambio, y publica si Pages se pone a publicar desde Actions. Falta ponerlo: hay que copiarlo a `.github/workflows/`, y eso solo puede hacerlo el dueño del repositorio (el README dice cómo, en «Publicación»)
 - [x] 103. Licencia del repositorio (**decidido**: MIT): el código se puede usar, cambiar y redistribuir citando al autor; los datos de los mapas siguen las condiciones de sus fuentes — **1.15.0**
 
 ## Arreglos pendientes

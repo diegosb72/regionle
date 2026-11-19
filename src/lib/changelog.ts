@@ -15,6 +15,26 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.21.0',
+    date: '2026-11-19',
+    es: [
+      'Diploma: al acabar con la mitad o más bien, «Diploma» saca una hoja para imprimir o guardar como PDF con tu nombre, el mapa, los aciertos y la fecha.',
+      'Códigos QR: junto a cada enlace (un mapa y un juego, una lista, un reto, tu resultado del día), un código para abrirlo con el móvil, guardarlo o imprimirlo.',
+      'Tamaño de la letra, al pie: normal, grande o muy grande. Crecen todos los textos, también los nombres del mapa.',
+      'Alto contraste, al pie: tintas más oscuras y líneas más marcadas, en claro y en oscuro. Se activa solo si tu dispositivo lo pide.',
+      'Tipografía para dislexia, al pie: toda la letra en Lexend, con más aire entre letras y palabras y sin cursivas.',
+      'Una lista desplegable o un buscador largos ya no ensanchan la página en un móvil estrecho, y la portada cabe en pantallas de 320 puntos de ancho.',
+    ],
+    en: [
+      'Diploma: finish with half or more right and “Diploma” gives a sheet to print or save as a PDF with your name, the map, the answers and the date.',
+      'QR codes: next to every link (a map and a game, a list, a challenge, your result of the day) there is a code to open it with a phone, save it or print it.',
+      'Size of the letter, at the foot: normal, large or very large. Every text grows, the names on the map too.',
+      'High contrast, at the foot: darker inks and stronger lines, light and dark. It turns on by itself if your device asks for it.',
+      'Typeface for dyslexia, at the foot: every text in Lexend, with more room between letters and words and no italics.',
+      'A long drop-down list or search box no longer widens the page on a narrow phone, and the home page fits screens 320 points wide.',
+    ],
+  },
+  {
     version: '1.20.0',
     date: '2026-11-19',
     es: [
