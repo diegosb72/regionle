@@ -1,5 +1,6 @@
 /** Runs the game stored in the configuration: builds the deck and hands it to the right game. */
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useState, type ReactElement, type ReactNode } from 'react';
+import { HelpPanel } from '../components/Help';
 import { lazyScreen } from '../components/lazy';
 import { Spinner } from '../components/ui';
 import { CardsGame } from '../games/Cards';
@@ -14,13 +15,14 @@ import { PrintSheet } from '../games/PrintSheet';
 import { QuizGame } from '../games/QuizGame';
 import { RegionleGame } from '../games/Regionle';
 import { TravelGame } from '../games/Travel';
-import { GameShell, type GameProps } from '../games/common';
+import { GameShell, HelpContext, type GameProps } from '../games/common';
 import { answersItself, belongsItself, capitalsNeedTyping } from '../games/quiz';
 import { countryAnswers, countryItem, eligible, levelOf, type World } from '../lib/data';
 import { deckFor } from '../lib/decks';
 import { TOP_MIN, countryFigs, deckFigs, figPlayable, metricsIn, positionFigs, type Fig } from '../lib/figures';
 import { L } from '../lib/i18n';
 import { MODE_NAME, PATHS } from '../lib/modes';
+import { pauseClock } from '../lib/pause';
 import { goneFrom } from '../lib/review';
 import { FIGURE_MODES } from '../lib/rules';
 import { go } from '../lib/router';
@@ -68,6 +70,38 @@ function Message({ title, text, onExit, action }: { title: string; text: string;
         </div>
       }
     />
+  );
+}
+
+/** What is opened without being told how it goes: there is nothing in them to get wrong. */
+const QUIET: readonly Mode[] = ['explore', 'print'];
+
+/**
+ * A game with «Cómo se juega» at hand: its frame gets the button, and the first time a player opens that
+ * game the rules are shown before the first question. While they are read, the clock of the game is stopped.
+ */
+function WithHelp({ cfg, children }: { cfg: GameConfig; children: ReactNode }) {
+  const [help, setHelp] = useState<'first' | 'asked' | null>(() => {
+    const s = useStore.getState();
+    // A review is of what has been played; and a game that is in the latest ones has been played too.
+    const fresh = s.helpAuto && !cfg.review && !QUIET.includes(cfg.mode) && !s.helpSeen.includes(cfg.mode) && !s.sessions.some((r) => r.mode === cfg.mode);
+    return fresh ? 'first' : null;
+  });
+  // Once shown it is not shown again by itself, whether it is read or closed at once.
+  useEffect(() => {
+    if (help === 'first') useStore.getState().seeHelp(cfg.mode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  // Before the game below has done anything of its own: it must find its clock stopped, and say nothing aloud.
+  useLayoutEffect(() => {
+    if (help) return pauseClock();
+  }, [help]);
+  const show = useCallback(() => setHelp('asked'), []);
+  return (
+    <HelpContext.Provider value={show}>
+      {children}
+      {help && <HelpPanel mode={cfg.mode} section={cfg.section} first={help === 'first'} playing onClose={() => setHelp(null)} />}
+    </HelpContext.Provider>
   );
 }
 
@@ -142,16 +176,28 @@ function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
     const what = `${nf(chosen.length)} ${L('países', 'countries')}`;
     if (cfg.mode === 'truefalse') {
       if (chosen.length < 2) return <Message title={L('Faltan países', 'Not enough countries')} text={L('Este juego necesita al menos dos países.', 'This game needs at least two countries.')} onExit={onExit} />;
-      return <TrueFalseGame countries={chosen} world={statementWorld} cfg={cfg} onExit={onExit} />;
+      return (
+        <WithHelp cfg={cfg}>
+          <TrueFalseGame countries={chosen} world={statementWorld} cfg={cfg} onExit={onExit} />
+        </WithHelp>
+      );
     }
     if (cfg.mode === 'topten') {
       if (!figs || figs.length < TOP_MIN) {
         return <Message title={L('Faltan países', 'Not enough countries')} text={L(`Para preguntar por los primeros hacen falta al menos ${TOP_MIN} países con datos.`, `Asking for the top ones takes at least ${TOP_MIN} countries with data.`)} onExit={onExit} />;
       }
-      return <TopTenGame figs={figs} what={what} cfg={cfg} onExit={onExit} onAgain={onAgain} />;
+      return (
+        <WithHelp cfg={cfg}>
+          <TopTenGame figs={figs} what={what} cfg={cfg} onExit={onExit} onAgain={onAgain} />
+        </WithHelp>
+      );
     }
     if (!figs || !figPlayable(figs)) return <Message title={L('Faltan países', 'Not enough countries')} text={L('Este juego necesita al menos dos países con datos.', 'This game needs at least two countries with data.')} onExit={onExit} />;
-    return <FigGame figs={figs} cfg={cfg} what={`${nf(figs.length)} ${L('países', 'countries')}`} onExit={onExit} onAgain={onAgain} />;
+    return (
+      <WithHelp cfg={cfg}>
+        <FigGame figs={figs} cfg={cfg} what={`${nf(figs.length)} ${L('países', 'countries')}`} onExit={onExit} onAgain={onAgain} />
+      </WithHelp>
+    );
   }
 
   if (error) {
@@ -185,7 +231,13 @@ function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
   }
   if (cfg.mode === 'edit') return <ListEditor deck={deck} cfg={cfg} onExit={onExit} onAgain={onAgain} />;
   // A sheet can be printed of any map, also of one with a single piece.
-  if (cfg.mode === 'print') return <PrintSheet deck={deck} cfg={cfg} onExit={onExit} onAgain={onAgain} />;
+  if (cfg.mode === 'print') {
+    return (
+      <WithHelp cfg={cfg}>
+        <PrintSheet deck={deck} cfg={cfg} onExit={onExit} onAgain={onAgain} />
+      </WithHelp>
+    );
+  }
   if (deck.items.length < 2 && cfg.mode !== 'explore') {
     return <Message title={L('Este mapa tiene una sola pieza', 'This map has a single piece')} text={L('Elige más países o un nivel con más divisiones para poder jugar.', 'Choose more countries or a level with more divisions to play.')} onExit={onExit} />;
   }
@@ -245,13 +297,21 @@ function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
       if (list.length < TOP_MIN) {
         return <Message title={L('Faltan piezas', 'Not enough pieces')} text={L(`Para preguntar por los primeros hacen falta al menos ${TOP_MIN} cosas con la misma cifra.`, `Asking for the top ones takes at least ${TOP_MIN} things with the same figure.`)} onExit={onExit} />;
       }
-      return <TopTenGame figs={list} what={deck.title} cfg={cfg} onExit={onExit} onAgain={onAgain} />;
+      return (
+        <WithHelp cfg={cfg}>
+          <TopTenGame figs={list} what={deck.title} cfg={cfg} onExit={onExit} onAgain={onAgain} />
+        </WithHelp>
+      );
     }
-    return <FigGame figs={figs} cfg={cfg} what={deck.title} deck={cfg.mode === 'compass' ? deck : undefined} onExit={onExit} onAgain={onAgain} />;
+    return (
+      <WithHelp cfg={cfg}>
+        <FigGame figs={figs} cfg={cfg} what={deck.title} deck={cfg.mode === 'compass' ? deck : undefined} onExit={onExit} onAgain={onAgain} />
+      </WithHelp>
+    );
   }
 
   const props: GameProps = { deck, cfg, onExit, onAgain };
-  const game = () => {
+  const game = (): ReactElement | null => {
     switch (cfg.mode) {
       case 'explore':
         return <ExploreGame {...props} />;
@@ -291,22 +351,26 @@ function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
       case 'parent':
       case 'mix':
       case 'listen':
-        return <QuizGame {...props} />;
+        return <QuizGame {...props} places={world.index} />;
       default:
-        return <Message title={L(`«${MODE_NAME[cfg.mode]}» no está disponible aquí`, `“${MODE_NAME[cfg.mode]}” is not available here`)} text={L('Elige otro modo de juego.', 'Choose another game mode.')} onExit={onExit} />;
+        return null;
     }
   };
+  const playing = game();
+  if (!playing) return <Message title={L(`«${MODE_NAME[cfg.mode]}» no está disponible aquí`, `“${MODE_NAME[cfg.mode]}” is not available here`)} text={L('Elige otro modo de juego.', 'Choose another game mode.')} onExit={onExit} />;
   // A game that comes in a file of its own may still be on its way: the map goes on being drawn until it is here.
   return (
-    <Suspense
-      fallback={
-        <div className="play play-loading">
-          <Spinner label={L('Dibujando el mapa…', 'Drawing the map…')} />
-        </div>
-      }
-    >
-      {game()}
-    </Suspense>
+    <WithHelp cfg={cfg}>
+      <Suspense
+        fallback={
+          <div className="play play-loading">
+            <Spinner label={L('Dibujando el mapa…', 'Drawing the map…')} />
+          </div>
+        }
+      >
+        {playing}
+      </Suspense>
+    </WithHelp>
   );
 }
 

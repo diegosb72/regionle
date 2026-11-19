@@ -111,6 +111,8 @@ export function App() {
   useIconBadge(iconBadge);
   const miles = useStore((s) => s.miles);
   const setMiles = useStore((s) => s.setMiles);
+  const helpAuto = useStore((s) => s.helpAuto);
+  const setHelpAuto = useStore((s) => s.setHelpAuto);
   const palette = useStore((s) => s.palette);
   const setPalette = useStore((s) => s.setPalette);
   const textSize = useStore((s) => s.textSize);
@@ -438,6 +440,9 @@ export function App() {
           )}
           <Toggle checked={miles} onChange={setMiles} hint={L('Las distancias, en millas, y las superficies, en millas cuadradas. Las altitudes siguen en metros.', 'Distances in miles and surfaces in square miles. Heights stay in metres.')}>
             {L('Distancias en millas', 'Distances in miles')}
+          </Toggle>
+          <Toggle checked={helpAuto} onChange={setHelpAuto} hint={L('La primera vez que abres un juego, antes de la primera pregunta.', 'The first time you open a game, before the first question.')}>
+            {L('Enseñar cómo se juega', 'Show how to play')}
           </Toggle>
           {badges && (
             <Toggle

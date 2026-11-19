@@ -1,6 +1,7 @@
 // Writes what the game ships with for type-ins, `src/lib/typeins.default.json`, from the answers of a
 // JetPunk quiz (`jetpunk.txt`), a few matches made by hand (`match.json`) and a few changes to what the
-// list says (`extra.json`).
+// list says (`extra.json`), which is all about regions; and, for countries, cities and capitals, from a
+// short list written by hand (`lugares.json`).
 //
 //   node scripts/typeins/build.mjs          writes the file and `informe.md`
 //   node scripts/typeins/build.mjs --check  fails if the file is not what would be written
@@ -275,7 +276,89 @@ function build() {
     if (id.startsWith('//')) continue;
     if (!byPiece.has(id)) throw new Error(`extra.json: ${id} is not a piece that the list covers`);
   }
-  return { rows, game, matched, byPiece, edits, extra };
+  // Countries, cities and capitals come after the regions, each kind in the order of its ids.
+  const other = places(game);
+  for (const id of Object.keys(other.edits).sort()) {
+    if (edits[id]) throw new Error(`lugares.json: ${id} is a piece of the list of regions`);
+    edits[id] = other.edits[id];
+  }
+  return { rows, game, matched, byPiece, edits, extra, places: other.rows, regions: byPiece.size };
+}
+
+// ---------------------------------------------------------------------------
+// Countries, cities and capitals
+// ---------------------------------------------------------------------------
+
+/**
+ * What ships for what the quiz does not cover (`lugares.json`): the short forms in everyday use that the
+ * initials of a name do not spell («EUA», «BCN», «CDMX»), and the initials that the rule leaves aside
+ * because two cities of one map share them («SF» is San Francisco, whatever Sioux Falls says). They are
+ * added to what the rule gives: the piece keeps its initials.
+ *
+ * A city is written once and hands its forms on to the capital it is: that of its country (`cap:US`) and
+ * that of every region whose capital it is (`cap:ES-CT`, `cap:ES-B`). Where a capital already has one of
+ * them among its names, that one is left out without a word.
+ */
+function places(game) {
+  const file = JSON.parse(fs.readFileSync(path.join(HERE, 'lugares.json'), 'utf8'));
+  const cities = JSON.parse(fs.readFileSync(path.join(DATA, 'cities.json'), 'utf8')).c;
+  const capitals = JSON.parse(fs.readFileSync(path.join(DATA, 'capitals.json'), 'utf8')).rc;
+  const countries = new Map(game.index.countries.map((c) => [c.id, c]));
+  const edits = {};
+  const rows = [];
+  /** Adds forms to a thing; `mine` when the list names it, and so everything in it has to be news. */
+  const put = (id, names, forms, mine, what) => {
+    const have = new Set(names.filter(Boolean).map(key));
+    const add = [];
+    for (const f of forms) {
+      if (typeof f !== 'string' || !key(f)) throw new Error(`lugares.json: ${what} has a form that cannot be read`);
+      if (have.has(key(f))) {
+        if (mine) throw new Error(`lugares.json: «${f}» is one of the names of ${what} already`);
+        continue;
+      }
+      if (add.some((x) => key(x) === key(f))) throw new Error(`lugares.json: «${f}» twice for ${what}`);
+      add.push(f);
+    }
+    if (!add.length) return [];
+    const before = edits[id]?.add ?? [];
+    const fresh = add.filter((f) => !before.some((x) => key(x) === key(f)));
+    if (fresh.length) edits[id] = { add: [...before, ...fresh] };
+    return fresh;
+  };
+  for (const [id, forms] of Object.entries(file.countries ?? {})) {
+    const c = countries.get(id);
+    if (!c) throw new Error(`lugares.json: there is no country ${id}`);
+    put(id, [c.n.es, c.n.en, ...(c.al ?? [])], forms, true, `${c.n.es} (${id})`);
+    rows.push({ kind: 'country', id, name: c.n.es, forms });
+  }
+  for (const [country, list] of Object.entries(file.cities ?? {})) {
+    const c = countries.get(country);
+    if (!c) throw new Error(`lugares.json: there is no country ${country}`);
+    for (const [name, forms] of Object.entries(list)) {
+      const hits = (cities[country] ?? []).filter((x) => [x.n.es, x.n.en, ...(x.al ?? [])].some((n) => n && key(n) === key(name)));
+      if (hits.length !== 1) throw new Error(`lugares.json: ${hits.length} cities of ${country} go by «${name}»`);
+      const city = hits[0];
+      const own = [city.n.es, city.n.en, ...(city.al ?? [])];
+      put(city.i, own, forms, true, `${city.n.es} (${country})`);
+      const row = { kind: 'city', id: city.i, name: city.n.es, country: c.n.es, forms, capitalOf: [] };
+      // The capital of its country…
+      if (city.k === 3 && c.cap) {
+        const fresh = put(`cap:${country}`, [c.cap.es, c.cap.en, ...(c.cap.al ?? [])], forms, false, '');
+        if (fresh.length) row.capitalOf.push({ id: `cap:${country}`, name: c.n.es, forms: fresh });
+      }
+      // …and of the regions that have it for one, at any level.
+      const mine = new Set([city.n.es, city.n.en].filter(Boolean).map(key));
+      for (const table of Object.values(capitals[country] ?? {})) {
+        for (const [unit, names] of Object.entries(table)) {
+          if (!names.some((n) => mine.has(key(n)))) continue;
+          const fresh = put(`cap:${unit}`, names, forms, false, '');
+          if (fresh.length) row.capitalOf.push({ id: `cap:${unit}`, name: game.byId.get(unit)?.name ?? unit, forms: fresh });
+        }
+      }
+      rows.push(row);
+    }
+  }
+  return { edits, rows };
 }
 
 function fileText(edits) {
@@ -285,7 +368,7 @@ function fileText(edits) {
   "kind": "typeins",
   "version": 1,
   "auto": true,
-  "note": "Escrito por scripts/typeins/build.mjs a partir de scripts/typeins/jetpunk.txt y extra.json: los cambios, allí.",
+  "note": "Escrito por scripts/typeins/build.mjs a partir de scripts/typeins/jetpunk.txt y extra.json (regiones) y de lugares.json (países, ciudades y capitales): los cambios, allí.",
   "edits": {
 ${lines.join(',\n')}
   }
@@ -316,7 +399,9 @@ function sharedForms(game, edits) {
   return out;
 }
 
-function report({ rows, game, matched, byPiece, edits, extra }) {
+function report({ rows, game, matched, byPiece, edits: all, extra, places: byHand }) {
+  // The figures of the list are those of its pieces: what is written by hand for the rest has its own section.
+  const edits = Object.fromEntries(Object.entries(all).filter(([id]) => byPiece.has(id)));
   const total = rows.length;
   const hit = matched.filter((m) => m.pieces.length);
   const withForms = rows.filter((r) => r.forms.length);
@@ -395,6 +480,25 @@ function report({ rows, game, matched, byPiece, edits, extra }) {
     out.push('Así vienen en la lista, y así quedan: lo que se escribe rellena las dos. Con un patrón (`r:`), el nombre entero de una de ellas sigue siendo solo esa: «shanxi» es Shanxi y «shaanxi» es Shaanxi.');
     out.push('');
     for (const t of twice) out.push(`- ${t.country} · \`${t.form}\`: ${t.pieces.map((p) => `${p.name} (\`${p.id}\`)`).join(', ')}`);
+  }
+  if (byHand.length) {
+    const tick = (forms) => forms.map((x) => `\`${x}\``).join(', ');
+    const countries = byHand.filter((r) => r.kind === 'country');
+    const cities = byHand.filter((r) => r.kind === 'city');
+    const capitals = cities.reduce((n, r) => n + r.capitalOf.length, 0);
+    out.push('');
+    out.push('## Países, ciudades y capitales');
+    out.push('');
+    out.push(
+      `No vienen de la lista, que es de regiones: están escritos a mano en \`lugares.json\`. Son las abreviaturas y los nombres cortos de uso corriente que las iniciales del nombre no dan, y las siglas que la regla deja sin valer porque en su mapa las deletrean dos ciudades. Se suman a las siglas automáticas, que estas piezas conservan. Son **${countries.length}** países y **${cities.length}** ciudades, que se las pasan a **${capitals}** capitales: una ciudad escrita aquí vale igual cuando se pregunta por ella como capital de su país o de una región.`,
+    );
+    out.push('');
+    for (const r of countries) out.push(`- ${r.name} (\`${r.id}\`): ${tick(r.forms)}`);
+    out.push('');
+    for (const r of cities) {
+      const as = r.capitalOf.map((c) => `${c.name} (\`${c.id}\`)${c.forms.length < r.forms.length ? `, solo ${tick(c.forms)}` : ''}`);
+      out.push(`- ${r.name} (\`${r.id}\`, ${r.country}): ${tick(r.forms)}${as.length ? ` · también como capital de ${as.join('; ')}` : ''}`);
+    }
   }
   out.push('');
   out.push('## Todo lo que no casa');

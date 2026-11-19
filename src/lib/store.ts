@@ -232,6 +232,9 @@ export function cleanBackupMark(raw: unknown): BackupMark {
   return m && typeof m === 'object' ? { at: n(m.at), from: n(m.from), q: n(m.q) } : NO_BACKUP;
 }
 
+/** More games than there are: what is kept of the ones whose rules have been shown cannot grow past it. */
+const HELP_SEEN_MAX = 64;
+
 export interface State {
   theme: Theme;
   sel: Record<Section, string[]>;
@@ -283,6 +286,10 @@ export interface State {
   welcomed: boolean;
   /** One-key shortcuts (1 to 5, R, P, T, ?) work; turned off by whoever they get in the way of. */
   hotkeys: boolean;
+  /** How a game is played is shown by itself the first time the game is opened. On unless turned off. */
+  helpAuto: boolean;
+  /** The games that have been shown that way: each one is, once. */
+  helpSeen: string[];
   /** A sound for each answer, right or wrong. Off until asked for. */
   sound: boolean;
   /** A short buzz of the phone for each answer. Off until asked for. */
@@ -310,6 +317,9 @@ export interface State {
   setDayGoal(goal: number): void;
   setWelcomed(): void;
   setHotkeys(on: boolean): void;
+  setHelpAuto(on: boolean): void;
+  /** Writes down that how a game is played has been shown. */
+  seeHelp(mode: string): void;
   setSound(on: boolean): void;
   setHaptic(on: boolean): void;
   setIconBadge(on: boolean): void;
@@ -414,6 +424,8 @@ export const useStore = create<State>()(
       cb: false,
       welcomed: false,
       hotkeys: true,
+      helpAuto: true,
+      helpSeen: [],
       sound: false,
       haptic: false,
       iconBadge: true,
@@ -438,6 +450,8 @@ export const useStore = create<State>()(
       },
       setWelcomed: () => set({ welcomed: true }),
       setHotkeys: (hotkeys) => set({ hotkeys }),
+      setHelpAuto: (helpAuto) => set({ helpAuto }),
+      seeHelp: (mode) => set((s) => (s.helpSeen.includes(mode) ? s : { helpSeen: [...s.helpSeen, mode].slice(-HELP_SEEN_MAX) })),
       setSound: (sound) => set({ sound }),
       setHaptic: (haptic) => set({ haptic }),
       setIconBadge: (iconBadge) => set({ iconBadge }),
@@ -661,6 +675,8 @@ export const useStore = create<State>()(
         cb: s.cb,
         welcomed: s.welcomed,
         hotkeys: s.hotkeys,
+        helpAuto: s.helpAuto,
+        helpSeen: s.helpSeen,
         sound: s.sound,
         haptic: s.haptic,
         iconBadge: s.iconBadge,
@@ -729,6 +745,8 @@ export function mergeSaved(saved: unknown, current: State): State {
     // Players from before the album start with the flags they have learnt.
     album: withFlags(cleanAlbum(p.album), p.stats && typeof p.stats === 'object' ? p.stats : {}),
     hotkeys: p.hotkeys !== false,
+    helpAuto: p.helpAuto !== false,
+    helpSeen: Array.isArray(p.helpSeen) ? p.helpSeen.filter((m): m is string => typeof m === 'string').slice(-HELP_SEEN_MAX) : [],
     sound: p.sound === true,
     haptic: p.haptic === true,
     iconBadge: p.iconBadge !== false,

@@ -1,0 +1,82 @@
+{
+  "//": "Lo que el juego trae de fábrica para países, ciudades y capitales, que la lista de JetPunk no cubre: las abreviaturas y los nombres cortos de uso corriente que no salen de las iniciales del nombre (EUA, BCN, CDMX, BsAs) y las siglas que, por coincidir con las de otra ciudad del mapa, la regla deja sin valer (SF, KL). Escrito a mano. Una ciudad pasa las suyas a la capital que es: de su país y de cada región.",
+  "countries": {
+    "US": ["EUA"],
+    "ZA": ["RSA"],
+    "SA": ["KSA", "Arabia"],
+    "BA": ["BiH"],
+    "CN": ["PRC"],
+    "DE": ["RFA"],
+    "TL": ["Timor"],
+    "KP": ["Norcorea"],
+    "KR": ["Surcorea"]
+  },
+  "cities": {
+    "ES": {
+      "Barcelona": ["BCN", "Barna"],
+      "Zaragoza": ["ZGZ"],
+      "Valencia": ["VLC"],
+      "San Sebastián": ["Donostia", "Donosti"],
+      "Vitoria": ["Gasteiz"],
+      "Bilbao": ["Bilbo"],
+      "Pamplona": ["Iruña", "Iruñea"],
+      "Alicante": ["Alacant"],
+      "Las Palmas de Gran Canaria": ["LPGC"],
+      "Castellón de la Plana": ["Castellón"],
+      "Gijón": ["Xixón"],
+      "Oviedo": ["Uviéu"],
+      "Santiago de Compostela": ["Santiago", "Compostela"]
+    },
+    "US": {
+      "Washington D. C.": ["DC", "Washington"],
+      "San Francisco": ["SF", "Frisco", "San Fran"],
+      "Filadelfia": ["Philly"],
+      "Oklahoma City": ["OKC"]
+    },
+    "MX": {
+      "Ciudad de México": ["CDMX", "DF", "México DF", "México"],
+      "Guadalajara": ["GDL"],
+      "Monterrey": ["MTY"],
+      "Ciudad Juárez": ["Juárez"],
+      "Nezahualcóyotl": ["Neza"]
+    },
+    "AR": {
+      "Buenos Aires": ["BsAs", "Baires", "CABA", "Capital Federal"],
+      "Mar del Plata": ["Mardel"]
+    },
+    "BR": {
+      "Río de Janeiro": ["Río"],
+      "São Paulo": ["Sampa"],
+      "Porto Alegre": ["POA"],
+      "Brasilia": ["BSB"],
+      "Florianópolis": ["Floripa"]
+    },
+    "CL": {
+      "Santiago": ["Stgo"],
+      "Valparaíso": ["Valpo"],
+      "Concepción": ["Conce"]
+    },
+    "CO": {
+      "Bogotá": ["Bogotá DC", "Santa Fe de Bogotá"],
+      "Cali": ["Santiago de Cali"]
+    },
+    "VE": { "Caracas": ["Ccs"] },
+    "UY": { "Montevideo": ["Mvd"] },
+    "GT": { "Ciudad de Guatemala": ["Guate", "Guatemala"] },
+    "HN": { "Tegucigalpa": ["Tegus"] },
+    "DO": { "Santo Domingo": ["Sto Domingo", "Sto Dgo"] },
+    "PA": { "Ciudad de Panamá": ["Panamá"] },
+    "GB": { "Londres": ["LDN"] },
+    "RU": { "San Petersburgo": ["SPB"] },
+    "TH": { "Bangkok": ["BKK"] },
+    "VN": { "Ciudad Ho Chi Minh": ["Saigón", "HCM"] },
+    "MY": { "Kuala Lumpur": ["KL"] },
+    "IN": { "Chennai": ["Madrás"] },
+    "IL": { "Tel Aviv": ["TLV"] },
+    "ZA": { "Johannesburgo": ["Joburg", "Jozi"] },
+    "TZ": { "Dar es Salam": ["Dar"] },
+    "BF": { "Uagadugú": ["Ouaga", "Uaga"] },
+    "MG": { "Antananarivo": ["Tana"] },
+    "CI": { "Yamusukro": ["Yakro"] }
+  }
+}

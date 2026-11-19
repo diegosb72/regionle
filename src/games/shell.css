@@ -1,0 +1,68 @@
+/*
+ * What the frame of a game has had added to it since the main sheet was full (scripts/budget.mjs): it
+ * comes with the games, not with the first page.
+ */
+
+/* «Cómo se juega», at the end of the counters: as tall as they are, and no more than a mark. */
+.play-help {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+}
+.play-help:hover {
+  background: var(--bg-2);
+  color: var(--ink);
+}
+
+/*
+ * On a phone the header has no room for one more button without cutting the name of the game: there the
+ * title is the button, and says so with a mark after the name of the map, which is cut short to make room.
+ */
+.play-help-title {
+  display: none;
+}
+@media (max-width: 560px) {
+  .hud .play-help {
+    display: none;
+  }
+  .play-title.has-help {
+    position: relative;
+  }
+  .play-title.has-help span {
+    position: relative;
+    justify-self: start;
+    max-width: 100%;
+    padding-right: 1.6em;
+  }
+  .play-title.has-help span::after {
+    content: '?';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 1.5em;
+    height: 1.5em;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-size: 0.74em;
+    font-weight: 700;
+    line-height: 1;
+    transform: translateY(-50%);
+  }
+  .play-help-title {
+    display: block;
+    position: absolute;
+    inset: -6px -4px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    cursor: pointer;
+  }
+}

@@ -1,5 +1,6 @@
-// The list the game ships with: the type-ins of a JetPunk quiz for the regions it covers, and the game as
-// it plays with them. Nothing is mocked here: this is the file of the game and the data of the game.
+// The list the game ships with: the type-ins of a JetPunk quiz for the regions it covers, a short list
+// written by hand for countries, cities and capitals, and the game as it plays with them. Nothing is mocked
+// here: this is the file of the game and the data of the game.
 
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -36,6 +37,16 @@ describe('the file the game ships with', () => {
       const topo = JSON.parse(fs.readFileSync(file, 'utf8')) as { objects: Record<string, { geometries: { id: string }[] }> };
       for (const o of Object.values(topo.objects)) for (const g of o.geometries) ids.add(g.id);
     }
+    // …and of countries, of cities, and of capitals: those of the countries and those of the regions.
+    const regionIds = new Set(ids);
+    const cities = JSON.parse(fs.readFileSync(path.join(ROOT, 'public/data/cities.json'), 'utf8')) as { c: Record<string, { i: string }[]> };
+    const capitals = JSON.parse(fs.readFileSync(path.join(ROOT, 'public/data/capitals.json'), 'utf8')) as { rc: Record<string, Record<string, Record<string, string[]>>> };
+    for (const c of index.countries) {
+      ids.add(c.id);
+      if (c.cap) ids.add(`cap:${c.id}`);
+    }
+    for (const list of Object.values(cities.c)) for (const x of list) ids.add(x.i);
+    for (const levels of Object.values(capitals.rc)) for (const table of Object.values(levels)) for (const unit of Object.keys(table)) ids.add(`cap:${unit}`);
     let patterns = 0;
     let spellings = 0;
     let plain = 0;
@@ -46,6 +57,9 @@ describe('the file the game ships with', () => {
     for (const [id, e] of Object.entries(SHIPPED)) {
       expect(ids.has(id), id).toBe(true);
       expect(e.off, id).toBeUndefined();
+      // Only a region of the list goes without the initials of its name: what is written by hand for the
+      // rest is added to them.
+      if (!regionIds.has(id)) expect(e.rule, id).toBeUndefined();
       if (e.rule === false) plain++;
       const seen = new Set<string>();
       for (const form of e.add ?? []) {
@@ -239,7 +253,7 @@ describe('the game as it ships', () => {
     expect(ruleOf('ES-GC')).toBe(true);
     expect(provinces.lookup('lp')).toEqual(['ES-GC']);
     expect(provinces.lookup('sct')).toEqual(['ES-TF']);
-    // Countries, cities and capitals have no list.
+    // Countries, cities and capitals keep the initials of their names, whatever is written for some of them.
     const { index } = await loadIndex();
     const world = new Matcher((await buildDeck({ scope: 'countries', countries: index.countries.filter((c) => c.cl === 'un').map((c) => c.id) })).items);
     for (const [k, id] of Object.entries({ nz: 'NZ', uk: 'GB', eeuu: 'US', png: 'PG', rd: 'DO' })) expect(world.lookup(k), k).toEqual([id]);
@@ -254,6 +268,47 @@ describe('the game as it ships', () => {
     expect(capitals.lookup('slc')).toEqual(['US-UT']);
     // The examples given where a game offers typing still stand.
     for (const [what, s] of Object.entries(SAMPLES)) expect(inForce(s.id, s.key), what).toBe(true);
+  });
+
+  it('takes for countries, cities and capitals the short forms in everyday use that no initials spell', async () => {
+    const { index } = await loadIndex();
+    const world = new Matcher((await buildDeck({ scope: 'countries', countries: index.countries.filter((c) => c.cl === 'un').map((c) => c.id) })).items);
+    for (const [k, id] of Object.entries({ eua: 'US', rsa: 'ZA', ksa: 'SA', bih: 'BA', norcorea: 'KP', surcorea: 'KR', timor: 'TL', rfa: 'DE' })) expect(world.lookup(k), k).toEqual([id]);
+    // They are added to what the rule gives: the country keeps the initials of its name.
+    expect(SHIPPED.US).toEqual({ add: ['EUA'] });
+    expect(ruleOf('US')).toBe(true);
+
+    const us = await buildCityDeck(['US'], 'top', 100);
+    const named = (deck: Deck, text: string, items = deck.items) => new Matcher(items).lookup(text).map((id) => deck.byId.get(id)!.name);
+    // «SF» was nothing: they are the initials of Sioux Falls as well, and initials that two cities spell
+    // name neither. Written down for San Francisco, they are San Francisco.
+    expect(named(us, 'sf', us.items.map((it) => ({ ...it, short: undefined })))).toEqual([]);
+    expect(named(us, 'sf')).toEqual(['San Francisco']);
+    expect(named(us, 'dc')).toEqual(['Washington D. C.']);
+    expect(named(us, 'philly')).toEqual(['Filadelfia']);
+    const es = await buildCityDeck(['ES'], 'top', 100);
+    for (const [k, city] of Object.entries({ bcn: 'Barcelona', barna: 'Barcelona', zgz: 'Zaragoza', donosti: 'San Sebastián', gasteiz: 'Vitoria', lpgc: 'Las Palmas de Gran Canaria' })) expect(named(es, k), k).toEqual([city]);
+    expect(named(await buildCityDeck(['MX'], 'top', 100), 'cdmx')).toEqual(['Ciudad de México']);
+    expect(named(await buildCityDeck(['MY'], 'top', 100), 'kl')).toEqual(['Kuala Lumpur']);
+
+    // A city hands them on to the capital it is: that of its country and that of each region.
+    const capitalsOf = (deck: Deck) => new Matcher(deck.items.map((it) => capitalAnswers(it)).filter((a): a is Answerable => !!a), { codes: false });
+    const nations = capitalsOf(await buildDeck({ scope: 'countries', countries: ['US', 'AR', 'MX', 'TH', 'GB'] }));
+    for (const [k, id] of Object.entries({ dc: 'US', bsas: 'AR', df: 'MX', bkk: 'TH', ldn: 'GB' })) expect(nations.lookup(k), k).toEqual([id]);
+    const communities = capitalsOf(await regions('ES', 'g1'));
+    expect(communities.lookup('bcn')).toEqual(['ES-CT']);
+    expect(communities.lookup('zgz')).toEqual(['ES-AR']);
+    expect(capitalsOf(await regions('ES')).lookup('bcn')).toEqual(['ES-B']);
+    // Where the capital went by the form already, it is one of its names and nothing is added: «CDMX».
+    expect(SHIPPED['cap:MX']).toEqual({ add: ['DF'] });
+
+    // In the settings each is a form like any other of the game, there to be switched off.
+    const barcelona = es.items.find((it) => it.name === 'Barcelona')!;
+    expect(chipsOf(barcelona, barcelona.id).map((c) => `${c.text}:${c.from}:${c.on ? 'on' : 'off'}`)).toEqual(['BCN:data:on', 'Barna:data:on']);
+    const edits = switchForm({}, barcelona.id, chipsOf(barcelona, barcelona.id)[0], false);
+    expect(edits).toEqual({ [barcelona.id]: { off: ['bcn'] } });
+    expect(new Matcher([{ ...barcelona, short: editOf(barcelona.id, { auto: true, edits }) }]).lookup('bcn')).toEqual([]);
+    expect(new Matcher([{ ...barcelona, short: editOf(barcelona.id, { auto: true, edits }) }]).lookup('barna')).toEqual([barcelona.id]);
   });
 
   it('shows the list in the settings, each form to be switched off', async () => {

@@ -380,9 +380,14 @@ export function letterHint(answer: string, shown: number): string {
   return [...answer].map((ch) => (SEPARATOR.test(ch) ? ch : left-- > 0 ? ch : '_')).join(' ');
 }
 
+/** The letters of an answer: what a hint writes as blanks. */
+export function letterCount(answer: string): number {
+  return [...answer].filter((ch) => !SEPARATOR.test(ch)).length;
+}
+
 /** Most letters a hint can show: the last one is always left for the player. */
 export function hintMax(answer: string): number {
-  return Math.max(0, [...answer].filter((ch) => !SEPARATOR.test(ch)).length - 1);
+  return Math.max(0, letterCount(answer) - 1);
 }
 
 /** Local calendar day as "2026-11-15". */

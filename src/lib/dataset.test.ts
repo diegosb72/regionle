@@ -6,6 +6,7 @@ import { geoArea, geoContains } from 'd3-geo';
 import { feature } from 'topojson-client';
 import type { GeometryCollection, Topology } from 'topojson-specification';
 import { describe, expect, it } from 'vitest';
+import { norm } from './text';
 
 const DATA = resolve(__dirname, '../../public/data');
 const read = <T>(file: string): T => JSON.parse(readFileSync(resolve(DATA, file), 'utf8')) as T;
@@ -527,6 +528,48 @@ describe('names of cities and capitals', () => {
     }
     expect(byId.get('VN')!.cap).toEqual({ es: 'Hanói', en: 'Hanoi', ll: [105.848, 21.035] });
     expect(byId.get('MX')!.cap).toMatchObject({ es: 'Ciudad de México', al: ['México', 'México D. F.', 'CDMX', 'Mexico DF'] });
+  });
+
+  it('spells a city and the region of the same name the same way in Spanish', () => {
+    // The two come from different layers of the source: Rangún stood in «Yangon», Trebisonda in «Trabzon».
+    // The same name: the one in English, or the one the region has in the language of the place.
+    // The same spelling: one of the two may say more («Sofía-Ciudad», «Comunidad de Madrid»).
+    const flat = (s: string) => norm(s).replace(/ /g, '');
+    const holds = (outer: string, inner: string) => {
+      const all = new Set(norm(outer).split(' '));
+      const part = norm(inner).split(' ').filter(Boolean);
+      return part.length > 0 && part.every((w) => all.has(w));
+    };
+    // Right as they are: the municipality around Rēzekne (the city is a piece of its own), the province of
+    // Trento, and a region the source still calls by the name of the oblast it was made from.
+    const apart = new Set(['LV-x1066', 'IT-TN', 'RU-ZAB']);
+    const problems: string[] = [];
+    for (const [country, list] of Object.entries(cities)) {
+      const topology = read<Topology>(`r/${country}.json`);
+      for (const level of Object.keys(topology.objects)) {
+        for (const g of (topology.objects[level] as GeometryCollection).geometries) {
+          const p = g.properties as { n: { es: string; en?: string; lo?: string }; q?: 0 };
+          if (p.q === 0 || apart.has(String(g.id))) continue;
+          const names = [p.n.en ?? p.n.es, p.n.lo].filter((x): x is string => !!x).map(flat);
+          for (const c of list) {
+            if (flat(c.n.es) === flat(p.n.es) || holds(p.n.es, c.n.es) || holds(c.n.es, p.n.es)) continue;
+            const en = flat(c.n.en ?? c.n.es);
+            if (names.includes(en) || names.includes(flat(c.n.es)) || en === flat(p.n.es)) problems.push(`${g.id} «${p.n.es}» · «${c.n.es}»`);
+          }
+        }
+      }
+    }
+    expect(problems).toEqual([]);
+    // The ones the list in the README named, and where each stands now.
+    const region = (country: string, id: string) => (read<Topology>(`r/${country}.json`).objects.f as GeometryCollection).geometries.find((g) => g.id === id)!.properties as { n: { es: string; en?: string }; al?: string[] };
+    expect(region('MM', 'MM-06').n).toMatchObject({ es: 'Rangún', en: 'Yangon' });
+    expect(city('MM', 'Rangún')).toBeTruthy();
+    expect(region('TR', 'TR-61').n).toMatchObject({ es: 'Trebisonda', en: 'Trabzon' });
+    expect(city('TR', 'Trebisonda')).toBeTruthy();
+    expect(region('KZ', 'KZ-ALA').n.es).toBe('Almaty');
+    // The spelling that went is still an answer.
+    expect((city('KZ', 'Almaty') as { al?: string[] }).al).toContain('Alma Ata');
+    expect(region('DZ', 'DZ-06').al).toContain('Bujía');
   });
 });
 
@@ -1301,7 +1344,7 @@ describe('cities.json', () => {
 });
 
 describe('capitals.json', () => {
-  const file = read<{ rc: Record<string, Record<string, Record<string, string[]>>> }>('capitals.json');
+  const file = read<{ rc: Record<string, Record<string, Record<string, string[]>>>; en: Record<string, Record<string, Record<string, string>>> }>('capitals.json');
 
   it('names capitals of regions that exist, at levels that exist', () => {
     const problems: string[] = [];
@@ -1377,5 +1420,38 @@ describe('capitals.json', () => {
     expect(file.rc.ES.g1['ES-GA'][0]).toBe('Santiago de Compostela');
     expect(file.rc.ES.g1['ES-AN'][0]).toBe('Sevilla');
     expect(file.rc.ES.f['ES-M'][0]).toBe('Madrid');
+  });
+
+  it('says what a capital is called in English only where that is another name, and of capitals it has', () => {
+    const problems: string[] = [];
+    let count = 0;
+    for (const [id, levels] of Object.entries(file.en)) {
+      for (const [level, units] of Object.entries(levels)) {
+        for (const [unit, en] of Object.entries(units)) {
+          count++;
+          const names = file.rc[id]?.[level]?.[unit];
+          if (!names) problems.push(`${id}/${level} ${unit}: no capital to name in English`);
+          else if (!en.trim() || en === names[0]) problems.push(`${id}/${level} ${unit}: «${en}» says nothing new`);
+        }
+      }
+    }
+    expect(problems).toEqual([]);
+    expect(count).toBeGreaterThan(350);
+  });
+
+  it('has the English names that English has, and not the long official ones where Spanish is spoken', () => {
+    expect(file.en.NL.f['NL-ZH']).toBe('The Hague');
+    expect(file.en.ES.g1['ES-AN']).toBe('Seville');
+    expect(file.en.ES.f['ES-GI']).toBe('Girona');
+    expect(file.en.IT.g1['IT-62']).toBe('Rome');
+    expect(file.en.FR.f['FR-84']).toBe('Avignon');
+    expect(file.en.GB.g1['GB-SCT']).toBe('Edinburgh');
+    expect(file.en.MX.f['MX-CMX']).toBe('Mexico City');
+    // «San Miguel de Tucumán», «Santiago de los Caballeros», «Puebla City»: the name shown is the one to show.
+    expect(file.en.AR).toBeUndefined();
+    expect(file.en.DO).toBeUndefined();
+    expect(Object.keys(file.en.MX.f)).toEqual(['MX-CMX']);
+    // A capital that is called the same in both languages is not listed.
+    expect(file.en.ES.f['ES-M']).toBeUndefined();
   });
 });

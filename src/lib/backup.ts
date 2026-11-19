@@ -14,11 +14,11 @@ import { isLearnt, type BackupMark, type Opts, type State, type Stat, type Theme
 export const BACKUP_VERSION = 4;
 
 /** What a player sets once and expects to find again: how the game looks, sounds, counts and asks. */
-export const PREF_KEYS = ['theme', 'cb', 'sound', 'haptic', 'hotkeys', 'iconBadge', 'miles', 'palette', 'textSize', 'contrast', 'dyslexia', 'reviewPace', 'reviewSize', 'dayGoal', 'nick', 'opts'] as const;
+export const PREF_KEYS = ['theme', 'cb', 'sound', 'haptic', 'hotkeys', 'helpAuto', 'iconBadge', 'miles', 'palette', 'textSize', 'contrast', 'dyslexia', 'reviewPace', 'reviewSize', 'dayGoal', 'nick', 'opts'] as const;
 export type Prefs = Pick<State, (typeof PREF_KEYS)[number]>;
 
 export function prefsOf(s: Prefs): Prefs {
-  return { theme: s.theme, cb: s.cb, sound: s.sound, haptic: s.haptic, hotkeys: s.hotkeys, iconBadge: s.iconBadge, miles: s.miles, palette: s.palette, textSize: s.textSize, contrast: s.contrast, dyslexia: s.dyslexia, reviewPace: s.reviewPace, reviewSize: s.reviewSize, dayGoal: s.dayGoal, nick: s.nick, opts: s.opts };
+  return { theme: s.theme, cb: s.cb, sound: s.sound, haptic: s.haptic, hotkeys: s.hotkeys, helpAuto: s.helpAuto, iconBadge: s.iconBadge, miles: s.miles, palette: s.palette, textSize: s.textSize, contrast: s.contrast, dyslexia: s.dyslexia, reviewPace: s.reviewPace, reviewSize: s.reviewSize, dayGoal: s.dayGoal, nick: s.nick, opts: s.opts };
 }
 
 /** The file: the progress, what the player has made (selections, lists, goals, notes, short forms) and the preferences. */
@@ -129,13 +129,14 @@ function cleanOpts(raw: unknown, current: Opts): Opts {
  */
 export function cleanPrefs(raw: unknown, current: Prefs): Prefs | null {
   if (!isObject(raw)) return null;
-  const flag = (key: 'cb' | 'sound' | 'haptic' | 'hotkeys' | 'iconBadge' | 'miles' | 'contrast' | 'dyslexia'): boolean => (typeof raw[key] === 'boolean' ? (raw[key] as boolean) : current[key]);
+  const flag = (key: 'cb' | 'sound' | 'haptic' | 'hotkeys' | 'helpAuto' | 'iconBadge' | 'miles' | 'contrast' | 'dyslexia'): boolean => (typeof raw[key] === 'boolean' ? (raw[key] as boolean) : current[key]);
   return {
     theme: THEMES.includes(raw.theme as Theme) ? (raw.theme as Theme) : current.theme,
     cb: flag('cb'),
     sound: flag('sound'),
     haptic: flag('haptic'),
     hotkeys: flag('hotkeys'),
+    helpAuto: flag('helpAuto'),
     iconBadge: flag('iconBadge'),
     miles: flag('miles'),
     palette: isPalette(raw.palette) ? raw.palette : current.palette,

@@ -1217,6 +1217,33 @@ export const REGION_CAPITAL_FIXES = {
   ZM: { f: { 'ZM-07': ['Choma'] } },
 };
 
+/**
+ * What the capital of a region is called in English, by country and by the name the table shows, where the
+ * English label of its city does not say it: the city is not among those of Natural Earth, or its label is
+ * not the name English uses. An empty string leaves it with the name shown.
+ */
+export const REGION_CAPITAL_EN = {
+  // Where Spanish is spoken, only what English calls otherwise.
+  ES: { Sevilla: 'Seville', 'La Coruña': 'A Coruña', Orense: 'Ourense', Gerona: 'Girona', Lérida: 'Lleida', Vitoria: 'Vitoria-Gasteiz' },
+  CU: { 'La Habana': 'Havana' },
+  MX: { 'Ciudad de México': 'Mexico City' },
+  GT: { 'Ciudad de Guatemala': 'Guatemala City' },
+  PA: { 'Ciudad de Panamá': 'Panama City' },
+  // Cities that Natural Earth does not have.
+  FR: { Carcasona: 'Carcassonne', Angulema: 'Angoulême', Aviñón: 'Avignon' },
+  MA: { Alhucemas: 'Al Hoceima' },
+  RU: { Magás: 'Magas' },
+  // Labels that are not the name English uses: an accent or an apostrophe of difference, the kind of place
+  // added to the name, the name of the governorate.
+  BR: { Vitória: '' },
+  ID: { Yogyakarta: '' },
+  IT: { "L'Aquila": '' },
+  MY: { Malaca: 'Malacca' },
+  SA: { Sakaka: 'Sakakah' },
+  SD: { 'El Obeid': '', 'El Fasher': '', Gadarif: '' },
+  UA: { Odesa: '' },
+};
+
 /** Spanish names of cities that Natural Earth gets wrong or gives in an unusual form, by its own `NAME`. */
 export const CITY_NAMES = { Castello: 'Castellón de la Plana', 'Las Palmas': 'Las Palmas de Gran Canaria', Guaira: 'Salto del Guairá' };
 
@@ -1278,7 +1305,42 @@ export const CITY_FIX = {
   'Balykchy|KGZ': { es: 'Balykchy' }, // «Balikci»
   'Umm al Qaywayn|ARE': { es: 'Umm al-Qaywayn', al: ['Um el Kaiwain'] },
   'Ras al Khaymah|ARE': { es: 'Ras al-Jaima' },
+  // The same for the cities whose region is the one that had it right (see UNIT_NAME in config.mjs for the
+  // regions that follow their city): the label that goes stays as a name that is accepted.
+  'Saki|AZE': { es: 'Shaki', al: ['Şəki'] },
+  'Messina|ITA': { es: 'Mesina' },
+  'Reggio di Calabria|ITA': { es: 'Reggio Calabria', al: ['Regio de Calabria'] },
+  'Sassari|ITA': { es: 'Sassari', al: ['Sácer'] },
+  'At Tafilah|JOR': { es: 'Tafila', al: ['Tafilah'] },
+  'Al Jahra|KWT': { es: 'Al Yahra', al: ['Jahra', 'Yahra'] },
+  'Almaty|KAZ': { es: 'Almaty', al: ['Alma Ata', 'Alma Atá'] },
+  'Nabatiye et Tahta|LBN': { es: 'Nabatiye', al: ['Nabatieh'] },
+  'Bago|MMR': { es: 'Bago', al: ['Pegu', 'Pegú'] },
+  'Suchboatar|MNG': { es: 'Sühbaatar', al: ['Sujbaatar'] },
+  'Bragança|PRT': { es: 'Braganza' },
+  'As Suwayda|SYR': { es: 'Sueida', al: ['As-Suwayda'] },
+  'Qairouan|TUN': { es: 'Kairuán', al: ['Cairuán'] },
+  'Dar es Salaam|TZA': { es: 'Dar es Salam', al: ['Dar es-Salaam'] },
+  'Kibale|UGA': { es: 'Kibaale' },
+  'Andijan|UZB': { es: 'Andiyán', al: ['Andiján'] },
+  'Al Bayda|YEM': { es: 'Al Bayda', al: ['Al Baida'] },
+  'Lahij|YEM': { es: 'Lahij', al: ['Lahej'] },
+  'Marib|YEM': { es: 'Marib' },
+  'Lamphun|THA': { es: 'Lamphun', al: ['Muang Lamphun'] },
+  'Cusco|PER': { es: 'Cusco', en: 'Cusco', al: ['Cuzco'] },
+  'Harar|ETH': { es: 'Harar', en: 'Harar', al: ['Harrar Jugol', 'Harar Jugol'] },
 };
+
+/**
+ * Regions that are not spelt like the city of the same name, and are right: `data:physical` warns of every
+ * other region and city of one country that share a name in English, or in the language of the place, and
+ * not in Spanish.
+ */
+export const SPELT_APART = new Set([
+  'LV-x1066', // «Rezeknes», the municipality around Rēzekne, which is a piece of its own («Rezekne»)
+  'IT-TN', // «Trentino», the province of Trento
+  'RU-ZAB', // «Zabaikalie»: the source still calls it Chita, after the oblast it was made from
+]);
 
 /**
  * Places left out, as "NAME|ADM1NAME": entries of Natural Earth that are plainly wrong. Nearly all are a

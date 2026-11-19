@@ -2,7 +2,7 @@
 import type { MultiLineString } from 'geojson';
 import { feature, mesh } from 'topojson-client';
 import type { GeometryCollection, Topology } from 'topojson-specification';
-import { L, capName, getLang, levelNoun, nm } from './i18n';
+import { L, capName, getLang, levelNoun, nm, type Lang } from './i18n';
 import type { Answerable } from './text';
 import { editOf } from './typeins';
 import type { Belongs, Country, Deck, Extra, Geo, Item, LL, Level } from './types';
@@ -201,13 +201,30 @@ function capitalNames(c: Country): string[] | undefined {
   return c.cap ? [...new Set([capName(c.cap), c.cap.es, c.cap.en, ...(c.cap.al ?? [])].filter(Boolean))] : undefined;
 }
 
-/** Capitals of the regions of each country, by level; an empty table when the file cannot be had. */
-type RegionCapitals = Record<string, Record<string, Record<string, string[]>>>;
+/**
+ * Capitals of the regions of each country, by level: the names of each (`rc`: the first one is the one in
+ * Spanish, all are accepted) and, for those that go by another in English, that one (`en`). Empty tables
+ * when the file cannot be had.
+ */
+export interface RegionCapitals {
+  rc: Record<string, Record<string, Record<string, string[]>>>;
+  en?: Record<string, Record<string, Record<string, string>>>;
+}
 function loadRegionCapitals(): Promise<RegionCapitals> {
-  return loadFile<{ rc: RegionCapitals }>('capitals.json').then(
-    (f) => f.rc ?? {},
-    () => ({}),
+  return loadFile<RegionCapitals>('capitals.json').then(
+    (f) => ({ rc: f.rc ?? {}, en: f.en ?? {} }),
+    () => ({ rc: {}, en: {} }),
   );
+}
+
+/**
+ * The names of the capital of a region, the one to show first: in English, the English one where the
+ * capital has one of its own («The Hague» for «La Haya»). The rest are still accepted.
+ */
+export function regionCapital(file: RegionCapitals, country: string, level: string, id: string, lang: Lang = getLang()): string[] | undefined {
+  const names = file.rc[country]?.[level]?.[id];
+  const en = lang === 'en' ? file.en?.[country]?.[level]?.[id] : undefined;
+  return names && en ? [en, ...names.filter((n) => n !== en)] : names;
 }
 
 export interface DeckSpec {
@@ -311,7 +328,7 @@ export async function buildDeck(spec: DeckSpec, onProgress?: (done: number, tota
         proper: properNames(p.n),
         short: editOf(id),
         within: c.id,
-        capital: capitals[c.id]?.[level.k]?.[id],
+        capital: regionCapital(capitals, c.id, level.k, id),
         country: c,
         // The data names odd units ("ciudad autónoma") in Spanish only.
         type: (getLang() === 'es') ? (p.t ?? noun.one) : noun.one,
