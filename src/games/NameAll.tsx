@@ -144,7 +144,8 @@ export function NameAllGame({ deck, cfg, onExit, onAgain }: GameProps) {
     setNote(
       !first
         ? matcher.vague(text)
-          ? shortNote('vague', text)
+          ? // With several countries on the map, pointing at the piece says which one is meant.
+            shortNote('vague', text) + (matcher.byCountry(text) ? L(' Si tocas antes la pieza en el mapa, vale la abreviatura de su país.', ' If you tap the piece on the map first, the short form of its country counts.') : '')
           : L('No coincide con nada de este mapa.', 'It matches nothing on this map.')
         : !inPool.has(first.id)
           ? cfg.list

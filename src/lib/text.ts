@@ -98,6 +98,11 @@ export interface Answerable {
   proper?: string[];
   /** What has been chosen for it in the settings: see `ShortEdit`. */
   short?: ShortEdit;
+  /**
+   * The country a region is in. Short forms are a matter of each country ("North", "NH", "PEI"): on a map
+   * of several, those of a piece are judged among the pieces of its own country. See `Matcher`.
+   */
+  within?: string;
 }
 
 /**
@@ -207,6 +212,12 @@ export type Verdict =
 export interface MatchOpts {
   /** Only names written out count. For when letters of the answer are in sight: they would spell its abbreviation. */
   whole?: boolean;
+  /**
+   * The country that is being asked about, on a map of several: short forms are read as on the map of that
+   * country alone. `check` sets it from the piece it is given; without it, a short form names something
+   * only where everything it could be is in one country.
+   */
+  within?: string;
 }
 
 /** Words that only join the others in a name: an abbreviation counts them or passes over them. */
@@ -376,6 +387,20 @@ export class Matcher {
   private short = new Map<string, string>();
   /** Initials that could be several things: more than one spells them out, or they are the code of another. */
   private shared = new Set<string>();
+  /**
+   * The country of each region, on a map with regions of more than one; empty on any other map. Short
+   * forms were thought out country by country (the list of type-ins is, and so are codes such as "NH"):
+   * when a question is about a piece of one country, they are read as on the map of that country alone;
+   * and with no piece in mind, a type-in names something only where all it could be is in one country.
+   */
+  private where = new Map<string, string>();
+  /**
+   * The same as `short` and `shared`, country by country: what counts when it is known which country is
+   * meant. "CB" is Castelo Branco to whoever is asked about a district of Portugal, whatever the code
+   * of Cantabria. Initials → country → the piece; and "country initials". Empty where `where` is.
+   */
+  private shortIn = new Map<string, Map<string, string>>();
+  private sharedIn = new Set<string>();
   /** Accepted spellings that are abbreviations themselves ("EEUU", "CDMX"). */
   private caps = new Set<string>();
   /**
@@ -393,6 +418,7 @@ export class Matcher {
    * ids of the countries): the code of Bosnia says nothing about "BA" for Buenos Aires.
    */
   constructor(items: Answerable[], opts: { codes?: boolean } = {}) {
+    if (new Set(items.map((it) => it.within).filter(Boolean)).size > 1) for (const it of items) this.where.set(it.id, it.within ?? '');
     /** Spellings that are the name of something written out: never an abbreviation, however short ("Po", "Uri"). */
     const named = new Set<string>();
     /** What the settings have taken away from each thing. */
@@ -478,16 +504,68 @@ export class Matcher {
       // they are the code of something else ("ES" for El Salvador on a map with Spain on it).
       if (ids.size === 1 && (coded.get(k) ?? []).every((id) => id === only)) this.short.set(k, only);
       else this.shared.add(k);
+      if (!this.where.size) continue;
+      // And the same again within each country, for when the question is about a piece of it.
+      const by = new Map<string, string[]>();
+      for (const id of ids) by.set(this.countryOf(id), [...(by.get(this.countryOf(id)) ?? []), id]);
+      for (const [country, mine] of by) {
+        const codes = (coded.get(k) ?? []).filter((id) => this.countryOf(id) === country);
+        if (mine.length === 1 && codes.every((id) => id === mine[0])) this.shortIn.set(k, (this.shortIn.get(k) ?? new Map<string, string>()).set(country, mine[0]));
+        else this.sharedIn.add(`${country} ${k}`);
+      }
     }
   }
 
-  /** The one thing the input abbreviates with its initials. */
-  private shortFor(input: string): string | undefined {
+  /** The country a piece is judged in: its own on a map of regions of several countries, and "" on any other. */
+  private countryOf(id: string): string {
+    return this.where.get(id) ?? '';
+  }
+
+  /**
+   * Of the things the input is short for by a type-in, those it names on a map of regions of several
+   * countries. With a country in mind, the ones of that country: its type-ins count as on its own map.
+   * With none, all of them when everything the input could be is in one country, `names` included (what it
+   * is the name of, written out), and none when it could be pieces of several: "North" does not say
+   * which north.
+   */
+  private local(short: string[], names: readonly string[], opts: MatchOpts): string[] {
+    if (!this.where.size || !short.length) return short;
+    if (opts.within !== undefined) return short.filter((id) => this.countryOf(id) === opts.within);
+    const first = this.countryOf(short[0]);
+    return [...short, ...names].every((id) => this.countryOf(id) === first) ? short : [];
+  }
+
+  /** With a country in mind, what is in it comes first: of two Punjabs, the one that was most likely meant. */
+  private homeFirst(ids: string[], opts: MatchOpts): string[] {
+    if (!this.where.size || opts.within === undefined) return ids;
+    return [...ids.filter((id) => this.countryOf(id) === opts.within), ...ids.filter((id) => this.countryOf(id) !== opts.within)];
+  }
+
+  /**
+   * The one thing the input abbreviates with its initials: on the map as a whole, or in the country that
+   * is being asked about.
+   */
+  private shortFor(input: string, opts: MatchOpts = {}): string | undefined {
+    const within = this.where.size ? opts.within : undefined;
     for (const k of lettersOf(input)) {
-      const id = this.short.get(k);
+      const id = within === undefined ? this.short.get(k) : this.shortIn.get(k)?.get(within);
       if (id) return id;
     }
     return undefined;
+  }
+
+  /**
+   * Everything the input is short for on a map of regions of several countries, whatever the country: a
+   * type-in, the initials of a piece within its own country, what a pattern takes whole.
+   */
+  private elsewhere(input: string): string[] {
+    const hit = this.named(input);
+    if (hit) return hit.filter((id) => this.shortens(input, id));
+    for (const k of lettersOf(input)) {
+      const ids = [...(this.shortIn.get(k)?.values() ?? [])];
+      if (ids.length) return ids;
+    }
+    return this.patterned(input, 'full');
   }
 
   /** Ids whose accepted spellings equal the input (accents, case and punctuation ignored), written out or not. */
@@ -529,15 +607,15 @@ export class Matcher {
     const hit = this.named(input);
     if (hit) {
       const short = hit.filter((id) => this.shortens(input, id));
-      if (!short.length) return hit;
+      if (!short.length) return this.homeFirst(hit, opts);
       // What is called so comes before what only answers to it: a game that takes one answer takes the
       // first. With letters in sight a thing answers to its names alone.
       const names = hit.filter((id) => !short.includes(id));
-      return opts.whole ? names : [...names, ...short];
+      return this.homeFirst(opts.whole ? names : [...names, ...this.local(short, names, opts)], opts);
     }
     if (opts.whole) return [];
-    const id = this.shortFor(input);
-    return id ? [id] : this.patterned(input, 'full');
+    const id = this.shortFor(input, opts);
+    return id ? [id] : this.local(this.patterned(input, 'full'), [], opts);
   }
 
   /**
@@ -558,8 +636,8 @@ export class Matcher {
    * khaymah" for "^RA[SK]", as in JetPunk, where the answer is taken at "ras". It is the last thing tried,
    * after a slip of the finger: such patterns are loose on purpose.
    */
-  loose(input: string): string[] {
-    return this.patterned(input, 'loose');
+  loose(input: string, opts: MatchOpts = {}): string[] {
+    return this.local(this.patterned(input, 'loose'), [], opts);
   }
 
   /**
@@ -569,6 +647,7 @@ export class Matcher {
   shortKinds(ids: ReadonlySet<string>): { initials: boolean; other: boolean } {
     let initials = false;
     for (const id of this.short.values()) if (ids.has(id)) initials = true;
+    for (const by of this.shortIn.values()) for (const id of by.values()) if (ids.has(id)) initials = true;
     let other = this.patterns.some((p) => ids.has(p.id));
     for (const pair of this.shortOf) if (!other && ids.has(pair.slice(pair.indexOf(' ') + 1))) other = true;
     return { initials, other };
@@ -592,13 +671,32 @@ export class Matcher {
     if (this.caps.has(k)) return true;
     if (this.named(input)) return id !== undefined && this.shortens(input, id);
     if (this.shortFor(input) || this.patterned(input, 'full').length) return true;
-    return !this.near(input).length && this.loose(input).length > 0;
+    return !this.near(input).length && this.patterned(input, 'loose').length > 0;
   }
 
-  /** True when the input is initials that could be several things on the map, and so the name of none of them. */
-  vague(input: string): boolean {
-    if (!key(input) || this.lookup(input).length) return false;
-    return lettersOf(input).some((k) => this.shared.has(k));
+  /**
+   * True when the input is a short form that could be several things on the map, and so the name of none
+   * of them: initials that two names spell out, or, on a map of regions of several countries, a type-in of
+   * pieces of more than one ("North"). With a country in mind, only its own pieces count.
+   */
+  vague(input: string, opts: MatchOpts = {}): boolean {
+    if (!key(input) || this.lookup(input, opts).length) return false;
+    const letters = lettersOf(input);
+    if (opts.within !== undefined && this.where.size) return letters.some((k) => this.sharedIn.has(`${opts.within} ${k}`));
+    if (letters.some((k) => this.shared.has(k))) return true;
+    if (!this.where.size) return false;
+    // Nothing is named, and yet it is a type-in of something: of pieces of several countries.
+    const hit = this.named(input);
+    return hit ? hit.some((id) => this.shortens(input, id)) : this.patterned(input, 'full').length > 0;
+  }
+
+  /**
+   * True when the input is short for something that it can only name once it is known which country is
+   * meant: on a map of regions of several countries, a type-in or the initials of a piece within its own.
+   * For a game that lets the player point at a piece before naming it.
+   */
+  byCountry(input: string): boolean {
+    return this.where.size > 0 && !!key(input) && !this.lookup(input).length && this.elsewhere(input).length > 0;
   }
 
   /**
@@ -629,6 +727,8 @@ export class Matcher {
       if (Math.abs(cand.length - k.length) > max) continue;
       const short = this.shortOf.has(`${cand} ${id}`);
       if (opts.whole && short) continue;
+      // With a country in mind, what is short for a piece of another is not there to be near to.
+      if (short && opts.within !== undefined && this.where.size && this.countryOf(id) !== opts.within) continue;
       const d = editDistance(k, cand, Math.min(max, best));
       if (d > max || d > best) continue;
       if (d < best) {
@@ -639,7 +739,7 @@ export class Matcher {
       const list = short ? brief : ids;
       if (!list.includes(id)) list.push(id);
     }
-    return best <= max ? [...ids, ...brief.filter((id) => !ids.includes(id))] : [];
+    return best <= max ? [...ids, ...this.local(brief.filter((id) => !ids.includes(id)), ids, opts)] : [];
   }
 
   /** Exact matches, or the nearest ones when nothing matches exactly, or what a loose pattern takes. */
@@ -647,24 +747,33 @@ export class Matcher {
     const exact = this.lookup(input, opts);
     if (exact.length) return exact;
     const near = this.near(input, opts);
-    return near.length || opts.whole ? near : this.loose(input);
+    return near.length || opts.whole ? near : this.loose(input, opts);
   }
 
   /** Is the input an acceptable answer for `target`? Reports which other item it names when it is not. */
-  check(input: string, target: string, opts: MatchOpts = {}): Verdict {
+  check(input: string, target: string, given: MatchOpts = {}): Verdict {
+    // On a map of regions of several countries, the question is about a piece of one of them: short forms
+    // are read as on the map of that country, where they were thought out.
+    const opts: MatchOpts = this.where.size ? { ...given, within: this.countryOf(target) } : given;
     const exact = this.lookup(input, opts);
     if (exact.includes(target)) return { res: 'yes' };
     // Right, but for being an abbreviation: said so, and not held against the player. It comes before the
     // name of something else that the same letters may be.
-    if (opts.whole && this.lookup(input).includes(target)) return { res: 'short' };
+    if (opts.whole && this.lookup(input, { within: opts.within }).includes(target)) return { res: 'short' };
     if (exact.length) return { res: 'other', id: exact[0] };
+    if (this.where.size && !opts.whole) {
+      // Short for a piece of another country: it does not count for this one, but it is what was typed,
+      // letter by letter, and no slip of the finger on the way to some other name.
+      const far = this.elsewhere(input);
+      if (far.length) return this.vague(input, { within: opts.within }) ? { res: 'vague' } : { res: 'other', id: far[0] };
+    }
     const near = this.near(input, opts);
     if (near.includes(target)) return { res: 'yes' };
     if (near.length) return { res: 'other', id: near[0] };
-    const loose = this.loose(input);
+    const loose = this.loose(input, { within: opts.within });
     if (loose.includes(target)) return opts.whole ? { res: 'short' } : { res: 'yes' };
     if (loose.length && !opts.whole) return { res: 'other', id: loose[0] };
-    return this.vague(input) ? { res: 'vague' } : { res: 'no' };
+    return this.vague(input, { within: opts.within }) ? { res: 'vague' } : { res: 'no' };
   }
 
   /** True when the input is the beginning of a longer spelling of one of `ids`. */
