@@ -16,7 +16,7 @@ servicio de fuera).
 A petición del dueño del proyecto, desde la 1.18.0 se hace primero lo que menos esfuerzo lleva y se deja para
 el final lo que más. La estimación es a ojo y cambia al abrir el código:
 
-- **Corto**: nada pendiente (del 102 falta solo que el dueño copie el flujo a su sitio)
+- **Corto**: nada pendiente
 - **Medio**: 19, 23–26, 45, 46, 51, 54, 58, 59, 61, 62, 66, 70, 73–75, 84, 87, 94, 98, 100, 111b, 111d, 111e
 - **Largo**: 20, 44 (francés), 65, 67, 68, 83, 90
 - **Depende de conseguir datos**, lleve lo que lleve: 30–32, 37–39, 41–43, 95, y lo que falta del 29 y del 35
@@ -148,7 +148,7 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 - [x] 99. Botón «Avisar de un error»: bajo cada respuesta, un enlace abre un aviso en GitHub ya rellenado con la pieza, el mapa, el juego y la versión — **1.18.0**
 - [ ] 100. Ayuda y tutorial de cada modo
 - [x] 101. Copia de seguridad más cómoda: al importar se ve qué trae el archivo antes de sustituir nada, la copia lleva las preferencias, se puede enviar desde el móvil y Progreso recuerda hacerla — **1.19.0**
-- [~] 102. Pruebas y publicación automáticas en GitHub — el flujo está escrito y revisado en `scripts/ci/pruebas.yml` (**1.21.0**): prueba, compila con el control de tamaño y juega en un navegador en cada cambio, y publica si Pages se pone a publicar desde Actions. Falta ponerlo: hay que copiarlo a `.github/workflows/`, y eso solo puede hacerlo el dueño del repositorio (el README dice cómo, en «Publicación»)
+- [x] 102. Pruebas y publicación automáticas en GitHub: en cada cambio propuesto y en cada cambio de `main`, GitHub pasa las pruebas, compila con el control de tamaño y juega en un navegador (`.github/workflows/pruebas.yml`); publica él mismo si en GitHub se elige publicar desde Actions. Lo puso el dueño el 19 de noviembre de 2026, y la primera pasada salió bien — **1.21.0**
 - [x] 103. Licencia del repositorio (**decidido**: MIT): el código se puede usar, cambiar y redistribuir citando al autor; los datos de los mapas siguen las condiciones de sus fuentes — **1.15.0**
 
 ## Arreglos pendientes
