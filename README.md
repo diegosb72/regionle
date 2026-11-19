@@ -197,11 +197,11 @@ El último paso de la compilación (`scripts/pwa/build.mjs`) escribe en la carpe
 
 #### Pruebas y publicación automáticas (GitHub Actions)
 
-`scripts/ci/pruebas.yml` es un flujo de GitHub Actions listo para usar que **todavía no está puesto**: GitHub solo ejecuta los que están en `.github/workflows/`, y el asistente con el que se escribió no tiene permiso para dejar archivos en esa carpeta. Ponerlo es copiarlo, una vez:
+`.github/workflows/pruebas.yml` hace que GitHub compruebe el juego por su cuenta:
 
-1. En la web de GitHub, abrir `scripts/ci/pruebas.yml`, copiar su contenido y, con *Add file → Create new file*, crear `.github/workflows/pruebas.yml` con ese mismo contenido. Desde un ordenador con el repositorio es lo mismo: `mkdir -p .github/workflows && cp scripts/ci/pruebas.yml .github/workflows/ && git add .github && git commit -m "Pruebas automáticas" && git push`.
-2. Desde entonces, en cada *pull request* y en cada cambio de `main`, GitHub instala el proyecto, pasa las pruebas (`npm test`), compila con el control de tamaño (`npm run build`) y juega en un navegador de verdad (`npm run e2e`). Si algo falla lo dice en la pestaña *Actions* y guarda siete días las trazas del navegador.
-3. **Publicar con él es opcional.** Tal como está el repositorio, GitHub Pages publica la carpeta `docs/` de `main`, que se compila y se sube a mano (`npm run build:pages`). Si en *Settings → Pages → Build and deployment → Source* se elige **GitHub Actions**, el flujo publica él mismo lo que compila cada vez que cambia `main`, y `docs/` deja de hacer falta. Mientras siga en «Deploy from a branch», el flujo prueba y no publica nada.
+- En cada *pull request* y en cada cambio de `main` instala el proyecto, pasa las pruebas (`npm test`), compila con el control de tamaño (`npm run build`) y juega en un navegador de verdad (`npm run e2e`). Tarda unos seis minutos. Si algo falla lo dice en la pestaña *Actions* (y en la propia *pull request*) y guarda siete días las trazas del navegador.
+- **Publicar con él es opcional.** Tal como está el repositorio, GitHub Pages publica la carpeta `docs/` de `main`, que se compila y se sube a mano (`npm run build:pages`), y el flujo solo prueba. Si en *Settings → Pages → Build and deployment → Source* se elige **GitHub Actions**, el flujo publica él mismo lo que compila cada vez que cambia `main` y las pruebas pasan, y `docs/` deja de hacer falta.
+- El archivo solo lo puede cambiar el dueño del repositorio, en la web de GitHub o desde su ordenador: el asistente con el que se hace el juego no tiene permiso para escribir en `.github/workflows/`.
 
 ### Versiones y novedades
 
@@ -291,7 +291,7 @@ scripts/typeins/   Lista de type-ins de JetPunk y el script que escribe lo que e
 scripts/pwa/       Service worker y paso final de la compilación
 scripts/social/    Dibuja las imágenes que acompañan al enlace del juego en redes
 scripts/budget.mjs Límites de tamaño de la primera carga
-scripts/ci/        El flujo de GitHub Actions (pruebas y publicación), a falta de copiarlo a .github/workflows/
+.github/workflows/ El flujo de GitHub Actions: pruebas en cada cambio y, si se elige en GitHub, publicación
 e2e/               Pruebas en un navegador de verdad (Playwright)
 public/data/       Datos generados que usa el juego
 public/icons/      Iconos de la aplicación instalada
@@ -360,7 +360,7 @@ Hecho con React 19, TypeScript, Vite, d3-geo, TopoJSON y Zustand. Los textos de 
 - La **letra grande** agranda lo que se lee en pantalla, no los dibujos: los iconos, las banderas y las piezas del mapa siguen de su tamaño, y las hojas que se imprimen tienen el suyo. En un móvil estrecho, con la letra muy grande y la tipografía para dislexia a la vez, la pregunta ocupa más pantalla y el mapa menos (le queda un tercio o más), y algún título se corta con puntos suspensivos. Para agrandarlo todo, también los mapas, sigue estando el zoom del navegador.
 - La **tipografía para dislexia** es Lexend y no OpenDyslexic, que es la que suele llevar ese nombre: OpenDyslexic es un 60 % más ancha y un 20 % más alta que la letra del juego, y con ella media interfaz no cabría en un móvil; Lexend se dibujó pensando en lo mismo, ocupa casi lo que la letra de siempre y trae todos los grosores. Los nombres en escrituras que no tiene (cirílico, griego, árabe…) salen con la letra del sistema, como siempre.
 - El **alto contraste** cambia los colores del propio juego; no es el modo de «colores forzados» de Windows, con el que no se ha probado. Los colores con que el mapa marca una respuesta son los mismos (o los de daltónicos): lo que gana contraste es lo que se lee y lo que se pulsa.
-- Las **pruebas automáticas** de GitHub no están puestas: el flujo está escrito en `scripts/ci/pruebas.yml` y hay que copiarlo a `.github/workflows/` (véase «Publicación»).
+- Las **pruebas automáticas** de GitHub prueban; no publican: la web sigue saliendo de la carpeta `docs/`, que hay que compilar y subir con cada versión, hasta que en GitHub se elija publicar desde Actions (véase «Publicación»). Y su archivo solo lo puede cambiar el dueño del repositorio.
 - La ficha de Wikipedia y los enlaces externos necesitan conexión; sin ella, simplemente no aparecen.
 - La **ficha de Wikipedia** se localiza por el id de Wikidata de la pieza. Las piezas que el juego forma agrupando otras (las comunidades autónomas, las regiones de Francia o de Italia) no lo traen: para ellas se pregunta a Wikidata qué elemento tiene su código ISO 3166-2 (la propiedad P300) y, solo si la pieza no tiene código o Wikidata no lo conoce, se busca por el nombre, que es menos fiable («Canarias, España» daba con el Gobierno de Canarias antes que con las islas).
 - El reto del día se calcula en el dispositivo a partir de la fecha: es el mismo para todo el mundo, pero no hay clasificación ni se comprueba en ningún servidor.
