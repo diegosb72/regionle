@@ -260,7 +260,7 @@ test.describe('listen and pin', () => {
     await expect(page.locator('.q-name')).toContainText('Andalucía');
     await expect(page.locator('.q-prompt')).toContainText('Este navegador no tiene voz');
     // Without a voice the hint is the one of "pin it": it narrows the search.
-    await expect(page.getByRole('button', { name: 'Pista' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Pista', exact: true })).toBeVisible();
   });
 
   test('is sat as an exam: every name is said, none is written until the paper is handed in', async ({ page }) => {

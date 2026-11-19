@@ -1,0 +1,70 @@
+/*
+ * The hints of the question-by-question games (lib/hints.ts): what has been said about the piece asked,
+ * the menu of what else can be said, and the options one of them takes away. Fetched with the games.
+ */
+/* Empty until a hint is asked for, and then out of the column: it would take a gap of it otherwise. */
+.q-said:empty {
+  position: absolute;
+}
+.q-said:focus,
+.choices:focus {
+  outline: none;
+}
+.q-hints {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 10px 12px;
+  list-style: none;
+  border: 1px dashed var(--line-2);
+  border-radius: var(--r-2);
+  background: var(--card);
+  color: var(--ink-2);
+  font-size: calc(14.5px * var(--fs));
+  line-height: 1.4;
+}
+.q-hints li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.q-hints svg {
+  flex: none;
+  color: var(--accent);
+  transform: translateY(2px);
+}
+.q-hint-flag {
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.q-more-btn svg:last-child {
+  transition: transform 0.15s;
+}
+.q-more-btn.on svg:last-child {
+  transform: rotate(180deg);
+}
+.q-more {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-2);
+  background: var(--card);
+}
+.q-more p {
+  flex-basis: 100%;
+  margin: 2px 0 0;
+  color: var(--ink-3);
+  font-size: calc(12.5px * var(--fs));
+  line-height: 1.35;
+}
+
+.choice.out {
+  border-style: dashed;
+  background: transparent;
+  text-decoration: line-through;
+  opacity: 0.55;
+}

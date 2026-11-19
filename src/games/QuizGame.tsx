@@ -2,7 +2,7 @@
  * Question-by-question games: pin on the map (by its written name or by ear), jigsaw, identify, outline,
  * capitals, flags, what each piece belongs to, and the medley that deals the others by turns.
  */
-import { ArrowRight, Flag as FlagIcon, Heart, Lightbulb, MapPin, Timer } from 'lucide-react';
+import { ArrowRight, ChevronDown, Flag as FlagIcon, Heart, Lightbulb, MapPin, Timer } from 'lucide-react';
 import { useEffect, useMemo, useReducer, useRef, useState, type CSSProperties } from 'react';
 import { AnswerInput, type Suggestion } from '../components/AnswerInput';
 import { ChallengeBox } from '../components/ChallengeBox';
@@ -11,16 +11,19 @@ import { SpeakButton, canSpeak, hush, speak } from '../components/Speak';
 import { Flag } from '../components/ui';
 import { seedOf } from '../lib/challenge';
 import { silhouette } from '../lib/geo';
+import { halve, hintKinds, hintLabel, hintOf, type Hint, type HintAsk, type HintKind } from '../lib/hints';
 import { L, nm } from '../lib/i18n';
 import { timesMixed } from '../lib/mix';
 import { MODE_NAME, formatName } from '../lib/modes';
 import { useStore, type FlagLook, type Format, type Skill } from '../lib/store';
 import { Matcher, shortNote } from '../lib/matcher';
+import type { Places } from '../lib/sets';
 import { cx, fmtTime, hintMax, letterHint, mulberry32, nf, sample, shuffle, type Answerable } from '../lib/text';
 import { capitalAnswers } from '../lib/typeins';
 import type { Belongs, Item, Res } from '../lib/types';
 import { GameShell, Hud, Results, Verdict, answered, nearest, originOf, showsCountry, useElapsed, type GameProps, type ResultRow } from './common';
 import { FLAG_BLUR, answersItself, askOf, asksFor, belongsItself, capitalsNeedTyping, gradeOf, initQuiz, quizReducer, scoreOf, turnOf } from './quiz';
+import './quiz.css';
 
 /** The ways a question is asked. */
 type QuizMode = 'pin' | 'puzzle' | 'identify' | 'outline' | 'capital' | 'flag' | 'parent';
@@ -30,12 +33,16 @@ type QuizId = QuizMode | 'mix' | 'listen';
 /** What each game teaches, for the review. What a piece belongs to is not reviewed: it is played and that is all. */
 const SKILL: Partial<Record<QuizMode, Skill>> = { pin: 'loc', puzzle: 'loc', identify: 'name', outline: 'name', capital: 'cap', flag: 'flag' };
 
+/** A question nobody has asked for help with. */
+const NO_HELP = { main: 0, used: [], said: [], cut: [], open: false };
+
 /** Against the clock: how long a game lasts. */
 export const TIME_LIMIT = 60_000;
 /** Survival: misses allowed. */
 export const LIVES = 3;
 
-export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
+/** `places` names the parts of the world: what a hint says a country is in. */
+export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { places?: Places }) {
   const game = cfg.mode as QuizId;
   /** A medley: every piece is asked about in a way of its own, drawn by lot. */
   const medley = game === 'mix';
@@ -158,6 +165,14 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const [showMap, setShowMap] = useState(false);
   /** Pin hint: the only items still in play; the rest are dimmed. */
   const [narrow, setNarrow] = useState<Set<string> | null>(null);
+  /**
+   * The help given with the question in hand. `main` counts the hints of the kind its game always had (a
+   * letter, the search narrowed, the map, the name); `said` are the others, each a fact about the piece
+   * (lib/hints.ts), `used` their kinds, and `cut` the options that one of them took away.
+   */
+  const [help, setHelp] = useState<{ main: number; used: HintKind[]; said: Hint[]; cut: string[]; open: boolean }>(NO_HELP);
+  /** The panel of the question: where the menu of hints, what they say and the way of answering are looked for. */
+  const box = useRef<HTMLDivElement>(null);
 
   const names = useMemo(() => new Matcher(deck.items), [deck]);
   // Capitals are listed under the id of their place, whose code is not theirs.
@@ -180,7 +195,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const parents = useMemo(() => new Matcher([...groups.values()]), [groups]);
   const matcher = mode === 'capital' ? capitals : mode === 'parent' ? parents : names;
   /** How many letters of the answer the hints have put in sight (the first hint of an outline is the map). */
-  const lettersShown = !typed ? 0 : mode === 'outline' ? Math.max(0, s.hints - 1) : s.hints;
+  const lettersShown = !typed ? 0 : mode === 'outline' ? Math.max(0, help.main - 1) : help.main;
   const answerOf = (it: Item, m: QuizMode = mode) => (m === 'capital' ? it.capital![0] : m === 'parent' ? it.belongs!.name : it.name);
   // A paced game moves fast, and an exam is an exam: one go at each question.
   const maxTries = strict ? 1 : clicky || typed ? 3 : 1;
@@ -222,6 +237,23 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [s.n]);
 
+  /** The kinds of hint the question in hand admits besides the one of its game: a fact about the piece each. */
+  const kinds = useMemo((): HintKind[] => {
+    if (!item || strict) return [];
+    const ask: HintAsk = {
+      wants: clicky ? 'place' : mode === 'capital' ? 'capital' : mode === 'parent' ? 'parent' : 'name',
+      by: clicky ? 'click' : typed ? 'type' : 'pick',
+      shows: {
+        // By ear the name is not written, but writing it is the hint that game always had.
+        name: mode === 'pin' && pinBy === 'name',
+        place: mode === 'identify' || mode === 'capital' || (mode === 'parent' && item.kind !== 'city') || (mode === 'outline' && showMap),
+        capital: mode === 'pin' && pinBy === 'capital',
+        flag: mode === 'flag' || (mode === 'pin' && pinBy === 'flag'),
+      },
+    };
+    return hintKinds(item, deck, ask, places);
+  }, [item, strict, clicky, typed, mode, pinBy, showMap, deck, places]);
+
   // New question: clean the per-question state and, when a region lights up, bring it into view.
   useEffect(() => {
     setNote(null);
@@ -229,6 +261,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
     setShowMap(false);
     setClear((n) => n + 1);
     setNarrow(null);
+    setHelp(NO_HELP);
     // Naming what the map shows needs a close look; for a capital, knowing where the country is will do.
     if (s.cur && mode === 'identify') map.current?.focus([s.cur]);
     // In a medley the last question may have left the map anywhere: each one starts from the whole of it.
@@ -416,7 +449,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
   };
 
   const onChoice = (id: string) => {
-    if (!item || s.phase !== 'ask') return;
+    if (!item || s.phase !== 'ask' || help.cut.includes(id)) return;
     if (id === item.id) right();
     else {
       const other = deck.byId.get(id);
@@ -430,6 +463,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const hint = () => {
     if (!item || s.phase !== 'ask' || strict) return;
     dispatch({ type: 'hint' });
+    setHelp((h) => ({ ...h, main: h.main + 1 }));
     // By ear, the help is to read the name: the hint writes it.
     if (voiced) return;
     if (clicky) {
@@ -449,12 +483,31 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
         next();
       } else if (!typed && s.phase === 'ask' && /^[1-4]$/.test(e.key)) {
         const c = choices[Number(e.key) - 1];
-        if (c) onChoice(c.id);
+        if (c && !help.cut.includes(c.id)) onChoice(c.id);
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   });
+
+  // The menu opens under the buttons, where a short panel (a phone) may not reach: it is brought into view, and
+  // whoever opened it with the keyboard is taken to its first hint instead of past two more buttons.
+  useEffect(() => {
+    if (!help.open) return;
+    const menu = box.current?.querySelector<HTMLElement>('.q-more');
+    menu?.querySelector<HTMLElement>('button')?.focus({ preventScroll: true });
+    menu?.scrollIntoView({ block: 'nearest' });
+  }, [help.open]);
+  // Once a hint is given its button is gone, and what had the keyboard with it. It goes back to where the
+  // answer is given: the field, the options (their number keys do not work from a button), or the menu of hints.
+  useEffect(() => {
+    const root = box.current;
+    if (!help.used.length || !root) return;
+    const to = typed ? root.querySelector<HTMLElement>('.answer-input') : clicky ? (root.querySelector<HTMLElement>('.q-more-btn') ?? root.querySelector<HTMLElement>('.q-said')) : root.querySelector<HTMLElement>('.choices');
+    to?.focus({ preventScroll: true });
+    root.querySelector('.q-said')?.scrollIntoView({ block: 'nearest' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [help.used.length]);
 
   /** Items still to be asked must not give themselves away with a colour, a label or a tooltip. */
   const hidden = useMemo(() => {
@@ -639,6 +692,28 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
 
   const answer = item ? answerOf(item) : '';
   const asking = s.phase === 'ask';
+  /** The hint its game always had: a letter, the search narrowed, the map or the name. */
+  const ownHint = (clicky || typed || mode === 'outline') && !strict;
+  /** The others that are still to be had: not the one that counts letters once some are in sight. */
+  const offer = kinds.filter((k) => !help.used.includes(k) && !(k === 'count' && lettersShown > 0) && !(k === 'half' && choices.length < 4));
+  /** A question with one other hint and no more has no menu to choose from: its button says which it is, and gives it. */
+  const sole = kinds.length === 1 ? kinds[0] : null;
+  /** One more hint, of the kind chosen: like any other, it makes the answer one given with help. */
+  const more = (kind: HintKind) => {
+    if (!item || !asking || strict || !offer.includes(kind)) return;
+    dispatch({ type: 'hint' });
+    const said = kind === 'half' ? null : hintOf(kind, item, deck, answer, places);
+    // Two of the three wrong options go, by the lot of this question: the same two to whoever plays the same game.
+    const cut = kind === 'half' ? halve(choices.map((c) => c.id), item.id, mulberry32(seed + s.n * 104729)) : [];
+    setHelp((h) => ({ ...h, open: false, used: [...h.used, kind], said: said ? [...h.said, said] : h.said, cut: [...h.cut, ...cut] }));
+  };
+  /** Escape shuts the menu and leaves the keyboard on the button that opened it. */
+  const shut = (e: { key: string; stopPropagation: () => void }) => {
+    if (e.key !== 'Escape' || !help.open) return;
+    e.stopPropagation();
+    setHelp((h) => ({ ...h, open: false }));
+    box.current?.querySelector<HTMLElement>('.q-more-btn')?.focus();
+  };
   /** A flag is asked about as the player chose: once answered it is seen as it is. */
   const look: FlagLook = asking ? (opts.flagLook ?? 'plain') : 'plain';
   const flagOf = (code: string | undefined) => (
@@ -651,7 +726,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
     </span>
   );
   /** By ear the name is not read until the question is settled, unless the hint wrote it. */
-  const unread = voiced && asking && s.hints === 0;
+  const unread = voiced && asking && help.main === 0;
   const question = (() => {
     if (!item) return null;
     const c = item.country;
@@ -712,7 +787,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
               </svg>
             </div>
           )}
-          {several && s.hints > 0 && (
+          {several && help.main > 0 && (
             <p className="q-sub">
               <Flag code={c.fl} size="sm" /> {L(`Es de ${nm(c.n)}`, `It belongs to ${nm(c.n)}`)}
             </p>
@@ -733,7 +808,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
           <h2 className="q-ask">
             {L(`¿Qué ${one} tiene esta forma?`, `Which ${one} has this shape?`)}
             {opts.turned && asking && !showMap && <small> {L('Está girada: el norte no queda arriba.', 'It is turned: north is not at the top.')}</small>}
-            {several && s.hints > 0 && <small> {L(`Está en ${nm(c.n)}.`, `It is in ${nm(c.n)}.`)}</small>}
+            {several && help.main > 0 && <small> {L(`Está en ${nm(c.n)}.`, `It is in ${nm(c.n)}.`)}</small>}
           </h2>
         </>
       );
@@ -791,9 +866,28 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
     );
 
   const panel = (
-    <div className="q">
+    <div className="q" ref={box}>
       {s.round === 2 && <p className="q-round">{L(`Repaso de fallos · quedan ${s.queue.length + (asking ? 1 : 0)}`, `Reviewing misses · ${s.queue.length + (asking ? 1 : 0)} left`)}</p>}
       <div className="q-prompt">{question}</div>
+
+      {/* Said aloud to whoever does not see them: the region is there, empty, before the first one comes. */}
+      {asking && kinds.length > 0 && (
+        <div className="q-said" aria-live="polite" tabIndex={-1}>
+          {help.said.length > 0 && (
+            <ul className="q-hints" aria-label={L('Pistas dadas', 'Hints given')}>
+              {help.said.map((h) => (
+                <li key={h.kind}>
+                  <Lightbulb size={14} aria-hidden="true" />
+                  <span>
+                    {h.text}
+                    {h.flag && <Flag code={h.flag} size="md" className="q-hint-flag" />}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       {asking && clicky && (
         <p className="q-how">
@@ -804,12 +898,14 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
       )}
 
       {!clicky && !typed && (
-        <div className="choices">
+        <div className="choices" tabIndex={-1}>
           {choices.map((c, i) => {
             const isRight = !asking && c.id === item?.id;
             const isWrong = !asking && c.id === picked;
+            /** Taken away by a hint: it stays where it was, struck out, so that the other two do not jump. */
+            const out = asking && help.cut.includes(c.id);
             return (
-              <button key={c.id} type="button" className={cx('choice', isRight && 'right', isWrong && 'wrong')} disabled={!asking} onClick={() => onChoice(c.id)}>
+              <button key={c.id} type="button" className={cx('choice', isRight && 'right', isWrong && 'wrong', out && 'out')} disabled={!asking || out} onClick={() => onChoice(c.id)}>
                 <kbd>{i + 1}</kbd>
                 <span>{answerOf(c)}</span>
               </button>
@@ -836,7 +932,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
               )}
             </p>
           )}
-          {lettersShown > 0 && <p className="q-letters">{letterHint(answer, lettersShown)}</p>}
+          {(lettersShown > 0 || help.used.includes('count')) && <p className="q-letters">{letterHint(answer, lettersShown)}</p>}
         </>
       )}
 
@@ -857,10 +953,23 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
       <div className="q-actions">
         {asking ? (
           <>
-            {(clicky || typed || mode === 'outline') && !strict && (
-              <button type="button" className="btn btn-sm" onClick={hint} disabled={clicky ? s.hints > 0 : mode === 'outline' && !typed ? showMap : s.hints >= hintMax(answer)}>
+            {ownHint && (
+              <button type="button" className="btn btn-sm" onClick={hint} disabled={clicky ? help.main > 0 : mode === 'outline' && !typed ? showMap : help.main >= hintMax(answer)}>
                 <Lightbulb size={15} aria-hidden="true" />
                 {voiced ? L('Ver el nombre', 'Show the name') : clicky ? L('Pista', 'Hint') : mode === 'outline' && (!showMap || !typed) ? L('Ver en el mapa', 'Show on the map') : L('Una letra', 'A letter')}
+              </button>
+            )}
+            {offer.length > 0 && sole && (
+              <button type="button" className="btn btn-sm q-more-btn" onClick={() => more(sole)}>
+                {!ownHint && <Lightbulb size={15} aria-hidden="true" />}
+                {hintLabel(sole)}
+              </button>
+            )}
+            {offer.length > 0 && !sole && (
+              <button type="button" className={cx('btn btn-sm q-more-btn', help.open && 'on')} aria-expanded={help.open} aria-controls="q-more" onClick={() => setHelp((h) => ({ ...h, open: !h.open }))} onKeyDown={shut}>
+                {!ownHint && <Lightbulb size={15} aria-hidden="true" />}
+                {ownHint ? L('Otra pista', 'Another hint') : L('Pista', 'Hint')}
+                <ChevronDown size={14} aria-hidden="true" />
               </button>
             )}
             <button type="button" className="btn btn-sm" onClick={giveUp}>
@@ -878,6 +987,17 @@ export function QuizGame({ deck, cfg, onExit, onAgain }: GameProps) {
           {exam ? L('Entregar', 'Hand in') : L('Terminar', 'Finish')}
         </button>
       </div>
+
+      {asking && help.open && !sole && offer.length > 0 && (
+        <div className="q-more" id="q-more" role="group" aria-label={L('Otras pistas', 'Other hints')} onKeyDown={shut}>
+          {offer.map((k) => (
+            <button key={k} type="button" className="chip" onClick={() => more(k)}>
+              {hintLabel(k)}
+            </button>
+          ))}
+          <p>{L('Con cualquiera de ellas la respuesta cuenta como dada con ayuda.', 'With any of them the answer counts as given with help.')}</p>
+        </div>
+      )}
     </div>
   );
 

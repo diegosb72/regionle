@@ -291,7 +291,7 @@ function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
       case 'parent':
       case 'mix':
       case 'listen':
-        return <QuizGame {...props} />;
+        return <QuizGame {...props} places={world.index} />;
       default:
         return <Message title={L(`«${MODE_NAME[cfg.mode]}» no está disponible aquí`, `“${MODE_NAME[cfg.mode]}” is not available here`)} text={L('Elige otro modo de juego.', 'Choose another game mode.')} onExit={onExit} />;
     }
