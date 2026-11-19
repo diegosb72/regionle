@@ -1305,7 +1305,42 @@ export const CITY_FIX = {
   'Balykchy|KGZ': { es: 'Balykchy' }, // «Balikci»
   'Umm al Qaywayn|ARE': { es: 'Umm al-Qaywayn', al: ['Um el Kaiwain'] },
   'Ras al Khaymah|ARE': { es: 'Ras al-Jaima' },
+  // The same for the cities whose region is the one that had it right (see UNIT_NAME in config.mjs for the
+  // regions that follow their city): the label that goes stays as a name that is accepted.
+  'Saki|AZE': { es: 'Shaki', al: ['Şəki'] },
+  'Messina|ITA': { es: 'Mesina' },
+  'Reggio di Calabria|ITA': { es: 'Reggio Calabria', al: ['Regio de Calabria'] },
+  'Sassari|ITA': { es: 'Sassari', al: ['Sácer'] },
+  'At Tafilah|JOR': { es: 'Tafila', al: ['Tafilah'] },
+  'Al Jahra|KWT': { es: 'Al Yahra', al: ['Jahra', 'Yahra'] },
+  'Almaty|KAZ': { es: 'Almaty', al: ['Alma Ata', 'Alma Atá'] },
+  'Nabatiye et Tahta|LBN': { es: 'Nabatiye', al: ['Nabatieh'] },
+  'Bago|MMR': { es: 'Bago', al: ['Pegu', 'Pegú'] },
+  'Suchboatar|MNG': { es: 'Sühbaatar', al: ['Sujbaatar'] },
+  'Bragança|PRT': { es: 'Braganza' },
+  'As Suwayda|SYR': { es: 'Sueida', al: ['As-Suwayda'] },
+  'Qairouan|TUN': { es: 'Kairuán', al: ['Cairuán'] },
+  'Dar es Salaam|TZA': { es: 'Dar es Salam', al: ['Dar es-Salaam'] },
+  'Kibale|UGA': { es: 'Kibaale' },
+  'Andijan|UZB': { es: 'Andiyán', al: ['Andiján'] },
+  'Al Bayda|YEM': { es: 'Al Bayda', al: ['Al Baida'] },
+  'Lahij|YEM': { es: 'Lahij', al: ['Lahej'] },
+  'Marib|YEM': { es: 'Marib' },
+  'Lamphun|THA': { es: 'Lamphun', al: ['Muang Lamphun'] },
+  'Cusco|PER': { es: 'Cusco', en: 'Cusco', al: ['Cuzco'] },
+  'Harar|ETH': { es: 'Harar', en: 'Harar', al: ['Harrar Jugol', 'Harar Jugol'] },
 };
+
+/**
+ * Regions that are not spelt like the city of the same name, and are right: `data:physical` warns of every
+ * other region and city of one country that share a name in English, or in the language of the place, and
+ * not in Spanish.
+ */
+export const SPELT_APART = new Set([
+  'LV-x1066', // «Rezeknes», the municipality around Rēzekne, which is a piece of its own («Rezekne»)
+  'IT-TN', // «Trentino», the province of Trento
+  'RU-ZAB', // «Zabaikalie»: the source still calls it Chita, after the oblast it was made from
+]);
 
 /**
  * Places left out, as "NAME|ADM1NAME": entries of Natural Earth that are plainly wrong. Nearly all are a

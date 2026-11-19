@@ -1555,6 +1555,41 @@ for (const c of countries) {
   }
 }
 
+// A region and a city of the same name are spelt the same in Spanish: the two come from different layers of
+// the source, and where its labels disagree («Yangon» and «Rangún») one of them is put right by hand (UNIT_NAME
+// in config.mjs for the region, CITY_FIX here for the city). "The same name" is the name in English, or the
+// one the region has in the language of the place; "spelt the same" lets one of them say more than the other
+// («Sofía-Ciudad», «Comunidad de Madrid», «Ciudad del Vaticano»).
+const speltApart = [];
+{
+  const words = (s) => norm(s).split(' ').filter(Boolean);
+  const holds = (outer, inner) => {
+    const all = new Set(words(outer));
+    const part = words(inner);
+    return part.length > 0 && part.every((w) => all.has(w));
+  };
+  for (const c of countries) {
+    const region = regionOf(c.id);
+    const list = byCountry.get(c.id);
+    if (!region || !list) continue;
+    const units = [...region.fine.map((u) => ({ id: u.id, p: u.p })), ...Object.values(region.groups).flat()].filter((u) => u.p.q !== 0);
+    for (const u of units) {
+      if (P.SPELT_APART.has(u.id)) continue;
+      const rEs = u.p.n.es;
+      const rNames = [u.p.n.en ?? rEs, u.p.n.lo].filter(Boolean).map(key);
+      for (const x of list) {
+        const cEs = x.n.es;
+        if (key(cEs) === key(rEs) || holds(rEs, cEs) || holds(cEs, rEs)) continue;
+        const cEn = key(x.n.en ?? cEs);
+        if (!(rNames.includes(cEn) || rNames.includes(key(cEs)) || cEn === key(rEs))) continue;
+        speltApart.push(`${u.id} «${rEs}» and the city «${cEs}» (${x.n.en ?? cEs})`);
+        warn(`spellings: ${u.id} is «${rEs}» and the city of the same name is «${cEs}»`);
+      }
+    }
+  }
+}
+for (const id of P.SPELT_APART) if (!countries.some((c) => regionOf(c.id)?.fine.some((u) => u.id === id) || Object.values(regionOf(c.id)?.groups ?? {}).flat().some((g) => g.id === id))) warn(`SPELT_APART: there is no region ${id}`);
+
 // Only the biggest cities of each country and the capitals are kept.
 const cityOut = {};
 let kept = 0;

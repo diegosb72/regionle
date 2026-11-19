@@ -855,6 +855,36 @@ export const UNIT_NAME = {
   'AE-SH': { es: 'Sarja' },
   'SS-JG': { al: ['Junqali'] },
   'TW-PEN': { al: ['Islas Pescadores', 'Pescadores'] },
+  // One spelling in Spanish for a region and the city it is named after (or that is named after it): the
+  // two labels come from different layers of the source and did not always agree («Yangon» and «Rangún»,
+  // «Trabzon» and «Trebisonda»). The one kept is the name the place has in Spanish where it has one, and
+  // otherwise the plainer of the two; the other is still accepted. `data:physical` warns of any pair left.
+  'AF-HER': { es: 'Herat', al: ['Hirat'] },
+  'AL-05': { es: 'Gjirokastra', al: ['Gjirokastër'] },
+  'DO-08': { es: 'El Seibo', al: ['El Seybo'] },
+  'DZ-06': { es: 'Bugía', al: ['Bujía'] },
+  'DZ-30': { es: 'Uargla', al: ['Ouargla'] },
+  'EG-MT': { es: 'Matruh', al: ['Matrú'] },
+  'GT-QZ': { es: 'Quetzaltenango', al: ['Quezaltenango'] },
+  'JO-AZ': { es: 'Zarqa', al: ['Zarká'] },
+  'KW-AH': { es: 'Al Ahmadi', al: ['Ahmadí'] },
+  'KW-JA': { es: 'Al Yahra', al: ['Yahra'] },
+  'KZ-KUS': { es: 'Kostanái', al: ['Kostanay'] },
+  'LA-LM': { es: 'Luang Namtha', al: ['Louang Namtha'] },
+  'LY-GD': { es: 'Gadamés', al: ['Ghadamis'] },
+  'MM-06': { es: 'Rangún', al: ['Yangon'] },
+  'RO-CT': { es: 'Constanza', al: ['Constanța'] },
+  'SY-DR': { es: 'Daraa', al: ["Dar'a"] },
+  'SY-RA': { es: 'Al Raqa', al: ['Ar-Raqqa', 'Raqqa'] },
+  'TN-33': { es: 'El Kef', al: ['Le Kef'] },
+  'TR-61': { es: 'Trebisonda', al: ['Trabzon'] },
+  'TZ-02': { es: 'Dar es Salam', al: ['Dar es-Salam'] },
+  'UA-48': { es: 'Mikoláiv', al: ['Mykolaiv'] },
+  'UA-74': { es: 'Chernígov', al: ['Chernihiv'] },
+  'UZ-AN': { es: 'Andiyán', al: ['Andillán', 'Andiján'] },
+  'YE-BA': { es: 'Al Bayda' },
+  'YE-MA': { es: 'Marib', al: ['Mareb'] },
+  'YE-TA': { es: 'Taiz', al: ["Ta'izz"] },
 };
 
 /**
