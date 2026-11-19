@@ -197,6 +197,8 @@ export type Mode =
   | 'chain'
   | 'capital'
   | 'flag'
+  /** A piece tells about itself, a clue at a time, until its name is given. */
+  | 'whoami'
   | 'exact'
   | 'which'
   | 'hilo'

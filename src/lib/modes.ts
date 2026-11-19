@@ -28,6 +28,7 @@ import {
   Target,
   Thermometer,
   Trophy,
+  VenetianMask,
   Waypoints,
   type LucideIcon,
 } from 'lucide-react';
@@ -195,6 +196,8 @@ function modesOf(section: Section): ModeDef[] {
     level: 3,
     group: 'links',
   };
+  /** A riddle: clues about a piece, from the widest to the narrowest. */
+  const whoami = (desc: string): ModeDef => ({ id: 'whoami', name: L('¿Quién soy?', 'Who am I?'), desc, icon: VenetianMask, level: 2, group: 'facts' });
   const compass: ModeDef = {
     id: 'compass',
     name: L('Norte–sur', 'North–south'),
@@ -271,6 +274,12 @@ function modesOf(section: Section): ModeDef[] {
           level: 2,
           group: 'facts',
         },
+        whoami(
+          L(
+            'Una pieza habla de sí misma, pista a pista: su tamaño, hacia dónde cae, con cuántas limita, una vecina, su silueta. Adivínala con las menos pistas que puedas.',
+            'A piece tells about itself, clue by clue: its size, where it lies, how many it borders, a neighbour, its outline. Guess it with as few clues as you can.',
+          ),
+        ),
         ...figures(L('Aquí, por la superficie de cada región.', 'Here, by the area of each region.'), L('¿Qué región?', 'Which region?')),
       ];
     case 'countries':
@@ -314,6 +323,12 @@ function modesOf(section: Section): ModeDef[] {
           level: 2,
           group: 'facts',
         },
+        whoami(
+          L(
+            'Un país habla de sí mismo, pista a pista: su tamaño, su parte del mundo, sus fronteras, un vecino, su capital, su bandera. Adivínalo con las menos pistas que puedas.',
+            'A country tells about itself, clue by clue: its size, its part of the world, its borders, a neighbour, its capital, its flag. Guess it with as few clues as you can.',
+          ),
+        ),
       ];
     case 'cities':
       return [
@@ -344,6 +359,12 @@ function modesOf(section: Section): ModeDef[] {
         },
         compass,
         bearing(L('De ciudad a ciudad, en línea recta.', 'From city to city, as the crow flies.')),
+        whoami(
+          L(
+            'Una ciudad habla de sí misma, pista a pista: su tamaño, su país o su región, hacia dónde cae, a cuánto está de la más grande. Adivínala con las menos pistas que puedas.',
+            'A city tells about itself, clue by clue: its size, its country or its region, where it lies, how far it is from the largest. Guess it with as few clues as you can.',
+          ),
+        ),
         ...figures(L('Aquí, por la población de cada ciudad.', 'Here, by the population of each city.'), L('¿Qué ciudad?', 'Which city?')),
       ];
     case 'physical':
@@ -421,6 +442,8 @@ function modeName(mode: Mode): string {
       return L('Capitales', 'Capitals');
     case 'flag':
       return L('Banderas', 'Flags');
+    case 'whoami':
+      return L('¿Quién soy?', 'Who am I?');
     case 'hilo':
       return L('Mayor o menor', 'Higher or lower');
     case 'rank':
@@ -514,7 +537,7 @@ function lazy<K extends string, V>(keys: readonly K[], make: (key: K) => V): Rec
   return out;
 }
 
-const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'group', 'neighbours', 'chain', 'capital', 'flag', 'blind', 'hotcold', 'bearing', 'edit', 'print', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'topten', 'cards', 'mix', 'listen'];
+const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'group', 'neighbours', 'chain', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'edit', 'print', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'topten', 'cards', 'mix', 'listen'];
 
 export const MODES: Record<Section, ModeDef[]> = lazy(SECTION_IDS, modesOf);
 export const MODE_NAME: Record<Mode, string> = lazy(MODE_IDS, modeName);
