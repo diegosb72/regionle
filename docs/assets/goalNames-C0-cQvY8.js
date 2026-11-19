@@ -1,0 +1,1 @@
+import{yn as e}from"./store-CWxdXh48.js";var t=()=>({loc:e(`Situar en el mapa`,`Placing on the map`),name:e(`Nombrar`,`Naming`),cap:e(`Capitales`,`Capitals`),flag:e(`Banderas`,`Flags`)});export{t};
