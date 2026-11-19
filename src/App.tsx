@@ -3,12 +3,14 @@ import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { lazyScreen, savingData, whenIdle } from './components/lazy';
 import { OfflineBar, UpdateNotice } from './components/Offline';
-import { Spinner, Toggle } from './components/ui';
+import { Seg, Spinner, Toggle } from './components/ui';
 import { badgeSchedule, badgeSupported, keepBadgeFresh, showBadge, tellWorker, waitingAt } from './lib/appBadge';
 import { PULSES, TONES, buzz, canBuzz, play, prime } from './lib/feedback';
+import { useFullscreen } from './lib/fullscreen';
 import { L, getLang } from './lib/i18n';
 import { SECTIONS, SECTION_IDS } from './lib/modes';
 import { applyMeta } from './lib/pageMeta';
+import { PALETTES, applyPalette, paletteHint, paletteName } from './lib/palette';
 import { followLang, go, inGame, useRoute } from './lib/router';
 import { ABOUT_PATH, PATHS, PROGRESS_PATH, SETTINGS_PATH, routeOf, screenPage } from './lib/routes';
 import { shortcutOf } from './lib/shortcuts';
@@ -107,6 +109,9 @@ export function App() {
   useIconBadge(iconBadge);
   const miles = useStore((s) => s.miles);
   const setMiles = useStore((s) => s.setMiles);
+  const palette = useStore((s) => s.palette);
+  const setPalette = useStore((s) => s.setPalette);
+  const full = useFullscreen();
   const setLang = useStore((s) => s.setLang);
   const cb = useStore((s) => s.cb);
   const setCb = useStore((s) => s.setCb);
@@ -159,6 +164,9 @@ export function App() {
     if (cb) document.documentElement.dataset.cb = '1';
     else delete document.documentElement.dataset.cb;
   }, [cb]);
+
+  // The colours of the maps: the stylesheet has each palette under its name.
+  useEffect(() => applyPalette(palette), [palette]);
 
   useEffect(() => {
     applyMeta(route);
@@ -337,6 +345,26 @@ export function App() {
       <footer className="foot">
         <OfflineBar />
         <div className="foot-prefs">
+          <div className="foot-pick">
+            <b>{L('Colores del mapa', 'Colours of the map')}</b>
+            <Seg
+              small
+              label={L('Colores del mapa', 'Colours of the map')}
+              value={palette}
+              onChange={setPalette}
+              options={PALETTES.map((p) => ({
+                value: p,
+                title: paletteHint(p),
+                label: (
+                  <>
+                    <i className={`pal pal-${p}`} aria-hidden="true" />
+                    {paletteName(p)}
+                  </>
+                ),
+              }))}
+            />
+            <small>{paletteHint(palette)}</small>
+          </div>
           <Toggle checked={cb} onChange={setCb} hint={L('Azul, amarillo y rojo con tramas en lugar de verde, amarillo y rojo.', 'Blue, yellow and red with textures instead of green, yellow and red.')}>
             {L('Colores para daltónicos', 'Colour-blind friendly colours')}
           </Toggle>
@@ -406,6 +434,14 @@ export function App() {
             {L('Acerca de, privacidad y licencias', 'About, privacy and licences')}
           </a>
           <span aria-hidden="true"> · </span>
+          {full.can && (
+            <>
+              <button type="button" className="foot-full" onClick={full.toggle} aria-pressed={full.on}>
+                {full.on ? L('Salir de pantalla completa', 'Leave full screen') : L('Pantalla completa', 'Full screen')}
+              </button>
+              <span aria-hidden="true"> · </span>
+            </>
+          )}
           <button type="button" className="foot-keys" onClick={() => setHelp(true)} aria-haspopup="dialog">
             {L('Atajos de teclado', 'Keyboard shortcuts')}
           </button>

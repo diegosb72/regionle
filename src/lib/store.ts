@@ -8,6 +8,7 @@ import { GOALS_MAX, cleanGoals, goalWithout, sameGoal, withMark, type Goal } fro
 import type { Lang } from './i18n';
 import { cleanMix, dropMix, withMix, type Mix } from './mix';
 import { cleanNotes, dropNotes, withNote, type Notes } from './notes';
+import { PALETTE_DEFAULT, isPalette, type Palette } from './palette';
 import { RECENT_MAX, isRecent, recentConfig, recentOf, withRecent, type Recent } from './recent';
 import { today } from './text';
 import { cleanTypeins, setTypeins as applyTypeins, type Typeins } from './typeinPrefs';
@@ -268,6 +269,8 @@ interface State {
   iconBadge: boolean;
   /** Distances in miles and surfaces in square miles, instead of kilometres. Off until asked for. */
   miles: boolean;
+  /** The colours the maps are drawn in. */
+  palette: Palette;
   /** Short forms chosen in the settings for each thing, by id: those added to it and those taken from it. */
   typeins: Typeins;
   /** Whether names of several words get their initials unasked; null until chosen: as the game ships. */
@@ -281,6 +284,7 @@ interface State {
   setHaptic(on: boolean): void;
   setIconBadge(on: boolean): void;
   setMiles(on: boolean): void;
+  setPalette(palette: Palette): void;
   setTypeins(typeins: Typeins): void;
   setTypeinAuto(auto: boolean | null): void;
   saveList(list: CustomList): void;
@@ -363,6 +367,7 @@ export const useStore = create<State>()(
       haptic: false,
       iconBadge: true,
       miles: false,
+      palette: PALETTE_DEFAULT,
       typeins: {},
       typeinAuto: null,
 
@@ -380,6 +385,7 @@ export const useStore = create<State>()(
       setHaptic: (haptic) => set({ haptic }),
       setIconBadge: (iconBadge) => set({ iconBadge }),
       setMiles: (miles) => set({ miles }),
+      setPalette: (palette) => set({ palette: isPalette(palette) ? palette : PALETTE_DEFAULT }),
       setTypeins: (typeins) => set({ typeins }),
       setTypeinAuto: (typeinAuto) => set({ typeinAuto }),
       saveList: (list) => set((s) => ({ lists: [...s.lists.filter((l) => l.id !== list.id), list] })),
@@ -584,6 +590,7 @@ export const useStore = create<State>()(
         haptic: s.haptic,
         iconBadge: s.iconBadge,
         miles: s.miles,
+        palette: s.palette,
         typeins: s.typeins,
         typeinAuto: s.typeinAuto,
       }),
@@ -631,6 +638,7 @@ export function mergeSaved(saved: unknown, current: State): State {
     haptic: p.haptic === true,
     iconBadge: p.iconBadge !== false,
     miles: p.miles === true,
+    palette: isPalette(p.palette) ? p.palette : PALETTE_DEFAULT,
     // Players from before the tallies existed start from what their latest sessions add up to.
     tot: p.tot && Object.keys(p.tot).length ? p.tot : totalsOf(p.sessions ?? []),
     typeins: cleanTypeins(p.typeins),

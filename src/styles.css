@@ -6393,6 +6393,111 @@ body:has(.startbar) .toast {
 .foot-prefs .toggle-text {
   color: var(--ink-2);
 }
+/* A choice among a few, next to the switches: its name, the options and what the chosen one is like. */
+.foot-pick {
+  flex: 0 1 300px;
+  display: grid;
+  justify-items: start;
+  align-content: start;
+  gap: 5px;
+  padding: 4px 0;
+  color: var(--ink-2);
+}
+.foot-pick b {
+  font-weight: 650;
+  color: var(--ink-2);
+}
+.foot-pick small {
+  font-size: 13.5px;
+  line-height: 1.35;
+}
+.foot-pick .seg-btn {
+  gap: 6px;
+}
+/* A sample of a palette: its sea on the left, its land on the right. */
+.pal {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--line-2);
+  border-radius: 50%;
+  background: linear-gradient(90deg, var(--pal-sea) 50%, var(--pal-land) 50%);
+}
+.pal-paper {
+  --pal-sea: #d8e6e3;
+  --pal-land: #fdf6e3;
+}
+.pal-ocean {
+  --pal-sea: #b9d8ee;
+  --pal-land: #fbfaf4;
+}
+.pal-slate {
+  --pal-sea: #dde1e4;
+  --pal-land: #ffffff;
+}
+:root[data-theme='dark'] .pal-paper {
+  --pal-sea: #0a151b;
+  --pal-land: #2a4651;
+}
+:root[data-theme='dark'] .pal-ocean {
+  --pal-sea: #0b2136;
+  --pal-land: #34526d;
+}
+:root[data-theme='dark'] .pal-slate {
+  --pal-sea: #0f1113;
+  --pal-land: #3d444a;
+}
+
+/* ------------------------------------------------------- palettes of the map */
+
+/*
+ * Only what the map is drawn with: sea, land, borders, and the halo that keeps a name readable on the
+ * land. The colours of an answer stay, so that green, yellow and red mean the same in every palette.
+ */
+:root[data-map='ocean'] {
+  --sea: #b9d8ee;
+  --grat: rgba(24, 84, 134, 0.13);
+  --land-ctx: #e3e6e0;
+  --land-ctx-line: #c6ccc4;
+  --land: #fbfaf4;
+  --land-hover: #ffe7a3;
+  --border: #6a8fa9;
+  --outline: #1c4c6a;
+  --lbl-halo: rgba(251, 250, 244, 0.92);
+}
+:root[data-map='ocean'][data-theme='dark'] {
+  --sea: #0b2136;
+  --grat: rgba(140, 190, 240, 0.09);
+  --land-ctx: #152a3d;
+  --land-ctx-line: #223f59;
+  --land: #34526d;
+  --land-hover: #4a7494;
+  --border: #84abc8;
+  --outline: #bfe0f6;
+  --lbl-halo: rgba(11, 33, 54, 0.88);
+}
+:root[data-map='slate'] {
+  --sea: #dde1e4;
+  --grat: rgba(40, 52, 62, 0.09);
+  --land-ctx: #eceded;
+  --land-ctx-line: #cfd3d6;
+  --land: #ffffff;
+  --land-hover: #f6e7ae;
+  --border: #7f8990;
+  --outline: #2a333a;
+  --lbl-halo: rgba(255, 255, 255, 0.92);
+}
+:root[data-map='slate'][data-theme='dark'] {
+  --sea: #0f1113;
+  --grat: rgba(215, 221, 225, 0.07);
+  --land-ctx: #1b1f22;
+  --land-ctx-line: #2b3136;
+  --land: #3d444a;
+  --land-hover: #59646d;
+  --border: #929ca3;
+  --outline: #dbe1e5;
+  --lbl-halo: rgba(15, 17, 19, 0.88);
+}
 
 /* ---------------------------------------------- colour-blind friendly map */
 
@@ -7655,7 +7760,8 @@ kbd {
 }
 
 /* ------------------------------------------------------- keyboard shortcuts */
-.foot-keys {
+.foot-keys,
+.foot-full {
   padding: 0;
   border: 0;
   background: none;
@@ -7666,7 +7772,8 @@ kbd {
   text-decoration-thickness: 1px;
   cursor: pointer;
 }
-.foot-keys:hover {
+.foot-keys:hover,
+.foot-full:hover {
   color: var(--ink);
 }
 /* No keyboard, no shortcuts to read about. */
