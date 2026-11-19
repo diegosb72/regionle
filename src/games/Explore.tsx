@@ -1,24 +1,29 @@
-/** Explore: no questions, just the map with names, facts and links to study. */
-import { NotebookPen, Search } from 'lucide-react';
+/** Explore: no questions, just the map with names, facts and links to study, and a ruler to measure it with. */
+import { NotebookPen, Ruler, Search } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { PieceHistory } from '../components/History';
-import { MapView, type MapHandle, type Paint } from '../components/MapView';
+import { MapView, type MapHandle, type MarkKind, type Paint } from '../components/MapView';
 import { PieceNote } from '../components/Note';
 import { SpeakButton } from '../components/Speak';
 import { WikiCard } from '../components/WikiCard';
 import { Flag, LinkPill, StudyLinks, Toggle, capitalise } from '../components/ui';
+import { fmtCoord } from '../lib/coords';
+import { distanceKm } from '../lib/geo';
 import { L, capName, getLang, nm } from '../lib/i18n';
 import { divisionsLink } from '../lib/links';
 import { MODE_NAME } from '../lib/modes';
 import { useStore, isLearnt } from '../lib/store';
 import { fmtArea, fmtPop, key, nf } from '../lib/text';
-import type { Item } from '../lib/types';
+import type { Item, LL } from '../lib/types';
 import { GameShell, showsCountry, type GameProps } from './common';
 
 export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const [sel, setSel] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [names, setNames] = useState(true);
+  /** The ruler: while it is out, a click on the map is an end of what is measured, not a piece to look up. */
+  const [ruler, setRuler] = useState(false);
+  const [ends, setEnds] = useState<LL[]>([]);
   const map = useRef<MapHandle>(null);
   const stats = useStore((s) => s.stats);
   const notes = useStore((s) => s.notes);
@@ -52,6 +57,11 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
   }, [item, listed, deck]);
 
   const pinned = useMemo(() => (sel ? new Set([sel]) : undefined), [sel]);
+  /** Two clicks are a distance; a third starts another. */
+  const measure = useCallback((at: LL) => setEnds((list) => (list.length === 1 ? [list[0], at] : [at])), []);
+  const marks = useMemo(() => (ruler && ends.length ? ends.map((ll) => ({ ll, kind: 'spot' as MarkKind })) : undefined), [ruler, ends]);
+  const links = useMemo<[LL, LL][] | undefined>(() => (ruler && ends.length === 2 ? [[ends[0], ends[1]]] : undefined), [ruler, ends]);
+  const km = ends.length === 2 ? distanceKm(ends[0], ends[1]) : null;
   const learnt = (it: Item) => isLearnt(stats[`loc:${it.id}`]) && isLearnt(stats[`name:${it.id}`]);
   /** The other name worth showing: the English one for a Spanish reader and the other way round. */
   const other = (it: Item): string | null => {
@@ -64,7 +74,21 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
       title={MODE_NAME.explore}
       subtitle={cfg.list ? `${deck.title} · ${cfg.list}` : deck.title}
       onExit={onExit}
-      stage={<MapView ref={map} deck={deck} paint={paint} pickable onPick={(id) => choose(id, false)} labels={names ? (listed ?? 'all') : undefined} pinned={pinned} tip={(id) => deck.byId.get(id)?.name} />}
+      stage={
+        <MapView
+          ref={map}
+          deck={deck}
+          paint={paint}
+          pickable={!ruler}
+          onPick={ruler ? undefined : (id) => choose(id, false)}
+          onPoint={ruler ? measure : undefined}
+          marks={marks}
+          links={links}
+          labels={names ? (listed ?? 'all') : undefined}
+          pinned={pinned}
+          tip={(id) => deck.byId.get(id)?.name}
+        />
+      }
       panel={
         <div className="q explore">
           {item ? (
@@ -181,6 +205,36 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
           <Toggle checked={names} onChange={setNames}>
             {L('Nombres en el mapa', 'Names on the map')}
           </Toggle>
+          <Toggle
+            checked={ruler}
+            onChange={(on) => {
+              setRuler(on);
+              setEnds([]);
+            }}
+            hint={L('Marca dos puntos en el mapa y te decimos cuánto hay de uno a otro.', 'Mark two points on the map and we tell you how far it is from one to the other.')}
+          >
+            {L('Regla para medir', 'Ruler')}
+          </Toggle>
+          {ruler && (
+            <div className="ruler" role="status">
+              <Ruler size={18} aria-hidden="true" />
+              {km == null ? (
+                <p>{ends.length ? L('Ahora, el otro punto.', 'Now, the other point.') : L('Haz clic en el primer punto.', 'Click on the first point.')}</p>
+              ) : (
+                <p>
+                  <b className="ruler-km">{km < 20 ? nf(km, 1) : nf(Math.round(km))} km</b> {L('en línea recta', 'as the crow flies')}
+                  <small>
+                    {L('De', 'From')} {fmtCoord(ends[0], 1)} {L('a', 'to')} {fmtCoord(ends[1], 1)}
+                  </small>
+                </p>
+              )}
+              {ends.length > 0 && (
+                <button type="button" className="btn btn-sm btn-ghost" onClick={() => setEnds([])}>
+                  {L('Borrar', 'Clear')}
+                </button>
+              )}
+            </div>
+          )}
 
           <label className="search">
             <Search size={16} aria-hidden="true" />

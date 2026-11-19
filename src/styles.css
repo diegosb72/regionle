@@ -7138,6 +7138,40 @@ button.ti-chip:hover,
 .about-version b {
   color: var(--ink);
 }
+/* The ruler of "Explorar": what it has measured, under its switch. */
+.ruler {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-2);
+  background: var(--card);
+}
+.ruler > svg {
+  flex: none;
+  color: var(--ink-3);
+}
+.ruler p {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 14.5px;
+}
+.ruler-km {
+  color: var(--ink);
+  font-size: 19px;
+  font-variant-numeric: tabular-nums;
+}
+.ruler small {
+  display: block;
+  margin-top: 2px;
+  color: var(--ink-3);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+
 /* A link to a map and a game: the notice that one was followed, and the button that copies one. */
 .linked {
   display: flex;
