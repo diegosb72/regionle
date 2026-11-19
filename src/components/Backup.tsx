@@ -258,7 +258,7 @@ export function BackupBlock() {
           {incoming.sum.prefs ? (
             <label className="backup-prefs">
               <input type="checkbox" checked={withPrefs} onChange={(e) => setWithPrefs(e.target.checked)} />
-              <span>{L('Traer también las preferencias de la copia: tema, colores, unidades, sonidos, repaso y opciones de juego', 'Bring the preferences of the backup too: theme, colours, units, sounds, review and game options')}</span>
+              <span>{L('Traer también las preferencias de la copia: tema, colores, letra, unidades, sonidos, repaso y opciones de juego', 'Bring the preferences of the backup too: theme, colours, letter, units, sounds, review and game options')}</span>
             </label>
           ) : (
             <p className="backup-note">{L('Esta copia es de una versión anterior y no trae preferencias: las de aquí se quedan como están.', 'This backup is from an earlier version and brings no preferences: the ones here stay as they are.')}</p>
