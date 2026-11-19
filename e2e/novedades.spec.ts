@@ -80,6 +80,10 @@ test.describe('keys that work on any screen', () => {
     const panel = page.locator('dialog.keys-dialog');
     await expect(panel.getByRole('heading', { level: 2 })).toHaveText('Atajos de teclado');
     await expect(panel).toContainText('1 Regiones, 2 Países, 3 Ciudades, 4 Física, 5 Cifras');
+    // The keys of the games are there as well: the cross where a spot is marked, the options, and what Enter does where.
+    await expect(panel).toContainText('Donde se marca un punto (Situar a ciegas, Caliente y frío, Coordenadas) mueven una cruz; con Mayús, a pasos cortos.');
+    await expect(panel).toContainText('Eligen entre las cuatro opciones, cuando la respuesta no se escribe.');
+    await expect(panel).toContainText('En «Marca el grupo», en el mapa marca o desmarca la pieza y, fuera de él, comprueba lo marcado.');
     // While it is open, a digit goes nowhere.
     await page.keyboard.press('3');
     await expect(page).not.toHaveURL(/#\/ciudades$/);

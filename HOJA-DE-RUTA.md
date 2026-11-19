@@ -20,7 +20,7 @@ servicio de fuera).
 - [x] 5. Distancias y rumbos: hacia dónde queda un sitio desde otro, entre los ocho rumbos, y a cuántos kilómetros, entre cuatro distancias; en regiones, países y ciudades — **1.15.0**
 - [x] 6. Caliente y frío: seis clics para encontrar cada cosa en el mapa vacío, y cada uno dice lo cerca que ha caído — **1.15.0**
 - [x] 7. ¿Quién soy?: una pieza da pistas sobre sí misma, de la más amplia a la más estrecha, hasta que se adivina; en regiones, países y ciudades — **1.16.0**
-- [ ] 8. Fronteras
+- [x] 8. Fronteras: se ilumina una frontera y se dice qué dos piezas separa, entre cuatro parejas o escribiendo los dos nombres; en regiones y países — **1.17.0**
 - [x] 9. Cadena de vecinos: de una pieza a una vecina y de esa a otra, sin repetir, hasta quedarse sin salida; con récord por mapa — **1.16.0**
 - [x] 10. Siluetas difíciles: giradas, sin el norte arriba, en Silueta, en Regionle y en el popurrí — **1.12.0**
 - [x] 11. Banderas difíciles: en gris o desenfocadas, en Banderas, en Señalar por bandera, en las tarjetas y en el popurrí — **1.12.0**
@@ -29,7 +29,7 @@ servicio de fuera).
 - [x] 14. Popurrí: cada pieza se pregunta de una manera, por sorteo — **1.12.0**
 - [x] 15. Rellenar el mapa con cuenta atrás — **1.7.0**
 - [x] 16. Modo examen: un intento por pregunta, sin pistas ni corrección hasta entregar, y nota sobre 10 — **1.8.0**
-- [ ] 18. Coordenadas
+- [x] 18. Coordenadas: se marca en el mapa el punto de una latitud y una longitud, o se leen las de un punto marcado, sobre una cuadrícula de paralelos y meridianos; en regiones, países y ciudades — **1.17.0**
 - [ ] 19. Ruta con condiciones
 - [ ] 20. Juegos de palabras: ahorcado, sopa de letras y crucigrama
 
