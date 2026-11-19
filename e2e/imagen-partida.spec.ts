@@ -6,6 +6,10 @@ import fs from 'node:fs';
 import { expect, test, type Download, type Page } from '@playwright/test';
 import { OPTS, seed, start } from './helpers';
 
+// The clock of these tests is set by hand, and so is where it is read: their days are Madrid's, whatever
+// E2E_ZONE says (playwright.config.ts).
+test.use({ timezoneId: 'Europe/Madrid' });
+
 const NOW = new Date('2026-11-18T12:00:00+01:00');
 const SPAIN = { section: 'regions', countries: ['ES'], levels: { ES: 'g1' } };
 const ID: Record<string, string> = { Andalucía: 'ES-AN', 'Castilla y León': 'ES-CL', 'Comunidad de Madrid': 'ES-MD' };

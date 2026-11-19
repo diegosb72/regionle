@@ -1,6 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
 import { start, type } from './helpers';
 
+// The clock of these tests is set by hand, and so is where it is read: their days are Madrid's, whatever
+// E2E_ZONE says (playwright.config.ts).
+test.use({ timezoneId: 'Europe/Madrid' });
+
 /** Noon of Wednesday 18 November 2026 in Madrid, where the browser of these tests is. */
 const NOW = new Date('2026-11-18T12:00:00+01:00');
 const DAY = 24 * 3_600_000;

@@ -115,7 +115,7 @@ npm run dev        # http://localhost:5173
 | `npm run preview` | Sirve `dist/` en el puerto 4173 |
 | `npm test` | Pruebas (Vitest), incluidas las comprobaciones de los datos generados |
 | `npm run typecheck` | Solo la comprobación de tipos |
-| `npm run e2e` | Pruebas en un navegador de verdad (Playwright, carpeta `e2e/`): compila el sitio, lo sirve y juega con él, con ratón, con teclado, con el dedo y sin conexión. La primera vez hay que bajar el navegador con `npx playwright install chromium` |
+| `npm run e2e` | Pruebas en un navegador de verdad (Playwright, carpeta `e2e/`): compila el sitio, lo sirve y juega con él, con ratón, con teclado, con el dedo y sin conexión. La primera vez hay que bajar el navegador con `npx playwright install chromium`. El reloj del navegador es el de Madrid, y ninguna prueba debe depender de la hora a la que se pasa: `E2E_ZONE=Asia/Tokyo npm run e2e` lo pone en otro huso, que es la manera de pasarlas como si fuera otra hora del día (por la tarde, como de madrugada) sin esperar a que lo sea |
 | `npm run social` | Vuelve a dibujar las imágenes que acompañan al enlace del juego en redes y mensajería (`public/social-es.png` y `public/social-en.png`), con ese mismo navegador |
 
 ### Publicación

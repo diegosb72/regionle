@@ -7,16 +7,15 @@ import fs from 'node:fs';
 import { OPTS, open, seed } from './helpers';
 
 const DAY = 86_400_000;
-/** Where the browser of these tests lives (playwright.config.ts). */
-const ZONE = 'Europe/Madrid';
 /**
- * Midday of the day that came so many days of the calendar before `now`, where the browser is. The game
- * says how long ago a copy was made in days of the calendar, and `now - days * DAY` is not always that day:
- * the day the clocks change has 25 hours, so in the last hour of a November day thirty times 24 hours
- * back falls in the small hours of 29 days ago.
+ * Midday of the day that came so many days of the calendar before `now`, where the browser of the test
+ * keeps its clock (playwright.config.ts). The game says how long ago a copy was made in days of the
+ * calendar, and `now - days * DAY` is not always that day: the day the clocks change has 25 hours, so in
+ * the last hour of a November day thirty times 24 hours back falls in the small hours of 29 days ago.
  */
 function daysBefore(now: number, days: number): number {
-  const [y, m, d] = new Intl.DateTimeFormat('en-CA', { timeZone: ZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now).split('-').map(Number);
+  const timeZone = test.info().project.use.timezoneId ?? 'UTC';
+  const [y, m, d] = new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now).split('-').map(Number);
   return Date.UTC(y, m - 1, d - days, 12);
 }
 const IDS = ['AN', 'AR', 'AS', 'CB', 'CL', 'CM', 'CT', 'EX'].map((x) => `ES-${x}`);
