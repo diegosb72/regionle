@@ -101,12 +101,18 @@ export interface Opts {
   bearingAsk: BearingAsk;
   /** What "coordinates" asks: to mark the point that some coordinates name, or to read the coordinates of a marked point. */
   coordsAsk: CoordsAsk;
+  /** Lessons: how many new pieces each one brings. */
+  lessonSize: number;
+  /** Lessons: the order the new pieces come in; `auto` is the one that suits the map. */
+  lessonOrder: LessonOrder | 'auto';
 }
 
 export type FlagLook = 'plain' | 'grey' | 'blur';
 export type CardAsk = 'name' | 'where' | 'capital' | 'flag';
 export type BearingAsk = 'both' | 'dir' | 'dist';
 export type CoordsAsk = 'mark' | 'read';
+/** Corner by corner of the map, from the largest to the smallest, or by their names. */
+export type LessonOrder = 'near' | 'size' | 'abc';
 
 export interface GameConfig {
   section: Section;
@@ -201,6 +207,8 @@ export const DEFAULT_OPTS: Opts = {
   cardAsk: 'name',
   bearingAsk: 'both',
   coordsAsk: 'mark',
+  lessonSize: 5,
+  lessonOrder: 'auto',
 };
 
 /** `stats` and `where` without anything about the given ids ("loc:x", "name:x"… and the map x was learnt on). */

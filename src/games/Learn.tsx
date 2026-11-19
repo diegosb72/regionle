@@ -17,7 +17,7 @@ import { Matcher, shortNote } from '../lib/matcher';
 import { cx, hintMax, letterHint, nf, sample, shuffle } from '../lib/text';
 import type { Item, Res } from '../lib/types';
 import { GameShell, Hud, ItemFacts, Verdict, answered, nearest, originOf, showsCountry, useElapsed, type GameProps } from './common';
-import { isIntroduced, lessonQueue, pickLesson, type Q } from './lesson';
+import { isIntroduced, lessonOrder, lessonQueue, lessonSize, pickLesson, type Q } from './lesson';
 
 const TRIES = 2;
 
@@ -31,12 +31,17 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const bump = useStore((s) => s.bump);
   const map = useRef<MapHandle>(null);
 
+  // To the taste of the player: how many new pieces a lesson brings, and the order they come in.
+  const size = lessonSize(opts.lessonSize);
+  const order = lessonOrder(deck.scope, opts.lessonOrder);
   const lessonAfter = (have: string[]): string[] => {
     const haveSet = new Set(have);
     return pickLesson(
       pool.filter((it) => !haveSet.has(it.id)),
       have.map((id) => deck.byId.get(id)).filter((it): it is Item => !!it),
       deck.scope,
+      size,
+      order,
     ).map((it) => it.id);
   };
   /** What the session starts from: the pieces already introduced, and the first lesson. */

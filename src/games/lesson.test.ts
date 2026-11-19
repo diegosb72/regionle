@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import type { Stat } from '../lib/store';
 import { mulberry32 } from '../lib/text';
 import type { Item } from '../lib/types';
-import { LESSON, OLD, isIntroduced, lessonQueue, pickLesson } from './lesson';
+import { DEFAULT_OPTS } from '../lib/store';
+import { LESSON, LESSON_ORDERS, LESSON_SIZES, OLD, isIntroduced, lessonOrder, lessonOrders, lessonQueue, lessonSize, pickLesson } from './lesson';
 
 /** Only what the lessons look at. */
 const item = (id: string, lon: number, lat: number, extra: Partial<Item> = {}): Item => ({ id, lp: [lon, lat], area: 1, ...extra }) as Item;
@@ -44,6 +45,54 @@ describe('what a lesson teaches', () => {
   it('starts a physical map with the best known feature', () => {
     const features = all.map((x, i) => ({ ...x, area: i }));
     expect(pickLesson(features, [], 'physical')[0].id).toBe('W0');
+  });
+});
+
+describe('lessons to the taste of the player', () => {
+  const named = (id: string, name: string, area: number, lon: number): Item => item(id, lon, 40, { name, area });
+  // West to east they spell nothing; by size and by name they come in other orders.
+  const map = [named('a', 'Zamora', 3, 0), named('b', 'Álava', 9, 1), named('c', 'Burgos', 1, 2), named('d', 'Ávila', 7, 3), named('e', 'Navarra', 5, 4), named('f', 'Ñora', 2, 5), named('g', 'Orense', 8, 6)];
+  const ids = (list: Item[]) => list.map((x) => x.id).join('');
+
+  it('are as long as asked, among the sizes there are', () => {
+    expect(LESSON_SIZES).toContain(LESSON);
+    for (const size of LESSON_SIZES) expect(pickLesson([...map, ...map.map((x) => ({ ...x, id: x.id + x.id }))], [], 'regions', size)).toHaveLength(size);
+    expect(LESSON_SIZES.map((n) => lessonSize(n))).toEqual([...LESSON_SIZES]);
+    // What is kept may be anything: a size there is not is the usual one.
+    expect([undefined, 0, 4, 500, NaN].map((n) => lessonSize(n))).toEqual([LESSON, LESSON, LESSON, LESSON, LESSON]);
+    // What a new player starts with is the usual lesson, in the order that suits each map.
+    expect(DEFAULT_OPTS.lessonSize).toBe(LESSON);
+    expect(DEFAULT_OPTS.lessonOrder).toBe('auto');
+    expect(LESSON_ORDERS).toContain(DEFAULT_OPTS.lessonOrder);
+  });
+
+  it('come from the largest to the smallest when asked by size', () => {
+    expect(ids(pickLesson(map, [], 'regions', 3, 'size'))).toBe('bgd');
+    // What is already known does not change which come next: the largest that are left.
+    expect(ids(pickLesson(map.filter((x) => !'bgd'.includes(x.id)), map.slice(0, 2), 'regions', 3, 'size'))).toBe('eaf');
+    // The last lesson is in order too, though it takes all there is.
+    expect(ids(pickLesson(map.slice(0, 3), [], 'regions', 5, 'size'))).toBe('bac');
+  });
+
+  it('come by their names when asked so, as a dictionary of the language has them', () => {
+    // Á with A and Ñ after N, not at the end with the other letters that have a mark.
+    expect(ids(pickLesson(map, [], 'regions', 7, 'abc'))).toBe('bdcefga');
+    expect(ids(pickLesson(map, [], 'regions', 3, 'abc'))).toBe('bdc');
+  });
+
+  it('come corner by corner unless told otherwise, and cities by size', () => {
+    expect(lessonOrder('regions')).toBe('near');
+    expect(lessonOrder('countries', 'auto')).toBe('near');
+    expect(lessonOrder('cities')).toBe('size');
+    expect(lessonOrder('cities', 'near')).toBe('near');
+    expect(lessonOrder('regions', 'abc')).toBe('abc');
+    // Rivers and peaks have no size to go by: asked for, it is the usual order.
+    expect(lessonOrders('physical')).toEqual(['near', 'abc']);
+    expect(lessonOrder('physical', 'size')).toBe('near');
+    expect(lessonOrder('regions', 'nonsense' as never)).toBe('near');
+    // Cities corner by corner: the largest on a new map, and the ones around it.
+    const cities = [3, 9, 1, 7, 5, 8, 2].map((pop, i) => item(`C${i}`, i * 3, 40, { pop: pop * 1e5, area: 0 }));
+    expect(pickLesson(cities, [], 'cities', 3, 'near')).toHaveLength(3);
   });
 });
 

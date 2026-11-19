@@ -81,7 +81,7 @@ describe('how each game is played', () => {
     const es = (mode: Mode, section: Section = 'regions') => textOf(helpOf(mode, section)!);
     expect(es('hotcold')).toContain(`${word[HOT_TRIES]} clics`);
     expect(es('regionle')).toContain(`${word[GUESSES]} intentos`);
-    expect(es('learn')).toContain(`${word[LESSON]} piezas nuevas`);
+    expect(es('learn')).toContain(`piezas nuevas, una a una: ${word[LESSON]}, o las que elijas`);
     expect(es('chain')).toContain(`al tercer fallo`);
     expect(CHAIN_MISSES).toBe(3);
     expect(es('whoami')).toContain(`vale ${word[RIDDLE_POINTS]} puntos`);

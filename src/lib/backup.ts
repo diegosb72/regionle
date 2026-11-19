@@ -3,6 +3,7 @@
  * it, what a file adds up to (told before it replaces what there is), which preferences travel with it and
  * when a new copy is due.
  */
+import { LESSON_ORDERS, LESSON_SIZES } from '../games/lesson';
 import { DAY_GOAL_DEFAULT, isDayGoal } from './days';
 import { CITY_COUNTS } from './extra';
 import { isPalette } from './palette';
@@ -105,6 +106,8 @@ const OPT_CHOICES: { [K in keyof Opts]?: readonly Opts[K][] } = {
   cardAsk: ['name', 'where', 'capital', 'flag'],
   bearingAsk: ['both', 'dir', 'dist'],
   coordsAsk: ['mark', 'read'],
+  lessonSize: LESSON_SIZES,
+  lessonOrder: LESSON_ORDERS,
 };
 
 /** The options of a copy laid over the ones in force: each is taken only if it is something that option can be. */
