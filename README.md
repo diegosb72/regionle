@@ -284,7 +284,7 @@ src/components/    Mapa (d3-geo + SVG) y su teclado, selector de países, campo 
 src/games/         Lógica y pantallas de cada modo
 src/daily/         Reto del día y la imagen de su resultado
 src/screens/       Inicio, preparación de la partida, partida, reto o lista recibidos (y cómo se hace cada cosa), progreso, configuración, acerca de y dirección desconocida
-src/styles.css     Hoja de estilos de la aplicación. Lo que solo usa una pantalla que se pide después puede ir en una hoja aparte que llega con ella: src/components/activity.css y album.css, con Progreso; note.css, con la partida; src/games/blind.css, bearings.css, chain.css, whoami.css, borders.css y coords.css, cada una con su juego
+src/styles.css     Hoja de estilos de la aplicación. Lo que solo usa una pantalla que se pide después puede ir en una hoja aparte que llega con ella: src/components/activity.css y album.css, con Progreso; note.css, con la partida; src/games/blind.css, bearings.css, chain.css, whoami.css, borders.css y coords.css, cada una con su juego; src/daily/daily.css, con el reto del día
 CHANGELOG.md       Novedades de cada versión (se escribe a partir de src/lib/changelog.ts)
 HOJA-DE-RUTA.md    Lo que está pedido y cómo va cada cosa, con su numeración
 LICENSE            Licencia del código (MIT)

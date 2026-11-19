@@ -32,6 +32,7 @@ import {
 import { testName, useCountdown } from './Card';
 import { SharePicture } from './SharePicture';
 import { PinFive, PointsChip, QuickFive, RegionleTest, WhichTest, nextLabel, shellSubtitle, shellTitle, type Step } from './tests';
+import './daily.css';
 
 /** "España" → 🇪🇸: the flag as text, for sharing. */
 function flagEmoji(id: string): string {
