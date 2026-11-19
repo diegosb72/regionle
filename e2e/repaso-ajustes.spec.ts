@@ -79,4 +79,21 @@ test.describe('the settings of the review', () => {
     await expect(pace(page).getByRole('radio', { checked: true })).toHaveText('Más seguido');
     await expect(size(page).getByRole('radio', { checked: true })).toHaveText('20');
   });
+
+  test('draw today in the forecast as any other day: with nothing due, a line and not a block', async ({ page }) => {
+    // At the usual pace nothing is due today: every answer comes back in half a day.
+    await seed(page, player(Date.now()));
+    await open(page, '/progreso');
+    await expect(due(page)).toHaveText('0');
+    const bars = page.locator('.fc-days i');
+    await expect(bars).toHaveCount(7);
+    await expect(bars.first()).toHaveClass('is-today');
+    const boxes = await bars.evaluateAll((list) => list.map((el) => el.getBoundingClientRect()).map((r) => ({ w: Math.round(r.width), h: Math.round(r.height), bottom: Math.round(r.bottom) })));
+    // Today and the days with nothing are the same thin line, standing on the same floor as the rest.
+    const empty = boxes.filter((b) => b.h <= 4);
+    expect(empty.length).toBeGreaterThanOrEqual(2);
+    expect(boxes[0].h).toBeLessThanOrEqual(4);
+    expect(new Set(boxes.map((b) => b.w)).size).toBe(1);
+    expect(new Set(boxes.map((b) => b.bottom)).size).toBe(1);
+  });
 });

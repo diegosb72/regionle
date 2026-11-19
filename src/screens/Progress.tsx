@@ -325,7 +325,7 @@ function ReviewBlock({ world }: { world: World }) {
           {days.map((n, i) => (
             <li key={i} title={`${dayName(i)}: ${n}`}>
               <b>{n > 0 ? nf(n) : ''}</b>
-              <i style={{ height: `${Math.round((n / most) * 100)}%` }} className={i === 0 ? 'today' : undefined} />
+              <i style={{ height: `${Math.round((n / most) * 100)}%` }} className={i === 0 ? 'is-today' : undefined} />
               <span>{dayName(i)}</span>
             </li>
           ))}

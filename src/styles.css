@@ -1102,7 +1102,10 @@ button.chip.on:hover:not(:disabled) {
   font-size: 14.5px;
 }
 
-/* What today adds up to, under the review: the days in a row and how far the daily target is. */
+/*
+ * What today adds up to, under the review: the days in a row and how far the daily target is. The name is
+ * this line's alone: today's day in a calendar or in a chart is `is-today`, which this rule does not reach.
+ */
 .today {
   display: flex;
   flex-wrap: wrap;
@@ -5236,7 +5239,7 @@ button.chip.on:hover:not(:disabled) {
   border-radius: 6px 6px 2px 2px;
   background: color-mix(in srgb, var(--brand) 50%, var(--bg-2));
 }
-.fc-days i.today {
+.fc-days i.is-today {
   background: var(--accent);
 }
 .fc-days span {
