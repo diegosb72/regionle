@@ -153,7 +153,7 @@ test.describe('a backup', () => {
     expect(saved).toMatchObject({ app: 'regionle', version: 4, prefs: { palette: 'ocean', miles: true, reviewPace: 'long', reviewSize: 30, theme: 'auto' } });
     expect(Object.keys(saved.stats)).toHaveLength(8);
     // The language is the browser's business, and what was last chosen in each section is not a preference.
-    expect(Object.keys(saved.prefs).sort()).toEqual(['cb', 'contrast', 'dayGoal', 'dyslexia', 'haptic', 'hotkeys', 'iconBadge', 'miles', 'nick', 'opts', 'palette', 'reviewPace', 'reviewSize', 'sound', 'textSize', 'theme']);
+    expect(Object.keys(saved.prefs).sort()).toEqual(['cb', 'contrast', 'dayGoal', 'dyslexia', 'haptic', 'helpAuto', 'hotkeys', 'iconBadge', 'miles', 'nick', 'opts', 'palette', 'reviewPace', 'reviewSize', 'sound', 'textSize', 'theme']);
     await expect(block(page).locator('.backup-last')).toHaveText(/^Última copia: \d+ de \w+ de \d{4} \(hoy\)\.$/);
     expect(((await kept(page)).backup as { q: number }).q).toBe(412);
   });

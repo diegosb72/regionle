@@ -1,6 +1,6 @@
 /** Pieces shared by every game: screen frame, clock, verdict box and results. */
-import { ArrowLeft, Check, CircleAlert, Flame, RotateCcw, Settings2, Timer, X } from 'lucide-react';
-import { Suspense, lazy, useEffect, useRef, useState, type ReactNode } from 'react';
+import { ArrowLeft, Check, CircleAlert, CircleHelp, Flame, RotateCcw, Settings2, Timer, X } from 'lucide-react';
+import { Suspense, createContext, lazy, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { PieceNote } from '../components/Note';
 import { ReviewNext } from '../components/ReviewCard';
@@ -11,12 +11,14 @@ import { levelOf } from '../lib/data';
 import { signal, type Cue } from '../lib/feedback';
 import { L, capName, nm } from '../lib/i18n';
 import { divisionsLink } from '../lib/links';
+import { usePaused } from '../lib/pause';
 import { parsePhys } from '../lib/phys';
 import { useStore, type GameConfig } from '../lib/store';
 import { cx, fmtArea, fmtPop, fmtTime, nf } from '../lib/text';
 import type { Deck, Item, Res } from '../lib/types';
 import { DiplomaButton } from './DiplomaButton';
 import { scoreOf } from './quiz';
+import './shell.css';
 
 /**
  * Where an item comes from, as the review keeps it: enough to draw its map again another day.
@@ -50,12 +52,13 @@ export interface GameProps {
   onAgain(patch?: Partial<GameConfig>): void;
 }
 
-/** Milliseconds elapsed while `running` is true. */
+/** Milliseconds elapsed while `running` is true, and the clocks are not stopped from outside (lib/pause.ts). */
 export function useElapsed(running: boolean): number {
   const [ms, setMs] = useState(0);
   const banked = useRef(0);
+  const paused = usePaused();
   useEffect(() => {
-    if (!running) return;
+    if (!running || paused) return;
     const started = Date.now();
     const timer = setInterval(() => setMs(banked.current + Date.now() - started), 500);
     return () => {
@@ -63,7 +66,7 @@ export function useElapsed(running: boolean): number {
       banked.current += Date.now() - started;
       setMs(banked.current);
     };
-  }, [running]);
+  }, [running, paused]);
   return ms;
 }
 
@@ -87,6 +90,12 @@ export function Hud({ ms, streak, progress }: { ms?: number; streak?: number; pr
   );
 }
 
+/**
+ * The way to how the game on screen is played: given by the screen that runs a game, and missing where a
+ * shell is not one (the daily challenge, a message).
+ */
+export const HelpContext = createContext<(() => void) | null>(null);
+
 export function GameShell({
   title,
   subtitle,
@@ -105,6 +114,7 @@ export function GameShell({
   /** 0–1, drawn as a thin bar under the header. */
   progress?: number;
 }) {
+  const showHelp = useContext(HelpContext);
   return (
     <div className="play">
       <header className="play-top">
@@ -112,11 +122,20 @@ export function GameShell({
           <ArrowLeft size={16} aria-hidden="true" />
           <span>{L('Salir', 'Exit')}</span>
         </button>
-        <h1 className="play-title">
+        <h1 className={cx('play-title', showHelp && 'has-help')}>
           <strong>{title}</strong>
           <span>{subtitle}</span>
+          {/* On a phone the header has no room for one more button: there the title is the button (shell.css). */}
+          {showHelp && <button type="button" className="play-help-title" onClick={showHelp} aria-haspopup="dialog" aria-label={L('Cómo se juega', 'How to play')} />}
         </h1>
-        <div className="hud">{hud}</div>
+        <div className="hud">
+          {hud}
+          {showHelp && (
+            <button type="button" className="play-help" onClick={showHelp} aria-haspopup="dialog" aria-label={L('Cómo se juega', 'How to play')} title={L('Cómo se juega', 'How to play')}>
+              <CircleHelp size={18} aria-hidden="true" />
+            </button>
+          )}
+        </div>
         {progress != null && (
           <div className="play-bar" aria-hidden="true">
             <i style={{ width: `${Math.round(Math.min(1, Math.max(0, progress)) * 100)}%` }} />

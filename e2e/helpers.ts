@@ -8,13 +8,14 @@ export const PIN_SPAIN = { section: 'regions', mode: 'pin', countries: ['ES'], l
 
 /**
  * What the game finds kept in the browser when it opens: by default, a player who has been here before
- * (no welcome). Written once, before the first page: what the game saves afterwards stays.
+ * (no welcome, and no rules shown before the first question of a game). Written once, before the first
+ * page: what the game saves afterwards stays.
  */
 export async function seed(page: Page, state: Record<string, unknown> = {}): Promise<void> {
   await page.addInitScript((kept) => {
     if (sessionStorage.getItem('e2e')) return;
     sessionStorage.setItem('e2e', '1');
-    localStorage.setItem('regionle:v1', JSON.stringify({ state: { welcomed: true, ...kept }, version: 2 }));
+    localStorage.setItem('regionle:v1', JSON.stringify({ state: { welcomed: true, helpAuto: false, ...kept }, version: 2 }));
   }, state);
 }
 

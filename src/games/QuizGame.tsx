@@ -15,6 +15,7 @@ import { halve, hintKinds, hintLabel, hintOf, type Hint, type HintAsk, type Hint
 import { L, nm } from '../lib/i18n';
 import { timesMixed } from '../lib/mix';
 import { MODE_NAME, formatName } from '../lib/modes';
+import { clockPaused, usePaused } from '../lib/pause';
 import { useStore, type FlagLook, type Format, type Skill } from '../lib/store';
 import { Matcher, shortNote } from '../lib/matcher';
 import type { Places } from '../lib/sets';
@@ -272,10 +273,14 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   }, [s.n]);
 
   // By ear: the name is said when the question comes up, and again whenever the loudspeaker is pressed.
+  // Not over the rules of the game while they are read: it is said when they are put away.
+  const waiting = usePaused();
   useEffect(() => {
-    if (voiced && item && s.phase === 'ask') speak(item.name);
+    if (!voiced || !item || s.phase !== 'ask') return;
+    if (clockPaused()) hush();
+    else speak(item.name);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [s.n]);
+  }, [s.n, waiting]);
   useEffect(() => (voiced ? hush : undefined), [voiced]);
 
   // A first-time right answer moves on by itself; against the clock, so does a miss, after a look at the answer.

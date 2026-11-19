@@ -2,6 +2,7 @@
 import { Check, ChevronDown, Infinity as InfinityIcon, Link2, ListChecks, ListPlus, Pencil, Play, Printer, Share2, Target, Timer, Trash2, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { GoalBar } from '../components/GoalBar';
+import { HelpButton } from '../components/Help';
 import { Picker } from '../components/Picker';
 import { QrButton } from '../components/QrButton';
 import { canSpeak } from '../components/Speak';
@@ -684,7 +685,8 @@ export function Setup({ section, world, link }: { section: Section; world: World
             ))}
             <p className="mode-about" aria-live="polite">
               {def.level > 0 && <strong>{levelName(def.level)}. </strong>}
-              {def.desc}
+              {def.desc} {/* The rules of the game, step by step: the panel a game opens the first time it is played. */}
+              <HelpButton key={def.id} mode={def.id} section={section} />
             </p>
             {(estimate || questions != null || pace.first != null) && (
               <ul className="mode-facts">
