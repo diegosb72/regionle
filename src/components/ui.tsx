@@ -1,9 +1,12 @@
-import { BookOpen, Database, ExternalLink, Map as MapIcon, Video } from 'lucide-react';
+import { BookOpen, Database, ExternalLink, Map as MapIcon, MessageSquareWarning, Video } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { L } from '../lib/i18n';
 import { linksFor, type StudyLink } from '../lib/links';
+import { reportUrl, type ReportAbout } from '../lib/report';
+import { useStore } from '../lib/store';
 import { cx } from '../lib/text';
 import type { Item } from '../lib/types';
+import { VERSION } from '../lib/version';
 
 export const BASE = import.meta.env.BASE_URL;
 
@@ -58,20 +61,34 @@ export function Toggle({ checked, onChange, children, hint }: { checked: boolean
   );
 }
 
-const LINK_ICON = { wiki: BookOpen, map: MapIcon, video: Video, data: Database, list: ExternalLink } as const;
+const LINK_ICON = { wiki: BookOpen, map: MapIcon, video: Video, data: Database, list: ExternalLink, report: MessageSquareWarning } as const;
 
 export function LinkPill({ link }: { link: StudyLink }) {
   const Icon = LINK_ICON[link.kind];
   return (
-    <a className="pill-link" href={link.href} target="_blank" rel="noopener noreferrer" title={link.title}>
+    <a className={link.kind === 'report' ? 'pill-link pill-report' : 'pill-link'} href={link.href} target="_blank" rel="noopener noreferrer" title={link.title}>
       <Icon size={14} aria-hidden="true" />
       {link.label}
     </a>
   );
 }
 
-/** Where to read more about an item. */
-export function StudyLinks({ item, extra }: { item: Item; extra?: StudyLink[] }) {
+/** The link that tells of a mistake in what the game says about an item, in the game that is being played. */
+export function reportLink(item: Item, game: ReportAbout['game']): StudyLink {
+  return {
+    kind: 'report',
+    label: L('Avisar de un error', 'Report a mistake'),
+    title: L(`¿Algo de ${item.name} está mal? Dilo en GitHub: el aviso se abre ya rellenado.`, `Is something about ${item.name} wrong? Say so on GitHub: the report opens already filled in.`),
+    href: reportUrl({ item, game, version: VERSION }),
+  };
+}
+
+/**
+ * Where to read more about an item. With `report`, a last link tells of a mistake in what the game says
+ * about it: where an answer has just been given, which is when a mistake is noticed.
+ */
+export function StudyLinks({ item, extra, report }: { item: Item; extra?: StudyLink[]; report?: boolean }) {
+  const game = useStore((s) => (report ? s.game : null));
   return (
     <div className="links" aria-label={L(`Aprende más sobre ${item.name}`, `Learn more about ${item.name}`)}>
       {linksFor(item).map((l) => (
@@ -80,6 +97,7 @@ export function StudyLinks({ item, extra }: { item: Item; extra?: StudyLink[] })
       {extra?.map((l) => (
         <LinkPill key={l.href} link={l} />
       ))}
+      {report && <LinkPill link={reportLink(item, game)} />}
     </div>
   );
 }

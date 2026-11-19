@@ -163,7 +163,7 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
               <PieceHistory id={item.id} nameOf={nameOf} />
               {cfg.opts.wiki && <WikiCard key={item.id} item={item} />}
               <p className="label">{L('Para aprender más', 'To learn more')}</p>
-              <StudyLinks item={item} />
+              <StudyLinks item={item} report />
               {deck.scope === 'regions' && (
                 <div className="links">
                   <LinkPill link={divisionsLink(item.country)} />

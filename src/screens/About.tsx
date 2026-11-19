@@ -4,10 +4,10 @@ import type { ReactNode } from 'react';
 import { GameKeys, GlobalKeys } from '../components/KeyHelp';
 import { RELEASES } from '../lib/changelog';
 import { L, fmtDay, getLang } from '../lib/i18n';
+import { REPO, reportUrl } from '../lib/report';
 import { PROGRESS_PATH } from '../lib/routes';
 import { VERSION } from '../lib/version';
 
-const REPO = 'https://github.com/diegosb72/regionle';
 
 function Out({ href, children }: { href: string; children: ReactNode }) {
   return (
@@ -34,6 +34,14 @@ export function About() {
         </p>
         <p className="about-version">
           {L('Versión', 'Version')} <b>{VERSION}</b> · {fmtDay(latest.date, true)} · <Out href={REPO}>{L('Código en GitHub', 'Code on GitHub')}</Out>
+        </p>
+        <p className="about-report">
+          {L('¿Has visto algo que está mal: una capital, un nombre, una ciudad fuera de sitio?', 'Have you seen something wrong: a capital, a name, a city out of place?')}{' '}
+          <Out href={reportUrl({ version: VERSION })}>{L('Avisar de un error', 'Report a mistake')}</Out>.{' '}
+          {L(
+            'Se abre un aviso en GitHub, ya rellenado (hace falta una cuenta). En una partida, cada respuesta trae su propio aviso, que dice además de qué pieza se trata.',
+            'It opens a report on GitHub, already filled in (it takes an account). In a game, each answer has a report of its own, which also says which piece it is about.',
+          )}
         </p>
       </header>
 

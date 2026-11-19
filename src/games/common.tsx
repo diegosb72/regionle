@@ -235,7 +235,7 @@ export function Verdict({ res, title, lead, item, wiki, say, children }: { res: 
       {item && <ItemFacts item={item} />}
       {item && <PieceNote key={item.id} id={item.id} />}
       {item && wiki && res !== 'ok' && <WikiCard item={item} />}
-      {item && <StudyLinks item={item} />}
+      {item && <StudyLinks item={item} report />}
       {children}
     </div>
   );

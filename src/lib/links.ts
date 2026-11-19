@@ -3,7 +3,7 @@ import { L, getLang, nm } from './i18n';
 import type { Country, Item } from './types';
 
 export interface StudyLink {
-  kind: 'wiki' | 'map' | 'video' | 'data' | 'list';
+  kind: 'wiki' | 'map' | 'video' | 'data' | 'list' | 'report';
   label: string;
   title: string;
   href: string;

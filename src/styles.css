@@ -846,6 +846,13 @@ button.chip.on:hover:not(:disabled) {
   border-color: var(--brand);
   color: var(--brand);
 }
+/* Telling of a mistake is not reading more: it stands a little apart from the links that are. */
+.pill-report {
+  border-style: dashed;
+  background: transparent;
+  color: var(--ink-3);
+  font-weight: 500;
+}
 .links {
   display: flex;
   flex-wrap: wrap;
@@ -7130,6 +7137,12 @@ button.ti-chip:hover,
 }
 .about-version b {
   color: var(--ink);
+}
+.about-report {
+  max-width: 62ch;
+  margin-top: 10px;
+  color: var(--ink-2);
+  font-size: 14.5px;
 }
 .about a svg {
   margin-left: 3px;
