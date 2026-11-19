@@ -28,6 +28,8 @@ export interface DailyStats {
   played: number;
   /** Of them, those finished after their day. */
   late: number;
+  /** How many of them were played the hard way. */
+  hard: number;
   /** Points on average, of 100. */
   mean: number;
   /** The best total, and the first day it was reached. */
@@ -68,6 +70,7 @@ export function dailyStats(daily: Record<string, DailyRec>, now: string): DailyS
   return {
     played: dates.length,
     late: dates.filter((d) => daily[d].late).length,
+    hard: dates.filter((d) => daily[d].h === 1).length,
     mean: average(totals),
     best,
     bands,

@@ -204,6 +204,8 @@ export interface DailyRec {
   late?: 1;
   /** Nobody finished it on its day and a wildcard stood in for it: the days in a row go through it. */
   j?: 1;
+  /** Played the hard way (see daily/hard.ts): settled with the first test that was scored. */
+  h?: 1;
 }
 
 export function emptyRec(): DailyRec {
@@ -222,6 +224,8 @@ export function doneCount(rec: DailyRec | undefined): number {
 export interface Rival {
   n: string;
   p: number[];
+  /** They played it the hard way. */
+  h?: 1;
 }
 /** How many results are kept for a day, and for how many days. */
 export const RIVALS_MAX = 8;
@@ -230,7 +234,8 @@ export const NAME_MAX = 24;
 
 export const isRival = (r: unknown): r is Rival => {
   const x = r as Rival | null;
-  return !!x && typeof x === 'object' && typeof x.n === 'string' && x.n.length <= NAME_MAX && Array.isArray(x.p) && x.p.length === TESTS && x.p.every((n) => Number.isInteger(n) && n >= 0 && n <= 20);
+  if (!x || typeof x !== 'object' || typeof x.n !== 'string' || x.n.length > NAME_MAX || (x.h !== undefined && x.h !== 1)) return false;
+  return Array.isArray(x.p) && x.p.length === TESTS && x.p.every((n) => Number.isInteger(n) && n >= 0 && n <= 20);
 };
 
 /** What is kept of the results others sent, cleaned: only days, only results that can be, and no more than fit. */

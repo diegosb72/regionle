@@ -2,7 +2,7 @@
  * The daily challenge set beside the results others sent by link: who sent theirs, before the challenge is
  * played, and everybody in order once it is finished, test by test.
  */
-import { X } from 'lucide-react';
+import { Star, X } from 'lucide-react';
 import { L } from '../lib/i18n';
 import { useStore } from '../lib/store';
 import { cx, listed } from '../lib/text';
@@ -56,8 +56,9 @@ export function Versus({ date, rec }: { date: string; rec: DailyRec }) {
   const rivals = useStore((s) => s.rivals[date]);
   const dropRival = useStore((s) => s.dropRival);
   if (!rivals?.length) return null;
-  const rows = ranking(rec.p, rivals, unnamed);
+  const rows = ranking(rec.p, rivals, unnamed, rec.h === 1);
   const best = bestOf(rows);
+  const anyHard = rows.some((r) => r.hard);
   const { text, tone } = verdict(rows);
   return (
     <section className={cx('d-vs', tone)} aria-label={L('Comparación', 'Comparison')}>
@@ -86,6 +87,7 @@ export function Versus({ date, rec }: { date: string; rec: DailyRec }) {
                   <div className="d-vs-who">
                     <i aria-hidden="true">{row.place}</i>
                     <span title={row.me ? undefined : row.name}>{row.me ? L('Tú', 'You') : row.name}</span>
+                    {row.hard && <Star className="d-vs-hard" size={13} role="img" aria-label={L('en difícil', 'the hard way')} />}
                   </div>
                 </th>
                 <td className="d-vs-total">{row.total}</td>
@@ -109,6 +111,7 @@ export function Versus({ date, rec }: { date: string; rec: DailyRec }) {
       <p className="d-hint">
         {Array.from({ length: TESTS }, (_, i) => `${i + 1} ${testName(i)}`).join(' · ')}
         {L('. En negrita, lo mejor de cada prueba.', '. In bold, the best of each test.')}
+        {anyHard && L(' Con estrella, quien lo jugó en difícil: las mismas pruebas con menos ayudas.', ' With a star, whoever played it the hard way: the same tests with fewer aids.')}
       </p>
     </section>
   );

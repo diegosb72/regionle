@@ -33,6 +33,8 @@ export interface TravelEmbed {
   onDone(): void;
   /** Shown under the verdict. */
   points(extra: number, lost: boolean): ReactNode;
+  /** No hints to ask for: the hard way of the daily challenge. */
+  noHints?: boolean;
 }
 
 export function TravelGame({ deck, cfg, onExit, embed }: GameProps & { embed?: TravelEmbed }) {
@@ -314,10 +316,12 @@ export function TravelGame({ deck, cfg, onExit, embed }: GameProps & { embed?: T
               )
             ) : (
               <>
-                <button type="button" className="btn btn-sm" onClick={hint}>
-                  <Lightbulb size={15} aria-hidden="true" />
-                  {L('Pista', 'Hint')}
-                </button>
+                {!embed?.noHints && (
+                  <button type="button" className="btn btn-sm" onClick={hint}>
+                    <Lightbulb size={15} aria-hidden="true" />
+                    {L('Pista', 'Hint')}
+                  </button>
+                )}
                 {!embed && (
                   <button type="button" className="btn btn-sm" onClick={another}>
                     <Shuffle size={15} aria-hidden="true" />

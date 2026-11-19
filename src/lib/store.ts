@@ -332,8 +332,11 @@ export interface State {
   setTheme(theme: Theme): void;
   setLang(lang: Lang): void;
   setNick(nick: string): void;
-  /** Stores the points of one test of a day; closes the day when it was the last one. */
-  setDaily(date: string, test: number, points: number, figure: number): void;
+  /**
+   * Stores the points of one test of a day; closes the day when it was the last one. `hard` says which way
+   * it is being played, and counts only with the first test that is scored: a day is played one way.
+   */
+  setDaily(date: string, test: number, points: number, figure: number, hard?: boolean): void;
   /** Keeps the result somebody sent of the challenge of a day. */
   addRival(date: string, rival: Rival): void;
   /** Takes one of them away: the one at that place of the day's list. */
@@ -473,11 +476,12 @@ export const useStore = create<State>()(
       setNick: (nick) => set({ nick: nick.slice(0, NAME_MAX) }),
       addRival: (date, rival) => set((s) => ({ rivals: withRival(s.rivals, date, rival) })),
       dropRival: (date, index) => set((s) => ({ rivals: cleanRivals({ ...s.rivals, [date]: (s.rivals[date] ?? []).filter((_, i) => i !== index) }) })),
-      setDaily: (date, test, points, figure) =>
+      setDaily: (date, test, points, figure, hard = false) =>
         set((s) => {
           const prev = s.daily[date] ?? emptyRec();
           if (test < 0 || test >= TESTS || prev.p[test] != null) return {};
           const rec: DailyRec = { ...prev, p: prev.p.slice(), k: prev.k.slice() };
+          if (hard && prev.p.every((x) => x == null)) rec.h = 1;
           rec.p[test] = points;
           rec.k[test] = figure;
           let days = s.days;

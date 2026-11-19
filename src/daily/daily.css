@@ -217,6 +217,61 @@ a.d-cal-day:hover {
   box-shadow: 0 0 0 2px var(--accent);
 }
 
+/* the hard way */
+
+.d-mode {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+.d-hard {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 11px 3px 9px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent-ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+.d-hard svg,
+.d-vs-hard,
+.d-cal-hard {
+  fill: currentColor;
+}
+.d-hardline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--ink-2);
+  font-size: 14.5px;
+}
+.d-vs-hard {
+  flex: none;
+  color: var(--accent);
+}
+.d-cal-day {
+  position: relative;
+}
+.d-cal-hard {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  color: var(--accent);
+}
+.d-typed .q-note,
+.d-typed-said {
+  justify-content: center;
+  text-align: center;
+}
+.d-typed-said {
+  font-size: 17px;
+}
+
 /* somebody else's result, beside one's own */
 
 .d-vs-note {

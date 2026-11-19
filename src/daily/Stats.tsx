@@ -85,6 +85,7 @@ export function DailyStatsBlock({ current }: { current?: string }) {
               `Every finished challenge counts, ${s.late === 1 ? 'the one' : `the ${nf(s.late)}`} you played after ${s.late === 1 ? 'its' : 'their'} day too.`,
             )
           : L('Cuentan los retos terminados; los que se dejan a medias, no.', 'Finished challenges count; those left halfway do not.')}
+        {s.hard > 0 && L(` ${s.hard === 1 ? 'Uno lo jugaste' : `${nf(s.hard)} los jugaste`} en difícil.`, ` You played ${s.hard === 1 ? 'one' : nf(s.hard)} the hard way.`)}
         {s.held > 0 && L(` ${s.held === 1 ? 'Un día lo cubrió' : `${nf(s.held)} días los cubrió`} un comodín.`, ` A wildcard held ${s.held === 1 ? 'one day' : `${nf(s.held)} days`}.`)}
       </p>
     </div>

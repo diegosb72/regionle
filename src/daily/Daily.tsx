@@ -1,8 +1,8 @@
 /** The daily challenge: the country of the day, its five tests, the result and the calendar. */
-import { BarChart3, BookOpen, CalendarDays, Check, Copy, Flame, MapPin, Play, Share2, Shield } from 'lucide-react';
+import { BarChart3, BookOpen, CalendarDays, Check, Copy, Flame, MapPin, Play, Share2, Shield, Star } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { MapView, type MapHandle } from '../components/MapView';
-import { BASE, Flag, Spinner } from '../components/ui';
+import { BASE, Flag, Seg, Spinner } from '../components/ui';
 import { GameShell } from '../games/common';
 import { TravelGame } from '../games/Travel';
 import { buildDeck, isFeminine, levelOf, type World } from '../lib/data';
@@ -32,7 +32,8 @@ import {
 } from './spec';
 import { JokerChip, inARow, jokerRule, testName, useCountdown } from './Card';
 import { SharePicture } from './SharePicture';
-import { PinFive, PointsChip, QuickFive, RegionleTest, WhichTest, nextLabel, shellSubtitle, shellTitle, type Step } from './tests';
+import { hardByDefault, hardTurn } from './hard';
+import { PinFive, PointsChip, QuickFive, QuickTyped, RegionleTest, WhichTest, nextLabel, shellSubtitle, shellTitle, type Step } from './tests';
 import { DailyStatsBlock, useHasStats } from './Stats';
 import { Versus, VersusNote } from './Versus';
 import { decodeResult, encodeResult } from './versus';
@@ -49,8 +50,19 @@ function flagEmoji(id: string): string {
  */
 export function shareText(date: string, country: Country, rec: DailyRec, name = ''): string {
   const squares = rec.p.map((p) => ((p ?? 0) >= 16 ? '🟩' : (p ?? 0) >= 8 ? '🟨' : '🟥')).join('');
-  const url = linkTo(`${DAILY_PATH}/${date}/${encodeResult(rec.p, name)}`);
-  return [`Regionle ∞ · ${L('Reto del', 'Challenge of')} ${fmtDay(date, true)}`, `${flagEmoji(country.id)} ${nm(country.n)} · ${totalOf(rec)}/100`, squares, url].join('\n');
+  const url = linkTo(`${DAILY_PATH}/${date}/${encodeResult(rec.p, name, rec.h === 1)}`);
+  const what = rec.h ? L('Reto difícil del', 'Hard challenge of') : L('Reto del', 'Challenge of');
+  return [`Regionle ∞ · ${what} ${fmtDay(date, true)}`, `${flagEmoji(country.id)} ${nm(country.n)} · ${totalOf(rec)}/100${rec.h ? ' ★' : ''}`, squares, url].join('\n');
+}
+
+/** The mark of a challenge played the hard way. */
+export function HardChip() {
+  return (
+    <span className="d-hard" title={L('Las mismas pruebas, con menos ayudas', 'The same tests, with fewer aids')}>
+      <Star size={14} aria-hidden="true" />
+      {L('Difícil', 'Hard')}
+    </span>
+  );
 }
 
 /** The address of the game as it is read out: "diegosb72.github.io/regionle". */
@@ -108,17 +120,19 @@ export function Calendar({ world, current }: { world: World; current?: string })
         const c = open ? countryOfDay(pool, dayNumber(date)) : null;
         // A day nobody played that a wildcard stood in for: the days in a row go through it.
         const joker = rec?.j === 1;
-        const label = `${fmtDay(date)}${c ? ` · ${nm(c.n)}` : ''}${done ? ` · ${total}/100` : doneCount(rec) ? ` · ${L('a medias', 'in progress')}` : ''}${joker ? ` · ${L('cubierto por un comodín', 'held by a wildcard')}` : ''}`;
+        const hard = rec?.h === 1 && doneCount(rec) > 0;
+        const label = `${fmtDay(date)}${c ? ` · ${nm(c.n)}` : ''}${done ? ` · ${total}/100` : doneCount(rec) ? ` · ${L('a medias', 'in progress')}` : ''}${hard ? ` · ${L('en difícil', 'the hard way')}` : ''}${joker ? ` · ${L('cubierto por un comodín', 'held by a wildcard')}` : ''}`;
         return open ? (
           <a
             key={date}
             href={`#/reto/${date}`}
-            className={cx('d-cal-day', date === now && 'is-today', date === current && 'on', done && (total >= 70 ? 'hi' : total >= 40 ? 'mid' : 'lo'), !done && doneCount(rec) > 0 && 'part', joker && 'joker')}
+            className={cx('d-cal-day', date === now && 'is-today', date === current && 'on', done && (total >= 70 ? 'hi' : total >= 40 ? 'mid' : 'lo'), !done && doneCount(rec) > 0 && 'part', joker && 'joker', hard && 'is-hard')}
             title={label}
             aria-label={label}
           >
             <span>{Number(date.slice(8))}</span>
             {done ? <b>{total}</b> : joker ? <Shield size={17} aria-hidden="true" /> : <Flag code={c?.fl} size="sm" />}
+            {hard && <Star className="d-cal-hard" size={10} aria-hidden="true" />}
           </a>
         ) : (
           <span key={date} className="d-cal-day off" aria-hidden="true">
@@ -151,6 +165,10 @@ export function Daily({ world, date, vs, soon }: { world: World; date: string; v
   const fem = isFeminine(level.sg);
   const done = doneCount(rec);
   const next = rec ? rec.p.findIndex((x) => x == null) : 0;
+  /** How the day is to be played while nothing is scored: as the challenge finished last was, until the player says. */
+  const [wantHard, setWantHard] = useState(() => hardByDefault(useStore.getState().daily));
+  /** A day is played one way: the first test that is scored settles it. */
+  const hard = done > 0 ? rec?.h === 1 : wantHard;
   /** The test on screen. Its result is stored as soon as it is decided, so it stays here until the player moves on. */
   const [at, setAt] = useState(-1);
   const [view, setView] = useState<'intro' | 'study' | 'test' | 'summary'>(() => (done === TESTS ? 'summary' : 'intro'));
@@ -185,7 +203,7 @@ export function Daily({ world, date, vs, soon }: { world: World; date: string; v
     const st = useStore.getState();
     const own = st.daily[date];
     // One's own link, opened where it was made: there is nobody to compare with.
-    const mine = !!rival && !!own?.t && own.p.join() === rival.p.join() && (!rival.n || rival.n === st.nick.trim());
+    const mine = !!rival && !!own?.t && own.p.join() === rival.p.join() && (rival.h ?? 0) === (own.h ?? 0) && (!rival.n || rival.n === st.nick.trim());
     if (!rival) setLinkNote(L('El enlace traía un resultado para comparar, pero ha llegado incompleto. Puedes jugar el reto igualmente.', 'The link came with a result to compare, but it arrived incomplete. You can play the challenge all the same.'));
     else if (!mine) addRival(date, rival);
     settle(`${DAILY_PATH}/${date}`);
@@ -217,13 +235,14 @@ export function Daily({ world, date, vs, soon }: { world: World; date: string; v
 
   const targets = useMemo(() => (regions ? regionTargets(date, regions.items.map((it) => it.id)) : null), [regions, date]);
   const shape = useMemo(() => (regions && targets ? silhouette(regions.byId.get(targets.mystery)!.geo, 400) : ''), [regions, targets]);
+  const turnedShape = useMemo(() => (hard && regions && targets ? silhouette(regions.byId.get(targets.mystery)!.geo, 400, 0.08, hardTurn(date)) : undefined), [hard, regions, targets, date]);
   const which = useMemo(() => whichTarget(date, world.index, country.id), [date, world, country]);
   const quick = useMemo(() => quickQuestions(date, world.index, [country.id, which.id]), [date, world, country, which]);
   const guessable = useMemo(() => worldPool(world.index), [world]);
   // Handy when debugging from the browser console; removed from production builds.
   if (import.meta.env.DEV) (window as unknown as { __daily?: unknown }).__daily = { country: country.id, targets, which: which.id, quick, regions };
 
-  const score = (test: number) => (points: number, figure: number) => setDaily(date, test, points, figure);
+  const score = (test: number) => (points: number, figure: number) => setDaily(date, test, points, figure, hard);
   const advance = () => {
     if (at >= TESTS - 1) setView('summary');
     else setAt(at + 1);
@@ -309,6 +328,11 @@ export function Daily({ world, date, vs, soon }: { world: World; date: string; v
           <span>/ 100</span>
         </p>
         <p className="d-verdict">{verdictOf(total)}</p>
+        {rec.h === 1 && (
+          <p className="d-hardline">
+            <HardChip />
+          </p>
+        )}
         <ol className="d-rows">
           {rec.p.map((p, i) => (
             <li key={i}>
@@ -332,7 +356,7 @@ export function Daily({ world, date, vs, soon }: { world: World; date: string; v
             <Flame size={16} aria-hidden="true" />
             {inARow(streak)}
           </span>
-          <span>{L(`Mejor racha: ${bestStreak}`, `Best streak: ${bestStreak}`)}</span>
+          <span>{L(`Mejor racha: ${Math.max(bestStreak, run.longest)}`, `Best streak: ${Math.max(bestStreak, run.longest)}`)}</span>
           {run.jokers > 0 && <JokerChip n={run.jokers} />}
           {rec.late ? <span>{L('Jugado después de su día: no cuenta para la racha.', 'Played after its day: it does not count for the streak.')}</span> : !past ? <span>{L(`Nuevo reto en ${left}`, `Next challenge in ${left}`)}</span> : null}
         </p>
@@ -364,7 +388,7 @@ export function Daily({ world, date, vs, soon }: { world: World; date: string; v
             </button>
             <SharePicture
               info={{
-                kicker: `${L('Reto del', 'Challenge of')} ${fmtDay(date, true)}`,
+                kicker: `${rec.h ? L('Reto difícil del', 'Hard challenge of') : L('Reto del', 'Challenge of')} ${fmtDay(date, true)}`,
                 country: nm(country.n),
                 total,
                 verdict: verdictOf(total),
@@ -434,8 +458,8 @@ export function Daily({ world, date, vs, soon }: { world: World; date: string; v
   if (view === 'test' && at >= 0) {
     const before = (rec?.p ?? []).slice(0, at).reduce<number>((sum, x) => sum + (x ?? 0), 0);
     const step: Step = { index: at, points: before, onExit: () => setView(doneCount(rec) === TESTS ? 'summary' : 'intro') };
-    if (at === 0) return <RegionleTest key={0} deck={regions} target={targets.mystery} shape={shape} step={step} onScore={score(0)} onDone={advance} />;
-    if (at === 1) return <PinFive key={1} deck={regions} targets={targets.pins} step={step} onScore={score(1)} onDone={advance} />;
+    if (at === 0) return <RegionleTest key={0} deck={regions} target={targets.mystery} shape={shape} turned={turnedShape} hard={hard} step={step} onScore={score(0)} onDone={advance} />;
+    if (at === 1) return <PinFive key={1} deck={regions} targets={targets.pins} hard={hard} step={step} onScore={score(1)} onDone={advance} />;
     if (at === 2) {
       if (!globe) {
         return (
@@ -459,6 +483,7 @@ export function Daily({ world, date, vs, soon }: { world: World; date: string; v
             nextLabel: nextLabel(2),
             onScore: (extra, lost) => score(2)(routePoints(extra, lost), lost ? -1 : extra),
             onDone: advance,
+            noHints: hard,
             points: (extra, lost) => (
               <p className="d-points">
                 +{routePoints(extra, lost)} {L('puntos', 'points')}
@@ -468,7 +493,8 @@ export function Daily({ world, date, vs, soon }: { world: World; date: string; v
         />
       );
     }
-    if (at === 3) return <WhichTest key={3} target={which} countries={guessable} continent={nm(world.index.continents[which.ct])} step={step} onScore={score(3)} onDone={advance} />;
+    if (at === 3) return <WhichTest key={3} target={which} countries={guessable} continent={nm(world.index.continents[which.ct])} hard={hard} step={step} onScore={score(3)} onDone={advance} />;
+    if (hard) return <QuickTyped key={4} questions={quick} byId={world.byId} countries={guessable} step={step} onScore={score(4)} onDone={advance} />;
     return <QuickFive key={4} questions={quick} byId={world.byId} step={step} onScore={score(4)} onDone={advance} />;
   }
 
@@ -533,14 +559,50 @@ export function Daily({ world, date, vs, soon }: { world: World; date: string; v
         </p>
       )}
       <VersusNote date={date} />
-      <ol className="d-list">
-        {[
-          L(`Adivina ${fem ? 'una' : 'uno'} de sus ${level.es} por la silueta, en seis intentos.`, `Guess one of its ${level.en} from its outline, in six tries.`),
-          L('Señala cinco en el mapa.', 'Find five of them on the map.'),
-          L('Une dos países del mundo por el camino más corto.', 'Join two countries of the world by the shortest way.'),
-          L('Adivina un país por su población.', 'Guess a country from its population.'),
-          L('Cinco preguntas rápidas de banderas y capitales.', 'Five quick questions about flags and capitals.'),
-        ].map((text, i) => {
+      <div className="d-mode">
+        {done > 0 ? (
+          hard && (
+            <p className="d-hardline">
+              <HardChip />
+              <span>{L('Lo estás jugando en difícil.', 'You are playing it the hard way.')}</span>
+            </p>
+          )
+        ) : (
+          <>
+            <Seg
+              label={L('Cómo lo juegas', 'How you play it')}
+              value={hard ? 'hard' : 'plain'}
+              onChange={(v) => setWantHard(v === 'hard')}
+              options={[
+                { value: 'plain', label: L('Normal', 'Normal') },
+                { value: 'hard', label: L('Difícil', 'Hard') },
+              ]}
+            />
+            <p className="d-hint">
+              {hard
+                ? L('Las mismas cinco pruebas con menos ayudas. Los puntos se cuentan igual: cuesta más llegar.', 'The same five tests with fewer aids. The points are counted the same way: they are harder to get.')
+                : L('¿Te sabe a poco? En difícil son las mismas pruebas con menos ayudas.', 'Too easy? The hard way is the same tests with fewer aids.')}
+            </p>
+          </>
+        )}
+      </div>
+      <ol className={cx('d-list', hard && 'is-hard')}>
+        {(hard
+          ? [
+              L(`Adivina ${fem ? 'una' : 'uno'} de sus ${level.es} por la silueta, girada y en cuatro intentos.`, `Guess one of its ${level.en} from its outline, turned and in four tries.`),
+              L('Señala cinco en el mapa, con un solo intento cada una.', 'Find five of them on the map, with one try at each.'),
+              L('Une dos países del mundo por el camino más corto, sin pistas.', 'Join two countries of the world by the shortest way, with no hints.'),
+              L('Adivina un país por su población, sin saber el continente.', 'Guess a country from its population, without its continent.'),
+              L('Cinco preguntas de banderas y capitales, escribiendo la respuesta.', 'Five questions about flags and capitals, typing the answer.'),
+            ]
+          : [
+              L(`Adivina ${fem ? 'una' : 'uno'} de sus ${level.es} por la silueta, en seis intentos.`, `Guess one of its ${level.en} from its outline, in six tries.`),
+              L('Señala cinco en el mapa.', 'Find five of them on the map.'),
+              L('Une dos países del mundo por el camino más corto.', 'Join two countries of the world by the shortest way.'),
+              L('Adivina un país por su población.', 'Guess a country from its population.'),
+              L('Cinco preguntas rápidas de banderas y capitales.', 'Five quick questions about flags and capitals.'),
+            ]
+        ).map((text, i) => {
           const p = rec?.p[i];
           return (
             <li key={i} className={cx(p != null && 'done', i === next && done > 0 && 'next')}>
