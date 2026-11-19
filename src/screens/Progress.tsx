@@ -5,7 +5,7 @@ import { ActivityBlock, EvolutionBlock, MonthsBlock } from '../components/Activi
 import { AlbumBlock } from '../components/Album';
 import { BadgeBoard } from '../components/Badges';
 import { MapView, type Paint } from '../components/MapView';
-import { groupPlace } from '../components/ReviewCard';
+import { groupPlace, paceDays, paceName } from '../components/ReviewCard';
 import { Flag, Seg, Spinner, capitalise } from '../components/ui';
 import { namesOf, type Named } from '../lib/answerNames';
 import { toCsv } from '../lib/csv';
@@ -15,10 +15,10 @@ import { metricNoun, type MetricId } from '../lib/metricNames';
 import { L, getLang, levelNoun, nm } from '../lib/i18n';
 import { MODE_NAME, SECTIONS, formatName, modeNameIn } from '../lib/modes';
 import { mixGroups } from '../lib/mix';
-import { REVIEW_MAX, allGroups, dueCount, dueGroups, forecast, gradeOf, missGroups, missesOf, parseOrigin, reviewConfig, type Grade, type ReviewGroup } from '../lib/review';
+import { PACES, REVIEW_SIZES, allGroups, dueCount, dueGroups, forecast, gradeOf, missGroups, missesOf, parseOrigin, reviewConfig, reviewMax, type Grade, type Pace, type ReviewGroup } from '../lib/review';
 import { reviewTable } from '../lib/reviewTable';
 import { go } from '../lib/router';
-import { isLearnt, useStore, type Skill, type Stat } from '../lib/store';
+import { isLearnt, useReviewPrefs, useStore, type Skill, type Stat } from '../lib/store';
 import { cx, fmtDist, fmtTime, nf } from '../lib/text';
 import type { Country, Deck, Mode, Section } from '../lib/types';
 import { scoreOf } from '../games/quiz';
@@ -99,6 +99,7 @@ function KnowledgeMap({ world }: { world: World }) {
   const [deck, setDeck] = useState<Deck | null>(null);
   const [failed, setFailed] = useState(false);
 
+  const prefs = useReviewPrefs();
   /** Countries whose regions have been practised, the most practised first, and the level each was played at. */
   const places = useMemo(() => {
     const per = new Map<string, { n: number; levels: Map<string, number> }>();
@@ -154,7 +155,9 @@ function KnowledgeMap({ world }: { world: World }) {
       paint[it.id] = GRADE_PAINT[g];
     }
     return { paint, grades, counts };
-  }, [deck, stats, skills]);
+    // What is due depends on the pace of the reviews: graded again when it changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deck, stats, skills, prefs]);
 
   const fem = isWorld ? false : (deck?.noun.fem ?? true);
   const total = deck?.items.length ?? 0;
@@ -246,6 +249,17 @@ function ReviewBlock({ world }: { world: World }) {
   const where = useStore((s) => s.where);
   const opts = useStore((s) => s.opts);
   const start = useStore((s) => s.start);
+  const pace = useStore((s) => s.reviewPace);
+  const setPace = useStore((s) => s.setReviewPace);
+  const size = useStore((s) => s.reviewSize);
+  const setSize = useStore((s) => s.setReviewSize);
+  // Reached from the review of the home page ("#/progreso?ver=repaso"): the page opens on this block.
+  const top = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!/[?&]ver=repaso(&|$)/.test(window.location.hash)) return;
+    const timer = window.setTimeout(() => top.current?.scrollIntoView({ block: 'start' }), 120);
+    return () => window.clearTimeout(timer);
+  }, []);
   /** What the making of the file is at, while it is being made. */
   const [making, setMaking] = useState<string | null>(null);
 
@@ -287,13 +301,15 @@ function ReviewBlock({ world }: { world: World }) {
     const now = Date.now();
     const groups = dueGroups(stats, where, now);
     return { groups, due: dueCount(groups), days: forecast(stats, now, 7) };
-  }, [stats, where]);
-  const top = Math.max(1, ...days);
+    // The pace says what is due and when the rest comes back: counted again when it changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stats, where, pace]);
+  const most = Math.max(1, ...days);
   const locale = getLang() === 'en' ? 'en-GB' : 'es-ES';
   const dayName = (i: number): string => (i === 0 ? L('hoy', 'today') : new Date(Date.now() + i * 864e5).toLocaleDateString(locale, { weekday: 'short' }).replace('.', ''));
 
   return (
-    <section className="block">
+    <section className="block" ref={top}>
       <h2>{L('Repaso espaciado', 'Spaced review')}</h2>
       <div className="fc">
         <div className="fc-now">
@@ -317,16 +333,26 @@ function ReviewBlock({ world }: { world: World }) {
           {days.map((n, i) => (
             <li key={i} title={`${dayName(i)}: ${n}`}>
               <b>{n > 0 ? nf(n) : ''}</b>
-              <i style={{ height: `${Math.round((n / top) * 100)}%` }} className={i === 0 ? 'today' : undefined} />
+              <i style={{ height: `${Math.round((n / most) * 100)}%` }} className={i === 0 ? 'today' : undefined} />
               <span>{dayName(i)}</span>
             </li>
           ))}
         </ol>
       </div>
+      <div className="fc-prefs">
+        <div className="fc-pref">
+          <b>{L('Ritmo', 'Pace')}</b>
+          <Seg<Pace> small label={L('Ritmo del repaso', 'Pace of the review')} value={pace} onChange={setPace} options={PACES.map((p) => ({ value: p, label: paceName(p), title: paceDays(p) }))} />
+        </div>
+        <div className="fc-pref">
+          <b>{L('Preguntas por repaso', 'Questions per review')}</b>
+          <Seg<number> small label={L('Preguntas por repaso', 'Questions per review')} value={size} onChange={setSize} options={REVIEW_SIZES.map((n) => ({ value: n, label: String(n) }))} />
+        </div>
+      </div>
       <p className="tip-line">
         {L(
-          'Cada acierto a la primera aleja el siguiente repaso: 1 día, 3, 7, 16, 35 y 75. Un fallo lo trae de vuelta el mismo día.',
-          'Each first-time right answer pushes the next review further away: 1 day, 3, 7, 16, 35 and 75. A miss brings it back the same day.',
+          `Cada acierto a la primera aleja el siguiente repaso: ${paceDays(pace)}. Un fallo lo trae de vuelta el mismo día. Cambiar el ritmo no borra nada: solo mueve cuándo vuelve cada respuesta.`,
+          `Each first-time right answer pushes the next review further away: ${paceDays(pace)}. A miss brings it back the same day. Changing the pace erases nothing: it only moves when each answer comes back.`,
         )}
       </p>
       <p className="fc-file">
@@ -357,6 +383,8 @@ function MissBlock({ world }: { world: World }) {
   const where = useStore((s) => s.where);
   const opts = useStore((s) => s.opts);
   const start = useStore((s) => s.start);
+  // How many questions a game of these asks follows the size chosen for the reviews.
+  useReviewPrefs();
   const groups = useMemo(() => missGroups(stats, where), [stats, where]);
   const shown = useMemo(() => groups.slice(0, MISS_MAPS), [groups]);
   /** The names of the pieces, read from their maps; null while they are being read. */
@@ -400,7 +428,7 @@ function MissBlock({ world }: { world: World }) {
         {shown.map((g) => {
           const place = groupPlace(g, world);
           const known = names?.get(g.key);
-          const n = Math.min(g.ids.length, REVIEW_MAX);
+          const n = Math.min(g.ids.length, reviewMax());
           return (
             <li key={g.key}>
               <div className="miss-head">
@@ -455,6 +483,7 @@ function MixBlock({ world }: { world: World }) {
   const where = useStore((s) => s.where);
   const opts = useStore((s) => s.opts);
   const start = useStore((s) => s.start);
+  useReviewPrefs();
   const groups = useMemo(() => mixGroups(mix, stats, where), [mix, stats, where]);
   const shown = useMemo(() => groups.slice(0, MIX_MAPS), [groups]);
   const [names, setNames] = useState<Map<string, Map<string, Named>> | null>(null);
@@ -489,7 +518,7 @@ function MixBlock({ world }: { world: World }) {
         {shown.map((g) => {
           const place = groupPlace(g, world);
           const known = names?.get(g.key);
-          const n = Math.min(g.ids.length, REVIEW_MAX);
+          const n = Math.min(g.ids.length, reviewMax());
           const nameOf = (id: string) => (names ? (known?.get(id)?.name ?? id) : '…');
           return (
             <li key={g.key}>

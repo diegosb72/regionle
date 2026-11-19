@@ -77,7 +77,8 @@ function useIconBadge(on: boolean): void {
     update(true);
     void keepBadgeFresh(true);
     const stop = useStore.subscribe((s, was) => {
-      if (s.stats === was.stats && s.where === was.where) return;
+      // The pace of the reviews says what is waiting, as much as the answers do.
+      if (s.stats === was.stats && s.where === was.where && s.reviewPace === was.reviewPace) return;
       // Answers come in bursts: one count when they stop.
       window.clearTimeout(soon);
       soon = window.setTimeout(() => update(true), 1500);

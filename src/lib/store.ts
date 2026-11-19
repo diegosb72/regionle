@@ -10,6 +10,7 @@ import { cleanMix, dropMix, withMix, type Mix } from './mix';
 import { cleanNotes, dropNotes, withNote, type Notes } from './notes';
 import { PALETTE_DEFAULT, isPalette, type Palette } from './palette';
 import { RECENT_MAX, isRecent, recentConfig, recentOf, withRecent, type Recent } from './recent';
+import { PACE_DEFAULT, REVIEW_MAX, isPace, isReviewSize, setReviewPrefs, type Pace } from './review';
 import { today } from './text';
 import { cleanTypeins, setTypeins as applyTypeins, type Typeins } from './typeinPrefs';
 import type { Mode, Res, Section } from './types';
@@ -271,6 +272,9 @@ interface State {
   miles: boolean;
   /** The colours the maps are drawn in. */
   palette: Palette;
+  /** How far apart the reviews are set, and how many questions one review game asks at most. */
+  reviewPace: Pace;
+  reviewSize: number;
   /** Short forms chosen in the settings for each thing, by id: those added to it and those taken from it. */
   typeins: Typeins;
   /** Whether names of several words get their initials unasked; null until chosen: as the game ships. */
@@ -285,6 +289,8 @@ interface State {
   setIconBadge(on: boolean): void;
   setMiles(on: boolean): void;
   setPalette(palette: Palette): void;
+  setReviewPace(pace: Pace): void;
+  setReviewSize(size: number): void;
   setTypeins(typeins: Typeins): void;
   setTypeinAuto(auto: boolean | null): void;
   saveList(list: CustomList): void;
@@ -368,6 +374,8 @@ export const useStore = create<State>()(
       iconBadge: true,
       miles: false,
       palette: PALETTE_DEFAULT,
+      reviewPace: PACE_DEFAULT,
+      reviewSize: REVIEW_MAX,
       typeins: {},
       typeinAuto: null,
 
@@ -386,6 +394,8 @@ export const useStore = create<State>()(
       setIconBadge: (iconBadge) => set({ iconBadge }),
       setMiles: (miles) => set({ miles }),
       setPalette: (palette) => set({ palette: isPalette(palette) ? palette : PALETTE_DEFAULT }),
+      setReviewPace: (pace) => set({ reviewPace: isPace(pace) ? pace : PACE_DEFAULT }),
+      setReviewSize: (size) => set({ reviewSize: isReviewSize(size) ? size : REVIEW_MAX }),
       setTypeins: (typeins) => set({ typeins }),
       setTypeinAuto: (typeinAuto) => set({ typeinAuto }),
       saveList: (list) => set((s) => ({ lists: [...s.lists.filter((l) => l.id !== list.id), list] })),
@@ -591,6 +601,8 @@ export const useStore = create<State>()(
         iconBadge: s.iconBadge,
         miles: s.miles,
         palette: s.palette,
+        reviewPace: s.reviewPace,
+        reviewSize: s.reviewSize,
         typeins: s.typeins,
         typeinAuto: s.typeinAuto,
       }),
@@ -611,6 +623,19 @@ setUnits(useStore.getState().miles ? 'mi' : 'km');
 useStore.subscribe((s, prev) => {
   if (s.miles !== prev.miles) setUnits(s.miles ? 'mi' : 'km');
 });
+
+// And the pace and the size of the reviews, by every count of what is due.
+const followReview = (s: State) => setReviewPrefs({ pace: s.reviewPace, size: s.reviewSize });
+followReview(useStore.getState());
+useStore.subscribe((s, prev) => {
+  if (s.reviewPace !== prev.reviewPace || s.reviewSize !== prev.reviewSize) followReview(s);
+});
+
+/**
+ * The pace and the size of the reviews as one word: for a screen to count again what is due when either
+ * changes (a dependency of its memos), since the counts read them from where the store keeps them.
+ */
+export const useReviewPrefs = (): string => useStore((s) => `${s.reviewPace}:${s.reviewSize}`);
 
 /**
  * What was saved, laid over the game as it starts: what an older version did not keep is filled in, and
@@ -639,6 +664,8 @@ export function mergeSaved(saved: unknown, current: State): State {
     iconBadge: p.iconBadge !== false,
     miles: p.miles === true,
     palette: isPalette(p.palette) ? p.palette : PALETTE_DEFAULT,
+    reviewPace: isPace(p.reviewPace) ? p.reviewPace : PACE_DEFAULT,
+    reviewSize: isReviewSize(p.reviewSize) ? p.reviewSize : REVIEW_MAX,
     // Players from before the tallies existed start from what their latest sessions add up to.
     tot: p.tot && Object.keys(p.tot).length ? p.tot : totalsOf(p.sessions ?? []),
     typeins: cleanTypeins(p.typeins),

@@ -7550,6 +7550,24 @@ kbd {
 }
 
 /* ---------------------------------------------- progress: most missed, file */
+/* How the reviews are set: a name and its choices, side by side where there is room. */
+.fc-prefs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 36px;
+  margin-top: 18px;
+}
+.fc-pref {
+  display: grid;
+  justify-items: start;
+  gap: 5px;
+  min-width: 0;
+}
+.fc-pref b {
+  color: var(--ink-2);
+  font-size: 14px;
+  font-weight: 650;
+}
 .fc-file {
   display: flex;
   flex-wrap: wrap;

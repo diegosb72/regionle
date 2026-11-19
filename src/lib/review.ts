@@ -10,14 +10,52 @@ import type { Mode, Section } from './types';
 
 const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
-/** Wait after a run of 0, 1, 2… right answers. */
-export const INTERVALS = [10 * 60_000, DAY, 3 * DAY, 7 * DAY, 16 * DAY, 35 * DAY, 75 * DAY];
+
+/** How far apart the reviews are set: closer for whoever has an exam next week, further for whoever has the year. */
+export type Pace = 'short' | 'normal' | 'long';
+export const PACES: readonly Pace[] = ['short', 'normal', 'long'];
+export const PACE_DEFAULT: Pace = 'normal';
+/** Days of wait after a run of 1, 2, 3… right answers, at each pace. */
+export const PACE_DAYS: Record<Pace, readonly number[]> = {
+  short: [1, 2, 4, 8, 16, 32],
+  normal: [1, 3, 7, 16, 35, 75],
+  long: [2, 6, 14, 30, 60, 120],
+};
+/** A miss, or a first answer that was not right, comes back the same day at any pace. */
+const AGAIN = 10 * 60_000;
+/** Wait after a run of 0, 1, 2… right answers, at the pace the game ships with. */
+export const INTERVALS = [AGAIN, ...PACE_DAYS.normal.map((days) => days * DAY)];
+
+/** Questions of one review game at most: the oldest first, the rest stays for the next one. */
+export const REVIEW_SIZES = [10, 20, 30, 50] as const;
+export const REVIEW_MAX = 30;
+
+export const isPace = (x: unknown): x is Pace => typeof x === 'string' && (PACES as readonly string[]).includes(x);
+export const isReviewSize = (x: unknown): x is number => typeof x === 'number' && (REVIEW_SIZES as readonly number[]).includes(x);
+
+/**
+ * The pace and the size the player has chosen. Module state, like the short forms in force: every count of
+ * what is due reads it, wherever it is made, and the store keeps it in step from the first moment.
+ */
+let pace: Pace = PACE_DEFAULT;
+let size: number = REVIEW_MAX;
+
+export function setReviewPrefs(prefs: { pace?: Pace; size?: number }): void {
+  if (prefs.pace !== undefined) pace = isPace(prefs.pace) ? prefs.pace : PACE_DEFAULT;
+  if (prefs.size !== undefined) size = isReviewSize(prefs.size) ? prefs.size : REVIEW_MAX;
+}
+
+export const reviewPace = (): Pace => pace;
+/** How many questions a review game asks at most. */
+export const reviewMax = (): number => size;
 
 /** Reviews are planned by day, not by the minute: what falls due today can be done from the morning. */
 const SLACK = 8 * HOUR;
 
 export function intervalOf(run: number): number {
-  return INTERVALS[Math.min(Math.max(0, run), INTERVALS.length - 1)];
+  if (run <= 0) return AGAIN;
+  const days = PACE_DAYS[pace];
+  return days[Math.min(run, days.length) - 1] * DAY;
 }
 
 /** Moment from which an item should be asked again. */
@@ -41,9 +79,6 @@ export function gradeOf(stat: Stat | undefined, now: number): Grade {
 
 /** The game that practises each skill. */
 export const SKILL_MODE: Record<Skill, Mode> = { loc: 'pin', name: 'identify', cap: 'capital', flag: 'flag', nb: 'neighbours' };
-
-/** Questions of one review game at most: the oldest first, the rest stays for the next one. */
-export const REVIEW_MAX = 30;
 
 /** Answers that are due and can be reviewed on one map. */
 export interface ReviewGroup {
@@ -197,7 +232,7 @@ export function allGroups(stats: Record<string, Stat>, where: Record<string, str
  * The game that reviews a group: its map, the game of that skill and only the questions that are due,
  * `max` of them at most (all of them when what is wanted is the map itself, to read names from it).
  */
-export function reviewConfig(group: ReviewGroup, opts: Opts, max = REVIEW_MAX): Omit<GameConfig, 'nonce'> {
+export function reviewConfig(group: ReviewGroup, opts: Opts, max = reviewMax()): Omit<GameConfig, 'nonce'> {
   const ids = group.ids.slice(0, max);
   const one = group.country ? [group.country] : null;
   return {
