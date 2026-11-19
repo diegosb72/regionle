@@ -15,6 +15,30 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.16.0',
+    date: '2026-11-19',
+    es: [
+      'Marca el grupo: te damos un grupo y marcas en el mapa todas sus piezas: la Unión Europea, las provincias de Andalucía, lo que limita con Francia.',
+      'Al comprobar, el mapa pinta en verde lo acertado, en amarillo lo que faltaba y en rojo lo que sobraba. En un grupo grande, un desliz cuenta como casi.',
+      'Cadena de vecinos: de una pieza a una vecina, y de esa a otra, sin pasar dos veces por la misma. El mapa no enseña fronteras: se dibuja con tu cadena.',
+      'La cadena acaba cuando no queda salida, al tercer fallo o cuando te plantas. El juego te dice hasta dónde ha llegado él, y guarda tu récord de cada mapa.',
+      '¿Quién soy?: una pieza habla de sí misma, pista a pista: su tamaño, sus fronteras, un vecino, su bandera o su silueta. Adivínala con las menos que puedas.',
+      'Un nombre equivocado trae la pista siguiente. La primera pista vale seis puntos y cada una de más, uno menos.',
+      'Al marcar piezas en un mapa, la que acabas de tocar ya se ve marcada sin apartar el ratón.',
+      'La partida carga más deprisa: los juegos nuevos se descargan solo cuando los juegas.',
+    ],
+    en: [
+      'Mark the group: you get a group and mark all its pieces on the map: the European Union, the provinces of Andalusia, what borders France.',
+      'When checked, the map shows in green what was right, in yellow what was missing and in red what was not in it. In a large group, one slip counts as close.',
+      'Neighbour chain: from one piece to a neighbour, and on from that one, never through the same piece twice. The map shows no borders: your chain draws it.',
+      'The chain ends when there is no way on, at the third miss or when you stop. The game tells you how far it got itself, and keeps your record for each map.',
+      'Who am I?: a piece tells about itself, clue by clue: its size, its borders, a neighbour, its flag or its outline. Guess it with as few clues as you can.',
+      'A wrong name brings the next clue. The first clue is worth six points, and each further clue one less.',
+      'When marking pieces on a map, the one you have just touched shows as marked without moving the mouse away.',
+      'A game loads faster: the new games are downloaded only when you play them.',
+    ],
+  },
+  {
     version: '1.15.0',
     date: '2026-11-18',
     es: [
