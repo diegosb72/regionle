@@ -2,6 +2,7 @@
 import { BarChart3, BookOpen, CalendarDays, Check, Copy, Flame, MapPin, Play, Share2, Shield, Star } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { MapView, type MapHandle } from '../components/MapView';
+import { QrButton } from '../components/QrButton';
 import { SharePicture } from '../components/SharePicture';
 import { BASE, Flag, Seg, Spinner } from '../components/ui';
 import { GameShell } from '../games/common';
@@ -45,13 +46,16 @@ function flagEmoji(id: string): string {
   return /^[A-Z]{2}$/.test(id) ? String.fromCodePoint(...[...id].map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65)) : '';
 }
 
+/** The address of a day's challenge with a result in it: its points and, if one is given, the name. */
+export const resultUrl = (date: string, rec: DailyRec, name = ''): string => linkTo(`${DAILY_PATH}/${date}/${encodeResult(rec.p, name, rec.h === 1)}`);
+
 /**
  * The result as text, to send. Its link carries the points (and the name, if one is given), so that whoever
  * opens it plays the same challenge and sees both results side by side.
  */
 export function shareText(date: string, country: Country, rec: DailyRec, name = ''): string {
   const squares = rec.p.map((p) => ((p ?? 0) >= 16 ? '🟩' : (p ?? 0) >= 8 ? '🟨' : '🟥')).join('');
-  const url = linkTo(`${DAILY_PATH}/${date}/${encodeResult(rec.p, name, rec.h === 1)}`);
+  const url = resultUrl(date, rec, name);
   const what = rec.h ? L('Reto difícil del', 'Hard challenge of') : L('Reto del', 'Challenge of');
   return [`Regionle ∞ · ${what} ${fmtDay(date, true)}`, `${flagEmoji(country.id)} ${nm(country.n)} · ${totalOf(rec)}/100${rec.h ? ' ★' : ''}`, squares, url].join('\n');
 }
@@ -395,6 +399,7 @@ export function Daily({ world, date, vs, soon }: { world: World; date: string; v
               file={`regionle-${date}.png`}
               text={shareText(date, country, rec, nick)}
             />
+            <QrButton url={resultUrl(date, rec, nick)} what={`${rec.h ? L('Reto difícil del', 'Hard challenge of') : L('Reto del', 'Challenge of')} ${fmtDay(date, true)} · ${nm(country.n)}`} />
           </div>
           <div className="duel-send d-share-name">
             <label>

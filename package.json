@@ -1,7 +1,7 @@
 {
   "name": "regionle",
   "private": true,
-  "version": "1.20.0",
+  "version": "1.21.0",
   "homepage": "https://diegosb72.github.io/regionle/",
   "description": "Regionle ∞ — juego de geografía ilimitado para aprender países y regiones del mundo",
   "license": "MIT",
@@ -26,6 +26,7 @@
   "dependencies": {
     "@fontsource-variable/dm-sans": "^5.3.0",
     "@fontsource-variable/fraunces": "^5.3.0",
+    "@fontsource-variable/lexend": "^5.3.0",
     "d3-ease": "^3.0.2",
     "d3-geo": "^3.1.2",
     "d3-interpolate": "^3.0.2",
@@ -56,6 +57,7 @@
     "@vitejs/plugin-react": "^6.3.0",
     "d3-geo-projection": "^4.0.0",
     "jsdom": "^31.0.1",
+    "jsqr": "^1.4.0",
     "polylabel": "^2.1.0",
     "topojson-server": "^3.0.1",
     "topojson-simplify": "^3.0.3",

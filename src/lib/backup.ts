@@ -6,6 +6,7 @@
 import { DAY_GOAL_DEFAULT, isDayGoal } from './days';
 import { CITY_COUNTS } from './extra';
 import { isPalette } from './palette';
+import { isTextSize } from './reading';
 import { isPace, isReviewSize } from './review';
 import { isLearnt, type BackupMark, type Opts, type State, type Stat, type Theme } from './store';
 
@@ -13,11 +14,11 @@ import { isLearnt, type BackupMark, type Opts, type State, type Stat, type Theme
 export const BACKUP_VERSION = 4;
 
 /** What a player sets once and expects to find again: how the game looks, sounds, counts and asks. */
-export const PREF_KEYS = ['theme', 'cb', 'sound', 'haptic', 'hotkeys', 'iconBadge', 'miles', 'palette', 'reviewPace', 'reviewSize', 'dayGoal', 'nick', 'opts'] as const;
+export const PREF_KEYS = ['theme', 'cb', 'sound', 'haptic', 'hotkeys', 'iconBadge', 'miles', 'palette', 'textSize', 'contrast', 'dyslexia', 'reviewPace', 'reviewSize', 'dayGoal', 'nick', 'opts'] as const;
 export type Prefs = Pick<State, (typeof PREF_KEYS)[number]>;
 
 export function prefsOf(s: Prefs): Prefs {
-  return { theme: s.theme, cb: s.cb, sound: s.sound, haptic: s.haptic, hotkeys: s.hotkeys, iconBadge: s.iconBadge, miles: s.miles, palette: s.palette, reviewPace: s.reviewPace, reviewSize: s.reviewSize, dayGoal: s.dayGoal, nick: s.nick, opts: s.opts };
+  return { theme: s.theme, cb: s.cb, sound: s.sound, haptic: s.haptic, hotkeys: s.hotkeys, iconBadge: s.iconBadge, miles: s.miles, palette: s.palette, textSize: s.textSize, contrast: s.contrast, dyslexia: s.dyslexia, reviewPace: s.reviewPace, reviewSize: s.reviewSize, dayGoal: s.dayGoal, nick: s.nick, opts: s.opts };
 }
 
 /** The file: the progress, what the player has made (selections, lists, goals, notes, short forms) and the preferences. */
@@ -128,7 +129,7 @@ function cleanOpts(raw: unknown, current: Opts): Opts {
  */
 export function cleanPrefs(raw: unknown, current: Prefs): Prefs | null {
   if (!isObject(raw)) return null;
-  const flag = (key: 'cb' | 'sound' | 'haptic' | 'hotkeys' | 'iconBadge' | 'miles'): boolean => (typeof raw[key] === 'boolean' ? (raw[key] as boolean) : current[key]);
+  const flag = (key: 'cb' | 'sound' | 'haptic' | 'hotkeys' | 'iconBadge' | 'miles' | 'contrast' | 'dyslexia'): boolean => (typeof raw[key] === 'boolean' ? (raw[key] as boolean) : current[key]);
   return {
     theme: THEMES.includes(raw.theme as Theme) ? (raw.theme as Theme) : current.theme,
     cb: flag('cb'),
@@ -138,6 +139,9 @@ export function cleanPrefs(raw: unknown, current: Prefs): Prefs | null {
     iconBadge: flag('iconBadge'),
     miles: flag('miles'),
     palette: isPalette(raw.palette) ? raw.palette : current.palette,
+    textSize: isTextSize(raw.textSize) ? raw.textSize : current.textSize,
+    contrast: flag('contrast'),
+    dyslexia: flag('dyslexia'),
     reviewPace: isPace(raw.reviewPace) ? raw.reviewPace : current.reviewPace,
     reviewSize: isReviewSize(raw.reviewSize) ? raw.reviewSize : current.reviewSize,
     dayGoal: isDayGoal(raw.dayGoal) ? raw.dayGoal : (current.dayGoal ?? DAY_GOAL_DEFAULT),

@@ -10,6 +10,8 @@ import { useFullscreen } from '../lib/fullscreen';
 import { NOMINAL, coarsePath, countPoints, graticule, landBox, makeView, spotInFrame } from '../lib/geo';
 import { L } from '../lib/i18n';
 import { ARROWS, inOrder, moveFrom, movesOf, nearestTo, type Moves } from '../lib/mapKeys';
+import { TEXT_SCALE, labelScale } from '../lib/reading';
+import { useStore } from '../lib/store';
 import { cx } from '../lib/text';
 import type { AnyGeo, Deck, Item, LL } from '../lib/types';
 
@@ -381,6 +383,11 @@ const Overlay = memo(
     );
 
     const k = step == null ? 0 : 2 ** (step / STEPS);
+    // A larger letter, or the typeface for dyslexia, and each name takes more room: fewer of them fit.
+    const textSize = useStore((st) => st.textSize);
+    const dyslexia = useStore((st) => st.dyslexia);
+    const tall = TEXT_SCALE[textSize];
+    const wide = labelScale({ textSize, dyslexia });
     const rings = useMemo(() => (k ? pickRings(only ? shapes.filter((s) => only.has(s.id)) : shapes, k, paint) : []), [shapes, k, paint, only]);
 
     const dots = useMemo(() => shapes.filter((s) => s.kind === 'point' && (!only || only.has(s.id))), [shapes, only]);
@@ -393,10 +400,10 @@ const Overlay = memo(
         if (only && !only.has(s.id)) continue;
         // A dot has no room of its own: whether its name fits depends on what lies around it, and is settled below.
         const room = s.kind === 'point' ? Infinity : Math.max(s.x1 - s.x0, (s.y1 - s.y0) * 0.6, 0.02);
-        out.push({ s, pin, min: pin ? 0 : ((s.name.length * 6.3 + 8) * 0.9) / room });
+        out.push({ s, pin, min: pin ? 0 : ((s.name.length * 6.3 * wide + 8) * 0.9) / room });
       }
       return out;
-    }, [shapes, labels, pinned, only]);
+    }, [shapes, labels, pinned, only, wide]);
     /** Maps of dots, and physical maps that mix kinds lying on top of one another (a river crossing a desert): names can collide. */
     const crowded = useMemo(() => shapes.some((s) => s.kind !== 'area' || !!s.cls), [shapes]);
     const shown = useMemo(() => {
@@ -408,17 +415,17 @@ const Overlay = memo(
       return [...fit]
         .sort((a, b) => Number(b.pin) - Number(a.pin) || a.min - b.min)
         .filter((l) => {
-          const half = (l.s.name.length * 6.3 + 10) / 2;
+          const half = (l.s.name.length * 6.3 * wide + 10) / 2;
           const x = l.s.x * k;
-          const y = l.s.y * k - (l.s.kind === 'point' ? 12 : 0);
+          const y = l.s.y * k - (l.s.kind === 'point' ? 12 * tall : 0);
           if (!l.pin) {
-            if (placed.some((q) => Math.abs(q[0] - x) < q[2] + half && Math.abs(q[1] - y) < 15)) return false;
-            if (l.s.kind === 'point' && dots.some((d) => d !== l.s && Math.abs(d.x * k - x) < half + 6 && Math.abs(d.y * k - y) < 13)) return false;
+            if (placed.some((q) => Math.abs(q[0] - x) < q[2] + half && Math.abs(q[1] - y) < 15 * tall)) return false;
+            if (l.s.kind === 'point' && dots.some((d) => d !== l.s && Math.abs(d.x * k - x) < half + 6 && Math.abs(d.y * k - y) < 13 * tall)) return false;
           }
           placed.push([x, y, half]);
           return true;
         });
-    }, [named, k, crowded, dots]);
+    }, [named, k, crowded, dots, wide, tall]);
 
     const cursorSmall = !!cursor && (cursor.kind === 'point' || cursor.size * k < 26);
 
@@ -466,7 +473,7 @@ const Overlay = memo(
             // The name under the keyboard cursor is written by the cursor itself.
             cursorText && s.id === cursor?.id ? null : (
               <g key={s.id} transform={`translate(${s.x} ${s.y})`}>
-                <text className={cx('m-lbl', pin && 'm-lbl-pin')} y={s.kind === 'point' ? -12 : undefined}>
+                <text className={cx('m-lbl', pin && 'm-lbl-pin')} y={s.kind === 'point' ? -12 * tall : undefined}>
                   {s.name}
                 </text>
               </g>
@@ -478,7 +485,7 @@ const Overlay = memo(
             {/* A dot, or a piece too small for its outline to be seen, gets a ring around it. */}
             {cursorSmall && <circle r={cursor.kind === 'point' ? 11 : RING_R + 5} className="m-cur-ring" />}
             {cursorText && (
-              <text className="m-lbl m-lbl-pin m-lbl-cur" y={cursorSmall ? -(cursor.kind === 'point' ? 22 : RING_R + 16) : undefined}>
+              <text className="m-lbl m-lbl-pin m-lbl-cur" y={cursorSmall ? -(cursor.kind === 'point' ? 11 + 11 * tall : RING_R + 5 + 11 * tall) : undefined}>
                 {cursorText}
               </text>
             )}

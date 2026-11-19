@@ -13,7 +13,7 @@
   border-radius: 0 var(--r-1) var(--r-1) 0;
   background: color-mix(in srgb, var(--accent) 9%, transparent);
   color: var(--ink);
-  font-size: 14.5px;
+  font-size: calc(14.5px * var(--fs));
   line-height: 1.45;
   text-align: left;
 }
@@ -57,7 +57,7 @@
   background: none;
   color: var(--ink-2);
   font: inherit;
-  font-size: 14px;
+  font-size: calc(14px * var(--fs));
   text-decoration: underline;
   text-decoration-color: var(--line-2);
   text-underline-offset: 3px;
@@ -83,7 +83,7 @@
   background: var(--bg);
   color: var(--ink);
   font: inherit;
-  font-size: 15px;
+  font-size: calc(15px * var(--fs));
   line-height: 1.45;
   resize: vertical;
 }
@@ -97,12 +97,12 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  font-size: 13.5px;
+  font-size: calc(13.5px * var(--fs));
   color: var(--bad-ink);
 }
 .note-hint {
   color: var(--ink-3);
-  font-size: 13px;
+  font-size: calc(13px * var(--fs));
   line-height: 1.4;
 }
 .note-hint[role='alert'] {
@@ -133,7 +133,7 @@
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 1px 10px;
   align-items: baseline;
-  font-size: 14.5px;
+  font-size: calc(14.5px * var(--fs));
 }
 .history-list b {
   font-weight: 600;
@@ -141,7 +141,7 @@
 .history-list small {
   grid-column: 1 / -1;
   color: var(--ink-3);
-  font-size: 13px;
+  font-size: calc(13px * var(--fs));
   line-height: 1.4;
 }
 .history-grade {
@@ -149,7 +149,7 @@
   border-radius: 999px;
   background: var(--bg-2);
   color: var(--ink-2);
-  font-size: 12px;
+  font-size: calc(12px * var(--fs));
   font-weight: 600;
   white-space: nowrap;
 }
@@ -163,7 +163,7 @@
 }
 .history-mix {
   color: var(--ink-2);
-  font-size: 14px;
+  font-size: calc(14px * var(--fs));
   line-height: 1.45;
 }
 .history-mix b {

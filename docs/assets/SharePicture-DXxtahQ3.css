@@ -1,0 +1,1 @@
+.pic-note,.pic-wrap{text-align:center;flex:0 0 100%}.pic-note{color:var(--ink-3);font-size:calc(14px * var(--fs))}.pic-note:empty{display:none}.pic{border:1px solid var(--line);border-radius:var(--r-2);width:min(100%,320px);height:auto;box-shadow:var(--shadow-1);margin:4px auto 0;display:block}

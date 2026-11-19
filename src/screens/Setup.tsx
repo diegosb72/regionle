@@ -3,6 +3,7 @@ import { Check, ChevronDown, Infinity as InfinityIcon, Link2, ListChecks, ListPl
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { GoalBar } from '../components/GoalBar';
 import { Picker } from '../components/Picker';
+import { QrButton } from '../components/QrButton';
 import { canSpeak } from '../components/Speak';
 import { Flag, Seg, Toggle, capitalise } from '../components/ui';
 import { eligible, levelOf, loadFile, type World } from '../lib/data';
@@ -229,6 +230,7 @@ function ListCard({ list, others, world, onEdit, onLeave, onRemove, onUse }: { l
           {state === 'copied' ? <Check size={15} aria-hidden="true" /> : <Share2 size={15} aria-hidden="true" />}
           {state === 'copied' ? L('Enlace copiado', 'Link copied') : L('Compartir', 'Share')}
         </button>
+        <QrButton small url={url} what={L(`Lista «${list.name}»`, `List “${list.name}”`)} />
         <button type="button" className="btn btn-sm" onClick={onLeave}>
           <X size={15} aria-hidden="true" />
           {L('Dejar de usarla', 'Stop using it')}
@@ -257,8 +259,11 @@ function ListCard({ list, others, world, onEdit, onLeave, onRemove, onUse }: { l
  * `link` is a map and a game that the address asked for (`#/regiones/ES:p/capital`): they are chosen as if
  * the player had, and the address goes back to that of the section.
  */
-/** The link to the map and the game that are chosen: copied, or shown to be copied by hand where the browser will not. */
-function CopyLink({ url }: { url: string }) {
+/**
+ * The link to the map and the game that are chosen: copied, or shown to be copied by hand where the browser
+ * will not, or as a QR code to point a phone at. `what` names them: "España · Señalar".
+ */
+function CopyLink({ url, what }: { url: string; what: string }) {
   const [state, setState] = useState<'idle' | 'copied' | 'shown'>('idle');
   // Another map is another link: what was said of the last one no longer holds.
   useEffect(() => setState('idle'), [url]);
@@ -272,14 +277,17 @@ function CopyLink({ url }: { url: string }) {
   };
   return (
     <div className="maplink">
-      <button type="button" className="btn btn-sm" onClick={copy}>
-        {state === 'copied' ? <Check size={15} aria-hidden="true" /> : <Link2 size={15} aria-hidden="true" />}
-        {state === 'copied' ? L('Enlace copiado', 'Link copied') : L('Copiar enlace a este mapa', 'Copy a link to this map')}
-      </button>
+      <div className="maplink-btns">
+        <button type="button" className="btn btn-sm" onClick={copy}>
+          {state === 'copied' ? <Check size={15} aria-hidden="true" /> : <Link2 size={15} aria-hidden="true" />}
+          {state === 'copied' ? L('Enlace copiado', 'Link copied') : L('Copiar enlace a este mapa', 'Copy a link to this map')}
+        </button>
+        <QrButton small url={url} what={what} />
+      </div>
       <p className="opt-hint">
         {L(
-          'Abre el juego con este mapa y este juego ya elegidos: para mandárselo a alguien o guardarlo en marcadores.',
-          'It opens the game with this map and this game already chosen: to send to someone or to keep as a bookmark.',
+          'Abre el juego con este mapa y este juego ya elegidos: para mandárselo a alguien, guardarlo en marcadores o, con el código QR, abrirlo en clase desde la pizarra.',
+          'It opens the game with this map and this game already chosen: to send to someone, to keep as a bookmark or, with the QR code, to open in class from the board.',
         )}
       </p>
       {state === 'shown' && <input className="maplink-url" type="text" readOnly value={url} aria-label={L('Enlace a este mapa', 'Link to this map')} onFocus={(e) => e.currentTarget.select()} />}
@@ -1019,7 +1027,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
                 </Toggle>
               )}
             </div>
-            {!active && (isPhys || chosen.length > 0) && <CopyLink url={mapUrl} />}
+            {!active && (isPhys || chosen.length > 0) && <CopyLink url={mapUrl} what={`${meta.name} · ${summary} · ${def.name}`} />}
           </section>
         </div>
         <div className="startbar">

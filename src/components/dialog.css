@@ -1,0 +1,93 @@
+/* A panel over the page (components/Dialog.tsx). Fetched with the first thing that opens one. */
+
+.dlg {
+  width: min(620px, calc(100vw - 24px));
+  max-height: min(96vh, 1000px);
+  padding: 0;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-3);
+  background: var(--bg);
+  color: var(--ink);
+  box-shadow: var(--shadow-2);
+  overflow: hidden;
+}
+.dlg[open] {
+  display: flex;
+}
+.dlg::backdrop {
+  background: rgba(8, 18, 22, 0.55);
+}
+.dlg-box {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  width: 100%;
+  padding: 0 22px 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.dlg-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 -22px;
+  padding: 14px 22px 10px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+.dlg-head h2 {
+  font-size: calc(22px * var(--fs));
+}
+@media (max-width: 420px) {
+  .dlg-box {
+    padding: 0 14px 16px;
+  }
+  .dlg-head {
+    margin: 0 -14px;
+    padding: 12px 14px 8px;
+  }
+}
+
+/*
+ * On paper: the game is put away, however many pages it would take, and the panel is laid on the sheet
+ * without its frame. What is left of it to print is for each panel to say.
+ */
+@media print {
+  html.dlg-print,
+  html.dlg-print body {
+    height: auto;
+    overflow: visible;
+    background: #fff;
+  }
+  html.dlg-print #root {
+    display: none;
+  }
+  html.dlg-print .dlg {
+    position: absolute;
+    inset: 0 0 auto;
+    width: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    border: 0;
+    background: none;
+    color: #000;
+    box-shadow: none;
+    overflow: visible;
+  }
+  html.dlg-print .dlg::backdrop {
+    background: none;
+  }
+  html.dlg-print .dlg-box {
+    padding: 0;
+    overflow: visible;
+  }
+  html.dlg-print .dlg-head,
+  html.dlg-print .dlg-screen {
+    display: none;
+  }
+}

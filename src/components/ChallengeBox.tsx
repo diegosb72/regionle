@@ -5,6 +5,7 @@ import { canChallenge, challengeUrl, encodeChallenge } from '../lib/challenge';
 import { L } from '../lib/i18n';
 import { useStore, type GameConfig } from '../lib/store';
 import { cx, fmtTime } from '../lib/text';
+import { QrButton } from './QrButton';
 
 export function ChallengeBox({ cfg, score, ms, what }: { cfg: GameConfig; score: number; ms: number; what: string }) {
   const nick = useStore((s) => s.nick);
@@ -68,6 +69,7 @@ export function ChallengeBox({ cfg, score, ms, what }: { cfg: GameConfig; score:
           {state === 'copied' ? <Check size={16} aria-hidden="true" /> : <Swords size={16} aria-hidden="true" />}
           {state === 'copied' ? L('Enlace copiado', 'Link copied') : rival ? L('Devolver el reto', 'Send it back') : L('Retar a alguien', 'Challenge someone')}
         </button>
+        <QrButton url={url} what={L(`Reto: ${what}`, `Challenge: ${what}`)} />
       </div>
       <p className="duel-how">{L('El enlace lleva estas mismas preguntas, en el mismo orden, y tu resultado.', 'The link carries these same questions, in the same order, and your result.')}</p>
       {state === 'shown' && <textarea className="duel-link" readOnly rows={3} value={url} onFocus={(e) => e.currentTarget.select()} />}

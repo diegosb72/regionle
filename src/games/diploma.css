@@ -1,0 +1,263 @@
+/*
+ * The diploma of a game (games/DiplomaDialog.tsx). Fetched with it, when one is asked for.
+ *
+ * It is a sheet of 250 × 178 mm, and every size in it is so many of `--u`: a millimetre on paper, and on
+ * the screen whatever makes the sheet as wide as the panel has room for. So the preview is the sheet.
+ */
+
+.dip-dialog {
+  width: min(1040px, calc(100vw - 24px));
+}
+.dip-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px 10px;
+  padding-top: 4px;
+}
+.dip-form label {
+  display: grid;
+  flex: 1;
+  gap: 3px;
+  min-width: min(240px, 100%);
+  color: var(--ink-3);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.dip-form input {
+  width: 100%;
+  min-height: 42px;
+  padding: 6px 11px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-1);
+  background: var(--card);
+  color: var(--ink);
+  font-size: 16px;
+}
+.dip-form .btn {
+  min-height: 42px;
+}
+.dip-form .opt-hint {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.dip-fit {
+  container-type: inline-size;
+  width: 100%;
+}
+.dip {
+  /*
+   * As wide as the panel has room for, and no taller than what the window leaves under the name and the
+   * button: the whole sheet is seen at once. Where a browser cannot measure its box, the width of the
+   * window stands in for it.
+   */
+  --u: calc(min(100vw - 56px, 990px, (100vh - 250px) * 250 / 178) / 250);
+  --u: calc(min(100cqw, max(280px, (100vh - 250px) * 250 / 178)) / 250);
+  --dip-ink: #1b2a2d;
+  --dip-soft: #47575a;
+  --dip-brand: #0f5c63;
+  --dip-accent: #e2572b;
+  position: relative;
+  box-sizing: border-box;
+  width: calc(var(--u) * 250);
+  height: calc(var(--u) * 178);
+  margin: 0 auto;
+  padding: calc(var(--u) * 4);
+  background: #fff;
+  color: var(--dip-ink);
+  color-scheme: light;
+  box-shadow: var(--shadow-2);
+  font: 400 calc(var(--u) * 4.4) / 1.3 var(--sans);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.dip p,
+.dip h3 {
+  margin: 0;
+}
+/* Two rules around it: a thick one and, inside, a thin one. */
+.dip-frame {
+  box-sizing: border-box;
+  height: 100%;
+  padding: calc(var(--u) * 1.5);
+  border: calc(var(--u) * 1) solid var(--dip-brand);
+}
+.dip-in {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  height: 100%;
+  padding: calc(var(--u) * 7) calc(var(--u) * 12) calc(var(--u) * 8);
+  border: calc(var(--u) * 0.3) solid var(--dip-brand);
+  overflow: hidden;
+  text-align: center;
+}
+.dip-in > * {
+  position: relative;
+}
+/* The map that was played, behind the words: faint, as the mark in the paper of a diploma. */
+.dip-in > .dip-map {
+  position: absolute;
+  top: calc(var(--u) * 26);
+  left: calc(var(--u) * 28);
+  width: calc(100% - var(--u) * 56);
+  height: calc(100% - var(--u) * 44);
+  max-width: none;
+  overflow: visible;
+}
+.dip-map path {
+  fill: var(--dip-brand);
+  fill-opacity: 0.06;
+  stroke: var(--dip-brand);
+  stroke-opacity: 0.2;
+  stroke-width: calc(var(--u) * 0.18);
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.dip-top {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  width: 100%;
+}
+.dip-brand {
+  display: grid;
+  gap: calc(var(--u) * 0.6);
+  justify-items: start;
+  text-align: left;
+}
+.dip-brand b {
+  color: var(--dip-brand);
+  font: 600 calc(var(--u) * 6) / 1.1 var(--serif);
+  letter-spacing: -0.01em;
+}
+.dip-brand span {
+  color: var(--dip-soft);
+  font-size: calc(var(--u) * 3);
+}
+.dip-title {
+  padding-top: calc(var(--u) * 5);
+  color: var(--dip-brand);
+  font: 560 calc(var(--u) * 19) / 1 var(--serif);
+  letter-spacing: 0.01em;
+}
+.dip-qr {
+  display: block;
+  justify-self: end;
+  width: calc(var(--u) * 20);
+  height: calc(var(--u) * 20);
+}
+.dip-lead {
+  color: var(--dip-soft);
+  font-size: calc(var(--u) * 4.6);
+}
+/* The name, on its line: with none, the line alone, to write it by hand. */
+.dip-name {
+  box-sizing: border-box;
+  min-width: calc(var(--u) * 130);
+  max-width: 100%;
+  min-height: calc(var(--u) * 15);
+  padding: 0 calc(var(--u) * 6) calc(var(--u) * 1.2);
+  border-bottom: calc(var(--u) * 0.3) solid var(--dip-ink);
+  font: 560 calc(var(--u) * 11.5) / 1.15 var(--serif);
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+.dip-name.tight-1 {
+  font-size: calc(var(--u) * 9);
+}
+.dip-name.tight-2 {
+  font-size: calc(var(--u) * 7);
+}
+.dip-where {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 3);
+  max-width: 100%;
+  font: 600 calc(var(--u) * 7.4) / 1.2 var(--serif);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+.dip-where.tight-1 {
+  font-size: calc(var(--u) * 6.2);
+}
+.dip-where.tight-2 {
+  font-size: calc(var(--u) * 5);
+}
+.dip-where img {
+  flex: none;
+  width: auto;
+  height: calc(var(--u) * 7);
+  border: calc(var(--u) * 0.15) solid rgba(27, 42, 45, 0.25);
+  border-radius: calc(var(--u) * 0.6);
+}
+.dip-what {
+  color: var(--dip-soft);
+  font-size: calc(var(--u) * 4.6);
+  font-weight: 500;
+}
+.dip-result {
+  font-size: calc(var(--u) * 4.8);
+  font-weight: 600;
+}
+.dip-foot {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: end;
+  gap: calc(var(--u) * 10);
+  width: 100%;
+}
+.dip-field {
+  display: grid;
+  gap: calc(var(--u) * 1.2);
+  justify-self: center;
+  width: calc(var(--u) * 68);
+}
+.dip-field b {
+  padding-bottom: calc(var(--u) * 1.2);
+  border-bottom: calc(var(--u) * 0.3) solid var(--dip-ink);
+  font-size: calc(var(--u) * 4.4);
+  font-weight: 500;
+}
+.dip-field span {
+  color: var(--dip-soft);
+  font-size: calc(var(--u) * 3.2);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.dip-seal {
+  display: block;
+  width: calc(var(--u) * 30);
+  height: calc(var(--u) * 30);
+}
+.dip-seal path {
+  fill: var(--dip-accent);
+}
+.dip-seal circle {
+  fill: none;
+  stroke: #fffaf5;
+  stroke-width: 1.1;
+}
+.dip-seal text {
+  fill: #fffaf5;
+  font-family: var(--sans);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+@media print {
+  html.dlg-print .dip-fit {
+    container-type: normal;
+  }
+  html.dlg-print .dip {
+    --u: 1mm;
+    margin: 0 auto;
+    box-shadow: none;
+  }
+}

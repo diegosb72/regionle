@@ -42,7 +42,7 @@
 }
 .act-goal-unit {
   color: var(--ink-3);
-  font-size: 14px;
+  font-size: calc(14px * var(--fs));
 }
 .act-goal-now {
   display: grid;
@@ -52,7 +52,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 14.5px;
+  font-size: calc(14.5px * var(--fs));
   color: var(--ink-2);
 }
 .act-goal-text.met {
@@ -95,7 +95,7 @@
 .cal-rows {
   width: var(--cal-side);
   color: var(--ink-3);
-  font-size: 10px;
+  font-size: calc(10px * var(--fs));
   line-height: var(--cal-cell);
 }
 .cal-month {
@@ -103,7 +103,7 @@
   white-space: nowrap;
   overflow: visible;
   color: var(--ink-3);
-  font-size: 11px;
+  font-size: calc(11px * var(--fs));
   line-height: 14px;
 }
 .cal-day {
@@ -153,7 +153,7 @@
   flex-wrap: wrap;
   gap: 6px 18px;
   color: var(--ink-3);
-  font-size: 12.5px;
+  font-size: calc(12.5px * var(--fs));
 }
 .cal-legend {
   display: inline-flex;
@@ -170,7 +170,7 @@
 .chart-detail {
   min-height: 1.45em;
   color: var(--ink-2);
-  font-size: 14.5px;
+  font-size: calc(14.5px * var(--fs));
   line-height: 1.45;
 }
 /* Where a year does not fit with squares of a size, the latest weeks: some nine months, six, four. */
@@ -223,7 +223,7 @@
   align-items: center;
   gap: 5px;
   color: var(--ink-3);
-  font-size: 12.5px;
+  font-size: calc(12.5px * var(--fs));
 }
 .chart-key i {
   display: inline-block;
@@ -263,7 +263,7 @@
   right: 0;
   height: 0;
   color: var(--ink-3);
-  font-size: 11px;
+  font-size: calc(11px * var(--fs));
   line-height: 0;
   font-variant-numeric: tabular-nums;
 }
@@ -314,7 +314,7 @@
   gap: 2px;
   height: 16px;
   color: var(--ink-3);
-  font-size: 11px;
+  font-size: calc(11px * var(--fs));
   line-height: 16px;
 }
 .chart-x span {
@@ -355,7 +355,7 @@
 .months-table th[scope='row'] {
   text-transform: none;
   letter-spacing: 0;
-  font-size: 14.5px;
+  font-size: calc(14.5px * var(--fs));
   font-weight: 500;
   color: var(--ink);
   border-bottom: 1px solid var(--line);
@@ -397,10 +397,10 @@
     vertical-align: bottom;
   }
   .months-table {
-    font-size: 13.5px;
+    font-size: calc(13.5px * var(--fs));
   }
   .months-table th[scope='row'] {
-    font-size: 13.5px;
+    font-size: calc(13.5px * var(--fs));
   }
   .act-tiles dd svg {
     width: 18px;
@@ -410,7 +410,7 @@
 /* The narrowest phones: the four columns that are left fit with tighter headings. */
 @media (max-width: 350px) {
   .months-table thead th {
-    font-size: 11px;
+    font-size: calc(11px * var(--fs));
     letter-spacing: 0.03em;
   }
   .months-table td,

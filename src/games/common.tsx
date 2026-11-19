@@ -15,6 +15,7 @@ import { parsePhys } from '../lib/phys';
 import { useStore, type GameConfig } from '../lib/store';
 import { cx, fmtArea, fmtPop, fmtTime, nf } from '../lib/text';
 import type { Deck, Item, Res } from '../lib/types';
+import { DiplomaButton } from './DiplomaButton';
 import { scoreOf } from './quiz';
 
 /**
@@ -390,6 +391,7 @@ export function Results({
             </Suspense>
           </ErrorBoundary>
         )}
+        <DiplomaButton deck={deck} count={count} ms={ms} />
       </div>
       {children}
       {(['bad', 'warn', 'ok'] as const).map((res) => {
