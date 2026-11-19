@@ -19,7 +19,7 @@ import { REVIEW_MAX, allGroups, dueCount, dueGroups, forecast, gradeOf, missGrou
 import { reviewTable } from '../lib/reviewTable';
 import { go } from '../lib/router';
 import { isLearnt, useStore, type Skill, type Stat } from '../lib/store';
-import { cx, fmtTime, nf } from '../lib/text';
+import { cx, fmtDist, fmtTime, nf } from '../lib/text';
 import type { Country, Deck, Mode, Section } from '../lib/types';
 import { scoreOf } from '../games/quiz';
 
@@ -684,7 +684,7 @@ export function Progress({ world }: { world: World }) {
         : kind === 'regionle'
           ? [MODE_NAME.regionle, L(`racha de ${v}`, `streak of ${v}`)]
           : kind === 'blind'
-            ? [MODE_NAME.blind, L(`${nf(v)} km de error medio`, `mean error of ${nf(v)} km`)]
+            ? [MODE_NAME.blind, L(`${fmtDist(v)} de error medio`, `mean error of ${fmtDist(v)}`)]
           : kind === 'chain'
             ? [MODE_NAME.chain, L(`cadena de ${nf(v)}`, `chain of ${nf(v)}`)]
             : [MODE_NAME.nameall, fmtTime(v)];

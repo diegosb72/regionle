@@ -12,6 +12,7 @@ import { RECENT_MAX, isRecent, recentConfig, recentOf, withRecent, type Recent }
 import { today } from './text';
 import { cleanTypeins, setTypeins as applyTypeins, type Typeins } from './typeinPrefs';
 import type { Mode, Res, Section } from './types';
+import { setUnits } from './units';
 
 /**
  * The flags of the album (see lib/album.ts): id of the country → when its flag was learnt. A flag that
@@ -265,6 +266,8 @@ interface State {
   haptic: boolean;
   /** The number of waiting reviews on the icon of the installed game. On unless turned off. */
   iconBadge: boolean;
+  /** Distances in miles and surfaces in square miles, instead of kilometres. Off until asked for. */
+  miles: boolean;
   /** Short forms chosen in the settings for each thing, by id: those added to it and those taken from it. */
   typeins: Typeins;
   /** Whether names of several words get their initials unasked; null until chosen: as the game ships. */
@@ -277,6 +280,7 @@ interface State {
   setSound(on: boolean): void;
   setHaptic(on: boolean): void;
   setIconBadge(on: boolean): void;
+  setMiles(on: boolean): void;
   setTypeins(typeins: Typeins): void;
   setTypeinAuto(auto: boolean | null): void;
   saveList(list: CustomList): void;
@@ -358,6 +362,7 @@ export const useStore = create<State>()(
       sound: false,
       haptic: false,
       iconBadge: true,
+      miles: false,
       typeins: {},
       typeinAuto: null,
 
@@ -374,6 +379,7 @@ export const useStore = create<State>()(
       setSound: (sound) => set({ sound }),
       setHaptic: (haptic) => set({ haptic }),
       setIconBadge: (iconBadge) => set({ iconBadge }),
+      setMiles: (miles) => set({ miles }),
       setTypeins: (typeins) => set({ typeins }),
       setTypeinAuto: (typeinAuto) => set({ typeinAuto }),
       saveList: (list) => set((s) => ({ lists: [...s.lists.filter((l) => l.id !== list.id), list] })),
@@ -577,6 +583,7 @@ export const useStore = create<State>()(
         sound: s.sound,
         haptic: s.haptic,
         iconBadge: s.iconBadge,
+        miles: s.miles,
         typeins: s.typeins,
         typeinAuto: s.typeinAuto,
       }),
@@ -590,6 +597,12 @@ const followTypeins = (s: State) => applyTypeins({ auto: s.typeinAuto, edits: s.
 followTypeins(useStore.getState());
 useStore.subscribe((s, prev) => {
   if (s.typeins !== prev.typeins || s.typeinAuto !== prev.typeinAuto) followTypeins(s);
+});
+
+// And so is the unit distances are told in, by every text that tells one.
+setUnits(useStore.getState().miles ? 'mi' : 'km');
+useStore.subscribe((s, prev) => {
+  if (s.miles !== prev.miles) setUnits(s.miles ? 'mi' : 'km');
 });
 
 /**
@@ -617,6 +630,7 @@ export function mergeSaved(saved: unknown, current: State): State {
     sound: p.sound === true,
     haptic: p.haptic === true,
     iconBadge: p.iconBadge !== false,
+    miles: p.miles === true,
     // Players from before the tallies existed start from what their latest sessions add up to.
     tot: p.tot && Object.keys(p.tot).length ? p.tot : totalsOf(p.sessions ?? []),
     typeins: cleanTypeins(p.typeins),

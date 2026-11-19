@@ -105,6 +105,8 @@ export function App() {
   const setIconBadge = useStore((s) => s.setIconBadge);
   const [badges] = useState(badgeSupported);
   useIconBadge(iconBadge);
+  const miles = useStore((s) => s.miles);
+  const setMiles = useStore((s) => s.setMiles);
   const setLang = useStore((s) => s.setLang);
   const cb = useStore((s) => s.cb);
   const setCb = useStore((s) => s.setCb);
@@ -251,9 +253,10 @@ export function App() {
   else if (route.kind === 'settings') page = <Settings world={world} path={route.path} />;
   else page = <Home world={world} />;
 
-  // What breaks stays inside its screen, and moving to another one leaves it behind.
+  // What breaks stays inside its screen, and moving to another one leaves it behind. A screen is also
+  // mounted afresh when the unit of the distances changes: every text that tells one is read again.
   const guarded = (
-    <ErrorBoundary key={route.kind === 'settings' ? SETTINGS_PATH : route.kind === 'section' ? PATHS[route.section] : path}>
+    <ErrorBoundary key={`${miles ? 'mi' : 'km'} ${route.kind === 'settings' ? SETTINGS_PATH : route.kind === 'section' ? PATHS[route.section] : path}`}>
       <Suspense fallback={<Spinner label={L('Cargando…', 'Loading…')} />}>{page}</Suspense>
     </ErrorBoundary>
   );
@@ -360,6 +363,9 @@ export function App() {
               {L('Vibración al responder', 'Vibration when you answer')}
             </Toggle>
           )}
+          <Toggle checked={miles} onChange={setMiles} hint={L('Las distancias, en millas, y las superficies, en millas cuadradas. Las altitudes siguen en metros.', 'Distances in miles and surfaces in square miles. Heights stay in metres.')}>
+            {L('Distancias en millas', 'Distances in miles')}
+          </Toggle>
           {badges && (
             <Toggle
               checked={iconBadge}

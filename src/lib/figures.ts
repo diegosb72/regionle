@@ -7,6 +7,7 @@ import { L, getLang, nm } from './i18n';
 import { metricNoun, metricOrder, type MetricId } from './metricNames';
 import { TOP_MIN } from './rules';
 import { fmtArea, fmtPop, fmtShort, nf, pick, sample, type Answerable, type Rng } from './text';
+import { area, areaScale, areaUnit, getUnits } from './units';
 import type { Country, Deck, Item } from './types';
 
 export type { MetricId };
@@ -35,6 +36,11 @@ export interface Metric {
   order: string;
   units: { label: string; factor: number }[];
   defaultUnit: number;
+  /**
+   * How many of what the figure is kept in make one of what it is shown in, where they differ: the km² of a
+   * square mile. A round figure is round in what is shown.
+   */
+  per?: number;
 }
 
 const one = (v: number) => nf(v, v < 10 ? 1 : 0);
@@ -66,7 +72,10 @@ function makeMetric(id: MetricId): Metric {
         id,
         noun: metricNoun(id),
         full: fmtArea,
-        short: (v) => `${v < 10_000 ? nf(v, v < 100 ? 1 : 0) : fmtShort(v)} km²`,
+        short: (v) => {
+          const n = area(v);
+          return `${n < 10_000 ? nf(n, n < 100 ? 1 : 0) : fmtShort(n)} ${areaUnit()}`;
+        },
         more: L('Más superficie', 'Larger'),
         less: L('Menos superficie', 'Smaller'),
         ask: L('¿Más o menos superficie?', 'Larger or smaller?'),
@@ -75,29 +84,33 @@ function makeMetric(id: MetricId): Metric {
         up: L('busca más superficie', 'look for a larger one'),
         down: L('busca menos superficie', 'look for a smaller one'),
         order: metricOrder(id),
+        // A figure is kept in km² whatever it is typed in: the factor of a unit says how many it holds.
         units: [
-          { label: 'km²', factor: 1 },
-          { label: L('miles de km²', 'thousand km²'), factor: 1e3 },
-          { label: L('millones de km²', 'million km²'), factor: 1e6 },
+          { label: areaUnit(), factor: areaScale() },
+          { label: L(`miles de ${areaUnit()}`, `thousand ${areaUnit()}`), factor: 1e3 * areaScale() },
+          { label: L(`millones de ${areaUnit()}`, `million ${areaUnit()}`), factor: 1e6 * areaScale() },
         ],
-        defaultUnit: 1e3,
+        defaultUnit: 1e3 * areaScale(),
+        per: areaScale(),
       };
     case 'density':
       return {
         id,
         noun: metricNoun(id),
-        full: (v) => `${one(v)} ${L('habitantes por km²', 'people per km²')}`,
-        short: (v) => `${one(v)} ${L('hab./km²', 'per km²')}`,
+        // Kept per km²: a square mile holds some two and a half times as many.
+        full: (v) => `${one(v * areaScale())} ${L(`habitantes por ${areaUnit()}`, `people per ${areaUnit()}`)}`,
+        short: (v) => `${one(v * areaScale())} ${L(`hab./${areaUnit()}`, `per ${areaUnit()}`)}`,
         more: L('Más densidad', 'Denser'),
         less: L('Menos densidad', 'Less dense'),
         ask: L('¿Más o menos densidad de población?', 'More or less densely populated?'),
-        compare: (b, a) => L(`¿${b} tiene más o menos habitantes por km² que ${a}?`, `Does ${b} have more or fewer people per km² than ${a}?`),
-        exactAsk: L('¿Cuántos habitantes tiene por km²?', 'How many people per km² does it have?'),
+        compare: (b, a) => L(`¿${b} tiene más o menos habitantes por ${areaUnit()} que ${a}?`, `Does ${b} have more or fewer people per ${areaUnit()} than ${a}?`),
+        exactAsk: L(`¿Cuántos habitantes tiene por ${areaUnit()}?`, `How many people per ${areaUnit()} does it have?`),
         up: L('busca más densidad', 'look for a denser one'),
         down: L('busca menos densidad', 'look for a less dense one'),
         order: metricOrder(id),
-        units: [{ label: L('hab./km²', 'per km²'), factor: 1 }],
-        defaultUnit: 1,
+        units: [{ label: L(`hab./${areaUnit()}`, `per ${areaUnit()}`), factor: 1 / areaScale() }],
+        defaultUnit: 1 / areaScale(),
+        per: 1 / areaScale(),
       };
     case 'elev':
       return {
@@ -159,9 +172,9 @@ function makeMetric(id: MetricId): Metric {
 }
 
 const metrics = new Map<string, Metric>();
-/** A figure with its words in the language of the interface; the same object every time. */
+/** A figure with its words in the language of the interface and its units those of the player; the same object every time. */
 export function metricOf(id: MetricId): Metric {
-  const k = `${getLang()}:${id}`;
+  const k = `${getLang()}:${getUnits()}:${id}`;
   let m = metrics.get(k);
   if (!m) {
     m = makeMetric(id);

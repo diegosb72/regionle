@@ -4,6 +4,8 @@
  */
 import { distanceKm } from './geo';
 import { L } from './i18n';
+import { nf } from './text';
+import { dist, distUnit } from './units';
 import type { LL, Res } from './types';
 
 const RAD = Math.PI / 180;
@@ -64,6 +66,11 @@ export function roundKm(km: number): number {
   return Math.max(1, Math.round(km));
 }
 
+/** The same in the unit of the player, with it: "about 440 km" is "about 275 mi", not "273 mi". */
+export function saidDist(km: number): string {
+  return `${nf(roundKm(dist(km)))} ${distUnit()}`;
+}
+
 /** How much longer each option is than the one before. */
 const STEP = 1.6;
 /** The longest way there is between two places: half the way round the world. */
@@ -73,6 +80,7 @@ export const HALF_WORLD = 20000;
  * Four distances to choose from, the shortest first: the true one and three that are each some 60 % apart
  * from the next. Where the true one falls among them is drawn by lot, so that it is not always the second.
  * None is longer than `maxKm`, what the map allows: 25,000 km is no distance between two places on Earth.
+ * It works as well in miles, with both figures in miles: the options are then round numbers of miles.
  */
 export function distanceOptions(km: number, rand: () => number, maxKm = HALF_WORLD): { options: number[]; right: number } {
   const truth = roundKm(km);

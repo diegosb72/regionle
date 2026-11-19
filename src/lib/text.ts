@@ -1,5 +1,6 @@
 /** Text helpers: answer matching, number formatting and seeded randomness. */
 import { L, getLang } from './i18n';
+import { area, areaUnit, dist, distUnit } from './units';
 
 const FOLD: Record<string, string> = {
   ß: 'ss',
@@ -895,9 +896,17 @@ export function fmtPop(n: number): string {
   return `${fmtBig(n)} ${L(n >= 999_500 ? 'de habitantes' : 'habitantes', 'people')}`;
 }
 
+/** A surface in the unit of the player: "505.990 km²" · "195.364 mi²" ("195,364 sq mi"). */
 export function fmtArea(km2: number): string {
-  if (km2 >= 999_500) return `${fmtBig(km2)} ${L('de km²', 'km²')}`;
-  return `${nf(km2, km2 < 100 ? 2 : 0)} km²`;
+  const v = area(km2);
+  const unit = areaUnit();
+  if (v >= 999_500) return `${fmtBig(v)} ${L(`de ${unit}`, unit)}`;
+  return `${nf(v, v < 100 ? 2 : 0)} ${unit}`;
+}
+
+/** A distance in the unit of the player: "441 km" · "274 mi". Whole, unless decimals are asked for. */
+export function fmtDist(km: number, digits = 0): string {
+  return `${nf(dist(km), digits)} ${distUnit()}`;
 }
 
 /** "1:05", "12:40", "1:02:03". */

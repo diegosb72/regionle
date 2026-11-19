@@ -6,6 +6,7 @@
 import { metricOf } from './figures';
 import { L, capName, getLang, nm } from './i18n';
 import { listed, namesOverlap, pick, type Rng } from './text';
+import { areaUnit } from './units';
 import type { Country } from './types';
 
 export type StatementKind = 'border' | 'capital' | 'area' | 'pop' | 'density' | 'neighbours' | 'north' | 'landlocked' | 'island' | 'continent';
@@ -150,7 +151,7 @@ const MAKERS: Record<StatementKind, Maker> = {
 
   area: compare('area', (c) => c.ar, (a, b) => L(`${a} es más grande que ${b}.`, `${a} is larger than ${b}.`), (c) => metricOf('area').short(c.ar)),
   pop: compare('pop', (c) => c.pop ?? 0, (a, b) => L(`${a} tiene más habitantes que ${b}.`, `${a} has more people than ${b}.`), (c) => metricOf('pop').full(c.pop ?? 0)),
-  density: compare('density', density, (a, b) => L(`${a} tiene más habitantes por km² que ${b}.`, `${a} has more people per km² than ${b}.`), (c) => metricOf('density').short(density(c))),
+  density: compare('density', density, (a, b) => L(`${a} tiene más habitantes por ${areaUnit()} que ${b}.`, `${a} has more people per ${areaUnit()} than ${b}.`), (c) => metricOf('density').short(density(c))),
   neighbours: (list, truth, world, rng) => {
     // Counted two ways, with and without the territories that are not states: a statement is made only
     // where both counts tell the two countries apart, so that it does not hang on what counts as a country.

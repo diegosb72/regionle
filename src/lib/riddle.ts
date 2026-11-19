@@ -2,7 +2,7 @@
  * "¿Quién soy?": a piece of the map speaks about itself, one clue at a time, from what could be many of
  * them to what could hardly be another. The clues are made of what the game already knows of each piece.
  */
-import { courseDeg, pointName, pointOf, roundKm } from './bearings';
+import { courseDeg, pointName, pointOf, saidDist } from './bearings';
 import { distanceKm } from './geo';
 import { L, capName, nm } from './i18n';
 import type { Places } from './sets';
@@ -206,8 +206,8 @@ function cityClues(item: Item, deck: Deck): (Clue | null)[] {
         id: 'near',
         kind: 'text',
         text: L(
-          `Estoy a unos ${nf(roundKm(distanceKm(from.lp, item.lp)))} km al ${pointName(pointOf(courseDeg(from.lp, item.lp)))} de ${from.name}.`,
-          `I am about ${nf(roundKm(distanceKm(from.lp, item.lp)))} km ${pointName(pointOf(courseDeg(from.lp, item.lp)))} of ${from.name}.`,
+          `Estoy a unos ${saidDist(distanceKm(from.lp, item.lp))} al ${pointName(pointOf(courseDeg(from.lp, item.lp)))} de ${from.name}.`,
+          `I am about ${saidDist(distanceKm(from.lp, item.lp))} ${pointName(pointOf(courseDeg(from.lp, item.lp)))} of ${from.name}.`,
         ),
         show: from.id,
       }

@@ -28,3 +28,6 @@ export const turnsOutlines = (section: Section, mode: Mode): boolean => mode ===
  */
 export const asksByFlag = (section: Section, mode: Mode, by: { pinBy?: string; cardAsk?: string } = {}): boolean =>
   section === 'countries' && (mode === 'flag' || mode === 'mix' || (mode === 'pin' && by.pinBy === 'flag') || (mode === 'cards' && by.cardAsk === 'flag'));
+
+/** How close a city has to be placed blind for it to be told as a feat, in kilometres. */
+export const NEAR_KM = 10;
