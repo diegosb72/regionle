@@ -26,11 +26,11 @@ const COUNTDOWNS = [0, 120, 300, 600, 900];
 const levelName = (n: number): string => [L('Fácil', 'Easy'), L('Medio', 'Medium'), L('Difícil', 'Hard')][n - 1];
 const ANSWER_MODES: Mode[] = ['learn', 'identify', 'outline', 'capital', 'flag', 'parent', 'mix'];
 /** Games that are one round of everything: they cannot go on for ever. */
-const FINITE_MODES: Mode[] = ['neighbours', 'blind', 'hotcold', 'bearing', 'cards'];
+const FINITE_MODES: Mode[] = ['neighbours', 'blind', 'hotcold', 'bearing', 'group', 'whoami', 'cards'];
 /** Games where names are typed and a list of suggestions can help. */
-const SUGGEST_MODES: Mode[] = ['travel', 'neighbours', 'regionle', 'which', 'topten'];
+const SUGGEST_MODES: Mode[] = ['travel', 'neighbours', 'chain', 'whoami', 'regionle', 'which', 'topten'];
 /** Games that stop on a missed answer long enough to read about it. */
-const WIKI_MODES: Mode[] = ['explore', 'pin', 'identify', 'outline', 'regionle', 'puzzle', 'neighbours', 'capital', 'flag', 'blind', 'hotcold', 'bearing', 'mix', 'listen'];
+const WIKI_MODES: Mode[] = ['explore', 'pin', 'identify', 'outline', 'regionle', 'puzzle', 'neighbours', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'mix', 'listen'];
 
 type Cities = Awaited<ReturnType<typeof loadCities>>;
 type Physical = Awaited<ReturnType<typeof loadPhysical>>;
@@ -392,7 +392,9 @@ export function Setup({ section, world }: { section: Section; world: World }) {
           ? L('No tenemos las capitales de esas regiones: prueba otro nivel u otro país.', 'We do not have the capitals of those regions: try another level or country.')
           : def.id === 'travel' && units < 4
             ? L('La ruta necesita un mapa con más piezas.', 'The route needs a map with more pieces.')
-            : null;
+            : def.id === 'chain' && units < 3
+              ? L('La cadena necesita un mapa con más piezas.', 'The chain needs a map with more pieces.')
+              : null;
   /** "Oye y señala" is said by the voice of the browser: where there is none, there is no game. */
   const mute = def.id === 'listen' && !canSpeak();
   const problem = unplayable ?? (mute ? L('Este navegador no tiene voz para decir los nombres: juega a «Señalar».', 'This browser has no voice to say the names: play “Pin it”.') : null);

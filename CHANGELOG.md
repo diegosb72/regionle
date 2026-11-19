@@ -3,6 +3,17 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.16.0 — 19 de noviembre de 2026
+
+- Marca el grupo: te damos un grupo y marcas en el mapa todas sus piezas: la Unión Europea, las provincias de Andalucía, lo que limita con Francia.
+- Al comprobar, el mapa pinta en verde lo acertado, en amarillo lo que faltaba y en rojo lo que sobraba. En un grupo grande, un desliz cuenta como casi.
+- Cadena de vecinos: de una pieza a una vecina, y de esa a otra, sin pasar dos veces por la misma. El mapa no enseña fronteras: se dibuja con tu cadena.
+- La cadena acaba cuando no queda salida, al tercer fallo o cuando te plantas. El juego te dice hasta dónde ha llegado él, y guarda tu récord de cada mapa.
+- ¿Quién soy?: una pieza habla de sí misma, pista a pista: su tamaño, sus fronteras, un vecino, su bandera o su silueta. Adivínala con las menos que puedas.
+- Un nombre equivocado trae la pista siguiente. La primera pista vale seis puntos y cada una de más, uno menos.
+- Al marcar piezas en un mapa, la que acabas de tocar ya se ve marcada sin apartar el ratón.
+- La partida carga más deprisa: los juegos nuevos se descargan solo cuando los juegas.
+
 ## 1.15.0 — 18 de noviembre de 2026
 
 - Situar a ciegas, también en regiones, países y geografía física: el mapa no enseña fronteras, ríos ni mares, y haces clic donde crees que está cada cosa.

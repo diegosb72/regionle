@@ -1,0 +1,85 @@
+/*
+ * "¿Quién soy?" (`WhoAmI.tsx`): the clues of a riddle, one under another, the newest marked.
+ * Fetched with the game, after `styles.css`, on which it stands.
+ */
+.whoami-count {
+  margin-top: 2px;
+  color: var(--ink-2);
+  font-size: 14px;
+}
+.whoami-count b {
+  color: var(--ink-3);
+  font-weight: 600;
+}
+.clues {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.clue {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 10px;
+  align-items: start;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--card);
+  font-size: 15.5px;
+  line-height: 1.35;
+}
+.clue.fresh {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  animation: rise 0.25s ease-out;
+}
+.clue-n {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bg-2);
+  color: var(--ink-2);
+  font-size: 12px;
+  font-weight: 700;
+}
+.clue-flag,
+.clue-shape {
+  grid-column: 2;
+}
+.clue-shape {
+  width: 104px;
+  height: 104px;
+}
+.clue-shape path {
+  fill: var(--m-sel);
+  stroke: var(--ink);
+  stroke-width: 0.8px;
+  stroke-linejoin: round;
+}
+.whoami-score {
+  margin-top: 2px;
+}
+/* The box to type in and its note, kept together: they are what is brought into view after each clue. */
+.whoami-answer {
+  display: grid;
+  gap: 10px;
+  scroll-margin-bottom: 8px;
+}
+/* On a phone the panel is half the screen: the clues take less room, so that the box to type in stays near. */
+@media (max-width: 860px) {
+  .clues {
+    gap: 4px;
+  }
+  .clue {
+    padding: 6px 10px;
+    font-size: 14.5px;
+  }
+  .clue-shape {
+    width: 76px;
+    height: 76px;
+  }
+}

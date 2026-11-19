@@ -11,7 +11,9 @@ import {
   GraduationCap,
   Hash,
   Landmark,
+  LassoSelect,
   Layers,
+  Link2,
   ListOrdered,
   MapPin,
   Navigation,
@@ -26,6 +28,7 @@ import {
   Target,
   Thermometer,
   Trophy,
+  VenetianMask,
   Waypoints,
   type LucideIcon,
 } from 'lucide-react';
@@ -172,6 +175,8 @@ function modesOf(section: Section): ModeDef[] {
   };
   const travel: ModeDef = { id: 'travel', name: L('Ruta', 'Route'), desc: L('Une dos puntos del mapa pasando por las menos fronteras posibles.', 'Join two places crossing as few borders as you can.'), icon: Route, level: 3, group: 'links' };
   const puzzle: ModeDef = { id: 'puzzle', name: L('Puzle', 'Jigsaw'), desc: L('Te damos una pieza sin nombre y la colocas en el mapa mudo.', 'You get an unnamed piece and place it on the blank map.'), icon: Puzzle, level: 2, group: 'map' };
+  /** A set of pieces named, and all of them marked: what the sets are depends on the map. */
+  const group = (desc: string): ModeDef => ({ id: 'group', name: L('Marca el grupo', 'Mark the group'), desc, icon: LassoSelect, level: 2, group: 'map' });
   const neighbours: ModeDef = {
     id: 'neighbours',
     name: L('Vecinos', 'Neighbours'),
@@ -180,6 +185,19 @@ function modesOf(section: Section): ModeDef[] {
     level: 3,
     group: 'links',
   };
+  const chain: ModeDef = {
+    id: 'chain',
+    name: L('Cadena de vecinos', 'Neighbour chain'),
+    desc: L(
+      'De una pieza a una vecina, y de esa a otra, sin pasar dos veces por la misma. El mapa no enseña las fronteras: ¿hasta dónde llegas antes de quedarte sin salida?',
+      'From one piece to a neighbour, and on from that one, never through the same piece twice. The map shows no borders: how far do you get before there is no way on?',
+    ),
+    icon: Link2,
+    level: 3,
+    group: 'links',
+  };
+  /** A riddle: clues about a piece, from the widest to the narrowest. */
+  const whoami = (desc: string): ModeDef => ({ id: 'whoami', name: L('¿Quién soy?', 'Who am I?'), desc, icon: VenetianMask, level: 2, group: 'facts' });
   const compass: ModeDef = {
     id: 'compass',
     name: L('Norte–sur', 'North–south'),
@@ -223,10 +241,17 @@ function modesOf(section: Section): ModeDef[] {
         identify,
         nameall,
         puzzle,
+        group(
+          L(
+            'Te damos un grupo —las provincias de una comunidad, las regiones de un país, lo que limita con una pieza— y marcas en el mapa todas las que son de él, y ninguna más.',
+            'You get a group — the provinces of a community, the regions of a country, what borders a piece — and mark on the map every piece that is in it, and none besides.',
+          ),
+        ),
         mixShapes,
         outline,
         regionle,
         neighbours,
+        chain,
         travel,
         {
           id: 'parent',
@@ -249,6 +274,12 @@ function modesOf(section: Section): ModeDef[] {
           level: 2,
           group: 'facts',
         },
+        whoami(
+          L(
+            'Una pieza habla de sí misma, pista a pista: su tamaño, hacia dónde cae, con cuántas limita, una vecina, su silueta. Adivínala con las menos pistas que puedas.',
+            'A piece tells about itself, clue by clue: its size, where it lies, how many it borders, a neighbour, its outline. Guess it with as few clues as you can.',
+          ),
+        ),
         ...figures(L('Aquí, por la superficie de cada región.', 'Here, by the area of each region.'), L('¿Qué región?', 'Which region?')),
       ];
     case 'countries':
@@ -264,6 +295,12 @@ function modesOf(section: Section): ModeDef[] {
         identify,
         nameall,
         puzzle,
+        group(
+          L(
+            'Te damos un grupo —la Unión Europea, los países sin mar, una parte del continente, los vecinos de un país— y marcas en el mapa todos los que son de él, y ninguno más.',
+            'You get a group — the European Union, the landlocked countries, a part of the continent, the neighbours of a country — and mark on the map every country that is in it, and none besides.',
+          ),
+        ),
         mix(
           L(
             'Cada país, de una manera, según toque: señalarlo, decir cuál se ilumina, colocarlo como en el puzle, reconocer su silueta, su capital o su bandera.',
@@ -273,6 +310,7 @@ function modesOf(section: Section): ModeDef[] {
         outline,
         regionle,
         neighbours,
+        chain,
         travel,
         compass,
         bearingLand,
@@ -285,6 +323,12 @@ function modesOf(section: Section): ModeDef[] {
           level: 2,
           group: 'facts',
         },
+        whoami(
+          L(
+            'Un país habla de sí mismo, pista a pista: su tamaño, su parte del mundo, sus fronteras, un vecino, su capital, su bandera. Adivínalo con las menos pistas que puedas.',
+            'A country tells about itself, clue by clue: its size, its part of the world, its borders, a neighbour, its capital, its flag. Guess it with as few clues as you can.',
+          ),
+        ),
       ];
     case 'cities':
       return [
@@ -303,6 +347,7 @@ function modesOf(section: Section): ModeDef[] {
         hotcold,
         { ...identify, desc: L('Se ilumina un punto del mapa y dices qué ciudad es.', 'A dot lights up and you say which city it is.') },
         nameall,
+        group(L('Te damos un país, o una región si has elegido un solo país, y marcas en el mapa todas sus ciudades, y ninguna más.', 'You get a country, or a region when a single country is chosen, and mark all its cities on the map, and none besides.')),
         mixDots,
         {
           id: 'parent',
@@ -314,6 +359,12 @@ function modesOf(section: Section): ModeDef[] {
         },
         compass,
         bearing(L('De ciudad a ciudad, en línea recta.', 'From city to city, as the crow flies.')),
+        whoami(
+          L(
+            'Una ciudad habla de sí misma, pista a pista: su tamaño, su país o su región, hacia dónde cae, a cuánto está de la más grande. Adivínala con las menos pistas que puedas.',
+            'A city tells about itself, clue by clue: its size, its country or its region, where it lies, how far it is from the largest. Guess it with as few clues as you can.',
+          ),
+        ),
         ...figures(L('Aquí, por la población de cada ciudad.', 'Here, by the population of each city.'), L('¿Qué ciudad?', 'Which city?')),
       ];
     case 'physical':
@@ -381,12 +432,18 @@ function modeName(mode: Mode): string {
       return L('Ruta', 'Route');
     case 'puzzle':
       return L('Puzle', 'Jigsaw');
+    case 'group':
+      return L('Marca el grupo', 'Mark the group');
     case 'neighbours':
       return L('Vecinos', 'Neighbours');
+    case 'chain':
+      return L('Cadena de vecinos', 'Neighbour chain');
     case 'capital':
       return L('Capitales', 'Capitals');
     case 'flag':
       return L('Banderas', 'Flags');
+    case 'whoami':
+      return L('¿Quién soy?', 'Who am I?');
     case 'hilo':
       return L('Mayor o menor', 'Higher or lower');
     case 'rank':
@@ -480,7 +537,7 @@ function lazy<K extends string, V>(keys: readonly K[], make: (key: K) => V): Rec
   return out;
 }
 
-const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'neighbours', 'capital', 'flag', 'blind', 'hotcold', 'bearing', 'edit', 'print', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'topten', 'cards', 'mix', 'listen'];
+const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'group', 'neighbours', 'chain', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'edit', 'print', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'topten', 'cards', 'mix', 'listen'];
 
 export const MODES: Record<Section, ModeDef[]> = lazy(SECTION_IDS, modesOf);
 export const MODE_NAME: Record<Mode, string> = lazy(MODE_IDS, modeName);

@@ -190,9 +190,15 @@ export type Mode =
   | 'outline'
   | 'travel'
   | 'puzzle'
+  /** A set of pieces that go together is named, and all of them are marked on the map. */
+  | 'group'
   | 'neighbours'
+  /** From a piece to one that borders it, and on, never through the same one twice. */
+  | 'chain'
   | 'capital'
   | 'flag'
+  /** A piece tells about itself, a clue at a time, until its name is given. */
+  | 'whoami'
   | 'exact'
   | 'which'
   | 'hilo'

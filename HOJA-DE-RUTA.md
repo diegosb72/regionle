@@ -15,13 +15,13 @@ servicio de fuera).
 
 - [x] 1. Situar a ciegas en regiones, países y física: el mapa sin fronteras, ríos ni mares; dentro de la pieza es acierto y fuera se mide hasta su borde o su curso — **1.15.0**
 - [x] 2. ¿A qué pertenece?: de cada provincia, su comunidad; de cada ciudad, su región o su país — **1.7.0**
-- [ ] 3. Marca el grupo
+- [x] 3. Marca el grupo: se nombra un grupo (la Unión Europea, las provincias de una comunidad, lo que limita con una pieza) y se marcan en el mapa todas sus piezas — **1.16.0**
 - [x] 4. Norte–sur y este–oeste — **1.7.0**
 - [x] 5. Distancias y rumbos: hacia dónde queda un sitio desde otro, entre los ocho rumbos, y a cuántos kilómetros, entre cuatro distancias; en regiones, países y ciudades — **1.15.0**
 - [x] 6. Caliente y frío: seis clics para encontrar cada cosa en el mapa vacío, y cada uno dice lo cerca que ha caído — **1.15.0**
-- [ ] 7. ¿Quién soy?
+- [x] 7. ¿Quién soy?: una pieza da pistas sobre sí misma, de la más amplia a la más estrecha, hasta que se adivina; en regiones, países y ciudades — **1.16.0**
 - [ ] 8. Fronteras
-- [ ] 9. Cadena de vecinos
+- [x] 9. Cadena de vecinos: de una pieza a una vecina y de esa a otra, sin repetir, hasta quedarse sin salida; con récord por mapa — **1.16.0**
 - [x] 10. Siluetas difíciles: giradas, sin el norte arriba, en Silueta, en Regionle y en el popurrí — **1.12.0**
 - [x] 11. Banderas difíciles: en gris o desenfocadas, en Banderas, en Señalar por bandera, en las tarjetas y en el popurrí — **1.12.0**
 - [x] 12. Oye y señala: el nombre lo dice la voz del dispositivo en vez de escribirse — **1.12.0**

@@ -2400,7 +2400,8 @@ button.chip.on:hover:not(:disabled) {
   cursor: pointer;
 }
 @media (hover: hover) {
-  .pickable .m-items path:hover {
+  /* A piece that is painted keeps its colour under the pointer: what it says matters more than the hover. */
+  .pickable .m-items path:not([class*='st-']):hover {
     fill: var(--land-hover);
   }
   .pickable .m-items path[class*='st-']:hover {

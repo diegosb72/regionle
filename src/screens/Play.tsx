@@ -1,8 +1,7 @@
 /** Runs the game stored in the configuration: builds the deck and hands it to the right game. */
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
+import { lazyScreen } from '../components/lazy';
 import { Spinner } from '../components/ui';
-import { BearingGame } from '../games/Bearings';
-import { BlindGame } from '../games/Blind';
 import { CardsGame } from '../games/Cards';
 import { ExploreGame } from '../games/Explore';
 import { TopTenGame, TrueFalseGame } from '../games/FactGames';
@@ -27,7 +26,19 @@ import { FIGURE_MODES } from '../lib/rules';
 import { go } from '../lib/router';
 import { useStore, type GameConfig } from '../lib/store';
 import { nf } from '../lib/text';
-import type { Deck } from '../lib/types';
+import type { Deck, Mode } from '../lib/types';
+
+/**
+ * Games that come in a file of their own, fetched when one of them is played: with every game in it, the
+ * file of this screen grew past what a screen is allowed to weigh (`scripts/budget.mjs`).
+ */
+const BlindGame = lazyScreen(() => import('../games/Blind').then((m) => m.BlindGame));
+const BearingGame = lazyScreen(() => import('../games/Bearings').then((m) => m.BearingGame));
+const ChainGame = lazyScreen(() => import('../games/Chain').then((m) => m.ChainGame));
+const GroupGame = lazyScreen(() => import('../games/Groups').then((m) => m.GroupGame));
+const WhoAmIGame = lazyScreen(() => import('../games/WhoAmI').then((m) => m.WhoAmIGame));
+/** Which of them each mode needs: asked for while the map is being drawn, so that it is here when the map is. */
+const APART: Partial<Record<Mode, { warm(): void }>> = { blind: BlindGame, hotcold: BlindGame, bearing: BearingGame, chain: ChainGame, group: GroupGame, whoami: WhoAmIGame };
 
 function Message({ title, text, onExit, action }: { title: string; text: string; onExit(): void; action?: { label: string; run(): void } }) {
   return (
@@ -72,6 +83,7 @@ function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
     if (cfg.section === 'pops') return;
     let alive = true;
     setError(null);
+    APART[cfg.mode]?.warm();
     deckFor(cfg, (done, total) => alive && setLoaded([done, total]))
       .then((d) => {
         if (!alive) return;
@@ -237,39 +249,59 @@ function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
   }
 
   const props: GameProps = { deck, cfg, onExit, onAgain };
-  switch (cfg.mode) {
-    case 'explore':
-      return <ExploreGame {...props} />;
-    case 'nameall':
-      return <NameAllGame {...props} />;
-    case 'travel':
-      return <TravelGame {...props} />;
-    case 'neighbours':
-      return <NeighboursGame {...props} />;
-    case 'learn':
-      return <LearnGame {...props} />;
-    case 'regionle':
-      return <RegionleGame {...props} />;
-    case 'blind':
-    case 'hotcold':
-      return <BlindGame {...props} />;
-    case 'bearing':
-      return <BearingGame {...props} />;
-    case 'cards':
-      return <CardsGame {...props} />;
-    case 'pin':
-    case 'puzzle':
-    case 'identify':
-    case 'outline':
-    case 'capital':
-    case 'flag':
-    case 'parent':
-    case 'mix':
-    case 'listen':
-      return <QuizGame {...props} />;
-    default:
-      return <Message title={L(`«${MODE_NAME[cfg.mode]}» no está disponible aquí`, `“${MODE_NAME[cfg.mode]}” is not available here`)} text={L('Elige otro modo de juego.', 'Choose another game mode.')} onExit={onExit} />;
-  }
+  const game = () => {
+    switch (cfg.mode) {
+      case 'explore':
+        return <ExploreGame {...props} />;
+      case 'nameall':
+        return <NameAllGame {...props} />;
+      case 'travel':
+        return <TravelGame {...props} />;
+      case 'neighbours':
+        return <NeighboursGame {...props} />;
+      case 'chain':
+        return <ChainGame {...props} />;
+      case 'group':
+        return <GroupGame {...props} places={world.index} />;
+      case 'whoami':
+        return <WhoAmIGame {...props} places={world.index} />;
+      case 'learn':
+        return <LearnGame {...props} />;
+      case 'regionle':
+        return <RegionleGame {...props} />;
+      case 'blind':
+      case 'hotcold':
+        return <BlindGame {...props} />;
+      case 'bearing':
+        return <BearingGame {...props} />;
+      case 'cards':
+        return <CardsGame {...props} />;
+      case 'pin':
+      case 'puzzle':
+      case 'identify':
+      case 'outline':
+      case 'capital':
+      case 'flag':
+      case 'parent':
+      case 'mix':
+      case 'listen':
+        return <QuizGame {...props} />;
+      default:
+        return <Message title={L(`«${MODE_NAME[cfg.mode]}» no está disponible aquí`, `“${MODE_NAME[cfg.mode]}” is not available here`)} text={L('Elige otro modo de juego.', 'Choose another game mode.')} onExit={onExit} />;
+    }
+  };
+  // A game that comes in a file of its own may still be on its way: the map goes on being drawn until it is here.
+  return (
+    <Suspense
+      fallback={
+        <div className="play play-loading">
+          <Spinner label={L('Dibujando el mapa…', 'Drawing the map…')} />
+        </div>
+      }
+    >
+      {game()}
+    </Suspense>
+  );
 }
 
 export function Play({ world }: { world: World }) {
