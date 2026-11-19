@@ -589,11 +589,12 @@ a.d-cal-day:hover {
 .d-joker-note b {
   color: var(--ink);
 }
+/* Wide enough for its three buttons side by side: the text to share, the picture and the QR code. */
 .d-share {
   display: grid;
   gap: 10px;
   justify-items: center;
-  width: min(100%, 460px);
+  width: min(100%, 560px);
   justify-self: center;
 }
 .d-share-btns {
