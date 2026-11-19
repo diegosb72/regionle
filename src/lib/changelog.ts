@@ -15,6 +15,26 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.18.0',
+    date: '2026-11-19',
+    es: [
+      'Enlace directo a un mapa y un juego: en los ajustes de cada sección, «Copiar enlace a este mapa». Quien lo abre lo encuentra ya elegido, listo para empezar.',
+      'Avisar de un error: bajo cada respuesta, un enlace abre un aviso en GitHub con la pieza, el mapa, el juego y la versión ya escritos.',
+      'Regla para medir, en Explorar: marcas dos puntos en el mapa y ves los kilómetros que hay de uno a otro en línea recta.',
+      'Con el juego instalado, su icono lleva el número de repasos que te esperan, donde el navegador lo permite. Se apaga al pie de la página.',
+      'En un móvil estrecho, las últimas partidas de Progreso se leen sin desplazar de lado: cada una ocupa tres líneas en vez de una fila que no cabía.',
+      'En el selector de países, los continentes pasan a dos líneas en el móvil: ya no hay que adivinar que América y Oceanía estaban a la derecha.',
+    ],
+    en: [
+      'A direct link to a map and a game: in the settings of each section, “Copy a link to this map”. Whoever opens it finds it already chosen, ready to start.',
+      'Report a mistake: under each answer, a link opens a report on GitHub with the piece, the map, the game and the version already written.',
+      'A ruler, in Explore: you mark two points on the map and see how many kilometres there are from one to the other as the crow flies.',
+      'With the game installed, its icon carries the number of reviews waiting for you, where the browser allows it. It is turned off at the foot of the page.',
+      'On a narrow phone, the latest games in Progress read without scrolling sideways: each takes three lines instead of a row that did not fit.',
+      'In the country picker, the continents take two lines on a phone: no more guessing that the Americas and Oceania were off to the right.',
+    ],
+  },
+  {
     version: '1.17.0',
     date: '2026-11-19',
     es: [

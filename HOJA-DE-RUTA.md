@@ -11,6 +11,16 @@ Fuera del encargo, por decisión expresa: 17 (ortografía estricta), 82 (globo),
 89 (celebración), 91 (entrada por voz), 93 (leer cada pregunta) y 104–110 (lo que necesita un servidor o un
 servicio de fuera).
 
+## Orden
+
+A petición del dueño del proyecto, desde la 1.18.0 se hace primero lo que menos esfuerzo lleva y se deja para
+el final lo que más. La estimación es a ojo y cambia al abrir el código:
+
+- **Corto**: 111c, 96, 88, 60, 101, 49, 48, 47, 50, 53, 71, 72, 92, 102
+- **Medio**: 19, 23–26, 45, 46, 51, 54, 58, 59, 61, 62, 66, 70, 73–75, 84, 87, 94, 98, 100, 111b, 111d, 111e
+- **Largo**: 20, 44 (francés), 65, 67, 68, 83, 90
+- **Depende de conseguir datos**, lleve lo que lleve: 30–32, 37–39, 41–43, 95, y lo que falta del 29 y del 35
+
 ## Modos de juego en el mapa
 
 - [x] 1. Situar a ciegas en regiones, países y física: el mapa sin fronteras, ríos ni mares; dentro de la pieza es acierto y fuera se mide hasta su borde o su curso — **1.15.0**
@@ -75,7 +85,7 @@ servicio de fuera).
 - [ ] 49. Comodín de racha
 - [ ] 50. Reto difícil
 - [ ] 51. Retos de fechas señaladas
-- [ ] 52. Enlace directo a un mapa y un modo
+- [x] 52. Enlace directo a un mapa y un modo: una dirección abre la sección con el mapa y el juego ya elegidos, y cada sección tiene un botón que la copia — **1.18.0**
 - [ ] 53. Imagen para compartir de cualquier partida
 - [ ] 54. Contra tu fantasma
 
@@ -119,7 +129,7 @@ servicio de fuera).
 
 - [ ] 83. Recuadros para territorios lejanos
 - [ ] 84. Comparador de tamaños
-- [ ] 85. Regla para medir distancias
+- [x] 85. Regla para medir distancias: en Explorar, dos clics en el mapa y se ven los kilómetros que hay entre los dos puntos — **1.18.0**
 - [ ] 87. Pintar el mapa a mano
 - [ ] 88. Más paletas y pantalla completa
 - [ ] 90. Mapa de todas las regiones del mundo más fluido
@@ -133,9 +143,9 @@ servicio de fuera).
 
 ## La aplicación y el sitio
 
-- [ ] 97. Contador de repasos pendientes en el icono
+- [x] 97. Contador de repasos pendientes en el icono: con el juego instalado, donde el navegador sabe poner un número en un icono — **1.18.0**
 - [ ] 98. Una página por país para buscadores
-- [ ] 99. Botón «Avisar de un error»
+- [x] 99. Botón «Avisar de un error»: bajo cada respuesta, un enlace abre un aviso en GitHub ya rellenado con la pieza, el mapa, el juego y la versión — **1.18.0**
 - [ ] 100. Ayuda y tutorial de cada modo
 - [ ] 101. Copia de seguridad más cómoda
 - [ ] 102. Pruebas y publicación automáticas en GitHub
@@ -143,7 +153,7 @@ servicio de fuera).
 
 ## Arreglos pendientes
 
-- [ ] 111a. Desbordes en móviles de 360 px en Progreso y en las pestañas del selector
+- [x] 111a. Desbordes en móviles de 360 px en Progreso y en las pestañas del selector: las últimas partidas van en tres líneas y los continentes en dos — **1.18.0**
 - [ ] 111b. Abreviaturas por defecto para países, ciudades y capitales
 - [ ] 111c. Abreviaturas cortas limitadas a su país en los mapas de varios países
 - [ ] 111d. Una sola grafía en español para una ciudad y su región
