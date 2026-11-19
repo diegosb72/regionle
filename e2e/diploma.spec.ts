@@ -103,7 +103,7 @@ test.describe('the diploma of a game', () => {
     await dialog.getByLabel('Nombre en el diploma').fill('Ana García');
     expect(await dialog.locator('style').textContent()).toContain('size: landscape');
     // The file the browser offers to save it as says what it is.
-    expect(await page.title()).toBe('Diploma — Luxemburgo · distritos');
+    await expect(page).toHaveTitle('Diploma — Luxemburgo · distritos');
     // On the screen, the whole sheet is seen at once.
     const sheet = dialog.locator('.dip');
     await expect(sheet).toBeInViewport({ ratio: 1 });
@@ -133,7 +133,8 @@ test.describe('the diploma of a game', () => {
     await page.emulateMedia({ media: 'screen' });
     await page.keyboard.press('Escape');
     await expect(dialog).toBeHidden();
-    expect(await page.title()).not.toContain('Diploma');
+    // The page takes its own name back once the panel is put away, which is a moment after it is hidden.
+    await expect(page).not.toHaveTitle(/Diploma/);
     await expect(page.locator('html')).not.toHaveClass(/dlg-print/);
   });
 
