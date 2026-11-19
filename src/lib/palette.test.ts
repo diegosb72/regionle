@@ -50,6 +50,12 @@ describe('the palettes of the map', () => {
     expect(useStore.getState().palette).toBe('paper');
   });
 
+  it('is on the page before the first paint: the page knows the same palettes', () => {
+    const html = fs.readFileSync(path.join(process.cwd(), 'index.html'), 'utf8');
+    const listed = /\/\^\(([a-z|]+)\)\$\/\.test\(saved\.palette\)/.exec(html)?.[1].split('|');
+    expect(listed).toEqual(PALETTES.filter((p) => p !== PALETTE_DEFAULT));
+  });
+
   it('has its colours in the stylesheet, light and dark, and a sample for the settings', () => {
     const css = fs.readFileSync(path.join(process.cwd(), 'src/styles.css'), 'utf8');
     for (const p of PALETTES) {

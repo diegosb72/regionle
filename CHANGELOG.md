@@ -3,6 +3,16 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.19.0 — 19 de noviembre de 2026
+
+- Colores del mapa: al pie se elige entre tres paletas, «Papel» (la de siempre), «Océano» y «Pizarra», cada una con su lado claro y su lado oscuro.
+- Pantalla completa: un botón más en los controles de cualquier mapa y un enlace al pie. Se amplía el juego entero, con la pregunta al lado.
+- Millas: con «Distancias en millas», al pie, el juego dice las distancias en millas y las superficies en millas cuadradas. Las altitudes siguen en metros.
+- Repaso ajustable: en Progreso se elige el ritmo (más seguido, normal o más espaciado) y cuántas preguntas hace cada repaso. Cambiarlo no borra nada.
+- Copia de seguridad: al importar se ve qué trae el archivo junto a lo que hay, antes de sustituir nada, y la copia lleva también las preferencias.
+- La copia se puede enviar a otra aplicación desde el móvil, y Progreso recuerda hacer una cuando van muchas respuestas sin ella.
+- En un mapa con regiones de varios países, al preguntar por una pieza cuenta la abreviatura de su país; la que comparten dos países no nombra ninguna.
+
 ## 1.18.0 — 19 de noviembre de 2026
 
 - Enlace directo a un mapa y un juego: en los ajustes de cada sección, «Copiar enlace a este mapa». Quien lo abre lo encuentra ya elegido, listo para empezar.

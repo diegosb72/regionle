@@ -15,6 +15,28 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.19.0',
+    date: '2026-11-19',
+    es: [
+      'Colores del mapa: al pie se elige entre tres paletas, «Papel» (la de siempre), «Océano» y «Pizarra», cada una con su lado claro y su lado oscuro.',
+      'Pantalla completa: un botón más en los controles de cualquier mapa y un enlace al pie. Se amplía el juego entero, con la pregunta al lado.',
+      'Millas: con «Distancias en millas», al pie, el juego dice las distancias en millas y las superficies en millas cuadradas. Las altitudes siguen en metros.',
+      'Repaso ajustable: en Progreso se elige el ritmo (más seguido, normal o más espaciado) y cuántas preguntas hace cada repaso. Cambiarlo no borra nada.',
+      'Copia de seguridad: al importar se ve qué trae el archivo junto a lo que hay, antes de sustituir nada, y la copia lleva también las preferencias.',
+      'La copia se puede enviar a otra aplicación desde el móvil, y Progreso recuerda hacer una cuando van muchas respuestas sin ella.',
+      'En un mapa con regiones de varios países, al preguntar por una pieza cuenta la abreviatura de su país; la que comparten dos países no nombra ninguna.',
+    ],
+    en: [
+      'Colours of the map: at the foot you choose among three palettes, “Paper” (the usual one), “Ocean” and “Slate”, each with its light side and its dark side.',
+      'Full screen: one more button in the controls of any map and a link at the foot. The whole game is enlarged, with the question next to the map.',
+      'Miles: with “Distances in miles”, at the foot, the game tells distances in miles and areas in square miles. Heights stay in metres.',
+      'An adjustable review: in Progress you choose the pace (closer, normal or further apart) and how many questions each review asks. Changing it erases nothing.',
+      'Backup: on importing you see what the file holds next to what there is, before anything is replaced, and the backup carries the preferences too.',
+      'The backup can be sent to another app from a phone, and Progress reminds you to make one when many answers have gone by without it.',
+      'On a map with regions of several countries, a question about a piece takes the short form of its country; one shared by two countries names neither.',
+    ],
+  },
+  {
     version: '1.18.0',
     date: '2026-11-19',
     es: [

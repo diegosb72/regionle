@@ -16,7 +16,7 @@ servicio de fuera).
 A petición del dueño del proyecto, desde la 1.18.0 se hace primero lo que menos esfuerzo lleva y se deja para
 el final lo que más. La estimación es a ojo y cambia al abrir el código:
 
-- **Corto**: 111c, 96, 88, 60, 101, 49, 48, 47, 50, 53, 71, 72, 92, 102
+- **Corto**: 49, 48, 47, 50, 53, 71, 72, 92, 102
 - **Medio**: 19, 23–26, 45, 46, 51, 54, 58, 59, 61, 62, 66, 70, 73–75, 84, 87, 94, 98, 100, 111b, 111d, 111e
 - **Largo**: 20, 44 (francés), 65, 67, 68, 83, 90
 - **Depende de conseguir datos**, lleve lo que lleve: 30–32, 37–39, 41–43, 95, y lo que falta del 29 y del 35
@@ -96,7 +96,7 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 - [x] 57. Apuntes propios: una línea por pieza, que se escribe en su ficha, tras una respuesta, en una lección o en una tarjeta, y sale cuando se pregunta por ella — **1.14.0**
 - [ ] 58. Prueba de nivel inicial
 - [ ] 59. Lecciones a tu gusto
-- [ ] 60. Repaso ajustable
+- [x] 60. Repaso ajustable: en Progreso se elige el ritmo (más seguido, normal o más espaciado) y cuántas preguntas hace cada repaso (10, 20, 30 o 50) — **1.19.0**
 - [ ] 61. Sesión del día
 - [ ] 62. Más tipos de pista
 - [x] 63. Las que más te cuestan: «Lo que más fallas» estaba en Progreso desde la 1.5.0; ahora la portada dice cuántas son y las practica con un clic — **1.14.0**
@@ -131,7 +131,7 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 - [ ] 84. Comparador de tamaños
 - [x] 85. Regla para medir distancias: en Explorar, dos clics en el mapa y se ven los kilómetros que hay entre los dos puntos — **1.18.0**
 - [ ] 87. Pintar el mapa a mano
-- [ ] 88. Más paletas y pantalla completa
+- [x] 88. Más paletas y pantalla completa: tres paletas para el mapa (Papel, Océano y Pizarra), cada una en claro y en oscuro, y un botón de pantalla completa en cada mapa y en el pie — **1.19.0**
 - [ ] 90. Mapa de todas las regiones del mundo más fluido
 
 ## Ajustes y accesibilidad
@@ -139,7 +139,7 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 - [ ] 92. Letra grande, alto contraste y tipografía para dislexia
 - [ ] 94. Reglas a medida
 - [ ] 95. Nombres en el idioma local
-- [ ] 96. Millas además de kilómetros
+- [x] 96. Millas además de kilómetros: un ajuste del pie pasa a millas y millas cuadradas todo lo que el juego dice en kilómetros; las altitudes siguen en metros — **1.19.0**
 
 ## La aplicación y el sitio
 
@@ -147,7 +147,7 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 - [ ] 98. Una página por país para buscadores
 - [x] 99. Botón «Avisar de un error»: bajo cada respuesta, un enlace abre un aviso en GitHub ya rellenado con la pieza, el mapa, el juego y la versión — **1.18.0**
 - [ ] 100. Ayuda y tutorial de cada modo
-- [ ] 101. Copia de seguridad más cómoda
+- [x] 101. Copia de seguridad más cómoda: al importar se ve qué trae el archivo antes de sustituir nada, la copia lleva las preferencias, se puede enviar desde el móvil y Progreso recuerda hacerla — **1.19.0**
 - [ ] 102. Pruebas y publicación automáticas en GitHub
 - [x] 103. Licencia del repositorio (**decidido**: MIT): el código se puede usar, cambiar y redistribuir citando al autor; los datos de los mapas siguen las condiciones de sus fuentes — **1.15.0**
 
@@ -155,6 +155,6 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 
 - [x] 111a. Desbordes en móviles de 360 px en Progreso y en las pestañas del selector: las últimas partidas van en tres líneas y los continentes en dos — **1.18.0**
 - [ ] 111b. Abreviaturas por defecto para países, ciudades y capitales
-- [ ] 111c. Abreviaturas cortas limitadas a su país en los mapas de varios países
+- [x] 111c. Abreviaturas cortas limitadas a su país en los mapas de varios países: al preguntar por una pieza cuenta la abreviatura de su país, y la que comparten dos países no nombra ninguna hasta que se toca la pieza — **1.19.0**
 - [ ] 111d. Una sola grafía en español para una ciudad y su región
 - [ ] 111e. Capitales de región con su nombre inglés cuando el juego está en inglés
