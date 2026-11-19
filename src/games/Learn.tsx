@@ -2,6 +2,11 @@
  * Learn: lessons of a few new pieces. Each lesson shows them one by one, asks where they are, asks what
  * they are called and ends by mixing them with pieces learnt before. What is asked lands in the same
  * tallies as every other game, so the spaced review takes over from there.
+ *
+ * Before the first lesson a player who knows part of the map can take a placement test: every piece that
+ * is still to be taught is asked once, where it is and then what it is called, with one try and no hints.
+ * What is got right both ways is known, and the lessons skip it; what is not is left for them, and is not
+ * written down as a miss: not having been taught something is not having forgotten it.
  */
 import { ArrowLeft, ArrowRight, Check, Flag as FlagIcon, GraduationCap, Lightbulb, MapPin } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -20,6 +25,8 @@ import { GameShell, Hud, ItemFacts, Verdict, answered, nearest, originOf, showsC
 import { isIntroduced, lessonOrder, lessonQueue, lessonSize, pickLesson, type Q } from './lesson';
 
 const TRIES = 2;
+/** Placement test: how many questions go by between placing a piece and being asked what it is called. */
+const LEVEL_GAP = 3;
 
 export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const { opts } = cfg;
@@ -55,7 +62,12 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
   /** Started over on a map that was already complete. */
   const [restarted, setRestarted] = useState(false);
   const [lesson, setLesson] = useState(initial.fresh.length ? 1 : 0);
-  const [phase, setPhase] = useState<'intro' | 'quiz' | 'summary' | 'complete'>(initial.fresh.length ? 'intro' : 'complete');
+  const [phase, setPhase] = useState<'intro' | 'quiz' | 'summary' | 'complete' | 'level' | 'levelled'>(initial.fresh.length ? 'intro' : 'complete');
+  /** The placement test has been taken in this session: it is offered once. */
+  const [tested, setTested] = useState(false);
+  const testing = phase === 'level';
+  /** A question is on screen, of a lesson or of the placement test. */
+  const quizzing = phase === 'quiz' || testing;
   const [fresh, setFresh] = useState<string[]>(initial.fresh);
   const [introAt, setIntroAt] = useState(0);
   const [queue, setQueue] = useState<Q[]>([]);
@@ -72,7 +84,7 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const [flash, setFlash] = useState<{ id: string; kind: 'bad' | 'ok'; n: number } | null>(null);
   const [tally, setTally] = useState({ ok: 0, warn: 0, bad: 0 });
   const [lessons, setLessons] = useState(0);
-  const running = phase === 'intro' || phase === 'quiz';
+  const running = phase === 'intro' || quizzing;
   const ms = useElapsed(running);
   const lessonMs = useRef(0);
 
@@ -87,11 +99,12 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
   // Handy when debugging from the browser console; removed from production builds.
   if (import.meta.env.DEV) {
     const w = window as unknown as { __ask?: string; __learn?: unknown };
-    w.__ask = phase === 'quiz' && !verdict ? cur?.id : undefined;
+    w.__ask = quizzing && !verdict ? cur?.id : undefined;
     w.__learn = { phase, fresh, kind: cur?.kind, known: known.length };
   }
 
-  const begin = (have: string[]) => {
+  /** The next lesson, or the same one made again (`same`) when the placement test has changed what there is to teach. */
+  const begin = (have: string[], same = false) => {
     const next = lessonAfter(have);
     if (!next.length) {
       setPhase('complete');
@@ -99,7 +112,7 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
     }
     setFresh(next);
     setIntroAt(0);
-    setLesson(lesson + 1);
+    if (!same) setLesson(lesson + 1);
     setTally({ ok: 0, warn: 0, bad: 0 });
     setCur(null);
     setVerdict(null);
@@ -113,8 +126,10 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, introAt, fresh]);
   useEffect(() => {
-    if (phase !== 'quiz' || !cur) return;
+    if (!quizzing || !cur) return;
     if (cur.kind === 'name') map.current?.focus([cur.id]);
+    // In the placement test any piece can be the answer: the whole map, which the last question may have left.
+    else if (testing) map.current?.reset();
     // Everything that can be the answer has to be in sight; the map only moves when it is not.
     else map.current?.focus([...fresh, ...known], { fill: 0.85 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -127,6 +142,32 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
     setQueue(q.slice(1));
     ask(q[0]);
     setPhase('quiz');
+  };
+
+  /** The placement test: where each piece still to be taught is, in any order. What each is called comes as they are placed. */
+  const startLevel = () => {
+    const q = shuffle(pool.filter((it) => !knownSet.has(it.id)).map((it): Q => ({ id: it.id, kind: 'pin' })));
+    if (!q.length) return;
+    setTested(true);
+    setPlanned(q.length);
+    setAsked(0);
+    setTally({ ok: 0, warn: 0, bad: 0 });
+    setQueue(q.slice(1));
+    ask(q[0]);
+    setPhase('level');
+    lessonMs.current = ms;
+  };
+
+  /** The test is over, asked whole or left half way: what was got right both ways is known from here on. */
+  const finishLevel = () => {
+    setCur(null);
+    setVerdict(null);
+    setQueue([]);
+    // With the whole map known there are no lessons to go on to: the end of the lessons says so.
+    setPhase(known.length >= pool.length ? 'complete' : 'levelled');
+    const t = tally;
+    if (t.ok + t.bad) addSession({ t: Date.now(), section: cfg.section, mode: 'learn', label: cfg.list ? `${deck.title} · ${cfg.list}` : deck.title, total: t.ok + t.bad, ok: t.ok, warn: 0, bad: t.bad, ms: Math.max(0, ms - lessonMs.current) });
+    map.current?.reset();
   };
 
   const ask = (q: Q) => {
@@ -152,7 +193,7 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
   };
 
   const advance = () => {
-    if (!queue.length) return finishLesson();
+    if (!queue.length) return testing ? finishLevel() : finishLesson();
     ask(queue[0]);
     setQueue(queue.slice(1));
   };
@@ -163,6 +204,20 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
     setNote(null);
     setAsked((n) => n + 1);
     setTally((t) => ({ ...t, [res]: t[res] + 1 }));
+    if (testing) {
+      setFlash({ id: item.id, kind: res === 'bad' ? 'bad' : 'ok', n: Date.now() });
+      // What is not known yet is for the lessons to teach: it is not written down as a miss.
+      if (res !== 'ok') return void map.current?.focus([item.id]);
+      record(cur.kind === 'pin' ? 'loc' : 'name', item.id, res, originOf(item, cfg));
+      if (cur.kind === 'pin') {
+        // Placed: what it is called is asked a few questions later, not with its name still on screen.
+        const q = queue.slice();
+        q.splice(Math.min(q.length, LEVEL_GAP), 0, { id: cur.id, kind: 'name' });
+        setQueue(q);
+        setPlanned((n) => n + 1);
+      } else if (!knownSet.has(item.id)) setKnown([...known, item.id]);
+      return;
+    }
     record(cur.kind === 'pin' ? 'loc' : 'name', item.id, res, originOf(item, cfg));
     setFlash({ id: item.id, kind: res === 'bad' ? 'bad' : 'ok', n: Date.now() });
     if (res === 'bad') {
@@ -185,7 +240,7 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
 
   const right = () => settle(tries === 0 && letters === 0 ? 'ok' : 'warn');
   const wrong = (message: string | null, blink?: string) => {
-    if (tries + 1 >= TRIES) return settle('bad');
+    if (testing || tries + 1 >= TRIES) return settle('bad');
     setTries(tries + 1);
     setNote(message);
     setShake((n) => n + 1);
@@ -197,10 +252,12 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const live = (id: string) => freshSet.has(id) || knownSet.has(id);
 
   const onPick = (id: string) => {
-    if (phase !== 'quiz' || !cur || !item || verdict || cur.kind !== 'pin') return;
+    if (!quizzing || !cur || !item || verdict || cur.kind !== 'pin') return;
     if (id === item.id) return right();
     const other = deck.byId.get(id);
     if (!other) return;
+    // In the placement test every piece of the map is in play, and one taken for another is not held against anybody.
+    if (testing) return wrong(null, id);
     if (!live(id)) return setNote(L(`${fem ? 'Esa' : 'Ese'} todavía no ${fem ? 'la' : 'lo'} hemos visto: busca entre ${fem ? 'las' : 'los'} que ya conoces.`, 'We have not seen that one yet: look among the ones you know.'));
     // One taken for another is written down, as in the games: the progress shows the pairs to tell apart.
     mixUp('loc', item.id, id);
@@ -219,7 +276,7 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
       setNote(shortNote(v.res, text));
       return;
     }
-    if (v.res === 'other') mixUp('name', item.id, v.id);
+    if (v.res === 'other' && !testing) mixUp('name', item.id, v.id);
     wrong(v.res === 'other' ? L(`No es ${deck.byId.get(v.id)!.name}. Te queda un intento.`, `It is not ${deck.byId.get(v.id)!.name}. One try left.`) : L('No es correcto. Te queda un intento.', 'That is not right. One try left.'));
   };
 
@@ -231,7 +288,8 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
     // wrong options are of the same kind, or a peak among three rivers would answer itself.
     const alike = item.cat ? others.filter((o) => o.cat === item.cat) : others;
     const pool = alike.length >= 3 ? alike : others;
-    let cands = pool.filter((o) => live(o.id));
+    // In the placement test the whole map is in play.
+    let cands = testing ? pool : pool.filter((o) => live(o.id));
     // Too few in play yet: the rest are borrowed from what is still to be taught.
     if (cands.length < 3) cands = [...cands, ...nearest(item, pool.filter((o) => !live(o.id)), 3 - cands.length)];
     return shuffle([item, ...sample(nearest(item, cands, 6), 3)]);
@@ -242,7 +300,7 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
     if (!item || verdict) return;
     if (id === item.id) return right();
     setPicked(id);
-    mixUp('name', item.id, id);
+    if (!testing) mixUp('name', item.id, id);
     // With four options a second go would be a guess between three: one try.
     settle('bad');
   };
@@ -250,13 +308,13 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof Element && e.target.closest('button, input, a, select, textarea, summary')) return;
-      if (phase === 'quiz' && cur?.kind === 'name' && !typed && !verdict && /^[1-4]$/.test(e.key)) {
+      if (quizzing && cur?.kind === 'name' && !typed && !verdict && /^[1-4]$/.test(e.key)) {
         const c = choices[Number(e.key) - 1];
         if (c) onChoice(c.id);
         return;
       }
       if (e.key !== 'Enter' && e.key !== ' ') return;
-      if (phase === 'quiz' && verdict) {
+      if (quizzing && verdict) {
         e.preventDefault();
         advance();
       }
@@ -268,8 +326,13 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const paint = useMemo(() => {
     const p: Record<string, Paint> = {};
     if (phase === 'complete') return p;
-    // What has not been through a lesson yet stays in the background.
-    for (const it of deck.items) if (!freshSet.has(it.id) && !knownSet.has(it.id)) p[it.id] = 'dim';
+    // After the placement test the map shows what is known.
+    if (phase === 'levelled') {
+      for (const id of known) p[id] = 'ok';
+      return p;
+    }
+    // What has not been through a lesson yet stays in the background; in the placement test the whole map is asked.
+    if (!testing) for (const it of deck.items) if (!freshSet.has(it.id) && !knownSet.has(it.id)) p[it.id] = 'dim';
     if (phase === 'intro') {
       fresh.forEach((id, i) => {
         if (i < introAt) p[id] = 'near';
@@ -283,14 +346,14 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
       else if (cur.kind === 'name') p[cur.id] = 'target';
     }
     return p;
-  }, [phase, deck, fresh, freshSet, knownSet, introAt, cur, verdict]);
+  }, [phase, testing, deck, fresh, freshSet, known, knownSet, introAt, cur, verdict]);
 
   const pinned = useMemo(() => {
     if (phase === 'intro') return new Set(fresh.slice(0, introAt + 1));
     if (phase === 'summary') return new Set(fresh);
-    if (phase === 'quiz' && cur && verdict) return new Set([cur.id]);
+    if (quizzing && cur && verdict) return new Set([cur.id]);
     return undefined;
-  }, [phase, fresh, introAt, cur, verdict]);
+  }, [phase, quizzing, fresh, introAt, cur, verdict]);
 
   const stage = (
     <MapView
@@ -300,9 +363,9 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
       pinned={pinned}
       labels={phase === 'complete' ? 'all' : undefined}
       flash={flash}
-      pickable={phase === 'quiz' && cur?.kind === 'pin' && !verdict}
+      pickable={quizzing && cur?.kind === 'pin' && !verdict}
       onPick={onPick}
-      tip={(id) => (phase === 'complete' || (phase !== 'quiz' && live(id)) ? deck.byId.get(id)?.name : null)}
+      tip={(id) => (phase === 'complete' || (!quizzing && live(id)) ? deck.byId.get(id)?.name : null)}
     />
   );
 
@@ -325,7 +388,9 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
               <p className="kicker">
                 <GraduationCap size={15} aria-hidden="true" /> {L('Lecciones', 'Lessons')}
               </p>
-              <h2 className="q-ask">{lessons || restarted ? L('¡Mapa completo!', 'Map complete!') : L('Este mapa ya lo has visto entero', 'You have already been through this whole map')}</h2>
+              <h2 className="q-ask">
+                {lessons || restarted ? L('¡Mapa completo!', 'Map complete!') : tested ? L('Te sabes el mapa entero', 'You know the whole map') : L('Este mapa ya lo has visto entero', 'You have already been through this whole map')}
+              </h2>
               <p className="q-sub">
                 {L(
                   `Ya has pasado por ${fem ? 'las' : 'los'} ${nf(total)} ${deck.noun.many}. El repaso de la portada te ${fem ? 'las' : 'los'} irá trayendo de vuelta antes de que se te olviden.`,
@@ -348,6 +413,52 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
                 }}
               >
                 {L('Repetir las lecciones', 'Do the lessons again')}
+              </button>
+            </div>
+          </div>
+        }
+      />
+    );
+  }
+
+  if (phase === 'levelled') {
+    const left = total - learnt;
+    const all = `${fem ? 'las' : 'los'} ${nf(total)} ${deck.noun.many}`;
+    return (
+      <GameShell
+        title={title}
+        subtitle={subtitle}
+        onExit={onExit}
+        hud={hud}
+        progress={1}
+        stage={stage}
+        panel={
+          <div className="q learn">
+            <div className="q-prompt">
+              <p className="kicker">
+                <GraduationCap size={15} aria-hidden="true" /> {L('Prueba de nivel', 'Placement test')}
+              </p>
+              <h2 className="q-ask">{learnt > 0 ? L(`Ya te sabes ${nf(learnt)} de ${all}`, `You already know ${nf(learnt)} of the ${nf(total)} ${deck.noun.many}`) : L('Este mapa es nuevo para ti', 'This map is new to you')}</h2>
+            </div>
+            <div className="learn-meter" role="img" aria-label={L(`${learnt} de ${total}`, `${learnt} of ${total}`)}>
+              <i style={{ width: `${Math.round((learnt / Math.max(1, total)) * 100)}%` }} />
+            </div>
+            <p className="q-note">
+              {learnt > 0
+                ? L(
+                    `En el mapa, en verde, lo que ya sabes situar y nombrar. Las lecciones se lo saltan y siguen con ${left === 1 ? (fem ? 'la que falta' : 'el que falta') : `${fem ? 'las' : 'los'} ${nf(left)} que faltan`}.`,
+                    `On the map, in green, what you can already place and name. The lessons skip it and go on with the ${left === 1 ? 'one that is left' : `${nf(left)} that are left`}.`,
+                  )
+                : L('Las lecciones empiezan por el principio, unas pocas piezas cada vez.', 'The lessons start from the beginning, a few pieces at a time.')}
+            </p>
+            <div className="q-actions">
+              <button type="button" className="btn btn-primary" onClick={() => begin(known, true)} autoFocus>
+                {L('Empezar las lecciones', 'Start the lessons')}
+                <ArrowRight size={16} aria-hidden="true" />
+              </button>
+              <button type="button" className="btn btn-sm btn-ghost q-end" onClick={onExit}>
+                <FlagIcon size={15} aria-hidden="true" />
+                {L('Dejarlo aquí', 'Stop here')}
               </button>
             </div>
           </div>
@@ -461,6 +572,19 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
                 {L('Salir', 'Exit')}
               </button>
             </div>
+            {/* For whoever knows part of the map already: offered once, before the first lesson of the session. */}
+            {introAt === 0 && lesson === 1 && !lessons && !tested && !restarted && total - learnt > size && (
+              <p className="q-how learn-level">
+                {/* One piece of running text: the line is laid out as a row of them. */}
+                <span>
+                  {L('¿Ya te sabes parte de este mapa?', 'Do you already know part of this map?')}{' '}
+                  <button type="button" className="link" onClick={startLevel}>
+                    {L('Haz la prueba de nivel', 'Take the placement test')}
+                  </button>
+                  {L(': las lecciones se saltarán lo que aciertes.', ': the lessons will skip what you get right.')}
+                </span>
+              </p>
+            )}
           </div>
         }
       />
@@ -482,7 +606,7 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
             <div className="q-prompt">
               {cur.kind === 'pin' ? (
                 <>
-                  <p className="kicker">{L(`Lección ${lesson} · señala en el mapa`, `Lesson ${lesson} · find it on the map`)}</p>
+                  <p className="kicker">{testing ? L('Prueba de nivel · señala en el mapa', 'Placement test · find it on the map') : L(`Lección ${lesson} · señala en el mapa`, `Lesson ${lesson} · find it on the map`)}</p>
                   <h2 className="q-name">{item.name}</h2>
                   {several && (
                     <p className="q-sub">
@@ -492,7 +616,7 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
                 </>
               ) : (
                 <>
-                  <p className="kicker">{L(`Lección ${lesson} · identifica`, `Lesson ${lesson} · identify`)}</p>
+                  <p className="kicker">{testing ? L('Prueba de nivel · identifica', 'Placement test · identify') : L(`Lección ${lesson} · identifica`, `Lesson ${lesson} · identify`)}</p>
                   <h2 className="q-ask">{L(`¿Qué ${one} está ${fem ? 'resaltada' : 'resaltado'} en el mapa?`, `Which ${one} is highlighted on the map?`)}</h2>
                 </>
               )}
@@ -501,7 +625,8 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
 
           {asking && cur?.kind === 'pin' && (
             <p className="q-how">
-              <MapPin size={15} aria-hidden="true" /> {note ?? L(`Haz clic en ${theOne}. Tienes dos intentos.`, `Click ${theOne}. You have two tries.`)}
+              <MapPin size={15} aria-hidden="true" />{' '}
+              {note ?? (testing ? L(`Haz clic en ${theOne}. Un solo intento: lo que no sepas se queda para las lecciones.`, `Click ${theOne}. One try: what you do not know is left for the lessons.`) : L(`Haz clic en ${theOne}. Tienes dos intentos.`, `Click ${theOne}. You have two tries.`))}
             </p>
           )}
 
@@ -552,14 +677,14 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
                 )
               }
             >
-              {verdict === 'bad' && <p className="q-how">{L('Volverá a salir dentro de un momento.', 'It will come back in a moment.')}</p>}
+              {verdict === 'bad' && <p className="q-how">{testing ? L('Se queda para las lecciones.', 'It is left for the lessons.') : L('Volverá a salir dentro de un momento.', 'It will come back in a moment.')}</p>}
             </Verdict>
           )}
 
           <div className="q-actions">
             {asking ? (
               <>
-                {typed && item && (
+                {typed && item && !testing && (
                   <button type="button" className="btn btn-sm" onClick={() => setLetters((n) => Math.min(hintMax(item.name), n + 1))} disabled={letters >= hintMax(item.name)}>
                     <Lightbulb size={15} aria-hidden="true" />
                     {L('Una letra', 'A letter')}
@@ -575,10 +700,17 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
                 <ArrowRight size={16} aria-hidden="true" />
               </button>
             )}
-            <button type="button" className="btn btn-sm btn-ghost q-end" onClick={onExit}>
-              <FlagIcon size={15} aria-hidden="true" />
-              {L('Salir', 'Exit')}
-            </button>
+            {testing ? (
+              <button type="button" className="btn btn-sm btn-ghost q-end" onClick={finishLevel}>
+                <FlagIcon size={15} aria-hidden="true" />
+                {L('Terminar la prueba', 'End the test')}
+              </button>
+            ) : (
+              <button type="button" className="btn btn-sm btn-ghost q-end" onClick={onExit}>
+                <FlagIcon size={15} aria-hidden="true" />
+                {L('Salir', 'Exit')}
+              </button>
+            )}
           </div>
         </div>
       }

@@ -103,8 +103,8 @@ export function helpOf(mode: Mode, section: Section): ModeHelp | null {
         ),
         aid: L('Al escribir un nombre, «Una letra» te enseña la siguiente. «No lo sé» da la respuesta, y la pregunta vuelve más tarde.', 'When typing a name, “A letter” shows you the next one. “I don\'t know” gives the answer, and the question comes back later.'),
         tip: L(
-          'Es el mejor sitio para empezar con un mapa que no conoces: unas pocas lecciones al día rinden más que una tarde entera. En los ajustes eliges también en qué orden llegan las piezas: por zonas, por tamaño o por orden alfabético.',
-          'It is the best place to start with a map you do not know: a few lessons a day do more than a whole afternoon. In the settings you also choose the order the pieces come in: by area, by size or by name.',
+          'Unas pocas lecciones al día rinden más que una tarde entera. Si ya te sabes parte del mapa, «Haz la prueba de nivel», en la primera lección, pregunta cada pieza una vez, sin pistas, y las lecciones se saltan las que aciertes. El orden en que llegan las piezas (por zonas, por tamaño o alfabético) se elige en los ajustes.',
+          'A few lessons a day do more than a whole afternoon. If you already know part of the map, “Take the placement test”, in the first lesson, asks each piece once, with no hints, and the lessons skip the ones you get right. The order the pieces come in (by area, by size or by name) is chosen in the settings.',
         ),
       };
     case 'cards':
