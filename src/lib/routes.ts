@@ -3,6 +3,7 @@
  * browser, so that it can be tested as it is.
  */
 import { dayNumber, isDate } from '../daily/spec';
+import { mapLinkRest, parseMapLink, type MapLink } from './maplink';
 import { LANG_PAGE, SCREENS, pageNamed, type ScreenId, type SeoLang } from './seo';
 import { today } from './text';
 import type { Section } from './types';
@@ -20,7 +21,8 @@ export const ABOUT_PATH = 'acerca' satisfies ScreenId;
 
 export type Route =
   | { kind: 'home' }
-  | { kind: 'section'; section: Section }
+  /** `#/regiones`, or `#/regiones/ES:p/capital`: the section with a map and a game already chosen (`maplink.ts`). */
+  | { kind: 'section'; section: Section; link?: MapLink }
   | { kind: 'play' }
   /** `#/reto` is today's challenge; `#/reto/2026-11-10`, a past one. */
   | { kind: 'daily'; date: string }
@@ -117,7 +119,11 @@ export function routeOf(path: string, now: string = today()): Route {
   const head = cut < 0 ? path : path.slice(0, cut);
   const rest = cut < 0 ? '' : path.slice(cut + 1);
   const section = (Object.keys(PATHS) as Section[]).find((s) => PATHS[s] === head);
-  if (section) return rest ? { kind: 'unknown', path } : { kind: 'section', section };
+  if (section) {
+    if (!rest) return { kind: 'section', section };
+    const link = parseMapLink(section, rest);
+    return link ? { kind: 'section', section, link } : { kind: 'unknown', path };
+  }
   switch (head) {
     case PLAY_PATH:
       return rest ? { kind: 'unknown', path } : { kind: 'play' };
@@ -184,4 +190,9 @@ export function siteRoot(href: string = typeof location === 'undefined' ? '' : l
 /** The whole address of a screen, to be sent to someone. */
 export function linkTo(path: string, href?: string): string {
   return `${siteRoot(href)}#/${path}`;
+}
+
+/** The whole address of a section with a map and a game chosen, to be sent to someone or kept as a bookmark. */
+export function mapLinkUrl(section: Section, link: MapLink, href?: string): string {
+  return linkTo(`${PATHS[section]}/${mapLinkRest(section, link)}`, href);
 }

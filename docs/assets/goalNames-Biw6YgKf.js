@@ -1,1 +1,0 @@
-import{_n as e}from"./store-CjqYpSO_.js";var t=()=>({loc:e(`Situar en el mapa`,`Placing on the map`),name:e(`Nombrar`,`Naming`),cap:e(`Capitales`,`Capitals`),flag:e(`Banderas`,`Flags`)});export{t};

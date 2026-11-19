@@ -391,6 +391,11 @@
   .months-table .wide-only {
     display: none;
   }
+  /* A heading of two words takes two lines rather than push the table off the screen. */
+  .months-table thead th {
+    white-space: normal;
+    vertical-align: bottom;
+  }
   .months-table {
     font-size: 13.5px;
   }
@@ -400,5 +405,19 @@
   .act-tiles dd svg {
     width: 18px;
     height: 18px;
+  }
+}
+/* The narrowest phones: the four columns that are left fit with tighter headings. */
+@media (max-width: 350px) {
+  .months-table thead th {
+    font-size: 11px;
+    letter-spacing: 0.03em;
+  }
+  .months-table td,
+  .months-table thead th + th {
+    padding-left: 8px;
+  }
+  .months-table th[scope='row'] {
+    padding-right: 4px;
   }
 }

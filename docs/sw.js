@@ -14,10 +14,12 @@
  *  · The maps of each country and the other data files are asked to the network first, so that they
  *    are always the current ones, and kept: without a connection, the copy is used.
  *  · Flags never change: the copy is used whenever there is one.
+ *  · The number on the icon (how many reviews are waiting) is kept right with the game closed, where the
+ *    browser wakes the worker for it: the page leaves here the count from each moment on (`appBadge.ts`).
  */
-const VERSION = "409249f24495";
+const VERSION = "3ac7ce20e707";
 /** Files of the application, relative to the folder the site is served from. */
-const SHELL = ["assets/About-CYCaM5du.js","assets/Badges-CqYbRrgk.js","assets/Bearings-BmvlwTVt.js","assets/Bearings-_JPE2aVX.css","assets/Blind-RGN0TACv.css","assets/Blind-uogkwu7I.js","assets/Borders-Bo_6Zdcm.js","assets/Borders-Cvh8d-9F.css","assets/Chain-C88iOLeF.css","assets/Chain-CeviUuFx.js","assets/Coords-D3iQbFYf.css","assets/Coords-xOdzz81v.js","assets/Daily-BVhPUjzk.js","assets/Duel-DDgj_hkN.js","assets/GoalCard-L96lamJQ.js","assets/Groups-BFbNr60e.js","assets/KeyHelp-DX4LB6iJ.js","assets/ListLink-0cBwivwt.js","assets/MapView-CvEEu9PY.js","assets/Play-DhSQbyVW.js","assets/Progress-CqP9mxDh.js","assets/Progress-Ds7cTPS-.css","assets/Settings-kEQnP6xW.js","assets/Setup-ul3z6KuZ.js","assets/Speak-1S_a_zWE.js","assets/Travel-BQ5E3D1-.css","assets/Travel-Un3cBSR6.js","assets/WhoAmI-CoVZnbnw.css","assets/WhoAmI-D64nklmL.js","assets/bearings-BAIhqjay.js","assets/challenge-ayytWqLg.js","assets/data-xV65EdfO.js","assets/decks-DItaxb6z.js","assets/dm-sans-latin-ext-wght-normal-BOFOeGcA.woff2","assets/dm-sans-latin-wght-normal-Xz1IZZA0.woff2","assets/extra-mCPyXHxT.js","assets/fraunces-latin-ext-opsz-normal-CJcjJNj7.woff2","assets/fraunces-latin-ext-wght-italic-BfTTTDIL.woff2","assets/fraunces-latin-opsz-normal-DihXLNYH.woff2","assets/fraunces-latin-wght-italic-Py8at3oI.woff2","assets/fraunces-vietnamese-opsz-normal-Czevyj-6.woff2","assets/fraunces-vietnamese-wght-italic-BicUS2cM.woff2","assets/goalNames-Biw6YgKf.js","assets/groups-CCaXgWiC.js","assets/icons-CvJmNtSC.js","assets/index-DKP89hZZ.css","assets/index-DnrQPgrz.js","assets/lists-6rSVB_XR.js","assets/map-z7-lVeoD.js","assets/pace-CdL_Fz8W.js","assets/quiz-eytqU8Zz.js","assets/react-DBSBhfuB.js","assets/rolldown-runtime-WkwZ5CU-.js","assets/store-CjqYpSO_.js","assets/typeinList-CcIeqdUp.js","data/index.json","data/world.json","en.html","es.html","icons/apple-touch-icon.png","icons/icon-192.png","icons/icon-512.png","icons/icon.svg","icons/maskable-512.png","index.html","manifest.webmanifest","offline.json"];
+const SHELL = ["assets/About-BDyMjIb7.js","assets/Badges-CmycmZxV.js","assets/Bearings-CgU6o2Ct.js","assets/Bearings-_JPE2aVX.css","assets/Blind-CpdKdLUn.js","assets/Blind-RGN0TACv.css","assets/Borders-BCx1f-HC.js","assets/Borders-Cvh8d-9F.css","assets/Chain-C88iOLeF.css","assets/Chain-C9MLjGVU.js","assets/Coords-BjjkRVKq.js","assets/Coords-D3iQbFYf.css","assets/Daily-BDNWApPb.js","assets/Duel-DBmAxuxx.js","assets/GoalCard-R4XkmRAo.js","assets/Groups-BzxPMEDJ.js","assets/KeyHelp-CiWAY5Gr.js","assets/ListLink-DajjALJn.js","assets/MapView-C1MhCvE1.js","assets/Play-DA_-UllP.js","assets/Progress-CMDz0hAY.css","assets/Progress-DqZ_j7oC.js","assets/Settings-DGggXJ3r.js","assets/Setup-B9QDwa9Q.js","assets/Speak-B9WDatSR.js","assets/Travel-BQ5E3D1-.css","assets/Travel-DQpltmTr.js","assets/WhoAmI-CjsmS2sG.js","assets/WhoAmI-CoVZnbnw.css","assets/bearings-Dtz7IzkV.js","assets/challenge-BYRN8huB.js","assets/data-5ibxQ8-Y.js","assets/decks-DRLpP1G1.js","assets/dm-sans-latin-ext-wght-normal-BOFOeGcA.woff2","assets/dm-sans-latin-wght-normal-Xz1IZZA0.woff2","assets/extra-DPhkTsdM.js","assets/fraunces-latin-ext-opsz-normal-CJcjJNj7.woff2","assets/fraunces-latin-ext-wght-italic-BfTTTDIL.woff2","assets/fraunces-latin-opsz-normal-DihXLNYH.woff2","assets/fraunces-latin-wght-italic-Py8at3oI.woff2","assets/fraunces-vietnamese-opsz-normal-Czevyj-6.woff2","assets/fraunces-vietnamese-wght-italic-BicUS2cM.woff2","assets/goalNames-C0-cQvY8.js","assets/groups-NCy0d6w8.js","assets/icons-B9VrTZPq.js","assets/index-B6Nl7VLn.css","assets/index-DrVtdDdZ.js","assets/lists-CjRB0_oP.js","assets/map-z7-lVeoD.js","assets/pace-ogUsMam7.js","assets/quiz-_HXjVw_Y.js","assets/react-DBSBhfuB.js","assets/rolldown-runtime-WkwZ5CU-.js","assets/store-CWxdXh48.js","assets/typeinList-CChCupXg.js","data/index.json","data/world.json","en.html","es.html","icons/apple-touch-icon.png","icons/icon-192.png","icons/icon-512.png","icons/icon.svg","icons/maskable-512.png","index.html","manifest.webmanifest","offline.json"];
 /** The ones whose name does not change with their content: fetched past the browser's own cache. */
 const FRESH = ["en.html","es.html","icons/apple-touch-icon.png","icons/icon-192.png","icons/icon-512.png","icons/icon.svg","icons/maskable-512.png","index.html","manifest.webmanifest","offline.json"];
 
@@ -63,6 +65,39 @@ self.addEventListener('activate', (event) => {
 // The page asks for this when the player accepts the new version.
 self.addEventListener('message', (event) => {
   if (event.data === 'skip-waiting') self.skipWaiting();
+  // The count of waiting reviews from each moment on, or null when the player wants no number on the icon.
+  if (event.data && event.data.type === 'badge') event.waitUntil(keepBadge(event.data.schedule).catch(() => undefined));
+});
+
+/** What the page last said the icon should count, kept where it outlives the worker. */
+const BADGE_CACHE = 'regionle-badge';
+const BADGE_KEY = new URL('badge-schedule', scope).href;
+
+async function keepBadge(schedule) {
+  const cache = await caches.open(BADGE_CACHE);
+  if (Array.isArray(schedule)) await cache.put(BADGE_KEY, new Response(JSON.stringify(schedule), { headers: { 'Content-Type': 'application/json' } }));
+  else await cache.delete(BADGE_KEY);
+}
+
+/** Puts on the icon the count that the schedule gives for this moment. */
+async function refreshBadge() {
+  if (!self.navigator.setAppBadge) return;
+  const cache = await caches.open(BADGE_CACHE);
+  const kept = await cache.match(BADGE_KEY);
+  if (!kept) return;
+  let count = null;
+  for (const [at, n] of await kept.json()) {
+    if (at > Date.now()) break;
+    count = n;
+  }
+  if (count == null) return;
+  if (count > 0) await self.navigator.setAppBadge(count);
+  else await self.navigator.clearAppBadge();
+}
+
+// The browser wakes the worker now and then for this, where the game is installed and it does such things.
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'badge') event.waitUntil(refreshBadge().catch(() => undefined));
 });
 
 /**

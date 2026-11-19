@@ -3,6 +3,15 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.18.0 — 19 de noviembre de 2026
+
+- Enlace directo a un mapa y un juego: en los ajustes de cada sección, «Copiar enlace a este mapa». Quien lo abre lo encuentra ya elegido, listo para empezar.
+- Avisar de un error: bajo cada respuesta, un enlace abre un aviso en GitHub con la pieza, el mapa, el juego y la versión ya escritos.
+- Regla para medir, en Explorar: marcas dos puntos en el mapa y ves los kilómetros que hay de uno a otro en línea recta.
+- Con el juego instalado, su icono lleva el número de repasos que te esperan, donde el navegador lo permite. Se apaga al pie de la página.
+- En un móvil estrecho, las últimas partidas de Progreso se leen sin desplazar de lado: cada una ocupa tres líneas en vez de una fila que no cabía.
+- En el selector de países, los continentes pasan a dos líneas en el móvil: ya no hay que adivinar que América y Oceanía estaban a la derecha.
+
 ## 1.17.0 — 19 de noviembre de 2026
 
 - Fronteras: se ilumina una frontera y dices qué dos piezas separa, entre cuatro parejas o escribiendo los dos nombres, en el orden que quieras.

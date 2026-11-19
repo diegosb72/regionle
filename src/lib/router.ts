@@ -52,6 +52,15 @@ export function go(path: string): void {
 }
 
 /**
+ * The address of where the game already is, written anew, and the game told about it: a link that has been
+ * followed and applied gives way to the plain address of its screen, with no new entry in the history.
+ */
+export function settle(path: string): void {
+  rewrite(`#/${path}`);
+  window.dispatchEvent(new PopStateEvent('popstate'));
+}
+
+/**
  * The address follows the language the game speaks.
  *
  * The page of a screen gives way to the page of the same screen in that language (`regions.html` to

@@ -830,28 +830,46 @@ export function Progress({ world }: { world: World }) {
             <section className="block">
               <h2>{L('Últimas partidas', 'Latest games')}</h2>
               <div className="table-wrap">
-                <table className="sessions">
-                  <thead>
-                    <tr>
-                      <th>{L('Cuándo', 'When')}</th>
-                      <th>{L('Juego', 'Game')}</th>
-                      <th>{L('Mapa', 'Map')}</th>
-                      <th className="num">{L('A la primera', 'First time')}</th>
-                      <th className="num">{L('Puntos', 'Score')}</th>
-                      <th className="num">{L('Tiempo', 'Time')}</th>
+                {/* On a phone each game is a block of three lines instead of a row of six cells (`.games` in the
+                    styles): the roles keep it a table for whoever hears it, whatever it is drawn as. */}
+                <table className="sessions games" role="table">
+                  <thead role="rowgroup">
+                    <tr role="row">
+                      <th role="columnheader">{L('Cuándo', 'When')}</th>
+                      <th role="columnheader">{L('Juego', 'Game')}</th>
+                      <th role="columnheader">{L('Mapa', 'Map')}</th>
+                      <th role="columnheader" className="num">
+                        {L('A la primera', 'First time')}
+                      </th>
+                      <th role="columnheader" className="num">
+                        {L('Puntos', 'Score')}
+                      </th>
+                      <th role="columnheader" className="num">
+                        {L('Tiempo', 'Time')}
+                      </th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody role="rowgroup">
                     {sessions.slice(0, 30).map((s) => (
-                      <tr key={s.t}>
-                        <td>{when(s.t)}</td>
-                        <td>{Object.hasOwn(SECTIONS, s.section) ? modeNameIn(s.section, s.mode) : MODE_NAME[s.mode]}</td>
-                        <td>{s.note === 'timed' || s.note === 'lives' || s.note === 'exam' ? `${s.label} · ${formatName(s.note).toLowerCase()}` : s.note ? `${s.label} · ${s.note}` : s.label}</td>
-                        <td className="num">
+                      <tr key={s.t} role="row">
+                        <td role="cell" className="g-when">
+                          {when(s.t)}
+                        </td>
+                        <td role="cell" className="g-game">
+                          {Object.hasOwn(SECTIONS, s.section) ? modeNameIn(s.section, s.mode) : MODE_NAME[s.mode]}
+                        </td>
+                        <td role="cell" className="g-map">
+                          {s.note === 'timed' || s.note === 'lives' || s.note === 'exam' ? `${s.label} · ${formatName(s.note).toLowerCase()}` : s.note ? `${s.label} · ${s.note}` : s.label}
+                        </td>
+                        <td role="cell" className="num g-first" data-label={L('a la primera', 'first time')}>
                           {s.ok} / {s.total}
                         </td>
-                        <td className="num">{scoreOf(s.ok, s.warn, s.total)} %</td>
-                        <td className="num">{fmtTime(s.ms)}</td>
+                        <td role="cell" className="num g-score">
+                          {scoreOf(s.ok, s.warn, s.total)} %
+                        </td>
+                        <td role="cell" className="num g-time">
+                          {fmtTime(s.ms)}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
