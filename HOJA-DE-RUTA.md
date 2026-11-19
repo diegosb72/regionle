@@ -17,7 +17,7 @@ A petición del dueño del proyecto, desde la 1.18.0 se hace primero lo que meno
 el final lo que más. La estimación es a ojo y cambia al abrir el código:
 
 - **Corto**: nada pendiente
-- **Medio**: 19, 23–26, 45, 46, 51, 54, 58, 59, 61, 62, 66, 70, 73–75, 84, 87, 94, 98, 100, 111b, 111d, 111e
+- **Medio**: 19, 23–26, 45, 46, 51, 54, 58, 59, 61, 66, 70, 73–75, 84, 87, 94, 98
 - **Largo**: 20, 44 (francés), 65, 67, 68, 83, 90
 - **Depende de conseguir datos**, lleve lo que lleve: 30–32, 37–39, 41–43, 95, y lo que falta del 29 y del 35
 
@@ -98,7 +98,7 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 - [ ] 59. Lecciones a tu gusto
 - [x] 60. Repaso ajustable: en Progreso se elige el ritmo (más seguido, normal o más espaciado) y cuántas preguntas hace cada repaso (10, 20, 30 o 50) — **1.19.0**
 - [ ] 61. Sesión del día
-- [ ] 62. Más tipos de pista
+- [x] 62. Más tipos de pista: junto a la pista de cada juego, un menú «Otra pista» con lo que el juego sabe de la pieza (cuántas letras, su tamaño, dónde cae, a qué pertenece, qué tiene cerca, su capital, su bandera, quitar dos opciones, su nombre); solo lo que la pregunta ni enseña ni pide, y cada una cuenta como ayuda — **1.22.0**
 - [x] 63. Las que más te cuestan: «Lo que más fallas» estaba en Progreso desde la 1.5.0; ahora la portada dice cuántas son y las practica con un clic — **1.14.0**
 - [x] 64. Ficha de cada pieza con tu historial: en Explorar, cómo va cada tipo de pregunta, cuándo vuelve al repaso y con qué se confunde — **1.14.0**
 - [ ] 65. Modo infantil
@@ -146,7 +146,7 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 - [x] 97. Contador de repasos pendientes en el icono: con el juego instalado, donde el navegador sabe poner un número en un icono — **1.18.0**
 - [ ] 98. Una página por país para buscadores
 - [x] 99. Botón «Avisar de un error»: bajo cada respuesta, un enlace abre un aviso en GitHub ya rellenado con la pieza, el mapa, el juego y la versión — **1.18.0**
-- [ ] 100. Ayuda y tutorial de cada modo
+- [x] 100. Ayuda y tutorial de cada modo: «Cómo se juega» explica cada juego (los pasos, cómo cuenta, las ayudas y un consejo); sale solo la primera vez que se abre un juego, con el tiempo parado, y está en el botón «?» de la partida y donde se elige el juego — **1.22.0**
 - [x] 101. Copia de seguridad más cómoda: al importar se ve qué trae el archivo antes de sustituir nada, la copia lleva las preferencias, se puede enviar desde el móvil y Progreso recuerda hacerla — **1.19.0**
 - [x] 102. Pruebas y publicación automáticas en GitHub: en cada cambio propuesto y en cada cambio de `main`, GitHub pasa las pruebas, compila con el control de tamaño y juega en un navegador (`.github/workflows/pruebas.yml`); publica él mismo si en GitHub se elige publicar desde Actions. Lo puso el dueño el 19 de noviembre de 2026, y la primera pasada salió bien — **1.21.0**
 - [x] 103. Licencia del repositorio (**decidido**: MIT): el código se puede usar, cambiar y redistribuir citando al autor; los datos de los mapas siguen las condiciones de sus fuentes — **1.15.0**
@@ -154,7 +154,7 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 ## Arreglos pendientes
 
 - [x] 111a. Desbordes en móviles de 360 px en Progreso y en las pestañas del selector: las últimas partidas van en tres líneas y los continentes en dos — **1.18.0**
-- [ ] 111b. Abreviaturas por defecto para países, ciudades y capitales
+- [x] 111b. Abreviaturas por defecto para países, ciudades y capitales: una lista corta escrita a mano (EUA, RSA, BCN, ZGZ, CDMX, DF, BsAs, DC, SF, KL…) de 9 países y 52 ciudades, que vale igual cuando la ciudad se pregunta como capital — **1.22.0**
 - [x] 111c. Abreviaturas cortas limitadas a su país en los mapas de varios países: al preguntar por una pieza cuenta la abreviatura de su país, y la que comparten dos países no nombra ninguna hasta que se toca la pieza — **1.19.0**
-- [ ] 111d. Una sola grafía en español para una ciudad y su región
-- [ ] 111e. Capitales de región con su nombre inglés cuando el juego está en inglés
+- [x] 111d. Una sola grafía en español para una ciudad y su región: 43 parejas se escriben ya igual (Rangún, Trebisonda, Almaty, Cusco), la grafía anterior se sigue aceptando y la construcción de los datos avisa si aparece otra — **1.22.0**
+- [x] 111e. Capitales de región con su nombre inglés cuando el juego está en inglés: 421 capitales (The Hague, Seville, Munich); al escribir se aceptan todos los nombres — **1.22.0**

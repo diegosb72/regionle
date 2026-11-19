@@ -15,6 +15,26 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.22.0',
+    date: '2026-11-19',
+    es: [
+      'Más pistas: «Otra pista» abre un menú para elegir qué saber de la pieza: sus letras, su tamaño, dónde cae, qué tiene cerca, su capital o su bandera.',
+      'Cómo se juega: cada juego explica sus reglas, cómo cuenta y sus ayudas la primera vez que lo abres, con el tiempo parado. Después, en el botón «?».',
+      '«Cómo se juega» está también donde eliges el juego, bajo su descripción. Si prefieres que no salga solo, se quita en el propio panel o al pie.',
+      'Abreviaturas de serie para países, ciudades y capitales: EUA, RSA, BCN, ZGZ, CDMX, DF, BsAs, DC, SF o KL valen ya sin añadirlas en Configuración.',
+      'Una ciudad y la región que lleva su nombre se escriben igual: Rangún, Trebisonda, Almaty, Cusco… La grafía de antes se sigue aceptando al escribir.',
+      'En inglés, las capitales de región salen con su nombre inglés (The Hague, Seville, Munich). Al escribir se aceptan todos los nombres.',
+    ],
+    en: [
+      'More hints: “Another hint” opens a menu to choose what to know of the piece: its letters, its size, where it lies, what is near, its capital or its flag.',
+      'How to play: each game explains its rules, how it counts and its help the first time you open it, with the clock stopped. Afterwards, on the “?” button.',
+      '“How to play” is also where you choose the game, under its description. To keep it from opening by itself, turn it off in the panel or at the foot.',
+      'Built-in abbreviations for countries, cities and capitals: EUA, RSA, BCN, ZGZ, CDMX, DF, BsAs, DC, SF or KL now count without adding them in Settings.',
+      'A city and the region named after it are spelt alike in Spanish: Rangún, Trebisonda, Almaty, Cusco… The old spelling is still accepted when typing.',
+      'In English, the capitals of regions come up with their English name (The Hague, Seville, Munich). Every name is accepted when typing.',
+    ],
+  },
+  {
     version: '1.21.0',
     date: '2026-11-19',
     es: [

@@ -3,6 +3,15 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.22.0 — 19 de noviembre de 2026
+
+- Más pistas: «Otra pista» abre un menú para elegir qué saber de la pieza: sus letras, su tamaño, dónde cae, qué tiene cerca, su capital o su bandera.
+- Cómo se juega: cada juego explica sus reglas, cómo cuenta y sus ayudas la primera vez que lo abres, con el tiempo parado. Después, en el botón «?».
+- «Cómo se juega» está también donde eliges el juego, bajo su descripción. Si prefieres que no salga solo, se quita en el propio panel o al pie.
+- Abreviaturas de serie para países, ciudades y capitales: EUA, RSA, BCN, ZGZ, CDMX, DF, BsAs, DC, SF o KL valen ya sin añadirlas en Configuración.
+- Una ciudad y la región que lleva su nombre se escriben igual: Rangún, Trebisonda, Almaty, Cusco… La grafía de antes se sigue aceptando al escribir.
+- En inglés, las capitales de región salen con su nombre inglés (The Hague, Seville, Munich). Al escribir se aceptan todos los nombres.
+
 ## 1.21.0 — 19 de noviembre de 2026
 
 - Diploma: al acabar con la mitad o más bien, «Diploma» saca una hoja para imprimir o guardar como PDF con tu nombre, el mapa, los aciertos y la fecha.
