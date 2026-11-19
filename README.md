@@ -205,8 +205,8 @@ La portada no descarga el juego entero: cada pantalla va en un archivo aparte qu
 | | Hoy | Límite |
 | --- | --- | --- |
 | La página (la mayor de las diecisiete) | 2,7 kB | 5 kB |
-| Guiones de la primera carga | 125 kB | 130 kB |
-| Estilos | 25 kB | 26 kB |
+| Guiones de la primera carga | 126 kB | 130 kB |
+| Estilos | 24 kB | 26 kB |
 | Tipografías pedidas con la página | 102 kB | 110 kB |
 | El mayor de los guiones que se piden después | 48 kB | 60 kB |
 
