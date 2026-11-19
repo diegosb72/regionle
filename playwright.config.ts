@@ -13,7 +13,9 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  reporter: 'list',
+  // On GitHub each test that fails is also written down next to the run, with its error and its line: the
+  // checks of a proposed change say what went wrong without the log having to be opened.
+  reporter: process.env.GITHUB_ACTIONS ? [['list'], ['github']] : 'list',
   timeout: 60_000,
   expect: { timeout: 10_000 },
   use: {

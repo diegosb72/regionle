@@ -201,7 +201,7 @@ El último paso de la compilación (`scripts/pwa/build.mjs`) escribe en la carpe
 
 `.github/workflows/pruebas.yml` hace que GitHub compruebe el juego por su cuenta:
 
-- En cada *pull request* y en cada cambio de `main` instala el proyecto, pasa las pruebas (`npm test`), compila con el control de tamaño (`npm run build`) y juega en un navegador de verdad (`npm run e2e`). Tarda unos seis minutos. Si algo falla lo dice en la pestaña *Actions* (y en la propia *pull request*) y guarda siete días las trazas del navegador.
+- En cada *pull request* y en cada cambio de `main` instala el proyecto, pasa las pruebas (`npm test`), compila con el control de tamaño (`npm run build`) y juega en un navegador de verdad (`npm run e2e`). Tarda unos seis minutos. Si algo falla lo dice en la pestaña *Actions* (y en la propia *pull request*) y guarda siete días las trazas del navegador; cada prueba del navegador que falla queda además anotada junto a la revisión, con su error y la línea en la que saltó, sin tener que abrir el registro.
 - **Publicar con él es opcional.** Tal como está el repositorio, GitHub Pages publica la carpeta `docs/` de `main`, que se compila y se sube a mano (`npm run build:pages`), y el flujo solo prueba. Si en *Settings → Pages → Build and deployment → Source* se elige **GitHub Actions**, el flujo publica él mismo lo que compila cada vez que cambia `main` y las pruebas pasan, y `docs/` deja de hacer falta.
 - El archivo solo lo puede cambiar el dueño del repositorio, en la web de GitHub o desde su ordenador: el asistente con el que se hace el juego no tiene permiso para escribir en `.github/workflows/`.
 
