@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { CARD_SIZE, fit, paintCard, rowColour, wrap, type CardInfo, type Pen } from './shareCard';
+import { gameCard, tonesOf } from '../games/resultCard';
+import { setLang } from './i18n';
+import { CARD_SIZE, drawable, fit, paintCard, rowColour, siteLabel, toneColour, wrap, type CardInfo, type Pen } from './shareCard';
+import type { Deck } from './types';
 
 interface Call {
   op: string;
@@ -115,6 +118,97 @@ describe('the picture of a day', () => {
     expect(rowColour(15)).toBe(rowColour(8));
     expect(rowColour(7)).toBe(rowColour(0));
     expect(new Set([rowColour(20), rowColour(10), rowColour(0)]).size).toBe(3);
+  });
+});
+
+describe('the picture of a game', () => {
+  const game = () => gameCard('Regiones · Señalar', 'España · comunidades autónomas', '¡Muy bien!', { ok: 13, warn: 1, bad: 1 }, 92_000, '18 de noviembre de 2026', 'diegosb72.github.io/regionle');
+
+  it('says what was played and where, the score and how the answers went', () => {
+    const card = game();
+    // Thirteen right at once and one with help, of fifteen: 13.5 of 15.
+    expect(card).toMatchObject({ kicker: 'Regiones · Señalar', country: 'España · comunidades autónomas', total: 90, unit: '%', verdict: '¡Muy bien!', streak: '18 de noviembre de 2026' });
+    expect(card.rows).toEqual([
+      { name: 'A la primera', points: 13, of: 15, tone: 'ok', text: '13' },
+      { name: 'Con ayuda', points: 1, of: 15, tone: 'warn', text: '1' },
+      { name: 'Fallos', points: 1, of: 15, tone: 'bad', text: '1' },
+      { name: 'Tiempo', points: 0, text: '1:32', bar: false },
+    ]);
+    // A game with no clock has no line for the time.
+    expect(gameCard('Cifras', 'Verdadero o falso', 'Partida terminada', { ok: 2, warn: 0, bad: 2 }, undefined, 'hoy', 'x').rows.map((r) => r.name)).toEqual(['A la primera', 'Con ayuda', 'Fallos']);
+    setLang('en');
+    try {
+      expect(game().rows.map((r) => r.name)).toEqual(['First time', 'With help', 'Misses', 'Time']);
+    } finally {
+      setLang('es');
+    }
+  });
+
+  it('writes the score as a percentage, and each line with its own figure and colour', () => {
+    const { pen, calls } = recorder();
+    paintCard(pen, game());
+    const said = written(calls);
+    for (const text of ['REGIONES · SEÑALAR', '90', '%', '¡Muy bien!', 'A la primera', 'Con ayuda', 'Fallos', 'Tiempo', '13', '1:32', '18 de noviembre de 2026']) expect(said, text).toContain(text);
+    expect(said).not.toContain('/ 100');
+    // Three bars, each as long as its share of the answers and in the colour of its kind; none for the time.
+    const bars = calls.filter((c) => c.op === 'fill' && [toneColour('ok'), toneColour('warn'), toneColour('bad')].includes(c.fill)).map((c) => c.fill);
+    expect(bars).toEqual([toneColour('ok'), toneColour('warn'), toneColour('bad')]);
+    const tracks = calls.filter((c) => c.op === 'fill' && c.fill === '#e6decd');
+    expect(tracks).toHaveLength(3);
+  });
+
+  it('leaves a kind of answer with none without its bar filled, and never divides by nothing', () => {
+    const { pen, calls } = recorder();
+    paintCard(pen, gameCard('Cifras', 'Verdadero o falso', 'Partida terminada', { ok: 0, warn: 0, bad: 2 }, undefined, 'hoy', 'x'));
+    expect(calls.filter((c) => c.op === 'fill' && c.fill === toneColour('bad'))).toHaveLength(1);
+    expect(calls.filter((c) => c.op === 'fill' && c.fill === toneColour('ok'))).toHaveLength(0);
+    const empty = recorder();
+    paintCard(empty.pen, gameCard('Cifras', 'x', 'Sin preguntas', { ok: 0, warn: 0, bad: 0 }, undefined, 'hoy', 'x'));
+    expect(written(empty.calls)).toContain('0');
+  });
+
+  it('paints each piece of the map by how its answer went', () => {
+    const fills: string[] = [];
+    const { pen } = recorder();
+    const watch = new Proxy(pen, {
+      get(target, key: string) {
+        if (key === 'fill') return (path?: unknown) => (path ? fills.push(String((target as unknown as { fillStyle: string }).fillStyle)) : undefined);
+        return (target as unknown as Record<string, unknown>)[key];
+      },
+      set(target, key: string, value) {
+        (target as unknown as Record<string, unknown>)[key] = value;
+        return true;
+      },
+    });
+    paintCard(watch, game(), { art: { paths: ['a', 'b', 'c', 'd'], box: [0, 0, 10, 10], tones: ['ok', 'warn', 'bad', undefined] }, path: () => ({}) as Path2D });
+    expect(fills).toEqual(['#8fd1a9', '#f3cf6f', '#f0957c', '#fdf6e3']);
+    // With nothing said about the pieces, all of them are land.
+    fills.length = 0;
+    paintCard(watch, game(), { art: { paths: ['a', 'b'], box: [0, 0, 10, 10] }, path: () => ({}) as Path2D });
+    expect(fills).toEqual(['#fdf6e3', '#fdf6e3']);
+  });
+
+  it('keeps the worst answer of a piece asked more than once', () => {
+    const row = (id: string, res: 'ok' | 'warn' | 'bad') => ({ item: { id }, res });
+    expect(tonesOf([row('a', 'ok'), row('b', 'bad'), row('a', 'warn'), row('b', 'ok'), row('c', 'ok')])).toEqual({ a: 'warn', b: 'bad', c: 'ok' });
+    expect(tonesOf([])).toEqual({});
+  });
+
+  it('draws a map of surfaces only', () => {
+    const deck = (shapes: string[]) => ({ items: shapes.map((shape) => ({ shape })) }) as unknown as Deck;
+    expect(drawable(deck(['area', 'area']))).toBe(true);
+    expect(drawable(deck(['area', 'point']))).toBe(false);
+    expect(drawable(deck(['line']))).toBe(false);
+    expect(drawable(deck([]))).toBe(false);
+  });
+});
+
+describe('the address of the game as it is read', () => {
+  it('drops what is not said aloud', () => {
+    expect(siteLabel('https://diegosb72.github.io/regionle/')).toBe('diegosb72.github.io/regionle');
+    expect(siteLabel('https://diegosb72.github.io/regionle/index.html#/reto')).toBe('diegosb72.github.io/regionle');
+    expect(siteLabel('https://www.example.org/')).toBe('example.org');
+    expect(siteLabel('http://127.0.0.1:4173/en.html')).toBe('127.0.0.1:4173');
   });
 });
 

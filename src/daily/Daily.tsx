@@ -2,6 +2,7 @@
 import { BarChart3, BookOpen, CalendarDays, Check, Copy, Flame, MapPin, Play, Share2, Shield, Star } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { MapView, type MapHandle } from '../components/MapView';
+import { SharePicture } from '../components/SharePicture';
 import { BASE, Flag, Seg, Spinner } from '../components/ui';
 import { GameShell } from '../games/common';
 import { TravelGame } from '../games/Travel';
@@ -9,7 +10,8 @@ import { buildDeck, isFeminine, levelOf, type World } from '../lib/data';
 import { silhouette } from '../lib/geo';
 import { L, capName, fmtDay, fmtWeekday, getLang, nm } from '../lib/i18n';
 import { go, settle } from '../lib/router';
-import { DAILY_PATH, linkTo, siteRoot } from '../lib/routes';
+import { DAILY_PATH, linkTo } from '../lib/routes';
+import { siteLabel } from '../lib/shareCard';
 import { DEFAULT_OPTS, useStore } from '../lib/store';
 import { cx, fmtArea, fmtPop, today } from '../lib/text';
 import type { Country, Deck, Mode } from '../lib/types';
@@ -31,7 +33,6 @@ import {
   type DailyRec,
 } from './spec';
 import { JokerChip, inARow, jokerRule, testName, useCountdown } from './Card';
-import { SharePicture } from './SharePicture';
 import { hardByDefault, hardTurn } from './hard';
 import { PinFive, PointsChip, QuickFive, QuickTyped, RegionleTest, WhichTest, nextLabel, shellSubtitle, shellTitle, type Step } from './tests';
 import { DailyStatsBlock, useHasStats } from './Stats';
@@ -63,13 +64,6 @@ export function HardChip() {
       {L('Difícil', 'Hard')}
     </span>
   );
-}
-
-/** The address of the game as it is read out: "diegosb72.github.io/regionle". */
-export function siteLabel(href?: string): string {
-  return siteRoot(href)
-    .replace(/^[a-z]+:\/\/(www\.)?/i, '')
-    .replace(/\/(index\.html)?$/, '');
 }
 
 /** What happened in a test, from the figure kept with its points. */

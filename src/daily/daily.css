@@ -602,27 +602,6 @@ a.d-cal-day:hover {
   justify-content: center;
   gap: 8px;
 }
-.d-share-note,
-.d-pic-wrap {
-  flex: 0 0 100%;
-  text-align: center;
-}
-.d-share-note {
-  color: var(--ink-3);
-  font-size: 14px;
-}
-.d-share-note:empty {
-  display: none;
-}
-.d-pic {
-  display: block;
-  width: min(100%, 320px);
-  height: auto;
-  margin: 4px auto 0;
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
-  box-shadow: var(--shadow-1);
-}
 .d-share textarea {
   width: 100%;
   padding: 12px 14px;

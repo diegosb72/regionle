@@ -1,37 +1,53 @@
 /**
- * The result of a day as a picture to send: drawn on a canvas in the player's own browser, from what is
- * already on the screen. Nothing is asked of any server and nothing is sent anywhere.
+ * A result as a picture to send, that of a daily challenge or of any game: drawn on a canvas in the
+ * player's own browser, from what is already on the screen. Nothing is asked of any server and nothing is
+ * sent anywhere.
  */
-import { makeView } from '../lib/geo';
-import type { Deck } from '../lib/types';
+import { makeView } from './geo';
+import { siteRoot } from './routes';
+import type { Deck, Res } from './types';
 
 /** Square: it is shown whole in chats and in social networks alike. */
 export const CARD_SIZE = 1080;
 
 export interface CardRow {
   name: string;
-  /** 0 to 20. */
+  /** How much of its bar is filled: 0 to 20, the points of a test, unless `of` says what it is out of. */
   points: number;
+  of?: number;
+  /** The colour of the bar when it does not follow from the points: the answers right, helped or missed of a game. */
+  tone?: Res;
+  /** What is written at the end of the line instead of the points: "1:32". */
+  text?: string;
+  /** False for a line with a figure and nothing to measure it against. */
+  bar?: boolean;
 }
 
 export interface CardInfo {
-  /** "Reto del 17 de noviembre de 2026" */
+  /** "Reto del 17 de noviembre de 2026" · "Regiones · Señalar" */
   kicker: string;
+  /** The name in large letters: the country of the day, or the map a game was played on. */
   country: string;
   total: number;
+  /** What follows the figure in small letters: "/ 100" unless said ("%"). */
+  unit?: string;
   /** "¡Muy bien!" */
   verdict: string;
   rows: CardRow[];
-  /** "3 días seguidos"; nothing when there is no streak to boast of. */
+  /** "3 días seguidos", or the day of a game; nothing when there is nothing to say. */
   streak: string | null;
   /** The address of the game, as it is read: "diegosb72.github.io/regionle". */
   site: string;
 }
 
-/** The map of the country of the day: its pieces as paths, and the box they are drawn in. */
+/**
+ * A map: its pieces as paths, and the box they are drawn in. `tones`, one for each path, paints each piece
+ * by how its answer went; a piece with none keeps the colour of the land.
+ */
 export interface CardArt {
   paths: string[];
   box: [number, number, number, number];
+  tones?: (Res | undefined)[];
 }
 
 /** What the drawing needs from a canvas; a test can stand in for it. */
@@ -87,6 +103,10 @@ const C = {
   bad: '#cf4527',
   sea: '#d8e6e3',
   land: '#fdf6e3',
+  // A piece of a map by how its answer went, as the game paints it.
+  mapOk: '#8fd1a9',
+  mapWarn: '#f3cf6f',
+  mapBad: '#f0957c',
   border: '#5c8b8f',
   cream: '#f6e7c8',
   mint: '#9fd3cd',
@@ -100,6 +120,16 @@ const M = 64;
 
 /** The colour of a test, as on the summary: well, so-so or badly. */
 export const rowColour = (points: number): string => (points >= 16 ? C.ok : points >= 8 ? C.warn : C.bad);
+/** The colour of a kind of answer: right at once, with help, missed. */
+export const toneColour = (tone: Res): string => (tone === 'ok' ? C.ok : tone === 'warn' ? C.warn : C.bad);
+const pieceColour = (tone: Res | undefined): string => (tone === 'ok' ? C.mapOk : tone === 'warn' ? C.mapWarn : tone === 'bad' ? C.mapBad : C.land);
+
+/** The address of the game as it is read out: "diegosb72.github.io/regionle". */
+export function siteLabel(href?: string): string {
+  return siteRoot(href)
+    .replace(/^[a-z]+:\/\/(www\.)?/i, '')
+    .replace(/\/(index\.html)?$/, '');
+}
 
 function rounded(pen: Pen, x: number, y: number, w: number, h: number, r: number): void {
   const k = Math.max(0, Math.min(r, w / 2, h / 2));
@@ -144,21 +174,31 @@ export function fit(pen: Pick<Pen, 'measureText' | 'font'>, text: string, font: 
 /**
  * The map of a deck as the game frames it, drawn as large as it can be: the box is the one of the game
  * (which leaves far-off islands out of the first view), tightened to what the pieces really take up.
+ * `tones` says how the answer about each piece went, for the picture of a game.
  */
-export function artOf(deck: Deck): CardArt {
+export function artOf(deck: Deck, tones?: Record<string, Res>): CardArt {
   const view = makeView(deck.frame);
   let [x0, y0, x1, y1] = [Infinity, Infinity, -Infinity, -Infinity];
+  const paths: string[] = [];
+  const painted: (Res | undefined)[] = [];
   for (const it of deck.items) {
     const [[a, b], [c, d]] = view.path.bounds(it.geo);
     if (a < x0) x0 = a;
     if (b < y0) y0 = b;
     if (c > x1) x1 = c;
     if (d > y1) y1 = d;
+    const path = view.path(it.geo);
+    if (!path) continue;
+    paths.push(path);
+    painted.push(tones?.[it.id]);
   }
   const tight: CardArt['box'] = [Math.max(x0, view.box[0]), Math.max(y0, view.box[1]), Math.min(x1, view.box[2]), Math.min(y1, view.box[3])];
   const sound = tight.every(Number.isFinite) && tight[2] - tight[0] > 1 && tight[3] - tight[1] > 1;
-  return { paths: deck.items.flatMap((it) => view.path(it.geo) ?? []), box: sound ? tight : view.box };
+  return { paths, box: sound ? tight : view.box, ...(tones ? { tones: painted } : {}) };
 }
+
+/** Whether a deck is a map of surfaces, which is what a picture can show: a map of dots or of lines alone says little. */
+export const drawable = (deck: Deck): boolean => deck.items.length > 0 && deck.items.every((it) => it.shape === 'area');
 
 function brand(pen: Pen): void {
   const s = 68;
@@ -223,15 +263,15 @@ function map(pen: Pen, art: CardArt, make: (d: string) => Path2D, x: number, y: 
   const k = Math.min((size - 2 * pad) / Math.max(1, x1 - x0), (size - 2 * pad) / Math.max(1, y1 - y0));
   pen.translate(x + size / 2 - ((x0 + x1) / 2) * k, y + size / 2 - ((y0 + y1) / 2) * k);
   pen.scale(k, k);
-  pen.fillStyle = C.land;
   pen.strokeStyle = C.border;
   pen.lineWidth = 1.6 / k;
   pen.lineJoin = 'round';
-  for (const d of art.paths) {
+  art.paths.forEach((d, i) => {
     const p = make(d);
+    pen.fillStyle = pieceColour(art.tones?.[i]);
     pen.fill(p);
     pen.stroke(p);
-  }
+  });
   pen.restore();
 }
 
@@ -286,12 +326,12 @@ export function paintCard(pen: Pen, info: CardInfo, extras: CardExtras = {}): vo
   const after = M - 6 + pen.measureText(total).width + 18;
   pen.fillStyle = C.ink3;
   pen.font = `440 46px ${SERIF}`;
-  pen.fillText('/ 100', after, base);
+  pen.fillText(info.unit ?? '/ 100', after, base);
   pen.fillStyle = C.accentInk;
   const verdict = fit(pen, info.verdict, (px) => `italic 440 ${px}px ${SERIF}`, width, 44, 30, 1);
   pen.fillText(verdict.lines[0] ?? '', M, base + 62);
 
-  // One line for each test: its name, a bar and its points.
+  // One line for each test, or for each kind of answer: its name, a bar and its figure.
   const foot = S - M;
   const rowsTop = base + 108;
   const step = Math.min(64, (foot - 64 - rowsTop) / Math.max(1, info.rows.length));
@@ -304,19 +344,21 @@ export function paintCard(pen: Pen, info: CardInfo, extras: CardExtras = {}): vo
     pen.fillStyle = C.ink;
     const label = fit(pen, row.name, (px) => `600 ${px}px ${SANS}`, 420, 30, 20, 1);
     pen.fillText(label.lines[0] ?? '', M, mid);
-    pen.fillStyle = C.track;
-    rounded(pen, barX, mid - 10, barW, 20, 10);
-    pen.fill();
-    const part = Math.max(0, Math.min(1, row.points / 20));
-    if (part > 0) {
-      pen.fillStyle = rowColour(row.points);
-      rounded(pen, barX, mid - 10, Math.max(20, barW * part), 20, 10);
+    if (row.bar !== false) {
+      pen.fillStyle = C.track;
+      rounded(pen, barX, mid - 10, barW, 20, 10);
       pen.fill();
+      const part = Math.max(0, Math.min(1, row.points / Math.max(1, row.of ?? 20)));
+      if (part > 0) {
+        pen.fillStyle = row.tone ? toneColour(row.tone) : rowColour(row.points);
+        rounded(pen, barX, mid - 10, Math.max(20, barW * part), 20, 10);
+        pen.fill();
+      }
     }
     pen.textAlign = 'right';
     pen.fillStyle = C.ink;
     pen.font = `700 30px ${SANS}`;
-    pen.fillText(String(row.points), S - M, mid);
+    pen.fillText(row.text ?? String(row.points), S - M, mid);
   });
 
   // Below: where to play and, when there is one, the streak.
@@ -368,7 +410,7 @@ async function loadFlag(url: string): Promise<HTMLImageElement | null> {
 }
 
 /** The picture as a PNG file. The flag and the map are left out when they cannot be had. */
-export async function cardBlob(info: CardInfo, opts: { flagUrl?: string; deck?: Deck | null } = {}): Promise<Blob> {
+export async function cardBlob(info: CardInfo, opts: { flagUrl?: string; deck?: Deck | null; tones?: Record<string, Res> } = {}): Promise<Blob> {
   const canvas = document.createElement('canvas');
   canvas.width = canvas.height = CARD_SIZE;
   const pen = canvas.getContext('2d');
@@ -376,7 +418,7 @@ export async function cardBlob(info: CardInfo, opts: { flagUrl?: string; deck?: 
   const [flag] = await Promise.all([opts.flagUrl ? loadFlag(opts.flagUrl) : null, ...(document.fonts ? CARD_FONTS.map((f) => document.fonts.load(f).catch(() => [])) : [])]);
   let art: CardArt | null = null;
   try {
-    art = opts.deck && typeof Path2D === 'function' ? artOf(opts.deck) : null;
+    art = opts.deck && typeof Path2D === 'function' && drawable(opts.deck) ? artOf(opts.deck, opts.tones) : null;
   } catch {
     art = null;
   }

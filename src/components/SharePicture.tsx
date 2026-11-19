@@ -1,9 +1,10 @@
-/** The button that turns the result of a day into a picture, and shares it or saves it. */
+/** The button that turns a result, of a day or of a game, into a picture, and shares it or saves it. */
 import { Check, ImageDown } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { L } from '../lib/i18n';
-import type { Deck } from '../lib/types';
-import { CARD_SIZE, cardBlob, type CardInfo } from './shareCard';
+import { CARD_SIZE, cardBlob, type CardInfo } from '../lib/shareCard';
+import type { Deck, Res } from '../lib/types';
+import './sharePicture.css';
 
 /** Whether this device hands pictures over to other applications (phones and tablets do). */
 function sharesFiles(): boolean {
@@ -14,19 +15,39 @@ function sharesFiles(): boolean {
   }
 }
 
-export function SharePicture({ info, flagUrl, deck, file, text }: { info: CardInfo; flagUrl?: string; deck: Deck | null; file: string; text: string }) {
+/**
+ * `tones` paints each piece of the map by how its answer went (the picture of a game); `failed` is what to
+ * say when the picture cannot be made, where there is no text to copy instead.
+ */
+export function SharePicture({
+  info,
+  flagUrl,
+  deck,
+  tones,
+  file,
+  text,
+  failed = L('No se ha podido crear la imagen. El texto de arriba sí se puede copiar.', 'The picture could not be made. The text above can still be copied.'),
+}: {
+  info: CardInfo;
+  flagUrl?: string;
+  deck: Deck | null;
+  tones?: Record<string, Res>;
+  file: string;
+  text: string;
+  failed?: string;
+}) {
   const [state, setState] = useState<'idle' | 'busy' | 'shared' | 'saved' | 'failed'>('idle');
   const [preview, setPreview] = useState<string | null>(null);
   const ready = useRef<Blob | null>(null);
   const [toApps] = useState(sharesFiles);
-  const key = `${JSON.stringify(info)}|${flagUrl ?? ''}|${deck?.key ?? ''}`;
+  const key = `${JSON.stringify(info)}|${flagUrl ?? ''}|${deck?.key ?? ''}|${tones ? JSON.stringify(tones) : ''}`;
 
   // Drawn as soon as there is something to draw (and again when the map arrives): a browser only lets
   // a page share right after the tap, with no time to draw anything in between.
   useEffect(() => {
     let alive = true;
     ready.current = null;
-    cardBlob(info, { flagUrl, deck })
+    cardBlob(info, { flagUrl, deck, tones })
       .then((blob) => {
         if (alive) ready.current = blob;
       })
@@ -48,7 +69,7 @@ export function SharePicture({ info, flagUrl, deck, file, text }: { info: CardIn
     if (state === 'busy') return;
     setState('busy');
     try {
-      const blob = ready.current ?? (await cardBlob(info, { flagUrl, deck }));
+      const blob = ready.current ?? (await cardBlob(info, { flagUrl, deck, tones }));
       setPreview(URL.createObjectURL(blob));
       if (toApps) {
         try {
@@ -84,13 +105,23 @@ export function SharePicture({ info, flagUrl, deck, file, text }: { info: CardIn
         {done ? <Check size={16} aria-hidden="true" /> : <ImageDown size={16} aria-hidden="true" />}
         {toApps ? L('Compartir imagen', 'Share picture') : L('Guardar imagen', 'Save picture')}
       </button>
-      <p className="d-share-note" role="status">
+      <p className="pic-note" role="status">
         {state === 'saved' && L('Imagen guardada en tus descargas.', 'Picture saved to your downloads.')}
-        {state === 'failed' && L('No se ha podido crear la imagen. El texto de arriba sí se puede copiar.', 'The picture could not be made. The text above can still be copied.')}
+        {state === 'failed' && failed}
       </p>
       {preview && (
-        <p className="d-pic-wrap">
-          <img className="d-pic" src={preview} width={CARD_SIZE} height={CARD_SIZE} alt={L(`Imagen del resultado. ${info.kicker}: ${info.country}, ${info.total} de 100.`, `Picture of the result. ${info.kicker}: ${info.country}, ${info.total} out of 100.`)} />
+        <p className="pic-wrap">
+          <img
+            className="pic"
+            src={preview}
+            width={CARD_SIZE}
+            height={CARD_SIZE}
+            alt={
+              info.unit === '%'
+                ? L(`Imagen del resultado. ${info.kicker}: ${info.country}, ${info.total} %.`, `Picture of the result. ${info.kicker}: ${info.country}, ${info.total}%.`)
+                : L(`Imagen del resultado. ${info.kicker}: ${info.country}, ${info.total} de 100.`, `Picture of the result. ${info.kicker}: ${info.country}, ${info.total} out of 100.`)
+            }
+          />
         </p>
       )}
     </>
