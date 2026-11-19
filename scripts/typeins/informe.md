@@ -266,6 +266,73 @@ Así vienen en la lista, y así quedan: lo que se escribe rellena las dos. Con u
 - Yemen · `r:^([AE][LR])?ASIM[AOU]H`: Saná (`YE-SA`), Saná (`YE-SN`)
 - Yemen · `AAA`: Saná (`YE-SA`), Saná (`YE-SN`)
 
+## Países, ciudades y capitales
+
+No vienen de la lista, que es de regiones: están escritos a mano en `lugares.json`. Son las abreviaturas y los nombres cortos de uso corriente que las iniciales del nombre no dan, y las siglas que la regla deja sin valer porque en su mapa las deletrean dos ciudades. Se suman a las siglas automáticas, que estas piezas conservan. Son **9** países y **52** ciudades, que se las pasan a **58** capitales: una ciudad escrita aquí vale igual cuando se pregunta por ella como capital de su país o de una región.
+
+- Estados Unidos (`US`): `EUA`
+- Sudáfrica (`ZA`): `RSA`
+- Arabia Saudita (`SA`): `KSA`, `Arabia`
+- Bosnia y Herzegovina (`BA`): `BiH`
+- China (`CN`): `PRC`
+- Alemania (`DE`): `RFA`
+- Timor Oriental (`TL`): `Timor`
+- Corea del Norte (`KP`): `Norcorea`
+- Corea del Sur (`KR`): `Surcorea`
+
+- Barcelona (`cj64mu5`, España): `BCN`, `Barna` · también como capital de Cataluña (`cap:ES-CT`); Barcelona (`cap:ES-B`)
+- Zaragoza (`cj64kij`, España): `ZGZ` · también como capital de Aragón (`cap:ES-AR`); Zaragoza (`cap:ES-Z`)
+- Valencia (`cj64mh3`, España): `VLC` · también como capital de Comunidad Valenciana (`cap:ES-VC`); Valencia (`cap:ES-V`)
+- San Sebastián (`cj64a8z`, España): `Donostia`, `Donosti` · también como capital de Guipúzcoa (`cap:ES-SS`), solo `Donosti`
+- Vitoria (`cj644al`, España): `Gasteiz`
+- Bilbao (`cj64lff`, España): `Bilbo`
+- Pamplona (`cj64j2x`, España): `Iruña`, `Iruñea`
+- Alicante (`cj64auv`, España): `Alacant`
+- Las Palmas de Gran Canaria (`cj64m7b`, España): `LPGC` · también como capital de Canarias (`cap:ES-CN`); Las Palmas (`cap:ES-GC`)
+- Castellón de la Plana (`cj64auz`, España): `Castellón`
+- Gijón (`cj644a7`, España): `Xixón`
+- Oviedo (`cj64a8f`, España): `Uviéu`
+- Santiago de Compostela (`cj64a8l`, España): `Santiago`, `Compostela` · también como capital de Galicia (`cap:ES-GA`), solo `Compostela`
+- Washington D. C. (`cj64n2t`, Estados Unidos): `DC`, `Washington` · también como capital de Estados Unidos (`cap:US`), solo `DC`; Washington D. C. (`cap:US-DC`)
+- San Francisco (`cj64n07`, Estados Unidos): `SF`, `Frisco`, `San Fran`
+- Filadelfia (`cj64mtn`, Estados Unidos): `Philly`
+- Oklahoma City (`cj64m8z`, Estados Unidos): `OKC` · también como capital de Oklahoma (`cap:US-OK`)
+- Ciudad de México (`cj64n37`, México): `CDMX`, `DF`, `México DF`, `México` · también como capital de México (`cap:MX`), solo `DF`; Ciudad de México (`cap:MX-CMX`)
+- Guadalajara (`cj64mv1`, México): `GDL` · también como capital de Jalisco (`cap:MX-JAL`)
+- Monterrey (`cj64n1j`, México): `MTY` · también como capital de Nuevo León (`cap:MX-NLE`)
+- Ciudad Juárez (`cj64jdx`, México): `Juárez`
+- Nezahualcóyotl (`cj645yd`, México): `Neza`
+- Buenos Aires (`cj64n2f`, Argentina): `BsAs`, `Baires`, `CABA`, `Capital Federal` · también como capital de Argentina (`cap:AR`); Ciudad de Buenos Aires (`cap:AR-C`)
+- Mar del Plata (`cj64mpp`, Argentina): `Mardel`
+- Río de Janeiro (`cj64n43`, Brasil): `Río` · también como capital de Río de Janeiro (`cap:BR-RJ`)
+- São Paulo (`cj64n45`, Brasil): `Sampa` · también como capital de São Paulo (`cap:BR-SP`)
+- Porto Alegre (`cj64mzb`, Brasil): `POA` · también como capital de Río Grande del Sur (`cap:BR-RS`)
+- Brasilia (`cj64mz7`, Brasil): `BSB` · también como capital de Brasil (`cap:BR`); Distrito Federal (`cap:BR-DF`)
+- Florianópolis (`cj64mnh`, Brasil): `Floripa` · también como capital de Santa Catarina (`cap:BR-SC`)
+- Santiago (`cj64n3z`, Chile): `Stgo` · también como capital de Chile (`cap:CL`); Región Metropolitana (`cap:CL-RM`)
+- Valparaíso (`cj64mkz`, Chile): `Valpo`
+- Concepción (`cj64ml3`, Chile): `Conce` · también como capital de Biobío (`cap:CL-BI`)
+- Bogotá (`cj64n3l`, Colombia): `Bogotá DC`, `Santa Fe de Bogotá` · también como capital de Colombia (`cap:CO`); Bogotá (`cap:CO-DC`)
+- Cali (`cj64mwh`, Colombia): `Santiago de Cali` · también como capital de Valle del Cauca (`cap:CO-VAC`)
+- Caracas (`cj64n0l`, Venezuela): `Ccs` · también como capital de Venezuela (`cap:VE`); Distrito Capital (`cap:VE-A`)
+- Montevideo (`cj64m85`, Uruguay): `Mvd` · también como capital de Uruguay (`cap:UY`); Montevideo (`cap:UY-MO`)
+- Ciudad de Guatemala (`cj64mkd`, Guatemala): `Guate`, `Guatemala` · también como capital de Guatemala (`cap:GT`), solo `Guate`; Guatemala (`cap:GT-GU`)
+- Tegucigalpa (`cj64mbb`, Honduras): `Tegus` · también como capital de Honduras (`cap:HN`); Francisco Morazán (`cap:HN-FM`)
+- Santo Domingo (`cj64my1`, República Dominicana): `Sto Domingo`, `Sto Dgo` · también como capital de República Dominicana (`cap:DO`); Distrito Nacional (`cap:DO-01`)
+- Ciudad de Panamá (`cj64mdn`, Panamá): `Panamá` · también como capital de Panamá (`cap:PA-8`)
+- Londres (`cj64n2x`, Reino Unido): `LDN` · también como capital de Reino Unido (`cap:GB`); Inglaterra (`cap:GB-ENG`)
+- San Petersburgo (`cj64muz`, Rusia): `SPB` · también como capital de San Petersburgo (`cap:RU-SPE`)
+- Bangkok (`cj64n11`, Tailandia): `BKK` · también como capital de Tailandia (`cap:TH`); Bangkok (`cap:TH-10`)
+- Ciudad Ho Chi Minh (`cj64mtx`, Vietnam): `Saigón`, `HCM` · también como capital de Ciudad Ho Chi Minh (`cap:VN-SG`)
+- Kuala Lumpur (`cj64mvp`, Malasia): `KL` · también como capital de Malasia (`cap:MY`); Kuala Lumpur (`cap:MY-14`)
+- Chennai (`cj64myv`, India): `Madrás` · también como capital de Tamil Nadu (`cap:IN-TN`)
+- Tel Aviv (`cj64myh`, Israel): `TLV`
+- Johannesburgo (`cj64n17`, Sudáfrica): `Joburg`, `Jozi` · también como capital de Gauteng (`cap:ZA-GT`)
+- Dar es Salam (`cj64mvd`, Tanzania): `Dar`
+- Uagadugú (`cj64mrp`, Burkina Faso): `Ouaga`, `Uaga` · también como capital de Burkina Faso (`cap:BF`); Kadiogo (`cap:BF-KAD`)
+- Antananarivo (`cj64mib`, Madagascar): `Tana` · también como capital de Madagascar (`cap:MG`); Antananarivo (`cap:MG-T`)
+- Yamusukro (`cj64mmv`, Costa de Marfil): `Yakro` · también como capital de Costa de Marfil (`cap:CI`); Lacs (`cap:CI-07`)
+
 ## Todo lo que no casa
 
 Con asterisco, las respuestas que traían type-ins propios.
