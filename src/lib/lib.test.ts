@@ -2,8 +2,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { geoContains } from 'd3-geo';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { buildDeck, deckGraph, divisionsOf, eligible, frameForCountries, loadIndex, setLoader } from './data';
+import { buildDeck, deckGraph, divisionsOf, eligible, frameForCountries, loadIndex, regionCapital, setLoader } from './data';
 import { buildCityDeck, buildPhysicalDeck, countPhys, kindsIn, loadPhysical, parsePhys, physCountries, physMatches, physTokens, pickOf, typeNoun } from './extra';
+import { setLang } from './i18n';
 import { placeQuery } from './links';
 import { bfs, capOf, cheapestPath, makeView, onShortest, pickRoute, shortestPath, sightFor, spotInFrame } from './geo';
 import type { AnyGeo, Deck, LL } from './types';
@@ -188,6 +189,30 @@ describe('data', () => {
     // A country with a single level has no groups.
     const pt = await buildDeck({ scope: 'regions', countries: ['PT'] });
     expect(pt.items.some((it) => it.belongs)).toBe(false);
+  });
+
+  it('shows the capital of a region by its English name when the game is in English', async () => {
+    const es = await buildDeck({ scope: 'regions', countries: ['NL', 'ES'] });
+    expect(es.byId.get('NL-ZH')!.capital![0]).toBe('La Haya');
+    expect(es.byId.get('ES-AN')!.capital![0]).toBe('Sevilla');
+    setLang('en');
+    try {
+      const en = await buildDeck({ scope: 'regions', countries: ['NL', 'ES'] });
+      // The English name comes first, and the others are still accepted.
+      expect(en.byId.get('NL-ZH')!.capital).toEqual(['The Hague', 'La Haya', 'Den Haag']);
+      expect(en.byId.get('ES-AN')!.capital).toEqual(['Seville', 'Sevilla']);
+      // One that English calls the same stays as it was.
+      expect(en.byId.get('ES-MD')!.capital).toEqual(es.byId.get('ES-MD')!.capital);
+    } finally {
+      setLang('es');
+    }
+    // The table alone: no English name, or no table of them (a file from before there was one), changes nothing.
+    const file = { rc: { NL: { f: { 'NL-ZH': ['La Haya', 'The Hague'], 'NL-UT': ['Utrecht'] } } }, en: { NL: { f: { 'NL-ZH': 'The Hague' } } } };
+    expect(regionCapital(file, 'NL', 'f', 'NL-ZH', 'en')).toEqual(['The Hague', 'La Haya']);
+    expect(regionCapital(file, 'NL', 'f', 'NL-ZH', 'es')).toEqual(['La Haya', 'The Hague']);
+    expect(regionCapital(file, 'NL', 'f', 'NL-UT', 'en')).toEqual(['Utrecht']);
+    expect(regionCapital({ rc: file.rc }, 'NL', 'f', 'NL-ZH', 'en')).toEqual(['La Haya', 'The Hague']);
+    expect(regionCapital(file, 'NL', 'f', 'NL-XX', 'en')).toBeUndefined();
   });
 
   it('says what a city belongs to: its country on a map of several, its region on a map of one', async () => {

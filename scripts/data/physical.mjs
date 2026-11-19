@@ -1478,6 +1478,40 @@ for (const c of countries) {
   }
 }
 
+// What each of those capitals is called in English, where that is not the name the table shows: in English
+// the game shows «The Hague» and not «La Haya». It is the English label of the city the table names, which
+// Natural Earth has for most; those it does not have, or has wrong, are written by hand in the settings.
+const regionCapsEn = {};
+const capEnReport = [];
+for (const c of countries) {
+  const list = byCountry.get(c.id) ?? [];
+  const region = regionOf(c.id);
+  const byHand = P.REGION_CAPITAL_EN[c.id] ?? {};
+  for (const [lv, table] of Object.entries(regionCaps[c.id] ?? {})) {
+    for (const [id, names] of Object.entries(table)) {
+      const shown = names[0];
+      let en = byHand[shown];
+      // Where Spanish is spoken the name is the same in both languages, but for the few that English has
+      // a name of its own for (Seville, Havana): the label there is the long official one, or a slip.
+      if (en === undefined && !SPANISH.has(c.id)) {
+        const members = lv === 'f' ? [id] : (region?.groups[lv]?.find((g) => g.id === id)?.p.m ?? []);
+        const k = key(shown);
+        const hits = list.filter((x) => key(x.n.es) === k || key(x.n.en ?? '') === k || x.al.some((a) => key(a) === k));
+        // The one inside the region; failing that, the only city of the country that goes by the name.
+        const city = hits.find((x) => members.includes(x.u)) ?? (hits.length === 1 ? hits[0] : undefined);
+        en = city ? (city.n.en ?? city.n.es) : undefined;
+        // A capital with several names and no city to say which of them is the English one: for whoever reads the report.
+        if (!city && names.length > 1) capEnReport.push(`${c.id}/${lv} ${id}: no city for «${shown}» (${names.slice(1).join(', ')})`);
+      }
+      if (en && en !== shown) (((regionCapsEn[c.id] ??= {})[lv] ??= {})[id] = en);
+    }
+  }
+}
+for (const [id, table] of Object.entries(P.REGION_CAPITAL_EN)) {
+  const shown = new Set(Object.values(regionCaps[id] ?? {}).flatMap((t) => Object.values(t).map((names) => names[0])));
+  for (const name of Object.keys(table)) if (!shown.has(name)) warn(`REGION_CAPITAL_EN ${id}: no region has «${name}» for a capital`);
+}
+
 // The cities say the same as that table. Where the capitals of a country's regions are known, a city is
 // marked as one because the table names it, not because Natural Earth does: the mark comes off the former
 // seats and big towns (Kitakyushu, Onitsha, Niterói) and goes on the capitals it had missed (Lelystad).
@@ -1541,7 +1575,8 @@ for (const c of countries) {
 const citiesText = JSON.stringify({ v: 1, c: cityOut });
 fs.writeFileSync(path.join(OUT, 'cities.json'), citiesText);
 // On its own, because the capitals game of the regions section needs nothing else.
-const capitalsText = JSON.stringify({ v: 1, rc: regionCaps });
+// `en`: the name in English of the capitals that have another one, with the same keys as `rc`.
+const capitalsText = JSON.stringify({ v: 1, rc: regionCaps, en: regionCapsEn });
 fs.writeFileSync(path.join(OUT, 'capitals.json'), capitalsText);
 
 say('Cities');
@@ -1553,7 +1588,9 @@ const capUnits = Object.values(regionCaps).reduce((n, o) => n + Object.values(o)
 say(`  ${twice} places listed twice were merged · ${renamed} names that belonged to another city were put right`);
 say(`  capitals of regions among the cities: ${capsMarked} marked that Natural Earth had not, ${capsUnmarked} unmarked that are not one`);
 say(`  capitals of regions: ${Object.keys(regionCaps).length} countries, ${levels} levels, ${capUnits} regions · capitals.json ${(capitalsText.length / 1024).toFixed(0)} kB`);
+const capEn = Object.values(regionCapsEn).reduce((n, o) => n + Object.values(o).reduce((m, t) => m + Object.keys(t).length, 0), 0);
+say(`  of them, ${capEn} go by another name in English`);
 
 fs.mkdirSync(path.join(ROOT, '.cache'), { recursive: true });
-fs.writeFileSync(path.join(ROOT, '.cache/physical-report.txt'), [...report, '', 'National capitals named by their place, not their name', ...capNotes, '', 'Capitals of regions, level by level', ...capReport, '', 'Regions with several marked capitals (the first is taken)', ...several, '', `Warnings: ${warnings.length}`, ...warnings].join('\n'));
+fs.writeFileSync(path.join(ROOT, '.cache/physical-report.txt'), [...report, '', 'National capitals named by their place, not their name', ...capNotes, '', 'Capitals of regions, level by level', ...capReport, '', 'Regions with several marked capitals (the first is taken)', ...several, '', 'Capitals of regions with several names and no city to tell the English one by', ...capEnReport, '', `Warnings: ${warnings.length}`, ...warnings].join('\n'));
 say(`${warnings.length} warnings · report in .cache/physical-report.txt`);

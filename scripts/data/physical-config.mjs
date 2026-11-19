@@ -1217,6 +1217,33 @@ export const REGION_CAPITAL_FIXES = {
   ZM: { f: { 'ZM-07': ['Choma'] } },
 };
 
+/**
+ * What the capital of a region is called in English, by country and by the name the table shows, where the
+ * English label of its city does not say it: the city is not among those of Natural Earth, or its label is
+ * not the name English uses. An empty string leaves it with the name shown.
+ */
+export const REGION_CAPITAL_EN = {
+  // Where Spanish is spoken, only what English calls otherwise.
+  ES: { Sevilla: 'Seville', 'La Coruña': 'A Coruña', Orense: 'Ourense', Gerona: 'Girona', Lérida: 'Lleida', Vitoria: 'Vitoria-Gasteiz' },
+  CU: { 'La Habana': 'Havana' },
+  MX: { 'Ciudad de México': 'Mexico City' },
+  GT: { 'Ciudad de Guatemala': 'Guatemala City' },
+  PA: { 'Ciudad de Panamá': 'Panama City' },
+  // Cities that Natural Earth does not have.
+  FR: { Carcasona: 'Carcassonne', Angulema: 'Angoulême', Aviñón: 'Avignon' },
+  MA: { Alhucemas: 'Al Hoceima' },
+  RU: { Magás: 'Magas' },
+  // Labels that are not the name English uses: an accent or an apostrophe of difference, the kind of place
+  // added to the name, the name of the governorate.
+  BR: { Vitória: '' },
+  ID: { Yogyakarta: '' },
+  IT: { "L'Aquila": '' },
+  MY: { Malaca: 'Malacca' },
+  SA: { Sakaka: 'Sakakah' },
+  SD: { 'El Obeid': '', 'El Fasher': '', Gadarif: '' },
+  UA: { Odesa: '' },
+};
+
 /** Spanish names of cities that Natural Earth gets wrong or gives in an unusual form, by its own `NAME`. */
 export const CITY_NAMES = { Castello: 'Castellón de la Plana', 'Las Palmas': 'Las Palmas de Gran Canaria', Guaira: 'Salto del Guairá' };
 

@@ -1301,7 +1301,7 @@ describe('cities.json', () => {
 });
 
 describe('capitals.json', () => {
-  const file = read<{ rc: Record<string, Record<string, Record<string, string[]>>> }>('capitals.json');
+  const file = read<{ rc: Record<string, Record<string, Record<string, string[]>>>; en: Record<string, Record<string, Record<string, string>>> }>('capitals.json');
 
   it('names capitals of regions that exist, at levels that exist', () => {
     const problems: string[] = [];
@@ -1377,5 +1377,38 @@ describe('capitals.json', () => {
     expect(file.rc.ES.g1['ES-GA'][0]).toBe('Santiago de Compostela');
     expect(file.rc.ES.g1['ES-AN'][0]).toBe('Sevilla');
     expect(file.rc.ES.f['ES-M'][0]).toBe('Madrid');
+  });
+
+  it('says what a capital is called in English only where that is another name, and of capitals it has', () => {
+    const problems: string[] = [];
+    let count = 0;
+    for (const [id, levels] of Object.entries(file.en)) {
+      for (const [level, units] of Object.entries(levels)) {
+        for (const [unit, en] of Object.entries(units)) {
+          count++;
+          const names = file.rc[id]?.[level]?.[unit];
+          if (!names) problems.push(`${id}/${level} ${unit}: no capital to name in English`);
+          else if (!en.trim() || en === names[0]) problems.push(`${id}/${level} ${unit}: «${en}» says nothing new`);
+        }
+      }
+    }
+    expect(problems).toEqual([]);
+    expect(count).toBeGreaterThan(350);
+  });
+
+  it('has the English names that English has, and not the long official ones where Spanish is spoken', () => {
+    expect(file.en.NL.f['NL-ZH']).toBe('The Hague');
+    expect(file.en.ES.g1['ES-AN']).toBe('Seville');
+    expect(file.en.ES.f['ES-GI']).toBe('Girona');
+    expect(file.en.IT.g1['IT-62']).toBe('Rome');
+    expect(file.en.FR.f['FR-84']).toBe('Avignon');
+    expect(file.en.GB.g1['GB-SCT']).toBe('Edinburgh');
+    expect(file.en.MX.f['MX-CMX']).toBe('Mexico City');
+    // «San Miguel de Tucumán», «Santiago de los Caballeros», «Puebla City»: the name shown is the one to show.
+    expect(file.en.AR).toBeUndefined();
+    expect(file.en.DO).toBeUndefined();
+    expect(Object.keys(file.en.MX.f)).toEqual(['MX-CMX']);
+    // A capital that is called the same in both languages is not listed.
+    expect(file.en.ES.f['ES-M']).toBeUndefined();
   });
 });
