@@ -14,6 +14,8 @@
  *  · The maps of each country and the other data files are asked to the network first, so that they
  *    are always the current ones, and kept: without a connection, the copy is used.
  *  · Flags never change: the copy is used whenever there is one.
+ *  · The number on the icon (how many reviews are waiting) is kept right with the game closed, where the
+ *    browser wakes the worker for it: the page leaves here the count from each moment on (`appBadge.ts`).
  */
 const VERSION = '__VERSION__';
 /** Files of the application, relative to the folder the site is served from. */
@@ -63,6 +65,39 @@ self.addEventListener('activate', (event) => {
 // The page asks for this when the player accepts the new version.
 self.addEventListener('message', (event) => {
   if (event.data === 'skip-waiting') self.skipWaiting();
+  // The count of waiting reviews from each moment on, or null when the player wants no number on the icon.
+  if (event.data && event.data.type === 'badge') event.waitUntil(keepBadge(event.data.schedule).catch(() => undefined));
+});
+
+/** What the page last said the icon should count, kept where it outlives the worker. */
+const BADGE_CACHE = 'regionle-badge';
+const BADGE_KEY = new URL('badge-schedule', scope).href;
+
+async function keepBadge(schedule) {
+  const cache = await caches.open(BADGE_CACHE);
+  if (Array.isArray(schedule)) await cache.put(BADGE_KEY, new Response(JSON.stringify(schedule), { headers: { 'Content-Type': 'application/json' } }));
+  else await cache.delete(BADGE_KEY);
+}
+
+/** Puts on the icon the count that the schedule gives for this moment. */
+async function refreshBadge() {
+  if (!self.navigator.setAppBadge) return;
+  const cache = await caches.open(BADGE_CACHE);
+  const kept = await cache.match(BADGE_KEY);
+  if (!kept) return;
+  let count = null;
+  for (const [at, n] of await kept.json()) {
+    if (at > Date.now()) break;
+    count = n;
+  }
+  if (count == null) return;
+  if (count > 0) await self.navigator.setAppBadge(count);
+  else await self.navigator.clearAppBadge();
+}
+
+// The browser wakes the worker now and then for this, where the game is installed and it does such things.
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'badge') event.waitUntil(refreshBadge().catch(() => undefined));
 });
 
 /**

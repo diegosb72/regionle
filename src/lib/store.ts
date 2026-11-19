@@ -263,6 +263,8 @@ interface State {
   sound: boolean;
   /** A short buzz of the phone for each answer. Off until asked for. */
   haptic: boolean;
+  /** The number of waiting reviews on the icon of the installed game. On unless turned off. */
+  iconBadge: boolean;
   /** Short forms chosen in the settings for each thing, by id: those added to it and those taken from it. */
   typeins: Typeins;
   /** Whether names of several words get their initials unasked; null until chosen: as the game ships. */
@@ -274,6 +276,7 @@ interface State {
   setHotkeys(on: boolean): void;
   setSound(on: boolean): void;
   setHaptic(on: boolean): void;
+  setIconBadge(on: boolean): void;
   setTypeins(typeins: Typeins): void;
   setTypeinAuto(auto: boolean | null): void;
   saveList(list: CustomList): void;
@@ -354,6 +357,7 @@ export const useStore = create<State>()(
       hotkeys: true,
       sound: false,
       haptic: false,
+      iconBadge: true,
       typeins: {},
       typeinAuto: null,
 
@@ -369,6 +373,7 @@ export const useStore = create<State>()(
       setHotkeys: (hotkeys) => set({ hotkeys }),
       setSound: (sound) => set({ sound }),
       setHaptic: (haptic) => set({ haptic }),
+      setIconBadge: (iconBadge) => set({ iconBadge }),
       setTypeins: (typeins) => set({ typeins }),
       setTypeinAuto: (typeinAuto) => set({ typeinAuto }),
       saveList: (list) => set((s) => ({ lists: [...s.lists.filter((l) => l.id !== list.id), list] })),
@@ -571,6 +576,7 @@ export const useStore = create<State>()(
         hotkeys: s.hotkeys,
         sound: s.sound,
         haptic: s.haptic,
+        iconBadge: s.iconBadge,
         typeins: s.typeins,
         typeinAuto: s.typeinAuto,
       }),
@@ -610,6 +616,7 @@ export function mergeSaved(saved: unknown, current: State): State {
     hotkeys: p.hotkeys !== false,
     sound: p.sound === true,
     haptic: p.haptic === true,
+    iconBadge: p.iconBadge !== false,
     // Players from before the tallies existed start from what their latest sessions add up to.
     tot: p.tot && Object.keys(p.tot).length ? p.tot : totalsOf(p.sessions ?? []),
     typeins: cleanTypeins(p.typeins),

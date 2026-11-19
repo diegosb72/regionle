@@ -4,6 +4,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { lazyScreen, savingData, whenIdle } from './components/lazy';
 import { OfflineBar, UpdateNotice } from './components/Offline';
 import { Spinner, Toggle } from './components/ui';
+import { badgeSchedule, badgeSupported, keepBadgeFresh, showBadge, tellWorker, waitingAt } from './lib/appBadge';
 import { PULSES, TONES, buzz, canBuzz, play, prime } from './lib/feedback';
 import { L, getLang } from './lib/i18n';
 import { SECTIONS, SECTION_IDS } from './lib/modes';
@@ -50,6 +51,47 @@ function Logo() {
   );
 }
 
+/**
+ * The number of waiting reviews on the icon of the installed game, kept up while the game is open: at each
+ * answer, every few minutes (reviews fall due as time passes) and when the game is left, which is when the
+ * service worker gets the count for the days ahead (`lib/appBadge.ts`).
+ */
+function useIconBadge(on: boolean): void {
+  useEffect(() => {
+    if (!badgeSupported()) return;
+    if (!on) {
+      showBadge(0);
+      tellWorker(null);
+      void keepBadgeFresh(false);
+      return;
+    }
+    const update = (ahead: boolean) => {
+      const { stats, where } = useStore.getState();
+      const now = Date.now();
+      showBadge(waitingAt(stats, where, now));
+      if (ahead) tellWorker(badgeSchedule(stats, where, now));
+    };
+    let soon = 0;
+    update(true);
+    void keepBadgeFresh(true);
+    const stop = useStore.subscribe((s, was) => {
+      if (s.stats === was.stats && s.where === was.where) return;
+      // Answers come in bursts: one count when they stop.
+      window.clearTimeout(soon);
+      soon = window.setTimeout(() => update(true), 1500);
+    });
+    const tick = window.setInterval(() => update(false), 5 * 60_000);
+    const seen = () => update(true);
+    document.addEventListener('visibilitychange', seen);
+    return () => {
+      stop();
+      window.clearTimeout(soon);
+      window.clearInterval(tick);
+      document.removeEventListener('visibilitychange', seen);
+    };
+  }, [on]);
+}
+
 export function App() {
   const path = useRoute();
   const theme = useStore((s) => s.theme);
@@ -59,6 +101,10 @@ export function App() {
   const haptic = useStore((s) => s.haptic);
   const setHaptic = useStore((s) => s.setHaptic);
   const [buzzes] = useState(canBuzz);
+  const iconBadge = useStore((s) => s.iconBadge);
+  const setIconBadge = useStore((s) => s.setIconBadge);
+  const [badges] = useState(badgeSupported);
+  useIconBadge(iconBadge);
   const setLang = useStore((s) => s.setLang);
   const cb = useStore((s) => s.cb);
   const setCb = useStore((s) => s.setCb);
@@ -312,6 +358,15 @@ export function App() {
               hint={L('Un toque al acertar y dos al fallar.', 'One tap for a right answer and two for a miss.')}
             >
               {L('Vibración al responder', 'Vibration when you answer')}
+            </Toggle>
+          )}
+          {badges && (
+            <Toggle
+              checked={iconBadge}
+              onChange={setIconBadge}
+              hint={L('Con el juego instalado, su icono lleva el número de repasos que te esperan.', 'With the game installed, its icon carries the number of reviews waiting for you.')}
+            >
+              {L('Repasos pendientes en el icono', 'Waiting reviews on the icon')}
             </Toggle>
           )}
         </div>
