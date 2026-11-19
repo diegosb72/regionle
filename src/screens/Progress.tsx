@@ -1,10 +1,11 @@
 /** What has been learnt so far, where on the map, what is due for review, recent games, and backup of the saved data. */
-import { ArrowLeftRight, ArrowRight, CalendarClock, Download, FileSpreadsheet, Trash2, Upload } from 'lucide-react';
+import { ArrowLeftRight, ArrowRight, CalendarClock, FileSpreadsheet } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityBlock, EvolutionBlock, MonthsBlock } from '../components/Activity';
 import { AlbumBlock } from '../components/Album';
 import { BadgeBoard } from '../components/Badges';
 import { MapView, type Paint } from '../components/MapView';
+import { BackupBlock, BackupDue, download } from '../components/Backup';
 import { groupPlace, paceDays, paceName } from '../components/ReviewCard';
 import { Flag, Seg, Spinner, capitalise } from '../components/ui';
 import { namesOf, type Named } from '../lib/answerNames';
@@ -52,15 +53,6 @@ function when(t: number): string {
   if (days === 0) return `${L('Hoy', 'Today')}, ${hour}`;
   if (days === 1) return `${L('Ayer', 'Yesterday')}, ${hour}`;
   return d.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
-}
-
-/** Hands a file made here over to the browser's downloads. */
-function download(text: string, name: string, type: string): void {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([text], { type }));
-  a.download = name;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
 
 // ------------------------------------------------------------ knowledge map
@@ -566,18 +558,9 @@ export function Progress({ world }: { world: World }) {
   const whereMap = useStore((s) => s.where);
   const sessions = useStore((s) => s.sessions);
   const best = useStore((s) => s.best);
-  const favs = useStore((s) => s.favs);
   const daily = useStore((s) => s.daily);
   const tot = useStore((s) => s.tot);
-  const lists = useStore((s) => s.lists);
-  const badges = useStore((s) => s.badges);
   const setSel = useStore((s) => s.setSel);
-  const resetProgress = useStore((s) => s.resetProgress);
-  const importData = useStore((s) => s.importData);
-  const hasTypeins = useStore((s) => Object.keys(s.typeins).length > 0 || s.typeinAuto !== null);
-  const [confirming, setConfirming] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const file = useRef<HTMLInputElement>(null);
 
   const { skills, rows } = useMemo(() => {
     const skills: Record<Skill, { seen: number; learnt: number }> = { loc: { seen: 0, learnt: 0 }, name: { seen: 0, learnt: 0 }, cap: { seen: 0, learnt: 0 }, flag: { seen: 0, learnt: 0 }, nb: { seen: 0, learnt: 0 } };
@@ -627,23 +610,6 @@ export function Progress({ world }: { world: World }) {
   // A record of nothing is not a record (older versions could store a zero).
   const records = Object.entries(best).filter(([, v]) => v > 0);
   const dailyDone = Object.values(daily).filter((d) => d.t).length;
-
-  const exportData = () => {
-    // The short forms chosen in the settings travel with the rest: they are read when the copy is made.
-    const { typeins, typeinAuto, recent, mix, goals, days, notes, album } = useStore.getState();
-    const data = { app: 'regionle', version: 3, exported: new Date().toISOString(), stats, where: whereMap, mix, sessions, recent, best, favs, daily, days, lists, goals, notes, album, badges, tot, typeins, typeinAuto };
-    download(JSON.stringify(data, null, 1), `regionle-${L('progreso', 'progress')}-${new Date().toISOString().slice(0, 10)}.json`, 'application/json');
-  };
-
-  const onFile = async (f: File | undefined) => {
-    if (!f) return;
-    try {
-      setMessage(importData(JSON.parse(await f.text())) ? L('Progreso importado.', 'Progress imported.') : L('Ese archivo no es una copia de Regionle.', 'That file is not a Regionle backup.'));
-    } catch {
-      setMessage(L('No se ha podido leer el archivo.', 'The file could not be read.'));
-    }
-    if (file.current) file.current.value = '';
-  };
 
   const practise = (c: Country) => {
     setSel('regions', [c.id]);
@@ -727,7 +693,6 @@ export function Progress({ world }: { world: World }) {
 
   // Someone who has only done daily challenges has no session and no answer kept, and has days all the same.
   const hasDays = useStore((s) => Object.keys(s.days).length > 0);
-  const hasNotes = useStore((s) => Object.keys(s.notes).length > 0);
   const empty = !sessions.length && !Object.keys(stats).length && !hasDays;
 
   return (
@@ -742,6 +707,7 @@ export function Progress({ world }: { world: World }) {
           )}
         </p>
       </header>
+      <BackupDue />
 
       {empty ? (
         <div className="empty-state">
@@ -909,50 +875,7 @@ export function Progress({ world }: { world: World }) {
         </>
       )}
 
-      <section className="block">
-        <h2>{L('Copia de seguridad', 'Backup')}</h2>
-        <p className="tip-line">{L('Llévate tu progreso, tus selecciones guardadas, tus listas y tus abreviaturas a otro navegador, o empieza de cero.', 'Take your progress, your saved selections, your lists and your short forms to another browser, or start from scratch.')}</p>
-        <div className="backup">
-          <button type="button" className="btn" onClick={exportData} disabled={empty && !favs.length && !lists.length && !hasTypeins && !hasNotes}>
-            <Download size={16} aria-hidden="true" />
-            {L('Exportar', 'Export')}
-          </button>
-          <button type="button" className="btn" onClick={() => file.current?.click()}>
-            <Upload size={16} aria-hidden="true" />
-            {L('Importar', 'Import')}
-          </button>
-          <input ref={file} type="file" accept="application/json,.json" hidden onChange={(e) => void onFile(e.target.files?.[0])} />
-          {confirming ? (
-            <span className="confirm">
-              {L('¿Borrar todo el progreso?', 'Delete all progress?')}
-              <button
-                type="button"
-                className="btn btn-sm btn-danger"
-                onClick={() => {
-                  resetProgress();
-                  setConfirming(false);
-                  setMessage(L('Progreso borrado.', 'Progress deleted.'));
-                }}
-              >
-                {L('Sí, borrar', 'Yes, delete')}
-              </button>
-              <button type="button" className="btn btn-sm" onClick={() => setConfirming(false)}>
-                No
-              </button>
-            </span>
-          ) : (
-            <button type="button" className="btn btn-ghost" onClick={() => setConfirming(true)} disabled={empty}>
-              <Trash2 size={16} aria-hidden="true" />
-              {L('Borrar progreso', 'Delete progress')}
-            </button>
-          )}
-        </div>
-        {message && (
-          <p className="q-note" role="status">
-            {message}
-          </p>
-        )}
-      </section>
+      <BackupBlock />
     </div>
   );
 }
