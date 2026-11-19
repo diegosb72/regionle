@@ -14,8 +14,9 @@ import { seedOf } from '../lib/challenge';
 import { tolerances } from '../lib/geo';
 import { L, nm } from '../lib/i18n';
 import { MODE_NAME } from '../lib/modes';
+import { NEAR_KM } from '../lib/rules';
 import { useStore } from '../lib/store';
-import { cx, mulberry32, nf, shuffle } from '../lib/text';
+import { cx, fmtDist, mulberry32, shuffle } from '../lib/text';
 import type { Item, LL, Part, Res } from '../lib/types';
 import { GameShell, Hud, Results, Verdict, originOf, showsCountry, useElapsed, type GameProps, type ResultRow } from './common';
 import './blind.css';
@@ -90,7 +91,7 @@ export function BlindGame({ deck, cfg, onExit, onAgain }: GameProps) {
     setDone(res);
     setResults((r) => ({ ...r, [it.id]: { res, km, clicks: n } }));
     record('loc', it.id, res, originOf(it, cfg));
-    if (it.kind === 'city' && km != null && km <= 10) bump({ near: 1 });
+    if (it.kind === 'city' && km != null && km <= NEAR_KM) bump({ near: 1 });
     setFlash({ id: it.id, kind: res === 'bad' ? 'bad' : 'ok', n: Date.now() });
     const run = res === 'ok' ? streak + 1 : 0;
     setStreak(run);
@@ -223,7 +224,7 @@ export function BlindGame({ deck, cfg, onExit, onAgain }: GameProps) {
           ? L('sin situar', 'not placed')
           : r.km === 0 && it.shape === 'area'
             ? L('dentro', 'inside')
-            : `${nf(Math.round(r.km))} km`;
+            : fmtDist(r.km);
       return { item: it, res: r.res, note };
     });
     const placed = Object.values(results).filter((r) => r.km != null);
@@ -234,15 +235,15 @@ export function BlindGame({ deck, cfg, onExit, onAgain }: GameProps) {
       : hot
         ? L(`Has encontrado ${found} de ${rows.length}`, `You found ${found} of ${rows.length}`)
         : mean != null
-          ? L(`Error medio: ${nf(mean)} km`, `Mean error: ${nf(mean)} km`)
+          ? L(`Error medio: ${fmtDist(mean)}`, `Mean error: ${fmtDist(mean)}`)
           : L('Partida terminada', 'Game over');
     const rule = hot
       ? L(`Encontrar algo con el primer clic cuenta como acierto; con más clics, como acierto con ayuda. Hay ${HOT_TRIES} para cada cosa.`, `Finding something with the first click counts as right; with more clicks, as right with help. There are ${HOT_TRIES} for each thing.`)
       : dotsOnly
-        ? L(`A la primera: a menos de ${nf(limit.ok)} km. Con ayuda: a menos de ${nf(limit.warn)} km.`, `First time: within ${nf(limit.ok)} km. With help: within ${nf(limit.warn)} km.`)
+        ? L(`A la primera: a menos de ${fmtDist(limit.ok)}. Con ayuda: a menos de ${fmtDist(limit.warn)}.`, `First time: within ${fmtDist(limit.ok)}. With help: within ${fmtDist(limit.warn)}.`)
         : L(
-            `Cuenta como acierto un clic dentro de la pieza. Un río, o algo demasiado pequeño para acertarle en este mapa, a menos de ${nf(Math.max(5, Math.round(limit.ok / 3)))} km.`,
-            `A click inside the piece counts as right. A river, or something too small to hit on this map, within ${nf(Math.max(5, Math.round(limit.ok / 3)))} km.`,
+            `Cuenta como acierto un clic dentro de la pieza. Un río, o algo demasiado pequeño para acertarle en este mapa, a menos de ${fmtDist(Math.max(5, Math.round(limit.ok / 3)))}.`,
+            `A click inside the piece counts as right. A river, or something too small to hit on this map, within ${fmtDist(Math.max(5, Math.round(limit.ok / 3)))}.`,
           );
     return (
       <GameShell
@@ -260,7 +261,7 @@ export function BlindGame({ deck, cfg, onExit, onAgain }: GameProps) {
                 : mark === 'new'
                   ? L('Nuevo récord en este mapa.', 'New record on this map.')
                   : typeof mark === 'number'
-                    ? L(`Tu récord en este mapa: ${nf(mark)} km de error medio.`, `Your record on this map: a mean error of ${nf(mark)} km.`)
+                    ? L(`Tu récord en este mapa: ${fmtDist(mark)} de error medio.`, `Your record on this map: a mean error of ${fmtDist(mark)}.`)
                     : rule
             }
             deck={deck}
@@ -284,10 +285,10 @@ export function BlindGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const trend = lastClick ? trendOf(lastClick.km, clicks[clicks.length - 2]?.km) : 0;
   /** How far, said for what the thing is: a dot is "N km away", a surface "N km from its edge". */
   const away = (n: number): string => {
-    const d = nf(Math.round(n));
-    if (item!.shape === 'area') return L(`a ${d} km de su borde`, `${d} km from its edge`);
-    if (item!.shape === 'line') return L(`a ${d} km de su curso`, `${d} km from its course`);
-    return L(`a ${d} km`, `${d} km away`);
+    const d = fmtDist(n);
+    if (item!.shape === 'area') return L(`a ${d} de su borde`, `${d} from its edge`);
+    if (item!.shape === 'line') return L(`a ${d} de su curso`, `${d} from its course`);
+    return L(`a ${d}`, `${d} away`);
   };
   /**
    * A click inside a sea that is part of the one asked is right, and worth a word. The part is named unless
@@ -310,18 +311,18 @@ export function BlindGame({ deck, cfg, onExit, onAgain }: GameProps) {
         )
       : item!.shape === 'point'
         ? L(
-            `Haz clic donde creas que está. Cuenta como acierto a menos de ${nf(marks.ok)} km. Puedes acercar el mapa para afinar.`,
-            `Click where you think it is. Within ${nf(marks.ok)} km counts as right. You can zoom in to be more precise.`,
+            `Haz clic donde creas que está. Cuenta como acierto a menos de ${fmtDist(marks.ok)}. Puedes acercar el mapa para afinar.`,
+            `Click where you think it is. Within ${fmtDist(marks.ok)} counts as right. You can zoom in to be more precise.`,
           )
         : item!.shape === 'line'
           ? L(
-              `Haz clic sobre su curso. Cuenta como acierto a menos de ${nf(marks.ok)} km. Puedes acercar el mapa para afinar.`,
-              `Click on its course. Within ${nf(marks.ok)} km counts as right. You can zoom in to be more precise.`,
+              `Haz clic sobre su curso. Cuenta como acierto a menos de ${fmtDist(marks.ok)}. Puedes acercar el mapa para afinar.`,
+              `Click on its course. Within ${fmtDist(marks.ok)} counts as right. You can zoom in to be more precise.`,
             )
           : marks.ok > 0
             ? L(
-                `Haz clic donde creas que está. Ocupa tan poco en este mapa que cuenta como acierto a menos de ${nf(marks.ok)} km.`,
-                `Click where you think it is. It takes up so little of this map that within ${nf(marks.ok)} km counts as right.`,
+                `Haz clic donde creas que está. Ocupa tan poco en este mapa que cuenta como acierto a menos de ${fmtDist(marks.ok)}.`,
+                `Click where you think it is. It takes up so little of this map that within ${fmtDist(marks.ok)} counts as right.`,
               )
             : L('Haz clic dentro de donde creas que está. Puedes acercar el mapa para afinar.', 'Click inside where you think it is. You can zoom in to be more precise.');
 

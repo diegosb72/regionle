@@ -2012,6 +2012,111 @@ button.chip.on:hover:not(:disabled) {
   align-items: center;
   gap: 8px;
 }
+/* When the last copy was made, above the buttons. */
+.backup-last {
+  margin: 10px 0 12px;
+  color: var(--ink-2);
+  font-size: 14.5px;
+}
+/* A copy is due: one line across the top of the page, with what to do about it. */
+.backup-due {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 22px;
+  padding: 12px 14px;
+  border-radius: var(--r-2);
+  background: var(--warn-soft);
+  color: var(--ink);
+  font-size: 14.5px;
+  line-height: 1.4;
+}
+.backup-due > svg {
+  flex: none;
+  color: var(--warn-ink);
+}
+.backup-due p {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+/* A copy that has been read: what it holds next to what there is, before one replaces the other. */
+.backup-in {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+  max-width: 560px;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--card);
+}
+.backup-in-head {
+  color: var(--ink-2);
+  font-size: 14.5px;
+  overflow-wrap: anywhere;
+}
+.backup-in-head b {
+  color: var(--ink);
+}
+.backup-sum {
+  border-collapse: collapse;
+  font-size: 14.5px;
+  font-variant-numeric: tabular-nums;
+}
+.backup-sum th,
+.backup-sum td {
+  padding: 4px 0;
+  text-align: right;
+}
+.backup-sum th[scope='row'] {
+  padding-right: 22px;
+  font-weight: 500;
+  text-align: left;
+}
+.backup-sum thead th {
+  padding-left: 22px;
+  color: var(--ink-3);
+  font-size: 12.5px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+.backup-sum tbody tr {
+  border-top: 1px solid var(--line);
+}
+.backup-sum tbody td:nth-child(2) {
+  font-weight: 650;
+}
+.backup-prefs {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 14.5px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.backup-prefs input {
+  flex: none;
+  width: 17px;
+  height: 17px;
+  margin: 2px 0 0;
+  accent-color: var(--brand);
+}
+.backup-note {
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.backup-warn {
+  color: var(--bad-ink);
+  font-weight: 600;
+}
+.backup-in-go {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 
 .confirm {
   display: inline-flex;
@@ -6393,6 +6498,111 @@ body:has(.startbar) .toast {
 .foot-prefs .toggle-text {
   color: var(--ink-2);
 }
+/* A choice among a few, next to the switches: its name, the options and what the chosen one is like. */
+.foot-pick {
+  flex: 0 1 300px;
+  display: grid;
+  justify-items: start;
+  align-content: start;
+  gap: 5px;
+  padding: 4px 0;
+  color: var(--ink-2);
+}
+.foot-pick b {
+  font-weight: 650;
+  color: var(--ink-2);
+}
+.foot-pick small {
+  font-size: 13.5px;
+  line-height: 1.35;
+}
+.foot-pick .seg-btn {
+  gap: 6px;
+}
+/* A sample of a palette: its sea on the left, its land on the right. */
+.pal {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--line-2);
+  border-radius: 50%;
+  background: linear-gradient(90deg, var(--pal-sea) 50%, var(--pal-land) 50%);
+}
+.pal-paper {
+  --pal-sea: #d8e6e3;
+  --pal-land: #fdf6e3;
+}
+.pal-ocean {
+  --pal-sea: #b9d8ee;
+  --pal-land: #fbfaf4;
+}
+.pal-slate {
+  --pal-sea: #dde1e4;
+  --pal-land: #ffffff;
+}
+:root[data-theme='dark'] .pal-paper {
+  --pal-sea: #0a151b;
+  --pal-land: #2a4651;
+}
+:root[data-theme='dark'] .pal-ocean {
+  --pal-sea: #0b2136;
+  --pal-land: #34526d;
+}
+:root[data-theme='dark'] .pal-slate {
+  --pal-sea: #0f1113;
+  --pal-land: #3d444a;
+}
+
+/* ------------------------------------------------------- palettes of the map */
+
+/*
+ * Only what the map is drawn with: sea, land, borders, and the halo that keeps a name readable on the
+ * land. The colours of an answer stay, so that green, yellow and red mean the same in every palette.
+ */
+:root[data-map='ocean'] {
+  --sea: #b9d8ee;
+  --grat: rgba(24, 84, 134, 0.13);
+  --land-ctx: #e3e6e0;
+  --land-ctx-line: #c6ccc4;
+  --land: #fbfaf4;
+  --land-hover: #ffe7a3;
+  --border: #6a8fa9;
+  --outline: #1c4c6a;
+  --lbl-halo: rgba(251, 250, 244, 0.92);
+}
+:root[data-map='ocean'][data-theme='dark'] {
+  --sea: #0b2136;
+  --grat: rgba(140, 190, 240, 0.09);
+  --land-ctx: #152a3d;
+  --land-ctx-line: #223f59;
+  --land: #34526d;
+  --land-hover: #4a7494;
+  --border: #84abc8;
+  --outline: #bfe0f6;
+  --lbl-halo: rgba(11, 33, 54, 0.88);
+}
+:root[data-map='slate'] {
+  --sea: #dde1e4;
+  --grat: rgba(40, 52, 62, 0.09);
+  --land-ctx: #eceded;
+  --land-ctx-line: #cfd3d6;
+  --land: #ffffff;
+  --land-hover: #f6e7ae;
+  --border: #7f8990;
+  --outline: #2a333a;
+  --lbl-halo: rgba(255, 255, 255, 0.92);
+}
+:root[data-map='slate'][data-theme='dark'] {
+  --sea: #0f1113;
+  --grat: rgba(215, 221, 225, 0.07);
+  --land-ctx: #1b1f22;
+  --land-ctx-line: #2b3136;
+  --land: #3d444a;
+  --land-hover: #59646d;
+  --border: #929ca3;
+  --outline: #dbe1e5;
+  --lbl-halo: rgba(15, 17, 19, 0.88);
+}
 
 /* ---------------------------------------------- colour-blind friendly map */
 
@@ -7445,6 +7655,24 @@ kbd {
 }
 
 /* ---------------------------------------------- progress: most missed, file */
+/* How the reviews are set: a name and its choices, side by side where there is room. */
+.fc-prefs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 36px;
+  margin-top: 18px;
+}
+.fc-pref {
+  display: grid;
+  justify-items: start;
+  gap: 5px;
+  min-width: 0;
+}
+.fc-pref b {
+  color: var(--ink-2);
+  font-size: 14px;
+  font-weight: 650;
+}
 .fc-file {
   display: flex;
   flex-wrap: wrap;
@@ -7655,7 +7883,8 @@ kbd {
 }
 
 /* ------------------------------------------------------- keyboard shortcuts */
-.foot-keys {
+.foot-keys,
+.foot-full {
   padding: 0;
   border: 0;
   background: none;
@@ -7666,7 +7895,8 @@ kbd {
   text-decoration-thickness: 1px;
   cursor: pointer;
 }
-.foot-keys:hover {
+.foot-keys:hover,
+.foot-full:hover {
   color: var(--ink);
 }
 /* No keyboard, no shortcuts to read about. */

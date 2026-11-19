@@ -35,6 +35,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { L, getLang } from './i18n';
+import { distWord } from './units';
 import { PATHS } from './routes';
 import { SCREENS } from './seo';
 import type { CardAsk, Format } from './store';
@@ -224,8 +225,8 @@ function modesOf(section: Section): ModeDef[] {
     id: 'bearing',
     name: L('Distancias y rumbos', 'Distances and bearings'),
     desc: `${L(
-      'Sin mirar el mapa: ¿hacia dónde queda un sitio desde otro, y a cuántos kilómetros? Al responder, el mapa enseña los dos y la línea que los une.',
-      'Without looking at the map: which way is one place from another, and how many kilometres away? Once you answer, the map shows both and the line between them.',
+      `Sin mirar el mapa: ¿hacia dónde queda un sitio desde otro, y a cuántos ${distWord()}? Al responder, el mapa enseña los dos y la línea que los une.`,
+      `Without looking at the map: which way is one place from another, and how many ${distWord()} away? Once you answer, the map shows both and the line between them.`,
     )} ${apart}`,
     icon: Signpost,
     level: 2,
@@ -370,8 +371,8 @@ function modesOf(section: Section): ModeDef[] {
         listen,
         blind(
           L(
-            'Sin puntos en el mapa: haz clic donde creas que está la ciudad y puntúas según los kilómetros de error.',
-            'No dots on the map: click where you think the city is and score by how many kilometres you are off.',
+            `Sin puntos en el mapa: haz clic donde creas que está la ciudad y puntúas según los ${distWord()} de error.`,
+            `No dots on the map: click where you think the city is and score by how many ${distWord()} you are off.`,
           ),
         ),
         hotcold,

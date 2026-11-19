@@ -3,12 +3,14 @@ import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { lazyScreen, savingData, whenIdle } from './components/lazy';
 import { OfflineBar, UpdateNotice } from './components/Offline';
-import { Spinner, Toggle } from './components/ui';
+import { Seg, Spinner, Toggle } from './components/ui';
 import { badgeSchedule, badgeSupported, keepBadgeFresh, showBadge, tellWorker, waitingAt } from './lib/appBadge';
 import { PULSES, TONES, buzz, canBuzz, play, prime } from './lib/feedback';
+import { useFullscreen } from './lib/fullscreen';
 import { L, getLang } from './lib/i18n';
 import { SECTIONS, SECTION_IDS } from './lib/modes';
 import { applyMeta } from './lib/pageMeta';
+import { PALETTES, applyPalette, paletteHint, paletteName } from './lib/palette';
 import { followLang, go, inGame, useRoute } from './lib/router';
 import { ABOUT_PATH, PATHS, PROGRESS_PATH, SETTINGS_PATH, routeOf, screenPage } from './lib/routes';
 import { shortcutOf } from './lib/shortcuts';
@@ -75,7 +77,8 @@ function useIconBadge(on: boolean): void {
     update(true);
     void keepBadgeFresh(true);
     const stop = useStore.subscribe((s, was) => {
-      if (s.stats === was.stats && s.where === was.where) return;
+      // The pace of the reviews says what is waiting, as much as the answers do.
+      if (s.stats === was.stats && s.where === was.where && s.reviewPace === was.reviewPace) return;
       // Answers come in bursts: one count when they stop.
       window.clearTimeout(soon);
       soon = window.setTimeout(() => update(true), 1500);
@@ -105,6 +108,11 @@ export function App() {
   const setIconBadge = useStore((s) => s.setIconBadge);
   const [badges] = useState(badgeSupported);
   useIconBadge(iconBadge);
+  const miles = useStore((s) => s.miles);
+  const setMiles = useStore((s) => s.setMiles);
+  const palette = useStore((s) => s.palette);
+  const setPalette = useStore((s) => s.setPalette);
+  const full = useFullscreen();
   const setLang = useStore((s) => s.setLang);
   const cb = useStore((s) => s.cb);
   const setCb = useStore((s) => s.setCb);
@@ -157,6 +165,9 @@ export function App() {
     if (cb) document.documentElement.dataset.cb = '1';
     else delete document.documentElement.dataset.cb;
   }, [cb]);
+
+  // The colours of the maps: the stylesheet has each palette under its name.
+  useEffect(() => applyPalette(palette), [palette]);
 
   useEffect(() => {
     applyMeta(route);
@@ -251,9 +262,10 @@ export function App() {
   else if (route.kind === 'settings') page = <Settings world={world} path={route.path} />;
   else page = <Home world={world} />;
 
-  // What breaks stays inside its screen, and moving to another one leaves it behind.
+  // What breaks stays inside its screen, and moving to another one leaves it behind. A screen is also
+  // mounted afresh when the unit of the distances changes: every text that tells one is read again.
   const guarded = (
-    <ErrorBoundary key={route.kind === 'settings' ? SETTINGS_PATH : route.kind === 'section' ? PATHS[route.section] : path}>
+    <ErrorBoundary key={`${miles ? 'mi' : 'km'} ${route.kind === 'settings' ? SETTINGS_PATH : route.kind === 'section' ? PATHS[route.section] : path}`}>
       <Suspense fallback={<Spinner label={L('Cargando…', 'Loading…')} />}>{page}</Suspense>
     </ErrorBoundary>
   );
@@ -334,6 +346,26 @@ export function App() {
       <footer className="foot">
         <OfflineBar />
         <div className="foot-prefs">
+          <div className="foot-pick">
+            <b>{L('Colores del mapa', 'Colours of the map')}</b>
+            <Seg
+              small
+              label={L('Colores del mapa', 'Colours of the map')}
+              value={palette}
+              onChange={setPalette}
+              options={PALETTES.map((p) => ({
+                value: p,
+                title: paletteHint(p),
+                label: (
+                  <>
+                    <i className={`pal pal-${p}`} aria-hidden="true" />
+                    {paletteName(p)}
+                  </>
+                ),
+              }))}
+            />
+            <small>{paletteHint(palette)}</small>
+          </div>
           <Toggle checked={cb} onChange={setCb} hint={L('Azul, amarillo y rojo con tramas en lugar de verde, amarillo y rojo.', 'Blue, yellow and red with textures instead of green, yellow and red.')}>
             {L('Colores para daltónicos', 'Colour-blind friendly colours')}
           </Toggle>
@@ -360,6 +392,9 @@ export function App() {
               {L('Vibración al responder', 'Vibration when you answer')}
             </Toggle>
           )}
+          <Toggle checked={miles} onChange={setMiles} hint={L('Las distancias, en millas, y las superficies, en millas cuadradas. Las altitudes siguen en metros.', 'Distances in miles and surfaces in square miles. Heights stay in metres.')}>
+            {L('Distancias en millas', 'Distances in miles')}
+          </Toggle>
           {badges && (
             <Toggle
               checked={iconBadge}
@@ -400,6 +435,14 @@ export function App() {
             {L('Acerca de, privacidad y licencias', 'About, privacy and licences')}
           </a>
           <span aria-hidden="true"> · </span>
+          {full.can && (
+            <>
+              <button type="button" className="foot-full" onClick={full.toggle} aria-pressed={full.on}>
+                {full.on ? L('Salir de pantalla completa', 'Leave full screen') : L('Pantalla completa', 'Full screen')}
+              </button>
+              <span aria-hidden="true"> · </span>
+            </>
+          )}
           <button type="button" className="foot-keys" onClick={() => setHelp(true)} aria-haspopup="dialog">
             {L('Atajos de teclado', 'Keyboard shortcuts')}
           </button>

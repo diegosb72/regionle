@@ -8,10 +8,13 @@ import { GOALS_MAX, cleanGoals, goalWithout, sameGoal, withMark, type Goal } fro
 import type { Lang } from './i18n';
 import { cleanMix, dropMix, withMix, type Mix } from './mix';
 import { cleanNotes, dropNotes, withNote, type Notes } from './notes';
+import { PALETTE_DEFAULT, isPalette, type Palette } from './palette';
 import { RECENT_MAX, isRecent, recentConfig, recentOf, withRecent, type Recent } from './recent';
+import { PACE_DEFAULT, REVIEW_MAX, isPace, isReviewSize, setReviewPrefs, type Pace } from './review';
 import { today } from './text';
 import { cleanTypeins, setTypeins as applyTypeins, type Typeins } from './typeinPrefs';
 import type { Mode, Res, Section } from './types';
+import { setUnits } from './units';
 
 /**
  * The flags of the album (see lib/album.ts): id of the country → when its flag was learnt. A flag that
@@ -210,7 +213,25 @@ export function dropAnswers(stats: Record<string, Stat>, where: Record<string, s
 /** Lifetime tallies; the list of sessions only keeps the latest ones. */
 export type Totals = Record<string, number>;
 
-interface State {
+/**
+ * The last backup: when it was made (0 when none is known of), and the moment and the count of answers the
+ * reminder of the next one counts from, which move too when the reminder is put off.
+ */
+export interface BackupMark {
+  at: number;
+  from: number;
+  q: number;
+}
+const NO_BACKUP: BackupMark = { at: 0, from: 0, q: 0 };
+
+/** What a stored mark may be: three figures that are not negative. */
+export function cleanBackupMark(raw: unknown): BackupMark {
+  const m = raw as Partial<BackupMark> | null;
+  const n = (x: unknown): number => (typeof x === 'number' && Number.isFinite(x) && x > 0 ? x : 0);
+  return m && typeof m === 'object' ? { at: n(m.at), from: n(m.from), q: n(m.q) } : NO_BACKUP;
+}
+
+export interface State {
   theme: Theme;
   sel: Record<Section, string[]>;
   levels: Record<string, string>;
@@ -265,6 +286,14 @@ interface State {
   haptic: boolean;
   /** The number of waiting reviews on the icon of the installed game. On unless turned off. */
   iconBadge: boolean;
+  /** Distances in miles and surfaces in square miles, instead of kilometres. Off until asked for. */
+  miles: boolean;
+  /** The colours the maps are drawn in. */
+  palette: Palette;
+  /** How far apart the reviews are set, and how many questions one review game asks at most. */
+  reviewPace: Pace;
+  reviewSize: number;
+  backup: BackupMark;
   /** Short forms chosen in the settings for each thing, by id: those added to it and those taken from it. */
   typeins: Typeins;
   /** Whether names of several words get their initials unasked; null until chosen: as the game ships. */
@@ -277,6 +306,10 @@ interface State {
   setSound(on: boolean): void;
   setHaptic(on: boolean): void;
   setIconBadge(on: boolean): void;
+  setMiles(on: boolean): void;
+  setPalette(palette: Palette): void;
+  setReviewPace(pace: Pace): void;
+  setReviewSize(size: number): void;
   setTypeins(typeins: Typeins): void;
   setTypeinAuto(auto: boolean | null): void;
   saveList(list: CustomList): void;
@@ -321,7 +354,15 @@ interface State {
   /** Stores a record; returns true when it beats the previous one. */
   setBest(key: string, value: number, lowerWins?: boolean): boolean;
   resetProgress(): void;
-  importData(data: unknown): boolean;
+  /**
+   * Replaces the progress with that of a copy; false when it is not one. `prefs` are the preferences to bring
+   * along, already checked (see `cleanPrefs` in lib/backup.ts); `now` is when, for the reminder of the next copy.
+   */
+  importData(data: unknown, prefs?: Partial<State> | null, now?: number): boolean;
+  /** A copy has just been saved: the reminder counts from here. */
+  markBackup(now: number): void;
+  /** The reminder of a copy is put off: it counts from here, and the date of the last copy stays. */
+  snoozeBackup(now: number): void;
 }
 
 export const useStore = create<State>()(
@@ -358,6 +399,11 @@ export const useStore = create<State>()(
       sound: false,
       haptic: false,
       iconBadge: true,
+      miles: false,
+      palette: PALETTE_DEFAULT,
+      reviewPace: PACE_DEFAULT,
+      reviewSize: REVIEW_MAX,
+      backup: NO_BACKUP,
       typeins: {},
       typeinAuto: null,
 
@@ -374,6 +420,10 @@ export const useStore = create<State>()(
       setSound: (sound) => set({ sound }),
       setHaptic: (haptic) => set({ haptic }),
       setIconBadge: (iconBadge) => set({ iconBadge }),
+      setMiles: (miles) => set({ miles }),
+      setPalette: (palette) => set({ palette: isPalette(palette) ? palette : PALETTE_DEFAULT }),
+      setReviewPace: (pace) => set({ reviewPace: isPace(pace) ? pace : PACE_DEFAULT }),
+      setReviewSize: (size) => set({ reviewSize: isReviewSize(size) ? size : REVIEW_MAX }),
       setTypeins: (typeins) => set({ typeins }),
       setTypeinAuto: (typeinAuto) => set({ typeinAuto }),
       saveList: (list) => set((s) => ({ lists: [...s.lists.filter((l) => l.id !== list.id), list] })),
@@ -506,13 +556,20 @@ export const useStore = create<State>()(
         if (better) set((s) => ({ best: { ...s.best, [key]: value } }));
         return better;
       },
-      resetProgress: () => set({ stats: {}, where: {}, mix: {}, sessions: [], recent: [], best: {}, daily: {}, days: {}, badges: {}, tot: {}, album: {} }),
-      importData: (data) => {
+      resetProgress: () => set({ stats: {}, where: {}, mix: {}, sessions: [], recent: [], best: {}, daily: {}, days: {}, badges: {}, tot: {}, album: {}, backup: NO_BACKUP }),
+      markBackup: (now) => set((s) => ({ backup: { at: now, from: now, q: s.tot.q ?? 0 } })),
+      snoozeBackup: (now) => set((s) => ({ backup: { at: s.backup.at, from: now, q: s.tot.q ?? 0 } })),
+      importData: (data, prefs, now = Date.now()) => {
         if (!data || typeof data !== 'object') return false;
         const d = data as Partial<State>;
         if (typeof d.stats !== 'object' || !Array.isArray(d.sessions)) return false;
         const hasTypeins = !!d.typeins && typeof d.typeins === 'object';
+        const tot = d.tot && typeof d.tot === 'object' ? d.tot : totalsOf(d.sessions ?? []);
+        // What is here now is what the file holds: the last copy is the file, made when it says.
+        const exported = Date.parse(String((d as { exported?: unknown }).exported));
         set({
+          ...(prefs ?? {}),
+          backup: { at: Number.isFinite(exported) && exported > 0 ? exported : now, from: now, q: tot.q ?? 0 },
           stats: d.stats ?? {},
           where: d.where && typeof d.where === 'object' ? d.where : {},
           mix: cleanMix(d.mix),
@@ -532,7 +589,7 @@ export const useStore = create<State>()(
           // The album of the copy, and the flags its answers have learnt: one from before the album has those.
           album: withFlags(cleanAlbum(d.album), d.stats ?? {}),
           badges: d.badges && typeof d.badges === 'object' ? d.badges : {},
-          tot: d.tot && typeof d.tot === 'object' ? d.tot : totalsOf(d.sessions ?? []),
+          tot,
           // Backups from before the settings existed say nothing about them: they stay as they are. One
           // that has them brings both, and its "never chosen" is as the game ships.
           typeins: hasTypeins ? cleanTypeins(d.typeins) : get().typeins,
@@ -577,6 +634,11 @@ export const useStore = create<State>()(
         sound: s.sound,
         haptic: s.haptic,
         iconBadge: s.iconBadge,
+        miles: s.miles,
+        palette: s.palette,
+        reviewPace: s.reviewPace,
+        reviewSize: s.reviewSize,
+        backup: s.backup,
         typeins: s.typeins,
         typeinAuto: s.typeinAuto,
       }),
@@ -591,6 +653,25 @@ followTypeins(useStore.getState());
 useStore.subscribe((s, prev) => {
   if (s.typeins !== prev.typeins || s.typeinAuto !== prev.typeinAuto) followTypeins(s);
 });
+
+// And so is the unit distances are told in, by every text that tells one.
+setUnits(useStore.getState().miles ? 'mi' : 'km');
+useStore.subscribe((s, prev) => {
+  if (s.miles !== prev.miles) setUnits(s.miles ? 'mi' : 'km');
+});
+
+// And the pace and the size of the reviews, by every count of what is due.
+const followReview = (s: State) => setReviewPrefs({ pace: s.reviewPace, size: s.reviewSize });
+followReview(useStore.getState());
+useStore.subscribe((s, prev) => {
+  if (s.reviewPace !== prev.reviewPace || s.reviewSize !== prev.reviewSize) followReview(s);
+});
+
+/**
+ * The pace and the size of the reviews as one word: for a screen to count again what is due when either
+ * changes (a dependency of its memos), since the counts read them from where the store keeps them.
+ */
+export const useReviewPrefs = (): string => useStore((s) => `${s.reviewPace}:${s.reviewSize}`);
 
 /**
  * What was saved, laid over the game as it starts: what an older version did not keep is filled in, and
@@ -617,6 +698,11 @@ export function mergeSaved(saved: unknown, current: State): State {
     sound: p.sound === true,
     haptic: p.haptic === true,
     iconBadge: p.iconBadge !== false,
+    miles: p.miles === true,
+    palette: isPalette(p.palette) ? p.palette : PALETTE_DEFAULT,
+    reviewPace: isPace(p.reviewPace) ? p.reviewPace : PACE_DEFAULT,
+    reviewSize: isReviewSize(p.reviewSize) ? p.reviewSize : REVIEW_MAX,
+    backup: cleanBackupMark(p.backup),
     // Players from before the tallies existed start from what their latest sessions add up to.
     tot: p.tot && Object.keys(p.tot).length ? p.tot : totalsOf(p.sessions ?? []),
     typeins: cleanTypeins(p.typeins),

@@ -16,7 +16,7 @@ import { distanceKm, tolerances } from '../lib/geo';
 import { L, nm } from '../lib/i18n';
 import { MODE_NAME } from '../lib/modes';
 import { useStore } from '../lib/store';
-import { cx, mulberry32, nf, shuffle } from '../lib/text';
+import { cx, fmtDist, mulberry32, nf, shuffle } from '../lib/text';
 import type { LL, Res } from '../lib/types';
 import { GameShell, Hud, Results, Verdict, showsCountry, useElapsed, type GameProps, type ResultRow } from './common';
 import './coords.css';
@@ -213,8 +213,8 @@ export function CoordsGame({ deck, cfg, onExit, onAgain }: GameProps) {
   );
 
   const rule = L(
-    `A la primera: a menos de ${nf(limit.ok)} km del punto. Con ayuda: a menos de ${nf(limit.warn)} km.`,
-    `First time: within ${nf(limit.ok)} km of the point. With help: within ${nf(limit.warn)} km.`,
+    `A la primera: a menos de ${fmtDist(limit.ok)} del punto. Con ayuda: a menos de ${fmtDist(limit.warn)}.`,
+    `First time: within ${fmtDist(limit.ok)} of the point. With help: within ${fmtDist(limit.warn)}.`,
   );
 
   if (ended) {
@@ -223,7 +223,7 @@ export function CoordsGame({ deck, cfg, onExit, onAgain }: GameProps) {
       const r = results[o.id];
       const coord = fmtCoord(o.ll, o.digits);
       // A point that was read wrong is kept with what was read instead.
-      const how = reading ? (r.res === 'ok' ? '' : r.said ? L(` · no ${fmtCoord(r.said, o.digits)}`, ` · not ${fmtCoord(r.said, o.digits)}`) : L(' · sin responder', ' · not answered')) : ` · ${r.km == null ? L('sin marcar', 'not marked') : `${nf(Math.round(r.km))} km`}`;
+      const how = reading ? (r.res === 'ok' ? '' : r.said ? L(` · no ${fmtCoord(r.said, o.digits)}`, ` · not ${fmtCoord(r.said, o.digits)}`) : L(' · sin responder', ' · not answered')) : ` · ${r.km == null ? L('sin marcar', 'not marked') : fmtDist(r.km)}`;
       return { item: deck.byId.get(o.id)!, res: r.res, note: coord + how };
     });
     const placed = reading ? [] : asked.map((o) => results[o.id].km).filter((km): km is number => km != null);
@@ -237,7 +237,7 @@ export function CoordsGame({ deck, cfg, onExit, onAgain }: GameProps) {
         stage={stage}
         panel={
           <Results
-            title={!rows.length ? L('Sin preguntas', 'No questions') : mean != null ? L(`Error medio: ${nf(mean)} km`, `Mean error: ${nf(mean)} km`) : L('Partida terminada', 'Game over')}
+            title={!rows.length ? L('Sin preguntas', 'No questions') : mean != null ? L(`Error medio: ${fmtDist(mean)}`, `Mean error: ${fmtDist(mean)}`) : L('Partida terminada', 'Game over')}
             note={
               !order.length
                 ? L(
@@ -338,8 +338,8 @@ export function CoordsGame({ deck, cfg, onExit, onAgain }: GameProps) {
                 <p className="q-how">
                   <Grid3x3 size={15} aria-hidden="true" />{' '}
                   {L(
-                    `Haz clic en ese punto. Las líneas del mapa van ${lines}. Cuenta como acierto a menos de ${nf(limit.ok)} km; puedes acercar el mapa para afinar.`,
-                    `Click on that point. The lines of the map are ${lines}. Within ${nf(limit.ok)} km counts as right; you can zoom in to be more precise.`,
+                    `Haz clic en ese punto. Las líneas del mapa van ${lines}. Cuenta como acierto a menos de ${fmtDist(limit.ok)}; puedes acercar el mapa para afinar.`,
+                    `Click on that point. The lines of the map are ${lines}. Within ${fmtDist(limit.ok)} counts as right; you can zoom in to be more precise.`,
                   )}
                 </p>
               )}
@@ -357,8 +357,8 @@ export function CoordsGame({ deck, cfg, onExit, onAgain }: GameProps) {
                   {done !== 'ok' && said && km != null && (
                     <p className="facts coords-said">
                       {L(
-                        `Las que elegiste, ${fmtCoord(said, digits)}, quedan a ${nf(Math.round(km))} km de ahí${guess ? ': donde está la cruz' : ', fuera de este mapa'}.`,
-                        `The ones you chose, ${fmtCoord(said, digits)}, are ${nf(Math.round(km))} km from there${guess ? ': where the cross is' : ', off this map'}.`,
+                        `Las que elegiste, ${fmtCoord(said, digits)}, quedan a ${fmtDist(km)} de ahí${guess ? ': donde está la cruz' : ', fuera de este mapa'}.`,
+                        `The ones you chose, ${fmtCoord(said, digits)}, are ${fmtDist(km)} from there${guess ? ': where the cross is' : ', off this map'}.`,
                       )}
                     </p>
                   )}
@@ -374,7 +374,7 @@ export function CoordsGame({ deck, cfg, onExit, onAgain }: GameProps) {
                   L('Era aquí', 'It was here')
                 ) : (
                   <>
-                    {done === 'ok' ? L('¡En el sitio!', 'Spot on!') : done === 'warn' ? L('Cerca:', 'Close:') : L('Lejos:', 'Far off:')} <b>{L(`a ${nf(Math.round(km))} km`, `${nf(Math.round(km))} km away`)}</b>
+                    {done === 'ok' ? L('¡En el sitio!', 'Spot on!') : done === 'warn' ? L('Cerca:', 'Close:') : L('Lejos:', 'Far off:')} <b>{L(`a ${fmtDist(km)}`, `${fmtDist(km)} away`)}</b>
                   </>
                 )
               }

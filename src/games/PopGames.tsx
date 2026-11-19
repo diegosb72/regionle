@@ -12,7 +12,8 @@ import { challenger, comparable, dealFive, metricOf, metricsIn, type Fig, type M
 import { L } from '../lib/i18n';
 import { modeNameIn } from '../lib/modes';
 import { useStore, type GameConfig } from '../lib/store';
-import { Matcher, cx, judgeAmount, listed, nf, parseNumber, pick, shortNote, shuffle } from '../lib/text';
+import { Matcher, shortNote } from '../lib/matcher';
+import { cx, judgeAmount, listed, nf, parseNumber, pick, shuffle } from '../lib/text';
 import type { Deck, Res } from '../lib/types';
 import { GameShell, Hud, Results, Verdict, useElapsed, type ResultRow } from './common';
 
@@ -355,9 +356,12 @@ function RankFive({ figs, cfg, what, deck, onExit }: FigProps) {
 // ---------------------------------------------------------------------------
 
 function magnitudeHint(v: number, m: Metric): string {
-  const lo = Math.pow(10, Math.floor(Math.log10(v)));
-  const step = v / lo < 2 ? [1, 2] : v / lo < 5 ? [2, 5] : [5, 10];
-  return L(`Entre ${m.short(lo * step[0])} y ${m.short(lo * step[1])}.`, `Between ${m.short(lo * step[0])} and ${m.short(lo * step[1])}.`);
+  // Round figures of what is shown: in square miles when that is how surfaces are told.
+  const per = m.per ?? 1;
+  const n = v / per;
+  const lo = Math.pow(10, Math.floor(Math.log10(n)));
+  const step = n / lo < 2 ? [1, 2] : n / lo < 5 ? [2, 5] : [5, 10];
+  return L(`Entre ${m.short(lo * step[0] * per)} y ${m.short(lo * step[1] * per)}.`, `Between ${m.short(lo * step[0] * per)} and ${m.short(lo * step[1] * per)}.`);
 }
 
 function Exact({ figs, cfg, what, onExit }: FigProps) {

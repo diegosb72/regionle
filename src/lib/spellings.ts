@@ -3,7 +3,8 @@
  * with patterns ("r:^GALI[CZ]I?A"), which are for the game to read: the settings show the spellings
  * instead ("GALICIA", "GALICA", "GALIZIA", "GALIZA"), and this is where they come from.
  */
-import { norm, patternFinds, patternOf, patternTakes, typedWords } from './text';
+import { typedWords } from './matcher';
+import { norm, patternFinds, patternOf, patternTakes } from './text';
 
 export interface Spellings {
   /**

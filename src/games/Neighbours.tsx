@@ -13,7 +13,8 @@ import { countryAnswers, loadIndex } from '../lib/data';
 import { L, nm } from '../lib/i18n';
 import { MODE_NAME } from '../lib/modes';
 import { useStore } from '../lib/store';
-import { Matcher, hintMax, letterHint, mulberry32, shortNote, shuffle } from '../lib/text';
+import { Matcher, shortNote } from '../lib/matcher';
+import { hintMax, letterHint, mulberry32, shuffle } from '../lib/text';
 import type { Item, Res } from '../lib/types';
 import { GameShell, Hud, Results, Verdict, originOf, showsCountry, useElapsed, type GameProps, type ResultRow } from './common';
 

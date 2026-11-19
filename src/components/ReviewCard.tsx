@@ -4,9 +4,9 @@ import { useMemo } from 'react';
 import type { World } from '../lib/world';
 import { L, levelNoun, nm } from '../lib/i18n';
 import { MODE_NAME } from '../lib/modes';
-import { REVIEW_MAX, dueCount, dueGroups, forecast, missGroups, reviewConfig, type ReviewGroup } from '../lib/review';
+import { PACE_DAYS, dueCount, dueGroups, forecast, missGroups, reviewConfig, reviewMax, type Pace, type ReviewGroup } from '../lib/review';
 import { go } from '../lib/router';
-import { useStore } from '../lib/store';
+import { useReviewPrefs, useStore } from '../lib/store';
 import { nf } from '../lib/text';
 import { Flag, capitalise } from './ui';
 
@@ -28,14 +28,38 @@ export function groupPlace(g: ReviewGroup, world: World): { flag?: string; text:
   return c ? { flag: c.fl, text: `${nm(c.n)} · ${what}` } : { text: capitalise(what) };
 }
 
+/** How each pace is called where it is chosen. */
+export function paceName(pace: Pace): string {
+  if (pace === 'short') return L('Más seguido', 'Closer');
+  if (pace === 'long') return L('Más espaciado', 'Further apart');
+  return L('Normal', 'Normal');
+}
+
+/** The waits of a pace in a row: "1 día, 3, 7, 16, 35 y 75". */
+export function paceDays(pace: Pace): string {
+  const days = PACE_DAYS[pace];
+  const first = L(days[0] === 1 ? '1 día' : `${days[0]} días`, days[0] === 1 ? '1 day' : `${days[0]} days`);
+  return `${first}, ${days.slice(1, -1).join(', ')} ${L('y', 'and')} ${days[days.length - 1]}`;
+}
+
+/** The first waits of a pace as they are told to someone: "al día siguiente, a los tres días, a la semana, al mes…". */
+function paceStory(pace: Pace): string {
+  if (pace === 'short') return L('al día siguiente, a los dos días, a los cuatro, a los ocho…', 'the next day, two days later, four, eight…');
+  if (pace === 'long') return L('a los dos días, a los seis, a las dos semanas, al mes…', 'two days later, six, two weeks, a month…');
+  return L('al día siguiente, a los tres días, a la semana, al mes…', 'the next day, three days later, a week, a month…');
+}
+
 function useDue() {
   const stats = useStore((s) => s.stats);
   const where = useStore((s) => s.where);
+  const prefs = useReviewPrefs();
   return useMemo(() => {
     const now = Date.now();
     const groups = dueGroups(stats, where, now);
     return { groups, due: dueCount(groups), ahead: forecast(stats, now, 7), any: Object.keys(stats).length > 0 };
-  }, [stats, where]);
+    // The pace says what is due: counted again when it changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stats, where, prefs]);
 }
 
 /** What keeps being missed: the answers missed twice or more and not learnt since, as games that can be played. */
@@ -53,6 +77,7 @@ export function ReviewCard({ world }: { world: World }) {
   const hard = useHard();
   const opts = useStore((s) => s.opts);
   const start = useStore((s) => s.start);
+  const pace = useStore((s) => s.reviewPace);
   if (!any) return null;
 
   const play = (g: ReviewGroup) => {
@@ -75,9 +100,10 @@ export function ReviewCard({ world }: { world: World }) {
             </h2>
             <p className="review-text">
               {L(
-                'Lo que aprendiste vuelve justo antes de que se te olvide: al día siguiente, a los tres días, a la semana, al mes… Cada acierto lo aleja; cada fallo lo trae de vuelta.',
-                'What you learnt comes back just before you forget it: the next day, three days later, a week, a month… Each right answer pushes it away; each miss brings it back.',
-              )}
+                `Lo que aprendiste vuelve justo antes de que se te olvide: ${paceStory(pace)} Cada acierto lo aleja; cada fallo lo trae de vuelta.`,
+                `What you learnt comes back just before you forget it: ${paceStory(pace)} Each right answer pushes it away; each miss brings it back.`,
+              )}{' '}
+              <a href="#/progreso?ver=repaso">{L('Ajustar el repaso', 'Adjust the review')}</a>
             </p>
           </>
         ) : (
@@ -133,7 +159,7 @@ export function ReviewCard({ world }: { world: World }) {
 function Hard({ groups, n, world, onPlay }: { groups: ReviewGroup[]; n: number; world: World; onPlay: (g: ReviewGroup) => void }) {
   const first = groups[0];
   const place = groupPlace(first, world);
-  const size = Math.min(first.ids.length, REVIEW_MAX);
+  const size = Math.min(first.ids.length, reviewMax());
   return (
     <div className="review-hard">
       <p>

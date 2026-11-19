@@ -1,7 +1,8 @@
 // Patterns: type-ins written the way the quizzes of JetPunk write them, which take more than one spelling.
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Matcher, MAX_PATTERN, looksLikePattern, patternOf, type Answerable, type ShortEdit } from './text';
+import { Matcher } from './matcher';
+import { MAX_PATTERN, looksLikePattern, patternOf, type Answerable, type ShortEdit } from './text';
 import { SHIPPED, addForm, chipsOf, cleanTypeins, editOf, formKey, inForce, readTypeinFile, ruleOf, setTypeins, switchForm, tidyForm, typeinFile, type Typeins } from './typeins';
 
 // A game that ships with a list of its own for three things: patterns, spellings, and no initials unasked.

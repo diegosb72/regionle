@@ -4,6 +4,8 @@
  */
 import { goalsMet, longestStreak, type Days } from './days';
 import { L } from './i18n';
+import { NEAR_KM } from './rules';
+import { fmtDist } from './text';
 import { parseOrigin } from './review';
 import { isLearnt, type CustomList, type SessionRec, type Stat, type Totals } from './store';
 import type { Index } from './types';
@@ -175,7 +177,7 @@ export function badgesOf(ctx: BadgeCtx): Badge[] {
   add('lessons10', 'modes', L('Buen alumno', 'Good student'), L('Completa 10 lecciones de «Aprender».', 'Complete 10 lessons of “Learn”.'), tot.lessons ?? 0, 10);
   add('regionle1', 'modes', L('A la primera', 'First go'), L('Acierta un Regionle al primer intento.', 'Get a Regionle right at the first try.'), tot.regionle1 ?? 0, 1);
   add('fill', 'modes', L('Mapa completo', 'Map complete'), L('Rellena un mapa entero escribiendo todos sus nombres.', 'Fill a whole map by typing all its names.'), filled, 1);
-  add('near', 'modes', L('Puntería', 'Marksman'), L('Sitúa una ciudad a ciegas a menos de 10 km.', 'Place a city blind within 10 km.'), tot.near ?? 0, 1);
+  add('near', 'modes', L('Puntería', 'Marksman'), L(`Sitúa una ciudad a ciegas a menos de ${fmtDist(NEAR_KM)}.`, `Place a city blind within ${fmtDist(NEAR_KM)}.`), tot.near ?? 0, 1);
   add('timed20', 'modes', L('Contrarreloj', 'Against the clock'), L('Consigue 20 aciertos en un minuto.', 'Get 20 right in a minute.'), top('timed:'), 20);
   add('lives30', 'modes', L('Superviviente', 'Survivor'), L('Consigue 30 aciertos en supervivencia.', 'Get 30 right in survival.'), top('lives:'), 30);
   add('list', 'modes', L('A tu medida', 'Made to measure'), L('Crea una lista a medida.', 'Make a custom list.'), lists.length, 1);

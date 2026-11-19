@@ -1,11 +1,12 @@
 /** What has been learnt so far, where on the map, what is due for review, recent games, and backup of the saved data. */
-import { ArrowLeftRight, ArrowRight, CalendarClock, Download, FileSpreadsheet, Trash2, Upload } from 'lucide-react';
+import { ArrowLeftRight, ArrowRight, CalendarClock, FileSpreadsheet } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityBlock, EvolutionBlock, MonthsBlock } from '../components/Activity';
 import { AlbumBlock } from '../components/Album';
 import { BadgeBoard } from '../components/Badges';
 import { MapView, type Paint } from '../components/MapView';
-import { groupPlace } from '../components/ReviewCard';
+import { BackupBlock, BackupDue, download } from '../components/Backup';
+import { groupPlace, paceDays, paceName } from '../components/ReviewCard';
 import { Flag, Seg, Spinner, capitalise } from '../components/ui';
 import { namesOf, type Named } from '../lib/answerNames';
 import { toCsv } from '../lib/csv';
@@ -15,11 +16,11 @@ import { metricNoun, type MetricId } from '../lib/metricNames';
 import { L, getLang, levelNoun, nm } from '../lib/i18n';
 import { MODE_NAME, SECTIONS, formatName, modeNameIn } from '../lib/modes';
 import { mixGroups } from '../lib/mix';
-import { REVIEW_MAX, allGroups, dueCount, dueGroups, forecast, gradeOf, missGroups, missesOf, parseOrigin, reviewConfig, type Grade, type ReviewGroup } from '../lib/review';
+import { PACES, REVIEW_SIZES, allGroups, dueCount, dueGroups, forecast, gradeOf, missGroups, missesOf, parseOrigin, reviewConfig, reviewMax, type Grade, type Pace, type ReviewGroup } from '../lib/review';
 import { reviewTable } from '../lib/reviewTable';
 import { go } from '../lib/router';
-import { isLearnt, useStore, type Skill, type Stat } from '../lib/store';
-import { cx, fmtTime, nf } from '../lib/text';
+import { isLearnt, useReviewPrefs, useStore, type Skill, type Stat } from '../lib/store';
+import { cx, fmtDist, fmtTime, nf } from '../lib/text';
 import type { Country, Deck, Mode, Section } from '../lib/types';
 import { scoreOf } from '../games/quiz';
 
@@ -52,15 +53,6 @@ function when(t: number): string {
   if (days === 0) return `${L('Hoy', 'Today')}, ${hour}`;
   if (days === 1) return `${L('Ayer', 'Yesterday')}, ${hour}`;
   return d.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
-}
-
-/** Hands a file made here over to the browser's downloads. */
-function download(text: string, name: string, type: string): void {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([text], { type }));
-  a.download = name;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
 
 // ------------------------------------------------------------ knowledge map
@@ -99,6 +91,7 @@ function KnowledgeMap({ world }: { world: World }) {
   const [deck, setDeck] = useState<Deck | null>(null);
   const [failed, setFailed] = useState(false);
 
+  const prefs = useReviewPrefs();
   /** Countries whose regions have been practised, the most practised first, and the level each was played at. */
   const places = useMemo(() => {
     const per = new Map<string, { n: number; levels: Map<string, number> }>();
@@ -154,7 +147,9 @@ function KnowledgeMap({ world }: { world: World }) {
       paint[it.id] = GRADE_PAINT[g];
     }
     return { paint, grades, counts };
-  }, [deck, stats, skills]);
+    // What is due depends on the pace of the reviews: graded again when it changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deck, stats, skills, prefs]);
 
   const fem = isWorld ? false : (deck?.noun.fem ?? true);
   const total = deck?.items.length ?? 0;
@@ -246,6 +241,17 @@ function ReviewBlock({ world }: { world: World }) {
   const where = useStore((s) => s.where);
   const opts = useStore((s) => s.opts);
   const start = useStore((s) => s.start);
+  const pace = useStore((s) => s.reviewPace);
+  const setPace = useStore((s) => s.setReviewPace);
+  const size = useStore((s) => s.reviewSize);
+  const setSize = useStore((s) => s.setReviewSize);
+  // Reached from the review of the home page ("#/progreso?ver=repaso"): the page opens on this block.
+  const top = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!/[?&]ver=repaso(&|$)/.test(window.location.hash)) return;
+    const timer = window.setTimeout(() => top.current?.scrollIntoView({ block: 'start' }), 120);
+    return () => window.clearTimeout(timer);
+  }, []);
   /** What the making of the file is at, while it is being made. */
   const [making, setMaking] = useState<string | null>(null);
 
@@ -287,13 +293,15 @@ function ReviewBlock({ world }: { world: World }) {
     const now = Date.now();
     const groups = dueGroups(stats, where, now);
     return { groups, due: dueCount(groups), days: forecast(stats, now, 7) };
-  }, [stats, where]);
-  const top = Math.max(1, ...days);
+    // The pace says what is due and when the rest comes back: counted again when it changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stats, where, pace]);
+  const most = Math.max(1, ...days);
   const locale = getLang() === 'en' ? 'en-GB' : 'es-ES';
   const dayName = (i: number): string => (i === 0 ? L('hoy', 'today') : new Date(Date.now() + i * 864e5).toLocaleDateString(locale, { weekday: 'short' }).replace('.', ''));
 
   return (
-    <section className="block">
+    <section className="block" ref={top}>
       <h2>{L('Repaso espaciado', 'Spaced review')}</h2>
       <div className="fc">
         <div className="fc-now">
@@ -317,16 +325,26 @@ function ReviewBlock({ world }: { world: World }) {
           {days.map((n, i) => (
             <li key={i} title={`${dayName(i)}: ${n}`}>
               <b>{n > 0 ? nf(n) : ''}</b>
-              <i style={{ height: `${Math.round((n / top) * 100)}%` }} className={i === 0 ? 'today' : undefined} />
+              <i style={{ height: `${Math.round((n / most) * 100)}%` }} className={i === 0 ? 'today' : undefined} />
               <span>{dayName(i)}</span>
             </li>
           ))}
         </ol>
       </div>
+      <div className="fc-prefs">
+        <div className="fc-pref">
+          <b>{L('Ritmo', 'Pace')}</b>
+          <Seg<Pace> small label={L('Ritmo del repaso', 'Pace of the review')} value={pace} onChange={setPace} options={PACES.map((p) => ({ value: p, label: paceName(p), title: paceDays(p) }))} />
+        </div>
+        <div className="fc-pref">
+          <b>{L('Preguntas por repaso', 'Questions per review')}</b>
+          <Seg<number> small label={L('Preguntas por repaso', 'Questions per review')} value={size} onChange={setSize} options={REVIEW_SIZES.map((n) => ({ value: n, label: String(n) }))} />
+        </div>
+      </div>
       <p className="tip-line">
         {L(
-          'Cada acierto a la primera aleja el siguiente repaso: 1 día, 3, 7, 16, 35 y 75. Un fallo lo trae de vuelta el mismo día.',
-          'Each first-time right answer pushes the next review further away: 1 day, 3, 7, 16, 35 and 75. A miss brings it back the same day.',
+          `Cada acierto a la primera aleja el siguiente repaso: ${paceDays(pace)}. Un fallo lo trae de vuelta el mismo día. Cambiar el ritmo no borra nada: solo mueve cuándo vuelve cada respuesta.`,
+          `Each first-time right answer pushes the next review further away: ${paceDays(pace)}. A miss brings it back the same day. Changing the pace erases nothing: it only moves when each answer comes back.`,
         )}
       </p>
       <p className="fc-file">
@@ -357,6 +375,8 @@ function MissBlock({ world }: { world: World }) {
   const where = useStore((s) => s.where);
   const opts = useStore((s) => s.opts);
   const start = useStore((s) => s.start);
+  // How many questions a game of these asks follows the size chosen for the reviews.
+  useReviewPrefs();
   const groups = useMemo(() => missGroups(stats, where), [stats, where]);
   const shown = useMemo(() => groups.slice(0, MISS_MAPS), [groups]);
   /** The names of the pieces, read from their maps; null while they are being read. */
@@ -400,7 +420,7 @@ function MissBlock({ world }: { world: World }) {
         {shown.map((g) => {
           const place = groupPlace(g, world);
           const known = names?.get(g.key);
-          const n = Math.min(g.ids.length, REVIEW_MAX);
+          const n = Math.min(g.ids.length, reviewMax());
           return (
             <li key={g.key}>
               <div className="miss-head">
@@ -455,6 +475,7 @@ function MixBlock({ world }: { world: World }) {
   const where = useStore((s) => s.where);
   const opts = useStore((s) => s.opts);
   const start = useStore((s) => s.start);
+  useReviewPrefs();
   const groups = useMemo(() => mixGroups(mix, stats, where), [mix, stats, where]);
   const shown = useMemo(() => groups.slice(0, MIX_MAPS), [groups]);
   const [names, setNames] = useState<Map<string, Map<string, Named>> | null>(null);
@@ -489,7 +510,7 @@ function MixBlock({ world }: { world: World }) {
         {shown.map((g) => {
           const place = groupPlace(g, world);
           const known = names?.get(g.key);
-          const n = Math.min(g.ids.length, REVIEW_MAX);
+          const n = Math.min(g.ids.length, reviewMax());
           const nameOf = (id: string) => (names ? (known?.get(id)?.name ?? id) : '…');
           return (
             <li key={g.key}>
@@ -537,18 +558,9 @@ export function Progress({ world }: { world: World }) {
   const whereMap = useStore((s) => s.where);
   const sessions = useStore((s) => s.sessions);
   const best = useStore((s) => s.best);
-  const favs = useStore((s) => s.favs);
   const daily = useStore((s) => s.daily);
   const tot = useStore((s) => s.tot);
-  const lists = useStore((s) => s.lists);
-  const badges = useStore((s) => s.badges);
   const setSel = useStore((s) => s.setSel);
-  const resetProgress = useStore((s) => s.resetProgress);
-  const importData = useStore((s) => s.importData);
-  const hasTypeins = useStore((s) => Object.keys(s.typeins).length > 0 || s.typeinAuto !== null);
-  const [confirming, setConfirming] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const file = useRef<HTMLInputElement>(null);
 
   const { skills, rows } = useMemo(() => {
     const skills: Record<Skill, { seen: number; learnt: number }> = { loc: { seen: 0, learnt: 0 }, name: { seen: 0, learnt: 0 }, cap: { seen: 0, learnt: 0 }, flag: { seen: 0, learnt: 0 }, nb: { seen: 0, learnt: 0 } };
@@ -598,23 +610,6 @@ export function Progress({ world }: { world: World }) {
   // A record of nothing is not a record (older versions could store a zero).
   const records = Object.entries(best).filter(([, v]) => v > 0);
   const dailyDone = Object.values(daily).filter((d) => d.t).length;
-
-  const exportData = () => {
-    // The short forms chosen in the settings travel with the rest: they are read when the copy is made.
-    const { typeins, typeinAuto, recent, mix, goals, days, notes, album } = useStore.getState();
-    const data = { app: 'regionle', version: 3, exported: new Date().toISOString(), stats, where: whereMap, mix, sessions, recent, best, favs, daily, days, lists, goals, notes, album, badges, tot, typeins, typeinAuto };
-    download(JSON.stringify(data, null, 1), `regionle-${L('progreso', 'progress')}-${new Date().toISOString().slice(0, 10)}.json`, 'application/json');
-  };
-
-  const onFile = async (f: File | undefined) => {
-    if (!f) return;
-    try {
-      setMessage(importData(JSON.parse(await f.text())) ? L('Progreso importado.', 'Progress imported.') : L('Ese archivo no es una copia de Regionle.', 'That file is not a Regionle backup.'));
-    } catch {
-      setMessage(L('No se ha podido leer el archivo.', 'The file could not be read.'));
-    }
-    if (file.current) file.current.value = '';
-  };
 
   const practise = (c: Country) => {
     setSel('regions', [c.id]);
@@ -684,7 +679,7 @@ export function Progress({ world }: { world: World }) {
         : kind === 'regionle'
           ? [MODE_NAME.regionle, L(`racha de ${v}`, `streak of ${v}`)]
           : kind === 'blind'
-            ? [MODE_NAME.blind, L(`${nf(v)} km de error medio`, `mean error of ${nf(v)} km`)]
+            ? [MODE_NAME.blind, L(`${fmtDist(v)} de error medio`, `mean error of ${fmtDist(v)}`)]
           : kind === 'chain'
             ? [MODE_NAME.chain, L(`cadena de ${nf(v)}`, `chain of ${nf(v)}`)]
             : [MODE_NAME.nameall, fmtTime(v)];
@@ -698,7 +693,6 @@ export function Progress({ world }: { world: World }) {
 
   // Someone who has only done daily challenges has no session and no answer kept, and has days all the same.
   const hasDays = useStore((s) => Object.keys(s.days).length > 0);
-  const hasNotes = useStore((s) => Object.keys(s.notes).length > 0);
   const empty = !sessions.length && !Object.keys(stats).length && !hasDays;
 
   return (
@@ -713,6 +707,7 @@ export function Progress({ world }: { world: World }) {
           )}
         </p>
       </header>
+      <BackupDue />
 
       {empty ? (
         <div className="empty-state">
@@ -880,50 +875,7 @@ export function Progress({ world }: { world: World }) {
         </>
       )}
 
-      <section className="block">
-        <h2>{L('Copia de seguridad', 'Backup')}</h2>
-        <p className="tip-line">{L('Llévate tu progreso, tus selecciones guardadas, tus listas y tus abreviaturas a otro navegador, o empieza de cero.', 'Take your progress, your saved selections, your lists and your short forms to another browser, or start from scratch.')}</p>
-        <div className="backup">
-          <button type="button" className="btn" onClick={exportData} disabled={empty && !favs.length && !lists.length && !hasTypeins && !hasNotes}>
-            <Download size={16} aria-hidden="true" />
-            {L('Exportar', 'Export')}
-          </button>
-          <button type="button" className="btn" onClick={() => file.current?.click()}>
-            <Upload size={16} aria-hidden="true" />
-            {L('Importar', 'Import')}
-          </button>
-          <input ref={file} type="file" accept="application/json,.json" hidden onChange={(e) => void onFile(e.target.files?.[0])} />
-          {confirming ? (
-            <span className="confirm">
-              {L('¿Borrar todo el progreso?', 'Delete all progress?')}
-              <button
-                type="button"
-                className="btn btn-sm btn-danger"
-                onClick={() => {
-                  resetProgress();
-                  setConfirming(false);
-                  setMessage(L('Progreso borrado.', 'Progress deleted.'));
-                }}
-              >
-                {L('Sí, borrar', 'Yes, delete')}
-              </button>
-              <button type="button" className="btn btn-sm" onClick={() => setConfirming(false)}>
-                No
-              </button>
-            </span>
-          ) : (
-            <button type="button" className="btn btn-ghost" onClick={() => setConfirming(true)} disabled={empty}>
-              <Trash2 size={16} aria-hidden="true" />
-              {L('Borrar progreso', 'Delete progress')}
-            </button>
-          )}
-        </div>
-        {message && (
-          <p className="q-note" role="status">
-            {message}
-          </p>
-        )}
-      </section>
+      <BackupBlock />
     </div>
   );
 }

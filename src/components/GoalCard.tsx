@@ -4,9 +4,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { GOAL_SKILL_NAME } from '../lib/goalNames';
 import { addDays, goalGame, goalState, isDay, nextStep, type Goal, type GoalState, type GoalStep } from '../lib/goals';
 import { L, fmtDay, fmtWeekday } from '../lib/i18n';
-import { REVIEW_MAX } from '../lib/review';
+import { reviewMax } from '../lib/review';
 import { go } from '../lib/router';
-import { useStore } from '../lib/store';
+import { useReviewPrefs, useStore } from '../lib/store';
 import { cx, nf, today } from '../lib/text';
 
 /** "Para el jueves, 26 de noviembre: quedan 8 días." */
@@ -40,7 +40,10 @@ function GoalItem({ goal, now }: { goal: Goal; now: number }) {
   const start = useStore((s) => s.start);
   const removeGoal = useStore((s) => s.removeGoal);
   const setGoalDate = useStore((s) => s.setGoalDate);
-  const s = useMemo(() => goalState(goal, stats, now), [goal, stats, now]);
+  const prefs = useReviewPrefs();
+  // What is due follows the pace of the reviews: worked out again when it changes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const s = useMemo(() => goalState(goal, stats, now), [goal, stats, now, prefs]);
   const [confirm, setConfirm] = useState(false);
   const [dating, setDating] = useState(false);
   const [date, setDate] = useState(goal.date);
@@ -51,7 +54,7 @@ function GoalItem({ goal, now }: { goal: Goal; now: number }) {
   };
   const tomorrow = addDays(today(new Date(now)), 1);
   const line = L(`${nf(s.known)} de ${nf(s.total)}`, `${nf(s.known)} of ${nf(s.total)}`);
-  const due = Math.min(s.pending.length, REVIEW_MAX);
+  const due = Math.min(s.pending.length, reviewMax());
 
   return (
     <li className={cx('goal', s.phase === 'over' && 'goal-over', s.done && 'goal-done')}>

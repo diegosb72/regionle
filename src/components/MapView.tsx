@@ -1,11 +1,12 @@
 import { select } from 'd3-selection';
 import 'd3-transition';
 import { zoom as d3zoom, zoomIdentity, zoomTransform, type ZoomBehavior, type ZoomTransform } from 'd3-zoom';
-import { Maximize, Minus, Plus } from 'lucide-react';
+import { Expand, Maximize, Minus, Plus, Shrink } from 'lucide-react';
 import { forwardRef, memo, useCallback, useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import type { GeoPermissibleObjects } from 'd3-geo';
 import type { MultiLineString } from 'geojson';
 import { fmtLat, fmtLon, gridLines } from '../lib/coords';
+import { useFullscreen } from '../lib/fullscreen';
 import { NOMINAL, coarsePath, countPoints, graticule, landBox, makeView, spotInFrame } from '../lib/geo';
 import { L } from '../lib/i18n';
 import { ARROWS, inOrder, moveFrom, movesOf, nearestTo, type Moves } from '../lib/mapKeys';
@@ -873,6 +874,8 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
     [g],
   );
 
+  const full = useFullscreen();
+  const fullLabel = full.on ? L('Salir de pantalla completa', 'Leave full screen') : L('Pantalla completa', 'Full screen');
   const seeAll = useCallback(() => {
     const svg = svgRef.current;
     const z = zoomRef.current;
@@ -1385,6 +1388,12 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
         <button type="button" onClick={seeAll} aria-label={L('Ver todo', 'See everything')} title={L('Ver todo', 'See everything')}>
           <Maximize size={16} aria-hidden="true" />
         </button>
+        {/* The whole game, not the map alone: the question stays next to it. */}
+        {full.can && (
+          <button type="button" className="map-full" onClick={full.toggle} aria-pressed={full.on} aria-label={fullLabel} title={fullLabel}>
+            {full.on ? <Shrink size={16} aria-hidden="true" /> : <Expand size={16} aria-hidden="true" />}
+          </button>
+        )}
       </div>
     </div>
   );

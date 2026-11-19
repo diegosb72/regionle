@@ -9,7 +9,8 @@ import { bfs, cheapestPath, pickRoute, shortestPath, type Route } from '../lib/g
 import { L, fmtDay } from '../lib/i18n';
 import { MODE_NAME } from '../lib/modes';
 import { useStore } from '../lib/store';
-import { Matcher, cx, hashStr, mulberry32, pick, plural, shortNote } from '../lib/text';
+import { Matcher, shortNote } from '../lib/matcher';
+import { cx, hashStr, mulberry32, pick, plural } from '../lib/text';
 import type { Item } from '../lib/types';
 import { GameShell, Hud, useElapsed, useFlashSignal, type GameProps } from './common';
 

@@ -7,7 +7,8 @@ import { buildCityDeck, buildPhysicalDeck, countPhys, kindsIn, loadPhysical, par
 import { placeQuery } from './links';
 import { bfs, capOf, cheapestPath, makeView, onShortest, pickRoute, shortestPath, sightFor, spotInFrame } from './geo';
 import type { AnyGeo, Deck, LL } from './types';
-import { Matcher, editDistance, fmtBig, fmtTime, judgeAmount, key, listed, mulberry32, norm, parseNumber } from './text';
+import { Matcher } from './matcher';
+import { editDistance, fmtBig, fmtTime, judgeAmount, key, listed, mulberry32, norm, parseNumber } from './text';
 
 describe('text', () => {
   it('normalises accents, case and punctuation', () => {

@@ -310,6 +310,7 @@ export async function buildDeck(spec: DeckSpec, onProgress?: (done: number, tota
         answers: [p.n.es, p.n.en ?? '', p.n.lo ?? '', ...(p.al ?? [])],
         proper: properNames(p.n),
         short: editOf(id),
+        within: c.id,
         capital: capitals[c.id]?.[level.k]?.[id],
         country: c,
         // The data names odd units ("ciudad autónoma") in Spanish only.

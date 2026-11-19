@@ -13,7 +13,9 @@ import { distanceKm, silhouette, spanKm } from '../lib/geo';
 import { L, nm } from '../lib/i18n';
 import { MODE_NAME } from '../lib/modes';
 import { useStore } from '../lib/store';
-import { Matcher, cx, mulberry32, nf, shortNote, shuffle } from '../lib/text';
+import { Matcher, shortNote } from '../lib/matcher';
+import { cx, mulberry32, nf, shuffle } from '../lib/text';
+import { dist, distUnit } from '../lib/units';
 import type { Res } from '../lib/types';
 import { GameShell, Hud, Results, Verdict, originOf, showsCountry, useElapsed, type GameProps, type ResultRow } from './common';
 import { turnOf } from './quiz';
@@ -271,7 +273,9 @@ export function RegionleGame({ deck, cfg, onExit, onAgain }: GameProps) {
                 return (
                   <li key={id}>
                     <b>{g.name}</b>
-                    <span>{nf(Math.max(1, Math.round(c.km)))} km</span>
+                    <span>
+                  {nf(Math.max(1, Math.round(dist(c.km))))} {distUnit()}
+                </span>
                     <span className="d-dir" title={L(`hacia el ${names[compass(c.deg)]}`, `to the ${names[compass(c.deg)]}`)}>
                       <ArrowUp size={16} strokeWidth={2.6} style={{ transform: `rotate(${Math.round(c.deg)}deg)` }} aria-hidden="true" />
                       <i>{names[compass(c.deg)]}</i>

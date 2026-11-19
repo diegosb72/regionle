@@ -13,7 +13,8 @@ import { L, capName, getLang, nm } from '../lib/i18n';
 import { divisionsLink } from '../lib/links';
 import { MODE_NAME } from '../lib/modes';
 import { useStore, isLearnt } from '../lib/store';
-import { fmtArea, fmtPop, key, nf } from '../lib/text';
+import { fmtArea, fmtDist, fmtPop, key, nf } from '../lib/text';
+import { dist } from '../lib/units';
 import type { Item, LL } from '../lib/types';
 import { GameShell, showsCountry, type GameProps } from './common';
 
@@ -222,7 +223,7 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
                 <p>{ends.length ? L('Ahora, el otro punto.', 'Now, the other point.') : L('Haz clic en el primer punto.', 'Click on the first point.')}</p>
               ) : (
                 <p>
-                  <b className="ruler-km">{km < 20 ? nf(km, 1) : nf(Math.round(km))} km</b> {L('en línea recta', 'as the crow flies')}
+                  <b className="ruler-km">{fmtDist(km, dist(km) < 20 ? 1 : 0)}</b> {L('en línea recta', 'as the crow flies')}
                   <small>
                     {L('De', 'From')} {fmtCoord(ends[0], 1)} {L('a', 'to')} {fmtCoord(ends[1], 1)}
                   </small>

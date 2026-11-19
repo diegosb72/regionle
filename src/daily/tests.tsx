@@ -8,7 +8,9 @@ import { GameShell, Verdict } from '../games/common';
 import { countryAnswers, countryItem } from '../lib/data';
 import { distanceKm } from '../lib/geo';
 import { L, capName, nm } from '../lib/i18n';
-import { Matcher, cx, fmtArea, fmtPop, nf, shortNote } from '../lib/text';
+import { Matcher, shortNote } from '../lib/matcher';
+import { cx, fmtArea, fmtPop, nf } from '../lib/text';
+import { dist, distUnit } from '../lib/units';
 import type { Country, Deck, Res } from '../lib/types';
 import { testName } from './Card';
 import { GUESSES, TESTS, bearing, compass, ladder, spanOf, type QuickQuestion } from './spec';
@@ -191,7 +193,9 @@ export function RegionleTest({ deck, target, shape, step, onScore, onDone }: Tes
             return (
               <li key={id}>
                 <b>{g.name}</b>
-                <span>{nf(Math.max(1, Math.round(c.km)))} km</span>
+                <span>
+                  {nf(Math.max(1, Math.round(dist(c.km))))} {distUnit()}
+                </span>
                 <span className="d-dir" title={L(`hacia el ${names[compass(c.deg)]}`, `to the ${names[compass(c.deg)]}`)}>
                   <ArrowUp size={16} strokeWidth={2.6} style={{ transform: `rotate(${Math.round(c.deg)}deg)` }} aria-hidden="true" />
                   <i>{names[compass(c.deg)]}</i>

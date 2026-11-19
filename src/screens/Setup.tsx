@@ -18,6 +18,7 @@ import { go, settle } from '../lib/router';
 import { PATHS, mapLinkUrl } from '../lib/routes';
 import { useStore, type CardAsk, type CustomList, type Length, type Opts } from '../lib/store';
 import { cx, nf, plural } from '../lib/text';
+import { areaUnit, distWord } from '../lib/units';
 import { SAMPLES, settingsLink } from '../lib/typeinList';
 import { SHIPPED_AUTO, inForce } from '../lib/typeins';
 import type { Country, Mode, Section } from '../lib/types';
@@ -776,7 +777,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
                     options={[
                       { value: 'pop', label: L('Población', 'Population') },
                       { value: 'area', label: L('Superficie', 'Area') },
-                      { value: 'density', label: L('Densidad', 'Density'), title: L('Habitantes por km²', 'People per km²') },
+                      { value: 'density', label: L('Densidad', 'Density'), title: L(`Habitantes por ${areaUnit()}`, `People per ${areaUnit()}`) },
                     ]}
                   />
                 </div>
@@ -844,7 +845,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
                     {(opts.bearingAsk ?? 'both') === 'dir'
                       ? L('Hacia dónde queda cada sitio desde otro: norte, noreste, este…', 'Which way each place is from another: north, north-east, east…')
                       : opts.bearingAsk === 'dist'
-                        ? L('A cuántos kilómetros está cada sitio de otro, entre cuatro distancias.', 'How many kilometres each place is from another, out of four distances.')
+                        ? L(`A cuántos ${distWord()} está cada sitio de otro, entre cuatro distancias.`, `How many ${distWord()} each place is from another, out of four distances.`)
                         : L('Una pregunta de rumbo y otra de distancia, por turnos.', 'A question about the bearing and one about the distance, in turn.')}
                   </p>
                 </div>

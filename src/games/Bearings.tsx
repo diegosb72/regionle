@@ -7,13 +7,14 @@ import { ArrowRight, Flag as FlagIcon, Navigation, Ruler } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MapView, type MapHandle, type Paint } from '../components/MapView';
 import { Flag } from '../components/ui';
-import { HALF_WORLD, dealLegs, distanceOptions, judgePoint, pointName, pointOf, pointShort, roundKm, type Point } from '../lib/bearings';
+import { HALF_WORLD, dealLegs, distanceOptions, judgePoint, pointName, pointOf, pointShort, saidDist, type Point } from '../lib/bearings';
 import { seedOf } from '../lib/challenge';
 import { spanKm } from '../lib/geo';
 import { L, nm } from '../lib/i18n';
 import { MODE_NAME } from '../lib/modes';
 import { useStore } from '../lib/store';
 import { cx, mulberry32, nf, shuffle } from '../lib/text';
+import { dist, distUnit } from '../lib/units';
 import type { LL, Res } from '../lib/types';
 import { GameShell, Hud, Results, Verdict, showsCountry, useElapsed, type GameProps, type ResultRow } from './common';
 import './bearings.css';
@@ -41,7 +42,8 @@ export function BearingGame({ deck, cfg, onExit, onAgain }: GameProps) {
     const legs = dealLegs(deck.items, order, ask, minKm, rand);
     // No distance on offer is much longer than the longest one on the map.
     const maxKm = Math.min(HALF_WORLD, span * 1.3);
-    return { legs, choices: legs.map((leg) => (leg.ask === 'dist' ? distanceOptions(leg.km, rand, maxKm) : null)) };
+    // The four distances are offered in the unit of the player, as round figures of it.
+    return { legs, choices: legs.map((leg) => (leg.ask === 'dist' ? distanceOptions(dist(leg.km), rand, dist(maxKm)) : null)) };
   }, [deck, cfg, opts.length, ask]);
   const { legs } = game;
 
@@ -160,7 +162,7 @@ export function BearingGame({ deck, cfg, onExit, onAgain }: GameProps) {
       return {
         item: deck.byId.get(l.to)!,
         res: results[i],
-        note: `${l.ask === 'dir' ? pointName(pointOf(l.deg)) : `${nf(roundKm(l.km))} km`} · ${L('desde', 'from')} ${origin}`,
+        note: `${l.ask === 'dir' ? pointName(pointOf(l.deg)) : saidDist(l.km)} · ${L('desde', 'from')} ${origin}`,
       };
     });
     const heading = !rows.length ? L('Sin preguntas', 'No questions') : rows.every((r) => r.res === 'ok') ? L('¡Todas bien!', 'All of them right!') : L('Partida terminada', 'Game over');
@@ -201,7 +203,7 @@ export function BearingGame({ deck, cfg, onExit, onAgain }: GameProps) {
 
   const last = at + 1 >= legs.length;
   const point = pointOf(leg!.deg);
-  const km = nf(roundKm(leg!.km));
+  const far = saidDist(leg!.km);
   /** Whose each place is, where the map mixes countries. */
   const whose = (it: NonNullable<typeof to>) => (
     <>
@@ -273,7 +275,9 @@ export function BearingGame({ deck, cfg, onExit, onAgain }: GameProps) {
               {choice!.options.map((n, i) => (
                 <button key={i} type="button" className={cx('choice', picked != null && i === choice!.right && 'right', picked === i && i !== choice!.right && 'wrong')} disabled={picked != null} onClick={() => answer(i)}>
                   <kbd>{i + 1}</kbd>
-                  <span>{nf(n)} km</span>
+                  <span>
+                    {nf(n)} {distUnit()}
+                  </span>
                 </button>
               ))}
             </div>
@@ -291,14 +295,14 @@ export function BearingGame({ deck, cfg, onExit, onAgain }: GameProps) {
                   </>
                 ) : (
                   <>
-                    {done === 'ok' ? L('¡Eso es!', 'That is it!') : L('Son', 'It is')} <b>{km} km</b>
+                    {done === 'ok' ? L('¡Eso es!', 'That is it!') : L('Son', 'It is')} <b>{far}</b>
                   </>
                 )
               }
               lead={
                 <p className="facts bearing-line">
                   {/* Two lines, in fact: the course is the one a map shows, the distance that of the shortest way. */}
-                  {way}: {L(`al ${pointName(point)} (${Math.round(leg!.deg)}°), a unos ${km} km en línea recta.`, `to the ${pointName(point)} (${Math.round(leg!.deg)}°), about ${km} km as the crow flies.`)}
+                  {way}: {L(`al ${pointName(point)} (${Math.round(leg!.deg)}°), a unos ${far} en línea recta.`, `to the ${pointName(point)} (${Math.round(leg!.deg)}°), about ${far} as the crow flies.`)}
                 </p>
               }
             />

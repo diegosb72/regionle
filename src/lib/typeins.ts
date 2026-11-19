@@ -5,7 +5,8 @@
  *
  * A thing goes by its id ("US-NH", "ES", "cj64n2v", "r:volga"); the name of its capital, by `capKey` of it.
  */
-import { MAX_PATTERN, key, looksLikePattern, patternOf, shortFormsOf, type Answerable, type ShortEdit } from './text';
+import { shortFormsOf } from './matcher';
+import { MAX_PATTERN, key, looksLikePattern, patternOf, type Answerable, type ShortEdit } from './text';
 import shipped from './typeins.default.json';
 import { MAX_FORMS, chosenTypeins, cleanTypeins, entry, formKey, isObject, tidyForm, type TypeinChoice, type TypeinFile, type TypeinSettings, type Typeins } from './typeinPrefs';
 

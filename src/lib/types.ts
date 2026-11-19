@@ -93,6 +93,8 @@ export interface Item {
   proper: string[];
   /** What the settings say about its short forms, as it stood when the item was built. */
   short?: ShortEdit;
+  /** Regions: the country they are in, which is where their short forms are judged on a map of several (see `Matcher`). */
+  within?: string;
   country: Country;
   /** "provincia", "estado", "país"… */
   type: string;
