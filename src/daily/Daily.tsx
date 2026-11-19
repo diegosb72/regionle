@@ -8,7 +8,7 @@ import { TravelGame } from '../games/Travel';
 import { buildDeck, isFeminine, levelOf, type World } from '../lib/data';
 import { silhouette } from '../lib/geo';
 import { L, capName, fmtDay, fmtWeekday, getLang, nm } from '../lib/i18n';
-import { go } from '../lib/router';
+import { go, settle } from '../lib/router';
 import { DAILY_PATH, linkTo, siteRoot } from '../lib/routes';
 import { DEFAULT_OPTS, useStore } from '../lib/store';
 import { cx, fmtArea, fmtPop, today } from '../lib/text';
@@ -34,6 +34,8 @@ import { JokerChip, inARow, jokerRule, testName, useCountdown } from './Card';
 import { SharePicture } from './SharePicture';
 import { PinFive, PointsChip, QuickFive, RegionleTest, WhichTest, nextLabel, shellSubtitle, shellTitle, type Step } from './tests';
 import { DailyStatsBlock, useHasStats } from './Stats';
+import { Versus, VersusNote } from './Versus';
+import { decodeResult, encodeResult } from './versus';
 import './daily.css';
 
 /** "España" → 🇪🇸: the flag as text, for sharing. */
@@ -41,9 +43,13 @@ function flagEmoji(id: string): string {
   return /^[A-Z]{2}$/.test(id) ? String.fromCodePoint(...[...id].map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65)) : '';
 }
 
-export function shareText(date: string, country: Country, rec: DailyRec): string {
+/**
+ * The result as text, to send. Its link carries the points (and the name, if one is given), so that whoever
+ * opens it plays the same challenge and sees both results side by side.
+ */
+export function shareText(date: string, country: Country, rec: DailyRec, name = ''): string {
   const squares = rec.p.map((p) => ((p ?? 0) >= 16 ? '🟩' : (p ?? 0) >= 8 ? '🟨' : '🟥')).join('');
-  const url = linkTo(`${DAILY_PATH}/${date}`);
+  const url = linkTo(`${DAILY_PATH}/${date}/${encodeResult(rec.p, name)}`);
   return [`Regionle ∞ · ${L('Reto del', 'Challenge of')} ${fmtDay(date, true)}`, `${flagEmoji(country.id)} ${nm(country.n)} · ${totalOf(rec)}/100`, squares, url].join('\n');
 }
 
@@ -128,11 +134,14 @@ export function Calendar({ world, current }: { world: World; current?: string })
 // The challenge itself
 // ---------------------------------------------------------------------------
 
-export function Daily({ world, date }: { world: World; date: string }) {
+export function Daily({ world, date, vs, soon }: { world: World; date: string; vs?: string; soon?: string }) {
   const rec = useStore((s) => s.daily[date]);
   const daily = useStore((s) => s.daily);
   const bestStreak = useStore((s) => s.best['daily:streak'] ?? 0);
   const setDaily = useStore((s) => s.setDaily);
+  const addRival = useStore((s) => s.addRival);
+  const nick = useStore((s) => s.nick);
+  const setNick = useStore((s) => s.setNick);
   const start = useStore((s) => s.start);
   const opts = useStore((s) => s.opts);
   const now = today();
@@ -150,12 +159,37 @@ export function Daily({ world, date }: { world: World; date: string }) {
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
   const [copied, setCopied] = useState(false);
+  /** What there is to say about the link that was followed, when it could not be used as it came. */
+  const [linkNote, setLinkNote] = useState<string | null>(null);
   const [sel, setSel] = useState<string | null>(null);
   const map = useRef<MapHandle>(null);
   const shareBox = useRef<HTMLTextAreaElement>(null);
   const left = useCountdown();
   const hasStats = useHasStats();
   const onExit = () => go('');
+
+  // A link with somebody's result: it is kept to set beside one's own, and the address goes back to the day's.
+  useEffect(() => {
+    if (soon) {
+      setLinkNote(
+        L(
+          `Te han enviado un resultado del reto del ${fmtDay(soon)}, que aquí todavía no ha empezado. Este es el de hoy: abre el enlace otra vez cuando llegue ese día.`,
+          `You were sent a result of the challenge of ${fmtDay(soon)}, which has not started here yet. This is today's: open the link again when that day comes.`,
+        ),
+      );
+      settle(DAILY_PATH);
+      return;
+    }
+    if (!vs) return;
+    const rival = decodeResult(vs);
+    const st = useStore.getState();
+    const own = st.daily[date];
+    // One's own link, opened where it was made: there is nobody to compare with.
+    const mine = !!rival && !!own?.t && own.p.join() === rival.p.join() && (!rival.n || rival.n === st.nick.trim());
+    if (!rival) setLinkNote(L('El enlace traía un resultado para comparar, pero ha llegado incompleto. Puedes jugar el reto igualmente.', 'The link came with a result to compare, but it arrived incomplete. You can play the challenge all the same.'));
+    else if (!mine) addRival(date, rival);
+    settle(`${DAILY_PATH}/${date}`);
+  }, [vs, soon, date, addRival]);
 
   useEffect(() => {
     let alive = true;
@@ -206,7 +240,7 @@ export function Daily({ world, date }: { world: World; date: string }) {
 
   const share = async () => {
     if (!rec) return;
-    const text = shareText(date, country, rec);
+    const text = shareText(date, country, rec, nick);
     try {
       if (navigator.share && window.matchMedia('(pointer: coarse)').matches) {
         await navigator.share({ text });
@@ -287,6 +321,12 @@ export function Daily({ world, date }: { world: World; date: string }) {
             </li>
           ))}
         </ol>
+        {linkNote && (
+          <p className="d-vs-note" role="status">
+            {linkNote}
+          </p>
+        )}
+        <Versus date={date} rec={rec} />
         <p className="d-streakline">
           <span className={cx('d-streak', streak > 0 && 'on')}>
             <Flame size={16} aria-hidden="true" />
@@ -316,7 +356,7 @@ export function Daily({ world, date }: { world: World; date: string }) {
           </p>
         )}
         <div className="d-share">
-          <textarea ref={shareBox} readOnly rows={4} value={shareText(date, country, rec)} aria-label={L('Texto para compartir', 'Text to share')} onFocus={(e) => e.currentTarget.select()} />
+          <textarea ref={shareBox} readOnly rows={4} value={shareText(date, country, rec, nick)} aria-label={L('Texto para compartir', 'Text to share')} onFocus={(e) => e.currentTarget.select()} />
           <div className="d-share-btns">
             <button type="button" className="btn btn-primary" onClick={share}>
               {copied ? <Check size={16} aria-hidden="true" /> : 'share' in navigator ? <Share2 size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
@@ -335,9 +375,21 @@ export function Daily({ world, date }: { world: World; date: string }) {
               flagUrl={country.fl ? `${BASE}flags/${country.fl}.svg` : undefined}
               deck={regions}
               file={`regionle-${date}.png`}
-              text={shareText(date, country, rec)}
+              text={shareText(date, country, rec, nick)}
             />
           </div>
+          <div className="duel-send d-share-name">
+            <label>
+              <span>{L('Tu nombre', 'Your name')}</span>
+              <input type="text" value={nick} maxLength={24} placeholder={L('Opcional', 'Optional')} onChange={(e) => setNick(e.target.value)} autoComplete="nickname" />
+            </label>
+          </div>
+          <p className="duel-how">
+            {L(
+              'El enlace lleva tu resultado: quien lo abra juega este mismo reto y os comparáis prueba a prueba. Si te envían el suyo, aparece aquí.',
+              'The link carries your result: whoever opens it plays this same challenge and you compare test by test. If they send you theirs, it shows here.',
+            )}
+          </p>
         </div>
         <div className="d-learn">
           <h3>{L(`Aprende ${fem ? 'las' : 'los'} ${level.es} de ${nm(country.n)}`, `Learn the ${level.en} of ${nm(country.n)}`)}</h3>
@@ -475,6 +527,12 @@ export function Daily({ world, date }: { world: World; date: string }) {
           'Five short tests, the same for everybody. The first two are about the regions of this country: if you do not know them, you can study its map before you start.',
         )}
       </p>
+      {linkNote && (
+        <p className="d-vs-note" role="status">
+          {linkNote}
+        </p>
+      )}
+      <VersusNote date={date} />
       <ol className="d-list">
         {[
           L(`Adivina ${fem ? 'una' : 'uno'} de sus ${level.es} por la silueta, en seis intentos.`, `Guess one of its ${level.en} from its outline, in six tries.`),

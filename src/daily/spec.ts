@@ -218,6 +218,42 @@ export function doneCount(rec: DailyRec | undefined): number {
   return rec ? rec.p.filter((x) => x != null).length : 0;
 }
 
+/** The result somebody sent by link, to set beside one's own: their name, if they gave one, and the points of each test. */
+export interface Rival {
+  n: string;
+  p: number[];
+}
+/** How many results are kept for a day, and for how many days. */
+export const RIVALS_MAX = 8;
+export const RIVAL_DAYS = 60;
+export const NAME_MAX = 24;
+
+export const isRival = (r: unknown): r is Rival => {
+  const x = r as Rival | null;
+  return !!x && typeof x === 'object' && typeof x.n === 'string' && x.n.length <= NAME_MAX && Array.isArray(x.p) && x.p.length === TESTS && x.p.every((n) => Number.isInteger(n) && n >= 0 && n <= 20);
+};
+
+/** What is kept of the results others sent, cleaned: only days, only results that can be, and no more than fit. */
+export function cleanRivals(raw: unknown): Record<string, Rival[]> {
+  const out: Record<string, Rival[]> = {};
+  if (!raw || typeof raw !== 'object') return out;
+  const all = raw as Record<string, unknown>;
+  for (const d of Object.keys(all).filter(isDate).sort().slice(-RIVAL_DAYS)) {
+    const list = Array.isArray(all[d]) ? (all[d] as unknown[]).filter(isRival).slice(-RIVALS_MAX) : [];
+    if (list.length) out[d] = list;
+  }
+  return out;
+}
+
+/**
+ * One more result for a day. Whoever sends theirs again takes the place they had (by name; with no name,
+ * when the points are the same), and the oldest give way when there are too many.
+ */
+export function withRival(rivals: Record<string, Rival[]>, date: string, rival: Rival): Record<string, Rival[]> {
+  const same = (r: Rival) => r.n === rival.n && (r.n !== '' || r.p.join() === rival.p.join());
+  return cleanRivals({ ...rivals, [date]: [...(rivals[date] ?? []).filter((r) => !same(r)), rival] });
+}
+
 /** A wildcard is won every so many days in a row, and no more than so many are kept. */
 export const JOKER_EVERY = 7;
 export const JOKER_MAX = 2;

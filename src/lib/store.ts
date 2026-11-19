@@ -1,7 +1,7 @@
 /** Persistent app state: selections, options, favourites and learning progress (localStorage). */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { TESTS, emptyRec, streakOf, withJokers, type DailyRec } from '../daily/spec';
+import { NAME_MAX, TESTS, cleanRivals, emptyRec, streakOf, withJokers, withRival, type DailyRec, type Rival } from '../daily/spec';
 import { DAY_GOAL_DEFAULT, cleanDays, dailyWork, daysFrom, isDayGoal, studyStreak, withDay, type Days } from './days';
 import type { CityPick } from './extra';
 import { GOALS_MAX, cleanGoals, goalWithout, sameGoal, withMark, type Goal } from './goals';
@@ -253,6 +253,8 @@ export interface State {
   best: Record<string, number>;
   /** Results of the daily challenge by day. */
   daily: Record<string, DailyRec>;
+  /** Results of the daily challenge that others sent by link, by day: to set beside one's own. */
+  rivals: Record<string, Rival[]>;
   /** Interface language; null until chosen: the browser's language decides. */
   lang: Lang | null;
   /** Name put on the challenges sent to others. */
@@ -332,6 +334,10 @@ export interface State {
   setNick(nick: string): void;
   /** Stores the points of one test of a day; closes the day when it was the last one. */
   setDaily(date: string, test: number, points: number, figure: number): void;
+  /** Keeps the result somebody sent of the challenge of a day. */
+  addRival(date: string, rival: Rival): void;
+  /** Takes one of them away: the one at that place of the day's list. */
+  dropRival(date: string, index: number): void;
   setSel(section: Section, ids: string[]): void;
   setLevel(country: string, level: string): void;
   setMode(section: Section, mode: Mode): void;
@@ -382,6 +388,7 @@ export const useStore = create<State>()(
       recent: [],
       best: {},
       daily: {},
+      rivals: {},
       days: {},
       dayGoal: DAY_GOAL_DEFAULT,
       lang: null,
@@ -463,7 +470,9 @@ export const useStore = create<State>()(
         }),
       setTheme: (theme) => set({ theme }),
       setLang: (lang) => set({ lang }),
-      setNick: (nick) => set({ nick: nick.slice(0, 24) }),
+      setNick: (nick) => set({ nick: nick.slice(0, NAME_MAX) }),
+      addRival: (date, rival) => set((s) => ({ rivals: withRival(s.rivals, date, rival) })),
+      dropRival: (date, index) => set((s) => ({ rivals: cleanRivals({ ...s.rivals, [date]: (s.rivals[date] ?? []).filter((_, i) => i !== index) }) })),
       setDaily: (date, test, points, figure) =>
         set((s) => {
           const prev = s.daily[date] ?? emptyRec();
@@ -558,7 +567,7 @@ export const useStore = create<State>()(
         if (better) set((s) => ({ best: { ...s.best, [key]: value } }));
         return better;
       },
-      resetProgress: () => set({ stats: {}, where: {}, mix: {}, sessions: [], recent: [], best: {}, daily: {}, days: {}, badges: {}, tot: {}, album: {}, backup: NO_BACKUP }),
+      resetProgress: () => set({ stats: {}, where: {}, mix: {}, sessions: [], recent: [], best: {}, daily: {}, rivals: {}, days: {}, badges: {}, tot: {}, album: {}, backup: NO_BACKUP }),
       markBackup: (now) => set((s) => ({ backup: { at: now, from: now, q: s.tot.q ?? 0 } })),
       snoozeBackup: (now) => set((s) => ({ backup: { at: s.backup.at, from: now, q: s.tot.q ?? 0 } })),
       importData: (data, prefs, now = Date.now()) => {
@@ -619,6 +628,7 @@ export const useStore = create<State>()(
         recent: s.recent,
         best: s.best,
         daily: s.daily,
+        rivals: s.rivals,
         days: s.days,
         dayGoal: s.dayGoal,
         lang: s.lang,
@@ -692,6 +702,7 @@ export function mergeSaved(saved: unknown, current: State): State {
     // Players from before the calendar start from what their latest sessions and daily challenges add up to.
     days: p.days && typeof p.days === 'object' ? cleanDays(p.days) : daysFrom(Array.isArray(p.sessions) ? p.sessions : [], p.daily && typeof p.daily === 'object' ? p.daily : {}),
     dayGoal: isDayGoal(p.dayGoal) ? p.dayGoal : DAY_GOAL_DEFAULT,
+    rivals: cleanRivals(p.rivals),
     goals: cleanGoals(p.goals),
     notes: cleanNotes(p.notes),
     // Players from before the album start with the flags they have learnt.

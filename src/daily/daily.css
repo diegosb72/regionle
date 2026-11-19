@@ -217,6 +217,145 @@ a.d-cal-day:hover {
   box-shadow: 0 0 0 2px var(--accent);
 }
 
+/* somebody else's result, beside one's own */
+
+.d-vs-note {
+  width: min(100%, 600px);
+  justify-self: center;
+  padding: 11px 16px;
+  border: 1px solid var(--brand);
+  border-radius: var(--r-2);
+  background: var(--card);
+  text-align: center;
+  font-size: 15px;
+  line-height: 1.45;
+}
+.d-vs {
+  display: grid;
+  gap: 8px;
+  width: min(100%, 560px);
+  justify-self: center;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--card);
+}
+.d-vs h3 {
+  font-size: 20px;
+  text-align: center;
+}
+.d-vs-verdict {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+}
+.d-vs.won .d-vs-verdict {
+  color: var(--ok-ink);
+}
+.d-vs.lost .d-vs-verdict {
+  color: var(--bad-ink);
+}
+.d-vs-scroll {
+  overflow-x: auto;
+}
+.d-vs table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+.d-vs th,
+.d-vs td {
+  min-width: 30px;
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+  font-weight: 500;
+}
+.d-vs thead th {
+  color: var(--ink-3);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.d-vs abbr {
+  text-decoration: none;
+}
+/* The name takes the room the figures leave, and is cut short when it does not fit. */
+.d-vs tbody th {
+  width: 100%;
+  max-width: 0;
+  text-align: left;
+  font-weight: 650;
+}
+.d-vs-who {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.d-vs-who span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.d-vs-who i {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bg-2);
+  color: var(--ink-2);
+  font-size: 12.5px;
+  font-style: normal;
+  font-weight: 700;
+}
+.d-vs tr.me {
+  background: color-mix(in srgb, var(--brand) 9%, transparent);
+}
+.d-vs tr.me .d-vs-who i {
+  background: var(--brand);
+  color: var(--on-brand);
+}
+.d-vs .d-vs-total {
+  font-weight: 700;
+  color: var(--brand);
+}
+.d-vs td.is-top {
+  font-weight: 800;
+  color: var(--ink);
+}
+.d-vs tbody td {
+  color: var(--ink-2);
+}
+.d-vs td:last-child {
+  width: 30px;
+  padding-right: 0;
+}
+.d-vs-drop {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-left: auto;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+.d-vs-drop:hover {
+  background: var(--bg-2);
+  color: var(--bad-ink);
+}
+.d-share-name {
+  width: min(100%, 300px);
+}
+.d-share .duel-how {
+  text-align: center;
+}
+
 /* statistics */
 
 .d-history.d-wide {
@@ -537,6 +676,29 @@ a.d-cal-day:hover {
   .d-means li {
     grid-template-columns: minmax(0, 1fr) 60px 34px;
     row-gap: 0;
+  }
+  /* The figures closer together, so that the names have room. */
+  .d-vs {
+    padding: 14px 10px;
+  }
+  .d-vs table {
+    font-size: 14px;
+  }
+  .d-vs th,
+  .d-vs td {
+    min-width: 25px;
+    padding: 8px 2px;
+  }
+  .d-vs-who {
+    gap: 6px;
+  }
+  .d-vs-who i {
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+  }
+  .d-vs td:last-child {
+    width: 26px;
   }
   /* Which test goes best and which worst is worth a line of its own, under the name. */
   .d-means .best .d-row-what,

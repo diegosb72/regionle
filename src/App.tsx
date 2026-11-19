@@ -12,7 +12,7 @@ import { SECTIONS, SECTION_IDS } from './lib/modes';
 import { applyMeta } from './lib/pageMeta';
 import { PALETTES, applyPalette, paletteHint, paletteName } from './lib/palette';
 import { followLang, go, inGame, useRoute } from './lib/router';
-import { ABOUT_PATH, PATHS, PROGRESS_PATH, SETTINGS_PATH, routeOf, screenPage } from './lib/routes';
+import { ABOUT_PATH, DAILY_PATH, PATHS, PROGRESS_PATH, SETTINGS_PATH, routeOf, screenPage } from './lib/routes';
 import { shortcutOf } from './lib/shortcuts';
 import { useStore, type Theme } from './lib/store';
 import { cx, today } from './lib/text';
@@ -254,7 +254,7 @@ export function App() {
     );
   } else if (!world) page = <Spinner label={L('Cargando el atlas…', 'Loading the atlas…')} />;
   else if (route.kind === 'play') page = <Play world={world} />;
-  else if (route.kind === 'daily') page = <Daily key={route.date} world={world} date={route.date} />;
+  else if (route.kind === 'daily') page = <Daily key={route.date} world={world} date={route.date} vs={route.vs} soon={route.soon} />;
   else if (route.kind === 'duel') page = <Duel key={route.code} code={route.code} world={world} />;
   else if (route.kind === 'list') page = <ListLink key={route.code} code={route.code} world={world} />;
   else if (section) page = <Setup key={section} section={section} world={world} link={route.kind === 'section' ? route.link : undefined} />;
@@ -264,8 +264,11 @@ export function App() {
 
   // What breaks stays inside its screen, and moving to another one leaves it behind. A screen is also
   // mounted afresh when the unit of the distances changes: every text that tells one is read again.
+  // A link that a screen applies and then swaps for its plain address (a map and a game, somebody's result
+  // of a daily challenge) is the same screen before and after: it must not be mounted twice.
+  const screen = route.kind === 'settings' ? SETTINGS_PATH : route.kind === 'section' ? PATHS[route.section] : route.kind === 'daily' ? `${DAILY_PATH}/${route.date}` : path;
   const guarded = (
-    <ErrorBoundary key={`${miles ? 'mi' : 'km'} ${route.kind === 'settings' ? SETTINGS_PATH : route.kind === 'section' ? PATHS[route.section] : path}`}>
+    <ErrorBoundary key={`${miles ? 'mi' : 'km'} ${screen}`}>
       <Suspense fallback={<Spinner label={L('Cargando…', 'Loading…')} />}>{page}</Suspense>
     </ErrorBoundary>
   );
