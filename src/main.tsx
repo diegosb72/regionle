@@ -1,6 +1,8 @@
 import '@fontsource-variable/fraunces/opsz.css';
 import '@fontsource-variable/fraunces/wght-italic.css';
 import '@fontsource-variable/dm-sans/wght.css';
+// The typeface for dyslexia: its files are only fetched by whoever turns it on (src/lib/reading.ts).
+import '@fontsource-variable/lexend/wght.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';

@@ -9,6 +9,7 @@ import type { Lang } from './i18n';
 import { cleanMix, dropMix, withMix, type Mix } from './mix';
 import { cleanNotes, dropNotes, withNote, type Notes } from './notes';
 import { PALETTE_DEFAULT, isPalette, type Palette } from './palette';
+import { TEXT_SIZE_DEFAULT, isTextSize, type TextSize } from './reading';
 import { RECENT_MAX, isRecent, recentConfig, recentOf, withRecent, type Recent } from './recent';
 import { PACE_DEFAULT, REVIEW_MAX, isPace, isReviewSize, setReviewPrefs, type Pace } from './review';
 import { today } from './text';
@@ -292,6 +293,10 @@ export interface State {
   miles: boolean;
   /** The colours the maps are drawn in. */
   palette: Palette;
+  /** How the game is read (lib/reading.ts): a larger letter, more contrast, and the typeface for dyslexia. */
+  textSize: TextSize;
+  contrast: boolean;
+  dyslexia: boolean;
   /** How far apart the reviews are set, and how many questions one review game asks at most. */
   reviewPace: Pace;
   reviewSize: number;
@@ -310,6 +315,9 @@ export interface State {
   setIconBadge(on: boolean): void;
   setMiles(on: boolean): void;
   setPalette(palette: Palette): void;
+  setTextSize(size: TextSize): void;
+  setContrast(on: boolean): void;
+  setDyslexia(on: boolean): void;
   setReviewPace(pace: Pace): void;
   setReviewSize(size: number): void;
   setTypeins(typeins: Typeins): void;
@@ -411,6 +419,9 @@ export const useStore = create<State>()(
       iconBadge: true,
       miles: false,
       palette: PALETTE_DEFAULT,
+      textSize: TEXT_SIZE_DEFAULT,
+      contrast: false,
+      dyslexia: false,
       reviewPace: PACE_DEFAULT,
       reviewSize: REVIEW_MAX,
       backup: NO_BACKUP,
@@ -432,6 +443,9 @@ export const useStore = create<State>()(
       setIconBadge: (iconBadge) => set({ iconBadge }),
       setMiles: (miles) => set({ miles }),
       setPalette: (palette) => set({ palette: isPalette(palette) ? palette : PALETTE_DEFAULT }),
+      setTextSize: (size) => set({ textSize: isTextSize(size) ? size : TEXT_SIZE_DEFAULT }),
+      setContrast: (contrast) => set({ contrast }),
+      setDyslexia: (dyslexia) => set({ dyslexia }),
       setReviewPace: (pace) => set({ reviewPace: isPace(pace) ? pace : PACE_DEFAULT }),
       setReviewSize: (size) => set({ reviewSize: isReviewSize(size) ? size : REVIEW_MAX }),
       setTypeins: (typeins) => set({ typeins }),
@@ -652,6 +666,9 @@ export const useStore = create<State>()(
         iconBadge: s.iconBadge,
         miles: s.miles,
         palette: s.palette,
+        textSize: s.textSize,
+        contrast: s.contrast,
+        dyslexia: s.dyslexia,
         reviewPace: s.reviewPace,
         reviewSize: s.reviewSize,
         backup: s.backup,
@@ -717,6 +734,9 @@ export function mergeSaved(saved: unknown, current: State): State {
     iconBadge: p.iconBadge !== false,
     miles: p.miles === true,
     palette: isPalette(p.palette) ? p.palette : PALETTE_DEFAULT,
+    textSize: isTextSize(p.textSize) ? p.textSize : TEXT_SIZE_DEFAULT,
+    contrast: p.contrast === true,
+    dyslexia: p.dyslexia === true,
     reviewPace: isPace(p.reviewPace) ? p.reviewPace : PACE_DEFAULT,
     reviewSize: isReviewSize(p.reviewSize) ? p.reviewSize : REVIEW_MAX,
     backup: cleanBackupMark(p.backup),

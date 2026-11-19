@@ -40,7 +40,7 @@
   background: var(--bg);
 }
 .dlg-head h2 {
-  font-size: 22px;
+  font-size: calc(22px * var(--fs));
 }
 @media (max-width: 420px) {
   .dlg-box {

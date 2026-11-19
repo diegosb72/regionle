@@ -46,10 +46,11 @@ export function Seg<T extends string | number>({
   );
 }
 
-export function Toggle({ checked, onChange, children, hint }: { checked: boolean; onChange(v: boolean): void; children: ReactNode; hint?: string }) {
+/** A switch. `disabled`: it shows how things are, and cannot be changed here. */
+export function Toggle({ checked, onChange, children, hint, disabled }: { checked: boolean; onChange(v: boolean): void; children: ReactNode; hint?: string; disabled?: boolean }) {
   return (
-    <label className="toggle">
-      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+    <label className={cx('toggle', disabled && 'off')}>
+      <input type="checkbox" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} />
       <span className="toggle-track" aria-hidden="true">
         <span className="toggle-knob" />
       </span>

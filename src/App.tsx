@@ -11,6 +11,7 @@ import { L, getLang } from './lib/i18n';
 import { SECTIONS, SECTION_IDS } from './lib/modes';
 import { applyMeta } from './lib/pageMeta';
 import { PALETTES, applyPalette, paletteHint, paletteName } from './lib/palette';
+import { CONTRAST_QUERY, TEXT_SIZES, applyReading, textSizeName } from './lib/reading';
 import { followLang, go, inGame, useRoute } from './lib/router';
 import { ABOUT_PATH, DAILY_PATH, PATHS, PROGRESS_PATH, SETTINGS_PATH, routeOf, screenPage } from './lib/routes';
 import { shortcutOf } from './lib/shortcuts';
@@ -112,6 +113,14 @@ export function App() {
   const setMiles = useStore((s) => s.setMiles);
   const palette = useStore((s) => s.palette);
   const setPalette = useStore((s) => s.setPalette);
+  const textSize = useStore((s) => s.textSize);
+  const setTextSize = useStore((s) => s.setTextSize);
+  const contrast = useStore((s) => s.contrast);
+  const setContrast = useStore((s) => s.setContrast);
+  const dyslexia = useStore((s) => s.dyslexia);
+  const setDyslexia = useStore((s) => s.setDyslexia);
+  /** The device itself asks for more contrast: the game gives it whatever is chosen here. */
+  const [deviceContrast, setDeviceContrast] = useState(() => window.matchMedia(CONTRAST_QUERY).matches);
   const full = useFullscreen();
   const setLang = useStore((s) => s.setLang);
   const cb = useStore((s) => s.cb);
@@ -168,6 +177,18 @@ export function App() {
 
   // The colours of the maps: the stylesheet has each palette under its name.
   useEffect(() => applyPalette(palette), [palette]);
+
+  // How the game is read: a larger letter, more contrast, the typeface for dyslexia.
+  useEffect(() => {
+    const mq = window.matchMedia(CONTRAST_QUERY);
+    const apply = () => {
+      setDeviceContrast(mq.matches);
+      applyReading({ textSize, contrast, dyslexia }, mq.matches);
+    };
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, [textSize, contrast, dyslexia]);
 
   useEffect(() => {
     applyMeta(route);
@@ -369,8 +390,28 @@ export function App() {
             />
             <small>{paletteHint(palette)}</small>
           </div>
+          <div className="foot-pick">
+            <b>{L('Tamaño de la letra', 'Size of the letter')}</b>
+            <Seg small label={L('Tamaño de la letra', 'Size of the letter')} value={textSize} onChange={setTextSize} options={TEXT_SIZES.map((t) => ({ value: t, label: textSizeName(t) }))} />
+            <small>{L('Agranda todos los textos, también los nombres del mapa.', 'It enlarges every text, the names on the map too.')}</small>
+          </div>
           <Toggle checked={cb} onChange={setCb} hint={L('Azul, amarillo y rojo con tramas en lugar de verde, amarillo y rojo.', 'Blue, yellow and red with textures instead of green, yellow and red.')}>
             {L('Colores para daltónicos', 'Colour-blind friendly colours')}
+          </Toggle>
+          <Toggle
+            checked={contrast || deviceContrast}
+            disabled={deviceContrast}
+            onChange={setContrast}
+            hint={
+              deviceContrast
+                ? L('Tu dispositivo pide más contraste, y el juego lo sigue.', 'Your device asks for more contrast, and the game follows it.')
+                : L('Tintas más oscuras y líneas más marcadas, en el tema claro y en el oscuro.', 'Darker inks and stronger lines, in the light theme and in the dark one.')
+            }
+          >
+            {L('Alto contraste', 'High contrast')}
+          </Toggle>
+          <Toggle checked={dyslexia} onChange={setDyslexia} hint={L('Letra Lexend, de formas claras, con más aire entre letras y palabras, y sin cursivas.', 'Lexend, a typeface of clear shapes, with more room between letters and words, and no italics.')}>
+            {L('Tipografía para dislexia', 'Typeface for dyslexia')}
           </Toggle>
           <Toggle
             checked={sound}

@@ -18,14 +18,14 @@
   justify-content: center;
   flex-wrap: wrap;
   gap: 8px 14px;
-  font-size: clamp(34px, 6vw, 58px);
+  font-size: calc(clamp(34px, 6vw, 58px) * var(--fs));
   font-weight: 540;
   line-height: 1;
   letter-spacing: -0.03em;
 }
 .q-prompt .d-title {
   justify-content: flex-start;
-  font-size: clamp(28px, 3vw, 38px);
+  font-size: calc(clamp(28px, 3vw, 38px) * var(--fs));
 }
 .d-facts,
 .d-lead,
@@ -35,18 +35,18 @@
 }
 .d-facts {
   color: var(--ink-3);
-  font-size: 14.5px;
+  font-size: calc(14.5px * var(--fs));
 }
 .d-lead {
   max-width: 60ch;
   justify-self: center;
   color: var(--ink-2);
-  font-size: 16px;
+  font-size: calc(16px * var(--fs));
   line-height: 1.5;
 }
 .d-hint {
   color: var(--ink-3);
-  font-size: 14px;
+  font-size: calc(14px * var(--fs));
 }
 .d-list {
   display: grid;
@@ -73,18 +73,18 @@
   background: var(--bg-2);
   color: var(--ink-2);
   font-style: normal;
-  font-size: 14px;
+  font-size: calc(14px * var(--fs));
   font-weight: 700;
 }
 .d-list span {
   display: grid;
   gap: 1px;
-  font-size: 14.5px;
+  font-size: calc(14.5px * var(--fs));
   line-height: 1.35;
   color: var(--ink-2);
 }
 .d-list b {
-  font: 600 17px/1.2 var(--serif);
+  font: 600 calc(17px * var(--fs))/1.2 var(--serif);
   color: var(--ink);
 }
 .d-list em {
@@ -95,7 +95,7 @@
 }
 .d-list li.done i {
   background: var(--ok);
-  color: #fff;
+  color: var(--on-mark, #fff);
 }
 .d-list li.next {
   border-color: var(--brand);
@@ -114,7 +114,7 @@
 .d-history h3,
 .d-learn h3 {
   text-align: center;
-  font-size: 20px;
+  font-size: calc(20px * var(--fs));
 }
 .d-history summary {
   display: flex;
@@ -123,7 +123,7 @@
   gap: 8px;
   padding: 8px;
   color: var(--ink-2);
-  font-size: 14.5px;
+  font-size: calc(14.5px * var(--fs));
   font-weight: 600;
   cursor: pointer;
   list-style: none;
@@ -144,7 +144,7 @@
 }
 .d-cal-head {
   text-align: center;
-  font-size: 12px;
+  font-size: calc(12px * var(--fs));
   font-weight: 700;
   color: var(--ink-3);
 }
@@ -160,7 +160,7 @@
   background: var(--card);
   color: var(--ink);
   text-decoration: none;
-  font-size: 12px;
+  font-size: calc(12px * var(--fs));
   line-height: 1;
 }
 .d-cal-day > span {
@@ -168,7 +168,7 @@
   font-variant-numeric: tabular-nums;
 }
 .d-cal-day b {
-  font-size: 15.5px;
+  font-size: calc(15.5px * var(--fs));
   font-variant-numeric: tabular-nums;
 }
 .d-cal-day .flag {
@@ -233,7 +233,7 @@ a.d-cal-day:hover {
   border-radius: 999px;
   background: color-mix(in srgb, var(--accent) 10%, transparent);
   color: var(--accent-ink);
-  font-size: 13px;
+  font-size: calc(13px * var(--fs));
   font-weight: 700;
 }
 .d-hard svg,
@@ -248,7 +248,7 @@ a.d-cal-day:hover {
   justify-content: center;
   gap: 8px;
   color: var(--ink-2);
-  font-size: 14.5px;
+  font-size: calc(14.5px * var(--fs));
 }
 .d-vs-hard {
   flex: none;
@@ -269,7 +269,7 @@ a.d-cal-day:hover {
   text-align: center;
 }
 .d-typed-said {
-  font-size: 17px;
+  font-size: calc(17px * var(--fs));
 }
 
 /* somebody else's result, beside one's own */
@@ -282,7 +282,7 @@ a.d-cal-day:hover {
   border-radius: var(--r-2);
   background: var(--card);
   text-align: center;
-  font-size: 15px;
+  font-size: calc(15px * var(--fs));
   line-height: 1.45;
 }
 .d-vs {
@@ -296,12 +296,12 @@ a.d-cal-day:hover {
   background: var(--card);
 }
 .d-vs h3 {
-  font-size: 20px;
+  font-size: calc(20px * var(--fs));
   text-align: center;
 }
 .d-vs-verdict {
   text-align: center;
-  font-size: 16px;
+  font-size: calc(16px * var(--fs));
   font-weight: 700;
 }
 .d-vs.won .d-vs-verdict {
@@ -316,7 +316,7 @@ a.d-cal-day:hover {
 .d-vs table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 15px;
+  font-size: calc(15px * var(--fs));
   font-variant-numeric: tabular-nums;
 }
 .d-vs th,
@@ -329,7 +329,7 @@ a.d-cal-day:hover {
 }
 .d-vs thead th {
   color: var(--ink-3);
-  font-size: 12.5px;
+  font-size: calc(12.5px * var(--fs));
   font-weight: 700;
 }
 .d-vs abbr {
@@ -362,7 +362,7 @@ a.d-cal-day:hover {
   border-radius: 50%;
   background: var(--bg-2);
   color: var(--ink-2);
-  font-size: 12.5px;
+  font-size: calc(12.5px * var(--fs));
   font-style: normal;
   font-weight: 700;
 }
@@ -423,7 +423,7 @@ a.d-cal-day:hover {
 .d-stats h4 {
   margin: 6px 0 0;
   color: var(--ink-2);
-  font: 650 14.5px/1.3 var(--sans);
+  font: 650 calc(14.5px * var(--fs))/1.3 var(--sans);
 }
 .d-tiles {
   display: grid;
@@ -442,7 +442,7 @@ a.d-cal-day:hover {
 }
 .d-tiles dt {
   color: var(--ink-3);
-  font-size: 12.5px;
+  font-size: calc(12.5px * var(--fs));
   line-height: 1.25;
 }
 .d-tiles dd {
@@ -450,13 +450,13 @@ a.d-cal-day:hover {
   gap: 1px;
 }
 .d-tiles b {
-  font: 540 28px/1.05 var(--serif);
+  font: 540 calc(28px * var(--fs))/1.05 var(--serif);
   font-variant-numeric: tabular-nums;
   color: var(--brand);
 }
 .d-tiles dd span {
   color: var(--ink-3);
-  font-size: 12px;
+  font-size: calc(12px * var(--fs));
 }
 .d-dist {
   display: grid;
@@ -468,7 +468,7 @@ a.d-cal-day:hover {
   align-items: center;
   gap: 10px;
   color: var(--ink-2);
-  font-size: 13.5px;
+  font-size: calc(13.5px * var(--fs));
   font-variant-numeric: tabular-nums;
 }
 .d-dist li > i {
@@ -514,18 +514,18 @@ a.d-cal-day:hover {
   color: var(--brand);
 }
 .d-total strong {
-  font-size: clamp(64px, 12vw, 108px);
+  font-size: calc(clamp(64px, 12vw, 108px) * var(--fs));
   font-weight: 540;
   line-height: 0.9;
   letter-spacing: -0.045em;
 }
 .d-total span {
-  font-size: 24px;
+  font-size: calc(24px * var(--fs));
   color: var(--ink-3);
 }
 .d-verdict {
   margin-top: -8px;
-  font: italic 440 22px/1.2 var(--serif);
+  font: italic 440 calc(22px * var(--fs))/1.2 var(--serif);
   color: var(--accent-ink);
 }
 .d-rows {
@@ -541,14 +541,14 @@ a.d-cal-day:hover {
   gap: 12px;
   padding: 9px 2px;
   border-bottom: 1px solid var(--line);
-  font-size: 15px;
+  font-size: calc(15px * var(--fs));
 }
 .d-row-name {
   font-weight: 650;
 }
 .d-row-what {
   color: var(--ink-3);
-  font-size: 14px;
+  font-size: calc(14px * var(--fs));
 }
 .d-row-bar {
   height: 8px;
@@ -580,7 +580,7 @@ a.d-cal-day:hover {
   justify-content: center;
   gap: 4px 18px;
   color: var(--ink-3);
-  font-size: 14.5px;
+  font-size: calc(14.5px * var(--fs));
 }
 .d-joker-note {
   max-width: 560px;
@@ -609,7 +609,7 @@ a.d-cal-day:hover {
   border-radius: var(--r-2);
   background: var(--card);
   color: var(--ink-2);
-  font: 500 14px/1.5 var(--sans);
+  font: 500 calc(14px * var(--fs))/1.5 var(--sans);
   text-align: center;
   resize: none;
 }
@@ -634,7 +634,7 @@ a.d-cal-day:hover {
 .d-marks {
   display: grid;
   gap: 7px;
-  font-size: 15.5px;
+  font-size: calc(15.5px * var(--fs));
 }
 .d-marks li {
   display: flex;
@@ -647,7 +647,7 @@ a.d-cal-day:hover {
 .d-clues {
   text-align: center;
   color: var(--ink-2);
-  font-size: 16px;
+  font-size: calc(16px * var(--fs));
 }
 .d-flag {
   display: grid;
@@ -664,7 +664,7 @@ a.d-cal-day:hover {
   flex-wrap: wrap;
   gap: 8px 14px;
   text-align: center;
-  font-size: clamp(30px, 5vw, 46px);
+  font-size: calc(clamp(30px, 5vw, 46px) * var(--fs));
   line-height: 1.05;
 }
 .d-choices {
@@ -682,7 +682,7 @@ a.d-cal-day:hover {
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--card);
-  font-size: 13.5px;
+  font-size: calc(13.5px * var(--fs));
   line-height: 1.2;
   cursor: pointer;
 }
@@ -716,7 +716,7 @@ a.d-cal-day:hover {
     padding: 14px 10px;
   }
   .d-vs table {
-    font-size: 14px;
+    font-size: calc(14px * var(--fs));
   }
   .d-vs th,
   .d-vs td {
@@ -729,7 +729,7 @@ a.d-cal-day:hover {
   .d-vs-who i {
     width: 20px;
     height: 20px;
-    font-size: 12px;
+    font-size: calc(12px * var(--fs));
   }
   .d-vs td:last-child {
     width: 26px;

@@ -46,7 +46,7 @@ test.describe('the colours of the map', () => {
 
     await palettes(page).getByRole('radio', { name: 'Océano' }).click();
     await expect(root(page)).toHaveAttribute('data-map', 'ocean');
-    await expect(page.locator('.foot-pick small')).toHaveText('Mar azul y tierra clara, como en un atlas.');
+    await expect(page.locator('.foot-pick').filter({ hasText: 'Colores del mapa' }).locator('small')).toHaveText('Mar azul y tierra clara, como en un atlas.');
     expect(await sea(page)).toBe('#b9d8ee');
 
     await page.reload();

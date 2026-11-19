@@ -26,7 +26,8 @@
   </head>
   <body>
     <script>
-      // Before the first paint, to avoid a flash: the theme, the colours of the map, and the language the page is going to speak
+      // Before the first paint, to avoid a flash: the theme, the colours of the map, how it is read (the size of the
+      // letter, more contrast, the typeface for dyslexia: src/lib/reading.ts), and the language the page is going to speak
       // (the one chosen; else the one of the page, en.html or es.html and the pages of each screen in that
       // language, which are the ones of src/lib/seo.ts; else the browser's).
       try {
@@ -34,6 +35,9 @@
         var theme = saved.theme || 'auto';
         document.documentElement.dataset.theme = theme === 'auto' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme;
         if (/^(ocean|slate)$/.test(saved.palette)) document.documentElement.dataset.map = saved.palette;
+        if (/^(l|xl)$/.test(saved.textSize)) document.documentElement.dataset.text = saved.textSize;
+        if (saved.contrast === true || matchMedia('(prefers-contrast: more)').matches) document.documentElement.dataset.contrast = 'more';
+        if (saved.dyslexia === true) document.documentElement.dataset.font = 'dyslexia';
         var name = (/\/([a-z]+)(?:\.html)?$/.exec(location.pathname) || [])[1] || '';
         var page = /^(en|regions|countries|cities|physical|figures|daily|about)$/.test(name) ? 'en' : /^(es|regiones|paises|ciudades|fisica|cifras|reto|acerca)$/.test(name) ? 'es' : '';
         var lang = saved.lang === 'es' || saved.lang === 'en' ? saved.lang : page;

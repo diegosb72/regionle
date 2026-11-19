@@ -13,7 +13,7 @@
 .album-pages li {
   display: grid;
   gap: 5px;
-  font-size: 14.5px;
+  font-size: calc(14.5px * var(--fs));
 }
 .album-pages li > span {
   display: flex;
@@ -27,7 +27,7 @@
 .album-pages small,
 .album-page h3 small {
   color: var(--ink-3);
-  font-size: 13px;
+  font-size: calc(13px * var(--fs));
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
@@ -59,11 +59,11 @@
   border-bottom: 1px solid var(--line);
 }
 .album-page h3 {
-  font-size: 19px;
+  font-size: calc(19px * var(--fs));
 }
 .album-full {
   color: var(--ok-ink);
-  font-size: 14px;
+  font-size: calc(14px * var(--fs));
   font-weight: 600;
 }
 .album-grid {
@@ -80,7 +80,7 @@
   align-content: start;
   gap: 6px;
   color: var(--ink-3);
-  font-size: 12.5px;
+  font-size: calc(12.5px * var(--fs));
   line-height: 1.25;
   text-align: center;
   /* A long word is broken only when it does not fit its place, and then where a hyphen can go. */

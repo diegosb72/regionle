@@ -7,7 +7,7 @@
 }
 .pic-note {
   color: var(--ink-3);
-  font-size: 14px;
+  font-size: calc(14px * var(--fs));
 }
 .pic-note:empty {
   display: none;

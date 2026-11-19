@@ -60,7 +60,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 8px;
-  font-size: 15px;
+  font-size: calc(15px * var(--fs));
   line-height: 1.3;
 }
 .heat-now svg {
@@ -68,7 +68,7 @@
   color: var(--heat);
 }
 .heat-now b {
-  font: 600 20px/1.2 var(--serif);
+  font: 600 calc(20px * var(--fs))/1.2 var(--serif);
 }
 .heat-now span {
   color: var(--ink-2);
@@ -92,5 +92,5 @@
 }
 .heat-left-text {
   color: var(--ink-3);
-  font-size: 13.5px;
+  font-size: calc(13.5px * var(--fs));
 }
