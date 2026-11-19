@@ -191,6 +191,8 @@ export type Mode =
   | 'travel'
   | 'puzzle'
   | 'neighbours'
+  /** From a piece to one that borders it, and on, never through the same one twice. */
+  | 'chain'
   | 'capital'
   | 'flag'
   | 'exact'

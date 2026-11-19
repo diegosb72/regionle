@@ -1,0 +1,31 @@
+/*
+ * Neighbour chain (`Chain.tsx`): the links so far, the newest first, each with its place in the chain.
+ * Fetched with the game, after `styles.css`, on which it stands.
+ */
+.chain-links {
+  max-height: 132px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  scrollbar-width: thin;
+}
+.chain-links li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.chain-links li:first-child {
+  animation: none;
+}
+.chain-links li small {
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.65;
+}
+/* Where the chain stands now. */
+.chain-links li.now {
+  background: var(--brand-soft);
+  color: var(--ink);
+  animation: rise 0.2s ease-out;
+}

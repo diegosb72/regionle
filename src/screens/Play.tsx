@@ -4,6 +4,7 @@ import { Spinner } from '../components/ui';
 import { BearingGame } from '../games/Bearings';
 import { BlindGame } from '../games/Blind';
 import { CardsGame } from '../games/Cards';
+import { ChainGame } from '../games/Chain';
 import { ExploreGame } from '../games/Explore';
 import { TopTenGame, TrueFalseGame } from '../games/FactGames';
 import { LearnGame } from '../games/Learn';
@@ -246,6 +247,8 @@ function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
       return <TravelGame {...props} />;
     case 'neighbours':
       return <NeighboursGame {...props} />;
+    case 'chain':
+      return <ChainGame {...props} />;
     case 'learn':
       return <LearnGame {...props} />;
     case 'regionle':

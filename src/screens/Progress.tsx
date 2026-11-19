@@ -685,6 +685,8 @@ export function Progress({ world }: { world: World }) {
           ? [MODE_NAME.regionle, L(`racha de ${v}`, `streak of ${v}`)]
           : kind === 'blind'
             ? [MODE_NAME.blind, L(`${nf(v)} km de error medio`, `mean error of ${nf(v)} km`)]
+          : kind === 'chain'
+            ? [MODE_NAME.chain, L(`cadena de ${nf(v)}`, `chain of ${nf(v)}`)]
             : [MODE_NAME.nameall, fmtTime(v)];
     return (
       <li key={k}>
