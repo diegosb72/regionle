@@ -202,6 +202,8 @@ export interface DailyRec {
   t?: number;
   /** Finished on a later day: it does not count for the streak. */
   late?: 1;
+  /** Nobody finished it on its day and a wildcard stood in for it: the days in a row go through it. */
+  j?: 1;
 }
 
 export function emptyRec(): DailyRec {
@@ -216,15 +218,81 @@ export function doneCount(rec: DailyRec | undefined): number {
   return rec ? rec.p.filter((x) => x != null).length : 0;
 }
 
+/** A wildcard is won every so many days in a row, and no more than so many are kept. */
+export const JOKER_EVERY = 7;
+export const JOKER_MAX = 2;
+
+/** How the days in a row stand on a given day. Nothing of it is kept: it all follows from the results. */
+export interface Streak {
+  /** Days finished on their own day in a row, up to today (or yesterday while today is still open). */
+  days: number;
+  /** Wildcards in hand. */
+  jokers: number;
+  /**
+   * With today still open and the days before it missed: the days in a row that finishing today's
+   * challenge keeps, and the wildcards it takes, one for each day missed.
+   */
+  save: { days: number; gap: number } | null;
+  /** Days in a row still to go for the next wildcard; 0 when no more fit in the hand. */
+  toNext: number;
+}
+
+const onItsDay = (rec: DailyRec | undefined): boolean => !!rec?.t && !rec.late;
+
+/**
+ * The days in a row and the wildcards, read from the results from the first day to `now`. A day finished
+ * on its day adds one; every seventh in a row wins a wildcard; a day a wildcard stood in for (`j`) takes
+ * one from the hand and adds nothing, but the row goes on through it.
+ */
+export function streakState(daily: Record<string, DailyRec>, now: string): Streak {
+  let days = 0;
+  let jokers = 0;
+  let last = '';
+  const held = Object.keys(daily)
+    .filter((d) => isDate(d) && d <= now && (onItsDay(daily[d]) || daily[d]?.j === 1))
+    .sort();
+  for (const d of held) {
+    if (last && addDays(last, 1) !== d) days = 0;
+    if (onItsDay(daily[d])) {
+      days++;
+      if (days % JOKER_EVERY === 0 && jokers < JOKER_MAX) jokers++;
+    } else if (jokers > 0) jokers--;
+    // A day marked with no wildcard to pay for it (a file put together by hand) holds nothing.
+    else days = 0;
+    last = d;
+  }
+  // Days with nothing between the last one that holds and today.
+  const gap = last ? dayNumber(now) - dayNumber(last) - 1 : 0;
+  const alive = !!last && gap <= 0;
+  const save = !alive && days > 0 && gap <= jokers ? { days, gap } : null;
+  const kept = alive ? days : (save?.days ?? 0);
+  return { days: alive ? days : 0, jokers, save, toNext: jokers < JOKER_MAX ? JOKER_EVERY - (kept % JOKER_EVERY) : 0 };
+}
+
 /** Consecutive days finished on their own day, up to today (or yesterday while today is still open). */
 export function streakOf(daily: Record<string, DailyRec>, now: string): number {
-  const counts = (d: string) => !!daily[d]?.t && !daily[d].late;
-  let d = counts(now) ? now : addDays(now, -1);
-  let n = 0;
-  while (counts(d)) {
-    n++;
-    d = addDays(d, -1);
+  return streakState(daily, now).days;
+}
+
+/**
+ * The results once a challenge has been finished on its day: the days missed just before it are given to
+ * the wildcards in hand, when these are enough for all of them, and the days in a row go on.
+ */
+export function withJokers(daily: Record<string, DailyRec>, before: Record<string, DailyRec>, date: string): Record<string, DailyRec> {
+  const save = streakState(before, date).save;
+  if (!save) return daily;
+  const next = { ...daily };
+  for (let k = 1; k <= save.gap; k++) {
+    const d = addDays(date, -k);
+    next[d] = { ...(next[d] ?? emptyRec()), j: 1 };
   }
+  return next;
+}
+
+/** How many days in a row just before `date` a wildcard stood in for. */
+export function jokersBefore(daily: Record<string, DailyRec>, date: string): number {
+  let n = 0;
+  while (daily[addDays(date, -(n + 1))]?.j === 1 && !onItsDay(daily[addDays(date, -(n + 1))])) n++;
   return n;
 }
 

@@ -1,7 +1,7 @@
 /** Persistent app state: selections, options, favourites and learning progress (localStorage). */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { TESTS, emptyRec, streakOf, type DailyRec } from '../daily/spec';
+import { TESTS, emptyRec, streakOf, withJokers, type DailyRec } from '../daily/spec';
 import { DAY_GOAL_DEFAULT, cleanDays, dailyWork, daysFrom, isDayGoal, studyStreak, withDay, type Days } from './days';
 import type { CityPick } from './extra';
 import { GOALS_MAX, cleanGoals, goalWithout, sameGoal, withMark, type Goal } from './goals';
@@ -472,13 +472,15 @@ export const useStore = create<State>()(
           rec.p[test] = points;
           rec.k[test] = figure;
           let days = s.days;
+          let daily = { ...s.daily, [date]: rec };
           if (rec.p.every((x) => x != null) && !rec.t) {
             rec.t = Date.now();
             if (date !== today()) rec.late = 1;
+            // Finished on its day after a day or two with nothing: the wildcards in hand stand in for them.
+            else daily = withJokers(daily, s.daily, date);
             // The challenge is work of the day it was finished on, whatever day of the calendar it was.
             days = withDay(days, rec.t, dailyWork(rec.p), s.dayGoal, learntIn(s.stats));
           }
-          const daily = { ...s.daily, [date]: rec };
           const best = { ...s.best };
           const streak = streakOf(daily, today());
           if (streak > (best['daily:streak'] ?? 0)) best['daily:streak'] = streak;

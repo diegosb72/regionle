@@ -1,5 +1,5 @@
 /** The daily challenge: the country of the day, its five tests, the result and the calendar. */
-import { BookOpen, CalendarDays, Check, Copy, Flame, MapPin, Play, Share2 } from 'lucide-react';
+import { BookOpen, CalendarDays, Check, Copy, Flame, MapPin, Play, Share2, Shield } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { MapView, type MapHandle } from '../components/MapView';
 import { BASE, Flag, Spinner } from '../components/ui';
@@ -20,16 +20,17 @@ import {
   dailyPool,
   dayNumber,
   doneCount,
+  jokersBefore,
   quickQuestions,
   regionTargets,
   routePoints,
-  streakOf,
+  streakState,
   totalOf,
   whichTarget,
   worldPool,
   type DailyRec,
 } from './spec';
-import { testName, useCountdown } from './Card';
+import { JokerChip, inARow, jokerRule, testName, useCountdown } from './Card';
 import { SharePicture } from './SharePicture';
 import { PinFive, PointsChip, QuickFive, RegionleTest, WhichTest, nextLabel, shellSubtitle, shellTitle, type Step } from './tests';
 import './daily.css';
@@ -98,17 +99,19 @@ export function Calendar({ world, current }: { world: World; current?: string })
         const total = totalOf(rec);
         const done = !!rec?.t;
         const c = open ? countryOfDay(pool, dayNumber(date)) : null;
-        const label = `${fmtDay(date)}${c ? ` · ${nm(c.n)}` : ''}${done ? ` · ${total}/100` : doneCount(rec) ? ` · ${L('a medias', 'in progress')}` : ''}`;
+        // A day nobody played that a wildcard stood in for: the days in a row go through it.
+        const joker = rec?.j === 1;
+        const label = `${fmtDay(date)}${c ? ` · ${nm(c.n)}` : ''}${done ? ` · ${total}/100` : doneCount(rec) ? ` · ${L('a medias', 'in progress')}` : ''}${joker ? ` · ${L('cubierto por un comodín', 'held by a wildcard')}` : ''}`;
         return open ? (
           <a
             key={date}
             href={`#/reto/${date}`}
-            className={cx('d-cal-day', date === now && 'today', date === current && 'on', done && (total >= 70 ? 'hi' : total >= 40 ? 'mid' : 'lo'), !done && doneCount(rec) > 0 && 'part')}
+            className={cx('d-cal-day', date === now && 'is-today', date === current && 'on', done && (total >= 70 ? 'hi' : total >= 40 ? 'mid' : 'lo'), !done && doneCount(rec) > 0 && 'part', joker && 'joker')}
             title={label}
             aria-label={label}
           >
             <span>{Number(date.slice(8))}</span>
-            {done ? <b>{total}</b> : <Flag code={c?.fl} size="sm" />}
+            {done ? <b>{total}</b> : joker ? <Shield size={17} aria-hidden="true" /> : <Flag code={c?.fl} size="sm" />}
           </a>
         ) : (
           <span key={date} className="d-cal-day off" aria-hidden="true">
@@ -258,7 +261,10 @@ export function Daily({ world, date }: { world: World; date: string }) {
   // ------------------------------------------------------------------ summary
   if (view === 'summary' && rec) {
     const total = totalOf(rec);
-    const streak = streakOf(daily, now);
+    const run = streakState(daily, now);
+    const streak = run.days;
+    // The days just before this one that a wildcard stood in for, when this is the day that used them.
+    const stoodIn = rec.late ? 0 : jokersBefore(daily, date);
     return shell(
       <div className="pop d-summary">
         <div className="d-head">{header}</div>
@@ -282,11 +288,31 @@ export function Daily({ world, date }: { world: World; date: string }) {
         <p className="d-streakline">
           <span className={cx('d-streak', streak > 0 && 'on')}>
             <Flame size={16} aria-hidden="true" />
-            {streak === 1 ? L('1 día seguido', '1 day in a row') : L(`${streak} días seguidos`, `${streak} days in a row`)}
+            {inARow(streak)}
           </span>
           <span>{L(`Mejor racha: ${bestStreak}`, `Best streak: ${bestStreak}`)}</span>
+          {run.jokers > 0 && <JokerChip n={run.jokers} />}
           {rec.late ? <span>{L('Jugado después de su día: no cuenta para la racha.', 'Played after its day: it does not count for the streak.')}</span> : !past ? <span>{L(`Nuevo reto en ${left}`, `Next challenge in ${left}`)}</span> : null}
         </p>
+        {!rec.late && (stoodIn > 0 || !past) && (
+          <p className="d-hint d-joker-note">
+            {stoodIn > 0 && (
+              <b>
+                {stoodIn === 1
+                  ? L(past ? 'Un comodín cubrió el día anterior y la racha siguió.' : 'Un comodín ha cubierto el día de ayer: tu racha sigue.', past ? 'A wildcard held the day before and the streak went on.' : 'A wildcard has held yesterday: your streak goes on.')
+                  : L(`${stoodIn} comodines cubrieron los ${stoodIn} días anteriores: la racha sigue.`, `${stoodIn} wildcards held the ${stoodIn} days before: the streak goes on.`)}{' '}
+              </b>
+            )}
+            {!past && (
+              <>
+                {jokerRule()}{' '}
+                {run.toNext > 0
+                  ? L(`Te ${run.toNext === 1 ? 'falta 1 día' : `faltan ${run.toNext} días`} para el siguiente.`, `${run.toNext === 1 ? '1 day' : `${run.toNext} days`} to go for the next one.`)
+                  : L(`Ya tienes los ${run.jokers} que caben.`, `You already hold the ${run.jokers} that fit.`)}
+              </>
+            )}
+          </p>
+        )}
         <div className="d-share">
           <textarea ref={shareBox} readOnly rows={4} value={shareText(date, country, rec)} aria-label={L('Texto para compartir', 'Text to share')} onFocus={(e) => e.currentTarget.select()} />
           <div className="d-share-btns">
@@ -301,7 +327,7 @@ export function Daily({ world, date }: { world: World; date: string }) {
                 total,
                 verdict: verdictOf(total),
                 rows: rec.p.map((p, i) => ({ name: testName(i), points: p ?? 0 })),
-                streak: !past && streak > 1 ? L(`${streak} días seguidos`, `${streak} days in a row`) : null,
+                streak: !past && streak > 1 ? inARow(streak) : null,
                 site: siteLabel(),
               }}
               flagUrl={country.fl ? `${BASE}flags/${country.fl}.svg` : undefined}

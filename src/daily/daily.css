@@ -202,8 +202,16 @@ a.d-cal-day:hover {
 .d-cal-day.lo > span {
   color: var(--ink-2);
 }
-.d-cal-day.today {
+.d-cal-day.is-today {
   box-shadow: 0 0 0 2px var(--brand);
+}
+/* A day nobody played, held by a wildcard: the days in a row go through it. */
+.d-cal-day.joker {
+  border-style: dashed;
+  border-color: var(--brand);
+}
+.d-cal-day.joker svg {
+  color: var(--brand);
 }
 .d-cal-day.on {
   box-shadow: 0 0 0 2px var(--accent);
@@ -286,6 +294,13 @@ a.d-cal-day:hover {
   gap: 4px 18px;
   color: var(--ink-3);
   font-size: 14.5px;
+}
+.d-joker-note {
+  max-width: 560px;
+  justify-self: center;
+}
+.d-joker-note b {
+  color: var(--ink);
 }
 .d-share {
   display: grid;
