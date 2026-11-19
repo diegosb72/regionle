@@ -193,6 +193,8 @@ export type Mode =
   /** A set of pieces that go together is named, and all of them are marked on the map. */
   | 'group'
   | 'neighbours'
+  /** A border lights up, and the two pieces it lies between are named. */
+  | 'border'
   /** From a piece to one that borders it, and on, never through the same one twice. */
   | 'chain'
   | 'capital'

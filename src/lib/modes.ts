@@ -6,6 +6,7 @@ import {
   Compass,
   Crosshair,
   Ear,
+  Fence,
   Flag,
   GalleryVerticalEnd,
   GraduationCap,
@@ -185,6 +186,17 @@ function modesOf(section: Section): ModeDef[] {
     level: 3,
     group: 'links',
   };
+  const border: ModeDef = {
+    id: 'border',
+    name: L('Fronteras', 'Borders'),
+    desc: L(
+      'Se ilumina una frontera en el mapa sin nombres y dices qué dos piezas separa: eligiendo entre cuatro fronteras o escribiendo los dos nombres.',
+      'A border lights up on a map without names and you say which two pieces it lies between: choosing among four borders or typing the two names.',
+    ),
+    icon: Fence,
+    level: 2,
+    group: 'links',
+  };
   const chain: ModeDef = {
     id: 'chain',
     name: L('Cadena de vecinos', 'Neighbour chain'),
@@ -251,6 +263,7 @@ function modesOf(section: Section): ModeDef[] {
         outline,
         regionle,
         neighbours,
+        border,
         chain,
         travel,
         {
@@ -310,6 +323,7 @@ function modesOf(section: Section): ModeDef[] {
         outline,
         regionle,
         neighbours,
+        border,
         chain,
         travel,
         compass,
@@ -438,6 +452,8 @@ function modeName(mode: Mode): string {
       return L('Vecinos', 'Neighbours');
     case 'chain':
       return L('Cadena de vecinos', 'Neighbour chain');
+    case 'border':
+      return L('Fronteras', 'Borders');
     case 'capital':
       return L('Capitales', 'Capitals');
     case 'flag':
@@ -537,7 +553,7 @@ function lazy<K extends string, V>(keys: readonly K[], make: (key: K) => V): Rec
   return out;
 }
 
-const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'group', 'neighbours', 'chain', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'edit', 'print', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'topten', 'cards', 'mix', 'listen'];
+const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'group', 'neighbours', 'border', 'chain', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'edit', 'print', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'topten', 'cards', 'mix', 'listen'];
 
 export const MODES: Record<Section, ModeDef[]> = lazy(SECTION_IDS, modesOf);
 export const MODE_NAME: Record<Mode, string> = lazy(MODE_IDS, modeName);

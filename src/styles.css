@@ -2395,6 +2395,47 @@ button.chip.on:hover:not(:disabled) {
   pointer-events: none;
 }
 
+/* Lines over the pieces (`traces`): the border that is asked about. */
+.m-trace-case,
+.m-trace {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+/* A pale band under the line: it stands out over land of any colour. */
+.m-trace-case {
+  stroke: var(--lbl-halo);
+  stroke-width: 10px;
+}
+.m-trace {
+  stroke: var(--accent);
+  stroke-width: 4.5px;
+}
+.m-trace.st-ask {
+  animation: m-trace 1.1s ease-in-out infinite alternate;
+}
+.m-trace.st-ok {
+  stroke: var(--ok);
+}
+.m-trace.st-warn {
+  stroke: var(--warn);
+}
+.m-trace.st-bad {
+  stroke: var(--bad);
+}
+@keyframes m-trace {
+  to {
+    stroke-width: 6.5px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .m-trace.st-ask {
+    animation: none;
+  }
+}
+
 .pickable .m-items path,
 .pickable .m-ring {
   cursor: pointer;

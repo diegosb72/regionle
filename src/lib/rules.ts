@@ -8,7 +8,7 @@ export const FORMAT_MODES: readonly Mode[] = ['pin', 'identify', 'outline', 'puz
 export const NOT_GAMES: readonly Mode[] = ['print', 'edit'];
 
 /** Games that ask as many questions as the player chooses under "Preguntas". */
-export const LENGTH_MODES: readonly Mode[] = ['pin', 'identify', 'outline', 'regionle', 'puzzle', 'neighbours', 'capital', 'flag', 'blind', 'hotcold', 'bearing', 'group', 'whoami', 'exact', 'which', 'rank', 'compass', 'parent', 'truefalse', 'cards', 'mix', 'listen'];
+export const LENGTH_MODES: readonly Mode[] = ['pin', 'identify', 'outline', 'regionle', 'puzzle', 'neighbours', 'capital', 'flag', 'blind', 'hotcold', 'bearing', 'group', 'whoami', 'border', 'exact', 'which', 'rank', 'compass', 'parent', 'truefalse', 'cards', 'mix', 'listen'];
 
 /** Games played with the figure of each thing: how many people, how large, how high. */
 export const FIGURE_MODES: readonly Mode[] = ['hilo', 'rank', 'exact', 'which', 'topten'];

@@ -50,6 +50,7 @@ export const TYPICAL_S: Partial<Record<Mode, number>> = {
   bearing: 10,
   group: 25,
   whoami: 30,
+  border: 9,
   nameall: 5,
   which: 6,
   exact: 15,

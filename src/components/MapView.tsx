@@ -4,6 +4,7 @@ import { zoom as d3zoom, zoomIdentity, zoomTransform, type ZoomBehavior, type Zo
 import { Maximize, Minus, Plus } from 'lucide-react';
 import { forwardRef, memo, useCallback, useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import type { GeoPermissibleObjects } from 'd3-geo';
+import type { MultiLineString } from 'geojson';
 import { NOMINAL, coarsePath, countPoints, graticule, landBox, makeView, spotInFrame } from '../lib/geo';
 import { L } from '../lib/i18n';
 import { ARROWS, inOrder, moveFrom, movesOf, nearestTo, type Moves } from '../lib/mapKeys';
@@ -19,8 +20,10 @@ export interface MapHandle {
    * left behind is remembered, so that `restore` can go back to it. `apart` is how many pixels several
    * things must take up between them to be left as they are (36 unless said): two names need more room
    * than two shapes. They are then brought that far apart and half as much again, and no closer.
+   * `legible` is something that must stay readable with all of that in view: where it would be drawn
+   * smaller than `px` pixels across, the map comes closer, around it, and leaves the rest half out.
    */
-  focus(ids: string[], opts?: { force?: boolean; fill?: number; instant?: boolean; passing?: boolean; apart?: number }): void;
+  focus(ids: string[], opts?: FocusOpts): void;
   /** Back to the whole deck. */
   reset(): void;
   /** Back to where the player was before a passing `focus`; nothing when they have moved the map since. */
@@ -59,9 +62,27 @@ interface Props {
   only?: ReadonlySet<string>;
   /** Pins that are not items: where the player clicked; `heat-0` to `heat-4`, how warm that click was. */
   marks?: { ll: LL; kind: MarkKind }[];
+  /** Lines drawn over the pieces, thick enough to stand out. */
+  traces?: Trace[];
 }
 
 export type MarkKind = 'guess' | 'heat-0' | 'heat-1' | 'heat-2' | 'heat-3' | 'heat-4';
+
+export interface FocusOpts {
+  force?: boolean;
+  fill?: number;
+  instant?: boolean;
+  passing?: boolean;
+  apart?: number;
+  legible?: { points: LL[]; px: number };
+}
+
+/** A line drawn over the map that is not one of its pieces: the border between two of them. */
+export interface Trace {
+  geo: MultiLineString;
+  /** How it is painted: as what is being asked, or as the answer turned out. */
+  st?: 'ask' | Paint;
+}
 
 interface Shape {
   id: string;
@@ -463,7 +484,7 @@ const Overlay = memo(
   }),
 );
 
-export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, paint, pickable, pressable, onPick, labels, pinned, tip, blind, links, flash, onPoint, only, marks }, ref) {
+export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, paint, pickable, pressable, onPick, labels, pinned, tip, blind, links, flash, onPoint, only, marks, traces }, ref) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const rootRef = useRef<SVGGElement>(null);
@@ -612,7 +633,7 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
 
   /** Brings items into view, as `MapHandle.focus` says. */
   const bring = useCallback(
-    (ids: string[], opts: { force?: boolean; fill?: number; instant?: boolean; passing?: boolean; apart?: number } = {}) => {
+    (ids: string[], opts: FocusOpts = {}) => {
       const svg = svgRef.current;
       const z = zoomRef.current;
       const lay = layoutRef.current;
@@ -645,7 +666,29 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
       let k = opts.fill != null ? Math.min(whole * opts.fill, fit.k * 60) : one ? (SEEN + 4) / one.land : whole * 0.5;
       if (opts.apart != null && opts.fill == null && !one) k = Math.min(k, (opts.apart * 1.5) / Math.max(bw, bh));
       k = Math.min(k, whole * 0.85, z.scaleExtent()[1]);
-      const target = k < fit.k * 1.3 ? fit : zoomIdentity.translate(w / 2 - (k * (x0 + x1)) / 2, h / 2 - (k * (y0 + y1)) / 2).scale(k);
+      let cx = (x0 + x1) / 2;
+      let cy = (y0 + y1) / 2;
+      if (opts.legible) {
+        let lx0 = Infinity;
+        let ly0 = Infinity;
+        let lx1 = -Infinity;
+        let ly1 = -Infinity;
+        for (const ll of opts.legible.points) {
+          const q = g.view.projection(ll);
+          if (!q) continue;
+          lx0 = Math.min(lx0, q[0]);
+          ly0 = Math.min(ly0, q[1]);
+          lx1 = Math.max(lx1, q[0]);
+          ly1 = Math.max(ly1, q[1]);
+        }
+        const need = Number.isFinite(lx0) ? Math.min(opts.legible.px / Math.max(lx1 - lx0, ly1 - ly0, 1e-6), z.scaleExtent()[1]) : 0;
+        if (k < need) {
+          k = need;
+          cx = (lx0 + lx1) / 2;
+          cy = (ly0 + ly1) / 2;
+        }
+      }
+      const target = k < fit.k * 1.3 ? fit : zoomIdentity.translate(w / 2 - k * cx, h / 2 - k * cy).scale(k);
       if (opts.passing) backRef.current ??= t;
       else backRef.current = null;
       select(svg)
@@ -738,6 +781,8 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
     }
     return out;
   }, [g, links]);
+
+  const traceLines = useMemo(() => (traces ?? []).map((t) => ({ d: g.view.path(t.geo) || '', st: t.st ?? 'ask' })).filter((t) => t.d), [g, traces]);
 
   const markPoints = useMemo(() => {
     if (!marks?.length) return undefined;
@@ -1066,6 +1111,17 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
           {g.outlines.map((o) => (
             <OutlinePath key={o.id} d={detail?.has(o.id) ? g.fullOf(o.id) : o.d} />
           ))}
+          {traceLines.length > 0 && (
+            <g className="m-traces">
+              {/* Each line twice: a wide pale one under it, so that it stands out over any colour. */}
+              {traceLines.map((t, i) => (
+                <path key={`c${i}`} className="m-trace-case" d={t.d} />
+              ))}
+              {traceLines.map((t, i) => (
+                <path key={i} className={`m-trace st-${t.st}`} d={t.d} />
+              ))}
+            </g>
+          )}
           {linkLines.length > 0 && (
             <g className="m-links">
               {linkLines.map(([x1, y1, x2, y2], i) => (

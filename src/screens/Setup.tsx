@@ -24,9 +24,9 @@ import type { Country, Mode, Section } from '../lib/types';
 const COUNTDOWNS = [0, 120, 300, 600, 900];
 
 const levelName = (n: number): string => [L('Fácil', 'Easy'), L('Medio', 'Medium'), L('Difícil', 'Hard')][n - 1];
-const ANSWER_MODES: Mode[] = ['learn', 'identify', 'outline', 'capital', 'flag', 'parent', 'mix'];
+const ANSWER_MODES: Mode[] = ['learn', 'identify', 'outline', 'capital', 'flag', 'parent', 'mix', 'border'];
 /** Games that are one round of everything: they cannot go on for ever. */
-const FINITE_MODES: Mode[] = ['neighbours', 'blind', 'hotcold', 'bearing', 'group', 'whoami', 'cards'];
+const FINITE_MODES: Mode[] = ['neighbours', 'blind', 'hotcold', 'bearing', 'group', 'whoami', 'border', 'cards'];
 /** Games where names are typed and a list of suggestions can help. */
 const SUGGEST_MODES: Mode[] = ['travel', 'neighbours', 'chain', 'whoami', 'regionle', 'which', 'topten'];
 /** Games that stop on a missed answer long enough to read about it. */
