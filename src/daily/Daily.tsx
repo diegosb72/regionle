@@ -1,5 +1,5 @@
 /** The daily challenge: the country of the day, its five tests, the result and the calendar. */
-import { BookOpen, CalendarDays, Check, Copy, Flame, MapPin, Play, Share2, Shield } from 'lucide-react';
+import { BarChart3, BookOpen, CalendarDays, Check, Copy, Flame, MapPin, Play, Share2, Shield } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { MapView, type MapHandle } from '../components/MapView';
 import { BASE, Flag, Spinner } from '../components/ui';
@@ -33,6 +33,7 @@ import {
 import { JokerChip, inARow, jokerRule, testName, useCountdown } from './Card';
 import { SharePicture } from './SharePicture';
 import { PinFive, PointsChip, QuickFive, RegionleTest, WhichTest, nextLabel, shellSubtitle, shellTitle, type Step } from './tests';
+import { DailyStatsBlock, useHasStats } from './Stats';
 import './daily.css';
 
 /** "España" → 🇪🇸: the flag as text, for sharing. */
@@ -153,6 +154,7 @@ export function Daily({ world, date }: { world: World; date: string }) {
   const map = useRef<MapHandle>(null);
   const shareBox = useRef<HTMLTextAreaElement>(null);
   const left = useCountdown();
+  const hasStats = useHasStats();
   const onExit = () => go('');
 
   useEffect(() => {
@@ -355,6 +357,10 @@ export function Daily({ world, date }: { world: World; date: string }) {
           <p className="d-hint">{L('Toca un día para jugarlo o ver su resultado. Los días pasados no cuentan para la racha.', 'Tap a day to play it or see its result. Past days do not count for the streak.')}</p>
           <Calendar world={world} current={date} />
         </div>
+        <div className="d-history d-wide">
+          <h3>{L('Tus estadísticas', 'Your statistics')}</h3>
+          <DailyStatsBlock current={date} />
+        </div>
         <div className="q-actions center">
           <button type="button" className="btn btn-ghost" onClick={onExit}>
             {L('Volver al inicio', 'Back to the start')}
@@ -510,6 +516,15 @@ export function Daily({ world, date }: { world: World; date: string }) {
         </summary>
         <Calendar world={world} current={date} />
       </details>
+      {hasStats && (
+        <details className="d-history d-wide">
+          <summary>
+            <BarChart3 size={16} aria-hidden="true" />
+            {L('Tus estadísticas', 'Your statistics')}
+          </summary>
+          <DailyStatsBlock current={date} />
+        </details>
+      )}
     </div>,
   );
 }

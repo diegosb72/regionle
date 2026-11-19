@@ -235,6 +235,8 @@ export interface Streak {
   save: { days: number; gap: number } | null;
   /** Days in a row still to go for the next wildcard; 0 when no more fit in the hand. */
   toNext: number;
+  /** The longest the days in a row have ever been. */
+  longest: number;
 }
 
 const onItsDay = (rec: DailyRec | undefined): boolean => !!rec?.t && !rec.late;
@@ -247,6 +249,7 @@ const onItsDay = (rec: DailyRec | undefined): boolean => !!rec?.t && !rec.late;
 export function streakState(daily: Record<string, DailyRec>, now: string): Streak {
   let days = 0;
   let jokers = 0;
+  let longest = 0;
   let last = '';
   const held = Object.keys(daily)
     .filter((d) => isDate(d) && d <= now && (onItsDay(daily[d]) || daily[d]?.j === 1))
@@ -259,6 +262,7 @@ export function streakState(daily: Record<string, DailyRec>, now: string): Strea
     } else if (jokers > 0) jokers--;
     // A day marked with no wildcard to pay for it (a file put together by hand) holds nothing.
     else days = 0;
+    if (days > longest) longest = days;
     last = d;
   }
   // Days with nothing between the last one that holds and today.
@@ -266,7 +270,7 @@ export function streakState(daily: Record<string, DailyRec>, now: string): Strea
   const alive = !!last && gap <= 0;
   const save = !alive && days > 0 && gap <= jokers ? { days, gap } : null;
   const kept = alive ? days : (save?.days ?? 0);
-  return { days: alive ? days : 0, jokers, save, toNext: jokers < JOKER_MAX ? JOKER_EVERY - (kept % JOKER_EVERY) : 0 };
+  return { days: alive ? days : 0, jokers, save, toNext: jokers < JOKER_MAX ? JOKER_EVERY - (kept % JOKER_EVERY) : 0, longest };
 }
 
 /** Consecutive days finished on their own day, up to today (or yesterday while today is still open). */

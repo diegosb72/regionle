@@ -217,6 +217,99 @@ a.d-cal-day:hover {
   box-shadow: 0 0 0 2px var(--accent);
 }
 
+/* statistics */
+
+.d-history.d-wide {
+  width: min(100%, 560px);
+}
+.d-stats {
+  display: grid;
+  gap: 12px;
+}
+.d-stats h4 {
+  margin: 6px 0 0;
+  color: var(--ink-2);
+  font: 650 14.5px/1.3 var(--sans);
+}
+.d-tiles {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+.d-tiles > div {
+  display: grid;
+  align-content: start;
+  gap: 3px;
+  padding: 10px 6px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  text-align: center;
+}
+.d-tiles dt {
+  color: var(--ink-3);
+  font-size: 12.5px;
+  line-height: 1.25;
+}
+.d-tiles dd {
+  display: grid;
+  gap: 1px;
+}
+.d-tiles b {
+  font: 540 28px/1.05 var(--serif);
+  font-variant-numeric: tabular-nums;
+  color: var(--brand);
+}
+.d-tiles dd span {
+  color: var(--ink-3);
+  font-size: 12px;
+}
+.d-dist {
+  display: grid;
+  gap: 5px;
+}
+.d-dist li {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) 30px;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink-2);
+  font-size: 13.5px;
+  font-variant-numeric: tabular-nums;
+}
+.d-dist li > i {
+  height: 16px;
+  border-radius: 5px;
+  background: var(--bg-2);
+  overflow: hidden;
+}
+.d-dist li > i > i {
+  display: block;
+  height: 100%;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--brand) 50%, var(--bg-2));
+}
+.d-dist b {
+  text-align: right;
+}
+/* The band today's result fell in. */
+.d-dist li.on {
+  color: var(--ink);
+  font-weight: 700;
+}
+.d-dist li.on > i > i {
+  background: var(--accent);
+}
+.d-means li {
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) 84px 34px;
+}
+.d-means .best .d-row-what {
+  color: var(--ok-ink);
+}
+.d-means .worst .d-row-what {
+  color: var(--bad-ink);
+}
+
 .d-total {
   display: flex;
   align-items: baseline;
@@ -440,6 +533,27 @@ a.d-cal-day:hover {
   }
   .d-rows li {
     grid-template-columns: minmax(0, 1fr) 60px 26px;
+  }
+  .d-means li {
+    grid-template-columns: minmax(0, 1fr) 60px 34px;
+    row-gap: 0;
+  }
+  /* Which test goes best and which worst is worth a line of its own, under the name. */
+  .d-means .best .d-row-what,
+  .d-means .worst .d-row-what {
+    display: block;
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .d-tiles {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .d-tiles > div {
+    grid-column: span 2;
+  }
+  /* Three in the first row and the two left over centred under them. */
+  .d-tiles > div:nth-child(4) {
+    grid-column: 2 / span 2;
   }
   .d-row-what {
     display: none;
