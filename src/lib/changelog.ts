@@ -15,6 +15,26 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.20.0',
+    date: '2026-11-19',
+    es: [
+      'Comodín de racha: cada 7 días seguidos de reto ganas un comodín, y guardas hasta 2. Si un día no juegas, se gasta solo y la racha sigue.',
+      'Estadísticas del reto, bajo el resultado: retos terminados, media, mejor resultado, rachas, cómo se reparten tus puntos y la media de cada prueba.',
+      'Comparar el reto: el enlace del resultado lleva tus puntos. Quien lo abre juega el mismo reto y os veis cara a cara, prueba a prueba; caben hasta ocho.',
+      'Reto difícil: las mismas cinco pruebas con menos ayudas. Silueta girada y cuatro intentos, un intento al señalar, ruta sin pistas y respuestas escritas.',
+      'Imagen de cualquier partida: en los resultados, «Guardar imagen» dibuja el porcentaje, los aciertos, el tiempo y el mapa pintado según fue cada pieza.',
+      'El reto del día carga antes: sus estilos ya no viajan con la primera página. Y la barra de hoy en la previsión de repasos deja de salir hinchada.',
+    ],
+    en: [
+      'Streak wildcard: every 7 days in a row of the challenge earn a wildcard, and you keep up to 2. Miss a day and it is spent by itself: the streak goes on.',
+      'Statistics of the challenge, under the result: challenges finished, average, best result, streaks, how your points are spread and the average of each test.',
+      'Compare the challenge: the link of the result carries your points. Whoever opens it plays the same challenge and you see both, test by test; up to eight fit.',
+      'Hard challenge: the same five tests with fewer aids. A turned outline and four tries, one try to pin, a route with no hints and typed answers.',
+      'A picture of any game: in the results, “Save picture” draws the score, the answers, the time and the map painted by how each piece went.',
+      'The daily challenge loads sooner: its styles no longer travel with the first page. And the bar of today in the review forecast no longer comes out swollen.',
+    ],
+  },
+  {
     version: '1.19.0',
     date: '2026-11-19',
     es: [

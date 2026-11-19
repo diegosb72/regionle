@@ -6,13 +6,15 @@ import { MapView, type MapHandle, type Paint } from '../components/MapView';
 import { Flag } from '../components/ui';
 import { GameShell, Verdict } from '../games/common';
 import { countryAnswers, countryItem } from '../lib/data';
+import { capitalAnswers } from '../lib/typeins';
 import { distanceKm } from '../lib/geo';
 import { L, capName, nm } from '../lib/i18n';
 import { Matcher, shortNote } from '../lib/matcher';
-import { cx, fmtArea, fmtPop, nf } from '../lib/text';
+import { cx, fmtArea, fmtPop, nf, type Answerable } from '../lib/text';
 import { dist, distUnit } from '../lib/units';
 import type { Country, Deck, Res } from '../lib/types';
 import { testName } from './Card';
+import { HARD_CLUE_AT, guessesOf, pinTriesOf } from './hard';
 import { GUESSES, TESTS, bearing, compass, ladder, spanOf, type QuickQuestion } from './spec';
 
 /** Where the test sits in the day. */
@@ -86,7 +88,9 @@ const COMPASS = () => [L('norte', 'north'), L('noreste', 'north-east'), L('este'
 // 1 · Regionle: the mystery region
 // ---------------------------------------------------------------------------
 
-export function RegionleTest({ deck, target, shape, step, onScore, onDone }: TestProps & { deck: Deck; target: string; shape: string }) {
+/** `turned` is the outline as the hard way shows it while it is being guessed: not north up. */
+export function RegionleTest({ deck, target, shape, turned, hard = false, step, onScore, onDone }: TestProps & { deck: Deck; target: string; shape: string; turned?: string; hard?: boolean }) {
+  const most = guessesOf(hard);
   const item = deck.byId.get(target)!;
   const country = deck.countries[0];
   const matcher = useMemo(() => new Matcher(deck.items), [deck]);
@@ -127,7 +131,7 @@ export function RegionleTest({ deck, target, shape, step, onScore, onDone }: Tes
     setNote(null);
     setFlash({ id: g.id, kind: g.id === target ? 'ok' : 'bad', n: Date.now() });
     if (g.id === target) setState('won');
-    else if (list.length >= GUESSES) setState('lost');
+    else if (list.length >= most) setState('lost');
   };
 
   useEffect(() => {
@@ -162,7 +166,7 @@ export function RegionleTest({ deck, target, shape, step, onScore, onDone }: Tes
       </div>
       <div className="d-shape">
         <svg viewBox="0 0 400 400" role="img" aria-label={L('Silueta que hay que reconocer', 'Outline to recognise')}>
-          <path d={shape} />
+          <path d={!over && turned ? turned : shape} />
         </svg>
       </div>
 
@@ -172,8 +176,11 @@ export function RegionleTest({ deck, target, shape, step, onScore, onDone }: Tes
           <p className="q-note" role="status">
             {note ??
               (guesses.length
-                ? L(`${GUESSES - guesses.length === 1 ? 'Te queda' : 'Te quedan'} ${GUESSES - guesses.length} ${tries(GUESSES - guesses.length)}.`, `${GUESSES - guesses.length} ${tries(GUESSES - guesses.length)} left.`)
-                : L(`Tienes ${GUESSES} intentos. Cada fallo te dice a qué distancia y hacia dónde está.`, `You have ${GUESSES} tries. Each miss tells you how far away it is and in which direction.`))}
+                ? L(`${most - guesses.length === 1 ? 'Te queda' : 'Te quedan'} ${most - guesses.length} ${tries(most - guesses.length)}.`, `${most - guesses.length} ${tries(most - guesses.length)} left.`)
+                : L(
+                    `Tienes ${most} intentos. Cada fallo te dice a qué distancia y hacia dónde está.${turned ? ' La silueta está girada: el norte no queda arriba.' : ''}`,
+                    `You have ${most} tries. Each miss tells you how far away it is and in which direction.${turned ? ' The outline is turned: north is not at the top.' : ''}`,
+                  ))}
           </p>
         </>
       )}
@@ -267,7 +274,7 @@ export function RegionleTest({ deck, target, shape, step, onScore, onDone }: Tes
 // 2 · Point at five regions
 // ---------------------------------------------------------------------------
 
-export function PinFive({ deck, targets, step, onScore, onDone }: TestProps & { deck: Deck; targets: string[] }) {
+export function PinFive({ deck, targets, hard = false, step, onScore, onDone }: TestProps & { deck: Deck; targets: string[]; hard?: boolean }) {
   const [at, setAt] = useState(0);
   const [missed, setMissed] = useState(0);
   const [marks, setMarks] = useState<Record<string, Res>>({});
@@ -278,7 +285,7 @@ export function PinFive({ deck, targets, step, onScore, onDone }: TestProps & { 
   const cur = targets[Math.min(at, targets.length - 1)];
   const item = deck.byId.get(cur)!;
   const fem = deck.noun.fem;
-  const TRIES = 2;
+  const TRIES = pinTriesOf(hard);
 
   const advance = () => {
     setNote(null);
@@ -370,7 +377,8 @@ export function PinFive({ deck, targets, step, onScore, onDone }: TestProps & { 
           {phase === 'ask' ? (
             <p className="q-how">
               <MapPin size={15} aria-hidden="true" />{' '}
-              {note ?? L(`Haz clic en ${fem ? 'la' : 'el'} ${deck.noun.one}. Tienes dos intentos.`, 'Click it on the map. You have two tries.')}
+              {note ??
+                L(`Haz clic en ${fem ? 'la' : 'el'} ${deck.noun.one}. Tienes ${TRIES === 1 ? 'un solo intento' : 'dos intentos'}.`, `Click it on the map. You have ${TRIES === 1 ? 'one try only' : 'two tries'}.`)}
             </p>
           ) : marks[cur] === 'bad' ? (
             <>
@@ -418,7 +426,7 @@ export function PinFive({ deck, targets, step, onScore, onDone }: TestProps & { 
 // 4 · Which country has this population?
 // ---------------------------------------------------------------------------
 
-export function WhichTest({ target, countries, continent, step, onScore, onDone }: TestProps & { target: Country; countries: Country[]; continent: string }) {
+export function WhichTest({ target, countries, continent, hard = false, step, onScore, onDone }: TestProps & { target: Country; countries: Country[]; continent: string; hard?: boolean }) {
   const list = useMemo(() => countries.filter((c) => (c.pop ?? 0) > 0), [countries]);
   const matcher = useMemo(() => new Matcher(list.map(countryAnswers)), [list]);
   const byId = useMemo(() => new Map(list.map((c) => [c.id, c])), [list]);
@@ -469,24 +477,37 @@ export function WhichTest({ target, countries, continent, step, onScore, onDone 
         <div className="pop d-which">
           <p className="kicker center">{L('¿Qué país tiene esta población?', 'Which country has this population?')}</p>
           <p className="bigfig">{fmtPop(real)}</p>
-          <p className="d-clues">
-            {L('Está en', 'It is in')} <b>{continent}</b>
-            {guesses.length >= 3 || over ? (
-              <>
-                {' '}
-                {L('y mide', 'and covers')} <b>{fmtArea(target.ar)}</b>
-              </>
-            ) : null}
-            .
-          </p>
+          {hard ? (
+            // The hard way: nothing but the figure at first, and the continent after three misses.
+            <p className="d-clues">
+              {guesses.length >= HARD_CLUE_AT || over ? (
+                <>
+                  {L('Está en', 'It is in')} <b>{continent}</b>.
+                </>
+              ) : (
+                L('Sin más pistas que la cifra.', 'No clue but the figure.')
+              )}
+            </p>
+          ) : (
+            <p className="d-clues">
+              {L('Está en', 'It is in')} <b>{continent}</b>
+              {guesses.length >= 3 || over ? (
+                <>
+                  {' '}
+                  {L('y mide', 'and covers')} <b>{fmtArea(target.ar)}</b>
+                </>
+              ) : null}
+              .
+            </p>
+          )}
           {!over && (
             <>
               <AnswerInput label={L('País', 'Country')} placeholder={L('Escribe un país…', 'Type a country…')} onSubmit={onSubmit} suggest={suggest} shake={shake} clear={clear} />
               <p className="q-note" role="status">
                 {note ??
                   L(
-                    `Cada intento te dice si te pasas o te quedas corto. ${GUESSES - guesses.length === 1 ? 'Te queda' : 'Te quedan'} ${GUESSES - guesses.length}${guesses.length < 3 ? '; al tercer fallo verás su superficie' : ''}.`,
-                    `Each try tells you whether you are over or under. ${GUESSES - guesses.length} left${guesses.length < 3 ? '; after three misses you will see its area' : ''}.`,
+                    `Cada intento te dice si te pasas o te quedas corto. ${GUESSES - guesses.length === 1 ? 'Te queda' : 'Te quedan'} ${GUESSES - guesses.length}${guesses.length < 3 ? `; al tercer fallo ${hard ? 'sabrás en qué continente está' : 'verás su superficie'}` : ''}.`,
+                    `Each try tells you whether you are over or under. ${GUESSES - guesses.length} left${guesses.length < 3 ? `; after three misses you will ${hard ? 'be told its continent' : 'see its area'}` : ''}.`,
                   )}
               </p>
             </>
@@ -654,6 +675,157 @@ export function QuickFive({ questions, byId, step, onScore, onDone }: TestProps 
                   </button>
                 ))}
               </div>
+            </>
+          )}
+        </div>
+      }
+    />
+  );
+}
+
+/**
+ * The same five questions the hard way: the answer is typed, with nothing to choose from. One try at each;
+ * a slip of the finger is forgiven as in any typed answer, and letters that could be several things are
+ * asked again instead of counted as a miss.
+ */
+export function QuickTyped({ questions, byId, countries, step, onScore, onDone }: TestProps & { questions: QuickQuestion[]; byId: Map<string, Country>; countries: Country[] }) {
+  const names = useMemo(() => new Matcher(countries.map(countryAnswers)), [countries]);
+  const capitals = useMemo(
+    () =>
+      new Matcher(
+        countries.map((c) => capitalAnswers(countryItem(c))).filter((a): a is Answerable => !!a),
+        { codes: false },
+      ),
+    [countries],
+  );
+  const [at, setAt] = useState(0);
+  /** How the question in hand turned out, once it is answered. */
+  const [shown, setShown] = useState<boolean | null>(null);
+  const [marks, setMarks] = useState<boolean[]>([]);
+  const [note, setNote] = useState<string | null>(null);
+  const [shake, setShake] = useState(0);
+  const [clear, setClear] = useState(0);
+  const ended = at >= questions.length;
+  const q = questions[Math.min(at, questions.length - 1)];
+  const c = byId.get(q.id)!;
+  const hits = marks.filter(Boolean).length;
+  const points = hits * 4;
+  useScore(ended, points, hits, onScore);
+  const right = q.kind === 'capital' ? capName(c.cap!) : nm(c.n);
+
+  const settle = (hit: boolean) => {
+    if (shown != null || ended) return;
+    setShown(hit);
+    setMarks((m) => [...m, hit]);
+    setNote(null);
+  };
+  const advance = () => {
+    setShown(null);
+    setClear((n) => n + 1);
+    setAt((n) => n + 1);
+  };
+  const onSubmit = (text: string) => {
+    if (shown != null || ended) return;
+    const verdict = (q.kind === 'capital' ? capitals : names).check(text, q.id);
+    if (verdict.res === 'vague') {
+      setShake((n) => n + 1);
+      setNote(shortNote('vague', text));
+      return;
+    }
+    settle(verdict.res === 'yes' || verdict.res === 'short');
+  };
+
+  // A hit moves on by itself; a miss waits for the player to read what it was.
+  useEffect(() => {
+    if (shown !== true) return;
+    const t = setTimeout(advance, 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shown, at]);
+
+  return (
+    <Shell
+      step={step}
+      gained={ended ? points : 0}
+      panel={
+        <div className="pop d-quick d-typed">
+          {ended ? (
+            <>
+              <p className="kicker center">{testName(4)}</p>
+              <p className="bigfig">
+                {hits} {L('de', 'of')} {questions.length}
+              </p>
+              <ul className="d-marks center">
+                {questions.map((x, i) => {
+                  const o = byId.get(x.id)!;
+                  return (
+                    <li key={x.id} className={marks[i] ? 't-ok' : 't-bad'}>
+                      <span className="dot" />
+                      <Flag code={o.fl} size="sm" /> {nm(o.n)}
+                      {x.kind === 'capital' ? ` · ${capName(o.cap!)}` : ''}
+                    </li>
+                  );
+                })}
+              </ul>
+              <p className="d-points center">
+                +{points} {L('puntos', 'points')}
+              </p>
+              <div className="q-actions center">
+                <NextButton step={step} onClick={onDone} />
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="kicker center">
+                {q.kind === 'flag' ? L('¿De qué país es esta bandera?', 'Which country does this flag belong to?') : L('¿Cuál es la capital de…?', 'What is the capital of…?')} · {at + 1} / {questions.length}
+              </p>
+              {q.kind === 'flag' ? (
+                <div className="d-flag">
+                  <Flag code={c.fl} size="xl" />
+                </div>
+              ) : (
+                <h2 className="d-country">
+                  <Flag code={c.fl} size="md" /> {nm(c.n)}
+                </h2>
+              )}
+              {shown == null ? (
+                <>
+                  <AnswerInput
+                    key={at}
+                    label={q.kind === 'flag' ? L('País', 'Country') : L('Capital', 'Capital')}
+                    placeholder={q.kind === 'flag' ? L('Escribe el país…', 'Type the country…') : L('Escribe la capital…', 'Type the capital…')}
+                    onSubmit={onSubmit}
+                    shake={shake}
+                    clear={clear}
+                    autoFocus
+                  />
+                  <p className="q-note" role="status">
+                    {note ?? L('Un solo intento: escribe la respuesta y pulsa Intro.', 'One try only: type the answer and press Enter.')}
+                  </p>
+                  <div className="q-actions center">
+                    <button type="button" className="btn btn-sm" onClick={() => settle(false)}>
+                      <X size={15} aria-hidden="true" />
+                      {L('No lo sé', "I don't know")}
+                    </button>
+                  </div>
+                </>
+              ) : shown ? (
+                <p className="q-how c-ok d-typed-said" role="status">
+                  <Check size={15} aria-hidden="true" /> {L('¡Correcto!', 'Correct!')} <b>{right}</b>
+                </p>
+              ) : (
+                <>
+                  <p className="q-how c-bad d-typed-said" role="status">
+                    <X size={15} aria-hidden="true" /> {L('Era', 'It was')} <b>{right}</b>
+                  </p>
+                  <div className="q-actions center">
+                    <button type="button" className="btn btn-primary" onClick={advance} autoFocus>
+                      {at + 1 >= questions.length ? L('Ver puntos', 'See the points') : L('Siguiente', 'Next')}
+                      <ArrowRight size={16} aria-hidden="true" />
+                    </button>
+                  </div>
+                </>
+              )}
             </>
           )}
         </div>

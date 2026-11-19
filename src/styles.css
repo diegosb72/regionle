@@ -1102,7 +1102,10 @@ button.chip.on:hover:not(:disabled) {
   font-size: 14.5px;
 }
 
-/* What today adds up to, under the review: the days in a row and how far the daily target is. */
+/*
+ * What today adds up to, under the review: the days in a row and how far the daily target is. The name is
+ * this line's alone: today's day in a calendar or in a chart is `is-today`, which this rule does not reach.
+ */
 .today {
   display: flex;
   flex-wrap: wrap;
@@ -4123,6 +4126,7 @@ button.chip.on:hover:not(:disabled) {
 }
 
 /* --------------------------------------------------------- daily challenge */
+/* Its card on the first page. The challenge itself is in src/daily/daily.css, which comes with it. */
 
 .d-card {
   display: grid;
@@ -4271,346 +4275,7 @@ button.chip.on:hover:not(:disabled) {
   }
 }
 
-/* intro, summary */
-
-.d-head {
-  display: grid;
-  justify-items: center;
-  gap: 10px;
-  text-align: center;
-}
-.d-title {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 8px 14px;
-  font-size: clamp(34px, 6vw, 58px);
-  font-weight: 540;
-  line-height: 1;
-  letter-spacing: -0.03em;
-}
-.q-prompt .d-title {
-  justify-content: flex-start;
-  font-size: clamp(28px, 3vw, 38px);
-}
-.d-facts,
-.d-lead,
-.d-hint,
-.d-verdict {
-  text-align: center;
-}
-.d-facts {
-  color: var(--ink-3);
-  font-size: 14.5px;
-}
-.d-lead {
-  max-width: 60ch;
-  justify-self: center;
-  color: var(--ink-2);
-  font-size: 16px;
-  line-height: 1.5;
-}
-.d-hint {
-  color: var(--ink-3);
-  font-size: 14px;
-}
-.d-list {
-  display: grid;
-  gap: 8px;
-  width: min(100%, 600px);
-  justify-self: center;
-}
-.d-list li {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 12px;
-  padding: 11px 14px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
-  background: var(--card);
-}
-.d-list i {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--bg-2);
-  color: var(--ink-2);
-  font-style: normal;
-  font-size: 14px;
-  font-weight: 700;
-}
-.d-list span {
-  display: grid;
-  gap: 1px;
-  font-size: 14.5px;
-  line-height: 1.35;
-  color: var(--ink-2);
-}
-.d-list b {
-  font: 600 17px/1.2 var(--serif);
-  color: var(--ink);
-}
-.d-list em {
-  font-style: normal;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--ok-ink);
-}
-.d-list li.done i {
-  background: var(--ok);
-  color: #fff;
-}
-.d-list li.next {
-  border-color: var(--brand);
-  box-shadow: 0 0 0 1px var(--brand);
-}
-.d-list li.next i {
-  background: var(--brand);
-  color: var(--on-brand);
-}
-.d-history {
-  width: min(100%, 420px);
-  justify-self: center;
-  display: grid;
-  gap: 10px;
-}
-.d-history h3,
-.d-learn h3 {
-  text-align: center;
-  font-size: 20px;
-}
-.d-history summary {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 8px;
-  color: var(--ink-2);
-  font-size: 14.5px;
-  font-weight: 600;
-  cursor: pointer;
-  list-style: none;
-}
-.d-history summary::-webkit-details-marker {
-  display: none;
-}
-.d-history summary:hover {
-  color: var(--brand);
-}
-.d-history[open] summary {
-  margin-bottom: 8px;
-}
-.d-cal {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 5px;
-}
-.d-cal-head {
-  text-align: center;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--ink-3);
-}
-.d-cal-day {
-  display: grid;
-  justify-items: center;
-  align-content: center;
-  gap: 2px;
-  aspect-ratio: 1;
-  min-height: 46px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--card);
-  color: var(--ink);
-  text-decoration: none;
-  font-size: 12px;
-  line-height: 1;
-}
-.d-cal-day > span {
-  color: var(--ink-3);
-  font-variant-numeric: tabular-nums;
-}
-.d-cal-day b {
-  font-size: 15.5px;
-  font-variant-numeric: tabular-nums;
-}
-.d-cal-day .flag {
-  opacity: 0.85;
-}
-a.d-cal-day:hover {
-  border-color: var(--brand);
-}
-.d-cal-day.off {
-  border-style: dashed;
-  background: transparent;
-  opacity: 0.5;
-}
-.d-cal-day.part {
-  border-color: var(--warn);
-}
-.d-cal-day.hi {
-  border-color: var(--ok);
-  background: var(--ok-soft);
-}
-.d-cal-day.mid {
-  border-color: var(--warn);
-  background: var(--warn-soft);
-}
-.d-cal-day.lo {
-  border-color: var(--bad);
-  background: var(--bad-soft);
-}
-.d-cal-day.hi > span,
-.d-cal-day.mid > span,
-.d-cal-day.lo > span {
-  color: var(--ink-2);
-}
-.d-cal-day.today {
-  box-shadow: 0 0 0 2px var(--brand);
-}
-.d-cal-day.on {
-  box-shadow: 0 0 0 2px var(--accent);
-}
-
-.d-total {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 8px;
-  font-family: var(--serif);
-  font-variant-numeric: tabular-nums;
-  color: var(--brand);
-}
-.d-total strong {
-  font-size: clamp(64px, 12vw, 108px);
-  font-weight: 540;
-  line-height: 0.9;
-  letter-spacing: -0.045em;
-}
-.d-total span {
-  font-size: 24px;
-  color: var(--ink-3);
-}
-.d-verdict {
-  margin-top: -8px;
-  font: italic 440 22px/1.2 var(--serif);
-  color: var(--accent-ink);
-}
-.d-rows {
-  display: grid;
-  gap: 4px;
-  width: min(100%, 560px);
-  justify-self: center;
-}
-.d-rows li {
-  display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) 84px 26px;
-  align-items: center;
-  gap: 12px;
-  padding: 9px 2px;
-  border-bottom: 1px solid var(--line);
-  font-size: 15px;
-}
-.d-row-name {
-  font-weight: 650;
-}
-.d-row-what {
-  color: var(--ink-3);
-  font-size: 14px;
-}
-.d-row-bar {
-  height: 8px;
-  border-radius: 99px;
-  background: var(--bg-2);
-  overflow: hidden;
-}
-.d-row-bar i {
-  display: block;
-  height: 100%;
-  border-radius: 99px;
-}
-.d-row-bar .hi {
-  background: var(--ok);
-}
-.d-row-bar .mid {
-  background: var(--warn);
-}
-.d-row-bar .lo {
-  background: var(--bad);
-}
-.d-rows b {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-.d-streakline {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 4px 18px;
-  color: var(--ink-3);
-  font-size: 14.5px;
-}
-.d-share {
-  display: grid;
-  gap: 10px;
-  justify-items: center;
-  width: min(100%, 460px);
-  justify-self: center;
-}
-.d-share-btns {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-}
-.d-share-note,
-.d-pic-wrap {
-  flex: 0 0 100%;
-  text-align: center;
-}
-.d-share-note {
-  color: var(--ink-3);
-  font-size: 14px;
-}
-.d-share-note:empty {
-  display: none;
-}
-.d-pic {
-  display: block;
-  width: min(100%, 320px);
-  height: auto;
-  margin: 4px auto 0;
-  border: 1px solid var(--line);
-  border-radius: var(--r-2);
-  box-shadow: var(--shadow-1);
-}
-.d-share textarea {
-  width: 100%;
-  padding: 12px 14px;
-  border: 1px dashed var(--line-2);
-  border-radius: var(--r-2);
-  background: var(--card);
-  color: var(--ink-2);
-  font: 500 14px/1.5 var(--sans);
-  text-align: center;
-  resize: none;
-}
-.d-learn {
-  display: grid;
-  gap: 12px;
-  padding: 20px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-3);
-  background: var(--card);
-  width: min(100%, 560px);
-  justify-self: center;
-}
-
-/* tests */
+/* The outline and the tries of a mystery region: the test of the daily challenge and the game "Regionle". */
 
 .d-shape {
   display: grid;
@@ -4688,75 +4353,6 @@ a.d-cal-day:hover {
 .d-guesses li.hit svg {
   color: var(--ok-ink);
 }
-.d-points {
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--brand);
-}
-.d-marks {
-  display: grid;
-  gap: 7px;
-  font-size: 15.5px;
-}
-.d-marks li {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
-.d-marks.center {
-  justify-self: center;
-}
-.d-clues {
-  text-align: center;
-  color: var(--ink-2);
-  font-size: 16px;
-}
-.d-flag {
-  display: grid;
-  place-items: center;
-  padding: 6px 0;
-}
-.d-flag .flag {
-  box-shadow: var(--shadow-2);
-}
-.d-country {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 8px 14px;
-  text-align: center;
-  font-size: clamp(30px, 5vw, 46px);
-  line-height: 1.05;
-}
-.d-choices {
-  width: min(100%, 560px);
-  justify-self: center;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-.d-names {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-.d-names button {
-  padding: 5px 10px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--card);
-  font-size: 13.5px;
-  line-height: 1.2;
-  cursor: pointer;
-}
-.d-names button:hover {
-  border-color: var(--brand);
-}
-.d-names button.on {
-  border-color: var(--brand);
-  background: var(--brand);
-  color: var(--on-brand);
-}
-
 @media (max-width: 860px) {
   .d-shape {
     padding: 4px;
@@ -4764,26 +4360,10 @@ a.d-cal-day:hover {
   .d-shape svg {
     width: min(100%, 130px);
   }
-  .d-names {
-    display: none;
-  }
 }
 @media (max-width: 520px) {
-  .d-choices {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .d-rows li {
-    grid-template-columns: minmax(0, 1fr) 60px 26px;
-  }
-  .d-row-what {
-    display: none;
-  }
   .d-dir i {
     display: none;
-  }
-  .d-list li {
-    padding: 10px 11px;
-    gap: 10px;
   }
 }
 
@@ -5659,7 +5239,7 @@ a.d-cal-day:hover {
   border-radius: 6px 6px 2px 2px;
   background: color-mix(in srgb, var(--brand) 50%, var(--bg-2));
 }
-.fc-days i.today {
+.fc-days i.is-today {
   background: var(--accent);
 }
 .fc-days span {

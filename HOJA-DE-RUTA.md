@@ -16,7 +16,7 @@ servicio de fuera).
 A petición del dueño del proyecto, desde la 1.18.0 se hace primero lo que menos esfuerzo lleva y se deja para
 el final lo que más. La estimación es a ojo y cambia al abrir el código:
 
-- **Corto**: 49, 48, 47, 50, 53, 71, 72, 92, 102
+- **Corto**: 71, 72, 92, 102
 - **Medio**: 19, 23–26, 45, 46, 51, 54, 58, 59, 61, 62, 66, 70, 73–75, 84, 87, 94, 98, 100, 111b, 111d, 111e
 - **Largo**: 20, 44 (francés), 65, 67, 68, 83, 90
 - **Depende de conseguir datos**, lleve lo que lleve: 30–32, 37–39, 41–43, 95, y lo que falta del 29 y del 35
@@ -80,13 +80,13 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 
 - [ ] 45. Retos del día por continente o por país
 - [ ] 46. Reto semanal largo
-- [ ] 47. Comparar el reto del día por enlace
-- [ ] 48. Estadísticas del reto
-- [ ] 49. Comodín de racha
-- [ ] 50. Reto difícil
+- [x] 47. Comparar el reto del día por enlace: el enlace del resultado lleva los puntos de las cinco pruebas y el nombre; quien lo abre juega el mismo reto y ve los resultados cara a cara, prueba a prueba, de hasta ocho personas — **1.20.0**
+- [x] 48. Estadísticas del reto: bajo el resultado, retos terminados, media, mejor resultado, racha y mejor racha, reparto de los puntos en cinco tramos y media de cada prueba, con la que mejor se da y la que más cuesta — **1.20.0**
+- [x] 49. Comodín de racha: cada 7 días seguidos de reto se gana un comodín, se guardan hasta 2, y el día que no se juega se gasta solo para que la racha siga — **1.20.0**
+- [x] 50. Reto difícil: las mismas cinco pruebas del día con menos ayudas (silueta girada y cuatro intentos, un intento al señalar, ruta sin pistas, país sin continente y respuestas escritas), elegido antes de empezar y marcado en el resultado — **1.20.0**
 - [ ] 51. Retos de fechas señaladas
 - [x] 52. Enlace directo a un mapa y un modo: una dirección abre la sección con el mapa y el juego ya elegidos, y cada sección tiene un botón que la copia — **1.18.0**
-- [ ] 53. Imagen para compartir de cualquier partida
+- [x] 53. Imagen para compartir de cualquier partida: la pantalla de resultados guarda o comparte una imagen con el juego, el mapa, el porcentaje, los aciertos, el tiempo y el mapa pintado según cómo fue cada pieza — **1.20.0**
 - [ ] 54. Contra tu fantasma
 
 ## Para aprender mejor

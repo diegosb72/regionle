@@ -1,6 +1,7 @@
 /** Pieces shared by every game: screen frame, clock, verdict box and results. */
 import { ArrowLeft, Check, CircleAlert, Flame, RotateCcw, Settings2, Timer, X } from 'lucide-react';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState, type ReactNode } from 'react';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import { PieceNote } from '../components/Note';
 import { ReviewNext } from '../components/ReviewCard';
 import { SpeakButton } from '../components/Speak';
@@ -278,6 +279,9 @@ export interface ResultRow {
 
 const resLabel = (res: Res): string => (res === 'bad' ? L('Para repasar', 'To review') : res === 'warn' ? L('Con ayuda', 'With help') : L('A la primera', 'First time'));
 
+/** The result as a picture to save or to send. Its drawing is fetched when a game ends, not with the game. */
+const ResultPicture = lazy(() => import('./ResultPicture').then((m) => ({ default: m.ResultPicture })));
+
 export function Results({
   title,
   deck,
@@ -378,6 +382,14 @@ export function Results({
           <Settings2 size={16} aria-hidden="true" />
           {review ? L('Volver al inicio', 'Back to home') : L('Cambiar de juego', 'Change game')}
         </button>
+        {/* If its code does not come, the result is there all the same: only the button is missing. */}
+        {total > 0 && (
+          <ErrorBoundary fallback={() => null}>
+            <Suspense fallback={null}>
+              <ResultPicture verdict={title} deck={deck} rows={rows} count={count} ms={ms} />
+            </Suspense>
+          </ErrorBoundary>
+        )}
       </div>
       {children}
       {(['bad', 'warn', 'ok'] as const).map((res) => {

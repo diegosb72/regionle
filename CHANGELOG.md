@@ -3,6 +3,15 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.20.0 — 19 de noviembre de 2026
+
+- Comodín de racha: cada 7 días seguidos de reto ganas un comodín, y guardas hasta 2. Si un día no juegas, se gasta solo y la racha sigue.
+- Estadísticas del reto, bajo el resultado: retos terminados, media, mejor resultado, rachas, cómo se reparten tus puntos y la media de cada prueba.
+- Comparar el reto: el enlace del resultado lleva tus puntos. Quien lo abre juega el mismo reto y os veis cara a cara, prueba a prueba; caben hasta ocho.
+- Reto difícil: las mismas cinco pruebas con menos ayudas. Silueta girada y cuatro intentos, un intento al señalar, ruta sin pistas y respuestas escritas.
+- Imagen de cualquier partida: en los resultados, «Guardar imagen» dibuja el porcentaje, los aciertos, el tiempo y el mapa pintado según fue cada pieza.
+- El reto del día carga antes: sus estilos ya no viajan con la primera página. Y la barra de hoy en la previsión de repasos deja de salir hinchada.
+
 ## 1.19.0 — 19 de noviembre de 2026
 
 - Colores del mapa: al pie se elige entre tres paletas, «Papel» (la de siempre), «Océano» y «Pizarra», cada una con su lado claro y su lado oscuro.

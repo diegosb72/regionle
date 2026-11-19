@@ -11,7 +11,9 @@ test.describe('the result of a daily challenge', () => {
     await seed(page, { daily: done });
     await page.goto(`./#/reto/${DAY}`);
     await expect(page.locator('.d-total strong')).toHaveText('61');
-    await expect(page.locator('.d-rows li')).toHaveCount(5);
+    // The rows of this result; the statistics under it have a list of their own, drawn the same way.
+    await expect(page.locator('.d-summary > .d-rows li')).toHaveCount(5);
+    await expect(page.locator('.d-summary > .d-rows li b')).toHaveText(['20', '16', '13', '8', '4']);
     const text = await page.locator('.d-share textarea').inputValue();
     expect(text).toContain('61/100');
     expect(text).toContain(`#/reto/${DAY}`);
@@ -29,8 +31,8 @@ test.describe('the result of a daily challenge', () => {
     expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([1080, 1080]);
     expect(png.length).toBeGreaterThan(20_000);
 
-    await expect(page.locator('.d-share-note')).toHaveText('Imagen guardada en tus descargas.');
-    const preview = page.locator('img.d-pic');
+    await expect(page.locator('.pic-note')).toHaveText('Imagen guardada en tus descargas.');
+    const preview = page.locator('img.pic');
     await expect(preview).toBeVisible();
     await expect(preview).toHaveAttribute('alt', /61 de 100/);
     expect(await preview.evaluate((img: HTMLImageElement) => img.decode().then(() => img.naturalWidth))).toBe(1080);

@@ -1,7 +1,7 @@
 /** Persistent app state: selections, options, favourites and learning progress (localStorage). */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { TESTS, emptyRec, streakOf, type DailyRec } from '../daily/spec';
+import { NAME_MAX, TESTS, cleanRivals, emptyRec, streakOf, withJokers, withRival, type DailyRec, type Rival } from '../daily/spec';
 import { DAY_GOAL_DEFAULT, cleanDays, dailyWork, daysFrom, isDayGoal, studyStreak, withDay, type Days } from './days';
 import type { CityPick } from './extra';
 import { GOALS_MAX, cleanGoals, goalWithout, sameGoal, withMark, type Goal } from './goals';
@@ -253,6 +253,8 @@ export interface State {
   best: Record<string, number>;
   /** Results of the daily challenge by day. */
   daily: Record<string, DailyRec>;
+  /** Results of the daily challenge that others sent by link, by day: to set beside one's own. */
+  rivals: Record<string, Rival[]>;
   /** Interface language; null until chosen: the browser's language decides. */
   lang: Lang | null;
   /** Name put on the challenges sent to others. */
@@ -330,8 +332,15 @@ export interface State {
   setTheme(theme: Theme): void;
   setLang(lang: Lang): void;
   setNick(nick: string): void;
-  /** Stores the points of one test of a day; closes the day when it was the last one. */
-  setDaily(date: string, test: number, points: number, figure: number): void;
+  /**
+   * Stores the points of one test of a day; closes the day when it was the last one. `hard` says which way
+   * it is being played, and counts only with the first test that is scored: a day is played one way.
+   */
+  setDaily(date: string, test: number, points: number, figure: number, hard?: boolean): void;
+  /** Keeps the result somebody sent of the challenge of a day. */
+  addRival(date: string, rival: Rival): void;
+  /** Takes one of them away: the one at that place of the day's list. */
+  dropRival(date: string, index: number): void;
   setSel(section: Section, ids: string[]): void;
   setLevel(country: string, level: string): void;
   setMode(section: Section, mode: Mode): void;
@@ -382,6 +391,7 @@ export const useStore = create<State>()(
       recent: [],
       best: {},
       daily: {},
+      rivals: {},
       days: {},
       dayGoal: DAY_GOAL_DEFAULT,
       lang: null,
@@ -463,22 +473,27 @@ export const useStore = create<State>()(
         }),
       setTheme: (theme) => set({ theme }),
       setLang: (lang) => set({ lang }),
-      setNick: (nick) => set({ nick: nick.slice(0, 24) }),
-      setDaily: (date, test, points, figure) =>
+      setNick: (nick) => set({ nick: nick.slice(0, NAME_MAX) }),
+      addRival: (date, rival) => set((s) => ({ rivals: withRival(s.rivals, date, rival) })),
+      dropRival: (date, index) => set((s) => ({ rivals: cleanRivals({ ...s.rivals, [date]: (s.rivals[date] ?? []).filter((_, i) => i !== index) }) })),
+      setDaily: (date, test, points, figure, hard = false) =>
         set((s) => {
           const prev = s.daily[date] ?? emptyRec();
           if (test < 0 || test >= TESTS || prev.p[test] != null) return {};
           const rec: DailyRec = { ...prev, p: prev.p.slice(), k: prev.k.slice() };
+          if (hard && prev.p.every((x) => x == null)) rec.h = 1;
           rec.p[test] = points;
           rec.k[test] = figure;
           let days = s.days;
+          let daily = { ...s.daily, [date]: rec };
           if (rec.p.every((x) => x != null) && !rec.t) {
             rec.t = Date.now();
             if (date !== today()) rec.late = 1;
+            // Finished on its day after a day or two with nothing: the wildcards in hand stand in for them.
+            else daily = withJokers(daily, s.daily, date);
             // The challenge is work of the day it was finished on, whatever day of the calendar it was.
             days = withDay(days, rec.t, dailyWork(rec.p), s.dayGoal, learntIn(s.stats));
           }
-          const daily = { ...s.daily, [date]: rec };
           const best = { ...s.best };
           const streak = streakOf(daily, today());
           if (streak > (best['daily:streak'] ?? 0)) best['daily:streak'] = streak;
@@ -556,7 +571,7 @@ export const useStore = create<State>()(
         if (better) set((s) => ({ best: { ...s.best, [key]: value } }));
         return better;
       },
-      resetProgress: () => set({ stats: {}, where: {}, mix: {}, sessions: [], recent: [], best: {}, daily: {}, days: {}, badges: {}, tot: {}, album: {}, backup: NO_BACKUP }),
+      resetProgress: () => set({ stats: {}, where: {}, mix: {}, sessions: [], recent: [], best: {}, daily: {}, rivals: {}, days: {}, badges: {}, tot: {}, album: {}, backup: NO_BACKUP }),
       markBackup: (now) => set((s) => ({ backup: { at: now, from: now, q: s.tot.q ?? 0 } })),
       snoozeBackup: (now) => set((s) => ({ backup: { at: s.backup.at, from: now, q: s.tot.q ?? 0 } })),
       importData: (data, prefs, now = Date.now()) => {
@@ -617,6 +632,7 @@ export const useStore = create<State>()(
         recent: s.recent,
         best: s.best,
         daily: s.daily,
+        rivals: s.rivals,
         days: s.days,
         dayGoal: s.dayGoal,
         lang: s.lang,
@@ -690,6 +706,7 @@ export function mergeSaved(saved: unknown, current: State): State {
     // Players from before the calendar start from what their latest sessions and daily challenges add up to.
     days: p.days && typeof p.days === 'object' ? cleanDays(p.days) : daysFrom(Array.isArray(p.sessions) ? p.sessions : [], p.daily && typeof p.daily === 'object' ? p.daily : {}),
     dayGoal: isDayGoal(p.dayGoal) ? p.dayGoal : DAY_GOAL_DEFAULT,
+    rivals: cleanRivals(p.rivals),
     goals: cleanGoals(p.goals),
     notes: cleanNotes(p.notes),
     // Players from before the album start with the flags they have learnt.

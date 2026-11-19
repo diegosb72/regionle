@@ -24,8 +24,12 @@ export type Route =
   /** `#/regiones`, or `#/regiones/ES:p/capital`: the section with a map and a game already chosen (`maplink.ts`). */
   | { kind: 'section'; section: Section; link?: MapLink }
   | { kind: 'play' }
-  /** `#/reto` is today's challenge; `#/reto/2026-11-10`, a past one. */
-  | { kind: 'daily'; date: string }
+  /**
+   * `#/reto` is today's challenge; `#/reto/2026-11-10`, a past one. What follows the date (`vs`) is the
+   * result of whoever sent the link, to set beside one's own. A link for a day that has not come here yet
+   * (sent from where it is already tomorrow) opens today's and says which day it was for (`soon`).
+   */
+  | { kind: 'daily'; date: string; vs?: string; soon?: string }
   /** `#/duelo/<code>`: a game sent by someone else. Without a code, the screen that says how one is sent. */
   | { kind: 'duel'; code: string }
   /** `#/lista/<code>`: a custom list sent by someone else. Without a code, the screen that says how one is made. */
@@ -127,9 +131,15 @@ export function routeOf(path: string, now: string = today()): Route {
   switch (head) {
     case PLAY_PATH:
       return rest ? { kind: 'unknown', path } : { kind: 'play' };
-    case DAILY_PATH:
+    case DAILY_PATH: {
+      const slash = rest.indexOf('/');
+      const day = slash < 0 ? rest : rest.slice(0, slash);
+      const vs = slash < 0 ? '' : rest.slice(slash + 1);
       // A date that is not one, or a day that has not come: today's challenge.
-      return { kind: 'daily', date: isDate(rest) && dayNumber(rest) >= 0 && rest <= now ? rest : now };
+      if (!isDate(day) || dayNumber(day) < 0) return { kind: 'daily', date: now };
+      if (day > now) return vs ? { kind: 'daily', date: now, soon: day } : { kind: 'daily', date: now };
+      return vs ? { kind: 'daily', date: day, vs } : { kind: 'daily', date: day };
+    }
     case DUEL_PATH:
       return { kind: 'duel', code: rest };
     case LIST_PATH:

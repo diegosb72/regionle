@@ -1,0 +1,23 @@
+/* The picture of a result: what is said about it and how it is shown once made. Fetched with its button. */
+
+.pic-note,
+.pic-wrap {
+  flex: 0 0 100%;
+  text-align: center;
+}
+.pic-note {
+  color: var(--ink-3);
+  font-size: 14px;
+}
+.pic-note:empty {
+  display: none;
+}
+.pic {
+  display: block;
+  width: min(100%, 320px);
+  height: auto;
+  margin: 4px auto 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  box-shadow: var(--shadow-1);
+}
