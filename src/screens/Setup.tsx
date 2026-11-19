@@ -26,7 +26,7 @@ const COUNTDOWNS = [0, 120, 300, 600, 900];
 const levelName = (n: number): string => [L('Fácil', 'Easy'), L('Medio', 'Medium'), L('Difícil', 'Hard')][n - 1];
 const ANSWER_MODES: Mode[] = ['learn', 'identify', 'outline', 'capital', 'flag', 'parent', 'mix'];
 /** Games that are one round of everything: they cannot go on for ever. */
-const FINITE_MODES: Mode[] = ['neighbours', 'blind', 'hotcold', 'bearing', 'cards'];
+const FINITE_MODES: Mode[] = ['neighbours', 'blind', 'hotcold', 'bearing', 'group', 'cards'];
 /** Games where names are typed and a list of suggestions can help. */
 const SUGGEST_MODES: Mode[] = ['travel', 'neighbours', 'chain', 'regionle', 'which', 'topten'];
 /** Games that stop on a missed answer long enough to read about it. */

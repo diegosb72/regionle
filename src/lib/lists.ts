@@ -13,7 +13,7 @@ export const LIST_SECTIONS: Section[] = ['regions', 'countries', 'cities', 'phys
 export const LIST_MAX = 400;
 export const LIST_NAME_MAX = 40;
 /** Games that make no sense on a handful of loose pieces. */
-const NOT_ON_LISTS: Mode[] = ['travel', 'chain', 'edit'];
+const NOT_ON_LISTS: Mode[] = ['travel', 'chain', 'group', 'edit'];
 
 export const listPlayable = (mode: Mode): boolean => !NOT_ON_LISTS.includes(mode);
 

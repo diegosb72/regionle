@@ -7,6 +7,7 @@ import { CardsGame } from '../games/Cards';
 import { ChainGame } from '../games/Chain';
 import { ExploreGame } from '../games/Explore';
 import { TopTenGame, TrueFalseGame } from '../games/FactGames';
+import { GroupGame } from '../games/Groups';
 import { LearnGame } from '../games/Learn';
 import { ListEditor } from '../games/ListEditor';
 import { NameAllGame } from '../games/NameAll';
@@ -249,6 +250,8 @@ function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
       return <NeighboursGame {...props} />;
     case 'chain':
       return <ChainGame {...props} />;
+    case 'group':
+      return <GroupGame {...props} places={world.index} />;
     case 'learn':
       return <LearnGame {...props} />;
     case 'regionle':

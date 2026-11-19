@@ -17,7 +17,7 @@ export async function deckFor(cfg: GameConfig, onProgress?: (done: number, total
   // A review and a custom list are about given pieces: the map has to hold them whatever else it shows.
   const listed = !!cfg.list || cfg.mode === 'edit';
   const must = cfg.review || listed ? cfg.only : undefined;
-  if (cfg.section === 'cities') return buildCityDeck(countries, cfg.opts.cityPick, cfg.opts.cityCount, must, cfg.mode === 'parent');
+  if (cfg.section === 'cities') return buildCityDeck(countries, cfg.opts.cityPick, cfg.opts.cityCount, must, cfg.mode === 'parent' || cfg.mode === 'group');
   if (cfg.section === 'physical') return buildPhysicalDeck(countries, must, listed && !cfg.review);
   return buildDeck({ scope: cfg.section === 'regions' ? 'regions' : 'countries', countries, levels: cfg.levels }, onProgress);
 }

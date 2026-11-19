@@ -11,6 +11,7 @@ import {
   GraduationCap,
   Hash,
   Landmark,
+  LassoSelect,
   Layers,
   Link2,
   ListOrdered,
@@ -173,6 +174,8 @@ function modesOf(section: Section): ModeDef[] {
   };
   const travel: ModeDef = { id: 'travel', name: L('Ruta', 'Route'), desc: L('Une dos puntos del mapa pasando por las menos fronteras posibles.', 'Join two places crossing as few borders as you can.'), icon: Route, level: 3, group: 'links' };
   const puzzle: ModeDef = { id: 'puzzle', name: L('Puzle', 'Jigsaw'), desc: L('Te damos una pieza sin nombre y la colocas en el mapa mudo.', 'You get an unnamed piece and place it on the blank map.'), icon: Puzzle, level: 2, group: 'map' };
+  /** A set of pieces named, and all of them marked: what the sets are depends on the map. */
+  const group = (desc: string): ModeDef => ({ id: 'group', name: L('Marca el grupo', 'Mark the group'), desc, icon: LassoSelect, level: 2, group: 'map' });
   const neighbours: ModeDef = {
     id: 'neighbours',
     name: L('Vecinos', 'Neighbours'),
@@ -235,6 +238,12 @@ function modesOf(section: Section): ModeDef[] {
         identify,
         nameall,
         puzzle,
+        group(
+          L(
+            'Te damos un grupo —las provincias de una comunidad, las regiones de un país, lo que limita con una pieza— y marcas en el mapa todas las que son de él, y ninguna más.',
+            'You get a group — the provinces of a community, the regions of a country, what borders a piece — and mark on the map every piece that is in it, and none besides.',
+          ),
+        ),
         mixShapes,
         outline,
         regionle,
@@ -277,6 +286,12 @@ function modesOf(section: Section): ModeDef[] {
         identify,
         nameall,
         puzzle,
+        group(
+          L(
+            'Te damos un grupo —la Unión Europea, los países sin mar, una parte del continente, los vecinos de un país— y marcas en el mapa todos los que son de él, y ninguno más.',
+            'You get a group — the European Union, the landlocked countries, a part of the continent, the neighbours of a country — and mark on the map every country that is in it, and none besides.',
+          ),
+        ),
         mix(
           L(
             'Cada país, de una manera, según toque: señalarlo, decir cuál se ilumina, colocarlo como en el puzle, reconocer su silueta, su capital o su bandera.',
@@ -317,6 +332,7 @@ function modesOf(section: Section): ModeDef[] {
         hotcold,
         { ...identify, desc: L('Se ilumina un punto del mapa y dices qué ciudad es.', 'A dot lights up and you say which city it is.') },
         nameall,
+        group(L('Te damos un país, o una región si has elegido un solo país, y marcas en el mapa todas sus ciudades, y ninguna más.', 'You get a country, or a region when a single country is chosen, and mark all its cities on the map, and none besides.')),
         mixDots,
         {
           id: 'parent',
@@ -395,6 +411,8 @@ function modeName(mode: Mode): string {
       return L('Ruta', 'Route');
     case 'puzzle':
       return L('Puzle', 'Jigsaw');
+    case 'group':
+      return L('Marca el grupo', 'Mark the group');
     case 'neighbours':
       return L('Vecinos', 'Neighbours');
     case 'chain':
@@ -496,7 +514,7 @@ function lazy<K extends string, V>(keys: readonly K[], make: (key: K) => V): Rec
   return out;
 }
 
-const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'neighbours', 'chain', 'capital', 'flag', 'blind', 'hotcold', 'bearing', 'edit', 'print', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'topten', 'cards', 'mix', 'listen'];
+const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'group', 'neighbours', 'chain', 'capital', 'flag', 'blind', 'hotcold', 'bearing', 'edit', 'print', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'topten', 'cards', 'mix', 'listen'];
 
 export const MODES: Record<Section, ModeDef[]> = lazy(SECTION_IDS, modesOf);
 export const MODE_NAME: Record<Mode, string> = lazy(MODE_IDS, modeName);
