@@ -7138,6 +7138,54 @@ button.ti-chip:hover,
 .about-version b {
   color: var(--ink);
 }
+/* A link to a map and a game: the notice that one was followed, and the button that copies one. */
+.linked {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 18px;
+  padding: 10px 12px 10px 14px;
+  border: 1px solid var(--brand);
+  border-radius: var(--r-2);
+  background: var(--brand-soft);
+  color: var(--ink);
+  font-size: 14.5px;
+  font-weight: 550;
+}
+.linked > svg {
+  flex: none;
+  color: var(--brand);
+}
+.linked > span {
+  flex: 1;
+  min-width: 0;
+}
+.linked-none {
+  border-color: var(--line-2);
+  background: var(--card);
+  color: var(--ink-2);
+}
+.maplink {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--line-2);
+}
+.maplink .opt-hint {
+  margin: 0;
+}
+.maplink-url {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-1, 8px);
+  background: var(--card);
+  color: var(--ink);
+  font: 13px var(--mono, ui-monospace, monospace);
+}
+
 .about-report {
   max-width: 62ch;
   margin-top: 10px;

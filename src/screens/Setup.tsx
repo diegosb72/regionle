@@ -1,5 +1,5 @@
 /** Setup: 1 what to play with, 2 mode, 3 options. */
-import { Check, ChevronDown, Infinity as InfinityIcon, ListChecks, ListPlus, Pencil, Play, Printer, Share2, Target, Timer, Trash2, X } from 'lucide-react';
+import { Check, ChevronDown, Infinity as InfinityIcon, Link2, ListChecks, ListPlus, Pencil, Play, Printer, Share2, Target, Timer, Trash2, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { GoalBar } from '../components/GoalBar';
 import { Picker } from '../components/Picker';
@@ -10,10 +10,12 @@ import { countriesOf, describeMap } from '../lib/describe';
 import { CITY_COUNTS, PHYS_KINDS, PHYS_PLACES, kindNoun, kindsIn, loadCities, loadPhysical, parsePhys, physCountries, physMatches, physTokens, pickOf, type PhysKind, type PhysSpec } from '../lib/extra';
 import { L, getLang, levelNoun, nm } from '../lib/i18n';
 import { encodeList, listConfig, listPlayable, listUrl } from '../lib/lists';
+import { mapLinkRest, type MapLink } from '../lib/maplink';
 import { GROUP_NAME, MODES, MODE_GROUPS, SECTIONS, cardAskName, formatName } from '../lib/modes';
 import { estimateOf, minutesOf, paceOf, percentOf, questionsOf } from '../lib/pace';
 import { FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, ROUND_MODES, TOP_MIN, asksByFlag, turnsOutlines } from '../lib/rules';
-import { go } from '../lib/router';
+import { go, settle } from '../lib/router';
+import { PATHS, mapLinkUrl } from '../lib/routes';
 import { useStore, type CardAsk, type CustomList, type Length, type Opts } from '../lib/store';
 import { cx, nf, plural } from '../lib/text';
 import { SAMPLES, settingsLink } from '../lib/typeinList';
@@ -250,7 +252,44 @@ function ListCard({ list, others, world, onEdit, onLeave, onRemove, onUse }: { l
   );
 }
 
-export function Setup({ section, world }: { section: Section; world: World }) {
+/**
+ * `link` is a map and a game that the address asked for (`#/regiones/ES:p/capital`): they are chosen as if
+ * the player had, and the address goes back to that of the section.
+ */
+/** The link to the map and the game that are chosen: copied, or shown to be copied by hand where the browser will not. */
+function CopyLink({ url }: { url: string }) {
+  const [state, setState] = useState<'idle' | 'copied' | 'shown'>('idle');
+  // Another map is another link: what was said of the last one no longer holds.
+  useEffect(() => setState('idle'), [url]);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setState('copied');
+    } catch {
+      setState('shown');
+    }
+  };
+  return (
+    <div className="maplink">
+      <button type="button" className="btn btn-sm" onClick={copy}>
+        {state === 'copied' ? <Check size={15} aria-hidden="true" /> : <Link2 size={15} aria-hidden="true" />}
+        {state === 'copied' ? L('Enlace copiado', 'Link copied') : L('Copiar enlace a este mapa', 'Copy a link to this map')}
+      </button>
+      <p className="opt-hint">
+        {L(
+          'Abre el juego con este mapa y este juego ya elegidos: para mandárselo a alguien o guardarlo en marcadores.',
+          'It opens the game with this map and this game already chosen: to send to someone or to keep as a bookmark.',
+        )}
+      </p>
+      {state === 'shown' && <input className="maplink-url" type="text" readOnly value={url} aria-label={L('Enlace a este mapa', 'Link to this map')} onFocus={(e) => e.currentTarget.select()} />}
+      <span className="sr-only" role="status">
+        {state === 'copied' ? L('Enlace copiado', 'Link copied') : ''}
+      </span>
+    </div>
+  );
+}
+
+export function Setup({ section, world, link }: { section: Section; world: World; link?: MapLink }) {
   const selected = useStore((s) => s.sel[section]);
   const typeinAuto = useStore((s) => s.typeinAuto) ?? SHIPPED_AUTO;
   const setSel = useStore((s) => s.setSel);
@@ -291,6 +330,31 @@ export function Setup({ section, world }: { section: Section; world: World }) {
 
   const isPhys = section === 'physical';
   const spec = useMemo(() => parsePhys(isPhys ? selected : []), [isPhys, selected]);
+
+  /** What a link that was followed brought: its map, its game, or nothing that the game knows. */
+  const [opened, setOpened] = useState<{ map: boolean; mode: boolean } | null>(null);
+  const linkKey = link ? mapLinkRest(section, link) : '';
+  useEffect(() => {
+    if (!link) return;
+    // Only what there is: a country the data do not have, or one with nothing to play in this section, is left out.
+    const ids = isPhys ? link.ids.filter((t) => !t.startsWith('in:') || world.byId.has(t.slice(3))) : link.ids.filter((id) => {
+          const c = world.byId.get(id);
+          return !!c && eligible(section, c);
+        });
+    const map = isPhys ? ids.some((t) => (PHYS_KINDS as readonly string[]).includes(t)) : ids.length > 0;
+    if (map) {
+      setSel(section, ids);
+      for (const [id, level] of Object.entries(link.levels)) if (ids.includes(id) && world.byId.get(id)?.lv.some((l) => l.k === level)) setLevel(id, level);
+      // A custom list in use would be played instead of the map of the link.
+      setListOn(section, null);
+      if (link.cityPick) setOpts({ cityPick: link.cityPick, ...(link.cityCount ? { cityCount: link.cityCount } : {}) });
+    }
+    const game = modes.find((m) => m.id === link.mode);
+    if (game) setMode(section, game.id);
+    setOpened({ map, mode: !!game });
+    settle(PATHS[section]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linkKey]);
   const hasCities = useMemo(() => (cities ? (c: Country) => (cities.c[c.id]?.length ?? 0) >= 2 : undefined), [cities]);
   const cityCountOf = useMemo(() => (cities ? (c: Country) => cities.c[c.id]?.length ?? 0 : undefined), [cities]);
 
@@ -515,6 +579,14 @@ export function Setup({ section, world }: { section: Section; world: World }) {
         ? nm(chosen[0].n)
         : plural(chosen.length, L('país', 'country'), L('países', 'countries'));
 
+  /** The address that opens this section with this map and this game chosen. */
+  const mapUrl = mapLinkUrl(section, {
+    ids: isPhys ? selected : chosen.map((c) => c.id),
+    levels: section === 'regions' ? Object.fromEntries(multi.map((c) => [c.id, levelOf(c, levels).k])) : {},
+    mode: def.id,
+    ...(section === 'cities' ? { cityPick: opts.cityPick, cityCount: opts.cityCount } : {}),
+  });
+
   return (
     <div className="setup">
       <header className="setup-head">
@@ -524,6 +596,23 @@ export function Setup({ section, world }: { section: Section; world: World }) {
       </header>
 
       <section className="step setup-main">
+        {opened && (
+          <p className={cx('linked', !opened.map && !opened.mode && 'linked-none')} role="status">
+            <Link2 size={16} aria-hidden="true" />
+            <span>
+              {opened.map && opened.mode
+                ? L('Has abierto un enlace: ya están elegidos el mapa y el juego que traía.', 'You have opened a link: the map and the game it brought are already chosen.')
+                : opened.map
+                  ? L('Has abierto un enlace: ya está elegido el mapa que traía.', 'You have opened a link: the map it brought is already chosen.')
+                  : opened.mode
+                    ? L('Has abierto un enlace: ya está elegido el juego que traía. Su mapa no está entre los de esta sección.', 'You have opened a link: the game it brought is already chosen. Its map is not among those of this section.')
+                    : L('Ese enlace no trae nada que esta sección tenga: se queda lo que había elegido.', 'That link brings nothing this section has: what was chosen stays.')}
+            </span>
+            <button type="button" className="icon-btn" onClick={() => setOpened(null)} aria-label={L('Cerrar el aviso', 'Close the notice')}>
+              <X size={15} aria-hidden="true" />
+            </button>
+          </p>
+        )}
         <h2>
           <span className="step-n">01</span> {active ? L('Lista', 'List') : isPhys ? L('Qué y dónde', 'What and where') : L('Países', 'Countries')}
         </h2>
@@ -929,6 +1018,7 @@ export function Setup({ section, world }: { section: Section; world: World }) {
                 </Toggle>
               )}
             </div>
+            {!active && (isPhys || chosen.length > 0) && <CopyLink url={mapUrl} />}
           </section>
         </div>
         <div className="startbar">

@@ -65,7 +65,9 @@ describe('screens', () => {
   });
 
   it('says so when an address is nothing', () => {
-    for (const path of ['nada', 'regiones/ES', 'jugar/ya', 'progreso/x', 'contenido']) expect(routeOf(path, now)).toEqual({ kind: 'unknown', path });
+    for (const path of ['nada', 'regiones/españa', 'regiones/es', 'jugar/ya', 'progreso/x', 'contenido']) expect(routeOf(path, now)).toEqual({ kind: 'unknown', path });
+    // A section followed by a country is a link to that map (`maplink.ts`).
+    expect(routeOf('regiones/ES', now)).toEqual({ kind: 'section', section: 'regions', link: { ids: ['ES'], levels: {} } });
     // What the audit typed is not unknown once it has been put right.
     expect(routeOf(canonicalPath('fisico'), now)).toEqual({ kind: 'section', section: 'physical' });
     expect(routeOf(canonicalPath('figuras'), now)).toEqual({ kind: 'section', section: 'pops' });

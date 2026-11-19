@@ -9,7 +9,7 @@ import { L, getLang } from './lib/i18n';
 import { SECTIONS, SECTION_IDS } from './lib/modes';
 import { applyMeta } from './lib/pageMeta';
 import { followLang, go, inGame, useRoute } from './lib/router';
-import { ABOUT_PATH, PROGRESS_PATH, SETTINGS_PATH, routeOf, screenPage } from './lib/routes';
+import { ABOUT_PATH, PATHS, PROGRESS_PATH, SETTINGS_PATH, routeOf, screenPage } from './lib/routes';
 import { shortcutOf } from './lib/shortcuts';
 import { useStore, type Theme } from './lib/store';
 import { cx, today } from './lib/text';
@@ -200,14 +200,14 @@ export function App() {
   else if (route.kind === 'daily') page = <Daily key={route.date} world={world} date={route.date} />;
   else if (route.kind === 'duel') page = <Duel key={route.code} code={route.code} world={world} />;
   else if (route.kind === 'list') page = <ListLink key={route.code} code={route.code} world={world} />;
-  else if (section) page = <Setup key={section} section={section} world={world} />;
+  else if (section) page = <Setup key={section} section={section} world={world} link={route.kind === 'section' ? route.link : undefined} />;
   else if (progress) page = <Progress world={world} />;
   else if (route.kind === 'settings') page = <Settings world={world} path={route.path} />;
   else page = <Home world={world} />;
 
   // What breaks stays inside its screen, and moving to another one leaves it behind.
   const guarded = (
-    <ErrorBoundary key={route.kind === 'settings' ? SETTINGS_PATH : path}>
+    <ErrorBoundary key={route.kind === 'settings' ? SETTINGS_PATH : route.kind === 'section' ? PATHS[route.section] : path}>
       <Suspense fallback={<Spinner label={L('Cargando…', 'Loading…')} />}>{page}</Suspense>
     </ErrorBoundary>
   );
