@@ -1354,6 +1354,25 @@ button.chip.on:hover:not(:disabled) {
   line-height: 1.5;
   text-align: center;
 }
+/* On a phone the continents do not fit in one line, and a strip that scrolls hides the last ones: they wrap. */
+@media (max-width: 560px) {
+  .picker-tabs {
+    flex-wrap: wrap;
+    gap: 2px;
+    overflow-x: visible;
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+  .tab {
+    margin-bottom: 0;
+    padding: 7px 10px;
+    border-radius: 8px 8px 0 0;
+    font-size: 14.5px;
+  }
+  .tab.on {
+    background: var(--brand-soft);
+  }
+}
 
 .picker-quick {
   display: flex;
@@ -1909,6 +1928,76 @@ button.chip.on:hover:not(:disabled) {
   white-space: nowrap;
   padding-right: 0;
   padding-left: 12px;
+}
+/* The latest games on a phone: six cells do not fit side by side, so each game is three lines — what was
+   played and its score, on which map, and when, how many first time and how long. */
+@media (max-width: 560px) {
+  .sessions.games,
+  .sessions.games tbody {
+    display: block;
+  }
+  .sessions.games thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .sessions.games tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 6px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .sessions.games td {
+    padding: 0;
+    border: 0;
+    white-space: normal;
+    text-align: left;
+  }
+  .sessions.games .g-game {
+    order: 1;
+    flex: 1 1 0;
+    min-width: 0;
+    font-weight: 600;
+  }
+  .sessions.games .g-score {
+    order: 2;
+    flex: none;
+    font-weight: 700;
+  }
+  .sessions.games .g-map {
+    order: 3;
+    flex: 0 0 100%;
+    color: var(--ink-2);
+  }
+  .sessions.games .g-when,
+  .sessions.games .g-first,
+  .sessions.games .g-time {
+    margin-top: 2px;
+    color: var(--ink-3);
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .sessions.games .g-when {
+    order: 4;
+  }
+  .sessions.games .g-first {
+    order: 5;
+  }
+  .sessions.games .g-time {
+    order: 6;
+  }
+  .sessions.games .g-first::before,
+  .sessions.games .g-time::before {
+    content: '· ';
+  }
+  .sessions.games .g-first::after {
+    content: ' ' attr(data-label);
+  }
 }
 .backup {
   display: flex;
