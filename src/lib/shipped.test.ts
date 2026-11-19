@@ -10,7 +10,7 @@ async function shippingWith(file: unknown) {
   vi.doMock('./typeins.default.json', () => ({ default: file }));
   const typeins = await import('./typeins');
   const data = await import('./data');
-  const text = await import('./text');
+  const text = await import('./matcher');
   const i18n = await import('./i18n');
   i18n.setLang('es');
   data.setLoader(async (p) => JSON.parse(fs.readFileSync(path.join(process.cwd(), 'public/data', p), 'utf8')));

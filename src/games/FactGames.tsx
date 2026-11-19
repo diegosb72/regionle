@@ -12,7 +12,8 @@ import { modeNameIn } from '../lib/modes';
 import { TRUE_FALSE_ROUND } from '../lib/pace';
 import { makeStatement, type Statement, type StatementWorld } from '../lib/statements';
 import { useStore, type GameConfig } from '../lib/store';
-import { Matcher, cx, nf, shortNote } from '../lib/text';
+import { Matcher, shortNote } from '../lib/matcher';
+import { cx, nf } from '../lib/text';
 import type { Country, Res } from '../lib/types';
 import { GameShell, Hud, Results, Verdict, answered, useElapsed, type ResultRow } from './common';
 

@@ -10,7 +10,8 @@ import { Flag } from '../components/ui';
 import { L, nm } from '../lib/i18n';
 import { MODE_NAME } from '../lib/modes';
 import { useStore } from '../lib/store';
-import { Matcher, cx, fmtTime, hintMax, letterHint, nf, pick, shortNote } from '../lib/text';
+import { Matcher, shortNote } from '../lib/matcher';
+import { cx, fmtTime, hintMax, letterHint, nf, pick } from '../lib/text';
 import type { Res } from '../lib/types';
 import { GameShell, Hud, Results, originOf, useElapsed, useFlashSignal, type GameProps, type ResultRow } from './common';
 

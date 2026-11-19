@@ -12,7 +12,8 @@ import { challenger, comparable, dealFive, metricOf, metricsIn, type Fig, type M
 import { L } from '../lib/i18n';
 import { modeNameIn } from '../lib/modes';
 import { useStore, type GameConfig } from '../lib/store';
-import { Matcher, cx, judgeAmount, listed, nf, parseNumber, pick, shortNote, shuffle } from '../lib/text';
+import { Matcher, shortNote } from '../lib/matcher';
+import { cx, judgeAmount, listed, nf, parseNumber, pick, shuffle } from '../lib/text';
 import type { Deck, Res } from '../lib/types';
 import { GameShell, Hud, Results, Verdict, useElapsed, type ResultRow } from './common';
 

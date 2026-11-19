@@ -6,7 +6,8 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { buildDeck, setLoader } from './data';
 import { buildCityDeck } from './extra';
 import { setLang } from './i18n';
-import { Matcher, type Answerable } from './text';
+import { Matcher } from './matcher';
+import { type Answerable } from './text';
 
 /** A region of a country with these names, the first of them the one on show. */
 const region = (id: string, within: string, names: string[], add: string[] = []): Answerable => ({ id, within, answers: names, proper: names, ...(add.length ? { short: { add } } : {}) });

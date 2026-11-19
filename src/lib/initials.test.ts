@@ -6,7 +6,8 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { buildDeck, loadIndex, setLoader } from './data';
 import { buildCityDeck, buildPhysicalDeck } from './extra';
 import { setLang } from './i18n';
-import { Matcher, initialsOf, type Answerable } from './text';
+import { Matcher, initialsOf } from './matcher';
+import { type Answerable } from './text';
 import type { Deck } from './types';
 
 // The game as it shipped before it came with a list for its regions: nothing but RI switched off. These

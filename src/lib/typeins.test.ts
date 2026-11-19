@@ -7,7 +7,8 @@ import { buildDeck, countryAnswers, loadIndex, setLoader } from './data';
 import { buildCityDeck, buildPhysicalDeck } from './extra';
 import { setLang } from './i18n';
 import { useStore } from './store';
-import { Matcher, shortFormsOf, type Answerable, type ShortEdit } from './text';
+import { Matcher, shortFormsOf } from './matcher';
+import { type Answerable, type ShortEdit } from './text';
 import { SAMPLES, SETTINGS_PATH, TYPEIN_TABS, chipViews, locateTypein, settingsLink, typeinGroups, typeinScopes, type TypeinGroup } from './typeinList';
 import {
   MAX_FORMS,

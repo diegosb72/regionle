@@ -7,7 +7,8 @@ import { PHYS_KINDS, buildCityDeck, buildPhysicalDeck, countryToken, kindNoun, l
 import { L, getLang, levelNoun, nm } from './i18n';
 import { SETTINGS_PATH } from './routes';
 import { spellingsOf, type Spellings } from './spellings';
-import { Matcher, codeOf, key, shortFormsOf, type Answerable } from './text';
+import { Matcher, codeOf, shortFormsOf } from './matcher';
+import { key, type Answerable } from './text';
 import { capKey, capitalAnswers, chipsOf, editOf, type Chip, type TypeinSettings } from './typeins';
 import type { Country, Item } from './types';
 

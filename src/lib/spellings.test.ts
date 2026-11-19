@@ -6,7 +6,8 @@ import path from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { setLoader } from './data';
 import { spellingsOf } from './spellings';
-import { Matcher, patternTakes } from './text';
+import { Matcher } from './matcher';
+import { patternTakes } from './text';
 import { chipViews, typeinGroups, typeinScopes, type ChipView, type TypeinGroup } from './typeinList';
 import { SHIPPED, editOf, switchForm, type TypeinSettings } from './typeins';
 
