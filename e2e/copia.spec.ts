@@ -7,6 +7,18 @@ import fs from 'node:fs';
 import { OPTS, open, seed } from './helpers';
 
 const DAY = 86_400_000;
+/** Where the browser of these tests lives (playwright.config.ts). */
+const ZONE = 'Europe/Madrid';
+/**
+ * Midday of the day that came so many days of the calendar before `now`, where the browser is. The game
+ * says how long ago a copy was made in days of the calendar, and `now - days * DAY` is not always that day:
+ * the day the clocks change has 25 hours, so in the last hour of a November day thirty times 24 hours
+ * back falls in the small hours of 29 days ago.
+ */
+function daysBefore(now: number, days: number): number {
+  const [y, m, d] = new Intl.DateTimeFormat('en-CA', { timeZone: ZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now).split('-').map(Number);
+  return Date.UTC(y, m - 1, d - days, 12);
+}
 const IDS = ['AN', 'AR', 'AS', 'CB', 'CL', 'CM', 'CT', 'EX'].map((x) => `ES-${x}`);
 const kept = (page: Page) => page.evaluate(() => JSON.parse(localStorage.getItem('regionle:v1') ?? '{}').state as Record<string, unknown>);
 
@@ -36,7 +48,7 @@ function copy(now: number, prefs: Record<string, unknown> | null = { theme: 'dar
   return {
     app: 'regionle',
     version: prefs ? 4 : 3,
-    exported: new Date(now - 30 * DAY).toISOString(),
+    exported: new Date(daysBefore(now, 30)).toISOString(),
     stats,
     where: { 'ES-AN': 'r|ES|g1', 'ES-AR': 'r|ES|g1', 'ES-AS': 'r|ES|g1' },
     sessions: [],
@@ -174,7 +186,8 @@ test.describe('the reminder of a backup', () => {
 
   test('counts from the last copy, and can be put off', async ({ page }) => {
     const now = Date.now();
-    await seed(page, player(now, { backup: { at: now - 21 * DAY, from: now - 21 * DAY, q: 40 } }));
+    const at = daysBefore(now, 21);
+    await seed(page, player(now, { backup: { at, from: at, q: 40 } }));
     await open(page, '/progreso');
     await expect(due(page)).toContainText('Llevas 372 respuestas desde tu última copia de seguridad (hace 21 días).');
     await due(page).getByRole('button', { name: 'Ahora no' }).click();
@@ -182,7 +195,7 @@ test.describe('the reminder of a backup', () => {
     // Put off, not made: the date of the last copy stays.
     const mark = (await kept(page)).backup as { at: number; q: number };
     expect(mark.q).toBe(412);
-    expect(Math.round((now - mark.at) / DAY)).toBe(21);
+    expect(mark.at).toBe(at);
     await page.reload();
     await expect(page.locator('.backup-block')).toBeVisible();
     await expect(due(page)).toHaveCount(0);
