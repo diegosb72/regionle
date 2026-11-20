@@ -8,6 +8,7 @@ import type { CityPick } from './extra';
 import { GOALS_MAX, cleanGoals, goalWithout, sameGoal, withMark, type Goal } from './goals';
 import type { Lang } from './i18n';
 import { cleanMix, dropMix, withMix, type Mix } from './mix';
+import { cleanHand, dropHand, withHand, type Hand, type HandMap } from './handKept';
 import { cleanNotes, dropNotes, withNote, type Notes } from './notes';
 import { PALETTE_DEFAULT, isPalette, type Palette } from './palette';
 import { TEXT_SIZE_DEFAULT, isTextSize, type TextSize } from './reading';
@@ -295,6 +296,8 @@ export interface State {
   goals: Goal[];
   /** The player's own notes about a piece, by its id (see lib/notes.ts). */
   notes: Notes;
+  /** The maps painted by hand in Explore, by the key of each map (see lib/hand.ts). */
+  hand: Hand;
   /** The flags learnt at some time, which stay in the album (see `FlagAlbum`). */
   album: FlagAlbum;
   /** Achievements earned: id → when. */
@@ -368,6 +371,8 @@ export interface State {
   markGoals(): void;
   /** Writes the note of a piece; an empty one takes it away. False when there is no room for a new one. */
   setNote(id: string, text: string): boolean;
+  /** Keeps the painting of a map; a blank one, or null, takes it away. */
+  setHand(key: string, map: HandMap | null): void;
   /** Marks achievements as earned now. */
   earn(ids: string[]): void;
   /** Adds to lifetime tallies. */
@@ -444,6 +449,7 @@ export const useStore = create<State>()(
       listOn: {},
       goals: [],
       notes: {},
+      hand: {},
       album: {},
       badges: {},
       tot: {},
@@ -475,6 +481,10 @@ export const useStore = create<State>()(
         if (!notes) return false;
         if (notes !== get().notes) set({ notes });
         return true;
+      },
+      setHand: (key, map) => {
+        const hand = withHand(get().hand, key, map);
+        if (hand !== get().hand) set({ hand });
       },
       setWelcomed: () => set({ welcomed: true }),
       setHotkeys: (hotkeys) => set({ hotkeys }),
@@ -605,6 +615,7 @@ export const useStore = create<State>()(
             ...dropAnswers(s.stats, s.where, ids),
             mix: dropMix(s.mix, ids),
             notes: dropNotes(s.notes, ids),
+            hand: dropHand(s.hand, ids),
             ...(goals.some((g, i) => g !== s.goals[i]) ? { goals: goals.filter((g): g is Goal => !!g) } : {}),
           };
         }),
@@ -657,6 +668,8 @@ export const useStore = create<State>()(
           goals: Array.isArray(d.goals) ? cleanGoals(d.goals) : get().goals,
           // Nor does one from before there were notes: what has been written stays.
           notes: d.notes && typeof d.notes === 'object' ? cleanNotes(d.notes) : get().notes,
+          // Nor does one from before maps could be painted by hand: what has been painted stays.
+          hand: d.hand && typeof d.hand === 'object' ? cleanHand(d.hand) : get().hand,
           // The album of the copy, and the flags its answers have learnt: one from before the album has those.
           album: withFlags(cleanAlbum(d.album), d.stats ?? {}),
           badges: d.badges && typeof d.badges === 'object' ? d.badges : {},
@@ -698,6 +711,7 @@ export const useStore = create<State>()(
         listOn: s.listOn,
         goals: s.goals,
         notes: s.notes,
+        hand: s.hand,
         album: s.album,
         badges: s.badges,
         tot: s.tot,
@@ -772,6 +786,7 @@ export function mergeSaved(saved: unknown, current: State): State {
     rivals: cleanRivals(p.rivals),
     goals: cleanGoals(p.goals),
     notes: cleanNotes(p.notes),
+    hand: cleanHand(p.hand),
     // Players from before the album start with the flags they have learnt.
     album: withFlags(cleanAlbum(p.album), p.stats && typeof p.stats === 'object' ? p.stats : {}),
     hotkeys: p.hotkeys !== false,

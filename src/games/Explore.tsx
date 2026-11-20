@@ -1,4 +1,4 @@
-/** Explore: no questions, just the map with names, facts and links to study, a ruler to measure it with and a way to set two pieces against each other by their size. */
+/** Explore: no questions, just the map with names, facts and links to study, a ruler to measure it with, a way to set two pieces against each other by their size and colours to paint it by hand. */
 import { NotebookPen, Ruler, Search } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { PieceHistory } from '../components/History';
@@ -9,6 +9,7 @@ import { WikiCard } from '../components/WikiCard';
 import { Flag, LinkPill, StudyLinks, Toggle, capitalise } from '../components/ui';
 import { fmtCoord } from '../lib/coords';
 import { distanceKm } from '../lib/geo';
+import { brushed, handColourName } from '../lib/hand';
 import { L, capName, getLang, nm } from '../lib/i18n';
 import { divisionsLink } from '../lib/links';
 import { MODE_NAME } from '../lib/modes';
@@ -17,6 +18,7 @@ import { fmtArea, fmtDist, fmtPop, key, nf } from '../lib/text';
 import { dist } from '../lib/units';
 import type { Item, LL } from '../lib/types';
 import { GameShell, showsCountry, type GameProps } from './common';
+import { HandPaint } from './HandPaint';
 import { SizeCompare } from './SizeCompare';
 
 export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
@@ -31,6 +33,13 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const [pair, setPair] = useState<string[]>([]);
   /** The last piece chosen had no surface to compare: a river, a peak, a city. */
   const [odd, setOdd] = useState(false);
+  /** The colours: while they are out, a click paints a piece with the one in the hand. */
+  const [painting, setPainting] = useState(false);
+  const [brush, setBrush] = useState(1);
+  /** What the last touch of the brush did, for whoever does not see the map. */
+  const [daubed, setDaubed] = useState('');
+  const hand = useStore((s) => s.hand[deck.key]);
+  const setHand = useStore((s) => s.setHand);
   const map = useRef<MapHandle>(null);
   const stats = useStore((s) => s.stats);
   const notes = useStore((s) => s.notes);
@@ -64,10 +73,33 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
     [deck],
   );
 
+  /** A map of countries or of regions can be painted: one of dots or of lines has nothing to fill in. */
+  const paintable = deck.scope === 'countries' || deck.scope === 'regions';
+  const handCount = useMemo(() => (hand ? Object.keys(hand.f).filter((id) => deck.byId.has(id)).length : 0), [hand, deck]);
+  /** A touch of the brush: the piece takes its colour, or loses it if it had that one already. */
+  const daub = useCallback(
+    (id: string) => {
+      const it = deck.byId.get(id);
+      if (!it) return;
+      const next = brushed(hand, id, brush, Date.now());
+      if (!next) {
+        setDaubed(L('No caben más piezas pintadas en este mapa.', 'There is no room for more painted pieces on this map.'));
+        return;
+      }
+      setHand(deck.key, next);
+      const now = next.f[id];
+      setDaubed(now ? `${it.name}: ${handColourName(now)}.` : L(`${it.name}: sin color.`, `${it.name}: no colour.`));
+    },
+    [deck, hand, brush, setHand],
+  );
+
   const paint = useMemo(() => {
     const p: Record<string, Paint> = {};
     if (listed) for (const it of deck.items) if (!listed.has(it.id)) p[it.id] = 'dim';
-    if (sizing) {
+    if (painting) {
+      // What has been painted, and nothing else: the piece on show keeps its card, not its colour.
+      if (hand) for (const [id, colour] of Object.entries(hand.f)) if (deck.byId.has(id)) p[id] = `h${colour}` as Paint;
+    } else if (sizing) {
       // Each of the two in the colour it has in the drawing.
       if (pair[0]) p[pair[0]] = 'from';
       if (pair[1]) p[pair[1]] = 'to';
@@ -77,7 +109,7 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
       p[item.id] = 'sel';
     }
     return p;
-  }, [item, listed, deck, sizing, pair]);
+  }, [item, listed, deck, sizing, pair, painting, hand]);
 
   const pinned = useMemo(() => (sel ? new Set([sel]) : undefined), [sel]);
   /** Two clicks are a distance; a third starts another. */
@@ -103,7 +135,7 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
           deck={deck}
           paint={paint}
           pickable={!ruler}
-          onPick={ruler ? undefined : sizing ? compare : (id) => choose(id, false)}
+          onPick={ruler ? undefined : sizing ? compare : painting ? daub : (id) => choose(id, false)}
           onPoint={ruler ? measure : undefined}
           marks={marks}
           links={links}
@@ -233,7 +265,10 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
             onChange={(on) => {
               setRuler(on);
               setEnds([]);
-              if (on) setSizing(false);
+              if (on) {
+                setSizing(false);
+                setPainting(false);
+              }
             }}
             hint={L('Marca dos puntos en el mapa y te decimos cuánto hay de uno a otro.', 'Mark two points on the map and we tell you how far it is from one to the other.')}
           >
@@ -270,6 +305,7 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
                 if (on) {
                   setRuler(false);
                   setEnds([]);
+                  setPainting(false);
                 }
               }}
               hint={L('Elige dos piezas del mapa y las verás una sobre otra, a la misma escala.', 'Choose two pieces of the map and see them one over the other, at the same scale.')}
@@ -291,6 +327,47 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
             />
           )}
 
+          {paintable && (
+            <Toggle
+              checked={painting}
+              onChange={(on) => {
+                setPainting(on);
+                setDaubed('');
+                if (on) {
+                  setRuler(false);
+                  setEnds([]);
+                  setSizing(false);
+                  setPair([]);
+                  setOdd(false);
+                }
+              }}
+              hint={
+                handCount && !painting
+                  ? L(`Tienes ${nf(handCount)} ${handCount === 1 ? deck.noun.one : deck.noun.many} con color en este mapa.`, `You have ${nf(handCount)} coloured ${handCount === 1 ? deck.noun.one : deck.noun.many} on this map.`)
+                  : L('Elige un color y toca las piezas: dónde has estado, cómo las agrupas, lo que quieras.', 'Pick a colour and tap the pieces: where you have been, how you group them, whatever you like.')
+              }
+            >
+              {L('Pintar el mapa', 'Paint the map')}
+            </Toggle>
+          )}
+          {painting && (
+            <HandPaint
+              deck={deck}
+              title={cfg.list ? `${deck.title} · ${cfg.list}` : deck.title}
+              map={hand}
+              brush={brush}
+              said={daubed}
+              onBrush={(next) => {
+                setBrush(next);
+                setDaubed('');
+              }}
+              onChange={(next) => {
+                setHand(deck.key, next);
+                if (!next) setDaubed('');
+              }}
+            />
+          )}
+
           <label className="search">
             <Search size={16} aria-hidden="true" />
             <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={L(`Buscar entre ${sorted.length} ${deck.noun.many}…`, `Search ${sorted.length} ${deck.noun.many}…`)} aria-label={L('Buscar', 'Search')} />
@@ -298,10 +375,11 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
           <ul className="index">
             {shown.slice(0, 400).map((it) => (
               <li key={it.id}>
-                <button type="button" className={it.id === sel ? 'on' : undefined} onClick={() => (sizing ? compare(it.id) : choose(it.id))}>
+                <button type="button" className={it.id === sel ? 'on' : undefined} onClick={() => (sizing ? compare(it.id) : painting ? daub(it.id) : choose(it.id))}>
                   {(it.kind === 'country' || several) && <Flag code={it.country.fl} size="sm" />}
                   {it.kind === 'feature' && <i className={`kdot kdot-${it.cat}`} aria-hidden="true" />}
                   <span>{it.name}</span>
+                  {painting && hand?.f[it.id] && <i className={`hand-dot hand-c${hand.f[it.id]}`} title={capitalise(handColourName(hand.f[it.id]))} />}
                   {notes[it.id] && <NotebookPen className="noted" size={13} aria-label={L('Con apunte', 'With a note')} />}
                   {learnt(it) && <i className="learnt" title={L('Aprendido: lo sitúas y lo nombras', 'Learnt: you can place it and name it')} />}
                 </button>

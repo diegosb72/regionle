@@ -16,7 +16,8 @@ import { cx } from '../lib/text';
 import type { AnyGeo, Deck, Item, LL } from '../lib/types';
 
 /** Look of an item on the map. */
-export type Paint = 'ok' | 'warn' | 'bad' | 'target' | 'from' | 'to' | 'sel' | 'near' | 'dim' | 'due';
+/** How a piece is painted. `h1` to `h6` are the colours of a map painted by hand (lib/hand.ts), which come with that tool (games/hand.css). */
+export type Paint = 'ok' | 'warn' | 'bad' | 'target' | 'from' | 'to' | 'sel' | 'near' | 'dim' | 'due' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 
 export interface MapHandle {
   /**

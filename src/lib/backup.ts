@@ -23,7 +23,7 @@ export function prefsOf(s: Prefs): Prefs {
   return { theme: s.theme, cb: s.cb, sound: s.sound, haptic: s.haptic, hotkeys: s.hotkeys, helpAuto: s.helpAuto, iconBadge: s.iconBadge, miles: s.miles, palette: s.palette, textSize: s.textSize, contrast: s.contrast, dyslexia: s.dyslexia, reviewPace: s.reviewPace, reviewSize: s.reviewSize, dayGoal: s.dayGoal, nick: s.nick, opts: s.opts };
 }
 
-/** The file: the progress, what the player has made (selections, lists, goals, notes, short forms) and the preferences. */
+/** The file: the progress, what the player has made (selections, lists, goals, notes, painted maps, short forms) and the preferences. */
 export function backupOf(s: State, now: number) {
   return {
     app: 'regionle',
@@ -41,6 +41,7 @@ export function backupOf(s: State, now: number) {
     lists: s.lists,
     goals: s.goals,
     notes: s.notes,
+    hand: s.hand,
     album: s.album,
     badges: s.badges,
     tot: s.tot,
