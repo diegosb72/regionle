@@ -52,6 +52,14 @@ describe('how many statements true or false makes', () => {
     expect(questionsOf(size({ mode: 'truefalse', units: 193, length: 'endless' }))).toBeNull();
   });
 
+  it('is the same for the odd one out, whose questions are made up as the game goes too', () => {
+    expect(questionsOf(size({ mode: 'oddone', units: 5, length: 50 }))).toBe(50);
+    expect(questionsOf(size({ mode: 'oddone', units: 193, length: 'all' }))).toBe(TRUE_FALSE_ROUND);
+    expect(questionsOf(size({ mode: 'oddone', units: 193, length: 'endless' }))).toBeNull();
+    // Four names to read and a reason to find: it takes longer than saying true or false.
+    expect(TYPICAL_S.oddone!).toBeGreaterThan(TYPICAL_S.truefalse!);
+  });
+
   it('is a round of five for each question of north to south, like the other game of putting in order', () => {
     expect(questionsOf(size({ mode: 'compass', units: 52, length: 'all' }))).toBe(questionsOf(size({ mode: 'rank', units: 52, length: 'all' })));
     expect(questionsOf(size({ mode: 'compass', units: 52, length: 20 }))).toBe(20);

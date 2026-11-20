@@ -10,7 +10,7 @@ import { courseDeg, pointName, pointOf, saidDist } from './bearings';
 import { distanceKm } from './geo';
 import { L, nm } from './i18n';
 import type { Places } from './sets';
-import { letterCount, listed, nf, norm } from './text';
+import { joiner, letterCount, listed, nf, norm } from './text';
 import type { Deck, Item, LL } from './types';
 
 /**
@@ -176,7 +176,7 @@ function partHint(item: Item, deck: Deck, places?: Places): Hint | null {
 }
 
 /** "y", or "e" before a name that begins with the sound of an i: «Francia e Italia», but «Chile y Hielo». */
-const and = (next: string): string => (/^h?i(?![aeou])/i.test(norm(next)) ? 'e' : 'y');
+const and = (next: string): string => joiner('y', next);
 
 /** Most neighbours that are named: more would be a list to read, not a hint. */
 export const NEAR_MAX = 3;

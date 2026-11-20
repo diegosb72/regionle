@@ -3,7 +3,7 @@
  * game was called; this keeps what it takes to start it: which countries, at which level, in which game.
  */
 import { PATHS } from './routes';
-import { FORMAT_MODES } from './rules';
+import { FORMAT_MODES, MADE_UP_MODES } from './rules';
 import type { GameConfig, Opts, SessionRec } from './store';
 import type { Mode, Section } from './types';
 
@@ -40,7 +40,7 @@ function optsOf(game: GameConfig): RecentOpts {
     if (game.opts.cityPick === 'top') o.cityCount = game.opts.cityCount;
   }
   // The figure is the game where there is a choice of them; statements that are true or false are about them all.
-  if (game.section === 'pops' && game.mode !== 'truefalse') o.metric = game.opts.metric;
+  if (game.section === 'pops' && !MADE_UP_MODES.includes(game.mode)) o.metric = game.opts.metric;
   if (game.mode === 'compass') o.axis = game.opts.axis ?? 'ns';
   // Only bearings and only distances are two games; a state kept before the option existed asks both.
   if (game.mode === 'bearing') o.bearingAsk = game.opts.bearingAsk ?? 'both';

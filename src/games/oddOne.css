@@ -1,0 +1,39 @@
+/* The odd one out: four countries to choose from, two by two. The rest is what "true or false" wears. */
+.odd-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: min(100%, 520px);
+}
+.odd-btn {
+  position: relative;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 116px;
+  padding: 16px 10px 12px;
+  font-size: calc(16px * var(--fs));
+  line-height: 1.2;
+  white-space: normal;
+  text-align: center;
+}
+.odd-btn kbd {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  margin: 0;
+}
+.odd-name {
+  overflow-wrap: anywhere;
+}
+/* The one that was picked wrongly keeps its name readable: it is the flag and the colour that say so. */
+.odd-btn.wrong {
+  text-decoration: none;
+}
+.odd-btn.wrong .odd-name {
+  text-decoration: line-through;
+}
+@media (hover: none) {
+  .odd-btn kbd {
+    display: none;
+  }
+}

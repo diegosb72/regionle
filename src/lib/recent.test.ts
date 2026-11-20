@@ -80,11 +80,13 @@ describe('what is kept of a game to play it again', () => {
     expect(recentConfig(exam!, DEFAULT_OPTS).opts.format).toBe('exam');
   });
 
-  it('keeps the figure of a game about countries, which true or false does not have', () => {
+  it('keeps the figure of a game about countries, which true or false and the odd one out do not have', () => {
     const top = recentOf(game({ section: 'pops', mode: 'topten', countries: ['ES', 'FR'], opts: { ...DEFAULT_OPTS, metric: 'density' } }), session({ section: 'pops', mode: 'topten' }));
     expect(top?.o).toEqual({ metric: 'density' });
     const tf = recentOf(game({ section: 'pops', mode: 'truefalse', countries: ['ES', 'FR'], opts: { ...DEFAULT_OPTS, metric: 'density' } }), session({ section: 'pops', mode: 'truefalse' }));
     expect(tf?.o).toEqual({});
+    const odd = recentOf(game({ section: 'pops', mode: 'oddone', countries: ['ES', 'FR'], opts: { ...DEFAULT_OPTS, metric: 'density' } }), session({ section: 'pops', mode: 'oddone' }));
+    expect(odd?.o).toEqual({});
   });
 
   it('is nothing for a review, a challenge, a round of misses, a list or the editor of lists', () => {

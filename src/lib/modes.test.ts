@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { setLang } from './i18n';
 import { GROUP_NAME, MODES, MODE_GROUPS, MODE_NAME, SECTION_IDS, cardAskName, modeNameIn } from './modes';
 import { TYPICAL_S } from './pace';
-import { FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, NOT_GAMES, ROUND_MODES, asksByFlag, turnsOutlines } from './rules';
+import { FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, MADE_UP_MODES, NOT_GAMES, ROUND_MODES, asksByFlag, turnsOutlines } from './rules';
 import type { Mode } from './types';
 
 beforeEach(() => setLang('es'));
@@ -15,7 +15,7 @@ describe('the games of each section', () => {
     expect(ids('countries')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'puzzle', 'group', 'mix', 'outline', 'regionle', 'neighbours', 'border', 'chain', 'travel', 'compass', 'bearing', 'coords', 'capital', 'flag', 'whoami']);
     expect(ids('cities')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'group', 'mix', 'parent', 'compass', 'bearing', 'coords', 'whoami', 'hilo', 'rank', 'exact', 'which', 'topten']);
     expect(ids('physical')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'mix', 'hilo', 'rank', 'exact', 'which', 'topten']);
-    expect(ids('pops')).toEqual(['hilo', 'rank', 'exact', 'which', 'topten', 'truefalse']);
+    expect(ids('pops')).toEqual(['hilo', 'rank', 'exact', 'which', 'topten', 'truefalse', 'oddone']);
   });
 
   it('appear once each, with a name, a line about it, an icon and a level', () => {
@@ -82,6 +82,7 @@ describe('what a game is called', () => {
     expect(MODE_NAME.compass).toBe('Norte–sur');
     expect(MODE_NAME.parent).toBe('¿A qué pertenece?');
     expect(MODE_NAME.truefalse).toBe('Verdadero o falso');
+    expect(MODE_NAME.oddone).toBe('El intruso');
     expect(MODE_NAME.topten).toBe('Los diez primeros');
     expect(MODE_NAME.print).toBe('Mapa mudo');
     expect(MODE_NAME.cards).toBe('Tarjetas');
@@ -98,6 +99,7 @@ describe('what a game is called', () => {
     expect(MODE_NAME.compass).toBe('North–south');
     expect(MODE_NAME.parent).toBe('Where does it belong?');
     expect(MODE_NAME.truefalse).toBe('True or false');
+    expect(MODE_NAME.oddone).toBe('Odd one out');
     expect(MODE_NAME.topten).toBe('The top ten');
   });
 });
@@ -111,7 +113,7 @@ describe('the rules the menus go by', () => {
   });
 
   it('let the number of questions be chosen in every game of rounds, and in true or false', () => {
-    for (const id of [...ROUND_MODES, 'truefalse', 'parent'] as Mode[]) expect(LENGTH_MODES, id).toContain(id);
+    for (const id of [...ROUND_MODES, ...MADE_UP_MODES, 'parent'] as Mode[]) expect(LENGTH_MODES, id).toContain(id);
     // Lists typed from memory have the length of the list.
     for (const id of ['nameall', 'topten', 'hilo'] as Mode[]) expect(LENGTH_MODES, id).not.toContain(id);
   });

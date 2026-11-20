@@ -16,7 +16,7 @@ import { encodeList, listConfig, listPlayable, listUrl } from '../lib/lists';
 import { mapLinkRest, type MapLink } from '../lib/maplink';
 import { GROUP_NAME, MODES, MODE_GROUPS, SECTIONS, cardAskName, formatName } from '../lib/modes';
 import { estimateOf, minutesOf, paceOf, percentOf, questionsOf } from '../lib/pace';
-import { FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, ROUND_MODES, TOP_MIN, asksByFlag, turnsOutlines } from '../lib/rules';
+import { FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, MADE_UP_MODES, ODD_MIN, ROUND_MODES, TOP_MIN, asksByFlag, turnsOutlines } from '../lib/rules';
 import { go, settle } from '../lib/router';
 import { PATHS, mapLinkUrl } from '../lib/routes';
 import { useStore, type CardAsk, type CustomList, type LessonOrder, type Length, type Opts } from '../lib/store';
@@ -424,7 +424,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
   const capitalsReady = section !== 'regions' || def.id !== 'capital' || !capitals || chosen.some((c) => capitals[c.id]?.[levelOf(c, levels).k]);
   /** "Los diez primeros" takes a list long enough for its top to be a part of it. */
   const figMin = def.id === 'topten' ? TOP_MIN : 2;
-  const need = section === 'pops' && def.id === 'topten' ? TOP_MIN : section === 'countries' || section === 'pops' ? 2 : 1;
+  const need = section === 'pops' && def.id === 'topten' ? TOP_MIN : def.id === 'oddone' ? ODD_MIN : section === 'countries' || section === 'pops' ? 2 : 1;
   /** The number games need things that share a figure: among rivers and ranges there is none. */
   const noFigures = useMemo(() => {
     if (!isPhys || !physical || !FIGURE_MODES.includes(def.id)) return false;
@@ -538,7 +538,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
   const lengths: { value: Length; label: ReactNode; title?: string }[] =
     ROUND_MODES.includes(def.id)
       ? [{ value: 'all', label: L('10 rondas', '10 rounds') }, { value: 20, label: '20' }, { value: 50, label: '50' }, { ...endless, title: L('Sin fin', 'Endless') }]
-      : def.id === 'truefalse'
+      : MADE_UP_MODES.includes(def.id)
         ? [{ value: 10, label: '10' }, { value: 20, label: '20' }, { value: 50, label: '50' }, { ...endless, title: L('Sin fin', 'Endless') }]
         : finite
         ? [{ value: 'all', label: L('Todo', 'All') }, { value: 10, label: '10' }, { value: 20, label: '20' }, { value: 50, label: '50' }]
@@ -1030,8 +1030,8 @@ export function Setup({ section, world, link }: { section: Section; world: World
                   <span className="opt-label">{L('Preguntas', 'Questions')}</span>
                   <Seg
                     label={L('Número de preguntas', 'Number of questions')}
-                    // "All" is twenty statements where they are made up as the game goes.
-                    value={finite && opts.length === 'endless' ? 'all' : def.id === 'truefalse' && opts.length === 'all' ? 20 : opts.length}
+                    // "All" is twenty questions where they are made up as the game goes.
+                    value={finite && opts.length === 'endless' ? 'all' : MADE_UP_MODES.includes(def.id) && opts.length === 'all' ? 20 : opts.length}
                     onChange={(length) => set({ length })}
                     options={lengths}
                   />

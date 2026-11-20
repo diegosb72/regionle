@@ -627,6 +627,25 @@ export function helpOf(mode: Mode, section: Section): ModeHelp | null {
         ),
         tip: L('Lo que se aprende es el dato, no el acierto: léelo aunque hayas acertado.', 'What you learn is the fact, not the right answer: read it even if you got it right.'),
       };
+    case 'oddone':
+      return {
+        steps: [
+          L(
+            'Salen cuatro países y una pregunta que dice qué tienen tres de ellos en común: el continente, la salida al mar, un vecino, el tamaño, los habitantes…',
+            'Four countries come up with a question that says what three of them have in common: the continent, a coast, a neighbour, the size, the people…',
+          ),
+          L('Elige el que no es como los otros tres, con un clic o con las teclas 1 a 4.', 'Choose the one that is not like the other three, with a click or with the keys 1 to 4.'),
+          L('El juego te dice siempre por qué, aciertes o no, con el dato de cada uno.', 'The game always tells you why, whether you are right or not, with the fact about each one.'),
+        ],
+        score: L(
+          'Cuenta cada acierto. Al final puedes volver a leer las que fallaste, con su explicación.',
+          'Each right answer counts. At the end you can read again the ones you missed, with their explanation.',
+        ),
+        tip: L(
+          'Cuando compara tamaños o habitantes, piensa primero en el país con el que se miden: los cuatro están cerca de él, a un lado o al otro.',
+          'When it compares sizes or people, think first of the country they are measured against: the four are close to it, on one side or the other.',
+        ),
+      };
     default:
       return null;
   }
