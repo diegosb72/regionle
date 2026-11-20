@@ -83,6 +83,16 @@ describe('how many statements true or false makes', () => {
     expect(questionsOf(size({ mode: 'pin', units: 52, length: 'all', letters: 9 }))).toBe(52);
   });
 
+  it('is four groups in connections, whatever the countries, where there are enough of them for a board', () => {
+    expect(questionsOf(size({ mode: 'connect', units: 193, length: 50 }))).toBe(4);
+    expect(questionsOf(size({ mode: 'connect', units: 16, length: 'endless' }))).toBe(4);
+    expect(questionsOf(size({ mode: 'connect', units: 15, length: 'all' }))).toBeNull();
+    expect(LENGTH_MODES).not.toContain('connect');
+    // A group is four countries to put together and what they share to find out: far longer than a question.
+    expect(TYPICAL_S.connect!).toBeGreaterThan(TYPICAL_S.alphabet! * 3);
+    expect(estimateOf('connect', 4, { games: 0, perQuestion: null, perGame: null, first: null })).toEqual({ ms: 4 * TYPICAL_S.connect! * 1000, own: false });
+  });
+
   it('is a round of five for each question of north to south, like the other game of putting in order', () => {
     expect(questionsOf(size({ mode: 'compass', units: 52, length: 'all' }))).toBe(questionsOf(size({ mode: 'rank', units: 52, length: 'all' })));
     expect(questionsOf(size({ mode: 'compass', units: 52, length: 20 }))).toBe(20);

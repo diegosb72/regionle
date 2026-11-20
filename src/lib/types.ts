@@ -221,6 +221,8 @@ export type Mode =
   | 'pairs'
   /** A country for each letter that begins a name, each with a clue; a letter can be passed and comes round again. */
   | 'alphabet'
+  /** Sixteen countries that go four by four, each four with something in common that is not said. */
+  | 'connect'
   /** The first ten by a figure, typed from memory. */
   | 'topten'
   /** Flashcards: a card is turned over and the player says whether they knew it. */

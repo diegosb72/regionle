@@ -1,5 +1,5 @@
 /** Setup: 1 what to play with, 2 mode, 3 options. */
-import { Check, ChevronDown, Infinity as InfinityIcon, Link2, ListChecks, ListPlus, Pencil, Play, Printer, Share2, Target, Timer, Trash2, X } from 'lucide-react';
+import { Check, ChevronDown, Infinity as InfinityIcon, Link2, ListChecks, ListPlus, Pencil, Play, Printer, Share2, Shuffle, Target, Timer, Trash2, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { GoalBar } from '../components/GoalBar';
 import { LESSON_SIZES, OLD, lessonOrder, lessonOrders, lessonSize } from '../games/lesson';
@@ -16,11 +16,11 @@ import { encodeList, listConfig, listPlayable, listUrl } from '../lib/lists';
 import { mapLinkRest, type MapLink } from '../lib/maplink';
 import { GROUP_NAME, MODES, MODE_GROUPS, SECTIONS, cardAskName, formatName } from '../lib/modes';
 import { estimateOf, minutesOf, paceOf, percentOf, questionsOf } from '../lib/pace';
-import { FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, MADE_UP_MODES, ODD_MIN, PAIRS_MIN, PAIR_SIZES, PAIR_SIZE_DEFAULT, ROUND_MODES, TOP_MIN, asksByFlag, turnsOutlines, type PairSize } from '../lib/rules';
+import { CONNECT_MIN, CONNECT_WIDE, FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, MADE_UP_MODES, ODD_MIN, PAIRS_MIN, PAIR_SIZES, PAIR_SIZE_DEFAULT, ROUND_MODES, TOP_MIN, asksByFlag, turnsOutlines, type PairSize } from '../lib/rules';
 import { go, settle } from '../lib/router';
 import { PATHS, mapLinkUrl } from '../lib/routes';
 import { useStore, type CardAsk, type CustomList, type LessonOrder, type Length, type Opts } from '../lib/store';
-import { cx, initialOf, nf, plural } from '../lib/text';
+import { cx, initialOf, mulberry32, nf, plural } from '../lib/text';
 import { areaUnit, distWord } from '../lib/units';
 import { SAMPLES, settingsLink } from '../lib/typeinList';
 import { SHIPPED_AUTO, inForce } from '../lib/typeins';
@@ -424,7 +424,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
   const capitalsReady = section !== 'regions' || def.id !== 'capital' || !capitals || chosen.some((c) => capitals[c.id]?.[levelOf(c, levels).k]);
   /** "Los diez primeros" takes a list long enough for its top to be a part of it. */
   const figMin = def.id === 'topten' ? TOP_MIN : 2;
-  const need = section === 'pops' && def.id === 'topten' ? TOP_MIN : def.id === 'oddone' ? ODD_MIN : def.id === 'pairs' ? PAIRS_MIN : section === 'countries' || section === 'pops' ? 2 : 1;
+  const need = section === 'pops' && def.id === 'topten' ? TOP_MIN : def.id === 'oddone' ? ODD_MIN : def.id === 'pairs' ? PAIRS_MIN : def.id === 'connect' ? CONNECT_MIN : section === 'countries' || section === 'pops' ? 2 : 1;
   /** The number games need things that share a figure: among rivers and ranges there is none. */
   const noFigures = useMemo(() => {
     if (!isPhys || !physical || !FIGURE_MODES.includes(def.id)) return false;
@@ -435,6 +435,40 @@ export function Setup({ section, world, link }: { section: Section; world: World
   }, [isPhys, physical, def.id, spec, figMin]);
   /** "¿A qué pertenece?" asks for the group of each piece: it takes a country played at its finest level, with groups above it. */
   const noGroups = def.id === 'parent' && section === 'regions' && !chosen.some((c) => c.lv.length > 1 && levelOf(c, levels).k === 'f');
+  /**
+   * "Conexiones" takes countries that go four by four in one way only: whether these do is asked of the game
+   * itself (lib/connect.ts), which is fetched when its turn comes. Until it answers, nothing is said.
+   */
+  const [boards, setBoards] = useState<'some' | 'few' | 'none'>('some');
+  const lang = getLang();
+  useEffect(() => {
+    if (def.id !== 'connect' || chosen.length < CONNECT_MIN) {
+      setBoards('some');
+      return;
+    }
+    let alive = true;
+    void import('../lib/connect').then(({ makeBoard }) => {
+      if (!alive) return;
+      const links = { byId: world.byId, continents: world.index.continents, subregions: world.index.subregions };
+      // The same draws every time: what is said does not change while the countries do not.
+      const draw = (seed: number): string | null => {
+        const board = makeBoard(chosen, links, mulberry32(seed));
+        return board
+          ? board.groups
+              .map((g) => [...g.ids].sort().join(' '))
+              .sort()
+              .join('|')
+          : null;
+      };
+      const first = draw(1);
+      // With few countries the same board comes up time and again: worth saying. With many it is not looked into.
+      const seen = new Set(first && chosen.length < CONNECT_WIDE ? [first, ...[2, 3, 4, 5, 6].map(draw)] : []);
+      setBoards(!first ? 'none' : seen.size > 0 && seen.size <= 4 ? 'few' : 'some');
+    });
+    return () => {
+      alive = false;
+    };
+  }, [def.id, chosen, world, lang]);
   /** Why a new list cannot be started from what is chosen now. */
   const noMap = isPhys ? !physical || units < 2 : chosen.length < 1 || (section === 'cities' && (!cities || units < 2));
   const unplayable = active
@@ -457,6 +491,8 @@ export function Setup({ section, world, link }: { section: Section; world: World
           : L(`Elige al menos ${need} países.`, `Choose at least ${need} countries.`)
       : noGroups
         ? L('Pon un país con varios niveles en el más fino: provincias, departamentos.', 'Set a country with several levels to its finest one: provinces, departments.')
+      : def.id === 'connect' && boards === 'none'
+        ? L('Con estos países no sale ningún tablero: elige más, o más variados.', 'These countries give no board: choose more of them, or a wider mix.')
       : def.id === 'topten' && section !== 'pops' && units > 0 && units < TOP_MIN
         ? L(`Este juego pide un mapa con al menos ${TOP_MIN} piezas.`, `This game takes a map with at least ${TOP_MIN} pieces.`)
       : section === 'cities' && cities && units < 2
@@ -694,7 +730,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
               {def.desc} {/* The rules of the game, step by step: the panel a game opens the first time it is played. */}
               <HelpButton key={def.id} mode={def.id} section={section} />
             </p>
-            {(estimate || questions != null || pace.first != null) && (
+            {(estimate || questions != null || pace.first != null || boards === 'few') && (
               <ul className="mode-facts">
                 {(estimate || questions != null) && (
                   <li
@@ -710,7 +746,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
                     <span>
                       {estimate && L(minutesOf(estimate.ms) === 1 ? 'Alrededor de 1 min' : `Unos ${nf(minutesOf(estimate.ms))} min`, `About ${nf(minutesOf(estimate.ms))} min`)}
                       {estimate && questions != null && ' · '}
-                      {questions != null && (def.id === 'nameall' ? plural(questions, noun[0], noun[1]) : def.id === 'alphabet' ? plural(questions, L('letra', 'letter'), L('letras', 'letters')) : plural(questions, L('pregunta', 'question'), L('preguntas', 'questions')))}
+                      {questions != null && (def.id === 'nameall' ? plural(questions, noun[0], noun[1]) : def.id === 'alphabet' ? plural(questions, L('letra', 'letter'), L('letras', 'letters')) : def.id === 'connect' ? plural(questions, L('grupo', 'group'), L('grupos', 'groups')) : plural(questions, L('pregunta', 'question'), L('preguntas', 'questions')))}
                       {estimate?.own && <small> {L('a tu ritmo', 'at your pace')}</small>}
                     </span>
                   </li>
@@ -722,6 +758,12 @@ export function Setup({ section, world, link }: { section: Section; world: World
                       {L(`Aciertas el ${percentOf(pace.first)} % a la primera`, `You get ${percentOf(pace.first)}% right first time`)}
                       <small> {L(`en ${plural(pace.games, 'partida', 'partidas')}`, `in ${plural(pace.games, 'game', 'games')}`)}</small>
                     </span>
+                  </li>
+                )}
+                {boards === 'few' && !problem && (
+                  <li title={L('Con pocos países, o muy parecidos, hay pocas maneras de agruparlos de cuatro en cuatro.', 'With few countries, or countries much alike, there are few ways of grouping them four by four.')}>
+                    <Shuffle size={14} aria-hidden="true" />
+                    <span>{L('Con estos países el tablero se repite: elige más', 'With these countries the board repeats: choose more')}</span>
                   </li>
                 )}
               </ul>

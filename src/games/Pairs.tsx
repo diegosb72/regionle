@@ -3,16 +3,17 @@
  * file of its own that is fetched when it is played. What is dealt and what a turn does is in lib/pairs.ts.
  */
 import { Earth, Flag as FlagIcon, Landmark } from 'lucide-react';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type RefObject } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import { BASE, Flag } from '../components/ui';
 import { L, nm } from '../lib/i18n';
 import { modeNameIn } from '../lib/modes';
-import { PAIR_FACES, canTurn, hidePair, newPairs, pairCount, pairTally, pairsDone, pairsKey, softened, turnCard, unbroken, type PairCard, type PairFace, type PairGame } from '../lib/pairs';
+import { PAIR_FACES, canTurn, hidePair, newPairs, pairCount, pairTally, pairsDone, pairsKey, softened, turnCard, type PairCard, type PairFace, type PairGame } from '../lib/pairs';
 import { PAIR_SIZES, PAIR_SIZE_DEFAULT, type PairOf } from '../lib/rules';
 import { useStore, type GameConfig } from '../lib/store';
 import { cx, nf } from '../lib/text';
 import type { Country } from '../lib/types';
 import { GameShell, Hud, Results, useElapsed } from './common';
+import { guessWidth, useWidest } from './useWidest';
 import './pairs.css';
 
 /** How long two cards that do not match stay in sight, unless another is turned first. */
@@ -29,53 +30,6 @@ const columnsFor = (cards: number): number => (cards <= 6 ? 3 : cards <= 16 ? 4 
 /** What a card is, as its back says it: «una bandera», «un nombre». */
 const kindOf = (face: PairFace): string =>
   face === 'flag' ? L('una bandera', 'a flag') : face === 'capital' ? L('una capital', 'a capital') : face === 'country' ? L('un país', 'a country') : L('un nombre', 'a name');
-
-/**
- * How wide each text is at the widest piece of it that cannot be cut, in letters of its own size: the card
- * writes it in a size that fits that piece in one line. Measured on the page, in the typeface the cards are
- * written with, and again if that typeface arrives after them.
- */
-function useWidest(texts: readonly string[], table: RefObject<HTMLDivElement | null>): ReadonlyMap<string, number> {
-  const [widths, setWidths] = useState<ReadonlyMap<string, number>>(new Map());
-  const [typeface, setTypeface] = useState(0);
-  const all = texts.join('\n');
-  useLayoutEffect(() => {
-    const host = table.current;
-    if (!host) return;
-    const probe = document.createElement('span');
-    probe.className = 'pair-text pair-probe';
-    probe.style.fontSize = `${PROBE_PX}px`;
-    host.appendChild(probe);
-    const out = new Map<string, number>();
-    for (const text of new Set(all.split('\n'))) {
-      let widest = 0;
-      for (const piece of unbroken(text)) {
-        probe.textContent = piece;
-        widest = Math.max(widest, probe.getBoundingClientRect().width / PROBE_PX);
-      }
-      out.set(text, widest);
-    }
-    probe.remove();
-    setWidths(out);
-  }, [all, typeface, table]);
-  useEffect(() => {
-    const fonts = document.fonts;
-    if (!fonts) return;
-    let on = true;
-    const again = () => on && setTypeface((n) => n + 1);
-    void fonts.ready.then(again);
-    fonts.addEventListener?.('loadingdone', again);
-    return () => {
-      on = false;
-      fonts.removeEventListener?.('loadingdone', again);
-    };
-  }, []);
-  return widths;
-}
-/** The size the probe is written in: large, so that the measure is fine. */
-const PROBE_PX = 100;
-/** Before anything is measured: no letter of the typeface is wider than this on average, in a word. */
-const guess = (text: string): number => Math.max(...unbroken(text).map((piece) => piece.length), 1) * 0.8;
 
 export function PairsGame({ countries, cfg, onExit }: { countries: Country[]; cfg: GameConfig; onExit(): void }) {
   const title = modeNameIn(cfg.section, 'pairs');
@@ -175,7 +129,7 @@ export function PairsGame({ countries, cfg, onExit }: { countries: Country[]; cf
   /** What each card says, with a place to be cut in its longest words. */
   const texts = useMemo(() => game.cards.map((card) => softened(card.face === 'capital' ? capital(card.country) : name(card.country))), [game.cards, byId]); // eslint-disable-line react-hooks/exhaustive-deps
   const table = useRef<HTMLDivElement>(null);
-  const widths = useWidest(texts, table);
+  const widths = useWidest(texts, table, 'pair-text pair-probe');
   /** What a card says to someone who cannot see it: while it is face down, what its back says and no more. */
   const spoken = (card: PairCard, i: number, shown: boolean, found: boolean): string => {
     if (!shown) return L(`Carta ${i + 1}, ${kindOf(card.face)}, boca abajo`, `Card ${i + 1}, ${kindOf(card.face)}, face down`);
@@ -312,7 +266,7 @@ export function PairsGame({ countries, cfg, onExit }: { countries: Country[]; cf
                           </small>
                         )}
                         {card.face === 'country' && <Flag code={c?.fl} size="sm" />}
-                        <span className="pair-text" style={{ '--w': widths.get(text) ?? guess(text) } as CSSProperties}>
+                        <span className="pair-text" style={{ '--w': widths.get(text) ?? guessWidth(text) } as CSSProperties}>
                           {text}
                         </span>
                       </>
