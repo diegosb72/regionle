@@ -11,6 +11,7 @@ Lo que ha traído cada versión, de la más reciente a la primera. Es la misma l
 - Con un cierre, una pieza del camino más corto está cerrada y hay que rodearla. Con una parada, la ruta tiene que llegar a una tercera pieza que queda a desmano.
 - Solo por tierra, las travesías por mar no valen. El juego dice por cuántas piezas pasa la mejor respuesta, y las pistas llevan por ella.
 - Arreglado: en Ruta, la frase sobre las líneas de puntos salía también en los mapas que no tienen travesías por mar.
+- Arreglado: una tecla pulsada en el instante en que se cierra «Cómo se juega» se perdía; ahora ya es para el juego.
 
 ## 1.27.0 — 20 de noviembre de 2026
 

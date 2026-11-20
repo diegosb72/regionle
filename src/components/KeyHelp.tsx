@@ -214,9 +214,10 @@ export function KeysDialog({ onClose }: { onClose(): void }) {
       className="keys-dialog"
       aria-labelledby="keys-title"
       onClose={onClose}
-      // A key pressed in the panel is not one for the game behind it, which listens on the window.
-      onKeyDown={(e) => e.stopPropagation()}
-      onKeyUp={(e) => e.stopPropagation()}
+      // A key pressed in the panel is not one for the game behind it, which listens on the window; once the
+      // panel has closed, and until it is taken away, it is (see Dialog.tsx).
+      onKeyDown={(e) => box.current?.open !== false && e.stopPropagation()}
+      onKeyUp={(e) => box.current?.open !== false && e.stopPropagation()}
       onClick={(e) => {
         // A click on the darkened page around the panel closes it.
         if (e.target === box.current) shut();

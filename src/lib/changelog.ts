@@ -24,6 +24,7 @@ export const RELEASES: Release[] = [
       'Con un cierre, una pieza del camino más corto está cerrada y hay que rodearla. Con una parada, la ruta tiene que llegar a una tercera pieza que queda a desmano.',
       'Solo por tierra, las travesías por mar no valen. El juego dice por cuántas piezas pasa la mejor respuesta, y las pistas llevan por ella.',
       'Arreglado: en Ruta, la frase sobre las líneas de puntos salía también en los mapas que no tienen travesías por mar.',
+      'Arreglado: una tecla pulsada en el instante en que se cierra «Cómo se juega» se perdía; ahora ya es para el juego.',
     ],
     en: [
       'Paint the map by hand, in Explore: six colours and an eraser to colour countries or regions as you like, and a legend where you write what each colour means.',
@@ -32,6 +33,7 @@ export const RELEASES: Release[] = [
       'With a closure, a piece on the shortest way is closed and you have to go around it. With a stop, the route has to reach a third piece that is out of the way.',
       'By land only, the sea crossings do not count. The game says how many pieces the best answer goes through, and the hints lead along it.',
       'Fixed: in Route, the sentence about the dotted lines also showed on maps that have no sea crossings.',
+      'Fixed: a key pressed at the very moment “How to play” closes was lost; now it already goes to the game.',
     ],
   },
   {
