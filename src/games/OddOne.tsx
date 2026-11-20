@@ -155,20 +155,22 @@ export function OddOneGame({ countries, world, cfg, onExit }: { countries: Count
         <div className="pop tf odd">
           <p className="kicker center">{L('¿Cuál es el intruso?', 'Which is the odd one out?')}</p>
           <h2 className="q-ask center tf-text">{q.text}</h2>
-          <div className="odd-grid" role="group" aria-label={L('Los cuatro países', 'The four countries')}>
-            {q.ids.map((id, i) => (
-              <button
-                key={id}
-                type="button"
-                className={cx('btn tf-btn odd-btn', picked === id && 'picked', picked != null && id === q.odd && 'right', picked === id && id !== q.odd && 'wrong')}
-                disabled={picked != null}
-                onClick={() => answer(id)}
-              >
-                <kbd aria-hidden="true">{i + 1}</kbd>
-                <Flag code={world.byId.get(id)?.fl} size="lg" />
-                <span className="odd-name">{name(id)}</span>
-              </button>
-            ))}
+          <div className="odd-wrap">
+            <div className="odd-grid" role="group" aria-label={L('Los cuatro países', 'The four countries')}>
+              {q.ids.map((id, i) => (
+                <button
+                  key={id}
+                  type="button"
+                  className={cx('btn tf-btn odd-btn', picked === id && 'picked', picked != null && id === q.odd && 'right', picked === id && id !== q.odd && 'wrong')}
+                  disabled={picked != null}
+                  onClick={() => answer(id)}
+                >
+                  <kbd aria-hidden="true">{i + 1}</kbd>
+                  <Flag code={world.byId.get(id)?.fl} size="lg" />
+                  <span className="odd-name">{name(id)}</span>
+                </button>
+              ))}
+            </div>
           </div>
           {picked != null && (
             <Verdict res={right ? 'ok' : 'bad'} title={right ? L('¡Correcto!', 'Correct!') : L(`Era ${name(q.odd)}.`, `It was ${name(q.odd)}.`)}>

@@ -4,7 +4,7 @@
  */
 import fs from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
-import { open, seed, start } from './helpers';
+import { OPTS, open, seed, start } from './helpers';
 
 interface Fact {
   id: string;
@@ -161,6 +161,49 @@ test.describe('the odd one out', () => {
     await expect(page.locator('.problem')).toHaveText('Elige al menos 5 países.');
     await expect(page.getByRole('button', { name: 'Empezar', exact: true })).toBeDisabled();
   });
+
+  // The names with the longest words there are, in Spanish, which is where they are longest.
+  const LONG = ['República Centroafricana', 'Bosnia y Herzegovina', 'San Vicente y las Granadinas', 'República Democrática del Congo'];
+  for (const dyslexia of [false, true]) {
+    test(`cuts no name inside a word, however narrow the screen and large the letter${dyslexia ? ', in the typeface for dyslexia' : ''}`, async ({ page }) => {
+      await seed(page, { dyslexia, game: { levels: {}, nonce: 1, ...game(STATES.map((c) => c.id)), opts: { ...OPTS, length: 10 } } });
+      await page.goto('./#/jugar');
+      await expect(four(page)).toHaveCount(4);
+      await page.evaluate(() => document.fonts.ready);
+      await page.evaluate((long) => document.querySelectorAll('.odd-name').forEach((el, i) => (el.textContent = long[i])), LONG);
+
+      for (const width of [320, 360, 390, 430, 768, 1280]) {
+        await page.setViewportSize({ width, height: 800 });
+        for (const letter of ['m', 'l', 'xl']) {
+          const drawn = await page.evaluate(async (size) => {
+            if (size === 'm') delete document.documentElement.dataset.text;
+            else document.documentElement.dataset.text = size;
+            await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+            // A word that is written on two lines has been cut.
+            const cut: string[] = [];
+            for (const el of document.querySelectorAll('.odd-name')) {
+              const text = el.firstChild as Text;
+              for (const word of text.data.matchAll(/\S+/g)) {
+                const range = document.createRange();
+                range.setStart(text, word.index);
+                range.setEnd(text, word.index + word[0].length);
+                if (new Set([...range.getClientRects()].map((r) => Math.round(r.top))).size > 1) cut.push(word[0]);
+              }
+            }
+            const lefts = [...document.querySelectorAll('.odd-btn')].map((b) => Math.round(b.getBoundingClientRect().left));
+            return { cut, columns: new Set(lefts).size, wide: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+          }, letter);
+          const where = `${width} px, letter ${letter}`;
+          expect(drawn.cut, where).toEqual([]);
+          expect(drawn.wide, where).toBeLessThanOrEqual(0);
+          // Two by two where there is room for it, and one under another where there is not.
+          if (width >= 768 || (width >= 360 && letter === 'm')) expect(drawn.columns, where).toBe(2);
+          if (width === 320) expect(drawn.columns, where).toBe(dyslexia || letter !== 'm' ? 1 : drawn.columns);
+          if (width <= 390 && letter === 'xl') expect(drawn.columns, where).toBe(1);
+        }
+      }
+    });
+  }
 
   test('says so when the countries chosen are too much alike to ask anything', async ({ page }) => {
     // Five islands of the Caribbean of much the same size and people: one continent, all with a coast, none

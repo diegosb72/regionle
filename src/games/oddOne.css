@@ -1,9 +1,14 @@
 /* The odd one out: four countries to choose from, two by two. The rest is what "true or false" wears. */
+/* The room the four have, measured in letters of the size the player reads with: the grid below asks it. */
+.odd-wrap {
+  width: min(100%, 520px);
+  font-size: calc(16px * var(--fs));
+  container: odd / inline-size;
+}
 .odd-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-  width: min(100%, 520px);
 }
 .odd-btn {
   position: relative;
@@ -23,9 +28,8 @@
   margin: 0;
 }
 .odd-name {
-  /* A long name in a narrow column is cut between syllables where the browser knows how, and anywhere where not. */
+  /* The last resort, for a room narrower than any the game is drawn for: names are not meant to be cut. */
   overflow-wrap: anywhere;
-  hyphens: auto;
 }
 /* The one that was picked wrongly keeps its name readable: it is the flag and the colour that say so. */
 .odd-btn.wrong {
@@ -37,5 +41,28 @@
 @media (hover: none) {
   .odd-btn kbd {
     display: none;
+  }
+}
+/*
+ * Where half the width would cut the longest word of a name ("Centroafricana", 8,3 letters wide in the widest
+ * typeface, plus the edges of its button), the four go one under another, each with its flag beside its name:
+ * a phone of 320 px, or a wider one read with a larger letter.
+ */
+@container odd (max-width: 20em) {
+  .odd-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  .odd-btn {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    min-height: 60px;
+    padding: 10px 14px;
+    text-align: left;
+  }
+  .odd-btn kbd {
+    position: static;
+    flex: none;
   }
 }
