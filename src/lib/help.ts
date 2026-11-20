@@ -697,8 +697,8 @@ export function helpOf(mode: Mode, section: Section): ModeHelp | null {
       return {
         steps: [
           L(
-            'En la mesa hay dieciséis países que van de cuatro en cuatro. Los de cada grupo tienen algo en común que no se dice: una parte del mundo, el mar, un país con el que limitan, una organización o una lengua, el tamaño o la letra por la que empiezan.',
-            'There are sixteen countries on the table, and they go four by four. Those of each group have something in common that is not said: a part of the world, the sea, a country they border, an organisation or a language, their size or the letter they begin with.',
+            'En la mesa hay dieciséis países que van de cuatro en cuatro. Los de cada grupo tienen algo en común que no se dice: una parte del mundo, el mar, un país con el que limitan, una organización o una lengua, el tamaño, la letra de su capital o algo de su nombre (la inicial, la terminación, una palabra).',
+            'There are sixteen countries on the table, and they go four by four. Those of each group have something in common that is not said: a part of the world, the sea, a country they border, an organisation or a language, their size, the letter of their capital or something of their name (how it begins, how it ends, a word in it).',
           ),
           L(
             'Elige cuatro y pulsa «Comprobar». Si son un grupo, sube arriba con lo que tienen en común. Si no, el juego te dice si tres de los cuatro van juntos.',

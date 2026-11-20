@@ -7,6 +7,7 @@ import {
   CONNECT_TILES,
   GROUPS,
   GROUP_SIZE,
+  OTHER_CONTINENT,
   gameOver,
   gameTally,
   guessFour,
@@ -22,7 +23,8 @@ import {
 } from './connect';
 import { EU, G20, SPANISH } from './groups';
 import { setLang } from './i18n';
-import { mulberry32 } from './text';
+import { TWO_CONTINENTS } from './statements';
+import { fold, initialOf, mulberry32, shuffle } from './text';
 import type { Country, Index } from './types';
 
 const index = JSON.parse(fs.readFileSync(path.join(__dirname, '../../public/data/index.json'), 'utf8')) as Index;
@@ -50,8 +52,8 @@ const ids = (set: ReadonlySet<string>): string[] => [...set].sort();
 describe('what the countries chosen can have in common', () => {
   const links = linksOf(states, world);
 
-  it('is where they lie, the sea, what they belong to, how large they are, what they border and a letter', () => {
-    expect(new Set(links.map((l) => l.kind))).toEqual(new Set(['place', 'sea', 'org', 'past', 'tongue', 'size', 'nb', 'lone', 'initial']));
+  it('is where they lie, the sea, what they belong to, how large they are, what they border, their capital and their name', () => {
+    expect(new Set(links.map((l) => l.kind))).toEqual(new Set(['place', 'sea', 'org', 'past', 'tongue', 'size', 'nb', 'lone', 'cap', 'initial', 'name']));
     expect(find(links, 'sr:AF-W').title).toBe('África Occidental');
     expect(find(links, 'ct:AM').title).toBe('América');
     expect(find(links, 'landlocked').title).toBe('Sin salida al mar');
@@ -64,6 +66,15 @@ describe('what the countries chosen can have in common', () => {
     expect(find(links, 'nb:BR').title).toBe('Limitan con Brasil');
     expect(find(links, 'lone').title).toBe('Limitan con un solo país');
     expect(find(links, 'initial:M').title).toBe('Empiezan por M');
+    expect(find(links, 'huge').title).toBe('Más de cinco millones de km²');
+    expect(find(links, 'cap:B').title).toBe('Su capital empieza por B');
+    expect(find(links, 'cap:same').title).toBe('La capital se llama como el país');
+    expect(find(links, 'name:words').title).toBe('Nombre de dos o más palabras');
+    expect(find(links, 'name:four').title).toBe('Nombre de cuatro letras');
+    expect(find(links, 'name:-stan').title).toBe('Terminan en “-stán”');
+    expect(find(links, 'name:guinea').title).toBe('Con “Guinea” en el nombre');
+    expect(find(links, 'name:and').title).toBe('Con “y” en el nombre');
+    expect(find(links, 'name:compass').title).toBe('Con un punto cardinal en el nombre');
     // No two with the same name.
     expect(new Set(links.map((l) => l.title)).size).toBe(links.length);
     expect(new Set(links.map((l) => l.id)).size).toBe(links.length);
@@ -73,10 +84,26 @@ describe('what the countries chosen can have in common', () => {
     // A part of the world: its countries, but for the ones that lie on two continents, which are in none.
     expect(ids(find(links, 'sr:AF-W').members)).toEqual(states.filter((c) => c.sr === 'AF-W').map((c) => c.id).sort());
     expect(ids(find(links, 'ct:AS').members)).toEqual(states.filter((c) => c.ct === 'AS' && !TWO.includes(c.id)).map((c) => c.id).sort());
+    // Each of those is left out of its two continents and of their parts, and of nothing else: Russia is no doubt in the Americas.
+    expect(Object.keys(OTHER_CONTINENT).sort()).toEqual([...TWO_CONTINENTS].sort());
+    expect([...TWO_CONTINENTS].sort()).toEqual([...TWO].sort());
+    for (const id of TWO) {
+      expect(Object.keys(index.continents), id).toContain(OTHER_CONTINENT[id]);
+      expect(OTHER_CONTINENT[id], id).not.toBe(byId.get(id)!.ct);
+    }
     for (const link of links.filter((l) => l.kind === 'place')) {
-      expect(ids(link.doubt), link.id).toEqual([...TWO].sort());
+      const continent = link.id.slice(3).split('-')[0];
+      expect(ids(link.doubt), link.id).toEqual(TWO.filter((id) => byId.get(id)!.ct === continent || OTHER_CONTINENT[id] === continent).sort());
       for (const id of TWO) expect(link.members.has(id), `${link.id} ${id}`).toBe(false);
     }
+    expect(ids(find(links, 'ct:EU').doubt)).toEqual(['AM', 'AZ', 'CY', 'GE', 'KZ', 'RU', 'TR']);
+    expect(ids(find(links, 'ct:AS').doubt)).toEqual(['AM', 'AZ', 'CY', 'EG', 'GE', 'ID', 'KZ', 'RU', 'TR']);
+    expect(ids(find(links, 'ct:AF').doubt)).toEqual(['EG']);
+    expect(ids(find(links, 'ct:OC').doubt)).toEqual(['ID']);
+    expect(ids(find(links, 'ct:AM').doubt)).toEqual([]);
+    expect(ids(find(links, 'sr:AF-N').doubt)).toEqual(['EG']);
+    expect(ids(find(links, 'sr:OC-ME').doubt)).toEqual(['ID']);
+    expect(ids(find(links, 'sr:AM-S').doubt)).toEqual([]);
     // The sea: the shores of the Caspian are on neither side.
     expect(ids(find(links, 'landlocked').members)).toEqual(states.filter((c) => c.ll && !CASPIAN.includes(c.id)).map((c) => c.id).sort());
     expect(ids(find(links, 'landlocked').doubt)).toEqual([...CASPIAN].sort());
@@ -117,6 +144,126 @@ describe('what the countries chosen can have in common', () => {
     expect(large.doubt.has('AO')).toBe(true);
     const few = find(links, 'few');
     for (const id of few.members) expect(byId.get(id)!.pop!, id).toBeLessThanOrEqual(800_000);
+    // The six that are larger than five million km², and nobody near the figure.
+    const huge = find(links, 'huge');
+    expect(ids(huge.members)).toEqual(['AU', 'BR', 'CA', 'CN', 'RU', 'US']);
+    expect(ids(huge.doubt)).toEqual([]);
+  });
+
+  it('knows the capitals by their letter, and leaves out the ones that go by two names', () => {
+    const b = find(links, 'cap:B');
+    for (const id of ['DE', 'HU', 'RO', 'RS', 'AR', 'CO', 'BE', 'CH', 'ML', 'IQ']) expect(b.members.has(id), id).toBe(true);
+    // Every one of them has a capital that begins with it, and the link says which.
+    for (const link of links.filter((l) => l.id.startsWith('cap:') && l.id !== 'cap:same')) {
+      const letter = link.id.slice(4);
+      expect(link.kind).toBe('cap');
+      expect(ids(new Set(link.why!.keys())), link.id).toEqual(ids(link.members));
+      for (const id of link.members) {
+        const c = byId.get(id)!;
+        expect(link.why!.get(id), id).toBe(c.cap!.es);
+        // In Spanish, in English and by any other name the game takes for it.
+        for (const form of [c.cap!.es, c.cap!.en, ...(c.cap!.al ?? [])]) expect(initialOf(form), `${id}: ${form}`).toBe(letter);
+        expect(fold(c.cap!.es), id).not.toMatch(/^(el|la|los|las) /);
+      }
+    }
+    expect(b.why!.get('DE')).toBe('Berlín');
+    // Two capitals: Bolivia, South Africa, the Netherlands. Either letter can be argued, and no other.
+    for (const [id, letters] of [
+      ['BO', 'SLP'],
+      ['ZA', 'PCB'],
+      ['NL', 'ALH'],
+    ] as const) {
+      for (const link of links.filter((l) => l.id.startsWith('cap:') && l.id !== 'cap:same')) {
+        expect(link.members.has(id), `${id} ${link.id}`).toBe(false);
+        if (letters.includes(link.id.slice(4))) expect(link.doubt.has(id), `${id} ${link.id}`).toBe(true);
+      }
+    }
+    expect(find(links, 'cap:M').doubt.has('BO')).toBe(false);
+    // A name in each language (Pekín, Beijing; Varsovia, Warsaw), an article (La Habana, El Cairo), the name of the country (Ciudad de México).
+    for (const [id, letter] of [
+      ['CN', 'P'],
+      ['CN', 'B'],
+      ['PL', 'V'],
+      ['CU', 'L'],
+      ['CU', 'H'],
+      ['EG', 'C'],
+      ['MX', 'C'],
+      ['MX', 'M'],
+      ['IN', 'N'],
+      ['IN', 'D'],
+    ] as const) {
+      const link = find(links, `cap:${letter}`);
+      expect(link.doubt.has(id), `${id} ${letter}`).toBe(true);
+      expect(link.members.has(id), `${id} ${letter}`).toBe(false);
+    }
+    // London and Londres, Moscow and Moscú: the same letter in both.
+    expect(find(links, 'cap:L').members.has('GB')).toBe(true);
+    expect(find(links, 'cap:M').members.has('RU')).toBe(true);
+    // Dodoma and Dar es Salaam, too.
+    expect(find(links, 'cap:D').members.has('TZ')).toBe(true);
+  });
+
+  it('knows the capitals that have the name of the country, and leaves out the ones that have it with something else', () => {
+    const same = find(links, 'cap:same');
+    expect(ids(same.members)).toEqual(['DJ', 'LU', 'MC', 'SG', 'SM', 'TN']);
+    expect(ids(same.doubt)).toEqual(['AD', 'BR', 'DZ', 'GT', 'GW', 'KW', 'MX', 'PA', 'ST']);
+    expect(same.why).toBeUndefined();
+    setLang('en');
+    const english = find(linksOf(all, world), 'cap:same');
+    // Tunis is not Tunisia, and Macau is written two ways.
+    expect(ids(english.members)).toEqual(['DJ', 'GI', 'HK', 'LU', 'MC', 'SG', 'SM', 'VA']);
+    for (const id of ['TN', 'MO', 'KW', 'MX']) expect(english.doubt.has(id), id).toBe(true);
+  });
+
+  it('reads the names as they are written: how many words, how many letters, how they end, a word in them', () => {
+    const named = (id: string, from: readonly Link[] = links): string[] => ids(find(from, id).members);
+    const words = find(links, 'name:words');
+    expect(words.members.size).toBe(34);
+    for (const id of ['GB', 'US', 'SA', 'KR', 'NZ', 'CR', 'SV', 'LK']) expect(words.members.has(id), id).toBe(true);
+    for (const id of words.members) expect(byId.get(id)!.n.es, id).toMatch(/\s/);
+    // With a hyphen it is one word or two, as one likes.
+    expect(ids(words.doubt)).toEqual(['GW']);
+    expect(named('name:four')).toEqual(['CU', 'FJ', 'IQ', 'IR', 'LA', 'ML', 'OM', 'PE', 'TD', 'TG']);
+    expect(named('name:-stan')).toEqual(['AF', 'KG', 'KZ', 'PK', 'TJ', 'TM', 'UZ']);
+    expect(named('name:-ania')).toEqual(['AL', 'DE', 'JO', 'LT', 'MR', 'RO', 'TZ', 'UA']);
+    expect(named('name:-anda')).toEqual(['IE', 'NZ', 'RW', 'UG']);
+    expect(named('name:guinea')).toEqual(['GN', 'GQ', 'GW', 'PG']);
+    expect(named('name:and')).toEqual(['AG', 'BA', 'KN', 'ST', 'TT', 'VC']);
+    expect(named('name:saint')).toEqual(['KN', 'LC', 'SM', 'ST', 'VC']);
+    expect(named('name:republic')).toEqual(['CD', 'CF', 'CG', 'DO']);
+    expect(named('name:compass')).toEqual(['KP', 'KR', 'MK', 'SS', 'TL']);
+    // South Africa is «Sudáfrica»: a point of the compass, in half a word.
+    expect(ids(find(links, 'name:compass').doubt)).toEqual(['ZA']);
+    // Three states end in «-landia», and the territories bring Greenland; the islands are nearly all territories.
+    expect(links.some((l) => l.id === 'name:-landia' || l.id === 'name:island')).toBe(false);
+    const wide = linksOf(all, world);
+    expect(named('name:-landia', wide)).toEqual(['FI', 'GL', 'IS', 'TH']);
+    expect(find(wide, 'name:island').members.size).toBe(15);
+    expect(find(wide, 'name:saint').doubt.has('SX')).toBe(true);
+    for (const link of [...links, ...wide]) if (link.kind === 'name' || link.kind === 'initial') expect(link.why, link.id).toBeUndefined();
+
+    setLang('en');
+    const english = linksOf(states, world);
+    expect(find(english, 'name:words').title).toBe('A name of two or more words');
+    expect(find(english, 'name:words').members.has('ZA')).toBe(true);
+    expect(ids(find(english, 'name:words').doubt)).toEqual(['GW', 'TL']);
+    expect(named('name:four', english)).toEqual(['CU', 'FJ', 'IQ', 'IR', 'LA', 'ML', 'OM', 'PE', 'TD', 'TG']);
+    expect(find(english, 'name:-stan').title).toBe('They end in ‘-stan’');
+    expect(named('name:-land', english)).toEqual(['CH', 'FI', 'IE', 'IS', 'NZ', 'PL', 'TH']);
+    expect(named('name:-ania', english)).toEqual(['AL', 'LT', 'MR', 'RO', 'TZ']);
+    expect(named('name:and', english)).toEqual(['AG', 'BA', 'KN', 'ST', 'TT', 'VC']);
+    expect(named('name:saint', english)).toEqual(['KN', 'LC', 'SM', 'ST', 'VC']);
+    expect(named('name:compass', english)).toEqual(['KP', 'KR', 'MK', 'SS', 'ZA']);
+    expect(ids(find(english, 'name:compass').doubt)).toEqual(['TL']);
+    // Three republics by that name in English, and the Democratic one goes by its initials.
+    expect(english.some((l) => l.id === 'name:republic')).toBe(false);
+    // «Christmas Island» ends in "-land" for whoever wants it to: it is on neither side.
+    const land = find(linksOf(all, world), 'name:-land');
+    for (const id of ['CX', 'NF']) {
+      expect(land.doubt.has(id), id).toBe(true);
+      expect(land.members.has(id), id).toBe(false);
+    }
+    expect(land.members.has('GL')).toBe(true);
   });
 
   it('leaves out of a list the ones that are in it by half: a guest, the users of the euro, the open borders', () => {
@@ -227,6 +374,8 @@ describe('a board', () => {
           // No kind three times: a board is not four lists of neighbours.
           expect(groups.filter((o) => o.link.kind === g.link.kind).length, where).toBeLessThanOrEqual(2);
         }
+        // One group at most that is read on the table (a letter, the shape of a name): the rest has to be known.
+        expect(groups.filter((g) => g.link.kind === 'initial' || g.link.kind === 'name').length, where).toBeLessThanOrEqual(1);
         // Nobody of whom one of the four could be argued either way.
         for (const id of on) for (const g of groups) expect(g.link.doubt.has(id), `${id} and ${g.link.title} — ${where}`).toBe(false);
         // One answer, and it is the one the board says.
@@ -260,9 +409,14 @@ describe('a board', () => {
           if (what === 'lone') expect(nb(c), `${c.id} ${g.link.title}`).toHaveLength(1);
           if (what === 'eu') expect(EU, `${c.id} ${g.link.title}`).toContain(c.id);
         }
-        // The country the others border is not one of the sixteen, nor one on two continents where a part of the world is a group.
+        // The country the others border is not one of the sixteen, nor one that is also on the continent of a group that is a part of the world.
         if (g.link.kind === 'nb') expect(board.tiles).not.toContain(g.link.id.slice(3));
-        if (g.link.kind === 'place') for (const id of TWO) expect(board.tiles, g.link.title).not.toContain(id);
+        if (g.link.kind === 'place') {
+          const continent = g.link.id.slice(3).split('-')[0];
+          for (const id of TWO) if (byId.get(id)!.ct === continent || OTHER_CONTINENT[id] === continent) expect(board.tiles, g.link.title).not.toContain(id);
+        }
+        // A capital that begins with the letter, and no other name for it that does not.
+        if (g.link.kind === 'cap' && g.link.id !== 'cap:same') for (const c of of(g.ids)) expect(initialOf(c.cap!.es), `${c.id} ${g.link.title}`).toBe(g.link.id.slice(4));
       }
     }
   });
@@ -295,19 +449,37 @@ describe('a board', () => {
   });
 
   it('takes more countries that fit two groups where the countries chosen are few and much alike, and still has one answer', () => {
+    const spare = (board: ConnBoard): number => board.groups.flatMap((g) => g.ids).reduce((n, id) => n + board.groups.filter((g) => g.link.members.has(id)).length - 1, 0);
     // Spanish is spoken in twenty-one countries, nearly all of them in two parts of the Americas.
     let made = 0;
+    let more = 0;
     for (let seed = 1; seed <= 30; seed++) {
       const board = makeBoard(of(SPANISH), world, mulberry32(seed));
       if (!board) continue;
       made++;
       expect(shares(board), `seed ${seed}`).toHaveLength(1);
-      const on = board.groups.flatMap((g) => g.ids);
-      const spare = on.reduce((n, id) => n + board.groups.filter((g) => g.link.members.has(id)).length - 1, 0);
-      expect(spare).toBeGreaterThan(CONNECT_SPARE);
-      expect(spare).toBeLessThanOrEqual(6);
+      expect(spare(board)).toBeLessThanOrEqual(6);
+      if (spare(board) > CONNECT_SPARE) more++;
     }
     expect(made).toBeGreaterThanOrEqual(28);
+    expect(more).toBeGreaterThan(0);
+    // Twenty countries by lot: most of them give a board, and a good many only with more than three to spare.
+    made = 0;
+    more = 0;
+    for (let k = 1; k <= 25; k++) {
+      const list = shuffle(states, mulberry32(20_000 + k)).slice(0, 20);
+      for (let seed = 1; seed <= 4; seed++) {
+        const board = makeBoard(list, world, mulberry32(seed));
+        if (!board) continue;
+        made++;
+        expect(shares(board), `${k}, seed ${seed}`).toHaveLength(1);
+        expect(spare(board)).toBeLessThanOrEqual(6);
+        for (const id of board.tiles) for (const g of board.groups) expect(g.link.doubt.has(id), `${id} and ${g.link.title}`).toBe(false);
+        if (spare(board) > CONNECT_SPARE) more++;
+      }
+    }
+    expect(made).toBeGreaterThan(60);
+    expect(more).toBeGreaterThan(5);
   });
 });
 
@@ -326,9 +498,9 @@ describe('sixteen countries chosen to go one way', () => {
     'BO CL EC UY': ['América del Sur', 'América', 'Con el español como lengua oficial'],
     'MD PL RO UA': ['Europa del Este', 'Europa'],
     'LA MY TH VN': ['Sudeste Asiático', 'Asia'],
-    'CD CF GQ ST': ['África Central', 'África'],
-    'AG KN TT VC': ['Caribe', 'América', 'Sin fronteras terrestres'],
-    'KG TJ TM UZ': ['Asia Central', 'Asia', 'Antigua URSS'],
+    'CD CF GQ ST': ['África Central', 'África', 'Nombre de dos o más palabras'],
+    'AG KN TT VC': ['Caribe', 'América', 'Sin fronteras terrestres', 'Con “y” en el nombre', 'Nombre de dos o más palabras'],
+    'KG TJ TM UZ': ['Asia Central', 'Asia', 'Antigua URSS', 'Terminan en “-stán”'],
     'BA LI LU MK': ['Europa'],
   };
 
@@ -367,17 +539,37 @@ describe('sixteen countries chosen to go one way', () => {
 
   it('are the same board time and again where the countries are few: the twenty the section starts with', () => {
     const twenty = of('AR AU BR CA CN DE ES FR GB ID IN IT JP KR MX RU SA TR US ZA'.split(' '));
-    const boards = new Set<string>();
-    for (let seed = 1; seed <= 40; seed++) {
-      const board = makeBoard(twenty, world, mulberry32(seed));
-      expect(board, `seed ${seed}`).toBeTruthy();
-      boards.add(board!.groups.map((g) => [...g.ids].sort().join(' ')).sort().join('|'));
-    }
+    const boards = (): string[] => {
+      const seen = new Set<string>();
+      for (let seed = 1; seed <= 40; seed++) {
+        const board = makeBoard(twenty, world, mulberry32(seed));
+        expect(board, `seed ${seed}`).toBeTruthy();
+        seen.add(
+          board!.groups
+            .map((g) => [...g.ids].sort().join(' '))
+            .sort()
+            .join('|'),
+        );
+      }
+      return [...seen].sort();
+    };
     // Four of them begin with A in Spanish, and that is the only way the rest fall into three continents.
-    expect([...boards]).toEqual(['AR AU DE SA|BR CA MX US|CN IN JP KR|ES FR GB IT']);
-    // In English there are two, and no board at all.
+    expect(boards()).toEqual(['AR AU DE SA|BR CA MX US|CN IN JP KR|ES FR GB IT']);
+    // In English it is the names of two words (South Africa, South Korea), the BRICS and the Americas, and two ways for the rest.
     setLang('en');
-    for (let seed = 1; seed <= 5; seed++) expect(makeBoard(twenty, world, mulberry32(seed))).toBeNull();
+    expect(boards()).toEqual(['AR BR CA MX|CN ID IN RU|DE ES FR IT|GB KR US ZA', 'AR BR CA MX|CN ID IN RU|ES FR IT TR|GB KR US ZA']);
+  });
+
+  it('give no board where one of them has nothing in common with four of the others: the states of Oceania, Spain and Japan', () => {
+    // (What the game says then is looked at in the browser: e2e/conexiones.spec.ts.)
+    const list = [...inContinent('OC'), ...of(['ES', 'JP'])];
+    expect(list).toHaveLength(16);
+    for (const lang of ['es', 'en'] as const) {
+      setLang(lang);
+      // All sixteen would have to be on the board, and Spain is in no group of four.
+      expect(linksOf(list, world).some((l) => l.members.has('ES'))).toBe(false);
+      for (let seed = 1; seed <= 20; seed++) expect(makeBoard(list, world, mulberry32(seed))).toBeNull();
+    }
   });
 });
 

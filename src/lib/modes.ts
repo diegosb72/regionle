@@ -471,8 +471,8 @@ function modesOf(section: Section): ModeDef[] {
           id: 'connect',
           name: L('Conexiones', 'Connections'),
           desc: L(
-            'Dieciséis países que van de cuatro en cuatro: descubre qué tienen en común los de cada grupo —una región, el mar, un vecino, una organización— antes de fallar cuatro veces.',
-            'Sixteen countries that go four by four: find what those of each group have in common — a region, the sea, a neighbour, an organisation — before you miss four times.',
+            'Dieciséis países que van de cuatro en cuatro: descubre qué tienen en común los de cada grupo —una región, el mar, un vecino, una organización, la capital, el nombre— antes de fallar cuatro veces.',
+            'Sixteen countries that go four by four: find what those of each group have in common — a region, the sea, a neighbour, an organisation, the capital, the name — before you miss four times.',
           ),
           icon: LayoutGrid,
           level: 3,

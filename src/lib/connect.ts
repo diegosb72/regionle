@@ -1,30 +1,32 @@
 /**
  * Connections: sixteen of the countries chosen that go four by four, each four with something in common —
- * a part of the world, the sea, a neighbour, an organisation, a language, a size, a letter — that is not
- * said: finding it is the game. Made from what the game already knows of the countries and from the lists
- * kept in lib/groups.ts. Nothing is drawn here.
+ * a part of the world, the sea, a neighbour, an organisation, a language, a size, the capital, something
+ * of the name — that is not said: finding it is the game. Made from what the game already knows of the
+ * countries and from the lists kept in lib/groups.ts. Nothing is drawn here.
  *
  * A board has one answer: there is one way only of sharing its sixteen countries out among its four links,
  * four to each, and none of them is a country of which a link could be argued either way.
  */
 import { ARAB_LEAGUE, BRICS, EU, EUROZONE, G20, MEDITERRANEAN, NATO, PORTUGUESE, SCHENGEN, SPANISH, USSR, YUGOSLAVIA } from './groups';
-import { L, nm } from './i18n';
+import { L, getLang, nm } from './i18n';
 import { CONNECT_GROUPS, CONNECT_GROUP_SIZE, CONNECT_MIN } from './rules';
 import { APART, CASPIAN, TWO_CONTINENTS, stateBorders, type StatementWorld } from './statements';
-import { initialOf, shuffle, type Rng } from './text';
+import { fold, initialOf, shuffle, type Rng } from './text';
 import type { Country, Named } from './types';
 
 /** What a link is about: a board takes its four from four of these where it can. */
-export type LinkKind = 'place' | 'sea' | 'org' | 'past' | 'tongue' | 'size' | 'nb' | 'lone' | 'initial';
-export const LINK_KINDS: readonly LinkKind[] = ['place', 'sea', 'org', 'past', 'tongue', 'size', 'nb', 'lone', 'initial'];
+export type LinkKind = 'place' | 'sea' | 'org' | 'past' | 'tongue' | 'size' | 'nb' | 'lone' | 'cap' | 'initial' | 'name';
+export const LINK_KINDS: readonly LinkKind[] = ['place', 'sea', 'org', 'past', 'tongue', 'size', 'nb', 'lone', 'cap', 'initial', 'name'];
 
 /**
  * How likely each kind is, for each link it has to give (by the square root of how many: a hundred countries to
  * border are not a hundred times a sea): where a country lies and what it borders, more than a letter.
  */
-const WEIGHT: Record<LinkKind, number> = { place: 1, sea: 1, org: 0.8, size: 0.6, nb: 0.5, past: 0.45, tongue: 0.45, initial: 0.25, lone: 0.25 };
+const WEIGHT: Record<LinkKind, number> = { place: 1, sea: 1, org: 0.8, size: 0.6, nb: 0.5, past: 0.45, tongue: 0.45, cap: 0.3, initial: 0.25, name: 0.3, lone: 0.25 };
 /** A kind that is already on the board is this much less likely to give another link, and never a third. */
 const AGAIN = 0.15;
+/** What is read on the table and not known of the country: its letter, the shape of its name. One group of a board at most. */
+const WRITTEN: ReadonlySet<LinkKind> = new Set<LinkKind>(['initial', 'name']);
 
 /** Countries in a group, and groups on a board. */
 export const GROUP_SIZE = CONNECT_GROUP_SIZE;
@@ -46,6 +48,7 @@ const MOST = 2 / 3;
 /** Figures a size is told by. A country within a quarter of one of them is on neither side. */
 export const SMALL_KM2 = 1000;
 export const LARGE_KM2 = 1_000_000;
+export const HUGE_KM2 = 5_000_000;
 export const MANY_PEOPLE = 100_000_000;
 export const FEW_PEOPLE = 1_000_000;
 
@@ -64,6 +67,8 @@ export interface Link {
   members: ReadonlySet<string>;
   /** The countries chosen of which it can be argued either way: they are never on a board with this link. */
   doubt: ReadonlySet<string>;
+  /** Where the link is not in sight, what makes each country one of its own: the capital that begins with the letter. */
+  why?: ReadonlyMap<string, string>;
 }
 
 export interface ConnGroup {
@@ -83,6 +88,12 @@ export interface ConnBoard {
 const borders = (c: Country): string[] => c.nb ?? [];
 const touch = (a: Country, b: Country): boolean => borders(a).includes(b.id) || borders(b).includes(a.id);
 
+/**
+ * The other continent of each country that lies on two (TWO_CONTINENTS, in lib/statements.ts), next to the one
+ * the game files it under: Russia is in Europe there and in Asia here.
+ */
+export const OTHER_CONTINENT: Readonly<Record<string, string>> = { RU: 'AS', TR: 'EU', KZ: 'EU', AZ: 'EU', GE: 'EU', AM: 'EU', CY: 'AS', EG: 'AS', ID: 'OC' };
+
 /** Uses the euro without being of the euro area, by agreement or on its own. */
 const EURO_USERS: readonly string[] = ['AD', 'MC', 'SM', 'VA', 'ME', 'XK'];
 /** Has no border control with the Schengen area without having signed it. */
@@ -92,14 +103,15 @@ const OPEN_TO_SCHENGEN: readonly string[] = ['MC', 'SM', 'VA'];
 export function linksOf(list: readonly Country[], world: LinkWorld): Link[] {
   const out: Link[] = [];
   const most = Math.floor(list.length * MOST);
-  const add = (id: string, kind: LinkKind, title: string, has: (c: Country) => boolean, doubt: (c: Country) => boolean = () => false): void => {
+  const add = (id: string, kind: LinkKind, title: string, has: (c: Country) => boolean, doubt: (c: Country) => boolean = () => false, why?: (c: Country) => string): void => {
     const members = new Set<string>();
     const doubts = new Set<string>();
     for (const c of list) {
       if (doubt(c)) doubts.add(c.id);
       else if (has(c)) members.add(c.id);
     }
-    if (members.size >= GROUP_SIZE && members.size <= most) out.push({ id, kind, title, members, doubt: doubts });
+    if (members.size < GROUP_SIZE || members.size > most) return;
+    out.push({ id, kind, title, members, doubt: doubts, ...(why ? { why: new Map(list.filter((c) => members.has(c.id)).map((c) => [c.id, why(c)])) } : {}) });
   };
   const listed = (id: string, kind: LinkKind, title: string, ids: readonly string[], doubt: readonly string[] = []): void =>
     add(
@@ -110,10 +122,11 @@ export function linksOf(list: readonly Country[], world: LinkWorld): Link[] {
       (c) => doubt.includes(c.id),
     );
 
-  // Where it lies. Of a country on two continents either could be said: it is on no board that has one of these.
-  const two = (c: Country): boolean => TWO_CONTINENTS.has(c.id);
-  for (const [code, name] of Object.entries(world.continents)) add(`ct:${code}`, 'place', nm(name), (c) => c.ct === code, two);
-  for (const [code, name] of Object.entries(world.subregions)) add(`sr:${code}`, 'place', nm(name), (c) => c.sr === code, two);
+  // Where it lies. Of a country on two continents either could be said: it is on no board that has one of the two, or a part of one.
+  const two = (c: Country, continent: string): boolean => TWO_CONTINENTS.has(c.id) && (!OTHER_CONTINENT[c.id] || c.ct === continent || OTHER_CONTINENT[c.id] === continent);
+  for (const [code, name] of Object.entries(world.continents)) add(`ct:${code}`, 'place', nm(name), (c) => c.ct === code, (c) => two(c, code));
+  // (A part of a continent has its continent before the hyphen: «AF-W».)
+  for (const [code, name] of Object.entries(world.subregions)) add(`sr:${code}`, 'place', nm(name), (c) => c.sr === code, (c) => two(c, code.split('-')[0]));
 
   // The sea. The shores of the Caspian are a coast to some and not to others.
   add(
@@ -165,6 +178,13 @@ export function linksOf(list: readonly Country[], world: LinkWorld): Link[] {
     (c) => near(c.ar, LARGE_KM2),
   );
   add(
+    'huge',
+    'size',
+    L('Más de cinco millones de km²', 'Larger than five million km²'),
+    (c) => c.ar > HUGE_KM2,
+    (c) => near(c.ar, HUGE_KM2),
+  );
+  add(
     'crowd',
     'size',
     L('Más de 100 millones de habitantes', 'More than 100 million people'),
@@ -205,9 +225,92 @@ export function linksOf(list: readonly Country[], world: LinkWorld): Link[] {
     (c) => borders(c).length !== stateBorders(c, world).length && (borders(c).length === 1 || stateBorders(c, world).length === 1),
   );
 
+  // Its capital, for those who know it. Everything a capital is called counts, in either language: where a
+  // country has two (Sucre and La Paz), where the name is not the same in both (Pekín, Beijing), where it has an
+  // article that some drop (La Habana) or is the country's own with a word before it (Ciudad de México), its
+  // letter can be argued, and the country is on no board with either letter.
+  const es = getLang() === 'es';
+  const name = (c: Country): string => nm(c.n);
+  const capital = (c: Country): string => (c.cap ? nm(c.cap) : '');
+  const capitals = (c: Country): string[] => (c.cap ? [c.cap.es, c.cap.en, ...(c.cap.al ?? [])] : []);
+  const ARTICLE = /^(el|la|los|las|the) /;
+  /** The capital is the name of the country and something else, or part of it: Ciudad de Panamá, Bisáu. */
+  const echoes = (c: Country): boolean => {
+    const a = fold(capital(c));
+    const b = fold(name(c));
+    return !!a && a !== b && (a.includes(b) || b.includes(a));
+  };
+  const capLetters = (c: Country): Set<string> => new Set([...capitals(c), ...(echoes(c) ? [name(c)] : [])].flatMap((form) => [initialOf(form), initialOf(fold(form).replace(ARTICLE, ''))]).filter(Boolean));
+  const firsts = new Map(list.filter((c) => c.cap).map((c) => [c.id, capLetters(c)]));
+  for (const letter of [...new Set(list.map((c) => initialOf(capital(c))).filter(Boolean))].sort()) {
+    add(
+      `cap:${letter}`,
+      'cap',
+      L(`Su capital empieza por ${letter}`, `Their capital begins with ${letter}`),
+      (c) => initialOf(capital(c)) === letter,
+      (c) => !!firsts.get(c.id)?.has(letter) && firsts.get(c.id)!.size > 1,
+      capital,
+    );
+  }
+  // The same name for both, as the game writes them. Where they are the same only in one of their forms (Macau and
+  // Macao, Kuwait and its city), it can be argued.
+  const same = (c: Country): boolean => !!capital(c) && fold(capital(c)) === fold(name(c));
+  const names = (c: Country): string[] => [c.n.es, c.n.en ?? c.n.es, ...(c.al ?? [])].map(fold);
+  add(
+    'cap:same',
+    'cap',
+    L('La capital se llama como el país', 'The capital has the name of the country'),
+    same,
+    (c) => !same(c) && (echoes(c) || capitals(c).some((form) => names(c).includes(fold(form)))),
+  );
+
   // The letter its name begins with, in the language of the game.
-  const letters = new Set(list.map((c) => initialOf(nm(c.n))).filter(Boolean));
-  for (const letter of [...letters].sort()) add(`initial:${letter}`, 'initial', L(`Empiezan por ${letter}`, `They begin with ${letter}`), (c) => initialOf(nm(c.n)) === letter);
+  const letters = new Set(list.map((c) => initialOf(name(c))).filter(Boolean));
+  for (const letter of [...letters].sort()) add(`initial:${letter}`, 'initial', L(`Empiezan por ${letter}`, `They begin with ${letter}`), (c) => initialOf(name(c)) === letter);
+
+  // The name as it is written on the table, in the language of the game: how long it is, how it ends, a word in it.
+  /** Its words, without accents: «Guinea-Bisáu» has two of them here, and is one word or two as one likes. */
+  const words = (c: Country): string[] => fold(name(c)).split(' ').filter(Boolean);
+  const spaced = (c: Country): boolean => /\s/.test(name(c).trim());
+  add(
+    'name:words',
+    'name',
+    L('Nombre de dos o más palabras', 'A name of two or more words'),
+    spaced,
+    (c) => !spaced(c) && words(c).length > 1,
+  );
+  add('name:four', 'name', L('Nombre de cuatro letras', 'A name of four letters'), (c) => words(c).length === 1 && words(c)[0].length === 4);
+  for (const end of es ? ['stán', 'landia', 'ania', 'anda'] : ['stan', 'land', 'ania']) {
+    add(
+      `name:-${fold(end)}`,
+      'name',
+      L(`Terminan en “-${end}”`, `They end in ‘-${end}’`),
+      (c) => fold(name(c)).endsWith(fold(end)),
+      // «Christmas Island» ends in "-land" for whoever wants it to.
+      (c) => end === 'land' && words(c)[words(c).length - 1] === 'island',
+    );
+  }
+  /** A word of the name, or one of a few that say the same; with others that say it in another tongue, it can be argued. */
+  const worded = (id: string, title: string, any: readonly string[], near: readonly string[] = []): void =>
+    add(
+      `name:${id}`,
+      'name',
+      title,
+      (c) => words(c).some((w) => any.includes(w)),
+      (c) => !words(c).some((w) => any.includes(w)) && words(c).some((w) => near.includes(w)),
+    );
+  worded('guinea', L('Con “Guinea” en el nombre', 'With ‘Guinea’ in the name'), ['guinea']);
+  worded('and', L('Con “y” en el nombre', 'With ‘and’ in the name'), es ? ['y'] : ['and']);
+  worded('saint', L('Con “San”, “Santa” o “Santo” en el nombre', 'With ‘Saint’, ‘San’ or ‘São’ in the name'), es ? ['san', 'santa', 'santo'] : ['saint', 'san', 'sao'], ['sint', 'saint', 'santa', 'santo', 'sao', 'st']);
+  worded('republic', L('Con “República” en el nombre', 'With ‘Republic’ in the name'), es ? ['republica'] : ['republic'], ['dr', 'rd', 'rep']);
+  worded('island', L('Con “Isla” o “Islas” en el nombre', 'With ‘Island’ or ‘Islands’ in the name'), es ? ['isla', 'islas'] : ['island', 'islands'], ['isle', 'isles']);
+  worded(
+    'compass',
+    L('Con un punto cardinal en el nombre', 'With a point of the compass in the name'),
+    es ? ['norte', 'sur', 'este', 'oeste', 'oriental', 'occidental'] : ['north', 'south', 'east', 'west', 'northern', 'southern', 'eastern', 'western'],
+    // South Africa is «Sudáfrica» in one word, and East Timor goes by its name in Portuguese.
+    ['sudafrica', 'australes', 'leste'],
+  );
 
   return out;
 }
@@ -249,7 +352,10 @@ function weighted<T>(list: readonly T[], weight: (x: T) => number, rng: Rng): T 
   return list[list.length - 1];
 }
 
-/** Four links for a board: of four kinds more often than not, of three at times, and no link twice. */
+/**
+ * Four links for a board, no link twice: of four kinds more often than not and of three at times, and one
+ * at most that is read on the table rather than known. Where the countries chosen leave no other way, as they come.
+ */
 function fourLinks(links: readonly Link[], rng: Rng): Link[] | null {
   const byKind = new Map<LinkKind, Link[]>();
   for (const link of links) byKind.set(link.kind, [...(byKind.get(link.kind) ?? []), link]);
@@ -257,13 +363,13 @@ function fourLinks(links: readonly Link[], rng: Rng): Link[] | null {
   const kinds = [...byKind.keys()];
   const used = (kind: LinkKind): number => picked.filter((p) => p.kind === kind).length;
   while (picked.length < GROUPS) {
-    const few = kinds.length < GROUPS;
-    // No kind three times, unless the countries chosen leave no other way.
-    const open = kinds.filter((kind) => byKind.get(kind)!.length > used(kind) && (few || used(kind) < 2));
-    if (!open.length) return null;
-    const kind = weighted(open, (k) => WEIGHT[k] * Math.sqrt(byKind.get(k)!.length) * AGAIN ** used(k), rng);
-    const left = byKind.get(kind)!.filter((link) => !picked.includes(link));
-    picked.push(left[Math.floor(rng() * left.length)]);
+    const left = kinds.filter((kind) => byKind.get(kind)!.length > used(kind));
+    if (!left.length) return null;
+    const written = picked.some((p) => WRITTEN.has(p.kind));
+    const wanted = left.filter((kind) => used(kind) < 2 && !(written && WRITTEN.has(kind)));
+    const kind = weighted(wanted.length ? wanted : left, (k) => WEIGHT[k] * Math.sqrt(byKind.get(k)!.length) * AGAIN ** used(k), rng);
+    const free = byKind.get(kind)!.filter((link) => !picked.includes(link));
+    picked.push(free[Math.floor(rng() * free.length)]);
   }
   return picked;
 }

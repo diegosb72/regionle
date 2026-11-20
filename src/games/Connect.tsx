@@ -44,10 +44,13 @@ export function ConnectGame({ countries, world, cfg, onExit }: { countries: Coun
     const c = byId.get(id);
     return c ? nm(c.n) : id;
   };
-  /** "Bolivia, Chile y Perú": the countries of a group, in the order of the alphabet. */
-  const names = (ids: readonly string[]): string =>
+  /**
+   * "Bolivia, Chile y Perú": the countries of a group, in the order of the alphabet. Where what they share is not
+   * in sight, each with what makes it one of the group: "Alemania (Berlín), Hungría (Budapest)…".
+   */
+  const names = (ids: readonly string[], why?: ReadonlyMap<string, string>): string =>
     listed(
-      ids.map(name).sort((a, b) => a.localeCompare(b, getLang())),
+      [...ids].sort((a, b) => name(a).localeCompare(name(b), getLang())).map((id) => (why?.get(id) ? `${name(id)} (${why.get(id)})` : name(id))),
       L('y', 'and'),
     );
 
@@ -119,7 +122,7 @@ export function ConnectGame({ countries, world, cfg, onExit }: { countries: Coun
           return (
             <li key={g.link.id} className={cx('conn-group', at >= 0 ? `n${at}` : 'left')}>
               <b>{g.link.title}</b>
-              <span>{names(g.ids)}</span>
+              <span>{names(g.ids, g.link.why)}</span>
               {all && <small>{at < 0 ? L('sin encontrar', 'not found') : game.res[i] === 'ok' ? L('a la primera', 'first time') : game.told.includes(i) ? L('con pista', 'with a hint') : L('tras un fallo', 'after a miss')}</small>}
             </li>
           );
@@ -140,7 +143,7 @@ export function ConnectGame({ countries, world, cfg, onExit }: { countries: Coun
         const res = !game.found.includes(i) ? 'bad' : game.res[i];
         for (const id of g.ids) {
           const c = byId.get(id);
-          if (c) rows.push({ item: countryItem(c), res, note: g.link.title });
+          if (c) rows.push({ item: countryItem(c), res, note: g.link.why?.get(id) ? `${g.link.title}: ${g.link.why.get(id)}` : g.link.title });
         }
       }
     }
