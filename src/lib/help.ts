@@ -668,6 +668,31 @@ export function helpOf(mode: Mode, section: Section): ModeHelp | null {
           'If you know whose flag it is, or which country the capital belongs to, you only have to remember where one card is, not two.',
         ),
       };
+    case 'alphabet':
+      return {
+        steps: [
+          L(
+            'Hay una letra por cada inicial de los países que has elegido, de la A a la Z. De cada letra sale un país y una pista sobre él: su capital, su bandera, sus vecinos, dónde está o en qué es el primero de su letra.',
+            'There is a letter for each initial among the countries you chose, from A to Z. For each letter there is a country and a clue about it: its capital, its flag, its neighbours, where it is or what it is the first of its letter in.',
+          ),
+          L(
+            'Escribe el país. Tienes un intento por letra: si aciertas, pasas a la siguiente; si no, el juego te dice cuál era.',
+            'Type the country. You have one try for each letter: if you are right you go on to the next; if not, the game tells you which it was.',
+          ),
+          L(
+            'Si dudas, pulsa «Paso» o escribe «paso»: la letra se queda pendiente y vuelve cuando hayas dado la vuelta a las demás. Puedes pasar las veces que quieras.',
+            'If in doubt, press "Pass" or type "pass": the letter stays open and comes back when you have gone round the others. You can pass as often as you like.',
+          ),
+        ],
+        score: L(
+          'Cuenta cada letra acertada. Un país que no empieza por la letra, o que no está entre los elegidos, no gasta el intento. Si terminas antes, las letras pendientes no cuentan como fallos.',
+          'Each letter you get right counts. A country that does not begin with the letter, or is not among the ones chosen, does not use up the try. If you finish early, the letters left open are not counted as misses.',
+        ),
+        tip: L(
+          'La pista solo tiene que distinguir al país de los demás de su letra: repasa mentalmente los que empiezan por ella antes de escribir.',
+          'The clue only has to tell the country from the others of its letter: go through the ones that begin with it in your head before typing.',
+        ),
+      };
     default:
       return null;
   }

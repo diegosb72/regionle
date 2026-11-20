@@ -43,8 +43,9 @@ const GroupGame = lazyScreen(() => import('../games/Groups').then((m) => m.Group
 const WhoAmIGame = lazyScreen(() => import('../games/WhoAmI').then((m) => m.WhoAmIGame));
 const OddOneGame = lazyScreen(() => import('../games/OddOne').then((m) => m.OddOneGame));
 const PairsGame = lazyScreen(() => import('../games/Pairs').then((m) => m.PairsGame));
+const AlphabetGame = lazyScreen(() => import('../games/Alphabet').then((m) => m.AlphabetGame));
 /** Which of them each mode needs: asked for while the map is being drawn, so that it is here when the map is. */
-const APART: Partial<Record<Mode, { warm(): void }>> = { blind: BlindGame, hotcold: BlindGame, bearing: BearingGame, coords: CoordsGame, chain: ChainGame, border: BorderGame, group: GroupGame, whoami: WhoAmIGame, oddone: OddOneGame, pairs: PairsGame };
+const APART: Partial<Record<Mode, { warm(): void }>> = { blind: BlindGame, hotcold: BlindGame, bearing: BearingGame, coords: CoordsGame, chain: ChainGame, border: BorderGame, group: GroupGame, whoami: WhoAmIGame, oddone: OddOneGame, pairs: PairsGame, alphabet: AlphabetGame };
 
 function Message({ title, text, onExit, action }: { title: string; text: string; onExit(): void; action?: { label: string; run(): void } }) {
   return (
@@ -161,7 +162,7 @@ function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
 
   /** The countries the games without a map are played with. */
   const chosen = useMemo(() => (cfg.section === 'pops' ? cfg.countries.map((id) => world.byId.get(id)).filter((c) => c != null && eligible('pops', c)).map((c) => c!) : []), [cfg, world]);
-  const statementWorld = useMemo(() => ({ byId: world.byId, continents: world.index.continents }), [world]);
+  const statementWorld = useMemo(() => ({ byId: world.byId, continents: world.index.continents, subregions: world.index.subregions }), [world]);
   /** The games of figures are played with the figure of each thing, or with where it lies. */
   const figured = FIGURE_MODES.includes(cfg.mode) || cfg.mode === 'compass';
   const figs = useMemo((): Fig[] | null => {
@@ -210,6 +211,16 @@ function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
         <WithHelp cfg={cfg}>
           <Suspense fallback={<Spinner />}>
             <PairsGame countries={chosen} cfg={cfg} onExit={onExit} />
+          </Suspense>
+        </WithHelp>
+      );
+    }
+    if (cfg.mode === 'alphabet') {
+      if (chosen.length < 2) return <Message title={L('Faltan países', 'Not enough countries')} text={L('Este juego necesita al menos dos países.', 'This game needs at least two countries.')} onExit={onExit} />;
+      return (
+        <WithHelp cfg={cfg}>
+          <Suspense fallback={<Spinner />}>
+            <AlphabetGame countries={chosen} world={statementWorld} cfg={cfg} onExit={onExit} />
           </Suspense>
         </WithHelp>
       );

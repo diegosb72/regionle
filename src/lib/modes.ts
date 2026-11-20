@@ -1,5 +1,6 @@
 /** Catalogue of sections and game modes shown in the menus. Texts are read when asked for, in the current language. */
 import {
+  ArrowDownAZ,
   ArrowUpDown,
   CircleCheck,
   CircleHelp,
@@ -454,6 +455,17 @@ function modesOf(section: Section): ModeDef[] {
           level: 1,
           group: 'facts',
         },
+        {
+          id: 'alphabet',
+          name: L('Alfabeto', 'Alphabet'),
+          desc: L(
+            'De la A a la Z, un país por letra: te damos una pista —su capital, su bandera, sus vecinos, dónde cae— y escribes el que empieza por esa letra.',
+            'From A to Z, a country for each letter: you get a clue — its capital, its flag, its neighbours, where it lies — and type the one that begins with that letter.',
+          ),
+          icon: ArrowDownAZ,
+          level: 2,
+          group: 'facts',
+        },
       ];
   }
 }
@@ -520,6 +532,8 @@ function modeName(mode: Mode): string {
       return L('El intruso', 'Odd one out');
     case 'pairs':
       return L('Parejas', 'Pairs');
+    case 'alphabet':
+      return L('Alfabeto', 'Alphabet');
     case 'topten':
       return L('Los diez primeros', 'The top ten');
     case 'cards':
@@ -601,7 +615,7 @@ function lazy<K extends string, V>(keys: readonly K[], make: (key: K) => V): Rec
   return out;
 }
 
-const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'group', 'neighbours', 'border', 'chain', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'coords', 'edit', 'print', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'oddone', 'pairs', 'topten', 'cards', 'mix', 'listen'];
+const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'group', 'neighbours', 'border', 'chain', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'coords', 'edit', 'print', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'oddone', 'pairs', 'alphabet', 'topten', 'cards', 'mix', 'listen'];
 
 export const MODES: Record<Section, ModeDef[]> = lazy(SECTION_IDS, modesOf);
 export const MODE_NAME: Record<Mode, string> = lazy(MODE_IDS, modeName);

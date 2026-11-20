@@ -64,7 +64,7 @@ export function hintLabel(kind: HintKind): string {
 }
 
 /** Does one name say the other? "Comunidad de Madrid" says Madrid, and "Comunidad Valenciana" all but says Valencia. */
-function givesAway(a: string, b: string): boolean {
+export function givesAway(a: string, b: string): boolean {
   const x = norm(a);
   const y = norm(b);
   if (x.length < 4 || y.length < 4) return false;
@@ -75,7 +75,7 @@ function givesAway(a: string, b: string): boolean {
 }
 
 /** Does the name of a part of the world say a country in it? A long word of the one inside the other: "africa" in "Sudáfrica". */
-function saysCountry(part: string, country: string): boolean {
+export function saysCountry(part: string, country: string): boolean {
   const whole = norm(country);
   return givesAway(part, country) || norm(part).split(' ').some((w) => w.length >= 6 && whole.includes(w));
 }

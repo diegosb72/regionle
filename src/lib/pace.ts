@@ -60,6 +60,7 @@ export const TYPICAL_S: Partial<Record<Mode, number>> = {
   parent: 7,
   truefalse: 5,
   oddone: 9,
+  alphabet: 12,
   cards: 5,
   mix: 8,
   listen: 8,
@@ -80,12 +81,16 @@ export interface GameSize {
   format: Format;
   /** The game is played on a list of the player: it is asked whole. */
   list?: boolean;
+  /** Letters that begin a name among the countries chosen: what "the alphabet" asks, one country for each. */
+  letters?: number;
 }
 
 /** How many questions the game will ask, or null when it has no fixed number (endless, lessons, routes, a clock). */
-export function questionsOf({ mode, units, length, format, list }: GameSize): number | null {
+export function questionsOf({ mode, units, length, format, list, letters }: GameSize): number | null {
   if (units <= 0) return null;
   if (mode === 'nameall') return units;
+  // The alphabet is as long as its letters, however many countries there are.
+  if (mode === 'alphabet') return letters && letters > 0 ? letters : null;
   if (!LENGTH_MODES.includes(mode)) return null;
   // Against the clock or with lives a game lasts what it lasts; an exam has its questions counted.
   if ((format === 'timed' || format === 'lives') && FORMAT_MODES.includes(mode)) return null;

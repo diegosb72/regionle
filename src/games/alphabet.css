@@ -1,0 +1,87 @@
+/* The alphabet: its letters in a row, the one in hand and what has become of the others. */
+.alpha-strip {
+  /* Twenty-six letters fit in a line where there is room for them; where they do not, in lines of about the same length. */
+  width: min(100%, 52em);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: center;
+  text-wrap: balance;
+  line-height: 1;
+}
+.alpha-strip li {
+  display: inline-grid;
+  place-items: center;
+  width: 2em;
+  height: 2em;
+  margin: 2.5px;
+  border: 1px solid var(--line-2);
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--ink-2);
+  font: 650 calc(13px * var(--fs)) / 1 var(--sans);
+  vertical-align: top;
+}
+.alpha-strip li.is-ok {
+  border-color: var(--ok);
+  background: var(--ok-soft);
+  color: var(--ok-ink);
+}
+/* A letter that was missed is struck out too: its colour is not all that says so. */
+.alpha-strip li.is-bad {
+  border-color: var(--bad);
+  background: var(--bad-soft);
+  color: var(--bad-ink);
+  text-decoration: line-through;
+}
+.alpha-strip li.now {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+  color: var(--ink);
+}
+/* «Con la B»: the letter, large. */
+.alpha-with {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.alpha-with b {
+  display: grid;
+  place-items: center;
+  width: 1.9em;
+  height: 1.9em;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  font: 650 calc(26px * var(--fs)) / 1 var(--serif);
+  letter-spacing: 0;
+}
+.alpha-flag {
+  display: block;
+  width: min(48%, 200px);
+  aspect-ratio: 4 / 3;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px var(--line),
+    var(--shadow-1);
+  object-fit: cover;
+}
+.alpha > .answer {
+  width: min(100%, 520px);
+}
+/* The clue: a sentence, in lines of about the same length. */
+.alpha-clue {
+  max-width: 30ch;
+  text-wrap: balance;
+}
+.q-note.alpha-right {
+  color: var(--ok-ink);
+  font-weight: 600;
+}
+/* What is said under the field takes one line or two on a narrow screen: room for two, so that the buttons stay put. */
+@media (max-width: 480px) {
+  .alpha > .q-note {
+    min-height: 2.8em;
+  }
+}

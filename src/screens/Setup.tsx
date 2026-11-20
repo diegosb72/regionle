@@ -20,7 +20,7 @@ import { FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, MADE_UP_MODES, ODD_MIN, PAIRS
 import { go, settle } from '../lib/router';
 import { PATHS, mapLinkUrl } from '../lib/routes';
 import { useStore, type CardAsk, type CustomList, type LessonOrder, type Length, type Opts } from '../lib/store';
-import { cx, nf, plural } from '../lib/text';
+import { cx, initialOf, nf, plural } from '../lib/text';
 import { areaUnit, distWord } from '../lib/units';
 import { SAMPLES, settingsLink } from '../lib/typeinList';
 import { SHIPPED_AUTO, inForce } from '../lib/typeins';
@@ -34,9 +34,9 @@ const ANSWER_MODES: Mode[] = ['learn', 'identify', 'outline', 'capital', 'flag',
 /** Games that are one round of everything: they cannot go on for ever. */
 const FINITE_MODES: Mode[] = ['neighbours', 'blind', 'hotcold', 'bearing', 'coords', 'group', 'whoami', 'border', 'cards'];
 /** Games where names are typed and a list of suggestions can help. */
-const SUGGEST_MODES: Mode[] = ['travel', 'neighbours', 'chain', 'whoami', 'regionle', 'which', 'topten'];
+const SUGGEST_MODES: Mode[] = ['travel', 'neighbours', 'chain', 'whoami', 'regionle', 'which', 'topten', 'alphabet'];
 /** Games that stop on a missed answer long enough to read about it. */
-const WIKI_MODES: Mode[] = ['explore', 'pin', 'identify', 'outline', 'regionle', 'puzzle', 'neighbours', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'mix', 'listen'];
+const WIKI_MODES: Mode[] = ['explore', 'pin', 'identify', 'outline', 'regionle', 'puzzle', 'neighbours', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'mix', 'listen', 'alphabet'];
 
 type Cities = Awaited<ReturnType<typeof loadCities>>;
 type Physical = Awaited<ReturnType<typeof loadPhysical>>;
@@ -554,7 +554,9 @@ export function Setup({ section, world, link }: { section: Section; world: World
 
   // How big the game is and how it goes for this player: the label of the mode is the same for everyone.
   const pace = useMemo(() => paceOf(sessions, section, def.id), [sessions, section, def.id]);
-  const questions = problem ? null : questionsOf({ mode: def.id, units, length: finite && opts.length === 'endless' ? 'all' : opts.length, format: opts.format, list: !!active });
+  /** The alphabet is as long as the letters the names of the countries begin with, which depend on the language. */
+  const letters = def.id === 'alphabet' ? new Set(chosen.map((c) => initialOf(nm(c.n))).filter(Boolean)).size : undefined;
+  const questions = problem ? null : questionsOf({ mode: def.id, units, length: finite && opts.length === 'endless' ? 'all' : opts.length, format: opts.format, list: !!active, letters });
   const guess = problem ? null : estimateOf(def.id, questions, pace);
   // A countdown is the longest the map can take.
   const estimate = guess && def.id === 'nameall' && opts.countdown > 0 ? { ...guess, ms: Math.min(guess.ms, opts.countdown * 1000) } : guess;
@@ -708,7 +710,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
                     <span>
                       {estimate && L(minutesOf(estimate.ms) === 1 ? 'Alrededor de 1 min' : `Unos ${nf(minutesOf(estimate.ms))} min`, `About ${nf(minutesOf(estimate.ms))} min`)}
                       {estimate && questions != null && ' · '}
-                      {questions != null && (def.id === 'nameall' ? plural(questions, noun[0], noun[1]) : plural(questions, L('pregunta', 'question'), L('preguntas', 'questions')))}
+                      {questions != null && (def.id === 'nameall' ? plural(questions, noun[0], noun[1]) : def.id === 'alphabet' ? plural(questions, L('letra', 'letter'), L('letras', 'letters')) : plural(questions, L('pregunta', 'question'), L('preguntas', 'questions')))}
                       {estimate?.own && <small> {L('a tu ritmo', 'at your pace')}</small>}
                     </span>
                   </li>

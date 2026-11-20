@@ -273,4 +273,29 @@ test.describe('a larger letter on a phone', () => {
     const map = (await page.locator('.stage').boundingBox())!;
     expect(map.height).toBeGreaterThan(page.viewportSize()!.height * 0.3);
   });
+
+  // A field is as wide as twenty of its letters unless it is told otherwise, and where nothing held it in
+  // (the games of figures) it pushed its own button off the screen.
+  for (const mode of ['which', 'topten']) {
+    test(`keeps the field of an answer and its button on the screen in a game of figures (${mode}) @movil`, async ({ page }) => {
+      const countries = ['ES', 'FR', 'PT', 'IT', 'DE', 'GB', 'IE', 'NL', 'BE', 'CH', 'AT', 'PL'];
+      await seed(page, { ...EVERYTHING, game: { section: 'pops', mode, countries, levels: {}, nonce: 1, opts: OPTS } });
+      await page.goto('./#/jugar');
+      await expect(page.locator('.answer-input')).toBeVisible({ timeout: 30_000 });
+      await page.evaluate(() => document.fonts.ready);
+      for (const width of [320, 360, 390]) {
+        await page.setViewportSize({ width, height: 740 });
+        const box = await page.evaluate(async () => {
+          await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+          const field = document.querySelector('.answer-input')!.getBoundingClientRect();
+          const send = document.querySelector('.answer-send')!.getBoundingClientRect();
+          return { left: field.left, right: send.right, field: field.width, screen: innerWidth };
+        });
+        expect(box.left, `${width} px`).toBeGreaterThanOrEqual(0);
+        expect(box.right, `${width} px`).toBeLessThanOrEqual(box.screen);
+        // And the field is still a field: room for a dozen letters.
+        expect(box.field, `${width} px`).toBeGreaterThan(150);
+      }
+    });
+  }
 });
