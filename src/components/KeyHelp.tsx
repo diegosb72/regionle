@@ -138,8 +138,8 @@ export function GameKeys() {
         </dt>
         <dd>
           {L(
-            'En el mapa, elige la pieza del cursor o deja el punto bajo la cruz (también Espacio). Después de una respuesta, pasa a la pregunta siguiente. Al escribir, envía la respuesta. En «Marca el grupo», en el mapa marca o desmarca la pieza y, fuera de él, comprueba lo marcado.',
-            'On the map, it chooses the piece under the cursor or drops the spot under the cross (Space too). After an answer, it moves on to the next question. When typing, it sends the answer. In “Mark the group”, on the map it marks or unmarks the piece and, off it, it checks what is marked.',
+            'En el mapa, elige la pieza del cursor o deja el punto bajo la cruz (también Espacio). Después de una respuesta, pasa a la pregunta siguiente. Al escribir, envía la respuesta. En «Marca el grupo», en el mapa marca o desmarca la pieza y, fuera de él, comprueba lo marcado. En «Alfabeto», escribir «paso» e Intro deja la letra para después.',
+            'On the map, it chooses the piece under the cursor or drops the spot under the cross (Space too). After an answer, it moves on to the next question. When typing, it sends the answer. In “Mark the group”, on the map it marks or unmarks the piece and, off it, it checks what is marked. In “Alphabet”, typing “pass” and Enter leaves the letter for later.',
           )}
         </dd>
       </div>

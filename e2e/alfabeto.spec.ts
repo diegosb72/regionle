@@ -317,11 +317,10 @@ test.describe('the alphabet', () => {
     await start(page, game(ids, { suggest: true }));
     const e = await asked(page, ids);
     const options = page.locator('.answer-list li');
-    // In the order the game finds them, which is not that of the alphabet.
-    const offered = async () => (await options.allTextContents()).sort();
     await field(page).fill('e');
-    await expect(options).toHaveCount(2);
-    expect(await offered()).toEqual(['España', 'Estonia']);
+    await expect(options).toHaveText(['España', 'Estonia']);
+    // Without their flags: one of them may be the clue.
+    await expect(options.locator('img')).toHaveCount(0);
     // Finlandia has an "e" too, and Francia: neither begins with it.
     await field(page).fill('f');
     await expect(options).toHaveCount(0);
@@ -329,9 +328,9 @@ test.describe('the alphabet', () => {
     await options.filter({ hasText: e.answer.n.es }).click();
     await expect(letterOf(page)).toHaveText('F');
     await expect(note(page)).toHaveText(`¡Correcto! E · ${e.answer.n.es}.`);
+    // In the order of the alphabet, which is not the one the game keeps them in.
     await field(page).fill('f');
-    await expect(options).toHaveCount(2);
-    expect(await offered()).toEqual(['Finlandia', 'Francia']);
+    await expect(options).toHaveText(['Finlandia', 'Francia']);
   });
 
   test('is played in English with the letters of the names in English', async ({ page }) => {

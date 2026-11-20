@@ -15,6 +15,28 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.25.0',
+    date: '2026-11-20',
+    es: [
+      'Parejas, un juego nuevo en Cifras: cartas boca abajo, dos por país. Levantas dos y, si son la bandera y el nombre del mismo país, se quedan a la vista.',
+      'Las parejas pueden ser de banderas o de capitales, con 12, 16, 20 o 24 cartas. Con las flechas e Intro se juega sin ratón.',
+      'Solo es fallo el intento que te podías ahorrar: levantar dos cartas nuevas que no casan no lo es. El juego guarda tu partida con menos intentos.',
+      'Alfabeto, otro juego nuevo en Cifras: una letra por cada inicial de los países elegidos y, de cada letra, un país que hay que sacar por una pista.',
+      'La pista es su capital, su bandera, sus vecinos, dónde está o en qué es el primero de su letra. Un intento por letra; con «Paso», la letra vuelve después.',
+      'Arreglado: en un móvil estrecho con la letra grande, el campo de respuesta de «¿Qué país?» y de «Los diez primeros» se salía de la pantalla.',
+      'Arreglado: al escribir muy deprisa, una letra tecleada justo al enviar una respuesta podía quedarse pegada a ella en el campo.',
+    ],
+    en: [
+      'Pairs, a new game in Figures: cards face down, two for each country. Turn two over and, if they are the flag and the name of the same country, they stay up.',
+      'The pairs can be of flags or of capitals, with 12, 16, 20 or 24 cards. The arrows and Enter play it without a mouse.',
+      'Only a turn you could have spared is a miss: turning two new cards that do not match is not one. The game keeps your game with the fewest turns.',
+      'Alphabet, another new game in Figures: a letter for each initial among the countries chosen and, for each letter, a country to work out from a clue.',
+      'The clue is its capital, its flag, its neighbours, where it is or what it is the first of its letter in. One try a letter; “Pass” brings it back later.',
+      'Fixed: on a narrow phone with the large letter, the answer field of “Which country?” and “The top ten” ran off the screen.',
+      'Fixed: typing very fast, a letter typed just as an answer was sent could stay stuck to that answer in the field.',
+    ],
+  },
+  {
     version: '1.24.0',
     date: '2026-11-20',
     es: [

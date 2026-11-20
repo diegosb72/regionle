@@ -6,10 +6,10 @@
 import { ArrowRight, Flag as FlagIcon, SkipForward, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { AnswerInput, type Suggestion } from '../components/AnswerInput';
-import { BASE, Flag } from '../components/ui';
+import { BASE } from '../components/ui';
 import { makeAlphabet, type AlphaQuestion, type AlphaWorld } from '../lib/alphabet';
 import { countryAnswers, countryItem } from '../lib/data';
-import { L, nm } from '../lib/i18n';
+import { L, getLang, nm } from '../lib/i18n';
 import { Matcher, shortNote } from '../lib/matcher';
 import { modeNameIn } from '../lib/modes';
 import { useStore, type GameConfig } from '../lib/store';
@@ -135,16 +135,20 @@ export function AlphabetGame({ countries, world, cfg, onExit }: { countries: Cou
     setClear((n) => n + 1);
   };
 
-  /** Only the countries of the letter are offered: no other is an answer. */
+  /**
+   * Only the countries of the letter are offered, in the order of the alphabet: no other is an answer. And
+   * without their flags, which would say whose the flag of the clue is.
+   */
   const suggest =
     cfg.opts.suggest && q && !done
       ? (text: string): Suggestion[] =>
           matcher
-            .suggest(text, 12)
+            .suggest(text, countries.length)
             .map((id) => byId.get(id)!)
             .filter((c) => initialOf(nm(c.n)) === q.letter)
+            .map((c) => ({ id: c.id, label: nm(c.n) }))
+            .sort((a, b) => a.label.localeCompare(b.label, getLang()))
             .slice(0, 6)
-            .map((c) => ({ id: c.id, label: nm(c.n), icon: c.fl ? <Flag code={c.fl} size="sm" /> : undefined }))
       : undefined;
 
   if (ended || !q) {
