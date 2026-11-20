@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { expect, test } from '@playwright/test';
-import { open, seed } from './helpers';
+import { PIN_SPAIN, open, seed } from './helpers';
 
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')) as { version: string };
 
@@ -51,6 +51,22 @@ test.describe('the first page and the addresses of the game', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Esa dirección no existe');
     await expect(page).toHaveTitle('Dirección desconocida — Regionle ∞');
     await page.getByRole('link', { name: 'Ir al inicio' }).click();
+    await expect(page.locator('.hero-title')).toBeVisible();
+  });
+
+  test('says so when a part of the game does not arrive, with the ways out of it together at the top', async ({ page }) => {
+    // The code of the games is what does not arrive.
+    await page.route('**/assets/Play-*.js', (route) => route.abort());
+    await seed(page, { game: PIN_SPAIN, helpAuto: false });
+    await page.goto('./#/jugar');
+    const crash = page.locator('.crash');
+    await expect(crash.getByRole('heading', { level: 1 })).toHaveText('Esta parte del juego no ha llegado a cargarse', { timeout: 30_000 });
+    await expect(crash).toContainText('Tu progreso está a salvo');
+    // A game fills the window: the notice does not spread down it, and its button is not as tall as what is left over.
+    const reload = crash.getByRole('button', { name: 'Recargar la página' });
+    expect(await reload.evaluate((el) => el.getBoundingClientRect().height)).toBeLessThan(60);
+    // The start of the game is one of the ways out.
+    await crash.getByRole('link', { name: 'Ir al inicio' }).click();
     await expect(page.locator('.hero-title')).toBeVisible();
   });
 });

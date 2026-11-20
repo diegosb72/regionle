@@ -255,6 +255,70 @@ test.describe('a game inside another page', () => {
     await expect(box.locator('.embed-foot a')).toHaveAttribute('href', `${baseURL}#/regiones/ES:g1/explore`);
   });
 
+  test('leaves the keyboard to the page around it until it is used, and then keeps it on what it shows', async ({ page, baseURL }) => {
+    await seed(page, { helpAuto: false });
+    /** Where the keyboard is, as the page around the box sees it and as the box does. */
+    const outside = () => page.evaluate(() => document.activeElement?.tagName);
+    const inside = (box: FrameLocator) =>
+      box.locator('html').evaluate(() => {
+        const at = document.activeElement;
+        return !at || at === document.body ? null : at.id || at.tagName;
+      });
+    // A map that shows by itself and a card that waits: neither takes the keys of whoever is reading the page
+    // (the space bar that moves down it, the arrows) as it comes up.
+    let box = await pageWith(page, src(baseURL, 'regiones/ES:g1/explore'));
+    await expect(box.locator('.map-svg [data-id]').first()).toBeVisible({ timeout: 30_000 });
+    await page.waitForTimeout(500);
+    expect(await outside()).toBe('BODY');
+    expect(await box.locator('html').evaluate(() => document.hasFocus())).toBe(false);
+    box = await pageWith(page, src(baseURL, 'regiones/ES:f/identify/answer=choice'));
+    const start = box.locator('.embed-box').getByRole('button', { name: 'Empezar' });
+    await expect(start).toBeVisible();
+    await page.waitForTimeout(500);
+    expect(await outside()).toBe('BODY');
+    expect(await box.locator('html').evaluate(() => document.hasFocus())).toBe(false);
+
+    // Started with the keyboard, the button goes away: the keyboard is at the top of the game, not nowhere.
+    await start.focus();
+    await page.keyboard.press('Enter');
+    await expect(box.locator('.choices .choice')).toHaveCount(4, { timeout: 30_000 });
+    expect(await outside()).toBe('IFRAME');
+    expect(await inside(box)).toBe('contenido');
+    // Left with the keyboard, the same: it is at the top of the card that comes back, one key away from its button.
+    await box.getByRole('button', { name: 'Salir' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(start).toBeVisible();
+    expect(await inside(box)).toBe('contenido');
+    await page.keyboard.press('Tab');
+    await expect(start).toBeFocused();
+  });
+
+  test('offers no way into the whole of the game when a part of it does not arrive', async ({ page, baseURL }) => {
+    await seed(page, { helpAuto: false });
+    // The code of the games is what does not arrive.
+    await page.route('**/assets/Play-*.js', (route) => route.abort());
+    const box = await pageWith(page, src(baseURL, 'regiones/ES:f/pin'));
+    const start = box.locator('.embed-box').getByRole('button', { name: 'Empezar' });
+    await start.click();
+    const crash = box.locator('.crash');
+    await expect(crash.getByRole('heading', { level: 1 })).toHaveText('Esta parte del juego no ha llegado a cargarse', { timeout: 30_000 });
+    // The start of the game is not for a box, the page is not the game's to reload, and what is kept may be nothing.
+    await expect(crash.getByRole('link')).toHaveCount(0);
+    await expect(crash).not.toContainText('inicio');
+    await expect(crash).not.toContainText('progreso');
+    await expect(box.locator('header.top')).toHaveCount(0);
+    // Its lines keep together at the top of the box: the button is a button, not a slab as tall as what is left over.
+    const again = crash.getByRole('button', { name: 'Volver a cargar' });
+    expect(await again.evaluate((el) => el.getBoundingClientRect().height)).toBeLessThan(60);
+    await expect(again).toBeInViewport({ ratio: 1 });
+    // Loading it again, now that it arrives, brings the card back, and the game with it.
+    await page.unroute('**/assets/Play-*.js');
+    await again.click();
+    await expect(page.locator('#suya')).toBeVisible();
+    await start.click();
+    await expect(box.locator('.q')).toContainText('Te quedan 3 intentos', { timeout: 30_000 });
+  });
+
   test('says so when the address is that of no map, without anything of the game around', async ({ page, baseURL }) => {
     for (const rest of ['regiones/ZZ/pin', 'nada', 'lista/esto-no-es-una-lista/pin', '']) {
       const box = await pageWith(page, `${baseURL}es.html#/incrustar${rest ? `/${rest}` : ''}`);
@@ -384,6 +448,8 @@ test.describe('a game inside another page', () => {
       });
     const fine = { seen: true, clear: true, oneLine: true, under: true };
     await expect(box.locator('.embed-box h1')).toBeVisible();
+    // The title folds here: the dot between its two parts stays at the end of the first line.
+    expect(await box.locator('.embed-box h1').evaluate((el) => el.textContent)).toBe('12 países\u00a0· regiones');
     await expect(box.locator('.embed-flags small')).toHaveText('+3');
     expect(await inside()).toEqual({ wide: 0, tall: 0, out: [] });
     expect(await foot()).toEqual(fine);

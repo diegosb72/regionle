@@ -9,7 +9,7 @@
  */
 import './embed.css';
 import { ExternalLink, Infinity as InfinityIcon, Play as PlayIcon } from 'lucide-react';
-import { Suspense, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { lazyScreen } from '../components/lazy';
 import { Flag, Spinner } from '../components/ui';
 import { embedGame, parseEmbed } from '../lib/embed';
@@ -52,6 +52,18 @@ export function Embed({ rest, world }: { rest: string; world: World }) {
   }, [rest, world]);
   /** The game being played; none while the card is on show. */
   const [run, setRun] = useState<GameConfig | null>(null);
+
+  // The game and the card take each other's place with no change of address, and the button that was pressed
+  // goes away with what it was on: the keyboard is put at the top of what has come, as on any new screen,
+  // unless that has taken it already. Never as the box comes up: until someone uses it, the keys belong to
+  // the page around it.
+  const shown = useRef(run);
+  useEffect(() => {
+    if (shown.current === run) return;
+    shown.current = run;
+    const content = document.getElementById('contenido');
+    if (content && !content.contains(document.activeElement)) content.focus({ preventScroll: true });
+  }, [run]);
 
   if (!game) {
     return (
@@ -107,7 +119,8 @@ export function Embed({ rest, world }: { rest: string; world: World }) {
               </div>
             )}
             <p className="kicker">{name}</p>
-            <h1>{title}</h1>
+            {/* Folded in a narrow column, the dot between two parts ends a line: it never starts one. */}
+            <h1>{title.replace(/ · /g, '\u00a0· ')}</h1>
             <p className="embed-desc">{def.desc}</p>
             {/* Whoever is about to press it gets the code of the game on its way. */}
             <button type="button" className="btn btn-primary btn-lg" onClick={() => begin()} onPointerEnter={Session.warm} onFocus={Session.warm}>
