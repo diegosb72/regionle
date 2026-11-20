@@ -200,6 +200,9 @@ const EUROPE =
   'AD AL AT BA BE BG BY CH CY CZ DE DK EE ES FI FR GB GR HR HU IE IS IT LI LT LU LV MC MD ME MK MT NL NO PL PT RO RS RU SE SI SK SM UA'.split(' ');
 const G20 = 'AR AU BR CA CN DE ES FR GB ID IN IT JP KR MX RU SA TR US ZA'.split(' ');
 
+/** What each section opens with, until the player chooses something else. */
+export const DEFAULT_SEL: Record<Section, string[]> = { regions: ['ES'], countries: EUROPE, pops: G20, cities: ['ES'], physical: ['river', 'EU'] };
+
 export const DEFAULT_OPTS: Opts = {
   answer: 'type',
   length: 'all',
@@ -429,7 +432,7 @@ export const useStore = create<State>()(
   persist(
     (set, get) => ({
       theme: 'auto',
-      sel: { regions: ['ES'], countries: EUROPE, pops: G20, cities: ['ES'], physical: ['river', 'EU'] },
+      sel: { ...DEFAULT_SEL },
       levels: {},
       mode: { regions: 'pin', countries: 'pin', pops: 'hilo', cities: 'pin', physical: 'pin' },
       opts: DEFAULT_OPTS,

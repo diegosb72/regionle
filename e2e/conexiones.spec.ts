@@ -12,6 +12,7 @@ interface Fact {
   id: string;
   n: { es: string; en?: string };
   cl: string;
+  pop?: number;
   ct: string;
   ll?: number;
   cap?: { es: string; en: string };
@@ -416,6 +417,66 @@ test.describe('connections', () => {
     // Sixteen countries of the world, each one once.
     const names = await tiles(page).allTextContents();
     expect(new Set(names).size).toBe(16);
+  });
+
+  test('opens with the world for whoever has chosen no countries, and with their own for whoever has', async ({ page }) => {
+    const world = index.countries.filter((c) => !['dep', 'other'].includes(c.cl) && (c.pop ?? 0) > 0).length;
+    const chosen = page.locator('.picker-actions b');
+    const bar = page.locator('.startbar-info');
+    const byWorld = page.locator('.mode-facts li', { hasText: 'Empieza con el mundo: aún no has elegido países' });
+    const mode = (name: string) => page.locator('.mode', { hasText: name });
+
+    // Someone new: the section opens with its twenty countries and its first game.
+    await seed(page, {});
+    await open(page, '/poblaciones');
+    await expect(chosen).toHaveText('20');
+    await expect(byWorld).toHaveCount(0);
+    // "Conexiones" is played with the world, and says why: nothing was chosen.
+    await mode('Conexiones').click();
+    await expect(chosen).toHaveText(String(world));
+    await expect(bar).toContainText(`${world} países`);
+    await expect(byWorld).toBeVisible();
+    await expect(page.locator('.problem')).toHaveCount(0);
+    await expect(page.locator('.mode-facts li', { hasText: 'el tablero se repite' })).toHaveCount(0);
+    // The other games of the section keep their twenty: nothing was written over.
+    await mode('Mayor o menor').click();
+    await expect(chosen).toHaveText('20');
+    await expect(byWorld).toHaveCount(0);
+    await mode('Conexiones').click();
+    await expect(chosen).toHaveText(String(world));
+
+    // It starts with sixteen countries of the world: more than the twenty could give.
+    await button(page, 'Empezar').click();
+    await expect(tiles(page)).toHaveCount(16);
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('regionle:v1')!).state.game.countries.length)).toBe(world);
+    // And coming back, it is still the world, with nothing kept as chosen.
+    await open(page, '/poblaciones');
+    await expect(page.locator('.mode.on')).toContainText('Conexiones');
+    await expect(chosen).toHaveText(String(world));
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('regionle:v1')!).state.sel.pops.length)).toBe(20);
+
+    // One country taken out of the list is a choice: it stays, for this game and for the others.
+    await page.locator('.cchip[aria-pressed="true"]', { hasText: 'Dinamarca' }).click();
+    await expect(chosen).toHaveText(String(world - 1));
+    await expect(byWorld).toHaveCount(0);
+    await mode('Mayor o menor').click();
+    await expect(chosen).toHaveText(String(world - 1));
+    // Even a choice that gives no board: the G20 is nineteen countries too much alike.
+    await mode('Conexiones').click();
+    await button(page, 'G20').click();
+    await expect(chosen).toHaveText('19');
+    await expect(byWorld).toHaveCount(0);
+    await expect(page.locator('.problem')).toHaveText('Con estos países no sale ningún tablero: elige más, o más variados.');
+  });
+
+  test('plays the countries a link brings, even when they are the twenty the section opens with', async ({ page }) => {
+    const TWENTY = 'AR AU BR CA CN DE ES FR GB ID IN IT JP KR MX RU SA TR US ZA'.split(' ');
+    await seed(page, {});
+    await open(page, `/poblaciones/${TWENTY.join('+')}/connect`);
+    await expect(page.locator('.mode.on')).toContainText('Conexiones');
+    await expect(page.locator('.picker-actions b')).toHaveText('20');
+    await expect(page.locator('.startbar-info')).toContainText('20 países');
+    await expect(page.locator('.mode-facts li', { hasText: 'Empieza con el mundo' })).toHaveCount(0);
   });
 
   test('says so in the game too when the countries chosen give no board', async ({ page }) => {

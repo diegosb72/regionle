@@ -1,5 +1,5 @@
 /** Setup: 1 what to play with, 2 mode, 3 options. */
-import { Check, ChevronDown, Infinity as InfinityIcon, Link2, ListChecks, ListPlus, Pencil, Play, Printer, Share2, Shuffle, Target, Timer, Trash2, X } from 'lucide-react';
+import { Check, ChevronDown, Globe, Infinity as InfinityIcon, Link2, ListChecks, ListPlus, Pencil, Play, Printer, Share2, Shuffle, Target, Timer, Trash2, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { GoalBar } from '../components/GoalBar';
 import { LESSON_SIZES, OLD, lessonOrder, lessonOrders, lessonSize } from '../games/lesson';
@@ -14,6 +14,7 @@ import { CITY_COUNTS, PHYS_KINDS, PHYS_PLACES, kindNoun, kindsIn, loadCities, lo
 import { L, getLang, levelNoun, nm } from '../lib/i18n';
 import { encodeList, listConfig, listPlayable, listUrl } from '../lib/lists';
 import { mapLinkRest, type MapLink } from '../lib/maplink';
+import { opensWithWorld, worldOf } from '../lib/opening';
 import { GROUP_NAME, MODES, MODE_GROUPS, SECTIONS, cardAskName, formatName } from '../lib/modes';
 import { estimateOf, minutesOf, paceOf, percentOf, questionsOf } from '../lib/pace';
 import { CONNECT_MIN, CONNECT_WIDE, FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, MADE_UP_MODES, ODD_MIN, PAIRS_MIN, PAIR_SIZES, PAIR_SIZE_DEFAULT, ROUND_MODES, TOP_MIN, asksByFlag, isRouteRule, turnsOutlines, type PairSize, type RouteRule } from '../lib/rules';
@@ -301,7 +302,8 @@ function CopyLink({ url, what }: { url: string; what: string }) {
 }
 
 export function Setup({ section, world, link }: { section: Section; world: World; link?: MapLink }) {
-  const selected = useStore((s) => s.sel[section]);
+  /** What is kept as chosen in this section. */
+  const kept = useStore((s) => s.sel[section]);
   const typeinAuto = useStore((s) => s.typeinAuto) ?? SHIPPED_AUTO;
   const setSel = useStore((s) => s.setSel);
   const levels = useStore((s) => s.levels);
@@ -339,11 +341,17 @@ export function Setup({ section, world, link }: { section: Section; world: World
     };
   }, [section]);
 
-  const isPhys = section === 'physical';
-  const spec = useMemo(() => parsePhys(isPhys ? selected : []), [isPhys, selected]);
-
   /** What a link that was followed brought: its map, its game, or nothing that the game knows. */
   const [opened, setOpened] = useState<{ map: boolean; mode: boolean } | null>(null);
+  /**
+   * "Conexiones" opens with the world while the player has chosen no countries (lib/opening.ts): the twenty
+   * the section opens with give hardly a board. A map that came with a link is a choice, whatever it is.
+   */
+  const byWorld = !opened?.map && opensWithWorld(section, def.id, kept);
+  const selected = useMemo(() => (byWorld ? worldOf(world.index.countries.filter((c) => eligible(section, c))) : kept), [byWorld, kept, world, section]);
+
+  const isPhys = section === 'physical';
+  const spec = useMemo(() => parsePhys(isPhys ? selected : []), [isPhys, selected]);
   const linkKey = link ? mapLinkRest(section, link) : '';
   useEffect(() => {
     if (!link) return;
@@ -732,7 +740,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
               {def.desc} {/* The rules of the game, step by step: the panel a game opens the first time it is played. */}
               <HelpButton key={def.id} mode={def.id} section={section} />
             </p>
-            {(estimate || questions != null || pace.first != null || boards === 'few') && (
+            {(estimate || questions != null || pace.first != null || boards === 'few' || byWorld) && (
               <ul className="mode-facts">
                 {(estimate || questions != null) && (
                   <li
@@ -760,6 +768,12 @@ export function Setup({ section, world, link }: { section: Section; world: World
                       {L(`Aciertas el ${percentOf(pace.first)} % a la primera`, `You get ${percentOf(pace.first)}% right first time`)}
                       <small> {L(`en ${plural(pace.games, 'partida', 'partidas')}`, `in ${plural(pace.games, 'game', 'games')}`)}</small>
                     </span>
+                  </li>
+                )}
+                {byWorld && (
+                  <li title={L('Con pocos países apenas sale un tablero. Los que elijas en la lista se quedan elegidos, para este juego y para los demás.', 'With few countries there is hardly a board. Those you choose in the list stay chosen, for this game and for the others.')}>
+                    <Globe size={14} aria-hidden="true" />
+                    <span>{L('Empieza con el mundo: aún no has elegido países', 'It opens with the world: you have not chosen countries yet')}</span>
                   </li>
                 )}
                 {boards === 'few' && !problem && (
