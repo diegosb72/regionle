@@ -3,6 +3,15 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.29.0 — 20 de noviembre de 2026
+
+- Incrustar un mapa en otra web: junto al enlace del mapa, el botón «Incrustar» da el código para poner ese mapa y ese juego en un blog o en la web de clase.
+- El juego sale en un recuadro, sin menús, tal como lo tienes puesto: el mismo mapa, el mismo juego y las mismas opciones. Sirve también con una lista a medida.
+- Quien llega ve una tarjeta con «Empezar»: nada arranca solo, y hasta entonces no se descarga el mapa. Un mapa para explorar se ve desde el principio.
+- En el recuadro no se piden fichas de Wikipedia ni se guarda copia del juego en el dispositivo de quien lee la página. Debajo, un enlace abre el juego entero.
+- Conexiones abre con el mundo: mientras no elijas países en Cifras, se juega con todos. Los demás juegos de Cifras siguen abriendo con sus veinte.
+- Arreglado: en una partida, el aviso de que una parte del juego no ha llegado a cargarse salía estirado a lo alto de la pantalla, con un botón enorme.
+
 ## 1.28.0 — 20 de noviembre de 2026
 
 - Pintar el mapa a mano, en Explorar: seis colores y una goma para colorear países o regiones a tu gusto, y una leyenda donde escribes qué significa cada color.
