@@ -79,6 +79,10 @@ export function helpOf(mode: Mode, section: Section): ModeHelp | null {
             'The card gathers what the game knows of it — its names, its capital, its size, what it borders — and links to learn more. You can leave a note of your own on it too.',
           ),
           L('Con «Regla para medir», marca dos puntos del mapa y verás la distancia en línea recta entre ellos.', 'With “Ruler”, mark two points on the map and you will see the distance between them as the crow flies.'),
+          L(
+            'Con «Comparar tamaños», elige dos piezas y las verás una sobre otra, a la misma escala, con cuánto más grande es una que la otra.',
+            'With “Compare sizes”, choose two pieces and you will see them one over the other, at the same scale, with how much larger one is than the other.',
+          ),
         ],
         score: L('Aquí no se pregunta ni se puntúa nada. La lista señala lo que ya tienes aprendido y lo que tiene un apunte.', 'Nothing is asked or scored here. The list marks what you have already learnt and what has a note.'),
         tip: L('Cuando el mapa te suene, «Ponerme a prueba» te lleva a jugar con él.', 'When the map looks familiar, “Test myself” takes you to play with it.'),

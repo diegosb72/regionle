@@ -1,5 +1,6 @@
 /** Map projections and the adjacency graph used by the route games. */
 import {
+  geoArea,
   geoAzimuthalEqualArea,
   geoCentroid,
   geoContains,
@@ -379,6 +380,38 @@ export function silhouette(geo: AnyGeo, size: number, pad = 0.08, turn = 0): str
       geo,
     );
   return geoPath(projection).digits(2)(geo) || '';
+}
+
+/** The radius of the Earth the game measures with, in kilometres. */
+const EARTH_KM = 6371;
+
+/** The surface of a shape as it is drawn, in km²: what its outline holds on the globe. */
+export function areaKm2(geo: AnyGeo): number {
+  return geoArea(geo) * EARTH_KM * EARTH_KM;
+}
+
+/**
+ * Two features one on top of the other, each seen from above its own middle and both at the same scale: what
+ * laying one over the other would show. The view of each keeps surfaces true, so that the one that looks
+ * twice as large is twice as large. The scale is the largest at which both fit in a `size` square, each with
+ * the middle of its box in the middle of the square; `km` is how many kilometres one unit of the drawing is,
+ * and `spans`, how long the larger side of the box of each is in the drawing.
+ */
+export function overlaid(a: AnyGeo, b: AnyGeo, size: number, pad = 0.06): { a: string; b: string; km: number; spans: [number, number] } {
+  const seen = (geo: AnyGeo) => {
+    const c = geoCentroid(geo);
+    const projection = geoAzimuthalEqualArea().rotate([-c[0], -c[1]]).precision(0.1).scale(1).translate([0, 0]);
+    const [[x0, y0], [x1, y1]] = geoPath(projection).bounds(geo);
+    return { geo, projection, mid: [(x0 + x1) / 2, (y0 + y1) / 2], span: Math.max(x1 - x0, y1 - y0) };
+  };
+  const both = [seen(a), seen(b)];
+  const span = Math.max(both[0].span, both[1].span);
+  const k = span > 0 && Number.isFinite(span) ? (size * (1 - 2 * pad)) / span : 1;
+  const [da, db] = both.map((v) => {
+    v.projection.scale(k).translate([size / 2 - v.mid[0] * k, size / 2 - v.mid[1] * k]);
+    return geoPath(v.projection).digits(2)(v.geo) || '';
+  });
+  return { a: da, b: db, km: EARTH_KM / k, spans: [both[0].span * k, both[1].span * k] };
 }
 
 /** Great-circle distance in kilometres. */

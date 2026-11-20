@@ -1,4 +1,4 @@
-/** Explore: no questions, just the map with names, facts and links to study, and a ruler to measure it with. */
+/** Explore: no questions, just the map with names, facts and links to study, a ruler to measure it with and a way to set two pieces against each other by their size. */
 import { NotebookPen, Ruler, Search } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { PieceHistory } from '../components/History';
@@ -17,6 +17,7 @@ import { fmtArea, fmtDist, fmtPop, key, nf } from '../lib/text';
 import { dist } from '../lib/units';
 import type { Item, LL } from '../lib/types';
 import { GameShell, showsCountry, type GameProps } from './common';
+import { SizeCompare } from './SizeCompare';
 
 export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const [sel, setSel] = useState<string | null>(null);
@@ -25,6 +26,11 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
   /** The ruler: while it is out, a click on the map is an end of what is measured, not a piece to look up. */
   const [ruler, setRuler] = useState(false);
   const [ends, setEnds] = useState<LL[]>([]);
+  /** The size comparer: while it is out, a click is a piece to compare, not one to look up. One tool at a time. */
+  const [sizing, setSizing] = useState(false);
+  const [pair, setPair] = useState<string[]>([]);
+  /** The last piece chosen had no surface to compare: a river, a peak, a city. */
+  const [odd, setOdd] = useState(false);
   const map = useRef<MapHandle>(null);
   const stats = useStore((s) => s.stats);
   const notes = useStore((s) => s.notes);
@@ -46,16 +52,32 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
     if (move) map.current?.focus([id], { fill: 0.4 });
   };
 
+  /** Whether there are two surfaces to set against each other: a map of cities or of rivers has none. */
+  const sizable = useMemo(() => deck.items.filter((it) => it.shape === 'area').length >= 2, [deck]);
+  /** Two pieces are a comparison; a third starts another. */
+  const compare = useCallback(
+    (id: string) => {
+      const ok = deck.byId.get(id)?.shape === 'area';
+      setOdd(!ok);
+      if (ok) setPair((list) => (list.length === 1 ? (list[0] === id ? list : [list[0], id]) : [id]));
+    },
+    [deck],
+  );
+
   const paint = useMemo(() => {
     const p: Record<string, Paint> = {};
     if (listed) for (const it of deck.items) if (!listed.has(it.id)) p[it.id] = 'dim';
-    if (item) {
+    if (sizing) {
+      // Each of the two in the colour it has in the drawing.
+      if (pair[0]) p[pair[0]] = 'from';
+      if (pair[1]) p[pair[1]] = 'to';
+    } else if (item) {
       for (const id of item.nb) p[id] = 'near';
       for (const id of item.sl) p[id] = 'near';
       p[item.id] = 'sel';
     }
     return p;
-  }, [item, listed, deck]);
+  }, [item, listed, deck, sizing, pair]);
 
   const pinned = useMemo(() => (sel ? new Set([sel]) : undefined), [sel]);
   /** Two clicks are a distance; a third starts another. */
@@ -81,7 +103,7 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
           deck={deck}
           paint={paint}
           pickable={!ruler}
-          onPick={ruler ? undefined : (id) => choose(id, false)}
+          onPick={ruler ? undefined : sizing ? compare : (id) => choose(id, false)}
           onPoint={ruler ? measure : undefined}
           marks={marks}
           links={links}
@@ -211,6 +233,7 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
             onChange={(on) => {
               setRuler(on);
               setEnds([]);
+              if (on) setSizing(false);
             }}
             hint={L('Marca dos puntos en el mapa y te decimos cuánto hay de uno a otro.', 'Mark two points on the map and we tell you how far it is from one to the other.')}
           >
@@ -237,6 +260,37 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
             </div>
           )}
 
+          {sizable && (
+            <Toggle
+              checked={sizing}
+              onChange={(on) => {
+                setSizing(on);
+                setPair([]);
+                setOdd(false);
+                if (on) {
+                  setRuler(false);
+                  setEnds([]);
+                }
+              }}
+              hint={L('Elige dos piezas del mapa y las verás una sobre otra, a la misma escala.', 'Choose two pieces of the map and see them one over the other, at the same scale.')}
+            >
+              {L('Comparar tamaños', 'Compare sizes')}
+            </Toggle>
+          )}
+          {sizing && (
+            <SizeCompare
+              a={(pair[0] && deck.byId.get(pair[0])) || null}
+              b={(pair[1] && deck.byId.get(pair[1])) || null}
+              noun={deck.noun.one}
+              fem={fem}
+              odd={odd}
+              onClear={() => {
+                setPair([]);
+                setOdd(false);
+              }}
+            />
+          )}
+
           <label className="search">
             <Search size={16} aria-hidden="true" />
             <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={L(`Buscar entre ${sorted.length} ${deck.noun.many}…`, `Search ${sorted.length} ${deck.noun.many}…`)} aria-label={L('Buscar', 'Search')} />
@@ -244,7 +298,7 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
           <ul className="index">
             {shown.slice(0, 400).map((it) => (
               <li key={it.id}>
-                <button type="button" className={it.id === sel ? 'on' : undefined} onClick={() => choose(it.id)}>
+                <button type="button" className={it.id === sel ? 'on' : undefined} onClick={() => (sizing ? compare(it.id) : choose(it.id))}>
                   {(it.kind === 'country' || several) && <Flag code={it.country.fl} size="sm" />}
                   {it.kind === 'feature' && <i className={`kdot kdot-${it.cat}`} aria-hidden="true" />}
                   <span>{it.name}</span>
