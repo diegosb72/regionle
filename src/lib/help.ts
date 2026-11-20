@@ -86,7 +86,10 @@ export function helpOf(mode: Mode, section: Section): ModeHelp | null {
     case 'learn':
       return {
         steps: [
-          L('Cada lección presenta cinco piezas nuevas, una a una: fíjate en dónde está cada una y en qué tiene alrededor.', 'Each lesson introduces five new pieces, one at a time: look at where each one is and what lies around it.'),
+          L(
+            'Cada lección presenta unas pocas piezas nuevas, una a una: cinco, o las que elijas en «Piezas por lección». Fíjate en dónde está cada una y en qué tiene alrededor.',
+            'Each lesson introduces a few new pieces, one at a time: five, or as many as you choose under “Pieces per lesson”. Look at where each one is and what lies around it.',
+          ),
           L(
             'Después te las pregunta, mezcladas con las que ya conoces: unas veces señalas en el mapa la que se nombra y otras dices cuál es la que está resaltada.',
             'Then it asks you about them, mixed with the ones you already know: sometimes you pin the one that is named and sometimes you say which one is highlighted.',
@@ -100,8 +103,8 @@ export function helpOf(mode: Mode, section: Section): ModeHelp | null {
         ),
         aid: L('Al escribir un nombre, «Una letra» te enseña la siguiente. «No lo sé» da la respuesta, y la pregunta vuelve más tarde.', 'When typing a name, “A letter” shows you the next one. “I don\'t know” gives the answer, and the question comes back later.'),
         tip: L(
-          'Es el mejor sitio para empezar con un mapa que no conoces: unas pocas lecciones al día rinden más que una tarde entera.',
-          'It is the best place to start with a map you do not know: a few lessons a day do more than a whole afternoon.',
+          'Unas pocas lecciones al día rinden más que una tarde entera. Si ya te sabes parte del mapa, «Haz la prueba de nivel», en la primera lección, pregunta cada pieza una vez, sin pistas, y las lecciones se saltan las que aciertes. El orden en que llegan las piezas (por zonas, por tamaño o alfabético) se elige en los ajustes.',
+          'A few lessons a day do more than a whole afternoon. If you already know part of the map, “Take the placement test”, in the first lesson, asks each piece once, with no hints, and the lessons skip the ones you get right. The order the pieces come in (by area, by size or by name) is chosen in the settings.',
         ),
       };
     case 'cards':

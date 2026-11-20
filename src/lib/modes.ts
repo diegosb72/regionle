@@ -81,7 +81,7 @@ function modesOf(section: Section): ModeDef[] {
   const learn: ModeDef = {
     id: 'learn',
     name: L('Aprender', 'Learn'),
-    desc: L('Por lecciones: cinco piezas nuevas cada vez, que primero te presentamos y luego te preguntamos mezcladas con las que ya sabes.', 'In lessons: five new pieces at a time, first shown to you and then asked mixed with the ones you already know.'),
+    desc: L('Por lecciones: unas pocas piezas nuevas cada vez, que primero te presentamos y luego te preguntamos mezcladas con las que ya sabes.', 'In lessons: a few new pieces at a time, first shown to you and then asked mixed with the ones you already know.'),
     icon: GraduationCap,
     level: 1,
     group: 'study',

@@ -5,6 +5,10 @@
 import { expect, test, type Page } from '@playwright/test';
 import { OPTS, seed, start } from './helpers';
 
+// The clock of these tests is set by hand, and so is where it is read: their days are Madrid's, whatever
+// E2E_ZONE says (playwright.config.ts).
+test.use({ timezoneId: 'Europe/Madrid' });
+
 const NOW = new Date('2026-11-18T12:00:00+01:00');
 const LUX = { section: 'regions', countries: ['LU'], mode: 'pin', opts: { length: 'all' } };
 const ID: Record<string, string> = { Diekirch: 'LU-D', Grevenmacher: 'LU-G', Luxemburgo: 'LU-L' };

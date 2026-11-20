@@ -7,6 +7,10 @@ import { expect, test, type Page } from '@playwright/test';
 import jsQR from 'jsqr';
 import { open, seed, start } from './helpers';
 
+// The clock of these tests is set by hand, and so is where it is read: their days are Madrid's, whatever
+// E2E_ZONE says (playwright.config.ts).
+test.use({ timezoneId: 'Europe/Madrid' });
+
 const NOW = new Date('2026-11-18T12:00:00+01:00');
 
 /** What a camera would read from the code on the screen. */

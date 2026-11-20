@@ -2,6 +2,7 @@
 import { Check, ChevronDown, Infinity as InfinityIcon, Link2, ListChecks, ListPlus, Pencil, Play, Printer, Share2, Target, Timer, Trash2, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { GoalBar } from '../components/GoalBar';
+import { LESSON_SIZES, OLD, lessonOrder, lessonOrders, lessonSize } from '../games/lesson';
 import { HelpButton } from '../components/Help';
 import { Picker } from '../components/Picker';
 import { QrButton } from '../components/QrButton';
@@ -18,7 +19,7 @@ import { estimateOf, minutesOf, paceOf, percentOf, questionsOf } from '../lib/pa
 import { FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, ROUND_MODES, TOP_MIN, asksByFlag, turnsOutlines } from '../lib/rules';
 import { go, settle } from '../lib/router';
 import { PATHS, mapLinkUrl } from '../lib/routes';
-import { useStore, type CardAsk, type CustomList, type Length, type Opts } from '../lib/store';
+import { useStore, type CardAsk, type CustomList, type LessonOrder, type Length, type Opts } from '../lib/store';
 import { cx, nf, plural } from '../lib/text';
 import { areaUnit, distWord } from '../lib/units';
 import { SAMPLES, settingsLink } from '../lib/typeinList';
@@ -524,6 +525,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
     axis: def.id === 'compass',
     bearingAsk: def.id === 'bearing',
     coordsAsk: def.id === 'coords',
+    lesson: def.id === 'learn' && section !== 'pops',
     // A review and a list are filled in at their own pace.
     countdown: def.id === 'nameall',
     cities: section === 'cities' && !active,
@@ -952,6 +954,46 @@ export function Setup({ section, world, link }: { section: Section; world: World
                     </p>
                   )}
                 </div>
+              )}
+              {show.lesson && section !== 'pops' && (
+                <>
+                  <div className="opt">
+                    <span className="opt-label">{L('Piezas por lección', 'Pieces per lesson')}</span>
+                    <Seg
+                      label={L('Cuántas piezas nuevas trae cada lección', 'How many new pieces each lesson brings')}
+                      value={lessonSize(opts.lessonSize)}
+                      onChange={(n) => set({ lessonSize: n })}
+                      options={LESSON_SIZES.map((n) => ({ value: n, label: String(n) }))}
+                    />
+                    <p className="opt-hint">
+                      {L(
+                        `Cada lección son unas ${lessonSize(opts.lessonSize) * 2 + Math.min(lessonSize(opts.lessonSize), OLD) + OLD} preguntas: dónde está y cómo se llama cada pieza nueva, y un repaso con las anteriores.`,
+                        `Each lesson is about ${lessonSize(opts.lessonSize) * 2 + Math.min(lessonSize(opts.lessonSize), OLD) + OLD} questions: where each new piece is and what it is called, and a round with the earlier ones.`,
+                      )}
+                    </p>
+                  </div>
+                  <div className="opt">
+                    <span className="opt-label">{L('Orden', 'Order')}</span>
+                    <Seg
+                      label={L('En qué orden llegan las piezas nuevas', 'The order the new pieces come in')}
+                      value={lessonOrder(section, opts.lessonOrder)}
+                      onChange={(order) => set({ lessonOrder: order })}
+                      options={lessonOrders(section).map((value: LessonOrder) => ({
+                        value,
+                        label: value === 'near' ? L('Por zonas', 'By area') : value === 'abc' ? L('Alfabético', 'Alphabetical') : section === 'cities' ? L('Por habitantes', 'By population') : L('Por tamaño', 'By size'),
+                      }))}
+                    />
+                    <p className="opt-hint">
+                      {lessonOrder(section, opts.lessonOrder) === 'near'
+                        ? L('Cada lección es un rincón del mapa: una pieza y las que tiene alrededor.', 'Each lesson is one corner of the map: a piece and the ones around it.')
+                        : lessonOrder(section, opts.lessonOrder) === 'abc'
+                          ? L('Por sus nombres, como en una lista: cada lección salta de un lado a otro del mapa.', 'By their names, as in a list: each lesson jumps from one side of the map to the other.')
+                          : section === 'cities'
+                            ? L('Primero las ciudades con más habitantes.', 'The cities with the most people first.')
+                            : L('Primero las más grandes, que son las más fáciles de encontrar.', 'The largest first, which are the easiest to find.')}
+                    </p>
+                  </div>
+                </>
               )}
               {show.answer && (
                 <div className="opt">

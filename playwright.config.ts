@@ -21,7 +21,10 @@ export default defineConfig({
   use: {
     baseURL: `http://127.0.0.1:${PORT}/`,
     locale: 'es-ES',
-    timezoneId: 'Europe/Madrid',
+    // The clock of the browser is Madrid's. E2E_ZONE puts it somewhere else, which is the way to run the
+    // tests as at another hour of the day without waiting for it: `E2E_ZONE=Asia/Tokyo npm run e2e` in the
+    // afternoon plays them as in the small hours. No test may depend on the hour it is run at.
+    timezoneId: process.env.E2E_ZONE || 'Europe/Madrid',
     // The copy the game keeps for playing without a connection would answer in place of the site that
     // has just been built: it is only let in where it is what is being looked at (sin-conexion.spec.ts).
     serviceWorkers: 'block',

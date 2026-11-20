@@ -1,6 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
 import { open, seed } from './helpers';
 
+// The clock of these tests is set by hand, and so is where it is read: their days are Madrid's, whatever
+// E2E_ZONE says (playwright.config.ts).
+test.use({ timezoneId: 'Europe/Madrid' });
+
 /** The narrowest phones the game is drawn for, in CSS pixels. */
 const WIDTHS = [360, 320];
 

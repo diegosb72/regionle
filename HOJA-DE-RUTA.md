@@ -17,7 +17,7 @@ A petición del dueño del proyecto, desde la 1.18.0 se hace primero lo que meno
 el final lo que más. La estimación es a ojo y cambia al abrir el código:
 
 - **Corto**: nada pendiente
-- **Medio**: 19, 23–26, 45, 46, 51, 54, 58, 59, 61, 66, 70, 73–75, 84, 87, 94, 98
+- **Medio**: 19, 23–26, 45, 46, 51, 54, 61, 66, 70, 73–75, 84, 87, 94, 98
 - **Largo**: 20, 44 (francés), 65, 67, 68, 83, 90
 - **Depende de conseguir datos**, lleve lo que lleve: 30–32, 37–39, 41–43, 95, y lo que falta del 29 y del 35
 
@@ -94,8 +94,8 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 - [x] 55. Lo que confundes: las parejas que se toman una por otra, en «Progreso» y al momento, y un botón para practicarlas juntas — **1.9.0**
 - [x] 56. Objetivo con fecha: un mapa o una lista para un día, con lo que toca aprender y repasar cada día y un examen de prueba — **1.9.0**
 - [x] 57. Apuntes propios: una línea por pieza, que se escribe en su ficha, tras una respuesta, en una lección o en una tarjeta, y sale cuando se pregunta por ella — **1.14.0**
-- [ ] 58. Prueba de nivel inicial
-- [ ] 59. Lecciones a tu gusto
+- [x] 58. Prueba de nivel inicial: en la primera lección de un mapa, una prueba que pregunta cada pieza una vez (dónde está y cómo se llama), con un intento y sin pistas; las lecciones se saltan lo que se acierta, y lo que no se sabe no cuenta como fallo — **1.23.0**
+- [x] 59. Lecciones a tu gusto: en los ajustes de «Aprender», cuántas piezas nuevas trae cada lección (3, 5, 8 o 10) y en qué orden llegan (por zonas, por tamaño o alfabético) — **1.23.0**
 - [x] 60. Repaso ajustable: en Progreso se elige el ritmo (más seguido, normal o más espaciado) y cuántas preguntas hace cada repaso (10, 20, 30 o 50) — **1.19.0**
 - [ ] 61. Sesión del día
 - [x] 62. Más tipos de pista: junto a la pista de cada juego, un menú «Otra pista» con lo que el juego sabe de la pieza (cuántas letras, su tamaño, dónde cae, a qué pertenece, qué tiene cerca, su capital, su bandera, quitar dos opciones, su nombre); solo lo que la pregunta ni enseña ni pide, y cada una cuenta como ayuda — **1.22.0**

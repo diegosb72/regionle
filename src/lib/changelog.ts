@@ -15,6 +15,22 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.23.0',
+    date: '2026-11-20',
+    es: [
+      'Lecciones a tu gusto: en los ajustes de «Aprender» eliges cuántas piezas nuevas trae cada lección (3, 5, 8 o 10) y en qué orden llegan.',
+      'El orden puede ser por zonas del mapa, por tamaño (por habitantes, entre ciudades) o alfabético. Sin elegir nada, todo sigue como estaba.',
+      'Prueba de nivel: si ya te sabes parte de un mapa, «Haz la prueba de nivel», en la primera lección, pregunta cada pieza una vez, sin pistas.',
+      'Lo que sitúas y nombras bien en la prueba queda por sabido y las lecciones se lo saltan. Lo que no sabes no cuenta como fallo: queda para las lecciones.',
+    ],
+    en: [
+      'Lessons to your taste: in the settings of “Learn” you choose how many new pieces each lesson brings (3, 5, 8 or 10) and the order they come in.',
+      'The order can be by area of the map, by size (by population, among cities) or alphabetical. If you choose nothing, everything stays as it was.',
+      'Placement test: if you already know part of a map, “Take the placement test”, in the first lesson, asks each piece once, with no hints.',
+      'What you place and name right in the test counts as known and the lessons skip it. What you do not know is not a miss: it is left for the lessons.',
+    ],
+  },
+  {
     version: '1.22.0',
     date: '2026-11-19',
     es: [

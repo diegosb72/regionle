@@ -12,11 +12,11 @@ const IDS = ['AN', 'AR', 'AS', 'CB', 'CL', 'CM', 'CT', 'EX', 'GA', 'MD', 'MC', '
  * The communities of Spain, each right twice in a row two and a half days ago: at the usual pace they come
  * back after three days, so nothing waits; set closer, after two, and all of them do.
  */
-function player(now: number, extra: Record<string, unknown> = {}) {
+function player(now: number, extra: Record<string, unknown> = {}, ago = 2.5) {
   const stats: Record<string, number[]> = {};
   const where: Record<string, string> = {};
   for (const id of IDS) {
-    stats[`loc:${id}`] = [2, 2, 2, now - 2.5 * DAY];
+    stats[`loc:${id}`] = [2, 2, 2, now - ago * DAY];
     where[id] = 'r|ES|g1';
   }
   return { stats, where, opts: OPTS, tot: { g: 1, q: 30, ok: 30, warn: 0, ms: 60_000 }, ...extra };
@@ -81,8 +81,10 @@ test.describe('the settings of the review', () => {
   });
 
   test('draw today in the forecast as any other day: with nothing due, a line and not a block', async ({ page }) => {
-    // At the usual pace nothing is due today: every answer comes back in half a day.
-    await seed(page, player(Date.now()));
+    // Nothing is due today: every answer was given a day and a half ago and comes back in another day and a
+    // half, which is tomorrow at the earliest whatever the hour. (Back in half a day, they would be today's
+    // for whoever runs this before noon.)
+    await seed(page, player(Date.now(), {}, 1.5));
     await open(page, '/progreso');
     await expect(due(page)).toHaveText('0');
     const bars = page.locator('.fc-days i');

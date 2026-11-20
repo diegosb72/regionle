@@ -3,14 +3,14 @@ import { open, seed } from './helpers';
 
 const MIN = 60_000;
 const DAY = 24 * 60 * MIN;
-/** Where the browser of these tests keeps its clock (`playwright.config.ts`): days are counted there. */
-const ZONE = 'Europe/Madrid';
 /**
  * The day `n` days from now, as the game writes it ("2026-11-26"), in the time of the browser and not in
  * that of whoever runs the tests: from eleven at night by the clock of a server in UTC, it is tomorrow in Madrid.
  */
 const dayIn = (n: number): string => {
-  const [y, m, d] = new Intl.DateTimeFormat('en-CA', { timeZone: ZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()).split('-').map(Number);
+  // Where the browser of the test keeps its clock (`playwright.config.ts`): days are counted there.
+  const timeZone = test.info().project.use.timezoneId ?? 'UTC';
+  const [y, m, d] = new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()).split('-').map(Number);
   return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);
 };
 /** "jueves, 26 de noviembre", as the first page says it. */
