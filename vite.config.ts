@@ -90,6 +90,57 @@ function pages(): Plugin {
   };
 }
 
+const LUCIDE = /node_modules[\\/]lucide-react[\\/]/;
+
+/**
+ * The icons the first screen draws, as the names of their files in lucide-react ("arrow-right"): the ones
+ * imported by whatever `src/main.tsx` reaches without waiting for anything, which is what travels with the
+ * page. Worked out by reading the imports, because the bundler only knows that every screen imports the one
+ * file of lucide-react that names them all.
+ *
+ * An icon that is missed here is not lost: it lands in the second file, and the page fetches both. The size
+ * check (`scripts/budget.mjs`) says so.
+ */
+function firstIcons(): Set<string> {
+  const exts = ['', '.ts', '.tsx', '/index.ts', '/index.tsx'];
+  const seen = new Set<string>();
+  const names = new Set<string>();
+  const walk = (file: string): void => {
+    if (seen.has(file)) return;
+    seen.add(file);
+    if (!/\.tsx?$/.test(file)) return;
+    // Static imports and re-exports, on one line or on several; what is imported with `import()` waits, and
+    // `import type` brings no code.
+    for (const [, type, what, from] of fs.readFileSync(file, 'utf8').matchAll(/^(?:import|export)\s+(type\s+)?([^'"]*?)\s*(?:from\s+)?['"]([^'"]+)['"]/gms)) {
+      if (type) continue;
+      if (from === 'lucide-react') {
+        for (const one of what.replace(/[{}]/g, '').split(',')) {
+          const name = one.trim().split(/\s+as\s+/)[0];
+          if (name && !name.startsWith('type ')) names.add(name);
+        }
+      } else if (from.startsWith('.')) {
+        const base = path.resolve(path.dirname(file), from);
+        const found = exts.map((ext) => base + ext).find((f) => fs.existsSync(f) && fs.statSync(f).isFile());
+        if (found) walk(found);
+      }
+    }
+  };
+  walk(path.resolve(process.cwd(), 'src/main.tsx'));
+  // lucide-react says which file each name is in: `export { default as Flag, default as FlagIcon } from './icons/flag.mjs'`.
+  const files = new Set<string>();
+  const barrel = fs.readFileSync(path.resolve(process.cwd(), 'node_modules/lucide-react/dist/esm/lucide-react.mjs'), 'utf8');
+  for (const [, list, file] of barrel.matchAll(/^export \{([^}]+)\} from '\.\/icons\/([\w-]+)\.m?js';/gm)) {
+    if (list.split(',').some((one) => names.has(one.replace('default as', '').trim()))) files.add(file);
+  }
+  return files;
+}
+const FIRST_ICONS = firstIcons();
+/** An icon of lucide-react that the first screen does not draw. */
+const laterIcon = (id: string): boolean => {
+  const icon = /[\\/]icons[\\/]([\w-]+)\.m?js$/.exec(id)?.[1];
+  return !!icon && !FIRST_ICONS.has(icon);
+};
+
 export default defineConfig({
   define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   // Relative base: the built site works from any folder (GitHub Pages, a sub-path, file server…).
@@ -106,8 +157,10 @@ export default defineConfig({
             // What every screen stands on. It changes far less often than the game does, so a new version of
             // the game leaves it where it is in the browser's cache.
             { name: 'react', test: /node_modules[\\/](react|react-dom|scheduler|zustand)[\\/]/, priority: 30 },
-            // One file of icons instead of a dozen tiny ones.
-            { name: 'icons', test: /node_modules[\\/]lucide-react[\\/]/, priority: 20 },
+            // Two files of icons instead of dozens of tiny ones: those of the first screen, which travel with
+            // the page, and those of the other screens and of the games, fetched with the first that needs one.
+            { name: 'icons', test: (id) => LUCIDE.test(id) && !laterIcon(id), priority: 21 },
+            { name: 'icons-more', test: LUCIDE, priority: 20 },
             // What draws the maps: only fetched with the first screen that has one.
             { name: 'map', test: /node_modules[\\/]d3-[^\\/]+[\\/]/, priority: 20 },
           ],
