@@ -7,20 +7,24 @@ import { BadgeBoard } from '../components/Badges';
 import { MapView, type Paint } from '../components/MapView';
 import { BackupBlock, BackupDue, download } from '../components/Backup';
 import { groupPlace, paceDays, paceName } from '../components/ReviewCard';
+import { PictureButton } from '../components/SharePicture';
 import { Flag, Seg, Spinner, capitalise } from '../components/ui';
 import { namesOf, type Named } from '../lib/answerNames';
 import { toCsv } from '../lib/csv';
 import { buildDeck, eligible, type World } from '../lib/data';
 import { kindNoun, parsePhys } from '../lib/extra';
 import { metricNoun, type MetricId } from '../lib/metricNames';
-import { L, getLang, levelNoun, nm } from '../lib/i18n';
+import { L, fmtDay, getLang, levelNoun, nm } from '../lib/i18n';
+import { KNOW_GRADES, knowCardBlob, type KnowCardInfo } from '../lib/knowCard';
 import { MODE_NAME, SECTIONS, formatName, modeNameIn } from '../lib/modes';
 import { mixGroups } from '../lib/mix';
 import { PACES, REVIEW_SIZES, allGroups, dueCount, dueGroups, forecast, gradeOf, missGroups, missesOf, parseOrigin, reviewConfig, reviewMax, type Grade, type Pace, type ReviewGroup } from '../lib/review';
 import { reviewTable } from '../lib/reviewTable';
 import { go } from '../lib/router';
+import { siteRoot } from '../lib/routes';
+import { siteLabel } from '../lib/shareCard';
 import { isLearnt, useReviewPrefs, useStore, type Skill, type Stat } from '../lib/store';
-import { cx, fmtDist, fmtTime, nf } from '../lib/text';
+import { cx, fmtDist, fmtTime, nf, today } from '../lib/text';
 import type { Country, Deck, Mode, Section } from '../lib/types';
 import { scoreOf } from '../games/quiz';
 
@@ -59,9 +63,10 @@ function when(t: number): string {
 
 const GRADES: Grade[] = ['known', 'learning', 'due', 'new'];
 const GRADE_PAINT: Record<Grade, Paint | undefined> = { known: 'ok', learning: 'warn', due: 'due', new: undefined };
-const gradeName = (g: Grade, fem: boolean): string =>
+/** What a grade is called beside how many pieces have it: "104 sabidos", "1 sabida". */
+const gradeName = (g: Grade, fem: boolean, n = 2): string =>
   g === 'known'
-    ? L(fem ? 'sabidas' : 'sabidos', 'known')
+    ? L(n === 1 ? (fem ? 'sabida' : 'sabido') : fem ? 'sabidas' : 'sabidos', 'known')
     : g === 'learning'
       ? L('aprendiendo', 'learning')
       : g === 'due'
@@ -84,6 +89,7 @@ function gradeAcross(stats: Record<string, Stat>, id: string, skills: Skill[], n
 function KnowledgeMap({ world }: { world: World }) {
   const stats = useStore((s) => s.stats);
   const where = useStore((s) => s.where);
+  const cb = useStore((s) => s.cb);
   const setSel = useStore((s) => s.setSel);
   const setLevel = useStore((s) => s.setLevel);
   const [scope, setScope] = useState('world');
@@ -153,6 +159,28 @@ function KnowledgeMap({ world }: { world: World }) {
 
   const fem = isWorld ? false : (deck?.noun.fem ?? true);
   const total = deck?.items.length ?? 0;
+  const many = place && level ? levelNoun(level).many : L('países', 'countries');
+
+  // The map as a picture to keep or to send, once there is something on it: "my map of the world".
+  const day = today();
+  const names = { known: gradeName('known', fem, counts.known), learning: gradeName('learning', fem), due: gradeName('due', fem), new: gradeName('new', fem) };
+  /** What is looked at, when it is one thing only: "Capitales". */
+  const side = skills.length === 1 ? skillName(skills[0]) : '';
+  const card: KnowCardInfo | null =
+    deck && total > counts.new
+      ? {
+          kicker: [L('Lo que ya me sé', 'What I already know'), side].filter(Boolean).join(' · '),
+          title: place && level ? `${nm(place.country.n)} · ${many}` : L('Mi mapa del mundo', 'My map of the world'),
+          counts,
+          of: L(`de ${nf(total)} ${many}`, `of ${nf(total)} ${many}`),
+          names,
+          day: fmtDay(day, true),
+          site: siteLabel(),
+          cb,
+        }
+      : null;
+  const told = KNOW_GRADES.map((g) => `${nf(counts[g])} ${names[g]}`);
+  const stamp = card && deck ? `${JSON.stringify(card)}|${deck.key}|${deck.items.map((it) => (grades.get(it.id) ?? 'new')[0]).join('')}` : '';
   const practise = () => {
     if (place && level) {
       setSel('regions', [place.country.id]);
@@ -212,7 +240,7 @@ function KnowledgeMap({ world }: { world: World }) {
           {GRADES.map((g) => (
             <li key={g} className={`g-${g}`}>
               <i aria-hidden="true" />
-              <b>{nf(counts[g])}</b> {gradeName(g, fem)}
+              <b>{nf(counts[g])}</b> {gradeName(g, fem, counts[g])}
             </li>
           ))}
         </ul>
@@ -223,6 +251,21 @@ function KnowledgeMap({ world }: { world: World }) {
           {L('Practicar este mapa', 'Practise this map')}
           <ArrowRight size={15} aria-hidden="true" />
         </button>
+        {card && deck && (
+          <PictureButton
+            key={stamp}
+            small
+            idle={600}
+            make={() => knowCardBlob(card, deck, grades)}
+            stamp={stamp}
+            file={`regionle-${L('mi-mapa', 'my-map')}-${day}.png`}
+            text={[`Regionle ∞ · ${card.title}${side ? ` · ${side}` : ''}`, L(`Me sé ${nf(counts.known)} ${card.of}`, `I know ${nf(counts.known)} ${card.of}`), siteRoot()].join('\n')}
+            alt={L(
+              `Imagen de tu mapa. ${card.title}${side ? ` (${side.toLowerCase()})` : ''}: ${told.slice(0, -1).join(', ')} y ${told[told.length - 1]}.`,
+              `Picture of your map. ${card.title}${side ? ` (${side.toLowerCase()})` : ''}: ${told.slice(0, -1).join(', ')} and ${told[told.length - 1]}.`,
+            )}
+          />
+        )}
       </div>
       <p className="tip-line">
         {L(

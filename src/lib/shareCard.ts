@@ -409,6 +409,23 @@ async function loadFlag(url: string): Promise<HTMLImageElement | null> {
   }
 }
 
+/**
+ * What another picture of the same family is drawn with (the map of what is known: knowCard.ts): the colours,
+ * the typefaces, the margin, the name of the game at the top and a box with round corners.
+ */
+export { C as CARD_COLOURS, M as CARD_MARGIN, SANS as CARD_SANS, SERIF as CARD_SERIF, brand as paintBrand, rounded as roundedPath };
+
+/** A picture of the size of the card as a PNG file: drawn by `paint`, once the typefaces it is written in are here. */
+export async function pictureBlob(paint: (pen: CanvasRenderingContext2D) => void): Promise<Blob> {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = CARD_SIZE;
+  const pen = canvas.getContext('2d');
+  if (!pen) throw new Error('canvas');
+  if (document.fonts) await Promise.all(CARD_FONTS.map((f) => document.fonts.load(f).catch(() => [])));
+  paint(pen);
+  return new Promise<Blob>((done, fail) => canvas.toBlob((blob) => (blob ? done(blob) : fail(new Error('canvas'))), 'image/png'));
+}
+
 /** The picture as a PNG file. The flag and the map are left out when they cannot be had. */
 export async function cardBlob(info: CardInfo, opts: { flagUrl?: string; deck?: Deck | null; tones?: Record<string, Res> } = {}): Promise<Blob> {
   const canvas = document.createElement('canvas');

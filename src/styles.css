@@ -5162,6 +5162,8 @@ button.chip.on:hover:not(:disabled) {
   align-items: center;
   justify-content: space-between;
   gap: 10px 16px;
+  /* The row of maps scrolls by itself: with many of them it must not make the page wider than the screen. */
+  min-width: 0;
 }
 .know-scopes {
   display: flex;

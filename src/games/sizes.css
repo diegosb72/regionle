@@ -1,0 +1,96 @@
+/* The size comparer of Explore: two pieces of the map one over the other, at the same scale. Fetched with the game. */
+
+.sizes {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-2);
+  background: var(--card);
+}
+.sizes-art {
+  display: block;
+  width: min(100%, 260px);
+  height: auto;
+  margin: 0 auto;
+  border-radius: var(--r-2);
+  background: var(--sea);
+}
+.sizes-art path {
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+/* Each in the colour it has on the map, and thin enough for the other to be seen through it. */
+.sizes-a {
+  fill: var(--m-from);
+  fill-opacity: 0.5;
+  stroke: var(--m-from);
+}
+.sizes-b {
+  fill: var(--m-to);
+  fill-opacity: 0.5;
+  stroke: var(--m-to);
+}
+/* Where the smaller one is, when it is a speck beside the other. */
+.sizes-art .sizes-ring {
+  fill: none;
+  stroke-width: 1.6;
+}
+.sizes-art .sizes-bar path {
+  fill: none;
+  stroke: var(--ink-2);
+}
+.sizes-bar text {
+  fill: var(--ink-2);
+  font-size: calc(9.5px * var(--fs));
+  font-variant-numeric: tabular-nums;
+  text-anchor: middle;
+}
+.sizes-list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  font-size: calc(14.5px * var(--fs));
+  list-style: none;
+}
+.sizes-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+}
+.sizes-list i {
+  flex: none;
+  align-self: center;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+.sizes-ka i {
+  background: var(--m-from);
+}
+.sizes-kb i {
+  background: var(--m-to);
+}
+.sizes-list span {
+  margin-left: auto;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.sizes-line {
+  margin: 0;
+  color: var(--ink);
+  font-size: calc(15px * var(--fs));
+  font-weight: 600;
+}
+.sizes-ask {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: calc(14.5px * var(--fs));
+}
+.sizes .btn {
+  justify-self: start;
+}
