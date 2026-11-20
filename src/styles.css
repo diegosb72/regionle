@@ -3229,6 +3229,8 @@ button.chip.on:hover:not(:disabled) {
 }
 .answer-input {
   flex: 1;
+  /* A field is as wide as twenty of its letters unless told otherwise: with a large letter that is wider than a phone. */
+  width: 100%;
   min-width: 0;
   min-height: 50px;
   padding: 10px 14px;

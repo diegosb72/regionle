@@ -116,8 +116,8 @@ export function GameKeys() {
         </dt>
         <dd>
           {L(
-            'En un mapa en el que hay que elegir una pieza (Señalar, Puzle, Aprender, el reto del día…), llevan el cursor a la pieza vecina por ese lado. Donde se marca un punto (Situar a ciegas, Caliente y frío, Coordenadas, la regla de Explorar) mueven una cruz; con Mayús, a pasos cortos.',
-            'On a map where a piece has to be chosen (Pin it, Jigsaw, Learn, the daily challenge…), they take the cursor to the next piece on that side. Where a spot is marked (Place it blind, Hot and cold, Coordinates, the ruler of Explore) they move a cross; with Shift, in short steps.',
+            'En un mapa en el que hay que elegir una pieza (Señalar, Puzle, Aprender, el reto del día…), llevan el cursor a la pieza vecina por ese lado. Donde se marca un punto (Situar a ciegas, Caliente y frío, Coordenadas, la regla de Explorar) mueven una cruz; con Mayús, a pasos cortos. En «Parejas» van de carta en carta, e Intro levanta la carta.',
+            'On a map where a piece has to be chosen (Pin it, Jigsaw, Learn, the daily challenge…), they take the cursor to the next piece on that side. Where a spot is marked (Place it blind, Hot and cold, Coordinates, the ruler of Explore) they move a cross; with Shift, in short steps. In “Pairs” they go from card to card, and Enter turns the card over.',
           )}
         </dd>
       </div>
@@ -138,8 +138,8 @@ export function GameKeys() {
         </dt>
         <dd>
           {L(
-            'En el mapa, elige la pieza del cursor o deja el punto bajo la cruz (también Espacio). Después de una respuesta, pasa a la pregunta siguiente. Al escribir, envía la respuesta. En «Marca el grupo», en el mapa marca o desmarca la pieza y, fuera de él, comprueba lo marcado.',
-            'On the map, it chooses the piece under the cursor or drops the spot under the cross (Space too). After an answer, it moves on to the next question. When typing, it sends the answer. In “Mark the group”, on the map it marks or unmarks the piece and, off it, it checks what is marked.',
+            'En el mapa, elige la pieza del cursor o deja el punto bajo la cruz (también Espacio). Después de una respuesta, pasa a la pregunta siguiente. Al escribir, envía la respuesta. En «Marca el grupo», en el mapa marca o desmarca la pieza y, fuera de él, comprueba lo marcado. En «Alfabeto», escribir «paso» e Intro deja la letra para después.',
+            'On the map, it chooses the piece under the cursor or drops the spot under the cross (Space too). After an answer, it moves on to the next question. When typing, it sends the answer. In “Mark the group”, on the map it marks or unmarks the piece and, off it, it checks what is marked. In “Alphabet”, typing “pass” and Enter leaves the letter for later.',
           )}
         </dd>
       </div>

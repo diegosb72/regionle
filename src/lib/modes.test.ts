@@ -15,7 +15,7 @@ describe('the games of each section', () => {
     expect(ids('countries')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'puzzle', 'group', 'mix', 'outline', 'regionle', 'neighbours', 'border', 'chain', 'travel', 'compass', 'bearing', 'coords', 'capital', 'flag', 'whoami']);
     expect(ids('cities')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'group', 'mix', 'parent', 'compass', 'bearing', 'coords', 'whoami', 'hilo', 'rank', 'exact', 'which', 'topten']);
     expect(ids('physical')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'mix', 'hilo', 'rank', 'exact', 'which', 'topten']);
-    expect(ids('pops')).toEqual(['hilo', 'rank', 'exact', 'which', 'topten', 'truefalse', 'oddone']);
+    expect(ids('pops')).toEqual(['hilo', 'rank', 'exact', 'which', 'topten', 'truefalse', 'oddone', 'pairs', 'alphabet']);
   });
 
   it('appear once each, with a name, a line about it, an icon and a level', () => {
@@ -83,6 +83,8 @@ describe('what a game is called', () => {
     expect(MODE_NAME.parent).toBe('¿A qué pertenece?');
     expect(MODE_NAME.truefalse).toBe('Verdadero o falso');
     expect(MODE_NAME.oddone).toBe('El intruso');
+    expect(MODE_NAME.pairs).toBe('Parejas');
+    expect(MODE_NAME.alphabet).toBe('Alfabeto');
     expect(MODE_NAME.topten).toBe('Los diez primeros');
     expect(MODE_NAME.print).toBe('Mapa mudo');
     expect(MODE_NAME.cards).toBe('Tarjetas');
@@ -100,6 +102,8 @@ describe('what a game is called', () => {
     expect(MODE_NAME.parent).toBe('Where does it belong?');
     expect(MODE_NAME.truefalse).toBe('True or false');
     expect(MODE_NAME.oddone).toBe('Odd one out');
+    expect(MODE_NAME.pairs).toBe('Pairs');
+    expect(MODE_NAME.alphabet).toBe('Alphabet');
     expect(MODE_NAME.topten).toBe('The top ten');
   });
 });

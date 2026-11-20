@@ -217,6 +217,10 @@ export type Mode =
   | 'truefalse'
   /** Four countries, three of which share what the question says: which one does not. */
   | 'oddone'
+  /** Cards face down, two for each country (its flag and its name, its capital and the country), turned two at a time. */
+  | 'pairs'
+  /** A country for each letter that begins a name, each with a clue; a letter can be passed and comes round again. */
+  | 'alphabet'
   /** The first ten by a figure, typed from memory. */
   | 'topten'
   /** Flashcards: a card is turned over and the player says whether they knew it. */

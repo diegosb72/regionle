@@ -24,7 +24,7 @@ import { L } from '../lib/i18n';
 import { MODE_NAME, PATHS } from '../lib/modes';
 import { pauseClock } from '../lib/pause';
 import { goneFrom } from '../lib/review';
-import { FIGURE_MODES, ODD_MIN } from '../lib/rules';
+import { FIGURE_MODES, ODD_MIN, PAIRS_MIN } from '../lib/rules';
 import { go } from '../lib/router';
 import { useStore, type GameConfig } from '../lib/store';
 import { nf } from '../lib/text';
@@ -42,8 +42,10 @@ const BorderGame = lazyScreen(() => import('../games/Borders').then((m) => m.Bor
 const GroupGame = lazyScreen(() => import('../games/Groups').then((m) => m.GroupGame));
 const WhoAmIGame = lazyScreen(() => import('../games/WhoAmI').then((m) => m.WhoAmIGame));
 const OddOneGame = lazyScreen(() => import('../games/OddOne').then((m) => m.OddOneGame));
+const PairsGame = lazyScreen(() => import('../games/Pairs').then((m) => m.PairsGame));
+const AlphabetGame = lazyScreen(() => import('../games/Alphabet').then((m) => m.AlphabetGame));
 /** Which of them each mode needs: asked for while the map is being drawn, so that it is here when the map is. */
-const APART: Partial<Record<Mode, { warm(): void }>> = { blind: BlindGame, hotcold: BlindGame, bearing: BearingGame, coords: CoordsGame, chain: ChainGame, border: BorderGame, group: GroupGame, whoami: WhoAmIGame, oddone: OddOneGame };
+const APART: Partial<Record<Mode, { warm(): void }>> = { blind: BlindGame, hotcold: BlindGame, bearing: BearingGame, coords: CoordsGame, chain: ChainGame, border: BorderGame, group: GroupGame, whoami: WhoAmIGame, oddone: OddOneGame, pairs: PairsGame, alphabet: AlphabetGame };
 
 function Message({ title, text, onExit, action }: { title: string; text: string; onExit(): void; action?: { label: string; run(): void } }) {
   return (
@@ -160,7 +162,7 @@ function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
 
   /** The countries the games without a map are played with. */
   const chosen = useMemo(() => (cfg.section === 'pops' ? cfg.countries.map((id) => world.byId.get(id)).filter((c) => c != null && eligible('pops', c)).map((c) => c!) : []), [cfg, world]);
-  const statementWorld = useMemo(() => ({ byId: world.byId, continents: world.index.continents }), [world]);
+  const statementWorld = useMemo(() => ({ byId: world.byId, continents: world.index.continents, subregions: world.index.subregions }), [world]);
   /** The games of figures are played with the figure of each thing, or with where it lies. */
   const figured = FIGURE_MODES.includes(cfg.mode) || cfg.mode === 'compass';
   const figs = useMemo((): Fig[] | null => {
@@ -189,6 +191,36 @@ function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
         <WithHelp cfg={cfg}>
           <Suspense fallback={<Spinner />}>
             <OddOneGame countries={chosen} world={statementWorld} cfg={cfg} onExit={onExit} />
+          </Suspense>
+        </WithHelp>
+      );
+    }
+    if (cfg.mode === 'pairs') {
+      const of = cfg.opts.pairOf === 'capital' ? 'capital' : 'flag';
+      // What `pairable` (lib/pairs.ts) lets through, said here so that this screen does not carry the game.
+      if (chosen.filter((c) => (of === 'capital' ? !!c.cap : !!c.fl)).length < PAIRS_MIN) {
+        return (
+          <Message
+            title={L('Faltan países', 'Not enough countries')}
+            text={of === 'capital' ? L(`Este juego necesita al menos ${PAIRS_MIN} países con capital.`, `This game needs at least ${PAIRS_MIN} countries with a capital.`) : L(`Este juego necesita al menos ${PAIRS_MIN} países.`, `This game needs at least ${PAIRS_MIN} countries.`)}
+            onExit={onExit}
+          />
+        );
+      }
+      return (
+        <WithHelp cfg={cfg}>
+          <Suspense fallback={<Spinner />}>
+            <PairsGame countries={chosen} cfg={cfg} onExit={onExit} />
+          </Suspense>
+        </WithHelp>
+      );
+    }
+    if (cfg.mode === 'alphabet') {
+      if (chosen.length < 2) return <Message title={L('Faltan países', 'Not enough countries')} text={L('Este juego necesita al menos dos países.', 'This game needs at least two countries.')} onExit={onExit} />;
+      return (
+        <WithHelp cfg={cfg}>
+          <Suspense fallback={<Spinner />}>
+            <AlphabetGame countries={chosen} world={statementWorld} cfg={cfg} onExit={onExit} />
           </Suspense>
         </WithHelp>
       );

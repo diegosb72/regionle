@@ -17,7 +17,7 @@ A petición del dueño del proyecto, desde la 1.18.0 se hace primero lo que meno
 el final lo que más. La estimación es a ojo y cambia al abrir el código:
 
 - **Corto**: nada pendiente
-- **Medio**: 19, 23, 24, 26, 45, 46, 51, 54, 66, 70, 73–75, 84, 87, 94, 98
+- **Medio**: 19, 26, 45, 46, 51, 54, 66, 70, 73–75, 84, 87, 94, 98
 - **Largo**: 20, 44 (francés), 65, 67, 68, 83, 90
 - **Depende de conseguir datos**, lleve lo que lleve: 30–32, 37–39, 41–43, 95, y lo que falta del 29 y del 35
 
@@ -47,8 +47,8 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 
 - [x] 21. Verdadero o falso — **1.7.0** (con países; no hay frases sobre regiones ni ciudades)
 - [x] 22. Los diez primeros — **1.7.0** (en Cifras, Regiones, Ciudades y Física)
-- [ ] 23. Alfabeto
-- [ ] 24. Parejas
+- [x] 23. Alfabeto: una letra por cada inicial de los países elegidos y, de cada una, un país que hay que escribir a partir de una pista (su capital, su bandera, sus vecinos, dónde está o en qué es el primero de su letra); un intento por letra, y se puede pasar: la letra vuelve después; en Cifras, con países — **1.25.0**
+- [x] 24. Parejas: cartas boca abajo, dos por país (su bandera y su nombre, o su capital y el país), de 12 a 24; solo es fallo el intento que se podía ahorrar, y se guarda la partida con menos intentos; en Cifras, con países — **1.25.0**
 - [x] 25. El intruso: cuatro países, tres de ellos con algo en común (el continente, la costa, las fronteras, un vecino, el tamaño o los habitantes frente a otro), y hay que elegir el que no; en Cifras, con países — **1.24.0**
 - [ ] 26. Conexiones
 - [x] 27. Densidad de población — **1.7.0**

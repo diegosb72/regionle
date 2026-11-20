@@ -3,6 +3,16 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.25.0 — 20 de noviembre de 2026
+
+- Parejas, un juego nuevo en Cifras: cartas boca abajo, dos por país. Levantas dos y, si son la bandera y el nombre del mismo país, se quedan a la vista.
+- Las parejas pueden ser de banderas o de capitales, con 12, 16, 20 o 24 cartas. Con las flechas e Intro se juega sin ratón.
+- Solo es fallo el intento que te podías ahorrar: levantar dos cartas nuevas que no casan no lo es. El juego guarda tu partida con menos intentos.
+- Alfabeto, otro juego nuevo en Cifras: una letra por cada inicial de los países elegidos y, de cada letra, un país que hay que sacar por una pista.
+- La pista es su capital, su bandera, sus vecinos, dónde está o en qué es el primero de su letra. Un intento por letra; con «Paso», la letra vuelve después.
+- Arreglado: en un móvil estrecho con la letra grande, el campo de respuesta de «¿Qué país?» y de «Los diez primeros» se salía de la pantalla.
+- Arreglado: al escribir muy deprisa, una letra tecleada justo al enviar una respuesta podía quedarse pegada a ella en el campo.
+
 ## 1.24.0 — 20 de noviembre de 2026
 
 - Sesión de hoy: la portada pone sobre el repaso los pasos del día, en el orden que más ayuda: repasar lo que toca, lo que más fallas y una lección nueva.

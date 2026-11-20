@@ -89,6 +89,9 @@ describe('the preferences of a backup', () => {
     const opts = cleanPrefs({ opts: { answer: 'choice', length: 20, pinBy: 'smell', metric: 'density', cityCount: 33, countdown: 300, wiki: 'no', labels: false, format: 'exam', extra: 'x' } }, here)!.opts;
     expect(opts).toEqual({ ...DEFAULT_OPTS, answer: 'choice', length: 20, metric: 'density', countdown: 300, labels: false, format: 'exam' });
     expect(cleanPrefs({ opts: { countdown: -5 } }, here)!.opts.countdown).toBe(DEFAULT_OPTS.countdown);
+    // What the pairs are made of and how many are dealt: only what the game knows how to deal.
+    expect(cleanPrefs({ opts: { pairOf: 'capital', pairs: 12 } }, here)!.opts).toMatchObject({ pairOf: 'capital', pairs: 12 });
+    expect(cleanPrefs({ opts: { pairOf: 'anthem', pairs: 7 } }, here)!.opts).toMatchObject({ pairOf: DEFAULT_OPTS.pairOf, pairs: DEFAULT_OPTS.pairs });
     expect(cleanPrefs({ opts: { countdown: 1e9 } }, here)!.opts.countdown).toBe(DEFAULT_OPTS.countdown);
   });
 

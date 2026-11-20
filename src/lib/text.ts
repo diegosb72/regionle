@@ -32,6 +32,12 @@ export function fold(s: string): string {
     .trim();
 }
 
+/** The letter a name is filed under: its first one, without its accent. Nothing for a name that begins with no letter. */
+export function initialOf(name: string): string {
+  const first = fold(name).charAt(0).toUpperCase();
+  return /[A-Z]/.test(first) ? first : '';
+}
+
 /** Lower-case, accent-free, punctuation-free form with single spaces. */
 export function norm(s: string): string {
   return fold(s).replace(/\bst\b/g, 'saint');

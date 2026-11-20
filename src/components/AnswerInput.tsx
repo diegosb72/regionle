@@ -38,10 +38,14 @@ export function AnswerInput({ placeholder, onSubmit, onType, suggest, disabled, 
   const [place, setPlace] = useState<CSSProperties | null>(null);
   const listId = useId();
 
-  useEffect(() => {
+  // The field is emptied in the same breath as the answer is taken, not a moment after: a key pressed in
+  // between would be written after the old text, and the old text would stay.
+  const [cleared, setCleared] = useState(clear);
+  if (cleared !== clear) {
+    setCleared(clear);
     setText('');
     setActive(-1);
-  }, [clear]);
+  }
 
   useEffect(() => {
     if (!shake) return;

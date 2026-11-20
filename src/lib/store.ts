@@ -15,6 +15,7 @@ import { RECENT_MAX, isRecent, recentConfig, recentOf, withLeft, withRecent, typ
 import { PACE_DEFAULT, REVIEW_MAX, isPace, isReviewSize, setReviewPrefs, type Pace } from './review';
 import { today } from './text';
 import { cleanTypeins, setTypeins as applyTypeins, type Typeins } from './typeinPrefs';
+import type { PairOf, PairSize } from './rules';
 import type { Mode, Res, Section } from './types';
 import { setUnits } from './units';
 
@@ -102,6 +103,9 @@ export interface Opts {
   bearingAsk: BearingAsk;
   /** What "coordinates" asks: to mark the point that some coordinates name, or to read the coordinates of a marked point. */
   coordsAsk: CoordsAsk;
+  /** "Pairs": what the two cards of a pair are, and how many pairs are dealt. */
+  pairOf: PairOf;
+  pairs: PairSize;
   /** Lessons: how many new pieces each one brings. */
   lessonSize: number;
   /** Lessons: the order the new pieces come in; `auto` is the one that suits the map. */
@@ -212,6 +216,8 @@ export const DEFAULT_OPTS: Opts = {
   cardAsk: 'name',
   bearingAsk: 'both',
   coordsAsk: 'mark',
+  pairOf: 'flag',
+  pairs: 8,
   lessonSize: 5,
   lessonOrder: 'auto',
 };

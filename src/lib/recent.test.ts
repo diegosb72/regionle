@@ -89,6 +89,20 @@ describe('what is kept of a game to play it again', () => {
     expect(odd?.o).toEqual({});
   });
 
+  it('tells pairs of flags from pairs of capitals, and not a table of twelve cards from one of twenty-four', () => {
+    const pairs = (opts: Partial<typeof DEFAULT_OPTS>) => recentOf(game({ section: 'pops', mode: 'pairs', countries: ['ES', 'FR', 'PT'], opts: { ...DEFAULT_OPTS, metric: 'density', ...opts } }), session({ section: 'pops', mode: 'pairs' }))!;
+    // Nor is the figure of the other games of the section theirs.
+    expect(pairs({}).o).toEqual({ pairOf: 'flag' });
+    expect(pairs({ pairOf: 'capital' }).o).toEqual({ pairOf: 'capital' });
+    expect(recentKey(pairs({ pairOf: 'capital' }))).not.toBe(recentKey(pairs({ pairOf: 'flag' })));
+    expect(recentKey(pairs({ pairs: 6 }))).toBe(recentKey(pairs({ pairs: 12 })));
+    // Played again, it is that game with the number of cards liked today.
+    expect(recentConfig(pairs({ pairOf: 'capital', pairs: 6 }), { ...DEFAULT_OPTS, pairs: 12 }).opts).toMatchObject({ pairOf: 'capital', pairs: 12 });
+    // A state kept before the option existed deals flags.
+    const { pairOf: _, ...old } = DEFAULT_OPTS;
+    expect(recentOf(game({ section: 'pops', mode: 'pairs', countries: ['ES', 'FR', 'PT'], opts: old as typeof DEFAULT_OPTS }), session({ section: 'pops', mode: 'pairs' }))?.o).toEqual({ pairOf: 'flag' });
+  });
+
   it('is nothing for a review, a challenge, a round of misses, a list or the editor of lists', () => {
     expect(recentOf(game({ review: true, only: ['ES-M'] }), session())).toBeNull();
     expect(recentOf(game({ challenge: { seed: 7 } }), session())).toBeNull();
