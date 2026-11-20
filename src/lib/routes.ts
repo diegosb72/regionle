@@ -15,6 +15,8 @@ export const PLAY_PATH = 'jugar';
 export const DAILY_PATH = 'reto' satisfies ScreenId;
 export const DUEL_PATH = 'duelo';
 export const LIST_PATH = 'lista';
+/** The game alone, to be put inside another page (lib/embed.ts). */
+export const EMBED_PATH = 'incrustar';
 export const PROGRESS_PATH = 'progreso';
 export const SETTINGS_PATH = 'configuracion';
 export const ABOUT_PATH = 'acerca' satisfies ScreenId;
@@ -34,6 +36,11 @@ export type Route =
   | { kind: 'duel'; code: string }
   /** `#/lista/<code>`: a custom list sent by someone else. Without a code, the screen that says how one is made. */
   | { kind: 'list'; code: string }
+  /**
+   * `#/incrustar/regiones/ES:f/pin`: a map and a game with nothing around them, for an `<iframe>` in another
+   * page. What follows is read where it is played (lib/embed.ts): this file is in the first load.
+   */
+  | { kind: 'embed'; rest: string }
   | { kind: 'progress' }
   /** `#/configuracion`, or `#/configuracion/regiones/US` to open the settings on a list. */
   | { kind: 'settings'; path: string }
@@ -73,6 +80,9 @@ const ALIASES: Record<string, string> = {
   retodiario: DAILY_PATH,
   duel: DUEL_PATH,
   list: LIST_PATH,
+  embed: EMBED_PATH,
+  incrusta: EMBED_PATH,
+  iframe: EMBED_PATH,
   progress: PROGRESS_PATH,
   settings: SETTINGS_PATH,
   ajustes: SETTINGS_PATH,
@@ -86,7 +96,7 @@ const ALIASES: Record<string, string> = {
   privacy: ABOUT_PATH,
 };
 
-const KNOWN = new Set<string>(['', ...Object.values(PATHS), PLAY_PATH, DAILY_PATH, DUEL_PATH, LIST_PATH, PROGRESS_PATH, SETTINGS_PATH, ABOUT_PATH]);
+const KNOWN = new Set<string>(['', ...Object.values(PATHS), PLAY_PATH, DAILY_PATH, DUEL_PATH, LIST_PATH, EMBED_PATH, PROGRESS_PATH, SETTINGS_PATH, ABOUT_PATH]);
 
 function decoded(text: string): string {
   try {
@@ -144,6 +154,8 @@ export function routeOf(path: string, now: string = today()): Route {
       return { kind: 'duel', code: rest };
     case LIST_PATH:
       return { kind: 'list', code: rest };
+    case EMBED_PATH:
+      return { kind: 'embed', rest };
     case PROGRESS_PATH:
       return rest ? { kind: 'unknown', path } : { kind: 'progress' };
     case SETTINGS_PATH:

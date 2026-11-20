@@ -1,0 +1,122 @@
+/* The game inside another page: what the box shows, and the line under it. */
+.embed {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 0;
+  height: 100%;
+  background: var(--bg);
+}
+/* Whatever the box shows stays above the line: in a small box it gives way, and never covers it. */
+.embed > :first-child {
+  min-height: 0;
+  overflow: hidden;
+}
+.embed-card {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 16px;
+}
+.embed-box {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  width: 100%;
+  max-width: 520px;
+  padding: 26px 26px 28px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--card);
+  box-shadow: var(--shadow-1);
+}
+.embed-flags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.embed-flags small {
+  color: var(--ink-3);
+  font-size: calc(12.5px * var(--fs));
+}
+.embed-box .kicker {
+  margin: 0;
+}
+.embed-box h1 {
+  margin: 0;
+  font: 620 calc(30px * var(--fs)) / 1.1 var(--serif);
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+.embed-desc {
+  margin: 0 0 8px;
+  color: var(--ink-2);
+  font-size: calc(15px * var(--fs));
+  line-height: 1.45;
+}
+.embed-foot {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+  border-top: 1px solid var(--line);
+  background: var(--bg-2);
+}
+/* One line whatever the width and the size of the letter: in a narrow box its words are cut short, not folded. */
+.embed-foot a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 7px 12px;
+  color: var(--ink-2);
+  font-size: calc(12.5px * var(--fs));
+  white-space: nowrap;
+  text-decoration: none;
+}
+.embed-foot a > span:last-of-type {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.embed-foot a > svg {
+  flex: none;
+}
+.embed-foot a:hover,
+.embed-foot a:focus-visible {
+  color: var(--ink);
+  text-decoration: underline;
+}
+.embed-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--ink);
+  font: 620 calc(14px * var(--fs)) / 1 var(--serif);
+}
+.embed-brand svg {
+  color: var(--accent);
+}
+/* A map to look at is all there is: no button to leave by. */
+.embed-still .play-top > .btn:first-child {
+  display: none;
+}
+.embed-still .play-top {
+  padding-left: 16px;
+}
+/* In a short, narrow box the map gives up some of its height rather than push anything out of it. */
+@media (max-width: 860px) {
+  .embed .stage {
+    min-height: 120px;
+  }
+}
+@media (max-width: 420px) {
+  .embed-box {
+    padding: 20px 18px 22px;
+  }
+  .embed-box h1 {
+    font-size: calc(25px * var(--fs));
+  }
+}

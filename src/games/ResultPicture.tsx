@@ -10,14 +10,14 @@ import { L, fmtDay } from '../lib/i18n';
 import { MODE_NAME, SECTIONS } from '../lib/modes';
 import { siteRoot } from '../lib/routes';
 import { siteLabel } from '../lib/shareCard';
-import { useStore } from '../lib/store';
+import { gameOn, useStore } from '../lib/store';
 import { fmtTime, nf, today } from '../lib/text';
 import type { Deck } from '../lib/types';
 import type { ResultRow } from './common';
 import { gameCard, tonesOf, type Tally } from './resultCard';
 
 export function ResultPicture({ verdict, deck, rows, count, ms }: { verdict: string; deck?: Deck; rows: ResultRow[]; count: Tally; ms?: number }) {
-  const game = useStore((s) => s.game);
+  const game = useStore(gameOn);
   const mode = game ? MODE_NAME[game.mode] : '';
   const what = [game ? SECTIONS[game.section].name : '', mode].filter(Boolean).join(' · ');
   // With no map to name (a game of figures), the game itself is the name.

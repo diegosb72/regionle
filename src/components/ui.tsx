@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { L } from '../lib/i18n';
 import { linksFor, type StudyLink } from '../lib/links';
 import { reportUrl, type ReportAbout } from '../lib/report';
-import { useStore } from '../lib/store';
+import { gameOn, useStore } from '../lib/store';
 import { cx } from '../lib/text';
 import type { Item } from '../lib/types';
 import { VERSION } from '../lib/version';
@@ -89,7 +89,7 @@ export function reportLink(item: Item, game: ReportAbout['game']): StudyLink {
  * about it: where an answer has just been given, which is when a mistake is noticed.
  */
 export function StudyLinks({ item, extra, report }: { item: Item; extra?: StudyLink[]; report?: boolean }) {
-  const game = useStore((s) => (report ? s.game : null));
+  const game = useStore((s) => (report ? gameOn(s) : null));
   return (
     <div className="links" aria-label={L(`Aprende más sobre ${item.name}`, `Learn more about ${item.name}`)}>
       {linksFor(item).map((l) => (

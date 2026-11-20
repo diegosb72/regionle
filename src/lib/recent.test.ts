@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { RECENT_MAX, isRecent, recentConfig, recentKey, recentOf, withLeft, withRecent, type Recent } from './recent';
-import { DEFAULT_OPTS, useStore, type GameConfig, type SessionRec } from './store';
+import { DEFAULT_OPTS, gameOn, useStore, type GameConfig, type SessionRec } from './store';
 
 const game = (patch: Partial<GameConfig> = {}): GameConfig => ({ section: 'regions', mode: 'pin', countries: ['ES'], levels: { ES: 'f', FR: 'g1' }, opts: DEFAULT_OPTS, nonce: 1, ...patch });
 const session = (patch: Partial<SessionRec> = {}): SessionRec => ({ t: 1000, section: 'regions', mode: 'pin', label: 'España', total: 52, ok: 40, warn: 2, bad: 10, ms: 90_000, ...patch });
@@ -178,7 +178,7 @@ describe('what is kept of a game to play it again', () => {
 
 describe('the saved state keeps the maps played lately', () => {
   beforeEach(() => {
-    useStore.setState({ game: null, sessions: [], recent: [], tot: {}, opts: DEFAULT_OPTS, sel: { ...useStore.getState().sel, regions: ['ES'] }, levels: {}, mode: { ...useStore.getState().mode, regions: 'pin' } });
+    useStore.setState({ game: null, hosted: null, sessions: [], recent: [], tot: {}, opts: DEFAULT_OPTS, sel: { ...useStore.getState().sel, regions: ['ES'] }, levels: {}, mode: { ...useStore.getState().mode, regions: 'pin' } });
   });
 
   it('adds the game in course when it ends, and not a review', () => {
@@ -190,6 +190,27 @@ describe('the saved state keeps the maps played lately', () => {
     useStore.getState().addSession(session());
     expect(useStore.getState().recent).toHaveLength(1);
     expect(useStore.getState().sessions).toHaveLength(2);
+  });
+
+  it('adds the game that is on screen in a box of another page, not the one in course, which stays as it was', () => {
+    const st = useStore.getState();
+    // The same game on another map is in course in the whole of the game.
+    st.start({ section: 'regions', mode: 'pin', countries: ['FR'], levels: { FR: 'f' }, opts: DEFAULT_OPTS });
+    const mine = useStore.getState().game;
+    const boxed = game({ countries: ['ES'], levels: { ES: 'g1' }, nonce: 7 });
+    useStore.setState({ hosted: boxed });
+    expect(gameOn(useStore.getState())).toBe(boxed);
+    useStore.getState().addSession(session({ ok: 15, total: 19 }));
+    expect(useStore.getState().recent).toMatchObject([{ section: 'regions', mode: 'pin', countries: ['ES'], levels: { ES: 'g1' }, ok: 15, total: 19 }]);
+    expect(useStore.getState().game).toBe(mine);
+    // The lessons of the map in the box write down what they have left on that map.
+    useStore.getState().lessonsLeft(4);
+    expect(useStore.getState().recent).toHaveLength(1);
+    // With the box gone, the game in course is the one on screen again.
+    useStore.setState({ hosted: null });
+    expect(gameOn(useStore.getState())).toBe(mine);
+    useStore.getState().addSession(session({ label: 'Francia', ok: 80, total: 96 }));
+    expect(useStore.getState().recent.map((r) => r.countries)).toEqual([['FR'], ['ES']]);
   });
 
   it('starts one again and leaves the menus of its section as they were for it', () => {

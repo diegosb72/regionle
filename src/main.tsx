@@ -9,7 +9,7 @@ import { App } from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { browserLang, getLang, setLang, type Lang } from './lib/i18n';
 import { registerOffline } from './lib/offline';
-import { followLang } from './lib/router';
+import { atEmbed, followLang } from './lib/router';
 import { pageLang } from './lib/routes';
 import { useStore } from './lib/store';
 import './styles.css';
@@ -34,7 +34,9 @@ function Root() {
 setLang(langFor(useStore.getState().lang));
 // Whoever chose Spanish and opens `regions.html` gets the regions in Spanish, at `regiones.html`.
 followLang(getLang());
-registerOffline();
+// A box in another page stores no copy of the game on the device of whoever reads that page, which is what
+// the worker does as soon as it is registered: reading a page is not asking for a game to be kept.
+if (!atEmbed()) registerOffline();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { canonicalPath, langPage, pageLang, pageScreen, screenPage, siteRoot } from './routes';
+import { EMBED_PATH, canonicalPath, langPage, pageLang, pageScreen, screenPage, siteRoot } from './routes';
 
 /** Writes another address in the bar for where the game already is: no new entry in the history, nothing loaded. */
 function rewrite(address: string): void {
@@ -28,6 +28,11 @@ function current(): string {
   if (own != null) rewrite(`${siteRoot()}${langPage(pageLang(pathname) ?? 'es')}#/${path}`);
   else if (path !== raw) rewrite(`#/${path}`);
   return path;
+}
+
+/** Whether the game has been opened alone, to be shown in a box of another page (lib/embed.ts). */
+export function atEmbed(): boolean {
+  return current().split('/')[0] === EMBED_PATH;
 }
 
 /** Hash routing: works from any folder and needs no server configuration. */

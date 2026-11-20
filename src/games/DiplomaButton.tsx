@@ -3,7 +3,7 @@ import { Award } from 'lucide-react';
 import { Suspense, lazy, useState } from 'react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { L } from '../lib/i18n';
-import { useStore } from '../lib/store';
+import { gameOn, useStore } from '../lib/store';
 import type { Deck } from '../lib/types';
 import { earnsDiploma } from './diploma';
 import type { Tally } from './resultCard';
@@ -11,7 +11,7 @@ import type { Tally } from './resultCard';
 const DiplomaDialog = lazy(() => import('./DiplomaDialog').then((m) => ({ default: m.DiplomaDialog })));
 
 export function DiplomaButton({ deck, count, ms }: { deck?: Deck; count: Tally; ms?: number }) {
-  const game = useStore((s) => s.game);
+  const game = useStore(gameOn);
   const [open, setOpen] = useState(false);
   if (!game || !earnsDiploma(game, count)) return null;
   return (

@@ -46,6 +46,10 @@ export const ROUTE_RULES = ['none', 'avoid', 'via', 'land'] as const;
 export type RouteRule = (typeof ROUTE_RULES)[number];
 export const isRouteRule = (x: unknown): x is RouteRule => (ROUTE_RULES as readonly unknown[]).includes(x);
 
+/** What is not played, and so is not put inside another page (lib/embed.ts): the sheet to print, and the making of a list. */
+export const NOT_EMBEDDED: readonly Mode[] = ['print', 'edit'];
+export const embeddable = (mode: Mode): boolean => !NOT_EMBEDDED.includes(mode);
+
 /** A board of "connections": four groups of four countries, and so sixteen is the fewest it takes. */
 export const CONNECT_GROUPS = 4;
 export const CONNECT_GROUP_SIZE = 4;
