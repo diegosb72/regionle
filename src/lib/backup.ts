@@ -9,7 +9,7 @@ import { CITY_COUNTS } from './extra';
 import { isPalette } from './palette';
 import { isTextSize } from './reading';
 import { isPace, isReviewSize } from './review';
-import { PAIR_OFS, PAIR_SIZES } from './rules';
+import { PAIR_OFS, PAIR_SIZES, ROUTE_RULES } from './rules';
 import { isLearnt, type BackupMark, type Opts, type State, type Stat, type Theme } from './store';
 
 /** 4: the preferences travel too. A copy of an earlier version is read all the same. */
@@ -23,7 +23,7 @@ export function prefsOf(s: Prefs): Prefs {
   return { theme: s.theme, cb: s.cb, sound: s.sound, haptic: s.haptic, hotkeys: s.hotkeys, helpAuto: s.helpAuto, iconBadge: s.iconBadge, miles: s.miles, palette: s.palette, textSize: s.textSize, contrast: s.contrast, dyslexia: s.dyslexia, reviewPace: s.reviewPace, reviewSize: s.reviewSize, dayGoal: s.dayGoal, nick: s.nick, opts: s.opts };
 }
 
-/** The file: the progress, what the player has made (selections, lists, goals, notes, short forms) and the preferences. */
+/** The file: the progress, what the player has made (selections, lists, goals, notes, painted maps, short forms) and the preferences. */
 export function backupOf(s: State, now: number) {
   return {
     app: 'regionle',
@@ -41,6 +41,7 @@ export function backupOf(s: State, now: number) {
     lists: s.lists,
     goals: s.goals,
     notes: s.notes,
+    hand: s.hand,
     album: s.album,
     badges: s.badges,
     tot: s.tot,
@@ -109,6 +110,7 @@ const OPT_CHOICES: { [K in keyof Opts]?: readonly Opts[K][] } = {
   coordsAsk: ['mark', 'read'],
   pairOf: PAIR_OFS,
   pairs: PAIR_SIZES,
+  routeRule: ROUTE_RULES,
   lessonSize: LESSON_SIZES,
   lessonOrder: LESSON_ORDERS,
 };

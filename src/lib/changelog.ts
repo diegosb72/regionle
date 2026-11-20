@@ -15,6 +15,28 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.28.0',
+    date: '2026-11-20',
+    es: [
+      'Pintar el mapa a mano, en Explorar: seis colores y una goma para colorear países o regiones a tu gusto, y una leyenda donde escribes qué significa cada color.',
+      'El mapa pintado se guarda como imagen, con su leyenda. Lo pintado se conserva en el navegador, mapa por mapa, y viaja en la copia de seguridad.',
+      'Ruta con condiciones: antes de empezar una Ruta se elige «Un cierre», «Una parada» o «Solo por tierra».',
+      'Con un cierre, una pieza del camino más corto está cerrada y hay que rodearla. Con una parada, la ruta tiene que llegar a una tercera pieza que queda a desmano.',
+      'Solo por tierra, las travesías por mar no valen. El juego dice por cuántas piezas pasa la mejor respuesta, y las pistas llevan por ella.',
+      'Arreglado: en Ruta, la frase sobre las líneas de puntos salía también en los mapas que no tienen travesías por mar.',
+      'Arreglado: una tecla pulsada en el instante en que se cierra «Cómo se juega» se perdía; ahora ya es para el juego.',
+    ],
+    en: [
+      'Paint the map by hand, in Explore: six colours and an eraser to colour countries or regions as you like, and a legend where you write what each colour means.',
+      'The painted map is saved as a picture, with its legend. What you paint is kept in the browser, map by map, and travels in the backup.',
+      'Route with conditions: before starting a Route, choose “A closure”, “A stop” or “By land only”.',
+      'With a closure, a piece on the shortest way is closed and you have to go around it. With a stop, the route has to reach a third piece that is out of the way.',
+      'By land only, the sea crossings do not count. The game says how many pieces the best answer goes through, and the hints lead along it.',
+      'Fixed: in Route, the sentence about the dotted lines also showed on maps that have no sea crossings.',
+      'Fixed: a key pressed at the very moment “How to play” closes was lost; now it already goes to the game.',
+    ],
+  },
+  {
     version: '1.27.0',
     date: '2026-11-20',
     es: [

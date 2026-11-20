@@ -3,7 +3,7 @@
  * game was called; this keeps what it takes to start it: which countries, at which level, in which game.
  */
 import { PATHS } from './routes';
-import { FIGURE_MODES, FORMAT_MODES } from './rules';
+import { FIGURE_MODES, FORMAT_MODES, isRouteRule } from './rules';
 import type { GameConfig, Opts, SessionRec } from './store';
 import type { Mode, Section } from './types';
 
@@ -11,7 +11,7 @@ import type { Mode, Section } from './types';
  * The options that say which game it was, as against how one likes to play: which cities, which figure,
  * what countries are pinned by, what the cards ask, against the clock or with lives.
  */
-export type RecentOpts = Partial<Pick<Opts, 'cityPick' | 'cityCount' | 'metric' | 'pinBy' | 'format' | 'axis' | 'countdown' | 'cardAsk' | 'bearingAsk' | 'coordsAsk' | 'pairOf'>>;
+export type RecentOpts = Partial<Pick<Opts, 'cityPick' | 'cityCount' | 'metric' | 'pinBy' | 'format' | 'axis' | 'countdown' | 'cardAsk' | 'bearingAsk' | 'coordsAsk' | 'pairOf' | 'routeRule'>>;
 
 export interface Recent {
   /** When it was last played. */
@@ -49,6 +49,8 @@ function optsOf(game: GameConfig): RecentOpts {
   if (game.mode === 'bearing') o.bearingAsk = game.opts.bearingAsk ?? 'both';
   // Marking a point and reading its coordinates are two games as well.
   if (game.mode === 'coords') o.coordsAsk = game.opts.coordsAsk ?? 'mark';
+  // A route with a rule to keep is another game than the plain one. The route of the day has none, whatever the options say.
+  if (game.mode === 'travel') o.routeRule = isRouteRule(game.opts.routeRule) ? game.opts.routeRule : 'none';
   if (game.mode === 'nameall' && game.opts.countdown > 0) o.countdown = game.opts.countdown;
   if (game.section === 'countries' && game.mode === 'pin') o.pinBy = game.opts.pinBy;
   // Cards that ask where a thing is are another pack than the ones that ask its name.
@@ -71,10 +73,17 @@ export function recentOf(game: GameConfig, rec: SessionRec): Recent | null {
   return { t: rec.t, section: game.section, mode: game.mode, countries: [...game.countries], levels, o: optsOf(game), ok: rec.ok, total: rec.total, ...(rec.left != null ? { left: rec.left } : {}) };
 }
 
+/**
+ * The options of a game that was kept, with what it did not say because the option did not exist yet: a
+ * route from before there were rules was a plain one.
+ */
+const optsKept = (r: Recent): RecentOpts => (r.mode === 'travel' && !r.o.routeRule ? { ...r.o, routeRule: 'none' } : r.o);
+
 /** Two games are the same one when they are the same game on the same map, whatever the order of its countries. */
 export function recentKey(r: Recent): string {
   const countries = [...r.countries].sort();
-  return [r.section, r.mode, countries.join(','), countries.map((id) => r.levels[id] ?? '').join(','), ...Object.keys(r.o).sort().map((k) => `${k}=${String(r.o[k as keyof RecentOpts])}`)].join('|');
+  const o = optsKept(r);
+  return [r.section, r.mode, countries.join(','), countries.map((id) => r.levels[id] ?? '').join(','), ...Object.keys(o).sort().map((k) => `${k}=${String(o[k as keyof RecentOpts])}`)].join('|');
 }
 
 /**
@@ -96,7 +105,7 @@ export function withRecent(list: readonly Recent[], r: Recent, max = RECENT_MAX)
 
 /** The game to start again: the map and what made it that game, with today's taste for the rest. */
 export function recentConfig(r: Recent, opts: Opts): Omit<GameConfig, 'nonce'> {
-  return { section: r.section, mode: r.mode, countries: [...r.countries], levels: { ...r.levels }, opts: { ...opts, ...r.o } };
+  return { section: r.section, mode: r.mode, countries: [...r.countries], levels: { ...r.levels }, opts: { ...opts, ...optsKept(r) } };
 }
 
 /** Whether something read from storage is one of these: what an older or a broken copy holds is dropped. */

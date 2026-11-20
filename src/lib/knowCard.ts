@@ -31,6 +31,7 @@ export interface KnowCardInfo {
 }
 
 export interface KnowPiece {
+  id: string;
   d: string;
   grade: Grade;
   /** Where it is, and how large: the larger side of its box. Too small to be seen, it gets a ring there. */
@@ -93,7 +94,7 @@ export function knowArt(deck: Deck, grades: ReadonlyMap<string, Grade>): KnowArt
       if (q[1] > py1) py1 = q[1];
     }
     const at = view.projection(it.lp) ?? [(px0 + px1) / 2, (py0 + py1) / 2];
-    pieces.push({ d, grade: grades.get(it.id) ?? 'new', x: at[0], y: at[1], size: Number.isFinite(px0) ? Math.max(px1 - px0, py1 - py0, 0.02) : 0.02 });
+    pieces.push({ id: it.id, d, grade: grades.get(it.id) ?? 'new', x: at[0], y: at[1], size: Number.isFinite(px0) ? Math.max(px1 - px0, py1 - py0, 0.02) : 0.02 });
   }
   const tight: KnowArt['box'] = [Math.max(x0, view.box[0]), Math.max(y0, view.box[1]), Math.min(x1, view.box[2]), Math.min(y1, view.box[3])];
   const sound = tight.every(Number.isFinite) && tight[2] - tight[0] > 1 && tight[3] - tight[1] > 1;
@@ -111,8 +112,17 @@ export const KNOW_MAP = { x: M, y: 266, w: CARD_SIZE - 2 * M, h: 452 };
 export const KNOW_RING_BELOW = 13;
 export const KNOW_RING = 8;
 
-function map(pen: Pen, art: KnowArt, make: (d: string) => Path2D, cb: boolean): void {
-  const { x, y, w, h } = KNOW_MAP;
+/** How high the ring of a speck lies among the others: what has not been seen at the bottom, what is known on top. */
+const RANK: Record<Grade, number> = { new: 0, learning: 1, due: 2, known: 3 };
+
+/**
+ * Draws a map in a frame of the picture: the land around, muted; each piece in the colour `fill` gives it;
+ * and a ring of that colour on each piece too small to be seen, those of higher `rank` over the others (a
+ * piece ranked below zero gets no ring). The map of what is known and a map painted by hand (handCard.ts)
+ * are drawn alike.
+ */
+export function paintArt(pen: Pen, art: KnowArt, make: (d: string) => Path2D, fill: (piece: KnowPiece) => string, rank: (piece: KnowPiece) => number, frame: { x: number; y: number; w: number; h: number } = KNOW_MAP): void {
+  const { x, y, w, h } = frame;
   const [x0, y0, x1, y1] = art.box;
   const pad = 22;
   const k = Math.min((w - 2 * pad) / Math.max(1, x1 - x0), (h - 2 * pad) / Math.max(1, y1 - y0));
@@ -145,23 +155,20 @@ function map(pen: Pen, art: KnowArt, make: (d: string) => Path2D, cb: boolean): 
   pen.lineWidth = 1.4 / k;
   for (const piece of art.pieces) {
     const p = make(piece.d);
-    pen.fillStyle = gradeFill(piece.grade, cb);
+    pen.fillStyle = fill(piece);
     pen.fill(p);
     pen.stroke(p);
   }
   pen.restore();
-  // The specks, each with its ring: what has not been seen first, so that what is known lies on top of it.
-  const small = art.pieces.filter((p) => p.size * k < KNOW_RING_BELOW && Number.isFinite(p.x) && Number.isFinite(p.y));
+  // The specks, each with its ring: the lowest first, so that the others lie on top of them.
+  const small = art.pieces.filter((p) => rank(p) >= 0 && p.size * k < KNOW_RING_BELOW && Number.isFinite(p.x) && Number.isFinite(p.y)).sort((a, b) => rank(a) - rank(b));
   pen.strokeStyle = C.border;
   pen.lineWidth = 1.6;
-  for (const grade of ['new', 'learning', 'due', 'known'] as const) {
-    for (const p of small) {
-      if (p.grade !== grade) continue;
-      roundedPath(pen, ox + p.x * k - KNOW_RING, oy + p.y * k - KNOW_RING, 2 * KNOW_RING, 2 * KNOW_RING, KNOW_RING);
-      pen.fillStyle = gradeFill(grade, cb);
-      pen.fill();
-      pen.stroke();
-    }
+  for (const p of small) {
+    roundedPath(pen, ox + p.x * k - KNOW_RING, oy + p.y * k - KNOW_RING, 2 * KNOW_RING, 2 * KNOW_RING, KNOW_RING);
+    pen.fillStyle = fill(p);
+    pen.fill();
+    pen.stroke();
   }
 }
 
@@ -190,7 +197,7 @@ export function paintKnowCard(pen: Pen, info: KnowCardInfo, extras: { art?: Know
   pen.fillStyle = C.sea;
   pen.fill();
   pen.clip();
-  if (extras.art && extras.path && extras.art.pieces.length) map(pen, extras.art, extras.path, cb);
+  if (extras.art && extras.path && extras.art.pieces.length) paintArt(pen, extras.art, extras.path, (p) => gradeFill(p.grade, cb), (p) => RANK[p.grade]);
   pen.restore();
 
   // How many are known, large; what they are out of, small.

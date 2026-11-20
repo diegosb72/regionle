@@ -3,6 +3,16 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.28.0 — 20 de noviembre de 2026
+
+- Pintar el mapa a mano, en Explorar: seis colores y una goma para colorear países o regiones a tu gusto, y una leyenda donde escribes qué significa cada color.
+- El mapa pintado se guarda como imagen, con su leyenda. Lo pintado se conserva en el navegador, mapa por mapa, y viaja en la copia de seguridad.
+- Ruta con condiciones: antes de empezar una Ruta se elige «Un cierre», «Una parada» o «Solo por tierra».
+- Con un cierre, una pieza del camino más corto está cerrada y hay que rodearla. Con una parada, la ruta tiene que llegar a una tercera pieza que queda a desmano.
+- Solo por tierra, las travesías por mar no valen. El juego dice por cuántas piezas pasa la mejor respuesta, y las pistas llevan por ella.
+- Arreglado: en Ruta, la frase sobre las líneas de puntos salía también en los mapas que no tienen travesías por mar.
+- Arreglado: una tecla pulsada en el instante en que se cierra «Cómo se juega» se perdía; ahora ya es para el juego.
+
 ## 1.27.0 — 20 de noviembre de 2026
 
 - Comparar tamaños, una herramienta nueva en Explorar: elige dos piezas del mapa y las verás una sobre otra, a la misma escala.

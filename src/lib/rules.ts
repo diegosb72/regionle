@@ -38,6 +38,14 @@ export const PAIR_SIZE_DEFAULT: PairSize = 8;
 /** Countries "pairs" takes: with fewer than three pairs there is nothing to remember. */
 export const PAIRS_MIN = 3;
 
+/**
+ * The rule a route may have to keep: a piece that is closed and has to be gone around, a third piece to call
+ * at, or land borders only, without the short sea crossings.
+ */
+export const ROUTE_RULES = ['none', 'avoid', 'via', 'land'] as const;
+export type RouteRule = (typeof ROUTE_RULES)[number];
+export const isRouteRule = (x: unknown): x is RouteRule => (ROUTE_RULES as readonly unknown[]).includes(x);
+
 /** A board of "connections": four groups of four countries, and so sixteen is the fewest it takes. */
 export const CONNECT_GROUPS = 4;
 export const CONNECT_GROUP_SIZE = 4;

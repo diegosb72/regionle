@@ -16,7 +16,8 @@ import { cx } from '../lib/text';
 import type { AnyGeo, Deck, Item, LL } from '../lib/types';
 
 /** Look of an item on the map. */
-export type Paint = 'ok' | 'warn' | 'bad' | 'target' | 'from' | 'to' | 'sel' | 'near' | 'dim' | 'due';
+/** How a piece is painted. `h1` to `h6` are the colours of a map painted by hand (lib/hand.ts), which come with that tool (games/hand.css). */
+export type Paint = 'ok' | 'warn' | 'bad' | 'target' | 'from' | 'to' | 'sel' | 'near' | 'dim' | 'due' | 'stop' | 'shut' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 
 export interface MapHandle {
   /**
@@ -1310,6 +1311,11 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
           <pattern id="m-cb-warn" data-fixed="0" width="7" height="7" patternUnits="userSpaceOnUse">
             <rect width="7" height="7" className="m-cb-bg-warn" />
             <circle cx="3.5" cy="3.5" r="1.3" stroke="none" className="m-cb-ink" />
+          </pattern>
+          {/* A piece that a route cannot go through (games/journey.css): a lattice, whatever the palette. */}
+          <pattern id="m-shut" data-fixed="45" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <rect width="8" height="8" className="m-shut-bg" />
+            <path d="M0 0V8M0 0H8" strokeWidth="2.2" className="m-shut-ink" />
           </pattern>
         </defs>
         <g ref={rootRef}>

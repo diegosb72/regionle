@@ -93,6 +93,9 @@ describe('the preferences of a backup', () => {
     expect(cleanPrefs({ opts: { pairOf: 'capital', pairs: 12 } }, here)!.opts).toMatchObject({ pairOf: 'capital', pairs: 12 });
     expect(cleanPrefs({ opts: { pairOf: 'anthem', pairs: 7 } }, here)!.opts).toMatchObject({ pairOf: DEFAULT_OPTS.pairOf, pairs: DEFAULT_OPTS.pairs });
     expect(cleanPrefs({ opts: { countdown: 1e9 } }, here)!.opts.countdown).toBe(DEFAULT_OPTS.countdown);
+    // The rule of the route game, when it is one.
+    expect(cleanPrefs({ opts: { routeRule: 'via' } }, here)!.opts.routeRule).toBe('via');
+    expect(cleanPrefs({ opts: { routeRule: 'swim' } }, here)!.opts.routeRule).toBe('none');
   });
 
   it('are none when the copy brings none', () => {

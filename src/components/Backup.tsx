@@ -178,8 +178,8 @@ export function BackupBlock() {
       <h2>{L('Copia de seguridad', 'Backup')}</h2>
       <p className="tip-line">
         {L(
-          'Todo se guarda solo en este navegador. Una copia lleva tu progreso, tus selecciones guardadas, tus listas, tus apuntes, tus abreviaturas y tus preferencias a otro navegador, o lo deja a salvo por si acaso.',
-          'Everything is kept in this browser alone. A backup takes your progress, your saved selections, your lists, your notes, your short forms and your preferences to another browser, or keeps them safe just in case.',
+          'Todo se guarda solo en este navegador. Una copia lleva tu progreso, tus selecciones guardadas, tus listas, tus apuntes, tus mapas pintados, tus abreviaturas y tus preferencias a otro navegador, o lo deja a salvo por si acaso.',
+          'Everything is kept in this browser alone. A backup takes your progress, your saved selections, your lists, your notes, your painted maps, your short forms and your preferences to another browser, or keeps them safe just in case.',
         )}
       </p>
       <p className="backup-last">

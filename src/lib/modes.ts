@@ -41,6 +41,7 @@ import {
 import { L, getLang } from './i18n';
 import { distWord } from './units';
 import { PATHS } from './routes';
+import type { RouteRule } from './rules';
 import { SCREENS } from './seo';
 import type { CardAsk, Format } from './store';
 import type { Mode, Section } from './types';
@@ -563,6 +564,10 @@ function modeName(mode: Mode): string {
 
 export const formatName = (f: Format): string =>
   f === 'timed' ? L('Contrarreloj', 'Time attack') : f === 'lives' ? L('Supervivencia', 'Survival') : f === 'exam' ? L('Examen', 'Exam') : L('Normal', 'Standard');
+
+/** The rule of a route, in two or three words: "con un cierre". Nothing for a plain one. */
+export const routeRuleName = (rule: RouteRule): string =>
+  rule === 'avoid' ? L('con un cierre', 'with a closure') : rule === 'via' ? L('con una parada', 'with a stop') : rule === 'land' ? L('solo por tierra', 'by land only') : '';
 
 /** What a pack of flashcards asks, as the question it is. */
 export const cardAskName = (ask: CardAsk): string =>

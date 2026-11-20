@@ -48,7 +48,7 @@ const written = (calls: Call[]) => texts(calls).map((c) => String(c.args[0]));
 const sizeOf = (c: Call) => Number(/(\d+(?:\.\d+)?)px/.exec(c.font)![1]);
 /** A path as the stand-in keeps it: the `d` it was made from. */
 const make = (d: string) => ({ d }) as unknown as Path2D;
-const piece = (d: string, grade: Grade, x: number, y: number, size: number): KnowPiece => ({ d, grade, x, y, size });
+const piece = (d: string, grade: Grade, x: number, y: number, size: number): KnowPiece => ({ id: d, d, grade, x, y, size });
 
 describe('the picture of the map of what is known', () => {
   it('says what it is a map of, how much of it is known and where to play', () => {

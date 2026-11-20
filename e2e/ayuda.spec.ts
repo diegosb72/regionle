@@ -165,6 +165,28 @@ test.describe('how a game is played', () => {
     await expect(page.locator('.tf-btn.picked')).toHaveCount(1);
   });
 
+  test('a key pressed just as the panel closes is already one for the game', async ({ page }) => {
+    await first(page, { section: 'pops', mode: 'truefalse', countries: ['ES', 'FR', 'PT', 'IT', 'DE', 'GB'], levels: {}, opts: OPTS, nonce: 1 });
+    await expect(panel(page)).toBeVisible();
+    await expect(page.locator('.tf-btn')).toHaveCount(2);
+    // While the panel is open, a key that comes from one of its buttons stays in it.
+    await page.evaluate(() => document.querySelector('dialog.help-dlg .btn-primary')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'f', bubbles: true })));
+    await page.waitForTimeout(150);
+    await expect(page.locator('.tf-btn:disabled')).toHaveCount(0);
+    // The panel closes, and for a moment it is still in the page with the keyboard on the button that closed
+    // it: a key pressed right then (someone quick, or a test) answers the question.
+    const still = await page.evaluate(() => {
+      const dialog = document.querySelector<HTMLDialogElement>('dialog.help-dlg')!;
+      const button = dialog.querySelector('.btn-primary')!;
+      dialog.close();
+      button.dispatchEvent(new KeyboardEvent('keydown', { key: 'v', bubbles: true }));
+      return document.contains(dialog);
+    });
+    expect(still).toBe(true);
+    await expect(page.locator('.tf-btn.tf-true.picked')).toHaveCount(1);
+    await expect(page.locator('dialog.help-dlg')).toHaveCount(0);
+  });
+
   test('keeps the voice of the game quiet while it is read', async ({ page }) => {
     // A voice that says nothing and writes down what it was asked to say.
     await page.addInitScript(() => {

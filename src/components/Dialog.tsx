@@ -43,9 +43,11 @@ export function Dialog({ title, className, printing, onClose, children }: { titl
       className={cx('dlg', className)}
       aria-labelledby={id}
       onClose={onClose}
-      // A key pressed in the panel is not one for the game behind it, which listens on the window.
-      onKeyDown={(e) => e.stopPropagation()}
-      onKeyUp={(e) => e.stopPropagation()}
+      // A key pressed in the panel is not one for the game behind it, which listens on the window. Once the
+      // panel has closed it is: for a moment it is still in the page, with the keyboard on the button that
+      // closed it, and a key pressed just then is already meant for the game.
+      onKeyDown={(e) => box.current?.open !== false && e.stopPropagation()}
+      onKeyUp={(e) => box.current?.open !== false && e.stopPropagation()}
       onClick={(e) => {
         // A click on the darkened page around the panel closes it.
         if (e.target === box.current) shut();

@@ -78,11 +78,25 @@ export function helpOf(mode: Mode, section: Section): ModeHelp | null {
             'La ficha reúne lo que el juego sabe de ella —sus nombres, su capital, su tamaño, con qué limita— y enlaces para aprender más. También puedes dejarle un apunte tuyo.',
             'The card gathers what the game knows of it — its names, its capital, its size, what it borders — and links to learn more. You can leave a note of your own on it too.',
           ),
-          L('Con «Regla para medir», marca dos puntos del mapa y verás la distancia en línea recta entre ellos.', 'With “Ruler”, mark two points on the map and you will see the distance between them as the crow flies.'),
-          L(
-            'Con «Comparar tamaños», elige dos piezas y las verás una sobre otra, a la misma escala, con cuánto más grande es una que la otra.',
-            'With “Compare sizes”, choose two pieces and you will see them one over the other, at the same scale, with how much larger one is than the other.',
-          ),
+          // A map of countries or of regions can be painted too: its two tools to measure are told in one step, to leave room.
+          ...(section === 'countries' || section === 'regions'
+            ? [
+                L(
+                  'Con «Regla para medir» sabrás la distancia en línea recta entre dos puntos del mapa, y con «Comparar tamaños» verás dos piezas una sobre otra, a la misma escala.',
+                  'With “Ruler” you get the distance between two points of the map as the crow flies, and with “Compare sizes” you see two pieces one over the other, at the same scale.',
+                ),
+                L(
+                  'Con «Pintar el mapa», elige un color y toca las piezas: dónde has estado, cómo las agrupas… Puedes decir qué significa cada color y guardar el mapa como imagen.',
+                  'With “Paint the map”, pick a colour and tap the pieces: where you have been, how you group them… You can say what each colour stands for and save the map as a picture.',
+                ),
+              ]
+            : [
+                L('Con «Regla para medir», marca dos puntos del mapa y verás la distancia en línea recta entre ellos.', 'With “Ruler”, mark two points on the map and you will see the distance between them as the crow flies.'),
+                L(
+                  'Con «Comparar tamaños», elige dos piezas y las verás una sobre otra, a la misma escala, con cuánto más grande es una que la otra.',
+                  'With “Compare sizes”, choose two pieces and you will see them one over the other, at the same scale, with how much larger one is than the other.',
+                ),
+              ]),
         ],
         score: L('Aquí no se pregunta ni se puntúa nada. La lista señala lo que ya tienes aprendido y lo que tiene un apunte.', 'Nothing is asked or scored here. The list marks what you have already learnt and what has a note.'),
         tip: L('Cuando el mapa te suene, «Ponerme a prueba» te lleva a jugar con él.', 'When the map looks familiar, “Test myself” takes you to play with it.'),
@@ -368,6 +382,10 @@ export function helpOf(mode: Mode, section: Section): ModeHelp | null {
           L(
             'Cada pieza que pones se colorea: está en un camino más corto, cerca pero dando un rodeo, o lejos de la ruta.',
             'Each piece you put down is coloured: on a shortest way, near but making a detour, or far from the route.',
+          ),
+          L(
+            'Antes de empezar, «Condición» le pone una regla a la ruta: una pieza cerrada que hay que rodear, una parada a desmano o solo por tierra, sin travesías por mar.',
+            'Before starting, “Condition” gives the route a rule: a closed piece to go around, a stop out of the way, or by land only, without sea crossings.',
           ),
         ],
         score: L(
