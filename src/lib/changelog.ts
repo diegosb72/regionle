@@ -15,6 +15,24 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.26.0',
+    date: '2026-11-20',
+    es: [
+      'Conexiones, un juego nuevo en Cifras: dieciséis países que van de cuatro en cuatro. Hay que descubrir qué tienen en común los de cada grupo.',
+      'Los une una región, el mar, un vecino, una organización, una lengua, el tamaño, la letra de su capital o algo de su nombre. Cada tablero tiene una solución.',
+      'Cuatro fallos y se acaba. Si tres de los cuatro van juntos, el juego lo dice; si los cuatro comparten otra cosa que no es un grupo, no cuenta como fallo.',
+      '«Pista» dice lo que une a uno de los grupos y «Barajar» cambia los países de sitio. Hacen falta dieciséis países; el menú avisa si con ellos no sale tablero.',
+      'La primera carga pesa menos: los iconos que solo usan otras pantallas viajan en un archivo aparte.',
+    ],
+    en: [
+      'Connections, a new game in Figures: sixteen countries that go four by four. Work out what those of each group have in common.',
+      'What joins them: a region, the sea, a neighbour, an organisation, a language, their size, the letter of their capital or part of their name. One answer a board.',
+      'Four misses and it is over. If three of the four go together, the game says so; if the four share something that is not a group, it is no miss.',
+      '“Hint” tells what joins one of the groups and “Shuffle” moves the countries about. It takes sixteen countries; the menu warns when they give no board.',
+      'The first load is lighter: the icons only other screens use travel in a file of their own.',
+    ],
+  },
+  {
     version: '1.25.0',
     date: '2026-11-20',
     es: [

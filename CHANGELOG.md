@@ -3,6 +3,14 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.26.0 — 20 de noviembre de 2026
+
+- Conexiones, un juego nuevo en Cifras: dieciséis países que van de cuatro en cuatro. Hay que descubrir qué tienen en común los de cada grupo.
+- Los une una región, el mar, un vecino, una organización, una lengua, el tamaño, la letra de su capital o algo de su nombre. Cada tablero tiene una solución.
+- Cuatro fallos y se acaba. Si tres de los cuatro van juntos, el juego lo dice; si los cuatro comparten otra cosa que no es un grupo, no cuenta como fallo.
+- «Pista» dice lo que une a uno de los grupos y «Barajar» cambia los países de sitio. Hacen falta dieciséis países; el menú avisa si con ellos no sale tablero.
+- La primera carga pesa menos: los iconos que solo usan otras pantallas viajan en un archivo aparte.
+
 ## 1.25.0 — 20 de noviembre de 2026
 
 - Parejas, un juego nuevo en Cifras: cartas boca abajo, dos por país. Levantas dos y, si son la bandera y el nombre del mismo país, se quedan a la vista.
