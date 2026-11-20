@@ -3,6 +3,14 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.24.0 — 20 de noviembre de 2026
+
+- Sesión de hoy: la portada pone sobre el repaso los pasos del día, en el orden que más ayuda: repasar lo que toca, lo que más fallas y una lección nueva.
+- «Empezar la sesión» abre el primer paso que falte y, al acabar cada partida, el resultado ofrece el siguiente. Lo hecho queda marcado hasta mañana.
+- Sale cuando hay dos cosas o más que hacer; con una sola basta el repaso de hoy, como hasta ahora. Cada paso se puede hacer también suelto.
+- Arreglado: al pasar deprisa las fichas de una lección, el mapa podía seguir hasta la última y dejar fuera de la vista la pieza que se preguntaba.
+- Prueba de nivel: el nombre de una pieza ya no se pregunta justo después de situarla, con el nombre recién leído, tampoco al final de la prueba.
+
 ## 1.23.0 — 20 de noviembre de 2026
 
 - Lecciones a tu gusto: en los ajustes de «Aprender» eliges cuántas piezas nuevas trae cada lección (3, 5, 8 o 10) y en qué orden llegan.
