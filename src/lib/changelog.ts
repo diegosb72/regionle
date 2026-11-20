@@ -15,6 +15,28 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.27.0',
+    date: '2026-11-20',
+    es: [
+      'Comparar tamaños, una herramienta nueva en Explorar: elige dos piezas del mapa y las verás una sobre otra, a la misma escala.',
+      'Con el dibujo van la superficie de cada una, una barra de escala y una frase: «Brasil es 17 veces más grande que España».',
+      'Sirve con países, regiones, islas, lagos y mares, en kilómetros o en millas. La regla y el comparador no están fuera a la vez.',
+      'Tu mapa, en una imagen: en Progreso, bajo «Mapa de lo que sabes», un botón guarda o comparte el mapa pintado con lo que ya te sabes.',
+      'La imagen dice cuántas piezas te sabes, con el reparto en una barra y la leyenda. Vale para el mundo y para las regiones de un país.',
+      'Arreglado: con mapas de regiones de varios países practicados, Progreso se salía de la pantalla en un móvil.',
+      'Arreglado: la leyenda del mapa de lo que sabes decía «1 sabidos».',
+    ],
+    en: [
+      'Compare sizes, a new tool in Explore: choose two pieces of the map and see them one over the other, at the same scale.',
+      'With the drawing come the area of each, a scale bar and a sentence: “Brazil is 17 times the size of Spain”.',
+      'It works with countries, regions, islands, lakes and seas, in kilometres or in miles. The ruler and the comparer are never out together.',
+      'Your map, as a picture: in Progress, under “Map of what you know”, a button saves or shares the map painted with what you already know.',
+      'The picture says how many pieces you know, with the shares in a bar and the legend. It works for the world and for the regions of a country.',
+      'Fixed: with region maps of several countries practised, Progress ran off the screen on a phone.',
+      'Fixed: in Spanish, the legend of the map of what you know said “1 sabidos”, in the plural.',
+    ],
+  },
+  {
     version: '1.26.0',
     date: '2026-11-20',
     es: [

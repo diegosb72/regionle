@@ -3,6 +3,16 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.27.0 — 20 de noviembre de 2026
+
+- Comparar tamaños, una herramienta nueva en Explorar: elige dos piezas del mapa y las verás una sobre otra, a la misma escala.
+- Con el dibujo van la superficie de cada una, una barra de escala y una frase: «Brasil es 17 veces más grande que España».
+- Sirve con países, regiones, islas, lagos y mares, en kilómetros o en millas. La regla y el comparador no están fuera a la vez.
+- Tu mapa, en una imagen: en Progreso, bajo «Mapa de lo que sabes», un botón guarda o comparte el mapa pintado con lo que ya te sabes.
+- La imagen dice cuántas piezas te sabes, con el reparto en una barra y la leyenda. Vale para el mundo y para las regiones de un país.
+- Arreglado: con mapas de regiones de varios países practicados, Progreso se salía de la pantalla en un móvil.
+- Arreglado: la leyenda del mapa de lo que sabes decía «1 sabidos».
+
 ## 1.26.0 — 20 de noviembre de 2026
 
 - Conexiones, un juego nuevo en Cifras: dieciséis países que van de cuatro en cuatro. Hay que descubrir qué tienen en común los de cada grupo.

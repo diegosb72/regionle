@@ -17,7 +17,7 @@ A petición del dueño del proyecto, desde la 1.18.0 se hace primero lo que meno
 el final lo que más. La estimación es a ojo y cambia al abrir el código:
 
 - **Corto**: nada pendiente
-- **Medio**: 19, 45, 46, 51, 54, 66, 70, 73–75, 84, 87, 94, 98
+- **Medio**: 19, 45, 46, 51, 54, 66, 70, 73, 74, 87, 94, 98
 - **Largo**: 20, 44 (francés), 65, 67, 68, 83, 90
 - **Depende de conseguir datos**, lleve lo que lleve: 30–32, 37–39, 41–43, 95, y lo que falta del 29 y del 35
 
@@ -114,7 +114,7 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 - [x] 72. Códigos QR: junto al enlace a un mapa y un juego, al de una lista, al de un reto y al del resultado del día, un código que se abre grande, se guarda como imagen o se imprime; lo calcula el propio juego, sin servicios de fuera — **1.21.0**
 - [ ] 73. Bingo geográfico
 - [ ] 74. Incrustar un mapa o una lista en otra web
-- [ ] 75. Tarjeta «mi mapa del mundo»
+- [x] 75. Tarjeta «mi mapa del mundo»: en Progreso, bajo el mapa de lo que se sabe, un botón guarda o comparte una imagen con el mapa que se está viendo (el mundo o las regiones de un país) pintado según lo que se sabe de cada pieza, cuántas se saben, el reparto en una barra y la leyenda — **1.27.0**
 
 ## Progreso y logros
 
@@ -128,7 +128,7 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 ## El mapa
 
 - [ ] 83. Recuadros para territorios lejanos
-- [ ] 84. Comparador de tamaños
+- [x] 84. Comparador de tamaños: en Explorar, se eligen dos piezas del mapa y salen una sobre otra a la misma escala, con la superficie de cada una, una barra de escala y una frase que dice cuánto más grande es una que otra — **1.27.0**
 - [x] 85. Regla para medir distancias: en Explorar, dos clics en el mapa y se ven los kilómetros que hay entre los dos puntos — **1.18.0**
 - [ ] 87. Pintar el mapa a mano
 - [x] 88. Más paletas y pantalla completa: tres paletas para el mapa (Papel, Océano y Pizarra), cada una en claro y en oscuro, y un botón de pantalla completa en cada mapa y en el pie — **1.19.0**
