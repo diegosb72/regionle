@@ -17,7 +17,7 @@ A petición del dueño del proyecto, desde la 1.18.0 se hace primero lo que meno
 el final lo que más. La estimación es a ojo y cambia al abrir el código:
 
 - **Corto**: nada pendiente
-- **Medio**: 19, 45, 46, 51, 54, 66, 70, 73, 74, 87, 94, 98
+- **Medio**: 45, 46, 51, 54, 66, 70, 73, 74, 94, 98
 - **Largo**: 20, 44 (francés), 65, 67, 68, 83, 90
 - **Depende de conseguir datos**, lleve lo que lleve: 30–32, 37–39, 41–43, 95, y lo que falta del 29 y del 35
 
@@ -40,7 +40,7 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 - [x] 15. Rellenar el mapa con cuenta atrás — **1.7.0**
 - [x] 16. Modo examen: un intento por pregunta, sin pistas ni corrección hasta entregar, y nota sobre 10 — **1.8.0**
 - [x] 18. Coordenadas: se marca en el mapa el punto de una latitud y una longitud, o se leen las de un punto marcado, sobre una cuadrícula de paralelos y meridianos; en regiones, países y ciudades — **1.17.0**
-- [ ] 19. Ruta con condiciones
+- [x] 19. Ruta con condiciones: antes de empezar una Ruta se elige una condición: una pieza cerrada que hay que rodear, una parada a desmano a la que hay que llegar, o solo por tierra, sin las travesías por mar — **1.28.0**
 - [ ] 20. Juegos de palabras: ahorcado, sopa de letras y crucigrama
 
 ## Juegos de datos y cifras
@@ -130,7 +130,7 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 - [ ] 83. Recuadros para territorios lejanos
 - [x] 84. Comparador de tamaños: en Explorar, se eligen dos piezas del mapa y salen una sobre otra a la misma escala, con la superficie de cada una, una barra de escala y una frase que dice cuánto más grande es una que otra — **1.27.0**
 - [x] 85. Regla para medir distancias: en Explorar, dos clics en el mapa y se ven los kilómetros que hay entre los dos puntos — **1.18.0**
-- [ ] 87. Pintar el mapa a mano
+- [x] 87. Pintar el mapa a mano: en Explorar, seis colores y una goma para colorear países o regiones, con una leyenda que dice qué significa cada color; se guarda como imagen y viaja en la copia de seguridad — **1.28.0**
 - [x] 88. Más paletas y pantalla completa: tres paletas para el mapa (Papel, Océano y Pizarra), cada una en claro y en oscuro, y un botón de pantalla completa en cada mapa y en el pie — **1.19.0**
 - [ ] 90. Mapa de todas las regiones del mundo más fluido
 
