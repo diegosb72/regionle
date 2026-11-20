@@ -1,4 +1,7 @@
-/** The button that turns a result, of a day or of a game, into a picture, and shares it or saves it. */
+/**
+ * The button that turns something into a picture and shares it or saves it: a result, of a day or of a game,
+ * or whatever the page that shows the button knows how to draw (the map of what is known).
+ */
 import { Check, ImageDown } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { L } from '../lib/i18n';
@@ -16,47 +19,58 @@ function sharesFiles(): boolean {
 }
 
 /**
- * `tones` paints each piece of the map by how its answer went (the picture of a game); `failed` is what to
- * say when the picture cannot be made, where there is no text to copy instead.
+ * The button itself, for a picture of any kind. `make` draws it; `stamp` says all that it is made of, so that
+ * it is drawn again when that changes; `alt` is what the picture says, for whoever does not see it. `failed`
+ * is what to say when the picture cannot be made. With `idle`, the picture is drawn that many milliseconds
+ * after the button is shown, not at once: for a page that has more urgent things to draw.
  */
-export function SharePicture({
-  info,
-  flagUrl,
-  deck,
-  tones,
+export function PictureButton({
+  make,
+  stamp,
   file,
   text,
-  failed = L('No se ha podido crear la imagen. El texto de arriba sí se puede copiar.', 'The picture could not be made. The text above can still be copied.'),
+  alt,
+  failed = L('No se ha podido crear la imagen.', 'The picture could not be made.'),
+  small = false,
+  idle = 0,
 }: {
-  info: CardInfo;
-  flagUrl?: string;
-  deck: Deck | null;
-  tones?: Record<string, Res>;
+  make(): Promise<Blob>;
+  stamp: string;
   file: string;
   text: string;
+  alt: string;
   failed?: string;
+  small?: boolean;
+  idle?: number;
 }) {
   const [state, setState] = useState<'idle' | 'busy' | 'shared' | 'saved' | 'failed'>('idle');
   const [preview, setPreview] = useState<string | null>(null);
   const ready = useRef<Blob | null>(null);
   const [toApps] = useState(sharesFiles);
-  const key = `${JSON.stringify(info)}|${flagUrl ?? ''}|${deck?.key ?? ''}|${tones ? JSON.stringify(tones) : ''}`;
+  // The one of the last time the button was drawn: it is made anew each time, with what the page then knows.
+  const making = useRef(make);
+  making.current = make;
 
   // Drawn as soon as there is something to draw (and again when the map arrives): a browser only lets
   // a page share right after the tap, with no time to draw anything in between.
   useEffect(() => {
     let alive = true;
     ready.current = null;
-    cardBlob(info, { flagUrl, deck, tones })
-      .then((blob) => {
-        if (alive) ready.current = blob;
-      })
-      .catch(() => {});
+    const draw = () => {
+      making
+        .current()
+        .then((blob) => {
+          if (alive) ready.current = blob;
+        })
+        .catch(() => {});
+    };
+    const wait = idle > 0 ? window.setTimeout(draw, idle) : 0;
+    if (!wait) draw();
     return () => {
       alive = false;
+      if (wait) clearTimeout(wait);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `key` says all that the picture is made of
-  }, [key]);
+  }, [stamp, idle]);
 
   useEffect(
     () => () => {
@@ -69,7 +83,7 @@ export function SharePicture({
     if (state === 'busy') return;
     setState('busy');
     try {
-      const blob = ready.current ?? (await cardBlob(info, { flagUrl, deck, tones }));
+      const blob = ready.current ?? (await making.current());
       setPreview(URL.createObjectURL(blob));
       if (toApps) {
         try {
@@ -101,8 +115,8 @@ export function SharePicture({
   const done = state === 'shared' || state === 'saved';
   return (
     <>
-      <button type="button" className="btn" onClick={send} disabled={state === 'busy'}>
-        {done ? <Check size={16} aria-hidden="true" /> : <ImageDown size={16} aria-hidden="true" />}
+      <button type="button" className={small ? 'btn btn-sm' : 'btn'} onClick={send} disabled={state === 'busy'}>
+        {done ? <Check size={small ? 15 : 16} aria-hidden="true" /> : <ImageDown size={small ? 15 : 16} aria-hidden="true" />}
         {toApps ? L('Compartir imagen', 'Share picture') : L('Guardar imagen', 'Save picture')}
       </button>
       <p className="pic-note" role="status">
@@ -111,19 +125,46 @@ export function SharePicture({
       </p>
       {preview && (
         <p className="pic-wrap">
-          <img
-            className="pic"
-            src={preview}
-            width={CARD_SIZE}
-            height={CARD_SIZE}
-            alt={
-              info.unit === '%'
-                ? L(`Imagen del resultado. ${info.kicker}: ${info.country}, ${info.total} %.`, `Picture of the result. ${info.kicker}: ${info.country}, ${info.total}%.`)
-                : L(`Imagen del resultado. ${info.kicker}: ${info.country}, ${info.total} de 100.`, `Picture of the result. ${info.kicker}: ${info.country}, ${info.total} out of 100.`)
-            }
-          />
+          <img className="pic" src={preview} width={CARD_SIZE} height={CARD_SIZE} alt={alt} />
         </p>
       )}
     </>
+  );
+}
+
+/**
+ * The picture of a result. `tones` paints each piece of the map by how its answer went (the picture of a
+ * game); `failed` is what to say when the picture cannot be made, where there is no text to copy instead.
+ */
+export function SharePicture({
+  info,
+  flagUrl,
+  deck,
+  tones,
+  file,
+  text,
+  failed = L('No se ha podido crear la imagen. El texto de arriba sí se puede copiar.', 'The picture could not be made. The text above can still be copied.'),
+}: {
+  info: CardInfo;
+  flagUrl?: string;
+  deck: Deck | null;
+  tones?: Record<string, Res>;
+  file: string;
+  text: string;
+  failed?: string;
+}) {
+  return (
+    <PictureButton
+      make={() => cardBlob(info, { flagUrl, deck, tones })}
+      stamp={`${JSON.stringify(info)}|${flagUrl ?? ''}|${deck?.key ?? ''}|${tones ? JSON.stringify(tones) : ''}`}
+      file={file}
+      text={text}
+      alt={
+        info.unit === '%'
+          ? L(`Imagen del resultado. ${info.kicker}: ${info.country}, ${info.total} %.`, `Picture of the result. ${info.kicker}: ${info.country}, ${info.total}%.`)
+          : L(`Imagen del resultado. ${info.kicker}: ${info.country}, ${info.total} de 100.`, `Picture of the result. ${info.kicker}: ${info.country}, ${info.total} out of 100.`)
+      }
+      failed={failed}
+    />
   );
 }
