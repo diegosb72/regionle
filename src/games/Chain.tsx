@@ -15,7 +15,7 @@ import { L, nm } from '../lib/i18n';
 import { MODE_NAME } from '../lib/modes';
 import { useStore } from '../lib/store';
 import { Matcher, shortNote } from '../lib/matcher';
-import { hintMax, letterHint, mulberry32, nf } from '../lib/text';
+import { hintMax, letterHint, listed as listedWith, mulberry32, nf } from '../lib/text';
 import type { Item } from '../lib/types';
 import { GameShell, Hud, Results, showsCountry, useElapsed, type GameProps, type ResultRow } from './common';
 import './chain.css';
@@ -23,7 +23,7 @@ import './chain.css';
 type End = 'all' | 'stuck' | 'out' | 'stopped';
 
 /** "A, B y C", as a sentence lists them. */
-const listed = (names: string[]): string => (names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} ${L('y', 'and')} ${names[names.length - 1]}`);
+const listed = (names: string[]): string => listedWith(names, L('y', 'and'));
 
 export function ChainGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const { opts } = cfg;

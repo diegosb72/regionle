@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { Stat } from '../lib/store';
-import { mulberry32 } from '../lib/text';
+import { mulberry32, shuffle } from '../lib/text';
 import type { Item } from '../lib/types';
 import { DEFAULT_OPTS } from '../lib/store';
-import { LESSON, LESSON_ORDERS, LESSON_SIZES, OLD, isIntroduced, lessonOrder, lessonOrders, lessonQueue, lessonSize, pickLesson } from './lesson';
+import { LESSON, LESSON_ORDERS, LESSON_SIZES, OLD, afterPlacing, isIntroduced, lessonOrder, lessonOrders, lessonQueue, lessonSize, pickLesson, type Q } from './lesson';
 
 /** Only what the lessons look at. */
 const item = (id: string, lon: number, lat: number, extra: Partial<Item> = {}): Item => ({ id, lp: [lon, lat], area: 1, ...extra }) as Item;
@@ -128,6 +128,31 @@ describe('what a lesson asks', () => {
 
   it('gives the same questions for the same seed', () => {
     expect(lessonQueue(fresh, old, mulberry32(42))).toEqual(lessonQueue(fresh, old, mulberry32(42)));
+  });
+
+  it('asks what a placed piece is called a few questions later, never straight after it, in the placement test', () => {
+    const pins = (ids: string[]): Q[] => ids.map((id) => ({ id, kind: 'pin' }));
+    // The first one placed waits behind every piece still to place; the next ones, a few questions.
+    expect(afterPlacing(pins(['b', 'c', 'd', 'e', 'f']), 'a').map((x) => `${x.kind}:${x.id}`)).toEqual(['pin:b', 'pin:c', 'pin:d', 'pin:e', 'pin:f', 'name:a']);
+    expect(afterPlacing([...pins(['c', 'd', 'e', 'f']), { id: 'a', kind: 'name' }], 'b').map((x) => `${x.kind}:${x.id}`)).toEqual(['pin:c', 'pin:d', 'pin:e', 'name:b', 'pin:f', 'name:a']);
+    expect(afterPlacing([{ id: 'a', kind: 'name' }], 'b').map((x) => x.id)).toEqual(['a', 'b']);
+    expect(afterPlacing([], 'a')).toEqual([{ id: 'a', kind: 'name' }]);
+
+    // Whatever the order of the test and whatever is known, with two pieces placed or more none is named straight after.
+    const rand = mulberry32(7);
+    const all = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+    for (let round = 0; round < 400; round++) {
+      const known = new Set(all.filter(() => rand() < 0.5));
+      let queue = pins(shuffle(all, rand));
+      const asked: string[] = [];
+      while (queue.length) {
+        const [q, ...rest] = queue;
+        asked.push(`${q.kind}:${q.id}`);
+        queue = q.kind === 'pin' && known.has(q.id) ? afterPlacing(rest, q.id) : rest;
+      }
+      expect(asked).toHaveLength(all.length + known.size);
+      if (known.size >= 2) for (const id of known) expect(asked.indexOf(`name:${id}`) - asked.indexOf(`pin:${id}`), `${asked.join(' ')}`).toBeGreaterThan(1);
+    }
   });
 
   it('counts a piece as introduced once it was placed and named right the last time', () => {

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { RECENT_MAX, isRecent, recentConfig, recentKey, recentOf, withRecent, type Recent } from './recent';
+import { RECENT_MAX, isRecent, recentConfig, recentKey, recentOf, withLeft, withRecent, type Recent } from './recent';
 import { DEFAULT_OPTS, useStore, type GameConfig, type SessionRec } from './store';
 
 const game = (patch: Partial<GameConfig> = {}): GameConfig => ({ section: 'regions', mode: 'pin', countries: ['ES'], levels: { ES: 'f', FR: 'g1' }, opts: DEFAULT_OPTS, nonce: 1, ...patch });
@@ -80,11 +80,13 @@ describe('what is kept of a game to play it again', () => {
     expect(recentConfig(exam!, DEFAULT_OPTS).opts.format).toBe('exam');
   });
 
-  it('keeps the figure of a game about countries, which true or false does not have', () => {
+  it('keeps the figure of a game about countries, which true or false and the odd one out do not have', () => {
     const top = recentOf(game({ section: 'pops', mode: 'topten', countries: ['ES', 'FR'], opts: { ...DEFAULT_OPTS, metric: 'density' } }), session({ section: 'pops', mode: 'topten' }));
     expect(top?.o).toEqual({ metric: 'density' });
     const tf = recentOf(game({ section: 'pops', mode: 'truefalse', countries: ['ES', 'FR'], opts: { ...DEFAULT_OPTS, metric: 'density' } }), session({ section: 'pops', mode: 'truefalse' }));
     expect(tf?.o).toEqual({});
+    const odd = recentOf(game({ section: 'pops', mode: 'oddone', countries: ['ES', 'FR'], opts: { ...DEFAULT_OPTS, metric: 'density' } }), session({ section: 'pops', mode: 'oddone' }));
+    expect(odd?.o).toEqual({});
   });
 
   it('is nothing for a review, a challenge, a round of misses, a list or the editor of lists', () => {
@@ -182,6 +184,31 @@ describe('the saved state keeps the maps played lately', () => {
     expect(useStore.getState().recent).toEqual([mine]);
     expect(useStore.getState().importData({ stats: {}, sessions: [], recent: [theirs, 'junk', { t: 1 }] })).toBe(true);
     expect(useStore.getState().recent).toEqual([theirs]);
+  });
+
+  it('keeps how much the lessons of a map have left to teach, and takes it from the map itself when no lesson says', () => {
+    const lessons = game({ mode: 'learn' });
+    const learnt = session({ mode: 'learn', left: 37 });
+    expect(recentOf(lessons, learnt)?.left).toBe(37);
+    // Any other game says nothing of it; nor do the lessons of before it was written down.
+    expect(recentOf(game(), session())).not.toHaveProperty('left');
+    expect(recentOf(lessons, session({ mode: 'learn' }))).not.toHaveProperty('left');
+    expect(isRecent({ ...recentOf(lessons, learnt)!, left: 'many' })).toBe(false);
+
+    const old = recentOf(lessons, session({ mode: 'learn' }))!;
+    const other = recentOf(game(), session())!;
+    expect(withLeft([other, old], lessons, 0)).toEqual([other, { ...old, left: 0 }]);
+    // Nothing to change: the list itself, so that nothing is drawn again for it.
+    const list = [other, { ...old, left: 0 }];
+    expect(withLeft(list, lessons, 0)).toBe(list);
+    expect(withLeft([other], lessons, 0)).toEqual([other]);
+    // Only the lessons of that map: not another game on it, nor lessons that are not kept (those of a part of it).
+    expect(withLeft(list, game(), 5)).toBe(list);
+    expect(withLeft(list, game({ mode: 'learn', only: ['ES-M'] }), 5)).toBe(list);
+
+    useStore.setState({ recent: [old], game: lessons });
+    useStore.getState().lessonsLeft(0);
+    expect(useStore.getState().recent).toEqual([{ ...old, left: 0 }]);
   });
 
   it('forgets them with the rest of the progress', () => {

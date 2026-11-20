@@ -33,7 +33,7 @@ export interface StatementWorld {
 }
 
 /** Two figures have to be this far apart for a comparison to be asked: closer than that is a coin toss. */
-const APART = 1.25;
+export const APART = 1.25;
 /** Degrees of latitude between two centres for "further north" to be beyond doubt. */
 const DEGREES = 6;
 
@@ -43,17 +43,17 @@ const NEIGHBOURS_APART = 2;
  * Countries that lie on two continents: nothing is said about which one they are in, since either answer
  * can be argued (Russia, Turkey, Kazakhstan, the Caucasus, Cyprus, Egypt, Indonesia).
  */
-const TWO_CONTINENTS: ReadonlySet<string> = new Set(['RU', 'TR', 'KZ', 'AZ', 'GE', 'AM', 'CY', 'EG', 'ID']);
+export const TWO_CONTINENTS: ReadonlySet<string> = new Set(['RU', 'TR', 'KZ', 'AZ', 'GE', 'AM', 'CY', 'EG', 'ID']);
 /** Landlocked countries on the shore of the Caspian, which is a lake: worth a word when the answer is told. */
-const CASPIAN: ReadonlySet<string> = new Set(['AZ', 'KZ', 'TM']);
+export const CASPIAN: ReadonlySet<string> = new Set(['AZ', 'KZ', 'TM']);
 
 const density = (c: Country): number => (c.pop && c.ar > 0 ? c.pop / c.ar : 0);
 const borders = (c: Country): string[] => c.nb ?? [];
 /** The neighbours that are states: a territory of another country (Gibraltar, French Guiana, Hong Kong) is not one more country. */
-const stateBorders = (c: Country, world: StatementWorld): string[] => borders(c).filter((id) => world.byId.get(id)?.cl !== 'dep' && world.byId.get(id)?.cl !== 'other');
+export const stateBorders = (c: Country, world: StatementWorld): string[] => borders(c).filter((id) => world.byId.get(id)?.cl !== 'dep' && world.byId.get(id)?.cl !== 'other');
 
 /** The names of some countries in a row, a handful at most: "Francia, Andorra y Portugal". */
-function names(ids: readonly string[], world: StatementWorld, max = 8): string {
+export function names(ids: readonly string[], world: StatementWorld, max = 8): string {
   const all = ids
     .map((id) => world.byId.get(id))
     .filter((c): c is Country => !!c)
@@ -65,7 +65,7 @@ function names(ids: readonly string[], world: StatementWorld, max = 8): string {
 }
 
 /** "en África", "in the Americas". */
-function inContinent(ct: string, world: StatementWorld): string {
+export function inContinent(ct: string, world: StatementWorld): string {
   const name = world.continents[ct] ? nm(world.continents[ct]) : ct;
   return L(`en ${name}`, ct === 'AM' ? 'in the Americas' : `in ${name}`);
 }

@@ -11,6 +11,7 @@ import {
   Flag,
   GalleryVerticalEnd,
   GraduationCap,
+  Grid2x2X,
   Hash,
   Landmark,
   LassoSelect,
@@ -430,6 +431,17 @@ function modesOf(section: Section): ModeDef[] {
           level: 1,
           group: 'facts',
         },
+        {
+          id: 'oddone',
+          name: L('El intruso', 'Odd one out'),
+          desc: L(
+            'Cuatro países y una pregunta: tres tienen algo en común —el continente, el mar, un vecino, el tamaño— y uno no. ¿Cuál?',
+            'Four countries and a question: three have something in common — the continent, the sea, a neighbour, the size — and one has not. Which one?',
+          ),
+          icon: Grid2x2X,
+          level: 2,
+          group: 'facts',
+        },
       ];
   }
 }
@@ -492,6 +504,8 @@ function modeName(mode: Mode): string {
       return L('¿A qué pertenece?', 'Where does it belong?');
     case 'truefalse':
       return L('Verdadero o falso', 'True or false');
+    case 'oddone':
+      return L('El intruso', 'Odd one out');
     case 'topten':
       return L('Los diez primeros', 'The top ten');
     case 'cards':
@@ -573,7 +587,7 @@ function lazy<K extends string, V>(keys: readonly K[], make: (key: K) => V): Rec
   return out;
 }
 
-const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'group', 'neighbours', 'border', 'chain', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'coords', 'edit', 'print', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'topten', 'cards', 'mix', 'listen'];
+const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'group', 'neighbours', 'border', 'chain', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'coords', 'edit', 'print', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'oddone', 'topten', 'cards', 'mix', 'listen'];
 
 export const MODES: Record<Section, ModeDef[]> = lazy(SECTION_IDS, modesOf);
 export const MODE_NAME: Record<Mode, string> = lazy(MODE_IDS, modeName);

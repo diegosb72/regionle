@@ -3,7 +3,7 @@
  * game was called; this keeps what it takes to start it: which countries, at which level, in which game.
  */
 import { PATHS } from './routes';
-import { FORMAT_MODES } from './rules';
+import { FORMAT_MODES, MADE_UP_MODES } from './rules';
 import type { GameConfig, Opts, SessionRec } from './store';
 import type { Mode, Section } from './types';
 
@@ -25,6 +25,8 @@ export interface Recent {
   /** How it went that time: right first time, of how many. */
   ok: number;
   total: number;
+  /** Lessons: how many pieces of the map were still to be taught when the last one ended. */
+  left?: number;
 }
 
 /** How many are kept: the first page shows a handful. */
@@ -38,7 +40,7 @@ function optsOf(game: GameConfig): RecentOpts {
     if (game.opts.cityPick === 'top') o.cityCount = game.opts.cityCount;
   }
   // The figure is the game where there is a choice of them; statements that are true or false are about them all.
-  if (game.section === 'pops' && game.mode !== 'truefalse') o.metric = game.opts.metric;
+  if (game.section === 'pops' && !MADE_UP_MODES.includes(game.mode)) o.metric = game.opts.metric;
   if (game.mode === 'compass') o.axis = game.opts.axis ?? 'ns';
   // Only bearings and only distances are two games; a state kept before the option existed asks both.
   if (game.mode === 'bearing') o.bearingAsk = game.opts.bearingAsk ?? 'both';
@@ -63,13 +65,24 @@ export function recentOf(game: GameConfig, rec: SessionRec): Recent | null {
   // Levels are those of the regions of a country: the other maps are the same whatever they say.
   const levels: Record<string, string> = {};
   if (game.section === 'regions') for (const id of game.countries) if (game.levels[id]) levels[id] = game.levels[id];
-  return { t: rec.t, section: game.section, mode: game.mode, countries: [...game.countries], levels, o: optsOf(game), ok: rec.ok, total: rec.total };
+  return { t: rec.t, section: game.section, mode: game.mode, countries: [...game.countries], levels, o: optsOf(game), ok: rec.ok, total: rec.total, ...(rec.left != null ? { left: rec.left } : {}) };
 }
 
 /** Two games are the same one when they are the same game on the same map, whatever the order of its countries. */
 export function recentKey(r: Recent): string {
   const countries = [...r.countries].sort();
   return [r.section, r.mode, countries.join(','), countries.map((id) => r.levels[id] ?? '').join(','), ...Object.keys(r.o).sort().map((k) => `${k}=${String(r.o[k as keyof RecentOpts])}`)].join('|');
+}
+
+/**
+ * The list once the lessons of a map are known to have that many pieces left to teach, or the list itself
+ * when it says so already or does not hold them. The lessons write it down as each one ends; this is for a
+ * map opened with nothing left, of which the list may be from before that was written.
+ */
+export function withLeft(list: Recent[], game: GameConfig, left: number): Recent[] {
+  const probe = game.mode === 'learn' ? recentOf(game, { t: 0, section: game.section, mode: 'learn', label: '', total: 0, ok: 0, warn: 0, bad: 0, ms: 0 }) : null;
+  const key = probe && recentKey(probe);
+  return key && list.some((r) => r.left !== left && recentKey(r) === key) ? list.map((r) => (recentKey(r) === key ? { ...r, left } : r)) : list;
 }
 
 /** The list with a game put first; one played again moves up instead of showing twice. */
@@ -101,6 +114,7 @@ export function isRecent(x: unknown): x is Recent {
     !!r.o &&
     typeof r.o === 'object' &&
     typeof r.ok === 'number' &&
-    typeof r.total === 'number'
+    typeof r.total === 'number' &&
+    (r.left == null || typeof r.left === 'number')
   );
 }

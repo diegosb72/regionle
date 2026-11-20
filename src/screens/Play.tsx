@@ -24,7 +24,7 @@ import { L } from '../lib/i18n';
 import { MODE_NAME, PATHS } from '../lib/modes';
 import { pauseClock } from '../lib/pause';
 import { goneFrom } from '../lib/review';
-import { FIGURE_MODES } from '../lib/rules';
+import { FIGURE_MODES, ODD_MIN } from '../lib/rules';
 import { go } from '../lib/router';
 import { useStore, type GameConfig } from '../lib/store';
 import { nf } from '../lib/text';
@@ -41,8 +41,9 @@ const ChainGame = lazyScreen(() => import('../games/Chain').then((m) => m.ChainG
 const BorderGame = lazyScreen(() => import('../games/Borders').then((m) => m.BorderGame));
 const GroupGame = lazyScreen(() => import('../games/Groups').then((m) => m.GroupGame));
 const WhoAmIGame = lazyScreen(() => import('../games/WhoAmI').then((m) => m.WhoAmIGame));
+const OddOneGame = lazyScreen(() => import('../games/OddOne').then((m) => m.OddOneGame));
 /** Which of them each mode needs: asked for while the map is being drawn, so that it is here when the map is. */
-const APART: Partial<Record<Mode, { warm(): void }>> = { blind: BlindGame, hotcold: BlindGame, bearing: BearingGame, coords: CoordsGame, chain: ChainGame, border: BorderGame, group: GroupGame, whoami: WhoAmIGame };
+const APART: Partial<Record<Mode, { warm(): void }>> = { blind: BlindGame, hotcold: BlindGame, bearing: BearingGame, coords: CoordsGame, chain: ChainGame, border: BorderGame, group: GroupGame, whoami: WhoAmIGame, oddone: OddOneGame };
 
 function Message({ title, text, onExit, action }: { title: string; text: string; onExit(): void; action?: { label: string; run(): void } }) {
   return (
@@ -116,10 +117,10 @@ function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
   const onAgain: GameProps['onAgain'] = (patch) => start({ ...cfg, only: undefined, list: undefined, listId: undefined, ...patch });
 
   useEffect(() => {
+    APART[cfg.mode]?.warm();
     if (cfg.section === 'pops') return;
     let alive = true;
     setError(null);
-    APART[cfg.mode]?.warm();
     deckFor(cfg, (done, total) => alive && setLoaded([done, total]))
       .then((d) => {
         if (!alive) return;
@@ -179,6 +180,16 @@ function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
       return (
         <WithHelp cfg={cfg}>
           <TrueFalseGame countries={chosen} world={statementWorld} cfg={cfg} onExit={onExit} />
+        </WithHelp>
+      );
+    }
+    if (cfg.mode === 'oddone') {
+      if (chosen.length < ODD_MIN) return <Message title={L('Faltan países', 'Not enough countries')} text={L(`Este juego necesita al menos ${ODD_MIN} países.`, `This game needs at least ${ODD_MIN} countries.`)} onExit={onExit} />;
+      return (
+        <WithHelp cfg={cfg}>
+          <Suspense fallback={<Spinner />}>
+            <OddOneGame countries={chosen} world={statementWorld} cfg={cfg} onExit={onExit} />
+          </Suspense>
         </WithHelp>
       );
     }

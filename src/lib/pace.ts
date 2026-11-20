@@ -2,7 +2,7 @@
  * How long a game takes and how hard it is for this player, said with what the games played tell:
  * the label of a mode (easy, medium, hard) is the same for everyone, and this is not.
  */
-import { FORMAT_MODES, LENGTH_MODES, ROUND_MODES } from './rules';
+import { FORMAT_MODES, LENGTH_MODES, MADE_UP_MODES, ROUND_MODES } from './rules';
 import type { Format, Length, SessionRec } from './store';
 import type { Mode, Section } from './types';
 
@@ -59,6 +59,7 @@ export const TYPICAL_S: Partial<Record<Mode, number>> = {
   compass: 30,
   parent: 7,
   truefalse: 5,
+  oddone: 9,
   cards: 5,
   mix: 8,
   listen: 8,
@@ -68,7 +69,7 @@ export const TYPICAL_S: Partial<Record<Mode, number>> = {
 
 /** A round of "Ordenar" when no number is chosen. */
 const RANK_ROUNDS = 10;
-/** Statements of "true or false" when no number is chosen. */
+/** Statements of "true or false", or questions of "the odd one out", when no number is chosen. */
 export const TRUE_FALSE_ROUND = 20;
 
 export interface GameSize {
@@ -91,7 +92,7 @@ export function questionsOf({ mode, units, length, format, list }: GameSize): nu
   if (list) return units;
   if (ROUND_MODES.includes(mode)) return length === 'all' ? RANK_ROUNDS : length === 'endless' ? null : length;
   // Statements are made up as the game goes: as many as are asked for, whatever the countries chosen.
-  if (mode === 'truefalse') return length === 'all' ? TRUE_FALSE_ROUND : length === 'endless' ? null : length;
+  if (MADE_UP_MODES.includes(mode)) return length === 'all' ? TRUE_FALSE_ROUND : length === 'endless' ? null : length;
   // An exam has an end even where "no end" was the choice for the other games.
   if (length === 'endless') return format === 'exam' && FORMAT_MODES.includes(mode) ? units : null;
   return length === 'all' ? units : Math.min(length, units);

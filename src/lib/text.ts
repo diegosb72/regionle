@@ -189,9 +189,20 @@ export function patternFinds(pattern: string, letters: string): string | null {
   return m?.[0] || null;
 }
 
+/**
+ * The word that joins the last name of a row to the ones before, as Spanish writes it: "y" is "e" before
+ * the sound of an "i" ("Francia e Italia", "India e Irán", but "nieve y hielo"), and "o" is "u" before an
+ * "o" ("Argentina u Omán", "Bélgica u Holanda"). Any other word is left as it comes.
+ */
+export function joiner(word: string, next: string): string {
+  if (word === 'y' && /^h?[iíï](?![aeouáéóú])/i.test(next)) return 'e';
+  if (word === 'o' && /^h?[oó]/i.test(next)) return 'u';
+  return word;
+}
+
 /** Names in a row, the last one after a word: "Regiones, Países o Física". */
 export function listed(names: readonly string[], last: string): string {
-  return names.length > 1 ? `${names.slice(0, -1).join(', ')} ${last} ${names[names.length - 1]}` : names.join('');
+  return names.length > 1 ? `${names.slice(0, -1).join(', ')} ${joiner(last, names[names.length - 1])} ${names[names.length - 1]}` : names.join('');
 }
 
 // ---------------------------------------------------------------------------

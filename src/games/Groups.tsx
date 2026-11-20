@@ -11,12 +11,12 @@ import { L } from '../lib/i18n';
 import { MODE_NAME } from '../lib/modes';
 import { dealSets, judgeSet, setsOf, type Places, type SetVerdict } from '../lib/sets';
 import { useStore } from '../lib/store';
-import { mulberry32, nf } from '../lib/text';
+import { listed as listedWith, mulberry32, nf } from '../lib/text';
 import type { Res } from '../lib/types';
 import { GameShell, Hud, Results, Verdict, useElapsed, type GameProps, type ResultRow } from './common';
 
 /** "A, B y C", as a sentence lists them. */
-const listed = (names: string[]): string => (names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} ${L('y', 'and')} ${names[names.length - 1]}`);
+const listed = (names: string[]): string => listedWith(names, L('y', 'and'));
 /** Names beyond this many are counted, not listed: the map shows them all. */
 const NAMED = 8;
 

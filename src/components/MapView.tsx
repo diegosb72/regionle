@@ -675,6 +675,12 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
   const tRef = useRef<ZoomTransform>(zoomIdentity);
   /** The view a passing `focus` moved away from. Forgotten as soon as the player moves the map. */
   const backRef = useRef<ZoomTransform | null>(null);
+  /**
+   * Where a move asked for by a game is taking the map, while it is on its way. What is in sight is judged
+   * by it: asked for a view while still travelling to another, the map would otherwise take what it shows
+   * on the way for where it is going to stop.
+   */
+  const goalRef = useRef<ZoomTransform | null>(null);
   const layoutRef = useRef<{ w: number; h: number; fit: ZoomTransform } | null>(null);
   const tipFn = useRef(tip);
   tipFn.current = tip;
@@ -737,6 +743,8 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
     };
     const apply = (t: ZoomTransform) => {
       tRef.current = t;
+      // A move ends on the very view it was asked for.
+      if (t === goalRef.current) goalRef.current = null;
       const root = rootRef.current;
       if (!root) return;
       root.setAttribute('transform', t.toString());
@@ -757,7 +765,7 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
       .clickDistance(6)
       .on('zoom', (ev: { transform: ZoomTransform; sourceEvent?: unknown }) => {
         // A wheel, a drag or a pinch: the player has taken the view, and it is theirs to keep.
-        if (ev.sourceEvent) backRef.current = null;
+        if (ev.sourceEvent) backRef.current = goalRef.current = null;
         apply(ev.transform);
       });
     zoomRef.current = z;
@@ -771,7 +779,7 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
       // The observer also reports once on start, with nothing changed: touching the transform then
       // would cut short a move that a game has just asked for.
       if (layoutRef.current?.w === w && layoutRef.current.h === h) return;
-      backRef.current = null;
+      backRef.current = goalRef.current = null;
       const [x0, y0, x1, y1] = g.view.box;
       const pad = Math.min(56, Math.min(w, h) * 0.09);
       const k = Math.min((w - 2 * pad) / Math.max(x1 - x0, 1e-6), (h - 2 * pad) / Math.max(y1 - y0, 1e-6));
@@ -809,6 +817,7 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
       cancelAnimationFrame(frame);
       clearTimeout(refineTimer);
       sel.interrupt();
+      goalRef.current = null;
       sel.on('.zoom', null);
     };
   }, [g]);
@@ -834,7 +843,8 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
       }
       if (!Number.isFinite(x0)) return;
       const { w, h, fit } = lay;
-      const t = tRef.current;
+      // Where the map is, or where it is going when it is on its way somewhere.
+      const t = goalRef.current ?? tRef.current;
       const bw = Math.max(x1 - x0, 0.02);
       const bh = Math.max(y1 - y0, 0.02);
       const one = ids.length === 1 ? g.byId.get(ids[0]) : undefined;
@@ -873,6 +883,7 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
       const target = k < fit.k * 1.3 ? fit : zoomIdentity.translate(w / 2 - k * cx, h / 2 - k * cy).scale(k);
       if (opts.passing) backRef.current ??= t;
       else backRef.current = null;
+      goalRef.current = target;
       select(svg)
         .transition()
         .duration(opts.instant ? 0 : 650)
@@ -888,7 +899,7 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
     const z = zoomRef.current;
     const lay = layoutRef.current;
     backRef.current = null;
-    if (svg && z && lay) select(svg).transition().duration(450).call(z.transform, lay.fit);
+    if (svg && z && lay) select(svg).transition().duration(450).call(z.transform, (goalRef.current = lay.fit));
   }, []);
 
   useImperativeHandle(
@@ -901,7 +912,7 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
         const z = zoomRef.current;
         const back = backRef.current;
         backRef.current = null;
-        if (svg && z && back) select(svg).transition().duration(450).call(z.transform, back);
+        if (svg && z && back) select(svg).transition().duration(450).call(z.transform, (goalRef.current = back));
       },
       shows(ll) {
         const wrap = wrapRef.current;
@@ -1040,7 +1051,7 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
   const zoomBy = (factor: number, about?: [number, number] | null) => {
     const svg = svgRef.current;
     const z = zoomRef.current;
-    backRef.current = null;
+    backRef.current = goalRef.current = null;
     if (!svg || !z) return;
     const move = select(svg).transition().duration(220);
     if (about) move.call(z.scaleBy, factor, about);
@@ -1102,7 +1113,7 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
     const sy = s.y * t.k + t.y;
     const margin = Math.min(56, lay.w / 6, lay.h / 6);
     if (sx >= margin && sy >= margin && sx <= lay.w - margin && sy <= lay.h - margin) return;
-    backRef.current = null;
+    backRef.current = goalRef.current = null;
     select(svg).transition().duration(260).call(z.translateTo, s.x, s.y);
   };
 
@@ -1123,7 +1134,7 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
     const dx = sx < margin ? margin - sx : sx > lay.w - margin ? lay.w - margin - sx : 0;
     const dy = sy < margin ? margin - sy : sy > lay.h - margin ? lay.h - margin - sy : 0;
     if (dx || dy) {
-      backRef.current = null;
+      backRef.current = goalRef.current = null;
       select(svg).call(z.translateBy, dx / t.k, dy / t.k);
       t = tRef.current;
     }

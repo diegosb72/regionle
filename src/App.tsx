@@ -19,7 +19,7 @@ import { useStore, type Theme } from './lib/store';
 import { cx, today } from './lib/text';
 import { VERSION } from './lib/version';
 import { loadIndex, loadWorldGeo, type World } from './lib/world';
-import { Home } from './screens/Home';
+import { Home, useHomeWhole } from './screens/Home';
 import { NotFound } from './screens/NotFound';
 
 // Every screen but the first is fetched when it is first needed, and all of them once the first is on screen.
@@ -99,6 +99,7 @@ function useIconBadge(on: boolean): void {
 export function App() {
   const path = useRoute();
   const theme = useStore((s) => s.theme);
+  const homeWhole = useHomeWhole();
   const setTheme = useStore((s) => s.setTheme);
   const sound = useStore((s) => s.sound);
   const setSound = useStore((s) => s.setSound);
@@ -283,7 +284,8 @@ export function App() {
   else if (section) page = <Setup key={section} section={section} world={world} link={route.kind === 'section' ? route.link : undefined} />;
   else if (progress) page = <Progress world={world} />;
   else if (route.kind === 'settings') page = <Settings world={world} path={route.path} />;
-  else page = <Home world={world} />;
+  // The same wait as for the atlas, a moment longer where the page has cards whose code comes apart.
+  else page = homeWhole ? <Home world={world} /> : <Spinner label={L('Cargando el atlas…', 'Loading the atlas…')} />;
 
   // What breaks stays inside its screen, and moving to another one leaves it behind. A screen is also
   // mounted afresh when the unit of the distances changes: every text that tells one is read again.

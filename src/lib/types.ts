@@ -215,6 +215,8 @@ export type Mode =
   | 'parent'
   /** Statements about the countries chosen that are true or false. */
   | 'truefalse'
+  /** Four countries, three of which share what the question says: which one does not. */
+  | 'oddone'
   /** The first ten by a figure, typed from memory. */
   | 'topten'
   /** Flashcards: a card is turned over and the player says whether they knew it. */
