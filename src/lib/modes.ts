@@ -18,6 +18,7 @@ import {
   Landmark,
   LassoSelect,
   Layers,
+  LayoutGrid,
   Link2,
   ListOrdered,
   MapPin,
@@ -466,6 +467,17 @@ function modesOf(section: Section): ModeDef[] {
           level: 2,
           group: 'facts',
         },
+        {
+          id: 'connect',
+          name: L('Conexiones', 'Connections'),
+          desc: L(
+            'Dieciséis países que van de cuatro en cuatro: descubre qué tienen en común los de cada grupo —una región, el mar, un vecino, una organización, la capital, el nombre— antes de fallar cuatro veces.',
+            'Sixteen countries that go four by four: find what those of each group have in common — a region, the sea, a neighbour, an organisation, the capital, the name — before you miss four times.',
+          ),
+          icon: LayoutGrid,
+          level: 3,
+          group: 'facts',
+        },
       ];
   }
 }
@@ -534,6 +546,8 @@ function modeName(mode: Mode): string {
       return L('Parejas', 'Pairs');
     case 'alphabet':
       return L('Alfabeto', 'Alphabet');
+    case 'connect':
+      return L('Conexiones', 'Connections');
     case 'topten':
       return L('Los diez primeros', 'The top ten');
     case 'cards':
@@ -615,7 +629,7 @@ function lazy<K extends string, V>(keys: readonly K[], make: (key: K) => V): Rec
   return out;
 }
 
-const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'group', 'neighbours', 'border', 'chain', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'coords', 'edit', 'print', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'oddone', 'pairs', 'alphabet', 'topten', 'cards', 'mix', 'listen'];
+const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'group', 'neighbours', 'border', 'chain', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'coords', 'edit', 'print', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'oddone', 'pairs', 'alphabet', 'connect', 'topten', 'cards', 'mix', 'listen'];
 
 export const MODES: Record<Section, ModeDef[]> = lazy(SECTION_IDS, modesOf);
 export const MODE_NAME: Record<Mode, string> = lazy(MODE_IDS, modeName);

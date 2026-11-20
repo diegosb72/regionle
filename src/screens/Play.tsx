@@ -24,7 +24,7 @@ import { L } from '../lib/i18n';
 import { MODE_NAME, PATHS } from '../lib/modes';
 import { pauseClock } from '../lib/pause';
 import { goneFrom } from '../lib/review';
-import { FIGURE_MODES, ODD_MIN, PAIRS_MIN } from '../lib/rules';
+import { CONNECT_MIN, FIGURE_MODES, ODD_MIN, PAIRS_MIN } from '../lib/rules';
 import { go } from '../lib/router';
 import { useStore, type GameConfig } from '../lib/store';
 import { nf } from '../lib/text';
@@ -44,8 +44,9 @@ const WhoAmIGame = lazyScreen(() => import('../games/WhoAmI').then((m) => m.WhoA
 const OddOneGame = lazyScreen(() => import('../games/OddOne').then((m) => m.OddOneGame));
 const PairsGame = lazyScreen(() => import('../games/Pairs').then((m) => m.PairsGame));
 const AlphabetGame = lazyScreen(() => import('../games/Alphabet').then((m) => m.AlphabetGame));
+const ConnectGame = lazyScreen(() => import('../games/Connect').then((m) => m.ConnectGame));
 /** Which of them each mode needs: asked for while the map is being drawn, so that it is here when the map is. */
-const APART: Partial<Record<Mode, { warm(): void }>> = { blind: BlindGame, hotcold: BlindGame, bearing: BearingGame, coords: CoordsGame, chain: ChainGame, border: BorderGame, group: GroupGame, whoami: WhoAmIGame, oddone: OddOneGame, pairs: PairsGame, alphabet: AlphabetGame };
+const APART: Partial<Record<Mode, { warm(): void }>> = { blind: BlindGame, hotcold: BlindGame, bearing: BearingGame, coords: CoordsGame, chain: ChainGame, border: BorderGame, group: GroupGame, whoami: WhoAmIGame, oddone: OddOneGame, pairs: PairsGame, alphabet: AlphabetGame, connect: ConnectGame };
 
 function Message({ title, text, onExit, action }: { title: string; text: string; onExit(): void; action?: { label: string; run(): void } }) {
   return (
@@ -221,6 +222,16 @@ function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
         <WithHelp cfg={cfg}>
           <Suspense fallback={<Spinner />}>
             <AlphabetGame countries={chosen} world={statementWorld} cfg={cfg} onExit={onExit} />
+          </Suspense>
+        </WithHelp>
+      );
+    }
+    if (cfg.mode === 'connect') {
+      if (chosen.length < CONNECT_MIN) return <Message title={L('Faltan países', 'Not enough countries')} text={L(`Este juego necesita al menos ${CONNECT_MIN} países.`, `This game needs at least ${CONNECT_MIN} countries.`)} onExit={onExit} />;
+      return (
+        <WithHelp cfg={cfg}>
+          <Suspense fallback={<Spinner />}>
+            <ConnectGame countries={chosen} world={statementWorld} cfg={cfg} onExit={onExit} />
           </Suspense>
         </WithHelp>
       );

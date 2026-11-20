@@ -693,6 +693,36 @@ export function helpOf(mode: Mode, section: Section): ModeHelp | null {
           'The clue only has to tell the country from the others of its letter: go through the ones that begin with it in your head before typing.',
         ),
       };
+    case 'connect':
+      return {
+        steps: [
+          L(
+            'En la mesa hay dieciséis países que van de cuatro en cuatro. Los de cada grupo tienen algo en común que no se dice: una parte del mundo, el mar, un país con el que limitan, una organización o una lengua, el tamaño, la letra de su capital o algo de su nombre (la inicial, la terminación, una palabra).',
+            'There are sixteen countries on the table, and they go four by four. Those of each group have something in common that is not said: a part of the world, the sea, a country they border, an organisation or a language, their size, the letter of their capital or something of their name (how it begins, how it ends, a word in it).',
+          ),
+          L(
+            'Elige cuatro y pulsa «Comprobar». Si son un grupo, sube arriba con lo que tienen en común. Si no, el juego te dice si tres de los cuatro van juntos.',
+            'Pick four and press "Check". If they are a group, it goes up with what they have in common. If not, the game tells you whether three of the four go together.',
+          ),
+          L(
+            'Algún país encajaría en dos grupos, pero el tablero solo tiene una solución: si sobra uno, es que hace falta en otro grupo.',
+            'A country or two would fit two groups, but the board has one answer only: if there is one too many, it is needed in another group.',
+          ),
+          L('Al cuarto fallo se acaba la partida, y el juego enseña los grupos que faltaban.', 'The fourth miss ends the game, and the game shows the groups that were left.'),
+        ],
+        score: L(
+          'Cuenta cada grupo que encuentras sin haber fallado antes y sin pista; el que sale después de un fallo o con su pista cuenta «con ayuda». Cuatro países que tienen en común algo que no es ninguno de los grupos no son un fallo: el juego te dice qué es. Si te quedas sin intentos, los grupos que faltaban cuentan como fallos; si terminas tú antes, no cuentan.',
+          'Each group you find with no miss before it and no hint counts; one found after a miss or with its hint counts as “with help”. Four countries that have in common something that is none of the groups are no miss: the game tells you what it is. If you run out of guesses, the groups that were left count as misses; if you end the game before that, they are not counted.',
+        ),
+        aid: L(
+          '«Pista» te dice lo que tienen en común los de uno de los grupos que faltan; ese grupo ya no cuenta «a la primera». «Barajar» cambia los países de sitio, que a veces basta para ver un grupo.',
+          '"Hint" tells you what those of one of the groups still to be found have in common; that group no longer counts as “first time”. "Shuffle" moves the countries about, which is sometimes enough to see a group.',
+        ),
+        tip: L(
+          'Empieza por el grupo del que estés más seguro y deja para el final los países que podrían ir en dos.',
+          'Start with the group you are surest of, and leave for the end the countries that could go in two.',
+        ),
+      };
     default:
       return null;
   }

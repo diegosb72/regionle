@@ -38,6 +38,13 @@ export const PAIR_SIZE_DEFAULT: PairSize = 8;
 /** Countries "pairs" takes: with fewer than three pairs there is nothing to remember. */
 export const PAIRS_MIN = 3;
 
+/** A board of "connections": four groups of four countries, and so sixteen is the fewest it takes. */
+export const CONNECT_GROUPS = 4;
+export const CONNECT_GROUP_SIZE = 4;
+export const CONNECT_MIN = CONNECT_GROUPS * CONNECT_GROUP_SIZE;
+/** From this many countries on, there are boards enough: fewer may give the same one time and again. */
+export const CONNECT_WIDE = 40;
+
 /** Games that can show their outlines turned: the ones that draw one, where the pieces have a shape. */
 export const turnsOutlines = (section: Section, mode: Mode): boolean => mode === 'outline' || mode === 'regionle' || (mode === 'mix' && (section === 'regions' || section === 'countries'));
 

@@ -75,6 +75,12 @@ if (!first.script.length || !first.style.length) {
   console.error('tamaño · no se han encontrado en index.html el guion o los estilos de la primera carga');
   process.exit(1);
 }
+// The icons of the other screens have a file of their own so as not to travel with the page (vite.config.ts).
+const strays = first.script.filter((f) => /(^|\/)icons-more-/.test(f));
+if (strays.length) {
+  console.error(`tamaño · ✗ los iconos de las demás pantallas viajan con la página (${strays.join(', ')}): la primera pantalla usa uno que vite.config.ts no ha visto.`);
+  process.exit(1);
+}
 if (over) {
   console.error(`tamaño · ${over === 1 ? 'un límite superado' : `${over} límites superados`}: aligera el sitio o sube el límite en scripts/budget.mjs si lo vale.`);
   process.exit(1);

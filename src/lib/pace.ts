@@ -2,7 +2,7 @@
  * How long a game takes and how hard it is for this player, said with what the games played tell:
  * the label of a mode (easy, medium, hard) is the same for everyone, and this is not.
  */
-import { FORMAT_MODES, LENGTH_MODES, MADE_UP_MODES, ROUND_MODES } from './rules';
+import { CONNECT_GROUPS, CONNECT_MIN, FORMAT_MODES, LENGTH_MODES, MADE_UP_MODES, ROUND_MODES } from './rules';
 import type { Format, Length, SessionRec } from './store';
 import type { Mode, Section } from './types';
 
@@ -61,6 +61,8 @@ export const TYPICAL_S: Partial<Record<Mode, number>> = {
   truefalse: 5,
   oddone: 9,
   alphabet: 12,
+  // A group of "connections": four countries to put together, and what they share to be found.
+  connect: 45,
   cards: 5,
   mix: 8,
   listen: 8,
@@ -91,6 +93,8 @@ export function questionsOf({ mode, units, length, format, list, letters }: Game
   if (mode === 'nameall') return units;
   // The alphabet is as long as its letters, however many countries there are.
   if (mode === 'alphabet') return letters && letters > 0 ? letters : null;
+  // A board of connections is four groups, whatever the countries.
+  if (mode === 'connect') return units >= CONNECT_MIN ? CONNECT_GROUPS : null;
   if (!LENGTH_MODES.includes(mode)) return null;
   // Against the clock or with lives a game lasts what it lasts; an exam has its questions counted.
   if ((format === 'timed' || format === 'lives') && FORMAT_MODES.includes(mode)) return null;

@@ -17,7 +17,7 @@ A petición del dueño del proyecto, desde la 1.18.0 se hace primero lo que meno
 el final lo que más. La estimación es a ojo y cambia al abrir el código:
 
 - **Corto**: nada pendiente
-- **Medio**: 19, 26, 45, 46, 51, 54, 66, 70, 73–75, 84, 87, 94, 98
+- **Medio**: 19, 45, 46, 51, 54, 66, 70, 73–75, 84, 87, 94, 98
 - **Largo**: 20, 44 (francés), 65, 67, 68, 83, 90
 - **Depende de conseguir datos**, lleve lo que lleve: 30–32, 37–39, 41–43, 95, y lo que falta del 29 y del 35
 
@@ -50,7 +50,7 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 - [x] 23. Alfabeto: una letra por cada inicial de los países elegidos y, de cada una, un país que hay que escribir a partir de una pista (su capital, su bandera, sus vecinos, dónde está o en qué es el primero de su letra); un intento por letra, y se puede pasar: la letra vuelve después; en Cifras, con países — **1.25.0**
 - [x] 24. Parejas: cartas boca abajo, dos por país (su bandera y su nombre, o su capital y el país), de 12 a 24; solo es fallo el intento que se podía ahorrar, y se guarda la partida con menos intentos; en Cifras, con países — **1.25.0**
 - [x] 25. El intruso: cuatro países, tres de ellos con algo en común (el continente, la costa, las fronteras, un vecino, el tamaño o los habitantes frente a otro), y hay que elegir el que no; en Cifras, con países — **1.24.0**
-- [ ] 26. Conexiones
+- [x] 26. Conexiones: dieciséis países que van de cuatro en cuatro por algo que no se dice (una región, el mar, un vecino, una organización, una lengua, el tamaño, la letra de la capital o algo del nombre); cada tablero tiene una sola solución, al cuarto fallo se acaba y cuatro países que comparten otra cosa no cuentan como fallo; en Cifras, con dieciséis países o más — **1.26.0**
 - [x] 27. Densidad de población — **1.7.0**
 - [x] 28. Cifras de ciudades, picos, lagos e islas — **1.7.0**
 - [~] 29. Cifras de regiones: superficie y población (la población, **datos**) — la superficie, en **1.7.0**; falta la población, que no está en los datos
