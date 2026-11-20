@@ -23,6 +23,7 @@ export const RELEASES: Release[] = [
       'Sale cuando hay dos cosas o más que hacer; con una sola basta el repaso de hoy, como hasta ahora. Cada paso se puede hacer también suelto.',
       'Arreglado: al pasar deprisa las fichas de una lección, el mapa podía seguir hasta la última y dejar fuera de la vista la pieza que se preguntaba.',
       'Prueba de nivel: el nombre de una pieza ya no se pregunta justo después de situarla, con el nombre recién leído, tampoco al final de la prueba.',
+      'La portada se dibuja entera: los objetivos y la sesión de hoy ya no llegan un momento después y empujan hacia abajo lo que se estaba leyendo.',
     ],
     en: [
       'Session of the day: the home page puts the steps of the day over the review, in the order that helps most: what is due, what you miss most and a new lesson.',
@@ -30,6 +31,7 @@ export const RELEASES: Release[] = [
       'It shows when there are two things to do or more; with only one, the review of the day is enough, as before. Each step can also be done on its own.',
       'Fixed: going fast through the cards of a lesson, the map could travel on to the last one and leave the piece being asked out of sight.',
       'Placement test: what a piece is called is no longer asked right after placing it, with its name just read, not at the end of the test either.',
+      'The home page is drawn whole: the goals and the session of the day no longer arrive a moment later and push down what was being read.',
     ],
   },
   {

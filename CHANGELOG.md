@@ -10,6 +10,7 @@ Lo que ha traído cada versión, de la más reciente a la primera. Es la misma l
 - Sale cuando hay dos cosas o más que hacer; con una sola basta el repaso de hoy, como hasta ahora. Cada paso se puede hacer también suelto.
 - Arreglado: al pasar deprisa las fichas de una lección, el mapa podía seguir hasta la última y dejar fuera de la vista la pieza que se preguntaba.
 - Prueba de nivel: el nombre de una pieza ya no se pregunta justo después de situarla, con el nombre recién leído, tampoco al final de la prueba.
+- La portada se dibuja entera: los objetivos y la sesión de hoy ya no llegan un momento después y empujan hacia abajo lo que se estaba leyendo.
 
 ## 1.23.0 — 20 de noviembre de 2026
 

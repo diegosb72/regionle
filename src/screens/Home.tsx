@@ -1,7 +1,7 @@
 import { ArrowRight, BookOpen, CalendarClock, Filter, Flame, Infinity as InfinityIcon, ListChecks, Star, Swords, X } from 'lucide-react';
 import { Suspense, useMemo } from 'react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
-import { lazyScreen } from '../components/lazy';
+import { lazyScreen, useHere } from '../components/lazy';
 import { ReviewCard } from '../components/ReviewCard';
 import { Flag } from '../components/ui';
 import { DailyCard } from '../daily/Card';
@@ -232,6 +232,17 @@ const GoalCards = lazyScreen(() => import('../components/GoalCard').then((m) => 
 const DayCard = lazyScreen(() => import('../components/DayCard').then((m) => m.DayCard));
 /** The level, at the foot of the page: it comes with the achievements, which the first page does not carry. */
 const LevelChip = lazyScreen(() => import('../components/Badges').then((m) => m.LevelChip));
+
+/**
+ * Whether the first page can be drawn whole. The goals and the session of the day go above the review, which
+ * comes with the page: whoever is going to see them has their code fetched as soon as that is known, and the
+ * page waits for it, so that nothing arrives a moment later and pushes the rest down.
+ */
+export function useHomeWhole(): boolean {
+  const hasGoals = useStore((s) => s.goals.length > 0);
+  const hasAnswers = useStore((s) => Object.keys(s.stats).length > 0);
+  return useHere([hasGoals ? GoalCards : null, hasAnswers ? DayCard : null]);
+}
 
 /**
  * What today adds up to, in a line that opens Progress: the days played in a row and how far the daily

@@ -104,6 +104,25 @@ test.describe('the session of the day', () => {
     await expect(plan(page).locator('.day-step.done')).toHaveCount(0);
   });
 
+  test('comes with the page, and does not push down a moment later what was already on it', async ({ page }) => {
+    await seed(page, player());
+    // Where the review is the first time it is on the page: the strip goes above it, and its code comes apart.
+    await page.addInitScript(() => {
+      const w = window as Window & { __first?: number };
+      new MutationObserver(() => {
+        const review = document.querySelector('.review');
+        if (review && w.__first == null) w.__first = review.getBoundingClientRect().top;
+      }).observe(document, { childList: true, subtree: true });
+    });
+    await open(page);
+    await expect(plan(page)).toBeVisible();
+    const first = await page.evaluate(() => (window as Window & { __first?: number }).__first);
+    const now = await page.locator('.review').evaluate((el) => el.getBoundingClientRect().top);
+    // The strip is some seventy pixels tall where it is lowest: a letter that arrives late moves a line far less.
+    expect(Math.abs(first! - now)).toBeLessThan(20);
+    expect(now).toBeGreaterThan(await plan(page).evaluate((el) => el.getBoundingClientRect().bottom));
+  });
+
   test('is for a day with two things to do or more: one alone is what the review already offers', async ({ page }) => {
     await seed(page, due(Date.now()));
     await open(page);

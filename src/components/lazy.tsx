@@ -3,9 +3,17 @@
  * whole game. `warm()` fetches it ahead of time; once it is here, the screen is drawn at once, without
  * the loading message that `React.lazy` alone would show the first time.
  */
-import { createElement, lazy, useState, type ComponentType, type ReactElement } from 'react';
+import { createElement, lazy, useEffect, useReducer, useState, type ComponentType, type ReactElement } from 'react';
 
-export interface LazyScreen<P> {
+/** Code that is fetched apart, as far as waiting for it goes. */
+export interface Part {
+  /** Whether there is nothing to wait for: the code is here, or it was asked for and did not come. */
+  here(): boolean;
+  /** Fetches the code, and settles when it is here or when it has failed to come: it never rejects. */
+  ready(): Promise<void>;
+}
+
+export interface LazyScreen<P> extends Part {
   (props: P): ReactElement;
   /** Fetches the code now. Safe to call many times; a failure is forgotten, so that it can be tried again. */
   warm(): void;
@@ -14,6 +22,7 @@ export interface LazyScreen<P> {
 export function lazyScreen<P extends object>(load: () => Promise<ComponentType<P>>): LazyScreen<P> {
   let loaded: ComponentType<P> | null = null;
   let pending: Promise<ComponentType<P>> | null = null;
+  let failed = false;
 
   const fetchIt = (): Promise<ComponentType<P>> =>
     (pending ??= load().then(
@@ -21,6 +30,7 @@ export function lazyScreen<P extends object>(load: () => Promise<ComponentType<P
       (error: unknown) => {
         // `React.lazy` keeps a failure for good: a new one is made so that showing the screen again asks again.
         pending = null;
+        failed = true;
         waiting = fresh();
         throw error;
       },
@@ -33,10 +43,41 @@ export function lazyScreen<P extends object>(load: () => Promise<ComponentType<P
     const [Use] = useState<ComponentType<P>>(() => loaded ?? waiting);
     return createElement(Use, props);
   }
+  const ready = (): Promise<void> =>
+    fetchIt().then(
+      () => undefined,
+      () => undefined,
+    );
   const warm = (): void => {
-    fetchIt().catch(() => undefined);
+    void ready();
   };
-  return Object.assign(Screen, { warm });
+  const here = (): boolean => loaded != null || failed;
+  return Object.assign(Screen, { warm, here, ready });
+}
+
+/**
+ * Whether the code of all these parts is here; one that is not wanted is `null`. What is missing is fetched,
+ * and the answer changes when it has come. A page that waits for it is drawn whole: with `Suspense` alone, a
+ * part that arrives after the rest is shown a third of a second later at the soonest, and pushes down what
+ * was already being read.
+ */
+export function useHere(parts: readonly (Part | null)[]): boolean {
+  const [, redraw] = useReducer((n: number) => n + 1, 0);
+  const here = parts.every((p) => !p || p.here());
+  const wanted = parts.map((p) => (p ? 1 : 0)).join('');
+  useEffect(() => {
+    if (here) return undefined;
+    let on = true;
+    void Promise.all(parts.map((p) => p?.ready())).then(() => {
+      if (on) redraw();
+    });
+    return () => {
+      on = false;
+    };
+    // The parts are the same from one draw to the next: what changes is which of them are wanted.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [here, wanted]);
+  return here;
 }
 
 /** Runs `task` when the browser has nothing better to do, or soon enough where it cannot say. */
