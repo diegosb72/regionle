@@ -8,9 +8,12 @@ Lo que ha traído cada versión, de la más reciente a la primera. Es la misma l
 - Sesión de hoy: la portada pone sobre el repaso los pasos del día, en el orden que más ayuda: repasar lo que toca, lo que más fallas y una lección nueva.
 - «Empezar la sesión» abre el primer paso que falte y, al acabar cada partida, el resultado ofrece el siguiente. Lo hecho queda marcado hasta mañana.
 - Sale cuando hay dos cosas o más que hacer; con una sola basta el repaso de hoy, como hasta ahora. Cada paso se puede hacer también suelto.
+- El intruso, un juego nuevo en Cifras: cuatro países y una pregunta que dice qué tienen tres en común (continente, costa, vecinos, tamaño). Eliges el que no.
+- Cada respuesta dice el porqué, con el dato de cada país. Pide cinco países o más; a 10, 20 o 50 preguntas o sin fin, con clic o con las teclas 1 a 4.
 - Arreglado: al pasar deprisa las fichas de una lección, el mapa podía seguir hasta la última y dejar fuera de la vista la pieza que se preguntaba.
 - Prueba de nivel: el nombre de una pieza ya no se pregunta justo después de situarla, con el nombre recién leído, tampoco al final de la prueba.
 - La portada se dibuja entera: los objetivos y la sesión de hoy ya no llegan un momento después y empujan hacia abajo lo que se estaba leyendo.
+- En las listas de nombres, «y» pasa a «e» ante el sonido de la i y «o» a «u» ante el de la o: «limita con Francia, Suiza e Italia».
 
 ## 1.23.0 — 20 de noviembre de 2026
 

@@ -23,7 +23,9 @@
   margin: 0;
 }
 .odd-name {
+  /* A long name in a narrow column is cut between syllables where the browser knows how, and anywhere where not. */
   overflow-wrap: anywhere;
+  hyphens: auto;
 }
 /* The one that was picked wrongly keeps its name readable: it is the flag and the colour that say so. */
 .odd-btn.wrong {

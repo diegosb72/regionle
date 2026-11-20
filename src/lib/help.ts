@@ -642,8 +642,8 @@ export function helpOf(mode: Mode, section: Section): ModeHelp | null {
           'Each right answer counts. At the end you can read again the ones you missed, with their explanation.',
         ),
         tip: L(
-          'Cuando compara tamaños o habitantes, piensa primero en el país con el que se miden: los cuatro están cerca de él, a un lado o al otro.',
-          'When it compares sizes or people, think first of the country they are measured against: the four are close to it, on one side or the other.',
+          'Cuando compara tamaños o habitantes, sitúa primero el país con el que se miden: tres quedan a un lado de él y uno al otro.',
+          'When it compares sizes or people, place first the country they are measured against: three lie on one side of it and one on the other.',
         ),
       };
     default:
