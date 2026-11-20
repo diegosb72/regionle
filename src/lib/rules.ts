@@ -28,6 +28,16 @@ export const TOP_MIN = 6;
 /** Countries "the odd one out" takes: four are shown, and a size is measured against one more. */
 export const ODD_MIN = 5;
 
+/** What the two cards of a pair are: the flag of a country and its name, or its capital and the country. */
+export type PairOf = 'flag' | 'capital';
+export const PAIR_OFS: readonly PairOf[] = ['flag', 'capital'];
+/** How many pairs are dealt: twice as many cards. */
+export const PAIR_SIZES = [6, 8, 10, 12] as const;
+export type PairSize = (typeof PAIR_SIZES)[number];
+export const PAIR_SIZE_DEFAULT: PairSize = 8;
+/** Countries "pairs" takes: with fewer than three pairs there is nothing to remember. */
+export const PAIRS_MIN = 3;
+
 /** Games that can show their outlines turned: the ones that draw one, where the pieces have a shape. */
 export const turnsOutlines = (section: Section, mode: Mode): boolean => mode === 'outline' || mode === 'regionle' || (mode === 'mix' && (section === 'regions' || section === 'countries'));
 

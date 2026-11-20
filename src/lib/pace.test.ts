@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { TRUE_FALSE_ROUND, TYPICAL_S, estimateOf, minutesOf, paceOf, percentOf, questionsOf, type GameSize } from './pace';
+import { LENGTH_MODES } from './rules';
 import type { SessionRec } from './store';
 
 const played = (patch: Partial<SessionRec> = {}): SessionRec => ({ t: 1, section: 'regions', mode: 'pin', label: 'España', total: 20, ok: 15, warn: 2, bad: 3, ms: 100_000, ...patch });
@@ -58,6 +59,14 @@ describe('how many statements true or false makes', () => {
     expect(questionsOf(size({ mode: 'oddone', units: 193, length: 'endless' }))).toBeNull();
     // Four names to read and a reason to find: it takes longer than saying true or false.
     expect(TYPICAL_S.oddone!).toBeGreaterThan(TYPICAL_S.truefalse!);
+  });
+
+  it('is nothing to count in pairs, which lasts until every card has its other half', () => {
+    expect(questionsOf(size({ mode: 'pairs', units: 193, length: 20 }))).toBeNull();
+    expect(LENGTH_MODES).not.toContain('pairs');
+    // What it lasts is what the games played have lasted.
+    expect(estimateOf('pairs', null, { games: 0, perQuestion: null, perGame: null, first: null })).toBeNull();
+    expect(estimateOf('pairs', null, { games: 2, perQuestion: 9000, perGame: 72_000, first: 0.75 })).toEqual({ ms: 72_000, own: true });
   });
 
   it('is a round of five for each question of north to south, like the other game of putting in order', () => {

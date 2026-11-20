@@ -16,7 +16,7 @@ import { encodeList, listConfig, listPlayable, listUrl } from '../lib/lists';
 import { mapLinkRest, type MapLink } from '../lib/maplink';
 import { GROUP_NAME, MODES, MODE_GROUPS, SECTIONS, cardAskName, formatName } from '../lib/modes';
 import { estimateOf, minutesOf, paceOf, percentOf, questionsOf } from '../lib/pace';
-import { FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, MADE_UP_MODES, ODD_MIN, ROUND_MODES, TOP_MIN, asksByFlag, turnsOutlines } from '../lib/rules';
+import { FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, MADE_UP_MODES, ODD_MIN, PAIRS_MIN, PAIR_SIZES, PAIR_SIZE_DEFAULT, ROUND_MODES, TOP_MIN, asksByFlag, turnsOutlines, type PairSize } from '../lib/rules';
 import { go, settle } from '../lib/router';
 import { PATHS, mapLinkUrl } from '../lib/routes';
 import { useStore, type CardAsk, type CustomList, type LessonOrder, type Length, type Opts } from '../lib/store';
@@ -424,7 +424,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
   const capitalsReady = section !== 'regions' || def.id !== 'capital' || !capitals || chosen.some((c) => capitals[c.id]?.[levelOf(c, levels).k]);
   /** "Los diez primeros" takes a list long enough for its top to be a part of it. */
   const figMin = def.id === 'topten' ? TOP_MIN : 2;
-  const need = section === 'pops' && def.id === 'topten' ? TOP_MIN : def.id === 'oddone' ? ODD_MIN : section === 'countries' || section === 'pops' ? 2 : 1;
+  const need = section === 'pops' && def.id === 'topten' ? TOP_MIN : def.id === 'oddone' ? ODD_MIN : def.id === 'pairs' ? PAIRS_MIN : section === 'countries' || section === 'pops' ? 2 : 1;
   /** The number games need things that share a figure: among rivers and ranges there is none. */
   const noFigures = useMemo(() => {
     if (!isPhys || !physical || !FIGURE_MODES.includes(def.id)) return false;
@@ -525,6 +525,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
     axis: def.id === 'compass',
     bearingAsk: def.id === 'bearing',
     coordsAsk: def.id === 'coords',
+    pairs: def.id === 'pairs',
     lesson: def.id === 'learn' && section !== 'pops',
     // A review and a list are filled in at their own pace.
     countdown: def.id === 'nameall',
@@ -533,6 +534,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
     wiki: WIKI_MODES.includes(def.id) && !(paced && opts.format === 'timed') && !exam,
   };
   const anyOption = Object.values(show).some(Boolean);
+  const pairSize: PairSize = (PAIR_SIZES as readonly number[]).includes(opts.pairs) ? opts.pairs : PAIR_SIZE_DEFAULT;
   const endless = { value: 'endless' as Length, label: <InfinityIcon size={16} aria-label={L('Sin fin', 'Endless')} /> };
 
   const lengths: { value: Length; label: ReactNode; title?: string }[] =
@@ -880,6 +882,35 @@ export function Setup({ section, world, link }: { section: Section; world: World
                       : L('Te damos las coordenadas y haces clic en el punto; cuenta lo cerca que caigas.', 'You get the coordinates and click on the point; how close you fall is what counts.')}
                   </p>
                 </div>
+              )}
+              {show.pairs && (
+                <>
+                  <div className="opt">
+                    <span className="opt-label">{L('Parejas de', 'Pairs of')}</span>
+                    <Seg
+                      label={L('De qué son las parejas', 'What the pairs are made of')}
+                      value={opts.pairOf === 'capital' ? 'capital' : 'flag'}
+                      onChange={(pairOf) => set({ pairOf })}
+                      options={[
+                        { value: 'flag', label: L('Banderas', 'Flags') },
+                        { value: 'capital', label: L('Capitales', 'Capitals') },
+                      ]}
+                    />
+                    <p className="opt-hint">{opts.pairOf === 'capital' ? L('Cada capital, con su país.', 'Each capital with its country.') : L('Cada bandera, con el nombre de su país.', 'Each flag with the name of its country.')}</p>
+                  </div>
+                  <div className="opt">
+                    <span className="opt-label">{L('Tamaño', 'Size')}</span>
+                    <Seg
+                      label={L('Número de cartas', 'Number of cards')}
+                      value={pairSize}
+                      onChange={(pairs: PairSize) => set({ pairs })}
+                      options={PAIR_SIZES.map((n, i) => ({ value: n, label: i === 0 ? L(`${n * 2} cartas`, `${n * 2} cards`) : String(n * 2) }))}
+                    />
+                    {chosen.length >= PAIRS_MIN && chosen.length < pairSize && (
+                      <p className="opt-hint">{L(`Con ${nf(chosen.length)} países salen ${nf(chosen.length * 2)} cartas.`, `With ${nf(chosen.length)} countries there are ${nf(chosen.length * 2)} cards.`)}</p>
+                    )}
+                  </div>
+                </>
               )}
               {show.cardAsk && (
                 <div className="opt">

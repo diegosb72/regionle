@@ -648,6 +648,16 @@ export function Progress({ world }: { world: World }) {
         </li>
       );
     }
+    if (kind === 'pairs') {
+      // "pairs:flag:8": the fewest turns of a table of that kind of pair and that many of them.
+      const cards = Number(rest[1]) * 2;
+      return (
+        <li key={k}>
+          <b>{MODE_NAME.pairs}</b> · {rest[0] === 'capital' ? L('capitales', 'capitals') : L('banderas', 'flags')} · {L(`${cards} cartas`, `${cards} cards`)}
+          <span>{L(`${v} ${v === 1 ? 'intento' : 'intentos'}`, `${v} ${v === 1 ? 'turn' : 'turns'}`)}</span>
+        </li>
+      );
+    }
     // Every other record is about a map: "nameall:<map>", "regionle:<map>", "blind:<map>|<n>", "timed:<mode>:<map>".
     let mapKey = what;
     let mode: Mode | null = null;

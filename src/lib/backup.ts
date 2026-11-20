@@ -9,6 +9,7 @@ import { CITY_COUNTS } from './extra';
 import { isPalette } from './palette';
 import { isTextSize } from './reading';
 import { isPace, isReviewSize } from './review';
+import { PAIR_OFS, PAIR_SIZES } from './rules';
 import { isLearnt, type BackupMark, type Opts, type State, type Stat, type Theme } from './store';
 
 /** 4: the preferences travel too. A copy of an earlier version is read all the same. */
@@ -106,6 +107,8 @@ const OPT_CHOICES: { [K in keyof Opts]?: readonly Opts[K][] } = {
   cardAsk: ['name', 'where', 'capital', 'flag'],
   bearingAsk: ['both', 'dir', 'dist'],
   coordsAsk: ['mark', 'read'],
+  pairOf: PAIR_OFS,
+  pairs: PAIR_SIZES,
   lessonSize: LESSON_SIZES,
   lessonOrder: LESSON_ORDERS,
 };

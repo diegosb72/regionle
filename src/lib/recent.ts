@@ -3,7 +3,7 @@
  * game was called; this keeps what it takes to start it: which countries, at which level, in which game.
  */
 import { PATHS } from './routes';
-import { FORMAT_MODES, MADE_UP_MODES } from './rules';
+import { FIGURE_MODES, FORMAT_MODES } from './rules';
 import type { GameConfig, Opts, SessionRec } from './store';
 import type { Mode, Section } from './types';
 
@@ -11,7 +11,7 @@ import type { Mode, Section } from './types';
  * The options that say which game it was, as against how one likes to play: which cities, which figure,
  * what countries are pinned by, what the cards ask, against the clock or with lives.
  */
-export type RecentOpts = Partial<Pick<Opts, 'cityPick' | 'cityCount' | 'metric' | 'pinBy' | 'format' | 'axis' | 'countdown' | 'cardAsk' | 'bearingAsk' | 'coordsAsk'>>;
+export type RecentOpts = Partial<Pick<Opts, 'cityPick' | 'cityCount' | 'metric' | 'pinBy' | 'format' | 'axis' | 'countdown' | 'cardAsk' | 'bearingAsk' | 'coordsAsk' | 'pairOf'>>;
 
 export interface Recent {
   /** When it was last played. */
@@ -39,8 +39,11 @@ function optsOf(game: GameConfig): RecentOpts {
     o.cityPick = game.opts.cityPick;
     if (game.opts.cityPick === 'top') o.cityCount = game.opts.cityCount;
   }
-  // The figure is the game where there is a choice of them; statements that are true or false are about them all.
-  if (game.section === 'pops' && !MADE_UP_MODES.includes(game.mode)) o.metric = game.opts.metric;
+  // The figure is the game where there is a choice of them; the games of facts (statements that are true or
+  // false, the odd one out, pairs) are not played with one.
+  if (game.section === 'pops' && FIGURE_MODES.includes(game.mode)) o.metric = game.opts.metric;
+  // Pairs of flags and pairs of capitals are two games; how many are dealt is a matter of taste.
+  if (game.mode === 'pairs') o.pairOf = game.opts.pairOf ?? 'flag';
   if (game.mode === 'compass') o.axis = game.opts.axis ?? 'ns';
   // Only bearings and only distances are two games; a state kept before the option existed asks both.
   if (game.mode === 'bearing') o.bearingAsk = game.opts.bearingAsk ?? 'both';

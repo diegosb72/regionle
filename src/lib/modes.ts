@@ -4,6 +4,7 @@ import {
   CircleCheck,
   CircleHelp,
   Compass,
+  Copy,
   Crosshair,
   Ear,
   Fence,
@@ -442,6 +443,17 @@ function modesOf(section: Section): ModeDef[] {
           level: 2,
           group: 'facts',
         },
+        {
+          id: 'pairs',
+          name: L('Parejas', 'Pairs'),
+          desc: L(
+            'Cartas boca abajo: levanta dos y junta cada bandera con su país, o cada capital con el suyo. Memoria y saber de quién es cada una.',
+            'Cards face down: turn two over and put each flag with its country, or each capital with its own. Memory, and knowing whose each one is.',
+          ),
+          icon: Copy,
+          level: 1,
+          group: 'facts',
+        },
       ];
   }
 }
@@ -506,6 +518,8 @@ function modeName(mode: Mode): string {
       return L('Verdadero o falso', 'True or false');
     case 'oddone':
       return L('El intruso', 'Odd one out');
+    case 'pairs':
+      return L('Parejas', 'Pairs');
     case 'topten':
       return L('Los diez primeros', 'The top ten');
     case 'cards':
@@ -587,7 +601,7 @@ function lazy<K extends string, V>(keys: readonly K[], make: (key: K) => V): Rec
   return out;
 }
 
-const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'group', 'neighbours', 'border', 'chain', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'coords', 'edit', 'print', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'oddone', 'topten', 'cards', 'mix', 'listen'];
+const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'group', 'neighbours', 'border', 'chain', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'coords', 'edit', 'print', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'oddone', 'pairs', 'topten', 'cards', 'mix', 'listen'];
 
 export const MODES: Record<Section, ModeDef[]> = lazy(SECTION_IDS, modesOf);
 export const MODE_NAME: Record<Mode, string> = lazy(MODE_IDS, modeName);

@@ -646,6 +646,28 @@ export function helpOf(mode: Mode, section: Section): ModeHelp | null {
           'When it compares sizes or people, place first the country they are measured against: three lie on one side of it and one on the other.',
         ),
       };
+    case 'pairs':
+      return {
+        steps: [
+          L(
+            'Las cartas están boca abajo, dos por cada país: su bandera y su nombre, o su capital y el país, según lo que elijas antes de empezar.',
+            'The cards lie face down, two for each country: its flag and its name, or its capital and the country, as you choose before starting.',
+          ),
+          L(
+            'Levanta dos, con un clic o con las flechas e Intro. Si son del mismo país se quedan a la vista; si no, vuelven a su sitio al cabo de un momento, o en cuanto levantes otra.',
+            'Turn two over, with a click or with the arrows and Enter. If they belong to the same country they stay in sight; if not, they go back after a moment, or as soon as you turn another.',
+          ),
+          L('La partida acaba cuando todas tienen pareja.', 'The game ends when every card has its pair.'),
+        ],
+        score: L(
+          'Cuenta cuántas parejas juntas sin un intento de más. Es un fallo levantar una carta cuya otra mitad ya había salido y no ir a por ella, o juntarla con una que ya habías visto y no era la suya. Levantar dos cartas nuevas que no casan no es fallo: no hay otra manera de saber qué son. El juego guarda tu partida con menos intentos de cada tamaño.',
+          'What counts is how many pairs you put together without a turn too many. It is a miss to turn a card whose other half had already come up and not go for it, or to put it with one you had already seen that was not its own. Turning two new cards that do not match is not a miss: there is no other way to find out what they are. The game keeps your game with the fewest turns of each size.',
+        ),
+        tip: L(
+          'Si sabes de quién es la bandera, o de qué país es la capital, te basta con recordar dónde está una carta, no dos.',
+          'If you know whose flag it is, or which country the capital belongs to, you only have to remember where one card is, not two.',
+        ),
+      };
     default:
       return null;
   }
