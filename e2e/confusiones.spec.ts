@@ -65,8 +65,9 @@ test.describe('what gets mixed up', () => {
     await open(page, '/progreso');
     await expect(page.locator('.mix .miss-head')).toContainText('Países · Banderas');
     await expect(page.locator('.mix .mix-pair')).toHaveText(/Eslovaquia\s+Eslovenia/);
-    // What is not a mix-up was not read from storage.
-    expect(await page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('regionle:v1') ?? '{}').state.mix))).toEqual(['flag:SK>SI']);
+    // What is not a mix-up was not read from storage. It goes from there with the next thing that is saved (the
+    // achievement of a first game, which is noted a moment after the page is drawn): hence the wait.
+    await expect.poll(() => page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('regionle:v1') ?? '{}').state.mix))).toEqual(['flag:SK>SI']);
 
     const download = page.waitForEvent('download');
     await page.getByRole('button', { name: 'Exportar' }).click();
