@@ -293,15 +293,23 @@ test.describe('a game inside another page', () => {
     await expect(start).toBeFocused();
   });
 
-  test('offers no way into the whole of the game when a part of it does not arrive', async ({ page, baseURL }) => {
+  test('offers no way into the whole of the game when the game breaks', async ({ page, baseURL }) => {
     await seed(page, { helpAuto: false });
-    // The code of the games is what does not arrive.
-    await page.route('**/assets/Play-*.js', (route) => route.abort());
+    // The code of the games arrives broken: it fails as it starts.
+    let asked = 0;
+    await page.route('**/assets/Play-*.js', (route) => {
+      asked += 1;
+      return route.fulfill({ contentType: 'text/javascript', body: 'throw new Error("roto a propósito");' });
+    });
     const box = await pageWith(page, src(baseURL, 'regiones/ES:f/pin'));
     const start = box.locator('.embed-box').getByRole('button', { name: 'Empezar' });
     await start.click();
+    await expect.poll(() => asked, { message: 'the code of the games is asked for' }).toBeGreaterThan(0);
+    /** What the box says, so that a failure here tells what was there instead. */
+    const said = async () => (await box.locator('body').innerText()).replace(/\s+/g, ' ').slice(0, 200);
+    await expect.poll(said, { timeout: 30_000 }).toContain('Algo ha fallado');
     const crash = box.locator('.crash');
-    await expect(crash.getByRole('heading', { level: 1 })).toHaveText('Esta parte del juego no ha llegado a cargarse', { timeout: 30_000 });
+    await expect(crash).toContainText('Puedes volver a intentarlo o cargarlo de nuevo.');
     // The start of the game is not for a box, the page is not the game's to reload, and what is kept may be nothing.
     await expect(crash.getByRole('link')).toHaveCount(0);
     await expect(crash).not.toContainText('inicio');
@@ -311,7 +319,7 @@ test.describe('a game inside another page', () => {
     const again = crash.getByRole('button', { name: 'Volver a cargar' });
     expect(await again.evaluate((el) => el.getBoundingClientRect().height)).toBeLessThan(60);
     await expect(again).toBeInViewport({ ratio: 1 });
-    // Loading it again, now that it arrives, brings the card back, and the game with it.
+    // Loading it again, now that it arrives whole, brings the card back, and the game with it.
     await page.unroute('**/assets/Play-*.js');
     await again.click();
     await expect(page.locator('#suya')).toBeVisible();

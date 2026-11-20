@@ -54,14 +54,22 @@ test.describe('the first page and the addresses of the game', () => {
     await expect(page.locator('.hero-title')).toBeVisible();
   });
 
-  test('says so when a part of the game does not arrive, with the ways out of it together at the top', async ({ page }) => {
-    // The code of the games is what does not arrive.
-    await page.route('**/assets/Play-*.js', (route) => route.abort());
+  test('says so when a game breaks, with the ways out of it together at the top', async ({ page }) => {
+    // The code of the games arrives broken: it fails as it starts.
+    let asked = 0;
+    await page.route('**/assets/Play-*.js', (route) => {
+      asked += 1;
+      return route.fulfill({ contentType: 'text/javascript', body: 'throw new Error("roto a propósito");' });
+    });
     await seed(page, { game: PIN_SPAIN, helpAuto: false });
     await page.goto('./#/jugar');
+    await expect.poll(() => asked, { message: 'the code of the games is asked for' }).toBeGreaterThan(0);
+    /** What the page says, so that a failure here tells what was there instead. */
+    const said = async () => (await page.locator('body').innerText()).replace(/\s+/g, ' ').slice(0, 200);
+    await expect.poll(said, { timeout: 30_000 }).toContain('Algo ha fallado');
     const crash = page.locator('.crash');
-    await expect(crash.getByRole('heading', { level: 1 })).toHaveText('Esta parte del juego no ha llegado a cargarse', { timeout: 30_000 });
     await expect(crash).toContainText('Tu progreso está a salvo');
+    await expect(crash.getByRole('button', { name: 'Reintentar' })).toBeVisible();
     // A game fills the window: the notice does not spread down it, and its button is not as tall as what is left over.
     const reload = crash.getByRole('button', { name: 'Recargar la página' });
     expect(await reload.evaluate((el) => el.getBoundingClientRect().height)).toBeLessThan(60);
