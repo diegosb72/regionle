@@ -383,6 +383,10 @@ export function helpOf(mode: Mode, section: Section): ModeHelp | null {
             'Cada pieza que pones se colorea: está en un camino más corto, cerca pero dando un rodeo, o lejos de la ruta.',
             'Each piece you put down is coloured: on a shortest way, near but making a detour, or far from the route.',
           ),
+          L(
+            'Antes de empezar, «Condición» le pone una regla a la ruta: una pieza cerrada que hay que rodear, una parada a desmano o solo por tierra, sin travesías por mar.',
+            'Before starting, “Condition” gives the route a rule: a closed piece to go around, a stop out of the way, or by land only, without sea crossings.',
+          ),
         ],
         score: L(
           'De una a tres estrellas: las tres, si usas justo las piezas del camino más corto. El juego dice por cuántas pasa.',

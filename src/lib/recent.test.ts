@@ -63,6 +63,29 @@ describe('what is kept of a game to play it again', () => {
     expect(recentOf(game({ mode: 'pin', opts: { ...DEFAULT_OPTS, bearingAsk: 'dir' } }), session())?.o).toEqual({ format: 'normal' });
   });
 
+  it('keeps the rule a route had to keep, and takes a route from before there were rules for a plain one', () => {
+    const route = (opts: Partial<typeof DEFAULT_OPTS> = {}) => recentOf(game({ section: 'countries', mode: 'travel', countries: ['ES', 'FR'], opts: { ...DEFAULT_OPTS, ...opts } }), session({ section: 'countries', mode: 'travel' }))!;
+    const plain = route();
+    expect(plain.o).toEqual({ routeRule: 'none' });
+    const closed = route({ routeRule: 'avoid' });
+    expect(closed.o).toEqual({ routeRule: 'avoid' });
+    expect(new Set([plain, closed, route({ routeRule: 'via' }), route({ routeRule: 'land' })].map(recentKey)).size).toBe(4);
+    // Played again with its rule, whatever the options say now.
+    expect(recentConfig(closed, DEFAULT_OPTS).opts.routeRule).toBe('avoid');
+    expect(recentConfig(plain, { ...DEFAULT_OPTS, routeRule: 'via' }).opts.routeRule).toBe('none');
+    // What is not a rule is none.
+    expect(route({ routeRule: 'swim' as never }).o).toEqual({ routeRule: 'none' });
+    // A route kept before the option existed is the plain one: it is not shown beside it as another game…
+    const old: Recent = { ...plain, o: {} };
+    expect(isRecent(old)).toBe(true);
+    expect(recentKey(old)).toBe(recentKey(plain));
+    expect(withRecent([old], plain)).toEqual([plain]);
+    // …and is played plain even by whoever has since asked for a rule.
+    expect(recentConfig(old, { ...DEFAULT_OPTS, routeRule: 'land' }).opts.routeRule).toBe('none');
+    // The rule is of that game only.
+    expect(recentOf(game({ mode: 'pin', opts: { ...DEFAULT_OPTS, routeRule: 'via' } }), session())?.o).toEqual({ format: 'normal' });
+  });
+
   it('keeps what coordinates asked', () => {
     const mark = recentOf(game({ mode: 'coords' }), session({ mode: 'coords' }));
     expect(mark?.o).toEqual({ coordsAsk: 'mark' });

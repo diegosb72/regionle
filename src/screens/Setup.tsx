@@ -16,7 +16,7 @@ import { encodeList, listConfig, listPlayable, listUrl } from '../lib/lists';
 import { mapLinkRest, type MapLink } from '../lib/maplink';
 import { GROUP_NAME, MODES, MODE_GROUPS, SECTIONS, cardAskName, formatName } from '../lib/modes';
 import { estimateOf, minutesOf, paceOf, percentOf, questionsOf } from '../lib/pace';
-import { CONNECT_MIN, CONNECT_WIDE, FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, MADE_UP_MODES, ODD_MIN, PAIRS_MIN, PAIR_SIZES, PAIR_SIZE_DEFAULT, ROUND_MODES, TOP_MIN, asksByFlag, turnsOutlines, type PairSize } from '../lib/rules';
+import { CONNECT_MIN, CONNECT_WIDE, FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, MADE_UP_MODES, ODD_MIN, PAIRS_MIN, PAIR_SIZES, PAIR_SIZE_DEFAULT, ROUND_MODES, TOP_MIN, asksByFlag, isRouteRule, turnsOutlines, type PairSize, type RouteRule } from '../lib/rules';
 import { go, settle } from '../lib/router';
 import { PATHS, mapLinkUrl } from '../lib/routes';
 import { useStore, type CardAsk, type CustomList, type LessonOrder, type Length, type Opts } from '../lib/store';
@@ -557,6 +557,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
     labels: (def.id === 'pin' || def.id === 'identify' || def.id === 'puzzle' || def.id === 'blind' || def.id === 'hotcold' || def.id === 'mix' || def.id === 'listen') && !exam,
     pinBy: def.id === 'pin' && section === 'countries',
     blind: def.id === 'travel',
+    routeRule: def.id === 'travel',
     metric: section === 'pops' && FIGURE_MODES.includes(def.id),
     axis: def.id === 'compass',
     bearingAsk: def.id === 'bearing',
@@ -571,6 +572,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
   };
   const anyOption = Object.values(show).some(Boolean);
   const pairSize: PairSize = (PAIR_SIZES as readonly number[]).includes(opts.pairs) ? opts.pairs : PAIR_SIZE_DEFAULT;
+  const routeRule: RouteRule = isRouteRule(opts.routeRule) ? opts.routeRule : 'none';
   const endless = { value: 'endless' as Length, label: <InfinityIcon size={16} aria-label={L('Sin fin', 'Endless')} /> };
 
   const lengths: { value: Length; label: ReactNode; title?: string }[] =
@@ -905,6 +907,34 @@ export function Setup({ section, world, link }: { section: Section; world: World
                       : opts.bearingAsk === 'dist'
                         ? L(`A cuántos ${distWord()} está cada sitio de otro, entre cuatro distancias.`, `How many ${distWord()} each place is from another, out of four distances.`)
                         : L('Una pregunta de rumbo y otra de distancia, por turnos.', 'A question about the bearing and one about the distance, in turn.')}
+                  </p>
+                </div>
+              )}
+              {show.routeRule && (
+                <div className="opt">
+                  <span className="opt-label">{L('Condición', 'Condition')}</span>
+                  <Seg
+                    label={L('Condición de la ruta', 'Condition of the route')}
+                    value={routeRule}
+                    onChange={(rule) => set({ routeRule: rule })}
+                    options={[
+                      { value: 'none', label: L('Ninguna', 'None') },
+                      { value: 'avoid', label: L('Un cierre', 'A closure') },
+                      { value: 'via', label: L('Una parada', 'A stop') },
+                      { value: 'land', label: L('Solo por tierra', 'By land only') },
+                    ]}
+                  />
+                  <p className="opt-hint">
+                    {routeRule === 'avoid'
+                      ? L('Una pieza del camino más corto está cerrada: hay que rodearla.', 'A piece on the shortest way is closed: you have to go around it.')
+                      : routeRule === 'via'
+                        ? L('Además de unir los dos extremos, la ruta tiene que llegar a una tercera pieza que queda a desmano.', 'As well as joining both ends, the route has to reach a third piece that is out of the way.')
+                        : routeRule === 'land'
+                          ? L(
+                              'Las travesías cortas por mar no valen: solo cuentan las fronteras por tierra. Hace falta un mapa con travesías, como el del mundo.',
+                              'The short sea crossings do not count: only land borders do. It takes a map with crossings, such as that of the world.',
+                            )
+                          : L('El camino más corto entre dos piezas, sin más.', 'The shortest way between two pieces, and nothing else.')}
                   </p>
                 </div>
               )}

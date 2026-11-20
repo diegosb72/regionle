@@ -10,7 +10,7 @@ import { countriesOf, describeMap, type MapSpec } from '../lib/describe';
 import { commonPlace, type World } from '../lib/world';
 import { metricNoun, metricOrder } from '../lib/metricNames';
 import { L, getLang } from '../lib/i18n';
-import { MODES, SECTIONS, SECTION_IDS, cardAskName, formatName, modeNameIn } from '../lib/modes';
+import { MODES, SECTIONS, SECTION_IDS, cardAskName, formatName, modeNameIn, routeRuleName } from '../lib/modes';
 import { recentKey, type Recent } from '../lib/recent';
 import { NOT_GAMES } from '../lib/rules';
 import { go, inGame } from '../lib/router';
@@ -173,7 +173,9 @@ function Recents({ world }: { world: World }) {
                     ? ` · ${L('leer el punto', 'reading the point')}`
                     : r.mode === 'pairs' && r.o.pairOf
                       ? ` · ${r.o.pairOf === 'capital' ? L('capitales', 'capitals') : L('banderas', 'flags')}`
-                      : '';
+                      : r.mode === 'travel' && r.o.routeRule && r.o.routeRule !== 'none'
+                        ? ` · ${routeRuleName(r.o.routeRule)}`
+                        : '';
             return (
               <li key={recentKey(r)}>
                 <button type="button" onClick={() => again(r)}>

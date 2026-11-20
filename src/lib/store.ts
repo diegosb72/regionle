@@ -16,7 +16,7 @@ import { RECENT_MAX, isRecent, recentConfig, recentOf, withLeft, withRecent, typ
 import { PACE_DEFAULT, REVIEW_MAX, isPace, isReviewSize, setReviewPrefs, type Pace } from './review';
 import { today } from './text';
 import { cleanTypeins, setTypeins as applyTypeins, type Typeins } from './typeinPrefs';
-import type { PairOf, PairSize } from './rules';
+import type { PairOf, PairSize, RouteRule } from './rules';
 import type { Mode, Res, Section } from './types';
 import { setUnits } from './units';
 
@@ -86,6 +86,8 @@ export interface Opts {
   countdown: number;
   /** Route game without internal borders. */
   blind: boolean;
+  /** Route game: the rule each route has to keep. */
+  routeRule: RouteRule;
   /** Keep the names of solved items on the map. */
   labels: boolean;
   /** Cities section: which ones are played, and how many when it is the most populous. */
@@ -207,6 +209,7 @@ export const DEFAULT_OPTS: Opts = {
   axis: 'ns',
   countdown: 0,
   blind: false,
+  routeRule: 'none',
   labels: true,
   cityPick: 'top',
   cityCount: 25,
