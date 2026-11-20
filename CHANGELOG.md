@@ -3,6 +3,15 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.30.0 — 21 de noviembre de 2026
+
+- Reto de la semana: en la portada, una partida larga de 50 preguntas sobre países, la misma para todo el mundo de lunes a domingo. Cada semana cambia el tema.
+- Cuenta la primera vez que lo terminas: queda apuntado con tu porcentaje y tu tiempo. Si lo dejas a medias no se apunta; después puedes repetirlo para practicar.
+- Retos del día por continente o país: diez preguntas cada día, las mismas para todo el mundo, de los países de un continente o de las regiones de un país.
+- Hay reto de cinco continentes y de 137 países. Los países que juegas se quedan a la vista en la portada, con el resultado de hoy y tus días seguidos.
+- Los dos se juegan con cuatro opciones y cuentan como cualquier partida para tu progreso. No tocan la racha ni los comodines del reto del día.
+- Lo que se apunta de ellos va en la copia de seguridad. Quien llega por primera vez no los ve hasta que ha jugado algo.
+
 ## 1.29.0 — 20 de noviembre de 2026
 
 - Incrustar un mapa en otra web: junto al enlace del mapa, el botón «Incrustar» da el código para poner ese mapa y ese juego en un blog o en la web de clase.

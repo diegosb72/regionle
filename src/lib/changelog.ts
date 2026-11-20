@@ -15,6 +15,26 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.30.0',
+    date: '2026-11-21',
+    es: [
+      'Reto de la semana: en la portada, una partida larga de 50 preguntas sobre países, la misma para todo el mundo de lunes a domingo. Cada semana cambia el tema.',
+      'Cuenta la primera vez que lo terminas: queda apuntado con tu porcentaje y tu tiempo. Si lo dejas a medias no se apunta; después puedes repetirlo para practicar.',
+      'Retos del día por continente o país: diez preguntas cada día, las mismas para todo el mundo, de los países de un continente o de las regiones de un país.',
+      'Hay reto de cinco continentes y de 137 países. Los países que juegas se quedan a la vista en la portada, con el resultado de hoy y tus días seguidos.',
+      'Los dos se juegan con cuatro opciones y cuentan como cualquier partida para tu progreso. No tocan la racha ni los comodines del reto del día.',
+      'Lo que se apunta de ellos va en la copia de seguridad. Quien llega por primera vez no los ve hasta que ha jugado algo.',
+    ],
+    en: [
+      'Weekly challenge: on the first page, a long game of 50 questions on countries, the same for everybody from Monday to Sunday. The theme changes every week.',
+      'The first time you finish it is the one that counts: your score and time go on record. Left halfway, nothing is kept; later you can replay it for practice.',
+      'Daily challenges by continent or country: ten questions every day, the same for everybody, on the countries of a continent or the regions of a country.',
+      'There is one for five continents and for 137 countries. The countries you play stay in sight on the first page, with the result of today and your days in a row.',
+      'Both are played with four options and count like any game for your progress. They do not touch the streak or the wildcards of the daily challenge.',
+      'What is kept of them travels in the backup. A newcomer does not see them until they have played something.',
+    ],
+  },
+  {
     version: '1.29.0',
     date: '2026-11-20',
     es: [

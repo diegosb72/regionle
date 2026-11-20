@@ -26,7 +26,7 @@ import { pauseClock } from '../lib/pause';
 import { goneFrom } from '../lib/review';
 import { CONNECT_MIN, FIGURE_MODES, ODD_MIN, PAIRS_MIN } from '../lib/rules';
 import { go } from '../lib/router';
-import { useStore, type GameConfig } from '../lib/store';
+import { isDated, useStore, type GameConfig } from '../lib/store';
 import { nf } from '../lib/text';
 import type { Deck, Mode } from '../lib/types';
 
@@ -121,7 +121,8 @@ export function Session({ cfg, world, host }: { cfg: GameConfig; world: World; h
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState<[number, number] | null>(null);
   const [attempt, setAttempt] = useState(0);
-  const onExit = host ? host.onExit : () => go(cfg.review ? '' : PATHS[cfg.section]);
+  // A review and a challenge with a date are started from the first page, and that is where leaving them goes.
+  const onExit = host ? host.onExit : () => go(cfg.review || isDated(cfg) ? '' : PATHS[cfg.section]);
   // Starting again drops the limit to some pieces unless the game asks to keep it.
   const onAgain: GameProps['onAgain'] = (patch) => {
     const next = { ...cfg, only: undefined, list: undefined, listId: undefined, ...patch };

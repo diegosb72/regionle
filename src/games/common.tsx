@@ -14,7 +14,7 @@ import { L, capName, nm } from '../lib/i18n';
 import { divisionsLink } from '../lib/links';
 import { usePaused } from '../lib/pause';
 import { parsePhys } from '../lib/phys';
-import { gameOn, useStore, type GameConfig } from '../lib/store';
+import { gameOn, isDated, useStore, type GameConfig } from '../lib/store';
 import { cx, fmtArea, fmtPop, fmtTime, nf } from '../lib/text';
 import type { Deck, Item, Res } from '../lib/types';
 import { DiplomaButton } from './DiplomaButton';
@@ -347,6 +347,8 @@ export function Results({
   const weak = rows.filter((r) => r.res !== 'ok');
   const several = showsCountry(deck);
   const review = useStore((s) => !!gameOn(s)?.review);
+  /** A challenge with a date is left for the first page, like a review: the button says so. */
+  const dated = useStore((s) => isDated(gameOn(s)));
   /** The game was a step of the session of the day: its next step comes before anything else there is to do. */
   const step = useStore((s) => gameOn(s)?.step);
   return (
@@ -404,7 +406,7 @@ export function Results({
         )}
         <button type="button" className="btn btn-ghost" onClick={onExit}>
           <Settings2 size={16} aria-hidden="true" />
-          {review ? L('Volver al inicio', 'Back to home') : L('Cambiar de juego', 'Change game')}
+          {review || dated ? L('Volver al inicio', 'Back to home') : L('Cambiar de juego', 'Change game')}
         </button>
         {/* If its code does not come, the result is there all the same: only the button is missing. */}
         {total > 0 && (

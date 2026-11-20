@@ -15,7 +15,7 @@ import { recentKey, type Recent } from '../lib/recent';
 import { NOT_GAMES } from '../lib/rules';
 import { go, inGame } from '../lib/router';
 import { DUEL_PATH, LIST_PATH, PATHS, PLAY_PATH, screenPage } from '../lib/routes';
-import { useStore, type Fav } from '../lib/store';
+import { useStore, type Fav, type State } from '../lib/store';
 import { nf, today } from '../lib/text';
 import type { Mode, Section } from '../lib/types';
 
@@ -228,12 +228,17 @@ function Recents({ world }: { world: World }) {
   );
 }
 
+/** Someone who has never played: no game finished or in course, no daily challenge, nothing answered. */
+const isFresh = (s: State): boolean => !s.welcomed && !s.sessions.length && !s.game && !s.tot.g && !Object.keys(s.daily).length && !Object.keys(s.stats).length;
+
 const goLabel = (id: Section): string => (id === 'physical' ? L('Elegir qué y dónde', 'Choose what and where') : L('Elegir países', 'Choose countries'));
 
 /** The goals with a date are fetched only by those who have one. */
 const GoalCards = lazyScreen(() => import('../components/GoalCard').then((m) => m.GoalCards));
 /** The session of the day: fetched for whoever has something answered, which is who can have one. */
 const DayCard = lazyScreen(() => import('../components/DayCard').then((m) => m.DayCard));
+/** The challenges of the week and of the zones: fetched for whoever has played before, who is the one that sees them. */
+const MoreChallenges = lazyScreen(() => import('../components/MoreChallenges').then((m) => m.MoreChallenges));
 /** The level, at the foot of the page: it comes with the achievements, which the first page does not carry. */
 const LevelChip = lazyScreen(() => import('../components/Badges').then((m) => m.LevelChip));
 
@@ -245,7 +250,8 @@ const LevelChip = lazyScreen(() => import('../components/Badges').then((m) => m.
 export function useHomeWhole(): boolean {
   const hasGoals = useStore((s) => s.goals.length > 0);
   const hasAnswers = useStore((s) => Object.keys(s.stats).length > 0);
-  return useHere([hasGoals ? GoalCards : null, hasAnswers ? DayCard : null]);
+  const fresh = useStore(isFresh);
+  return useHere([fresh ? null : MoreChallenges, hasGoals ? GoalCards : null, hasAnswers ? DayCard : null]);
 }
 
 /**
@@ -289,8 +295,7 @@ export function Home({ world }: { world: World }) {
   const hasGoals = useStore((s) => s.goals.length > 0);
   const hasAnswers = useStore((s) => Object.keys(s.stats).length > 0);
   const game = useStore((s) => s.game);
-  // Someone who has never played: no game finished or in course, no daily challenge, nothing answered.
-  const fresh = useStore((s) => !s.welcomed && !s.sessions.length && !s.game && !s.tot.g && !Object.keys(s.daily).length && !Object.keys(s.stats).length);
+  const fresh = useStore(isFresh);
 
   const totals = useMemo(() => {
     const cs = world.index.countries.filter((c) => c.cl !== 'other');
@@ -309,6 +314,14 @@ export function Home({ world }: { world: World }) {
       {/* The first heading of the page; the headline further down is drawn as large as ever. */}
       <h1 className="sr-only">{L('Regionle ∞: juego de geografía para aprender el mapa del mundo', 'Regionle ∞: a geography game to learn the map of the world')}</h1>
       <DailyCard world={world} />
+      {/* Whoever has just arrived has enough with the challenge of the day and what the game is. */}
+      {!fresh && (
+        <ErrorBoundary fallback={() => null}>
+          <Suspense fallback={null}>
+            <MoreChallenges world={world} />
+          </Suspense>
+        </ErrorBoundary>
+      )}
       {hasGoals && (
         <ErrorBoundary>
           <Suspense fallback={null}>

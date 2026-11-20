@@ -1,0 +1,145 @@
+/* More challenges, under the one of the day: the challenge of the week and those of the day of a zone, side by side. */
+.more {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 18px 44px;
+  margin-top: 16px;
+  padding: clamp(18px, 2.4vw, 26px) clamp(18px, 3vw, 34px);
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--card);
+  box-shadow: var(--shadow-1);
+}
+.more-part {
+  display: grid;
+  /* A column that gives way: a long name in a button must not widen the card past a narrow screen. */
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+}
+.more-part + .more-part {
+  padding-left: 44px;
+  border-left: 1px solid var(--line);
+}
+.more .kicker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.more .kicker svg {
+  flex: none;
+}
+.more-title {
+  font-size: calc(clamp(21px, 2.4vw, 27px) * var(--fs));
+  letter-spacing: -0.02em;
+}
+/* The heading of the second part looks like the line over the first: it names the part, not a thing to play. */
+.more h2.kicker {
+  font-family: inherit;
+  line-height: inherit;
+  text-wrap: inherit;
+}
+.more-text {
+  max-width: 62ch;
+  color: var(--ink-2);
+  font-size: calc(15px * var(--fs));
+  line-height: 1.5;
+}
+.more-score {
+  margin-right: 4px;
+  color: var(--accent-ink);
+  font: 620 calc(22px * var(--fs)) / 1 var(--serif);
+  font-variant-numeric: tabular-nums;
+}
+.more-go {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin-top: 2px;
+}
+.more-meta {
+  color: var(--ink-3);
+  font-size: calc(13.5px * var(--fs));
+}
+.more-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+.more-chips li {
+  min-width: 0;
+  max-width: 100%;
+}
+.more-chip {
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  max-width: 100%;
+  min-height: 36px;
+  /* On a narrow screen a long name goes on to a second line, and the score under it, rather than being cut. */
+  border-radius: 19px;
+  color: var(--ink);
+  font-size: calc(14px * var(--fs));
+  font-weight: 600;
+  text-align: left;
+  white-space: normal;
+}
+.more-name,
+.more-tail {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.more-name {
+  min-width: 0;
+}
+.more-name > svg,
+.more-name .flag,
+.more-tail {
+  flex: none;
+}
+.more-name > svg {
+  color: var(--ink-3);
+}
+.more-name > span {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+.more-tail b {
+  font-variant-numeric: tabular-nums;
+}
+.more-chip small {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+.more-done {
+  border-color: color-mix(in srgb, var(--ok) 45%, var(--line-2));
+  background: color-mix(in srgb, var(--ok) 9%, transparent);
+}
+.more-done .more-name > svg {
+  color: var(--ok);
+}
+.more-other {
+  flex-wrap: wrap;
+}
+.more-other select {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+}
+@media (max-width: 860px) {
+  .more {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .more-part + .more-part {
+    padding: 16px 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+}
