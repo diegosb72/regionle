@@ -85,6 +85,31 @@ test.describe('lessons to the taste of the player', () => {
   });
 });
 
+test.describe('the map of a lesson', () => {
+  test('has every new piece in sight when the questions start, however fast the cards were gone through', async ({ page }) => {
+    await start(page, { ...COMMUNITIES, opts: { ...OPTS, lessonSize: 3, lessonOrder: 'abc' } });
+    await expect(kicker(page)).toHaveText('Lección 1 · nueva 1 de 3');
+    // Straight through the cards: the map has hardly set off for the last of them when the questions come.
+    await page.getByRole('button', { name: 'Siguiente' }).click();
+    await page.getByRole('button', { name: 'Siguiente' }).click();
+    await page.getByRole('button', { name: 'Empezar a practicar' }).click();
+    await expect(kicker(page)).toHaveText('Lección 1 · señala en el mapa');
+    // Andalucía, Aragón and Asturias: whichever is asked, it is there to be pointed at once the map stops.
+    const inSight = () =>
+      page.evaluate(() => {
+        const box = document.querySelector('.map-svg')!.getBoundingClientRect();
+        return ['ES-AN', 'ES-AR', 'ES-AS'].every((id) => {
+          const r = document.querySelector(`.map-svg [data-id="${id}"]`)!.getBoundingClientRect();
+          return r.left >= box.left && r.top >= box.top && r.right <= box.right && r.bottom <= box.bottom;
+        });
+      });
+    await expect.poll(inSight).toBe(true);
+    // And it stays so: the move that was under way does not carry the map off afterwards.
+    await page.waitForTimeout(900);
+    expect(await inSight()).toBe(true);
+  });
+});
+
 /** Eight communities of the north and the middle of Spain: more than a lesson, and few enough to be asked whole. */
 const EIGHT: Record<string, string> = {
   'ES-GA': 'Galicia',
