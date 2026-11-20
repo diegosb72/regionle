@@ -4,6 +4,7 @@ import { Suspense, createContext, lazy, useContext, useEffect, useRef, useState,
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { PieceNote } from '../components/Note';
 import { ReviewNext } from '../components/ReviewCard';
+import { SessionNext } from '../components/SessionNext';
 import { SpeakButton } from '../components/Speak';
 import { WikiCard } from '../components/WikiCard';
 import { Flag, StudyLinks, capitalise } from '../components/ui';
@@ -346,6 +347,8 @@ export function Results({
   const weak = rows.filter((r) => r.res !== 'ok');
   const several = showsCountry(deck);
   const review = useStore((s) => !!s.game?.review);
+  /** The game was a step of the session of the day: its next step comes before anything else there is to do. */
+  const step = useStore((s) => s.game?.step);
   return (
     <div className="results">
       <p className="kicker">{L('Resultado', 'Result')}</p>
@@ -380,7 +383,8 @@ export function Results({
           ))}
         </dl>
       </div>
-      {review && <ReviewNext />}
+      {/* A step ended with nothing answered has not been done. */}
+      {step && total > 0 ? <SessionNext step={step} /> : review && <ReviewNext />}
       <div className="results-actions">
         {again && (
           <button type="button" className={review ? 'btn' : 'btn btn-primary'} onClick={onAgain} autoFocus={focus && !review}>

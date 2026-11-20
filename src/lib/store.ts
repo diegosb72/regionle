@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { NAME_MAX, TESTS, cleanRivals, emptyRec, streakOf, withJokers, withRival, type DailyRec, type Rival } from '../daily/spec';
+import { NO_DAY, cleanDayDone, withStep, type DayDone, type Step } from './dayDone';
 import { DAY_GOAL_DEFAULT, cleanDays, dailyWork, daysFrom, isDayGoal, studyStreak, withDay, type Days } from './days';
 import type { CityPick } from './extra';
 import { GOALS_MAX, cleanGoals, goalWithout, sameGoal, withMark, type Goal } from './goals';
@@ -10,7 +11,7 @@ import { cleanMix, dropMix, withMix, type Mix } from './mix';
 import { cleanNotes, dropNotes, withNote, type Notes } from './notes';
 import { PALETTE_DEFAULT, isPalette, type Palette } from './palette';
 import { TEXT_SIZE_DEFAULT, isTextSize, type TextSize } from './reading';
-import { RECENT_MAX, isRecent, recentConfig, recentOf, withRecent, type Recent } from './recent';
+import { RECENT_MAX, isRecent, recentConfig, recentOf, withLeft, withRecent, type Recent } from './recent';
 import { PACE_DEFAULT, REVIEW_MAX, isPace, isReviewSize, setReviewPrefs, type Pace } from './review';
 import { today } from './text';
 import { cleanTypeins, setTypeins as applyTypeins, type Typeins } from './typeinPrefs';
@@ -126,6 +127,8 @@ export interface GameConfig {
   daily?: string;
   /** Part of today's review: the map is widened around what is due and the results offer the next one. */
   review?: boolean;
+  /** A step of the session of the day (lib/dayPlan.ts): where the game ends, the step is done and the next one is offered. */
+  step?: Step;
   /** Name of the custom list the game is restricted to (its items are in `only`). */
   list?: string;
   /** The list being edited, in the editor of custom lists. */
@@ -177,6 +180,8 @@ export interface SessionRec {
   bad: number;
   ms: number;
   note?: string;
+  /** Lessons: how many pieces of the map are still to be taught. Kept with the map, for the session of the day. */
+  left?: number;
 }
 
 /** What is being learnt about an item: where it is, its name, its capital, its flag, its neighbours. */
@@ -278,6 +283,8 @@ export interface State {
   days: Days;
   /** Answers a day to aim at; 0 when the player wants no goal. */
   dayGoal: number;
+  /** The steps of the session of the day that have been done today (see lib/dayPlan.ts). */
+  dayPlan: DayDone;
   /** Goals with a date: a map to be known by a day (see lib/goals.ts). */
   goals: Goal[];
   /** The player's own notes about a piece, by its id (see lib/notes.ts). */
@@ -323,6 +330,10 @@ export interface State {
 
   setCb(cb: boolean): void;
   setDayGoal(goal: number): void;
+  /** A step of the session of the day has been done (today, unless told when). */
+  doStep(step: Step, now?: number): void;
+  /** The lessons of the map in course have that many pieces left to teach: said where no lesson ends to say it. */
+  lessonsLeft(left: number): void;
   setWelcomed(): void;
   setHotkeys(on: boolean): void;
   setHelpAuto(on: boolean): void;
@@ -420,6 +431,7 @@ export const useStore = create<State>()(
       rivals: {},
       days: {},
       dayGoal: DAY_GOAL_DEFAULT,
+      dayPlan: NO_DAY,
       lang: null,
       nick: '',
       lists: [],
@@ -450,6 +462,8 @@ export const useStore = create<State>()(
 
       setCb: (cb) => set({ cb }),
       setDayGoal: (goal) => set({ dayGoal: isDayGoal(goal) ? goal : DAY_GOAL_DEFAULT }),
+      doStep: (step, now = Date.now()) => set((s) => ({ dayPlan: withStep(s.dayPlan, today(new Date(now)), step) })),
+      lessonsLeft: (left) => set((s) => (s.game ? { recent: withLeft(s.recent, s.game, left) } : s)),
       setNote: (id, text) => {
         const notes = withNote(get().notes, id, text);
         if (!notes) return false;
@@ -607,7 +621,7 @@ export const useStore = create<State>()(
         if (better) set((s) => ({ best: { ...s.best, [key]: value } }));
         return better;
       },
-      resetProgress: () => set({ stats: {}, where: {}, mix: {}, sessions: [], recent: [], best: {}, daily: {}, rivals: {}, days: {}, badges: {}, tot: {}, album: {}, backup: NO_BACKUP }),
+      resetProgress: () => set({ stats: {}, where: {}, mix: {}, sessions: [], recent: [], best: {}, daily: {}, rivals: {}, days: {}, dayPlan: NO_DAY, badges: {}, tot: {}, album: {}, backup: NO_BACKUP }),
       markBackup: (now) => set((s) => ({ backup: { at: now, from: now, q: s.tot.q ?? 0 } })),
       snoozeBackup: (now) => set((s) => ({ backup: { at: s.backup.at, from: now, q: s.tot.q ?? 0 } })),
       importData: (data, prefs, now = Date.now()) => {
@@ -671,6 +685,7 @@ export const useStore = create<State>()(
         rivals: s.rivals,
         days: s.days,
         dayGoal: s.dayGoal,
+        dayPlan: s.dayPlan,
         lang: s.lang,
         nick: s.nick,
         lists: s.lists,
@@ -747,6 +762,7 @@ export function mergeSaved(saved: unknown, current: State): State {
     // Players from before the calendar start from what their latest sessions and daily challenges add up to.
     days: p.days && typeof p.days === 'object' ? cleanDays(p.days) : daysFrom(Array.isArray(p.sessions) ? p.sessions : [], p.daily && typeof p.daily === 'object' ? p.daily : {}),
     dayGoal: isDayGoal(p.dayGoal) ? p.dayGoal : DAY_GOAL_DEFAULT,
+    dayPlan: cleanDayDone(p.dayPlan),
     rivals: cleanRivals(p.rivals),
     goals: cleanGoals(p.goals),
     notes: cleanNotes(p.notes),

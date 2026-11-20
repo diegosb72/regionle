@@ -27,6 +27,23 @@ export interface Q {
   easy?: boolean;
 }
 
+/** Placement test: how many questions go by between placing a piece and being asked what it is called. */
+export const LEVEL_GAP = 3;
+
+/**
+ * The questions left of the placement test once a piece has been placed: what it is called is asked a few
+ * questions later, not with its name still on screen. The first one placed waits for the end instead,
+ * behind every piece still to place: so the last of those, with nothing left to ask after it, has a
+ * question to wait behind as well. Only a piece that is the last one asked and the only one placed is
+ * named straight away: there is nothing else to ask.
+ */
+export function afterPlacing(queue: readonly Q[], id: string): Q[] {
+  const q = queue.slice();
+  const held = q.length > 0 && q[q.length - 1].kind === 'pin';
+  q.splice(held ? q.length : Math.min(q.length, LEVEL_GAP), 0, { id, kind: 'name' });
+  return q;
+}
+
 /** Has the piece been through a lesson, or its equivalent in other games: placed and named right the last time? */
 export function isIntroduced(stats: Record<string, Stat>, id: string): boolean {
   return (stats[`loc:${id}`]?.[2] ?? 0) >= 1 && (stats[`name:${id}`]?.[2] ?? 0) >= 1;

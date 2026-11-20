@@ -228,6 +228,8 @@ const goLabel = (id: Section): string => (id === 'physical' ? L('Elegir qué y d
 
 /** The goals with a date are fetched only by those who have one. */
 const GoalCards = lazyScreen(() => import('../components/GoalCard').then((m) => m.GoalCards));
+/** The session of the day: fetched for whoever has something answered, which is who can have one. */
+const DayCard = lazyScreen(() => import('../components/DayCard').then((m) => m.DayCard));
 /** The level, at the foot of the page: it comes with the achievements, which the first page does not carry. */
 const LevelChip = lazyScreen(() => import('../components/Badges').then((m) => m.LevelChip));
 
@@ -270,6 +272,7 @@ function TodayLine() {
 export function Home({ world }: { world: World }) {
   const sessions = useStore((s) => s.sessions);
   const hasGoals = useStore((s) => s.goals.length > 0);
+  const hasAnswers = useStore((s) => Object.keys(s.stats).length > 0);
   const game = useStore((s) => s.game);
   // Someone who has never played: no game finished or in course, no daily challenge, nothing answered.
   const fresh = useStore((s) => !s.welcomed && !s.sessions.length && !s.game && !s.tot.g && !Object.keys(s.daily).length && !Object.keys(s.stats).length);
@@ -295,6 +298,13 @@ export function Home({ world }: { world: World }) {
         <ErrorBoundary>
           <Suspense fallback={null}>
             <GoalCards />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+      {hasAnswers && (
+        <ErrorBoundary fallback={() => null}>
+          <Suspense fallback={null}>
+            <DayCard world={world} />
           </Suspense>
         </ErrorBoundary>
       )}

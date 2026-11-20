@@ -13,6 +13,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnswerInput } from '../components/AnswerInput';
 import { MapView, type MapHandle, type Paint } from '../components/MapView';
 import { PieceNote } from '../components/Note';
+import { SessionNext } from '../components/SessionNext';
 import { SpeakButton } from '../components/Speak';
 import { Flag } from '../components/ui';
 import { L, nm } from '../lib/i18n';
@@ -22,11 +23,9 @@ import { Matcher, shortNote } from '../lib/matcher';
 import { cx, hintMax, letterHint, nf, sample, shuffle } from '../lib/text';
 import type { Item, Res } from '../lib/types';
 import { GameShell, Hud, ItemFacts, Verdict, answered, nearest, originOf, showsCountry, useElapsed, type GameProps } from './common';
-import { isIntroduced, lessonOrder, lessonQueue, lessonSize, pickLesson, type Q } from './lesson';
+import { afterPlacing, isIntroduced, lessonOrder, lessonQueue, lessonSize, pickLesson, type Q } from './lesson';
 
 const TRIES = 2;
-/** Placement test: how many questions go by between placing a piece and being asked what it is called. */
-const LEVEL_GAP = 3;
 
 export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const { opts } = cfg;
@@ -36,6 +35,7 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
   const mixUp = useStore((s) => s.mixUp);
   const addSession = useStore((s) => s.addSession);
   const bump = useStore((s) => s.bump);
+  const lessonsLeft = useStore((s) => s.lessonsLeft);
   const map = useRef<MapHandle>(null);
 
   // To the taste of the player: how many new pieces a lesson brings, and the order they come in.
@@ -120,6 +120,11 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
     lessonMs.current = ms;
   };
 
+  // A map with nothing left to teach: said to what is kept of it, which may be from before the lessons wrote down
+  // what was left, so that the session of the day does not go on offering a lesson of it.
+  useEffect(() => {
+    if (phase === 'complete') lessonsLeft(0);
+  }, [phase, lessonsLeft]);
   // The map follows the piece being shown.
   useEffect(() => {
     if (phase === 'intro' && fresh[introAt]) map.current?.focus([fresh[introAt]], { fill: 0.35, force: true });
@@ -166,7 +171,7 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
     // With the whole map known there are no lessons to go on to: the end of the lessons says so.
     setPhase(known.length >= pool.length ? 'complete' : 'levelled');
     const t = tally;
-    if (t.ok + t.bad) addSession({ t: Date.now(), section: cfg.section, mode: 'learn', label: cfg.list ? `${deck.title} · ${cfg.list}` : deck.title, total: t.ok + t.bad, ok: t.ok, warn: 0, bad: t.bad, ms: Math.max(0, ms - lessonMs.current) });
+    if (t.ok + t.bad) addSession({ t: Date.now(), section: cfg.section, mode: 'learn', label: cfg.list ? `${deck.title} · ${cfg.list}` : deck.title, total: t.ok + t.bad, ok: t.ok, warn: 0, bad: t.bad, ms: Math.max(0, ms - lessonMs.current), left: Math.max(0, pool.length - known.length) });
     map.current?.reset();
   };
 
@@ -187,7 +192,8 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
     setCur(null);
     setPhase('summary');
     const t = tally;
-    addSession({ t: Date.now(), section: cfg.section, mode: 'learn', label: cfg.list ? `${deck.title} · ${cfg.list}` : deck.title, total: t.ok + t.warn + t.bad, ...t, ms: Math.max(0, ms - lessonMs.current) });
+    // What is left to teach is written down with the lesson: the session of the day goes by it to offer the next one.
+    addSession({ t: Date.now(), section: cfg.section, mode: 'learn', label: cfg.list ? `${deck.title} · ${cfg.list}` : deck.title, total: t.ok + t.warn + t.bad, ...t, ms: Math.max(0, ms - lessonMs.current), left: Math.max(0, pool.length - have.length) });
     bump({ lessons: 1 });
     map.current?.focus(fresh, { fill: 0.75, force: true });
   };
@@ -211,9 +217,7 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
       record(cur.kind === 'pin' ? 'loc' : 'name', item.id, res, originOf(item, cfg));
       if (cur.kind === 'pin') {
         // Placed: what it is called is asked a few questions later, not with its name still on screen.
-        const q = queue.slice();
-        q.splice(Math.min(q.length, LEVEL_GAP), 0, { id: cur.id, kind: 'name' });
-        setQueue(q);
+        setQueue(afterPlacing(queue, cur.id));
         setPlanned((n) => n + 1);
       } else if (!knownSet.has(item.id)) setKnown([...known, item.id]);
       return;
@@ -505,7 +509,10 @@ export function LearnGame({ deck, cfg, onExit, onAgain }: GameProps) {
                 ? L(`Llevas ${nf(learnt)} de ${nf(total)} ${deck.noun.many}. ${tally.bad ? 'Lo que has fallado ha vuelto a salir hasta que lo has acertado.' : 'Sin un solo fallo.'}`, `You have ${nf(learnt)} of ${nf(total)} ${deck.noun.many}. ${tally.bad ? 'What you missed came back until you got it right.' : 'Not a single miss.'}`)
                 : L(`Con esta lección has visto ${fem ? 'las' : 'los'} ${nf(total)} ${deck.noun.many} del mapa.`, `With this lesson you have seen all ${nf(total)} ${deck.noun.many} on the map.`)}
             </p>
-            <div className="q-actions">
+            {/* A lesson taken as the step of the session of the day that brings something new: here the step is done. */}
+            {cfg.step && <SessionNext step={cfg.step} />}
+            {/* Its own key: taken for the buttons of the last question, the one that goes on would not be given the focus. */}
+            <div className="q-actions" key="end">
               <button type="button" className="btn btn-primary" onClick={() => begin(known)} autoFocus>
                 {left > 0 ? L('Siguiente lección', 'Next lesson') : L('Terminar', 'Finish')}
                 <ArrowRight size={16} aria-hidden="true" />
