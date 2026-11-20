@@ -7149,6 +7149,10 @@ button.ti-chip:hover,
 .main > .crash {
   padding-inline: 0;
 }
+/* Where the screen fills the window (a game), its lines keep together at the top: they are not spread down it. */
+.play-main > .crash {
+  align-content: start;
+}
 .crash-actions {
   display: flex;
   flex-wrap: wrap;

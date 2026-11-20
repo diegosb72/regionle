@@ -1,6 +1,7 @@
 /** Setup: 1 what to play with, 2 mode, 3 options. */
-import { Check, ChevronDown, Infinity as InfinityIcon, Link2, ListChecks, ListPlus, Pencil, Play, Printer, Share2, Shuffle, Target, Timer, Trash2, X } from 'lucide-react';
+import { Check, ChevronDown, Globe, Infinity as InfinityIcon, Link2, ListChecks, ListPlus, Pencil, Play, Printer, Share2, Shuffle, Target, Timer, Trash2, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { EmbedButton } from '../components/EmbedButton';
 import { GoalBar } from '../components/GoalBar';
 import { LESSON_SIZES, OLD, lessonOrder, lessonOrders, lessonSize } from '../games/lesson';
 import { HelpButton } from '../components/Help';
@@ -14,9 +15,10 @@ import { CITY_COUNTS, PHYS_KINDS, PHYS_PLACES, kindNoun, kindsIn, loadCities, lo
 import { L, getLang, levelNoun, nm } from '../lib/i18n';
 import { encodeList, listConfig, listPlayable, listUrl } from '../lib/lists';
 import { mapLinkRest, type MapLink } from '../lib/maplink';
+import { opensWithWorld, worldOf } from '../lib/opening';
 import { GROUP_NAME, MODES, MODE_GROUPS, SECTIONS, cardAskName, formatName } from '../lib/modes';
 import { estimateOf, minutesOf, paceOf, percentOf, questionsOf } from '../lib/pace';
-import { CONNECT_MIN, CONNECT_WIDE, FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, MADE_UP_MODES, ODD_MIN, PAIRS_MIN, PAIR_SIZES, PAIR_SIZE_DEFAULT, ROUND_MODES, TOP_MIN, asksByFlag, isRouteRule, turnsOutlines, type PairSize, type RouteRule } from '../lib/rules';
+import { CONNECT_MIN, CONNECT_WIDE, FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, MADE_UP_MODES, ODD_MIN, PAIRS_MIN, PAIR_SIZES, PAIR_SIZE_DEFAULT, ROUND_MODES, TOP_MIN, asksByFlag, embeddable, isRouteRule, turnsOutlines, type PairSize, type RouteRule } from '../lib/rules';
 import { go, settle } from '../lib/router';
 import { PATHS, mapLinkUrl } from '../lib/routes';
 import { useStore, type CardAsk, type CustomList, type LessonOrder, type Length, type Opts } from '../lib/store';
@@ -192,7 +194,7 @@ function ListBar({ lists, canNew, onUse, onNew }: { lists: CustomList[]; canNew:
 }
 
 /** The list in use: what it holds and what can be done with it. */
-function ListCard({ list, others, world, onEdit, onLeave, onRemove, onUse }: { list: CustomList; others: CustomList[]; world: World; onEdit(): void; onLeave(): void; onRemove(): void; onUse(id: string): void }) {
+function ListCard({ list, others, world, onEdit, onLeave, onRemove, onUse, more }: { list: CustomList; others: CustomList[]; world: World; onEdit(): void; onLeave(): void; onRemove(): void; onUse(id: string): void; more?: ReactNode }) {
   const [state, setState] = useState<'idle' | 'copied' | 'shown'>('idle');
   const [confirm, setConfirm] = useState(false);
   const url = useMemo(() => listUrl(encodeList(list)), [list]);
@@ -233,6 +235,7 @@ function ListCard({ list, others, world, onEdit, onLeave, onRemove, onUse }: { l
           {state === 'copied' ? L('Enlace copiado', 'Link copied') : L('Compartir', 'Share')}
         </button>
         <QrButton small url={url} what={L(`Lista «${list.name}»`, `List “${list.name}”`)} />
+        {more}
         <button type="button" className="btn btn-sm" onClick={onLeave}>
           <X size={15} aria-hidden="true" />
           {L('Dejar de usarla', 'Stop using it')}
@@ -265,7 +268,7 @@ function ListCard({ list, others, world, onEdit, onLeave, onRemove, onUse }: { l
  * The link to the map and the game that are chosen: copied, or shown to be copied by hand where the browser
  * will not, or as a QR code to point a phone at. `what` names them: "España · Señalar".
  */
-function CopyLink({ url, what }: { url: string; what: string }) {
+function CopyLink({ url, what, more }: { url: string; what: string; more?: ReactNode }) {
   const [state, setState] = useState<'idle' | 'copied' | 'shown'>('idle');
   // Another map is another link: what was said of the last one no longer holds.
   useEffect(() => setState('idle'), [url]);
@@ -285,12 +288,14 @@ function CopyLink({ url, what }: { url: string; what: string }) {
           {state === 'copied' ? L('Enlace copiado', 'Link copied') : L('Copiar enlace a este mapa', 'Copy a link to this map')}
         </button>
         <QrButton small url={url} what={what} />
+        {more}
       </div>
       <p className="opt-hint">
         {L(
           'Abre el juego con este mapa y este juego ya elegidos: para mandárselo a alguien, guardarlo en marcadores o, con el código QR, abrirlo en clase desde la pizarra.',
           'It opens the game with this map and this game already chosen: to send to someone, to keep as a bookmark or, with the QR code, to open in class from the board.',
         )}
+        {more && ` ${L('«Incrustar» da el código para ponerlo dentro de otra web.', '“Embed” gives the code to put it inside another page.')}`}
       </p>
       {state === 'shown' && <input className="maplink-url" type="text" readOnly value={url} aria-label={L('Enlace a este mapa', 'Link to this map')} onFocus={(e) => e.currentTarget.select()} />}
       <span className="sr-only" role="status">
@@ -301,7 +306,8 @@ function CopyLink({ url, what }: { url: string; what: string }) {
 }
 
 export function Setup({ section, world, link }: { section: Section; world: World; link?: MapLink }) {
-  const selected = useStore((s) => s.sel[section]);
+  /** What is kept as chosen in this section. */
+  const kept = useStore((s) => s.sel[section]);
   const typeinAuto = useStore((s) => s.typeinAuto) ?? SHIPPED_AUTO;
   const setSel = useStore((s) => s.setSel);
   const levels = useStore((s) => s.levels);
@@ -339,11 +345,17 @@ export function Setup({ section, world, link }: { section: Section; world: World
     };
   }, [section]);
 
-  const isPhys = section === 'physical';
-  const spec = useMemo(() => parsePhys(isPhys ? selected : []), [isPhys, selected]);
-
   /** What a link that was followed brought: its map, its game, or nothing that the game knows. */
   const [opened, setOpened] = useState<{ map: boolean; mode: boolean } | null>(null);
+  /**
+   * "Conexiones" opens with the world while the player has chosen no countries (lib/opening.ts): the twenty
+   * the section opens with give hardly a board. A map that came with a link is a choice, whatever it is.
+   */
+  const byWorld = !opened?.map && opensWithWorld(section, def.id, kept);
+  const selected = useMemo(() => (byWorld ? worldOf(world.index.countries.filter((c) => eligible(section, c))) : kept), [byWorld, kept, world, section]);
+
+  const isPhys = section === 'physical';
+  const spec = useMemo(() => parsePhys(isPhys ? selected : []), [isPhys, selected]);
   const linkKey = link ? mapLinkRest(section, link) : '';
   useEffect(() => {
     if (!link) return;
@@ -634,12 +646,13 @@ export function Setup({ section, world, link }: { section: Section; world: World
         : plural(chosen.length, L('país', 'country'), L('países', 'countries'));
 
   /** The address that opens this section with this map and this game chosen. */
-  const mapUrl = mapLinkUrl(section, {
+  const mapLink: MapLink = {
     ids: isPhys ? selected : chosen.map((c) => c.id),
     levels: section === 'regions' ? Object.fromEntries(multi.map((c) => [c.id, levelOf(c, levels).k])) : {},
     mode: def.id,
     ...(section === 'cities' ? { cityPick: opts.cityPick, cityCount: opts.cityCount } : {}),
-  });
+  };
+  const mapUrl = mapLinkUrl(section, mapLink);
 
   return (
     <div className="setup">
@@ -672,7 +685,10 @@ export function Setup({ section, world, link }: { section: Section; world: World
         </h2>
         {active ? (
           <>
-            <ListCard key={active.id} list={active} others={mine.filter((l) => l.id !== active.id)} world={world} onEdit={() => editList(active)} onLeave={() => setListOn(section, null)} onRemove={() => removeList(active.id)} onUse={(id) => setListOn(section, id)} />
+            <ListCard key={active.id} list={active} others={mine.filter((l) => l.id !== active.id)} world={world} onEdit={() => editList(active)} onLeave={() => setListOn(section, null)} onRemove={() => removeList(active.id)} onUse={(id) => setListOn(section, id)}
+              // The list with the game that is chosen, for a box in another page: where that game is played with a list.
+              more={!problem && embeddable(def.id) ? <EmbedButton small source={{ list: encodeList(active), mode: def.id }} opts={opts} what={`${active.name} · ${def.name}`} /> : undefined}
+            />
             <GoalBar key={`goal:${active.id}`} section={section} mode={def.id} config={listConfig(active, 'pin', opts)} />
           </>
         ) : (
@@ -732,7 +748,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
               {def.desc} {/* The rules of the game, step by step: the panel a game opens the first time it is played. */}
               <HelpButton key={def.id} mode={def.id} section={section} />
             </p>
-            {(estimate || questions != null || pace.first != null || boards === 'few') && (
+            {(estimate || questions != null || pace.first != null || boards === 'few' || byWorld) && (
               <ul className="mode-facts">
                 {(estimate || questions != null) && (
                   <li
@@ -760,6 +776,12 @@ export function Setup({ section, world, link }: { section: Section; world: World
                       {L(`Aciertas el ${percentOf(pace.first)} % a la primera`, `You get ${percentOf(pace.first)}% right first time`)}
                       <small> {L(`en ${plural(pace.games, 'partida', 'partidas')}`, `in ${plural(pace.games, 'game', 'games')}`)}</small>
                     </span>
+                  </li>
+                )}
+                {byWorld && (
+                  <li title={L('Con pocos países apenas sale un tablero. Los que elijas en la lista se quedan elegidos, para este juego y para los demás.', 'With few countries there is hardly a board. Those you choose in the list stay chosen, for this game and for the others.')}>
+                    <Globe size={14} aria-hidden="true" />
+                    <span>{L('Empieza con el mundo: aún no has elegido países', 'It opens with the world: you have not chosen countries yet')}</span>
                   </li>
                 )}
                 {boards === 'few' && !problem && (
@@ -1176,7 +1198,14 @@ export function Setup({ section, world, link }: { section: Section; world: World
                 </Toggle>
               )}
             </div>
-            {!active && (isPhys || chosen.length > 0) && <CopyLink url={mapUrl} what={`${meta.name} · ${summary} · ${def.name}`} />}
+            {!active && (isPhys || chosen.length > 0) && (
+              <CopyLink
+                url={mapUrl}
+                what={`${meta.name} · ${summary} · ${def.name}`}
+                // What cannot be played (too few countries for the game) is not offered for another page; nor is a sheet to print.
+                more={embeddable(def.id) && !problem ? <EmbedButton small source={{ section, link: mapLink }} opts={opts} what={`${section === 'regions' ? `${summary} · ${noun[1]}` : summary} · ${def.name}`} /> : undefined}
+              />
+            )}
           </section>
         </div>
         <div className="startbar">

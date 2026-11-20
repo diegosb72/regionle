@@ -14,7 +14,7 @@ import { L, capName, nm } from '../lib/i18n';
 import { divisionsLink } from '../lib/links';
 import { usePaused } from '../lib/pause';
 import { parsePhys } from '../lib/phys';
-import { useStore, type GameConfig } from '../lib/store';
+import { gameOn, useStore, type GameConfig } from '../lib/store';
 import { cx, fmtArea, fmtPop, fmtTime, nf } from '../lib/text';
 import type { Deck, Item, Res } from '../lib/types';
 import { DiplomaButton } from './DiplomaButton';
@@ -346,9 +346,9 @@ export function Results({
   const total = count.ok + count.warn + count.bad;
   const weak = rows.filter((r) => r.res !== 'ok');
   const several = showsCountry(deck);
-  const review = useStore((s) => !!s.game?.review);
+  const review = useStore((s) => !!gameOn(s)?.review);
   /** The game was a step of the session of the day: its next step comes before anything else there is to do. */
-  const step = useStore((s) => s.game?.step);
+  const step = useStore((s) => gameOn(s)?.step);
   return (
     <div className="results">
       <p className="kicker">{L('Resultado', 'Result')}</p>

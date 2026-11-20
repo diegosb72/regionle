@@ -29,6 +29,8 @@ export function routeName(route: Route, now: string = today()): string | null {
       return route.code ? L('Reto recibido', 'Challenge received') : L('Retos entre dos', 'Challenges for two');
     case 'list':
       return route.code ? L('Lista recibida', 'List received') : L('Listas a medida', 'Custom lists');
+    case 'embed':
+      return L('Mapa incrustado', 'Embedded map');
     case 'progress':
       return L('Progreso', 'Progress');
     case 'settings':

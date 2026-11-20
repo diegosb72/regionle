@@ -109,15 +109,35 @@ function WithHelp({ cfg, children }: { cfg: GameConfig; children: ReactNode }) {
   );
 }
 
-function Session({ cfg, world }: { cfg: GameConfig; world: World }) {
+/** Whoever shows a game somewhere other than the screen of the games: where leaving it goes, and how it is started again. */
+export interface SessionHost {
+  onExit(): void;
+  onAgain(next: Omit<GameConfig, 'nonce'>): void;
+}
+
+export function Session({ cfg, world, host }: { cfg: GameConfig; world: World; host?: SessionHost }) {
   const start = useStore((s) => s.start);
   const [deck, setDeck] = useState<Deck | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState<[number, number] | null>(null);
   const [attempt, setAttempt] = useState(0);
-  const onExit = () => go(cfg.review ? '' : PATHS[cfg.section]);
+  const onExit = host ? host.onExit : () => go(cfg.review ? '' : PATHS[cfg.section]);
   // Starting again drops the limit to some pieces unless the game asks to keep it.
-  const onAgain: GameProps['onAgain'] = (patch) => start({ ...cfg, only: undefined, list: undefined, listId: undefined, ...patch });
+  const onAgain: GameProps['onAgain'] = (patch) => {
+    const next = { ...cfg, only: undefined, list: undefined, listId: undefined, ...patch };
+    if (host) host.onAgain(next);
+    else start(next);
+  };
+  // Shown by a host, this is not the player's game in course: the store is told which game is on screen, for
+  // what is drawn inside it and for what it writes down (the result as a picture, the maps played lately).
+  const hosted = host != null;
+  useLayoutEffect(() => {
+    if (!hosted) return undefined;
+    useStore.setState({ hosted: cfg });
+    return () => {
+      useStore.setState({ hosted: null });
+    };
+  }, [cfg, hosted]);
 
   useEffect(() => {
     APART[cfg.mode]?.warm();

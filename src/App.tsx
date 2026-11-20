@@ -28,6 +28,7 @@ const Play = lazyScreen(() => import('./screens/Play').then((m) => m.Play));
 const Daily = lazyScreen(() => import('./daily/Daily').then((m) => m.Daily));
 const Duel = lazyScreen(() => import('./screens/Duel').then((m) => m.Duel));
 const ListLink = lazyScreen(() => import('./screens/ListLink').then((m) => m.ListLink));
+const Embed = lazyScreen(() => import('./screens/Embed').then((m) => m.Embed));
 const Progress = lazyScreen(() => import('./screens/Progress').then((m) => m.Progress));
 const Settings = lazyScreen(() => import('./screens/Settings').then((m) => m.Settings));
 const About = lazyScreen(() => import('./screens/About').then((m) => m.About));
@@ -137,6 +138,9 @@ export function App() {
   const content = useRef<HTMLElement>(null);
   const shown = useRef(path);
 
+  /** The game alone, inside a box of another page: nothing of the rest is shown, or fetched. */
+  const embedded = route.kind === 'embed';
+
   useEffect(() => {
     let alive = true;
     setError(null);
@@ -144,23 +148,25 @@ export function App() {
       .then((w) => {
         if (alive) setWorld(w);
         // The world outline is needed by every map: it is fetched while the player chooses, once the
-        // index, which the first screen is waiting for, has the line to itself.
-        loadWorldGeo().catch(() => undefined);
+        // index, which the first screen is waiting for, has the line to itself. Not in a box of another
+        // page, where nobody may be going to play: there it comes with the game, when it is started.
+        if (!embedded) loadWorldGeo().catch(() => undefined);
       })
       .catch((e: unknown) => alive && setError(e instanceof Error ? e.message : String(e)));
     return () => {
       alive = false;
     };
+    // Where the game was opened is what counts: it does not go from a box to the whole of the game.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attempt]);
-
   // With the first screen in place, the code of the others is brought in the background.
   const ready = world != null;
   useEffect(() => {
-    if (!ready || savingData()) return;
+    if (!ready || embedded || savingData()) return;
     return whenIdle(() => {
       for (const screen of SCREENS) screen.warm();
     });
-  }, [ready]);
+  }, [ready, embedded]);
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
@@ -222,7 +228,7 @@ export function App() {
 
   // Keys that work on any screen. They stand aside while something is typed, while a map holds the keyboard
   // and while a panel is open, and they do not take anyone out of a game.
-  const playing = route.kind === 'play' || route.kind === 'daily';
+  const playing = route.kind === 'play' || route.kind === 'daily' || embedded;
   const [help, setHelp] = useState(false);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -248,7 +254,8 @@ export function App() {
     </ErrorBoundary>
   ) : null;
   // If its code does not come, the game goes on without the notice: the achievement is worked out the next time.
-  const watcher = world ? (
+  // In a box of another page there is no notice either: it would lead to screens that are not there.
+  const watcher = world && !embedded ? (
     <ErrorBoundary fallback={() => null}>
       <Suspense fallback={null}>
         <BadgeWatcher world={world} />
@@ -262,7 +269,8 @@ export function App() {
   const about = route.kind === 'about';
   const ThemeIcon = THEME_ICON[theme];
   // The whole window is the game: no header, no footer.
-  const immersive = (route.kind === 'play' || route.kind === 'daily') && world != null && !error;
+  // In a box of another page that is so from the first moment, while the atlas is on its way too.
+  const immersive = embedded || ((route.kind === 'play' || route.kind === 'daily') && world != null && !error);
 
   let page;
   if (route.kind === 'unknown') page = <NotFound path={route.path} />;
@@ -281,6 +289,7 @@ export function App() {
   else if (route.kind === 'daily') page = <Daily key={route.date} world={world} date={route.date} vs={route.vs} soon={route.soon} />;
   else if (route.kind === 'duel') page = <Duel key={route.code} code={route.code} world={world} />;
   else if (route.kind === 'list') page = <ListLink key={route.code} code={route.code} world={world} />;
+  else if (route.kind === 'embed') page = <Embed key={route.rest} rest={route.rest} world={world} />;
   else if (section) page = <Setup key={section} section={section} world={world} link={route.kind === 'section' ? route.link : undefined} />;
   else if (progress) page = <Progress world={world} />;
   else if (route.kind === 'settings') page = <Settings world={world} path={route.path} />;

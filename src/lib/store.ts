@@ -200,6 +200,9 @@ const EUROPE =
   'AD AL AT BA BE BG BY CH CY CZ DE DK EE ES FI FR GB GR HR HU IE IS IT LI LT LU LV MC MD ME MK MT NL NO PL PT RO RS RU SE SI SK SM UA'.split(' ');
 const G20 = 'AR AU BR CA CN DE ES FR GB ID IN IT JP KR MX RU SA TR US ZA'.split(' ');
 
+/** What each section opens with, until the player chooses something else. */
+export const DEFAULT_SEL: Record<Section, string[]> = { regions: ['ES'], countries: EUROPE, pops: G20, cities: ['ES'], physical: ['river', 'EU'] };
+
 export const DEFAULT_OPTS: Opts = {
   answer: 'type',
   length: 'all',
@@ -266,6 +269,11 @@ export interface State {
   opts: Opts;
   favs: Fav[];
   game: GameConfig | null;
+  /**
+   * A game that is on screen somewhere other than the screen of the games (a box in another page), for as
+   * long as it is there. It is not the game in course, and it is not kept: see `gameOn`.
+   */
+  hosted: GameConfig | null;
   stats: Record<string, Stat>;
   /**
    * Where each item that has been asked comes from ("r|ES|g1", "c", "t|ES", "p"): what the review
@@ -429,12 +437,13 @@ export const useStore = create<State>()(
   persist(
     (set, get) => ({
       theme: 'auto',
-      sel: { regions: ['ES'], countries: EUROPE, pops: G20, cities: ['ES'], physical: ['river', 'EU'] },
+      sel: { ...DEFAULT_SEL },
       levels: {},
       mode: { regions: 'pin', countries: 'pin', pops: 'hilo', cities: 'pin', physical: 'pin' },
       opts: DEFAULT_OPTS,
       favs: [],
       game: null,
+      hosted: null,
       stats: {},
       where: {},
       mix: {},
@@ -478,7 +487,11 @@ export const useStore = create<State>()(
       setCb: (cb) => set({ cb }),
       setDayGoal: (goal) => set({ dayGoal: isDayGoal(goal) ? goal : DAY_GOAL_DEFAULT }),
       doStep: (step, now = Date.now()) => set((s) => ({ dayPlan: withStep(s.dayPlan, today(new Date(now)), step) })),
-      lessonsLeft: (left) => set((s) => (s.game ? { recent: withLeft(s.recent, s.game, left) } : s)),
+      lessonsLeft: (left) =>
+        set((s) => {
+          const game = gameOn(s);
+          return game ? { recent: withLeft(s.recent, game, left) } : s;
+        }),
       setNote: (id, text) => {
         const notes = withNote(get().notes, id, text);
         if (!notes) return false;
@@ -629,7 +642,7 @@ export const useStore = create<State>()(
           const run = studyStreak(days, today(new Date(rec.t)));
           return {
             sessions: [rec, ...s.sessions].slice(0, 80),
-            recent: withRecentOf(s.recent, s.game, rec),
+            recent: withRecentOf(s.recent, gameOn(s), rec),
             days,
             ...(run > (s.best['study:streak'] ?? 0) ? { best: { ...s.best, 'study:streak': run } } : {}),
             tot: { ...s.tot, g: (s.tot.g ?? 0) + 1, q: (s.tot.q ?? 0) + rec.total, ok: (s.tot.ok ?? 0) + rec.ok, warn: (s.tot.warn ?? 0) + rec.warn, ms: (s.tot.ms ?? 0) + rec.ms },
@@ -825,6 +838,12 @@ export function migrateSaved(saved: unknown, version: number): Record<string, un
 
 /** How many answers are learnt: the figure each day writes down, for the chart of how it grows. */
 export const learntIn = (stats: Record<string, Stat>): number => Object.values(stats).reduce((n, st) => n + (isLearnt(st) ? 1 : 0), 0);
+
+/**
+ * The game that is on screen: the one in course, unless another is being shown somewhere else (a box in
+ * another page), which is then the one that what is drawn inside it, and what it writes down, are about.
+ */
+export const gameOn = (s: Pick<State, 'game' | 'hosted'>): GameConfig | null => s.hosted ?? s.game;
 
 /** The maps played lately once a game has ended: with it first when it is one to come back to. */
 function withRecentOf(list: Recent[], game: GameConfig | null, rec: SessionRec): Recent[] {

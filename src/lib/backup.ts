@@ -115,8 +115,11 @@ const OPT_CHOICES: { [K in keyof Opts]?: readonly Opts[K][] } = {
   lessonOrder: LESSON_ORDERS,
 };
 
-/** The options of a copy laid over the ones in force: each is taken only if it is something that option can be. */
-function cleanOpts(raw: unknown, current: Opts): Opts {
+/**
+ * Options that come from outside (a copy, an address) laid over some others: each is taken only if it is
+ * something that option can be.
+ */
+export function cleanOpts(raw: unknown, current: Opts): Opts {
   if (!isObject(raw)) return current;
   const out: Record<string, unknown> = { ...current };
   for (const key of Object.keys(current) as (keyof Opts)[]) {

@@ -17,7 +17,7 @@ A petición del dueño del proyecto, desde la 1.18.0 se hace primero lo que meno
 el final lo que más. La estimación es a ojo y cambia al abrir el código:
 
 - **Corto**: nada pendiente
-- **Medio**: 45, 46, 51, 54, 66, 70, 73, 74, 94, 98
+- **Medio**: 45, 46, 51, 54, 66, 70, 73, 94, 98
 - **Largo**: 20, 44 (francés), 65, 67, 68, 83, 90
 - **Depende de conseguir datos**, lleve lo que lleve: 30–32, 37–39, 41–43, 95, y lo que falta del 29 y del 35
 
@@ -113,7 +113,7 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 - [x] 71. Diploma: al acabar una partida con la mitad o más bien, una hoja apaisada para imprimir o guardar como PDF con el nombre (que no se guarda), el mapa, el juego, los aciertos, el tiempo, la fecha, un sello con el porcentaje y sitio para una firma — **1.21.0**
 - [x] 72. Códigos QR: junto al enlace a un mapa y un juego, al de una lista, al de un reto y al del resultado del día, un código que se abre grande, se guarda como imagen o se imprime; lo calcula el propio juego, sin servicios de fuera — **1.21.0**
 - [ ] 73. Bingo geográfico
-- [ ] 74. Incrustar un mapa o una lista en otra web
+- [x] 74. Incrustar un mapa o una lista en otra web: junto al enlace de un mapa y en la tarjeta de una lista, «Incrustar» da el código de un recuadro (`<iframe>`) con ese mapa, ese juego y sus opciones, sin menús; quien llega ve una tarjeta con «Empezar» y hasta entonces no se descarga ni el mapa ni el juego, no se piden fichas de Wikipedia ni se guarda copia del juego en su dispositivo, y un enlace bajo el recuadro abre el juego entero — **1.29.0**
 - [x] 75. Tarjeta «mi mapa del mundo»: en Progreso, bajo el mapa de lo que se sabe, un botón guarda o comparte una imagen con el mapa que se está viendo (el mundo o las regiones de un país) pintado según lo que se sabe de cada pieza, cuántas se saben, el reparto en una barra y la leyenda — **1.27.0**
 
 ## Progreso y logros

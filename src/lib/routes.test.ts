@@ -53,6 +53,11 @@ describe('screens', () => {
     // Without a code, the screen that says what a duel or a list is and how one is sent.
     expect(routeOf('duelo', now)).toEqual({ kind: 'duel', code: '' });
     expect(routeOf('lista', now)).toEqual({ kind: 'list', code: '' });
+    // A game for a box in another page: what follows is read where it is played (`embed.ts`).
+    expect(routeOf('incrustar/regiones/ES:p/pin', now)).toEqual({ kind: 'embed', rest: 'regiones/ES:p/pin' });
+    expect(routeOf('incrustar', now)).toEqual({ kind: 'embed', rest: '' });
+    expect(routeOf(canonicalPath('embed/regions/ES'), now)).toEqual({ kind: 'embed', rest: 'regions/ES' });
+    expect(routeOf(canonicalPath('Incrustar/lista/AbC-_9/pin/answer=choice;length=20'), now)).toEqual({ kind: 'embed', rest: 'lista/AbC-_9/pin/answer=choice;length=20' });
   });
 
   it('opens the challenge of a past day, and today instead of a day that is not one', () => {

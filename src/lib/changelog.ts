@@ -15,6 +15,26 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.29.0',
+    date: '2026-11-20',
+    es: [
+      'Incrustar un mapa en otra web: junto al enlace del mapa, el botón «Incrustar» da el código para poner ese mapa y ese juego en un blog o en la web de clase.',
+      'El juego sale en un recuadro, sin menús, tal como lo tienes puesto: el mismo mapa, el mismo juego y las mismas opciones. Sirve también con una lista a medida.',
+      'Quien llega ve una tarjeta con «Empezar»: nada arranca solo, y hasta entonces no se descarga el mapa. Un mapa para explorar se ve desde el principio.',
+      'En el recuadro no se piden fichas de Wikipedia ni se guarda copia del juego en el dispositivo de quien lee la página. Debajo, un enlace abre el juego entero.',
+      'Conexiones abre con el mundo: mientras no elijas países en Cifras, se juega con todos. Los demás juegos de Cifras siguen abriendo con sus veinte.',
+      'Arreglado: en una partida, el aviso de que una parte del juego no ha llegado a cargarse salía estirado a lo alto de la pantalla, con un botón enorme.',
+    ],
+    en: [
+      'Embed a map in another page: next to the link to the map, the “Embed” button gives the code to put that map and that game in a blog or on a class page.',
+      'The game comes up in a box, without menus, just as you have it set: the same map, the same game and the same options. It works with a custom list too.',
+      'Whoever arrives sees a card with “Start”: nothing starts by itself, and until then the map is not downloaded. A map to explore shows from the start.',
+      'In the box no Wikipedia cards are asked for and no copy of the game is stored on the device of whoever reads the page. Below it, a link opens the whole game.',
+      'Connections opens with the world: until you choose countries in Figures, it is played with all of them. The other games of Figures still open with their twenty.',
+      'Fixed: in a game, the notice that a part of the game did not load came out stretched down the screen, with a huge button.',
+    ],
+  },
+  {
     version: '1.28.0',
     date: '2026-11-20',
     es: [
