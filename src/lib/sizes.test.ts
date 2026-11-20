@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { feature } from 'topojson-client';
 import { areaKm2, overlaid } from './geo';
 import { setLang } from './i18n';
-import { SAME_SIZE, TIMES_FROM, bothNames, compareSizes, scaleBar, sizeLine, timesText } from './sizes';
+import { SAME_SIZE, TIMES_FROM, bothNames, compareSizes, roughArea, scaleBar, sizeLine, timesText } from './sizes';
 import type { AnyGeo, LL } from './types';
 import { KM_PER_MILE, setUnits } from './units';
 
@@ -78,6 +78,53 @@ describe('two sizes set against each other', () => {
     expect(sizeLine({ name: 'Spain', area: 505_990 }, { name: 'France', area: 643_801 })).toBe('France is 27% larger than Spain.');
     expect(sizeLine({ name: 'Italy', area: 301_340 }, { name: 'Poland', area: 312_696 })).toBe('Italy and Poland are almost the same size.');
     expect(bothNames('Poland', 'Italy')).toBe('Poland and Italy');
+  });
+});
+
+describe('what the game has no figure for', () => {
+  const sahara = { name: 'Sahara', area: 10_740_000 };
+  const iberia = { name: 'Península Ibérica', area: 583_254 };
+  const alps = { name: 'Alpes', area: 181_000 };
+  const carpathians = { name: 'Cárpatos', area: 146_000 };
+  const balkans = { name: 'Península Balcánica', area: 150_000 };
+
+  it('is measured on its outline, and told as the rough figure it is: two figures, round in the unit', () => {
+    expect(roughArea(583_254)).toBe('unos 580.000 km²');
+    expect(roughArea(10_740_000)).toBe('unos 11 millones de km²');
+    expect(roughArea(25_320)).toBe('unos 25.000 km²');
+    expect(roughArea(995)).toBe('unos 1000 km²');
+    setUnits('mi');
+    // 583.254 km² are 225.196 square miles: round in miles, not in kilometres turned into miles.
+    expect(roughArea(583_254)).toBe('unos 230.000 mi²');
+    setLang('en');
+    expect(roughArea(583_254)).toBe('about 230,000 sq mi');
+    setUnits('km');
+    expect(roughArea(583_254)).toBe('about 580,000 km²');
+  });
+
+  it('is compared without more figures than it has', () => {
+    expect(sizeLine(sahara, iberia, { rough: true })).toBe('Sahara es unas 18 veces más grande que Península Ibérica.');
+    // To the nearest five per cent.
+    expect(sizeLine(alps, carpathians, { rough: true })).toBe('Alpes es alrededor de un 25 % más grande que Cárpatos.');
+    expect(sizeLine(alps, carpathians)).toBe('Alpes es un 24 % más grande que Cárpatos.');
+    expect(sizeLine(balkans, carpathians, { rough: true })).toBe('Península Balcánica y Cárpatos son casi igual de grandes.');
+    setLang('en');
+    expect(sizeLine(sahara, iberia, { rough: true })).toBe('Sahara is about 18 times the size of Península Ibérica.');
+    expect(sizeLine(alps, carpathians, { rough: true })).toBe('Alpes is about 25% larger than Cárpatos.');
+  });
+
+  it('is written as on a label where the names would want an article and a verb to agree with them', () => {
+    expect(sizeLine(sahara, iberia, { label: true })).toBe('Sahara: 18 veces la superficie de Península Ibérica.');
+    expect(sizeLine(iberia, sahara, { label: true, rough: true })).toBe('Sahara: unas 18 veces la superficie de Península Ibérica.');
+    expect(sizeLine(alps, carpathians, { label: true })).toBe('Alpes: un 24 % más de superficie que Cárpatos.');
+    expect(sizeLine(alps, carpathians, { label: true, rough: true })).toBe('Alpes: alrededor de un 25 % más de superficie que Cárpatos.');
+    expect(sizeLine(balkans, carpathians, { label: true })).toBe('Península Balcánica y Cárpatos: casi la misma superficie.');
+    expect(sizeLine(carpathians, { name: 'Irlanda', area: 150_000 }, { label: true })).toBe('Cárpatos e Irlanda: casi la misma superficie.');
+    setLang('en');
+    expect(sizeLine({ name: 'Alps', area: 181_000 }, { name: 'Pyrenees', area: 25_000 }, { label: true, rough: true })).toBe('Alps: about 7.2 times the area of Pyrenees.');
+    expect(sizeLine({ name: 'Alps', area: 181_000 }, { name: 'Carpathians', area: 146_000 }, { label: true })).toBe('Alps: 24% more area than Carpathians.');
+    expect(sizeLine({ name: 'Alps', area: 181_000 }, { name: 'Carpathians', area: 146_000 }, { label: true, rough: true })).toBe('Alps: about 25% more area than Carpathians.');
+    expect(sizeLine({ name: 'Sicily', area: 25_320 }, { name: 'Sardinia', area: 23_770 }, { label: true })).toBe('Sicily and Sardinia: almost the same area.');
   });
 });
 

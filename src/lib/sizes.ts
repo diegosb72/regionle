@@ -4,8 +4,8 @@
  * (`overlaid`); the tool is in Explore.
  */
 import { L } from './i18n';
-import { joiner, nf } from './text';
-import { KM_PER_MILE, distUnit, getUnits } from './units';
+import { fmtArea, joiner, nf, sig } from './text';
+import { KM_PER_MILE, area, distUnit, getUnits } from './units';
 
 /** Below this, one is not larger than the other in any way worth telling: "almost the same size". */
 export const SAME_SIZE = 1.1;
@@ -42,20 +42,41 @@ export function bothNames(a: string, b: string): string {
 }
 
 /**
+ * A surface the game has no figure for, measured on its outline: two figures of it, round in the unit of the
+ * player, and said as what it is. "unos 580.000 km²" · "about 220,000 sq mi".
+ */
+export function roughArea(km2: number): string {
+  const round = sig(area(km2), 2) / area(1);
+  return L(`unos ${fmtArea(round)}`, `about ${fmtArea(round)}`);
+}
+
+/**
  * "Brasil es 17 veces más grande que España." · "Francia es un 28 % más grande que España." ·
  * "Italia y Polonia son casi igual de grandes." Nothing when there is nothing to compare.
+ *
+ * `rough`: the surfaces were measured on the outlines of the map, not taken from a figure, and the sentence
+ * says no more than they can: "unas 17 veces", "alrededor de un 25 %" (to the nearest five).
+ *
+ * `label`: the names are of rivers, ranges and seas, which in a sentence would want an article the game does
+ * not have and a verb in the plural for some ("los Alpes son…"): they are written as on a label, with
+ * nothing that has to agree with them. "Alpes: 6,9 veces la superficie de Pirineos."
  */
-export function sizeLine(a: { name: string; area: number }, b: { name: string; area: number }): string {
+export function sizeLine(a: { name: string; area: number }, b: { name: string; area: number }, how: { rough?: boolean; label?: boolean } = {}): string {
   const verdict = compareSizes(a.area, b.area);
   if (!verdict) return '';
-  if (verdict.kind === 'same') return L(`${bothNames(a.name, b.name)} son casi igual de grandes.`, `${bothNames(a.name, b.name)} are almost the same size.`);
-  const [big, small] = verdict.big === 0 ? [a, b] : [b, a];
+  const both = bothNames(a.name, b.name);
+  if (verdict.kind === 'same') return how.label ? L(`${both}: casi la misma superficie.`, `${both}: almost the same area.`) : L(`${both} son casi igual de grandes.`, `${both} are almost the same size.`);
+  const [big, small] = verdict.big === 0 ? [a.name, b.name] : [b.name, a.name];
   if (verdict.kind === 'percent') {
-    const more = Math.round((verdict.ratio - 1) * 100);
-    return L(`${big.name} es un ${more} % más grande que ${small.name}.`, `${big.name} is ${more}% larger than ${small.name}.`);
+    const more = (verdict.ratio - 1) * 100;
+    const es = how.rough ? `alrededor de un ${Math.round(more / 5) * 5} %` : `un ${Math.round(more)} %`;
+    const en = how.rough ? `about ${Math.round(more / 5) * 5}%` : `${Math.round(more)}%`;
+    return how.label ? L(`${big}: ${es} más de superficie que ${small}.`, `${big}: ${en} more area than ${small}.`) : L(`${big} es ${es} más grande que ${small}.`, `${big} is ${en} larger than ${small}.`);
   }
   const times = timesText(verdict.ratio);
-  return L(`${big.name} es ${times} veces más grande que ${small.name}.`, `${big.name} is ${times} times the size of ${small.name}.`);
+  const es = how.rough ? `unas ${times} veces` : `${times} veces`;
+  const en = how.rough ? `about ${times} times` : `${times} times`;
+  return how.label ? L(`${big}: ${es} la superficie de ${small}.`, `${big}: ${en} the area of ${small}.`) : L(`${big} es ${es} más grande que ${small}.`, `${big} is ${en} the size of ${small}.`);
 }
 
 /**

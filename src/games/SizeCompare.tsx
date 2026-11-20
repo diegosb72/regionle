@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { areaKm2, overlaid } from '../lib/geo';
 import { L } from '../lib/i18n';
-import { bothNames, scaleBar, sizeLine } from '../lib/sizes';
+import { bothNames, roughArea, scaleBar, sizeLine } from '../lib/sizes';
 import { fmtArea } from '../lib/text';
 import type { Item } from '../lib/types';
 import './sizes.css';
@@ -17,15 +17,17 @@ const SPECK = 9;
 
 export function SizeCompare({ a, b, noun, fem, odd, onClear }: { a: Item | null; b: Item | null; noun: string; fem: boolean; odd: boolean; onClear(): void }) {
   const art = useMemo(() => (a && b ? overlaid(a.geo, b.geo, SIZE) : null), [a, b]);
-  // The figure the game has for each, where it has one for both; otherwise, what their outlines hold.
+  // The figure the game has for each, where it has one for both. A desert, a range or a peninsula has none,
+  // because where it ends is anybody's guess: then both are measured on their outlines, and said as rough.
+  const told = !!a && !!b && a.area > 0 && b.area > 0;
   const areas = useMemo<[number, number] | null>(() => {
     if (!a || !b) return null;
-    const told = a.area > 0 && b.area > 0;
-    return [told ? a.area : areaKm2(a.geo), told ? b.area : areaKm2(b.geo)];
-  }, [a, b]);
+    return told ? [a.area, b.area] : [areaKm2(a.geo), areaKm2(b.geo)];
+  }, [a, b, told]);
+  const figure = (km2: number): string => (told ? fmtArea(km2) : roughArea(km2));
   const bar = art ? scaleBar(art.km, SIZE * 0.4) : null;
   const another = L(`${fem ? 'otra' : 'otro'} ${noun}`, `another ${noun}`);
-  const noSurface = L(`Eso no tiene una superficie que comparar: elige ${another}.`, `That has no surface to compare: choose ${another}.`);
+  const noSurface = L(`Eso no tiene una superficie que comparar: elige ${another}.`, `That has no area to compare: choose ${another}.`);
 
   // The drawing comes out under the switch, which on a phone may be below what is on show: bring it up.
   const box = useRef<HTMLDivElement>(null);
@@ -66,15 +68,16 @@ export function SizeCompare({ a, b, noun, fem, odd, onClear }: { a: Item | null;
             <li className="sizes-ka">
               <i aria-hidden="true" />
               <b>{a.name}</b>
-              <span>{fmtArea(areas[0])}</span>
+              <span>{figure(areas[0])}</span>
             </li>
             <li className="sizes-kb">
               <i aria-hidden="true" />
               <b>{b.name}</b>
-              <span>{fmtArea(areas[1])}</span>
+              <span>{figure(areas[1])}</span>
             </li>
           </ul>
-          <p className="sizes-line">{sizeLine({ name: a.name, area: areas[0] }, { name: b.name, area: areas[1] })}</p>
+          <p className="sizes-line">{sizeLine({ name: a.name, area: areas[0] }, { name: b.name, area: areas[1] }, { rough: !told, label: a.kind === 'feature' || b.kind === 'feature' })}</p>
+          {!told && <p className="sizes-ask sizes-rough">{L('Son cifras a ojo: lo que ocupa cada contorno en este mapa.', 'Rough figures: what each outline takes up on this map.')}</p>}
           <p className="sizes-ask">{odd ? noSurface : L(`Para comparar otra vez, elige ${another}.`, `To compare again, choose ${another}.`)}</p>
         </>
       ) : (

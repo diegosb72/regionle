@@ -220,7 +220,7 @@ test.describe('the size comparer of the map', () => {
         Object.assign(saved.state, { lang: 'en', miles: true, game: next });
         localStorage.setItem('regionle:v1', JSON.stringify(saved));
       },
-      { section: 'physical', mode: 'explore', countries: ['river', 'lake', 'island', 'EU'], levels: {}, nonce: 2, opts: OPTS },
+      { section: 'physical', mode: 'explore', countries: ['river', 'lake', 'island', 'peninsula', 'EU'], levels: {}, nonce: 2, opts: OPTS },
     );
     await page.reload();
     await expect(page.locator('.index button', { hasText: /^Sicily$/ })).toBeVisible({ timeout: 30_000 });
@@ -228,23 +228,32 @@ test.describe('the size comparer of the map', () => {
     await expect(sizes(page)).toHaveText('Choose a feature on the map or in the list.');
     // A river is a line: it has no surface.
     await fromList(page, 'Danube');
-    await expect(sizes(page).locator('.sizes-ask')).toHaveText('That has no surface to compare: choose another feature.');
+    await expect(sizes(page).locator('.sizes-ask')).toHaveText('That has no area to compare: choose another feature.');
     await expect(page.locator('.map-svg .st-from, .map-svg .st-to')).toHaveCount(0);
     await fromList(page, 'Sicily');
     await expect(sizes(page).locator('.sizes-ask')).toHaveText('Sicily. Now, another feature.');
     // Not a river in between: it is told, and Sicily is kept.
     await fromList(page, 'Rhine');
-    await expect(sizes(page).locator('.sizes-ask')).toHaveText('That has no surface to compare: choose another feature.');
+    await expect(sizes(page).locator('.sizes-ask')).toHaveText('That has no area to compare: choose another feature.');
     await fromList(page, 'Ireland');
-    await expect(sizes(page).locator('.sizes-line')).toHaveText(/^Ireland is 3\.\d times the size of Sicily\.$/);
+    await expect(sizes(page).locator('.sizes-line')).toHaveText(/^Ireland: 3\.\d times the area of Sicily\.$/);
     await expect(sizes(page).locator('.sizes-ask')).toHaveText('To compare again, choose another feature.');
     // A river with the two on show: it is told under them, and they stay.
     await fromList(page, 'Volga');
-    await expect(sizes(page).locator('.sizes-ask')).toHaveText('That has no surface to compare: choose another feature.');
-    await expect(sizes(page).locator('.sizes-line')).toHaveText(/^Ireland is 3\.\d times the size of Sicily\.$/);
+    await expect(sizes(page).locator('.sizes-ask')).toHaveText('That has no area to compare: choose another feature.');
+    await expect(sizes(page).locator('.sizes-line')).toHaveText(/^Ireland: 3\.\d times the area of Sicily\.$/);
     await expect(sizes(page).locator('.sizes-list span')).toHaveText([/^9,\d{3} sq mi$/, /^3\d,\d{3} sq mi$/]);
     await expect(art(page).locator('.sizes-bar text')).toHaveText(/^(50|100|200) mi$/);
     await expect(art(page)).toHaveAccessibleName('Sicily and Ireland, at the same scale');
+    await expect(sizes(page).locator('.sizes-rough')).toHaveCount(0);
+
+    // Where a peninsula ends is anybody's guess, and the game has no figure for it: both are measured on
+    // their outlines, and told as the rough figures they are.
+    await fromList(page, 'Sicily');
+    await fromList(page, 'Iberian Peninsula');
+    await expect(sizes(page).locator('.sizes-list span')).toHaveText([/^about 9,[5-9]00 sq mi$/, /^about 2[12]0,000 sq mi$/]);
+    await expect(sizes(page).locator('.sizes-line')).toHaveText(/^Iberian Peninsula: about 2[234] times the area of Sicily\.$/);
+    await expect(sizes(page).locator('.sizes-rough')).toHaveText('Rough figures: what each outline takes up on this map.');
   });
 
   test('is not offered on a map with no surfaces to compare', async ({ page }) => {
