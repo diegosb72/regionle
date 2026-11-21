@@ -115,6 +115,8 @@ export interface QuizState {
   reveal: boolean;
   /** An exam: an answer is taken without a word and the next question comes; what is missed is not asked again. */
   exam: boolean;
+  /** What is missed is not asked again at the end: an exam, and a game of two players, where each question is one turn. */
+  once: boolean;
   streak: number;
   bestStreak: number;
   ok: number;
@@ -135,7 +137,7 @@ export type QuizAction =
   | { type: 'next'; rng?: Rng }
   | { type: 'finish' };
 
-export function initQuiz(pool: string[], length: number | 'all' | 'endless', reveal: boolean, rng: Rng = Math.random, exam = false): QuizState {
+export function initQuiz(pool: string[], length: number | 'all' | 'endless', reveal: boolean, rng: Rng = Math.random, exam = false, once = exam): QuizState {
   // An exam has an end: it is handed in.
   const endless = length === 'endless' && !exam;
   const n = typeof length === 'number' ? Math.min(length, pool.length) : pool.length;
@@ -159,6 +161,7 @@ export function initQuiz(pool: string[], length: number | 'all' | 'endless', rev
     endless,
     reveal: reveal && !exam,
     exam,
+    once: once || exam,
     streak: 0,
     bestStreak: 0,
     ok: 0,
@@ -188,7 +191,7 @@ function settle(s: QuizState, res: Res, reveal = true): QuizState {
       const queue = s.queue.slice();
       queue.splice(Math.min(queue.length, 3), 0, id);
       next.queue = queue;
-    } else if (!s.exam) next.again = [...s.again, id];
+    } else if (!s.once) next.again = [...s.again, id];
   }
   return next;
 }

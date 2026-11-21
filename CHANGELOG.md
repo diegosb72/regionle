@@ -3,6 +3,16 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.33.0 — 22 de noviembre de 2026
+
+- Dos jugadores: un formato nuevo de los nueve juegos de preguntas, para dos personas con un dispositivo. Las preguntas se reparten por turnos, una a cada uno.
+- Acertar a la primera vale 2 puntos; con pista o tras un fallo, 1. Lo que se falla no vuelve a salir. Gana quien sume más, y puede haber empate.
+- Bajo la cabecera va el marcador, con quien tiene el turno resaltado. El mapa se pinta del color de quien acertó cada pieza, y lo que nadie acertó queda rayado.
+- Al final se ve lo que sacó cada uno y qué contestó. En la partida siguiente empieza el otro. Una partida que se termina antes de tiempo no la gana nadie.
+- Los nombres se escriben al preparar la partida y se guardan en este navegador. Nada de una partida a dos cuenta para tu progreso, ni se envía como reto.
+- Una página por país para buscadores: cada país con mapa de regiones tiene la suya en cada idioma, como mapa-es-espana.html, con su título y su descripción.
+- Esas páginas abren el juego en Regiones con ese país ya elegido, en su nivel más fino, y están en el mapa del sitio. Son 422, de 211 países.
+
 ## 1.32.0 — 21 de noviembre de 2026
 
 - Contra tu fantasma: se guarda tu mejor partida de cada juego de preguntas en cada mapa, pregunta a pregunta, y puedes jugar contra ella, que avanza a tu lado.

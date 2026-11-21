@@ -112,7 +112,7 @@ const OPT_CHOICES: { [K in keyof Opts]?: readonly Opts[K][] } = {
   axis: ['ns', 'we'],
   cityPick: ['top', 'caps', 'regcaps'],
   cityCount: CITY_COUNTS,
-  format: ['normal', 'timed', 'lives', 'exam'],
+  format: ['normal', 'timed', 'lives', 'exam', 'duo'],
   flagLook: ['plain', 'grey', 'blur'],
   cardAsk: ['name', 'where', 'capital', 'flag'],
   bearingAsk: ['both', 'dir', 'dist'],

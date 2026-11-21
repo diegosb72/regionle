@@ -34,6 +34,13 @@ const PATIENCE = 2500;
  * extension: that of its language. The rest of the visits get the first page.
  */
 const PAGES = __PAGES__;
+/**
+ * The pages of the maps (`mapa-es-espana.html`, `map-es-spain.html`) are too many to be listed one by one:
+ * each is known by the word its name starts with, and is answered with the page of its language as well.
+ */
+const MAPS = __MAPS__;
+/** The name of the page of a map, with or without its extension: that word, the code of a country and its name. */
+const MAP = /^([a-z]+)-[a-z][a-z0-9]-[a-z0-9]+(?:-[a-z0-9]+)*(?:\.html)?$/;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -154,7 +161,8 @@ self.addEventListener('fetch', (event) => {
   // (sitemap.xml, a picture, a data file: those are answered as what they are).
   const visit = request.mode === 'navigate' && !/\.(?!html?$)[a-z0-9]+$/i.test(path);
   if (visit || path === '' || path === 'index.html') {
-    const page = SHELL.includes(PAGES[path]) ? PAGES[path] : 'index.html';
+    const answer = PAGES[path] ?? MAPS[MAP.exec(path)?.[1] ?? ''];
+    const page = SHELL.includes(answer) ? answer : 'index.html';
     event.respondWith(fromShell(new URL(page, scope), request));
   } else if (path.startsWith('data/')) event.respondWith(networkFirst(event));
   else if (path.startsWith('flags/')) event.respondWith(cacheFirst(event));

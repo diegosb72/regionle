@@ -5,6 +5,7 @@ import type { Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
 import { RELEASES } from './src/lib/changelog.ts';
 import { SITE_PAGES, localise, pageFile, pageNamed, robots, siteUrl, sitemap } from './src/lib/seo.ts';
+import { mapPagesOf, type MapSource } from './src/lib/seoMaps.ts';
 
 const FLAG_DIR = path.resolve(process.cwd(), 'node_modules/flag-icons/flags/4x3');
 
@@ -41,6 +42,13 @@ const pkg = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), 'package.json
 /** Where the site is published: `SITE_URL` when building for somewhere else, `homepage` of package.json otherwise. */
 const SITE = siteUrl(process.env.SITE_URL ?? pkg.homepage);
 
+/**
+ * The pages of the maps (`mapa-es-espana.html`, `map-es-spain.html`): two for each country whose map is worth a
+ * game, worked out from the list of countries the game itself reads.
+ */
+const MAP_PAGES = mapPagesOf((JSON.parse(fs.readFileSync(path.resolve(process.cwd(), 'public/data/index.json'), 'utf8')) as { countries: MapSource[] }).countries);
+const mapPageOf = (name: string) => MAP_PAGES.find((page) => page.files[page.lang] === name);
+
 /** The fonts of the first screen for a reader of Spanish or English: asked for at once, so that the text does not jump when they arrive. */
 const FIRST_FONTS = /^assets\/(dm-sans-latin-wght-normal|fraunces-latin-opsz-normal)-[\w-]+\.woff2$/;
 
@@ -54,6 +62,8 @@ const FIRST_FONTS = /^assets\/(dm-sans-latin-wght-normal|fraunces-latin-opsz-nor
  *    `regions.html`…): the same page again with the title and the description of that screen, which the
  *    game opens on. What comes after `#` never reaches a server, so they are the only way a search engine,
  *    or the card of a link, gets to speak of a screen;
+ *  · each country whose map is worth a game has a page in each language too (`mapa-es-espana.html`,
+ *    `map-es-spain.html`), with the title and the description of that map, which the game opens on;
  *  · `sitemap.xml` and `robots.txt` list them.
  *
  * While developing, the address of any of those pages is answered with that page too.
@@ -65,12 +75,12 @@ function pages(): Plugin {
     transformIndexHtml: {
       order: 'post',
       handler(html, ctx) {
-        const asked = /\/([a-z]+)\.html(?:$|[?#])/.exec(ctx.originalUrl ?? '');
+        const asked = /\/([a-z0-9-]+)\.html(?:$|[?#])/.exec(ctx.originalUrl ?? '');
         const fonts = Object.keys(ctx.bundle ?? {})
           .filter((file) => FIRST_FONTS.test(file))
           .sort();
         return {
-          html: localise(html, (asked && pageNamed(asked[1])) || 'index', SITE, pkg.version),
+          html: localise(html, (asked && (pageNamed(asked[1]) ?? mapPageOf(asked[1]))) || 'index', SITE, pkg.version),
           tags: fonts.map((file) => ({ tag: 'link', attrs: { rel: 'preload', as: 'font', type: 'font/woff2', crossorigin: true, href: `./${file}` }, injectTo: 'head' as const })),
         };
       },
@@ -79,12 +89,12 @@ function pages(): Plugin {
       const index = bundle['index.html'];
       if (!index || index.type !== 'asset') return;
       const html = String(index.source);
-      for (const page of SITE_PAGES) if (page !== 'index') this.emitFile({ type: 'asset', fileName: pageFile(page), source: localise(html, page, SITE, pkg.version) });
+      for (const page of [...SITE_PAGES, ...MAP_PAGES]) if (page !== 'index') this.emitFile({ type: 'asset', fileName: pageFile(page), source: localise(html, page, SITE, pkg.version) });
       if (!SITE) {
         this.warn('No se sabe dónde se publica el sitio ("homepage" en package.json o SITE_URL): no se escriben canonical, Open Graph, sitemap.xml ni robots.txt.');
         return;
       }
-      this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: sitemap(SITE, RELEASES[0].date) });
+      this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: sitemap(SITE, RELEASES[0].date, MAP_PAGES) });
       this.emitFile({ type: 'asset', fileName: 'robots.txt', source: robots(SITE) });
     },
   };

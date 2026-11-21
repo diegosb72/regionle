@@ -49,5 +49,30 @@ test.describe('without a connection', () => {
     await expect(page).toHaveTitle('Población y superficie — Regionle ∞');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Población y superficie');
     await expect(page.locator('.crash')).toHaveCount(0);
+
+    // Nor is the page of the map of a country, and there are hundreds: the game in its language answers for
+    // each of them too, opens that map and says of it what the page says.
+    expect(await page.evaluate(() => caches.match('./map-es-spain.html').then((copy) => !!copy))).toBe(false);
+    /** What the page that was given says for whoever runs no scripts: it tells which page answered the visit. */
+    const unscripted = () => page.evaluate(() => document.querySelector('noscript')?.textContent ?? '');
+    await page.goto('./map-es-spain.html');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+    await expect(page.locator('.startbar')).toContainText('Spain · 52 provinces');
+    await expect(page).toHaveTitle('Spain: provinces on the map — Regionle ∞');
+    expect(new URL(page.url()).pathname.endsWith('/map-es-spain.html')).toBe(true);
+    expect(await unscripted()).toContain('Regionle ∞ is a geography game');
+    await page.goto('./mapa-gb-reino-unido.html');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'es');
+    await expect(page.locator('.startbar')).toContainText('Reino Unido · 232 condados y distritos');
+    await expect(page).toHaveTitle('Reino Unido: condados y distritos en el mapa — Regionle ∞');
+    expect(await unscripted()).toContain('Regionle ∞ es un juego de geografía');
+    // Asked for without its extension, as some servers give it, it is the same page.
+    await page.goto('./map-gb-united-kingdom');
+    await expect(page.locator('.startbar')).toContainText('United Kingdom · 232 counties and districts');
+    expect(await unscripted()).toContain('Regionle ∞ is a geography game');
+    // A name that only looks like one of those is no page of the site: it gets the first page, as before.
+    await page.goto('./mapa-espana.html');
+    await expect(page.locator('.hero-title')).toBeVisible();
+    await expect(page.locator('.crash')).toHaveCount(0);
   });
 });

@@ -2,11 +2,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { describe, expect, it } from 'vitest';
-import { LANG_PAGE, SCREENS, SCREEN_IDS, SEO, SEO_LANGS, SITE_PAGES, SOCIAL_IMAGE, alternates, jsonLd, localise, pageFile, pageLangOf, pageNamed, pageText, pageUrl, robots, seoHead, siteUrl, sitemap, type ScreenPage } from './seo';
+import { LANG_PAGE, SCREENS, SCREEN_IDS, SEO, SEO_LANGS, SITE_PAGES, SOCIAL_IMAGE, alternates, jsonLd, localise, pageFile, pageLangOf, pageNamed, pageText, pageUrl, robots, seoHead, siteUrl, sitemap, type MapPage, type ScreenPage } from './seo';
+import { mapPagesOf } from './seoMaps';
 
 const ROOT = path.join(__dirname, '../..');
 const SITE = 'https://example.org/juego/';
 const source = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+/** The pages of the map of one country, as the build makes them (seoMaps.ts). */
+const MAPS: MapPage[] = mapPagesOf([
+  { id: 'ES', n: { es: 'España', en: 'Spain' }, lv: [{ n: 19, es: 'comunidades autónomas', en: 'autonomous communities' }, { n: 52, es: 'provincias', en: 'provinces' }] },
+  { id: 'GB', n: { es: 'Reino Unido', en: 'United Kingdom' }, lv: [{ n: 4, es: 'naciones', en: 'nations' }] },
+]);
 
 describe('what the page says of itself', () => {
   it('has a title and a description of a fair length in each language', () => {
@@ -138,6 +144,51 @@ describe('what the page says of itself', () => {
     ]);
   });
 
+  it('writes the page of a map with its own address, its other language and the way back through the regions', () => {
+    for (const page of MAPS) {
+      const lang = page.lang;
+      const other = lang === 'es' ? 'en' : 'es';
+      const url = `${SITE}${page.files[lang]}.html`;
+      const t = pageText(page);
+      expect(pageFile(page)).toBe(`${page.files[lang]}.html`);
+      expect(pageUrl(SITE, page)).toBe(url);
+      expect(pageLangOf(page)).toBe(lang);
+      expect(t).toEqual({ title: `${page.name} — Regionle ∞`, description: page.description, cardTitle: `${page.name} — Regionle ∞`, noscript: `${page.description} ${SEO[lang].needsScripts}` });
+      const head = seoHead(page, SITE, '9.9.9');
+      expect(head).toContain(`<title>${t.title}</title>`);
+      expect(head).toContain(`<meta name="description" content="${t.description}" />`);
+      expect(head).toContain(`<link rel="canonical" href="${url}" />`);
+      expect(head).toContain(`<link rel="alternate" hreflang="${lang}" href="${url}" />`);
+      expect(head).toContain(`<link rel="alternate" hreflang="${other}" href="${SITE}${page.files[other]}.html" />`);
+      expect(head).toContain(`<link rel="alternate" hreflang="x-default" href="${SITE}${page.files.es}.html" />`);
+      expect(head.match(/hreflang="/g)).toHaveLength(3);
+      expect(head).toContain(`<meta property="og:title" content="${t.title}" />`);
+      expect(head).toContain(`<meta property="og:url" content="${url}" />`);
+      expect(head).toContain(`<meta property="og:locale" content="${SEO[lang].locale}" />`);
+      expect(head).not.toContain(SEO[lang].title);
+      const data = JSON.parse(/<script type="application\/ld\+json">(.*)<\/script>/.exec(head)![1]) as { '@type': string; url: string; name: string; description: string; inLanguage: string; isPartOf: Record<string, string>; breadcrumb: { itemListElement: { '@type': string; position: number; name: string; item: string }[] } };
+      expect(data).toEqual(jsonLd(page, SITE, '9.9.9'));
+      expect(data['@type']).toBe('WebPage');
+      expect([data.url, data.name, data.description, data.inLanguage]).toEqual([url, t.title, page.description, lang]);
+      expect(data.isPartOf).toMatchObject({ '@type': 'WebApplication', url: `${SITE}${LANG_PAGE[lang]}`, softwareVersion: '9.9.9' });
+      // The game, the screen of the regions, the map: each step with its own address in that language.
+      expect(data.breadcrumb.itemListElement.map((i) => [i['@type'], i.position, i.name, i.item])).toEqual([
+        ['ListItem', 1, 'Regionle ∞', `${SITE}${LANG_PAGE[lang]}`],
+        ['ListItem', 2, SCREENS.regiones[lang].name, `${SITE}${SCREENS.regiones[lang].file}.html`],
+        ['ListItem', 3, page.name, url],
+      ]);
+    }
+    expect(MAPS.map((p) => pageFile(p))).toEqual(['mapa-es-espana.html', 'map-es-spain.html', 'mapa-gb-reino-unido.html', 'map-gb-united-kingdom.html']);
+    expect(alternates(SITE, MAPS[1])).toEqual([
+      { lang: 'es', url: `${SITE}mapa-es-espana.html` },
+      { lang: 'en', url: `${SITE}map-es-spain.html` },
+      { lang: 'x-default', url: `${SITE}mapa-es-espana.html` },
+    ]);
+    // The page of a map is not one of the pages a name alone gives: those are the ones the site always has.
+    expect(pageNamed('mapa-es-espana')).toBeNull();
+    expect(pageNamed('map-es-spain.html')).toBeNull();
+  });
+
   it('writes only the title and the description when the address of the site is not known', () => {
     const head = seoHead('en', null, '1.0.0');
     expect(head).toContain(SEO.en.title);
@@ -191,6 +242,31 @@ describe('the pages of the site', () => {
     expect(source).toContain(`<title>${SEO.es.title}</title>`);
     expect(source).toContain(`content="${SEO.es.description}"`);
     expect(source).toContain(SEO.es.noscript);
+  });
+
+  it('rewrites the page for the map of a country as for any other page', () => {
+    const page = MAPS[1];
+    const html = localise(source, page, SITE, '1.2.3');
+    expect(html).toContain('<html lang="en">');
+    expect(html).toContain('<title>Spain: provinces on the map — Regionle ∞</title>');
+    expect(html).toContain(`<link rel="canonical" href="${SITE}map-es-spain.html" />`);
+    expect(html).toContain(`<!--noscript-->${page.description} ${SEO.en.needsScripts}<!--/noscript-->`);
+    expect(html).not.toContain(SEO.es.noscript);
+    // What is not between the marks is as it was: the page is the game.
+    expect(html.split('<!--/seo-->')[1].split('<!--noscript-->')[0]).toBe(source.split('<!--/seo-->')[1].split('<!--noscript-->')[0]);
+  });
+
+  it('lists the pages of the maps for search engines after the others, each with its other language', () => {
+    const xml = sitemap(SITE, '2026-11-17', MAPS);
+    expect(xml.match(/<url>/g)).toHaveLength(SITE_PAGES.length + MAPS.length);
+    for (const page of MAPS) expect(xml).toContain(`<loc>${SITE}${pageFile(page)}</loc>`);
+    expect(xml.indexOf(`<loc>${SITE}mapa-es-espana.html</loc>`)).toBeGreaterThan(xml.indexOf(`<loc>${SITE}about.html</loc>`));
+    expect(xml).toContain(`<loc>${SITE}map-es-spain.html</loc>\n    <lastmod>2026-11-17</lastmod>\n    <xhtml:link rel="alternate" hreflang="es" href="${SITE}mapa-es-espana.html" />\n    <xhtml:link rel="alternate" hreflang="en" href="${SITE}map-es-spain.html" />\n    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE}mapa-es-espana.html" />`);
+    const listed = new Set([...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]));
+    for (const m of xml.matchAll(/hreflang="[a-z-]+" href="([^"]+)"/g)) expect(listed.has(m[1]), m[1]).toBe(true);
+    // Without them, the list is the one of the pages the site always has.
+    expect(sitemap(SITE, '2026-11-17', [])).toBe(sitemap(SITE, '2026-11-17'));
+    expect(sitemap(SITE, '2026-11-17')).not.toContain('mapa-');
   });
 
   it('lists every page for search engines, each with its other languages', () => {
@@ -261,6 +337,25 @@ describe('the language of the page before the game starts', () => {
     expect(run({ path: '/regionle/myregions.html', languages: ['es-ES'] }).lang).toBe('es');
     expect(run({ path: '/regionle/regions.htm', languages: ['es-ES'] }).lang).toBe('es');
     expect(run({ path: '/regionle/poblaciones.html', languages: ['en-GB'] }).lang).toBe('en');
+  });
+
+  it('is the one of the page of a map too, by the word its name starts with', () => {
+    for (const page of MAPS) {
+      const file = pageFile(page);
+      const other = page.lang === 'es' ? 'en-GB' : 'es-ES';
+      expect(run({ path: `/regionle/${file}`, languages: [other] }).lang, file).toBe(page.lang);
+      expect(run({ path: `/regionle/${file.replace('.html', '')}`, languages: [other] }).lang, file).toBe(page.lang);
+      // The choice of the player counts for more than the page.
+      expect(run({ saved: { lang: other.slice(0, 2) }, path: `/regionle/${file}` }).lang, file).toBe(other.slice(0, 2));
+    }
+    expect(run({ path: '/regionle/map-x1-northern-cyprus.html', languages: ['es-ES'] }).lang).toBe('en');
+    // A name that only looks like that of the page of a map is not one: the browser decides.
+    expect(run({ path: '/regionle/map-spain.html', languages: ['es-ES'] }).lang).toBe('es');
+    expect(run({ path: '/regionle/mapa-espana.html', languages: ['en-GB'] }).lang).toBe('en');
+    expect(run({ path: '/regionle/mapas-es-espana.html', languages: ['en-GB'] }).lang).toBe('en');
+    expect(run({ path: '/regionle/xmap-es-spain.html', languages: ['es-ES'] }).lang).toBe('es');
+    expect(run({ path: '/regionle/map-ES-spain.html', languages: ['es-ES'] }).lang).toBe('es');
+    expect(run({ path: '/map-es-spain/', languages: ['es-ES'] }).lang).toBe('es');
   });
 
   it('is the first of the browser that the game speaks, and Spanish when it speaks none', () => {

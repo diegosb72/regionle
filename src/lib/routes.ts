@@ -4,7 +4,7 @@
  */
 import { dayNumber, isDate } from '../daily/spec';
 import { mapLinkRest, parseMapLink, type MapLink } from './maplink';
-import { LANG_PAGE, SCREENS, pageNamed, type ScreenId, type SeoLang } from './seo';
+import { LANG_PAGE, SCREENS, mapPageNamed, pageNamed, type ScreenId, type SeoLang } from './seo';
 import { today } from './text';
 import type { Section } from './types';
 
@@ -167,8 +167,14 @@ export function routeOf(path: string, now: string = today()): Route {
   }
 }
 
-/** The page an address is of, by the name its last part has: `…/en.html`, `…/regions`. Null for the first page. */
-const pageAt = (pathname: string) => pageNamed(/\/([a-z]+)(?:\.html)?$/.exec(pathname)?.[1] ?? '');
+/**
+ * The page an address is of, by the name its last part has: `…/en.html`, `…/regions`, `…/map-es-spain.html`.
+ * Null for the first page.
+ */
+const pageAt = (pathname: string) => {
+  const name = /\/([a-z0-9-]+)(?:\.html)?$/.exec(pathname)?.[1] ?? '';
+  return pageNamed(name) ?? mapPageNamed(name);
+};
 
 /**
  * The language a page is written for: `…/en.html` is the game in English and `…/es.html` in Spanish, and
@@ -182,7 +188,22 @@ export function pageLang(pathname: string): SeoLang | null {
 /** The screen a page opens when nothing comes after `#`, as its address in the game: `…/regions.html` is `regiones`. */
 export function pageScreen(pathname: string): ScreenId | null {
   const page = pageAt(pathname);
-  return page && typeof page !== 'string' ? page.screen : null;
+  return page && typeof page !== 'string' && 'screen' in page ? page.screen : null;
+}
+
+/** The country whose map a page is of, and the language the page is written in (`…/map-es-spain.html`). Null for any other page. */
+export function mapAt(pathname: string): { map: string; lang: SeoLang } | null {
+  const page = pageAt(pathname);
+  return page && typeof page !== 'string' && 'map' in page ? page : null;
+}
+
+/**
+ * The address of the game that the page of a map opens when nothing comes after `#`: the regions of its
+ * country, at their finest (`…/map-es-spain.html` is `regiones/ES:f`). Null for any other page.
+ */
+export function pageMap(pathname: string): string | null {
+  const page = mapAt(pathname);
+  return page ? `${PATHS.regions}/${page.map}:f` : null;
 }
 
 /** The page of a screen in a language, as a link from any page of the site: `regions.html`. */

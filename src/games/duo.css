@@ -1,0 +1,285 @@
+/* «Dos jugadores» (games/Duo.tsx): the scoreboard, whose turn it is, the map by who got each piece, and the result. */
+
+/*
+ * A colour for each of the two, from the pair that most eyes tell apart (blue and orange), and never the
+ * colour alone: the first is a disc and the second a square, wherever one of them is marked.
+ */
+:root {
+  --duo-a: #0072b2;
+  --duo-a-soft: #d6e9f6;
+  --duo-a-map: #7fbfea;
+  --duo-b: #c05300;
+  --duo-b-soft: #fbe1cd;
+  --duo-b-map: #f2a765;
+}
+:root[data-theme='dark'] {
+  --duo-a: #56b4e9;
+  --duo-a-soft: #12303f;
+  --duo-a-map: #3585c2;
+  --duo-b: #ff8b3d;
+  --duo-b-soft: #432511;
+  --duo-b-map: #c96a26;
+}
+.p0 {
+  --duo: var(--duo-a);
+  --duo-soft: var(--duo-a-soft);
+}
+.p1 {
+  --duo: var(--duo-b);
+  --duo-soft: var(--duo-b-soft);
+}
+.duo-dot {
+  flex: none;
+  width: 0.72em;
+  height: 0.72em;
+  border-radius: 50%;
+  background: var(--duo);
+}
+.p1 .duo-dot,
+.p1 > .duo-dot {
+  border-radius: 2px;
+}
+.duo-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Under the header: the two side by side, each with its points, and the one whose turn it is lit. */
+.duo-board {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  /* On a wide screen the points would end up a long way from their name. */
+  max-width: 620px;
+}
+.duo-seat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 2px 9px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink-2);
+  font-size: calc(13px * var(--fs));
+  line-height: 1.35;
+}
+.duo-seat .duo-name {
+  font-weight: 600;
+}
+.duo-seat.on {
+  border-color: var(--duo);
+  background: var(--duo-soft);
+  color: var(--ink);
+}
+.duo-seat.on .duo-name {
+  font-weight: 750;
+}
+.duo-pts {
+  margin-left: auto;
+  padding-left: 4px;
+  font-size: calc(15px * var(--fs));
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Over the question: whose it is. */
+.duo-turn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 3px 11px 3px 9px;
+  border: 1px solid var(--duo);
+  border-radius: 999px;
+  background: var(--duo-soft);
+  font-size: calc(14px * var(--fs));
+  line-height: 1.35;
+}
+.duo-turn span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The map: each piece in the colour of who got it; a piece that was missed is nobody's, and is hatched. */
+.m-items path.st-pa,
+.m-ring.st-pa {
+  fill: var(--duo-a-map);
+}
+.m-items path.st-pb,
+.m-ring.st-pb {
+  fill: var(--duo-b-map);
+}
+.m-items path.st-px,
+.m-ring.st-px {
+  fill: url(#m-hatch);
+}
+.m-items path.ln.st-pa {
+  stroke: var(--duo-a);
+}
+.m-items path.ln.st-pb {
+  stroke: var(--duo-b);
+}
+.m-items path.ln.st-px {
+  stroke: var(--ink-3);
+  stroke-dasharray: 7 5;
+}
+.m-dot.st-pa {
+  fill: var(--duo-a);
+}
+.m-dot.st-pb {
+  fill: var(--duo-b);
+}
+.m-dot.st-px {
+  fill: var(--ink-3);
+}
+
+/* The result: a card for each, the winner's in its colour. */
+.duo-final {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.duo-card {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--card);
+}
+.duo-card.won {
+  border-color: var(--duo);
+  background: var(--duo-soft);
+}
+.duo-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font: 650 calc(15px * var(--fs)) / 1.3 var(--sans);
+}
+.duo-card h3 svg {
+  flex: none;
+  margin-left: auto;
+  color: var(--duo);
+}
+.duo-total {
+  color: var(--ink-2);
+  font-size: calc(14px * var(--fs));
+}
+.duo-total strong {
+  color: var(--ink);
+  font: 560 calc(34px * var(--fs)) / 1.1 var(--serif);
+  font-variant-numeric: tabular-nums;
+}
+.duo-card dl {
+  display: grid;
+  gap: 2px;
+  font-size: calc(13px * var(--fs));
+}
+.duo-card dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.duo-card dt {
+  color: var(--ink-2);
+}
+.duo-card dd {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.duo-how {
+  color: var(--ink-2);
+  font-size: calc(13.5px * var(--fs));
+  line-height: 1.45;
+}
+
+/* What each answered, in the order it was asked. */
+.duo-list ul {
+  margin-top: 4px;
+}
+.duo-list li {
+  padding: 6px 0;
+}
+.duo-list .row-name {
+  flex-wrap: nowrap;
+  align-items: center;
+}
+.duo-list .row-name b {
+  min-width: 0;
+}
+.duo-list .row-name small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* How it went, by its colour and by its shape: a disc right at once, half a disc with help, a ring for a miss. */
+.duo-mark {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--ok);
+  border-radius: 50%;
+  background: var(--ok);
+}
+.r-warn .duo-mark {
+  border-color: var(--warn);
+  background: linear-gradient(90deg, var(--warn) 50%, transparent 50%);
+}
+.r-bad .duo-mark {
+  border-color: var(--bad);
+  background: none;
+}
+.duo-got {
+  margin-left: auto;
+  padding-left: 8px;
+  color: var(--ink-2);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.r-bad .duo-got {
+  color: var(--ink-3);
+}
+
+/* On the setup: a line to write each name in. */
+.duo-names {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+.duo-names label {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  color: var(--ink-2);
+  font-size: calc(12.5px * var(--fs));
+  font-weight: 600;
+}
+.duo-names label > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.duo-names input {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 6px 11px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-1);
+  background: var(--bg);
+  color: var(--ink);
+  /* Not smaller: a phone would zoom in on a smaller letter when the line is written in. */
+  font-size: calc(16px * var(--fs));
+}

@@ -1,6 +1,6 @@
 /** Title and description of each screen: what the tab, the history and a search engine say of it. */
 import { L, fmtDay, getLang } from './i18n';
-import { ABOUT_PATH, DAILY_PATH, PATHS, type Route } from './routes';
+import { ABOUT_PATH, DAILY_PATH, PATHS, mapAt, type Route } from './routes';
 import { SCREENS, SEO, pageTitle, type ScreenId } from './seo';
 import { today } from './text';
 
@@ -54,6 +54,9 @@ export function routeDescription(route: Route, now: string = today()): string {
 /** Writes them into the page. */
 export function applyMeta(route: Route): void {
   if (typeof document === 'undefined') return;
+  // On the page of a map (`mapa-es-espana.html`) the screen of the regions is that map: what the page says of
+  // itself is left as it is, and written again where the countries are known (screens/Setup.tsx).
+  if (route.kind === 'section' && route.section === 'regions' && mapAt(location.pathname)) return;
   document.title = routeTitle(route);
   document.querySelector('meta[name="description"]')?.setAttribute('content', routeDescription(route));
 }

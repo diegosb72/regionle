@@ -563,7 +563,7 @@ function modeName(mode: Mode): string {
 }
 
 export const formatName = (f: Format): string =>
-  f === 'timed' ? L('Contrarreloj', 'Time attack') : f === 'lives' ? L('Supervivencia', 'Survival') : f === 'exam' ? L('Examen', 'Exam') : L('Normal', 'Standard');
+  f === 'timed' ? L('Contrarreloj', 'Time attack') : f === 'lives' ? L('Supervivencia', 'Survival') : f === 'exam' ? L('Examen', 'Exam') : f === 'duo' ? L('Dos jugadores', 'Two players') : L('Normal', 'Standard');
 
 /** The rule of a route, in two or three words: "con un cierre". Nothing for a plain one. */
 export const routeRuleName = (rule: RouteRule): string =>

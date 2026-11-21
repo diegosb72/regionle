@@ -15,6 +15,28 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.33.0',
+    date: '2026-11-22',
+    es: [
+      'Dos jugadores: un formato nuevo de los nueve juegos de preguntas, para dos personas con un dispositivo. Las preguntas se reparten por turnos, una a cada uno.',
+      'Acertar a la primera vale 2 puntos; con pista o tras un fallo, 1. Lo que se falla no vuelve a salir. Gana quien sume más, y puede haber empate.',
+      'Bajo la cabecera va el marcador, con quien tiene el turno resaltado. El mapa se pinta del color de quien acertó cada pieza, y lo que nadie acertó queda rayado.',
+      'Al final se ve lo que sacó cada uno y qué contestó. En la partida siguiente empieza el otro. Una partida que se termina antes de tiempo no la gana nadie.',
+      'Los nombres se escriben al preparar la partida y se guardan en este navegador. Nada de una partida a dos cuenta para tu progreso, ni se envía como reto.',
+      'Una página por país para buscadores: cada país con mapa de regiones tiene la suya en cada idioma, como mapa-es-espana.html, con su título y su descripción.',
+      'Esas páginas abren el juego en Regiones con ese país ya elegido, en su nivel más fino, y están en el mapa del sitio. Son 422, de 211 países.',
+    ],
+    en: [
+      'Two players: a new format of the nine question games, for two people with one device. The questions are dealt by turns, one to each.',
+      'A first-time right answer is worth 2 points; with a hint or after a wrong try, 1. What is missed does not come back. Most points wins, and a tie is possible.',
+      'Under the header is the scoreboard, with whoever has the turn lit. The map is painted in the colour of whoever got each piece, and what nobody got is hatched.',
+      'At the end you see what each got and what each answered. The other player opens the next game. A game that is ended early is won by nobody.',
+      'The names are written when setting the game up and kept in this browser. Nothing of a game of two counts towards your progress, nor is it sent as a challenge.',
+      'A page per country for search engines: every country with a map of regions has one in each language, like map-es-spain.html, with its title and description.',
+      'Those pages open the game on Regions with that country already chosen, at its finest level, and are in the sitemap. There are 422, of 211 countries.',
+    ],
+  },
+  {
     version: '1.32.0',
     date: '2026-11-21',
     es: [

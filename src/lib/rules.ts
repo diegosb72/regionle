@@ -4,6 +4,12 @@ import type { Mode, Section } from './types';
 /** Games that can also be played against the clock or until the lives run out. */
 export const FORMAT_MODES: readonly Mode[] = ['pin', 'identify', 'outline', 'puzzle', 'capital', 'flag', 'parent', 'mix', 'listen'];
 
+/**
+ * A game of two players who answer by turns (lib/duo.ts) is dealt in pairs of questions: one more would be a
+ * turn that only one of them had.
+ */
+export const evenOf = (n: number): number => (n > 0 ? n - (n % 2) : 0);
+
 /** What sits in the menus without being a game: it is not counted among them, and leaves nothing in the progress. */
 export const NOT_GAMES: readonly Mode[] = ['print', 'edit'];
 

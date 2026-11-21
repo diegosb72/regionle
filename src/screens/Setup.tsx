@@ -11,6 +11,8 @@ import { canSpeak } from '../components/Speak';
 import { Flag, Seg, Toggle, capitalise } from '../components/ui';
 import { eligible, levelOf, loadFile, type World } from '../lib/data';
 import { countriesOf, describeMap } from '../lib/describe';
+import { duoRule } from '../lib/duo';
+import { useDuoCode } from '../lib/duoLazy';
 import { anyGhost, useGhostCode } from '../lib/ghostLazy';
 import { CITY_COUNTS, PHYS_KINDS, PHYS_PLACES, kindNoun, kindsIn, loadCities, loadPhysical, parsePhys, physCountries, physMatches, physTokens, pickOf, type PhysKind, type PhysSpec } from '../lib/extra';
 import { L, getLang, levelNoun, nm } from '../lib/i18n';
@@ -21,7 +23,9 @@ import { GROUP_NAME, MODES, MODE_GROUPS, SECTIONS, cardAskName, formatName } fro
 import { estimateOf, minutesOf, paceOf, percentOf, questionsOf } from '../lib/pace';
 import { CONNECT_MIN, CONNECT_WIDE, FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, MADE_UP_MODES, ODD_MIN, PAIRS_MIN, PAIR_SIZES, PAIR_SIZE_DEFAULT, ROUND_MODES, TOP_MIN, asksByFlag, embeddable, isRouteRule, turnsOutlines, type PairSize, type RouteRule } from '../lib/rules';
 import { go, settle } from '../lib/router';
-import { PATHS, mapLinkUrl } from '../lib/routes';
+import { PATHS, mapAt, mapLinkUrl } from '../lib/routes';
+import { pageTitle } from '../lib/seo';
+import { mapPagesOf } from '../lib/seoMaps';
 import { useStore, type CardAsk, type CustomList, type LessonOrder, type Length, type Opts } from '../lib/store';
 import { cx, initialOf, mulberry32, nf, plural } from '../lib/text';
 import { areaUnit, distWord } from '../lib/units';
@@ -379,6 +383,23 @@ export function Setup({ section, world, link }: { section: Section; world: World
     settle(PATHS[section]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [linkKey]);
+  /**
+   * On the page of the map of a country (`mapa-es-espana.html`), what that page is called and what it says of
+   * its map, in the words the page was built with (lib/seoMaps.ts); null on any other page.
+   */
+  const mapPage = useMemo(() => {
+    const at = section === 'regions' ? mapAt(window.location.pathname) : null;
+    const country = at ? world.byId.get(at.map) : undefined;
+    return (at && country && mapPagesOf([country]).find((p) => p.lang === at.lang)) || null;
+  }, [section, world]);
+  // What the page says of itself is said of that map. It is written again here, where the countries are known:
+  // for whoever comes back to the page, and for whoever was given the copy kept in the device, which is the
+  // plain page of the language.
+  useEffect(() => {
+    if (!mapPage) return;
+    document.title = pageTitle(mapPage.name);
+    document.querySelector('meta[name="description"]')?.setAttribute('content', mapPage.description);
+  }, [mapPage]);
   const hasCities = useMemo(() => (cities ? (c: Country) => (cities.c[c.id]?.length ?? 0) >= 2 : undefined), [cities]);
   const cityCountOf = useMemo(() => (cities ? (c: Country) => cities.c[c.id]?.length ?? 0 : undefined), [cities]);
 
@@ -395,6 +416,11 @@ export function Setup({ section, world, link }: { section: Section; world: World
   const mine = useMemo(() => lists.filter((l) => l.section === section), [lists, section]);
   /** The custom list in use: the game is played on its map and asks only about its pieces. */
   const active = mine.find((l) => l.id === listOnId) ?? null;
+  /**
+   * While the map of that page is the one chosen, the screen is headed as the page is: it is what whoever
+   * came by it was looking for, and what a search engine reads of it once the game is there.
+   */
+  const landed = mapPage && !active && selected.length === 1 && selected[0] === mapPage.map ? mapPage : null;
   const multi = active ? [] : chosen.filter((c) => c.lv.length > 1);
 
   /** Number of things the game will ask about. */
@@ -524,7 +550,17 @@ export function Setup({ section, world, link }: { section: Section; world: World
               : null;
   /** "Oye y señala" is said by the voice of the browser: where there is none, there is no game. */
   const mute = def.id === 'listen' && !canSpeak();
-  const problem = unplayable ?? (mute ? L('Este navegador no tiene voz para decir los nombres: juega a «Señalar».', 'This browser has no voice to say the names: play “Pin it”.') : null);
+  /** Two players by turns (lib/duo.ts): a question each, so the game has an end and its questions come in pairs. */
+  const duoOn = FORMAT_MODES.includes(def.id) && opts.format === 'duo';
+  /** What such a game draws, which brings the two lines for the names: fetched when that format is the one chosen. */
+  const duoUi = useDuoCode(duoOn);
+  const problem =
+    unplayable ??
+    (mute
+      ? L('Este navegador no tiene voz para decir los nombres: juega a «Señalar».', 'This browser has no voice to say the names: play “Pin it”.')
+      : duoOn && units < 2
+        ? L('Una partida de dos pide al menos dos piezas.', 'A game of two takes at least two pieces.')
+        : null);
 
   const typed = ANSWER_MODES.includes(def.id) && opts.answer === 'type';
   /** Initials that are taken where they are promised, and the same in both languages. */
@@ -554,8 +590,8 @@ export function Setup({ section, world, link }: { section: Section; world: World
   const paced = FORMAT_MODES.includes(def.id) && (opts.format === 'timed' || opts.format === 'lives');
   /** An exam: nothing is said until it is handed in. */
   const exam = FORMAT_MODES.includes(def.id) && opts.format === 'exam';
-  // An exam has an end, like the games that cannot go on for ever.
-  const finite = FINITE_MODES.includes(def.id) || exam;
+  // An exam has an end, like the games that cannot go on for ever; and so does a game of two.
+  const finite = FINITE_MODES.includes(def.id) || exam || duoOn;
   /** What a flashcard can ask here: a capital where the map has them, a flag where the pieces are countries. */
   const cardAsks: CardAsk[] = ['name', 'where', ...(section === 'countries' || (section === 'regions' && !!capitals && chosen.some((c) => capitals[c.id]?.[levelOf(c, levels).k])) ? (['capital'] as const) : []), ...(section === 'countries' ? (['flag'] as const) : [])];
   const cardAsk: CardAsk = cardAsks.includes(opts.cardAsk) ? opts.cardAsk : 'name';
@@ -670,8 +706,8 @@ export function Setup({ section, world, link }: { section: Section; world: World
     <div className="setup">
       <header className="setup-head">
         <p className="kicker">{meta.name}</p>
-        <h1>{meta.title}</h1>
-        <p className="lead">{meta.blurb}</p>
+        <h1>{landed ? landed.name : meta.title}</h1>
+        <p className="lead">{landed ? landed.description : meta.blurb}</p>
       </header>
 
       <section className="step setup-main">
@@ -777,7 +813,8 @@ export function Setup({ section, world, link }: { section: Section; world: World
                       {estimate && L(minutesOf(estimate.ms) === 1 ? 'Alrededor de 1 min' : `Unos ${nf(minutesOf(estimate.ms))} min`, `About ${nf(minutesOf(estimate.ms))} min`)}
                       {estimate && questions != null && ' · '}
                       {questions != null && (def.id === 'nameall' ? plural(questions, noun[0], noun[1]) : def.id === 'alphabet' ? plural(questions, L('letra', 'letter'), L('letras', 'letters')) : def.id === 'connect' ? plural(questions, L('grupo', 'group'), L('grupos', 'groups')) : plural(questions, L('pregunta', 'question'), L('preguntas', 'questions')))}
-                      {estimate?.own && <small> {L('a tu ritmo', 'at your pace')}</small>}
+                      {duoOn && questions != null && questions > 0 && <small> {L(`(${nf(questions / 2)} para cada uno)`, `(${nf(questions / 2)} each)`)}</small>}
+                      {estimate?.own && !duoOn && <small> {L('a tu ritmo', 'at your pace')}</small>}
                     </span>
                   </li>
                 )}
@@ -1079,11 +1116,14 @@ export function Setup({ section, world, link }: { section: Section; world: World
                       { value: 'timed', label: L('Contrarreloj', 'Time attack'), title: L('Todas las que puedas en 60 segundos', 'As many as you can in 60 seconds') },
                       { value: 'lives', label: L('Supervivencia', 'Survival'), title: L('Hasta que falles tres veces', 'Until you miss three times') },
                       { value: 'exam', label: L('Examen', 'Exam'), title: L('Sin pistas ni corrección hasta el final', 'No hints and no marking until the end') },
+                      { value: 'duo', label: L('Dos jugadores', 'Two players'), title: L('Por turnos, en este dispositivo', 'By turns, on this device') },
                     ]}
                   />
-                  {(paced || exam) && (
+                  {(paced || exam || duoOn) && (
                     <p className="opt-hint">
-                      {exam
+                      {duoOn
+                        ? `${L('Dos personas con este dispositivo.', 'Two people with this device.')} ${duoRule()} ${L('Lo que se falla no vuelve a salir, y la partida no cuenta para tu progreso.', 'What is missed does not come up again, and the game does not count towards your progress.')}`
+                        : exam
                         ? L(
                             'Como un examen: un intento por pregunta, sin pistas y sin saber si aciertas hasta entregarlo. Al final, la nota sobre 10 y la corrección, con lo que respondiste en cada fallo.',
                             'Like an exam: one try per question, no hints and no telling whether you are right until you hand it in. At the end, a mark out of 10 and the marking, with what you answered where you were wrong.',
@@ -1093,6 +1133,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
                         : L('Tres vidas: cada fallo quita una. Un intento por pregunta y sin pistas. Se guarda tu récord en cada mapa.', 'Three lives: each miss takes one. One try per question and no hints. Your record on each map is kept.')}
                     </p>
                   )}
+                  {duoOn && duoUi && <duoUi.DuoNames />}
                 </div>
               )}
               {show.lesson && section !== 'pops' && (
@@ -1228,7 +1269,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
               {(active || (section !== 'countries' && section !== 'pops')) && units > 0 ? ` · ${plural(units, noun[0], noun[1])}` : ''}
             </strong>
             <span>
-              <b className={problem ? 'problem' : undefined}>{problem ?? `${def.name}${paced || exam ? ` · ${formatName(opts.format).toLowerCase()}` : show.length && opts.length === 'endless' && !finite ? ` · ${L('sin fin', 'endless')}` : ''}`}</b>
+              <b className={problem ? 'problem' : undefined}>{problem ?? `${def.name}${paced || exam || duoOn ? ` · ${formatName(opts.format).toLowerCase()}` : show.length && opts.length === 'endless' && !finite ? ` · ${L('sin fin', 'endless')}` : ''}`}</b>
               <ChevronDown size={14} aria-hidden="true" />
             </span>
           </button>

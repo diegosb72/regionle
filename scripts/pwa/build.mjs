@@ -5,7 +5,8 @@
  *
  * Writes into the build folder:
  *   sw.js         the service worker (scripts/pwa/sw.js) with the version, the files of the application and
- *                 the page that answers a visit to each page of the site
+ *                 the page that answers a visit to each page of the site (and to the pages of the maps, by
+ *                 the word their names start with)
  *   offline.json  what "download everything" has to fetch (maps of every country, cities, physical
  *                 geography, flags) and how much it weighs once compressed
  */
@@ -45,7 +46,22 @@ const beside = walk(out)
   .filter((f) => /^[^/]+\.html$/.test(f) && f !== 'index.html')
   .sort();
 const langPages = beside.filter((f) => f === `${langOf(f)}.html`);
-const screenPages = beside.filter((f) => !langPages.includes(f) && langPages.includes(`${langOf(f)}.html`));
+/**
+ * The pages of the maps of the countries (`mapa-es-espana.html`, `map-es-spain.html`): a word of the language,
+ * the code of the country and its name. There are hundreds, so the worker is not given their names: it is told
+ * which page answers for each of the words they start with.
+ */
+const MAP = /^([a-z]+)-[a-z][a-z0-9]-[a-z0-9]+(?:-[a-z0-9]+)*\.html$/;
+const mapPages = new Set(beside.filter((f) => MAP.test(f)));
+const maps = {};
+for (const f of mapPages) {
+  const word = MAP.exec(f)[1];
+  const page = `${langOf(f)}.html`;
+  if (!langPages.includes(page)) throw new Error(`pwa: ${f} está en un idioma que no tiene página (${page})`);
+  if (maps[word] && maps[word] !== page) throw new Error(`pwa: las páginas que empiezan por «${word}-» están en más de un idioma`);
+  maps[word] = page;
+}
+const screenPages = beside.filter((f) => !langPages.includes(f) && !mapPages.has(f) && langPages.includes(`${langOf(f)}.html`));
 /** Which page answers a visit to each of them, asked for with or without its extension. */
 const pages = {};
 for (const f of langPages) pages[f] = pages[f.slice(0, -5)] = f;
@@ -55,7 +71,7 @@ for (const f of screenPages) pages[f] = pages[f.slice(0, -5)] = `${langOf(f)}.ht
  * Read by search engines and social networks, never by the game, which answers a visit to the page of a
  * screen with the page of its language: neither stored nor counted in the version.
  */
-const forCrawlers = (f) => f === 'robots.txt' || f === 'sitemap.xml' || /^social-[\w-]+\.png$/.test(f) || screenPages.includes(f);
+const forCrawlers = (f) => f === 'robots.txt' || f === 'sitemap.xml' || /^social-[\w-]+\.png$/.test(f) || screenPages.includes(f) || mapPages.has(f);
 const files = walk(out)
   .filter((f) => !GENERATED.has(f) && !f.startsWith('.') && !forCrawlers(f))
   .sort();
@@ -80,6 +96,7 @@ const version = createHash('sha1')
   .update(digest(files))
   .update(JSON.stringify(offline))
   .update(JSON.stringify(pages))
+  .update(JSON.stringify(maps))
   .update(fs.readFileSync(path.join(here, 'sw.js')))
   .digest('hex')
   .slice(0, 12);
@@ -89,13 +106,14 @@ const source = fs
   .replace("'__VERSION__'", JSON.stringify(version))
   .replace('__SHELL__', JSON.stringify(shell))
   .replace('__FRESH__', JSON.stringify(fresh))
-  .replace('__PAGES__', JSON.stringify(pages));
-if (/__(VERSION|SHELL|FRESH|PAGES)__/.test(source)) throw new Error('sw.js: quedan marcas sin sustituir');
+  .replace('__PAGES__', JSON.stringify(pages))
+  .replace('__MAPS__', JSON.stringify(maps));
+if (/__(VERSION|SHELL|FRESH|PAGES|MAPS)__/.test(source)) throw new Error('sw.js: quedan marcas sin sustituir');
 fs.writeFileSync(path.join(out, 'sw.js'), source);
 
 const kb = (n) => `${Math.round(n / 1024)} kB`;
 const shellBytes = shell.reduce((n, f) => n + zipped(f), 0);
 console.log(`pwa · versión ${version}`);
 console.log(`pwa · aplicación: ${shell.length} archivos, ${kb(shellBytes)} comprimidos`);
-console.log(`pwa · páginas: ${langPages.length} de idioma, guardadas; ${screenPages.length} de pantalla, que contesta la de su idioma`);
+console.log(`pwa · páginas: ${langPages.length} de idioma, guardadas; ${screenPages.length} de pantalla y ${mapPages.size} de mapa, que contesta la de su idioma`);
 console.log(`pwa · descarga completa: ${pack.length} archivos, ${kb(offline.bytes)} comprimidos`);
