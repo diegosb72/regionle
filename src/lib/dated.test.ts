@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { datedName, datedNote, editionNow, keepDated } from './dated';
 import type { DatedResult } from './datedKept';
 import { setLang } from './i18n';
+import { occasionGame, occasionOf, occasionSeed } from './occasions';
 import { DEFAULT_OPTS, isDated, useStore, type GameConfig, type Opts } from './store';
 import type { Deck, Index } from './types';
 import { weekGame, weekSeed } from './weekly';
@@ -16,14 +17,18 @@ const places = { continents: { EU: { es: 'Europa', en: 'Europe' }, AF: { es: 'Á
 const deckOf = (es: string, en: string): Deck => ({ items: [{ country: { n: { es, en } } }] }) as unknown as Deck;
 
 beforeEach(() => {
-  useStore.setState({ weekly: {}, zones: {} });
+  useStore.setState({ weekly: {}, zones: {}, occasions: {} });
 });
 afterEach(() => setLang('es'));
 
 describe('a game with a date', () => {
-  it('is the challenge of a week or that of a day of a zone, and no other game', () => {
+  it('is the challenge of a week, that of a day of a zone or that of a special day, and no other game', () => {
     expect(isDated(game({ weekly: '2026-11-16' }))).toBe(true);
     expect(isDated(game({ zone: { id: 'p:EU', date: '2026-11-20' } }))).toBe(true);
+    expect(isDated(game({ occasion: { id: 'europe', year: 2026 } }))).toBe(true);
+    // The same game for practice carries no day: it is a game like any other.
+    expect(isDated(occasionGame(occasionOf('europe')!, null, index, DEFAULT_OPTS))).toBe(false);
+    expect(isDated(occasionGame(occasionOf('europe')!, 2026, index, DEFAULT_OPTS))).toBe(true);
     expect(isDated(game({}))).toBe(false);
     expect(isDated(game({ daily: '2026-11-20' }))).toBe(false);
     expect(isDated(null)).toBe(false);
@@ -40,6 +45,17 @@ describe('a game with a date', () => {
     setLang('en');
     expect(datedName(game({ weekly: '2026-01-05' }), deckOf('España', 'Spain'), places)).toBe('Weekly challenge · Europe');
     expect(datedName(game({ zone: { id: 'c:ES', date: '2026-11-20' } }), deckOf('España', 'Spain'), places)).toBe('Daily challenge · Spain');
+  });
+
+  it('is called by the name of its day when it is that of a special day, whatever its map is', () => {
+    const europe = game({ occasion: { id: 'europe', year: 2026 } });
+    expect(datedName(europe, deckOf('España', 'Spain'), places)).toBe('Día de Europa');
+    expect(datedName(game({ section: 'regions', occasion: { id: 'constitution', year: 2026 } }), deckOf('España', 'Spain'))).toBe('Día de la Constitución Española');
+    // A day this version does not know: a game somebody left in the browser, or a copy from a later version.
+    expect(datedName(game({ occasion: { id: 'someday', year: 2026 } }), deckOf('España', 'Spain'), places)).toBe('Fecha señalada');
+    setLang('en');
+    expect(datedName(europe, deckOf('España', 'Spain'), places)).toBe('Europe Day');
+    expect(datedName(game({ occasion: { id: 'someday', year: 2026 } }), deckOf('España', 'Spain'), places)).toBe('Special day');
   });
 
   it('is called by its code where the names of the continents are not at hand', () => {
@@ -94,6 +110,103 @@ describe('a game with a date that is started when its date has passed', () => {
     expect(editionNow(game({ daily: '2026-11-20' }), index, '2026-11-21')).toBeNull();
     // A challenge someone sent carries a seed and no date: it is the game it was whenever it is opened.
     expect(editionNow(game({ challenge: { seed: 7 } }), index, '2026-11-21')).toBeNull();
+  });
+});
+
+describe('the challenge of a special day that is started when its week is over', () => {
+  const mine: Opts = { ...DEFAULT_OPTS, wiki: false, length: 20 };
+  const of = (id: string, year: number): GameConfig => ({ ...occasionGame(occasionOf(id)!, year, index, mine), nonce: 1 });
+
+  it('is the one it was all through its week, from its day to the sixth after it', () => {
+    for (const day of ['2026-05-09', '2026-05-12', '2026-05-15']) expect(editionNow(of('europe', 2026), index, day), day).toBeNull();
+  });
+
+  it('becomes the same game for practice, with no seed and nothing to keep, once its week is over or before it has begun', () => {
+    for (const day of ['2026-05-16', '2026-11-21', '2027-02-01', '2026-05-08']) {
+      const next = editionNow(of('europe', 2026), index, day)!;
+      expect(next, day).toEqual(occasionGame(occasionOf('europe')!, null, index, mine));
+      expect(isDated(next), day).toBe(false);
+      expect(next.challenge, day).toBeUndefined();
+      // The map and the way of asking are the ones it had; and what the player had set goes on to it.
+      expect([next.section, next.mode, next.countries], day).toEqual([of('europe', 2026).section, of('europe', 2026).mode, of('europe', 2026).countries]);
+      expect(next.opts.wiki, day).toBe(false);
+    }
+  });
+
+  it('becomes the challenge of the year it is when that one is open: the one left from the year before is not played late', () => {
+    const next = editionNow(of('europe', 2026), index, '2027-05-10')!;
+    expect(next).toEqual(occasionGame(occasionOf('europe')!, 2027, index, mine));
+    expect(next).toMatchObject({ occasion: { id: 'europe', year: 2027 }, challenge: { seed: occasionSeed('europe', 2027) } });
+    // And one of a year that has not come, where the clock has gone back.
+    expect(editionNow(of('europe', 2027), index, '2026-05-10')).toMatchObject({ occasion: { id: 'europe', year: 2026 } });
+  });
+
+  it('is left as a game like any other when its day is one this version does not know', () => {
+    const cfg = game({ occasion: { id: 'someday', year: 2026 }, challenge: { seed: 7 }, section: 'regions', countries: ['ES'], levels: { ES: 'g1' } });
+    const next = editionNow(cfg, index, '2026-05-10')!;
+    expect(next).toEqual({ section: 'regions', mode: 'mix', countries: ['ES'], levels: { ES: 'g1' }, opts: DEFAULT_OPTS });
+    expect('occasion' in next || 'challenge' in next || 'nonce' in next).toBe(false);
+  });
+});
+
+describe('the result of the challenge of a special day', () => {
+  const on = (year: number, id = 'europe'): GameConfig => game({ occasion: { id, year } });
+
+  it('goes on record the first time the challenge of that year is played to the end', () => {
+    expect(keepDated(on(2026), true, result({ s: 86, ok: 23, n: 27 }))).toBe('new');
+    expect(useStore.getState().occasions.europe).toMatchObject({ y: 2026, s: 86, ok: 23, n: 27 });
+    expect(datedNote('Día de Europa', on(2026), 'new', 86)).toBe('Día de Europa: queda apuntado tu 86 %.');
+    // Nothing of the weeks or the zones is touched.
+    expect(useStore.getState().weekly).toEqual({});
+    expect(useStore.getState().zones).toEqual({});
+  });
+
+  it('stays as it was when it is played again, whole or not, and the results say what it was', () => {
+    keepDated(on(2026), true, result({ s: 86, ok: 23, n: 27 }));
+    expect(keepDated(on(2026), true, result({ s: 100, ok: 27, n: 27 }))).toBe(86);
+    expect(keepDated(on(2026), false, result({ s: 100, ok: 2, n: 2 }))).toBe(86);
+    expect(useStore.getState().occasions.europe).toMatchObject({ y: 2026, s: 86, ok: 23, n: 27 });
+    expect(datedNote('Día de Europa', on(2026), 86, 100)).toBe('Día de Europa: ya tenías apuntado un 86 %. Cuenta la primera vez que se termina.');
+  });
+
+  it('is not written down when the game is left before its end, which leaves the day to be played', () => {
+    expect(keepDated(on(2026), false, result({ n: 12, ok: 10 }))).toBe('short');
+    expect(useStore.getState().occasions).toEqual({});
+    expect(datedNote('Día de Europa', on(2026), 'short', 80)).toBe('Día de Europa: lo has dejado antes del final y no se apunta. Puedes empezarlo otra vez.');
+    expect(keepDated(on(2026), true, result())).toBe('new');
+  });
+
+  it('takes the place of the one of the year before, and comes too late when a later year is already kept', () => {
+    keepDated(on(2026), true, result({ s: 60 }));
+    expect(keepDated(on(2027), true, result({ s: 90 }))).toBe('new');
+    expect(useStore.getState().occasions.europe).toMatchObject({ y: 2027, s: 90 });
+    expect(keepDated(on(2026), true, result({ s: 100 }))).toBe('old');
+    expect(keepDated(on(2026), false, result({ s: 100, ok: 2, n: 2 }))).toBe('old');
+    expect(useStore.getState().occasions.europe).toMatchObject({ y: 2027, s: 90 });
+    expect(datedNote('Día de Europa', on(2026), 'old', 100)).toBe('Día de Europa: era de un año anterior al último que tienes apuntado, así que no cuenta.');
+  });
+
+  it('keeps each day apart, and says nothing of days in a row: there are none', () => {
+    keepDated(on(2026), true, result({ s: 60 }));
+    expect(keepDated(on(2026, 'water'), true, result({ s: 90 }))).toBe('new');
+    expect(Object.keys(useStore.getState().occasions).sort()).toEqual(['europe', 'water']);
+    // A zone with days in a row does not put them in the note of a special day.
+    useStore.setState({ zones: { 'p:EU': { d: '2026-05-09', s: 90, ok: 9, n: 10, ms: 1000, run: 4 } } });
+    expect(datedNote('Día de Europa', on(2026), 'new', 60)).toBe('Día de Europa: queda apuntado tu 60 %.');
+  });
+
+  it('cannot be kept for a day or a year that is not one, and says so by saying nothing', () => {
+    expect(keepDated(on(2026, 'Not a day'), true, result())).toBeNull();
+    expect(keepDated(on(26), true, result())).toBeNull();
+    expect(useStore.getState().occasions).toEqual({});
+  });
+
+  it('says so in English too', () => {
+    setLang('en');
+    expect(datedNote('Europe Day', on(2026), 'new', 86)).toBe('Europe Day: your 86% is on record.');
+    expect(datedNote('Europe Day', on(2026), 86, 100)).toBe('Europe Day: you already had 86% on record. The first time it is finished is the one that counts.');
+    expect(datedNote('Europe Day', on(2026), 'old', 100)).toBe('Europe Day: it was of a year before the last one you have on record, so it does not count.');
+    expect(datedNote('Europe Day', on(2026), 'short', 80)).toBe('Europe Day: you left it before the end, so nothing goes on record. You can start it again.');
   });
 });
 
@@ -175,5 +288,6 @@ describe('the result of the challenge of a day of a zone', () => {
     expect(keepDated(game({}), true, result())).toBeNull();
     expect(useStore.getState().weekly).toEqual({});
     expect(useStore.getState().zones).toEqual({});
+    expect(useStore.getState().occasions).toEqual({});
   });
 });

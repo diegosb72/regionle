@@ -4,6 +4,7 @@
  * like any other; its result is kept the first time it is played to the end.
  */
 import { expect, test, type Page } from '@playwright/test';
+import { asAnother, card, finish, giveUp, hud, note, percent, subtitle, title } from './dated';
 import { OPTS, PIN_SPAIN, open, seed } from './helpers';
 
 // The clock of these tests is set by hand, and so is where it is read: their days are Madrid's, whatever
@@ -26,85 +27,10 @@ interface Kept {
 }
 const kept = (page: Page) => page.evaluate(() => JSON.parse(localStorage.getItem('regionle:v1')!).state as Kept);
 
-const card = (page: Page) => page.locator('.more');
 const chip = (page: Page, zone: string) => page.locator(`.more-chip[data-zone="${zone}"]`);
 /** The list of the countries that are not in sight, and the button that plays the one chosen in it. */
 const other = (page: Page) => card(page).getByRole('combobox', { name: 'Otro país' });
 const playOther = (page: Page) => card(page).locator('.more-other button');
-const hud = (page: Page) => page.locator('.hud-main');
-/** Under the name of the game, what it is: "Reto de la semana · Mundo". */
-const subtitle = (page: Page) => page.locator('.play-title > span');
-const title = (page: Page) => page.locator('.play-title > strong');
-const note = (page: Page) => page.locator('.results-note');
-const percent = (page: Page) => page.locator('.results .donut-text strong');
-
-/** Gives up the question on screen, says what the answer was, and moves on. */
-async function giveUp(page: Page): Promise<string> {
-  await page.getByRole('button', { name: 'No lo sé' }).click();
-  const answer = (await page.locator('.verdict-head').textContent()) ?? '';
-  await page.getByRole('button', { name: 'Siguiente' }).click();
-  return answer;
-}
-
-/**
- * Answers the question on screen any way it can, without knowing the answer: the options in turn where there
- * are options, and giving up where the answer goes on the map. Then moves on to the next.
- *
- * All of it inside the page, in one go: an answer right at the first go moves on by itself in about a second,
- * and a test that looked from outside, one step at a time, could find the next question where it expected the
- * verdict of this one on a machine that stopped for a moment.
- */
-async function answerAny(page: Page): Promise<void> {
-  const how = await page.evaluate(async () => {
-    const pause = (ms: number) => new Promise((go) => setTimeout(go, ms));
-    const button = (text: string) => [...document.querySelectorAll<HTMLButtonElement>('button')].find((b) => !b.disabled && (b.textContent ?? '').trim().startsWith(text));
-    // A wrong option may leave another try: the verdict comes when the question is settled.
-    for (let tries = 0; tries < 40 && !document.querySelector('.verdict'); tries++) {
-      (document.querySelector<HTMLButtonElement>('.choices .choice:not(:disabled)') ?? button('No lo sé'))?.click();
-      await pause(100);
-    }
-    const verdict = document.querySelector('.verdict');
-    if (!verdict) return 'unanswered';
-    // An answer right at the first go moves on by itself.
-    if (verdict.classList.contains('verdict-ok')) return 'right';
-    button('Siguiente')?.click();
-    return 'settled';
-  });
-  expect(how).not.toBe('unanswered');
-}
-
-/** Plays `total` questions to the end from the one on screen (`from`), the first `trying` of them for real, and stops at the results. */
-async function finish(page: Page, total: number, trying = 0, from = 1): Promise<void> {
-  for (let n = from; n <= total; n++) {
-    await expect(hud(page)).toHaveText(`${n} / ${total}`);
-    if (n <= trying) await answerAny(page);
-    else await giveUp(page);
-  }
-  // What was missed is asked again: the challenge is whole by now, and the game can be ended there.
-  await expect(page.locator('.results, .q-round').first()).toBeVisible();
-  if (await page.locator('.q-round').count()) await page.getByRole('button', { name: 'Terminar' }).click();
-  await expect(page.locator('.results')).toBeVisible();
-}
-
-/**
- * Leaves the game for the first page and opens it again as another player would find it: with other options
- * of their own, and whatever else is changed in what the browser keeps.
- */
-async function asAnother(page: Page, opts: Record<string, unknown>, patch: Record<string, unknown> = {}): Promise<void> {
-  await page.getByRole('button', { name: 'Salir' }).click();
-  await expect(card(page)).toBeVisible();
-  // Changed while the first page is still, which writes nothing, and read again at once.
-  await page.evaluate(
-    ([o, p]) => {
-      const saved = JSON.parse(localStorage.getItem('regionle:v1')!) as { state: Record<string, unknown> };
-      saved.state = { ...saved.state, ...p, opts: { ...(saved.state.opts as Record<string, unknown>), ...o }, game: null };
-      localStorage.setItem('regionle:v1', JSON.stringify(saved));
-    },
-    [opts, patch] as const,
-  );
-  await page.reload();
-  await expect(card(page)).toBeVisible();
-}
 
 test.beforeEach(async ({ page }) => {
   await page.clock.setFixedTime(NOW);
@@ -115,9 +41,10 @@ test.describe('more challenges on the first page', () => {
     await seed(page, { opts: OPTS });
     await open(page);
     await expect(card(page)).toBeVisible();
-    await expect(card(page).locator('.kicker')).toHaveText(['Reto de la semana · del 16 al 22 de noviembre', 'Retos del día por continente o país']);
-    // Each part has its heading: what the week asks, and what the other part is.
-    await expect(card(page).getByRole('heading', { level: 2 })).toHaveText(['Popurrí · Mundo', 'Retos del día por continente o país']);
+    // The special days of the year come last while none of them is open (fechas.spec.ts).
+    await expect(card(page).locator('.kicker')).toHaveText(['Reto de la semana · del 16 al 22 de noviembre', 'Retos del día por continente o país', 'Fechas señaladas']);
+    // Each part has its heading: what the week asks, and what the other parts are.
+    await expect(card(page).getByRole('heading', { level: 2 })).toHaveText(['Popurrí · Mundo', 'Retos del día por continente o país', 'Fechas señaladas']);
     await expect(card(page).locator('.more-text').first()).toHaveText('Una partida larga, la misma para todo el mundo: 50 preguntas seguidas. Cuenta la primera vez que la terminas.');
     await expect(card(page).locator('.more-meta')).toHaveText('Quedan 5 días');
     await expect(page.locator('.more-chip')).toHaveText(['Europa', 'Asia', 'África', 'América', 'Oceanía']);
@@ -234,7 +161,7 @@ test.describe('more challenges on the first page', () => {
   test('speak English to whoever plays in English', async ({ page }) => {
     await seed(page, { opts: OPTS, lang: 'en' });
     await open(page);
-    await expect(card(page).locator('.kicker')).toHaveText(['Weekly challenge · 16–22 November', 'Daily challenges by continent or country']);
+    await expect(card(page).locator('.kicker')).toHaveText(['Weekly challenge · 16–22 November', 'Daily challenges by continent or country', 'Special days']);
     await expect(card(page).locator('.more-title')).toHaveText('Medley · World');
     await expect(card(page).locator('.more-meta')).toHaveText('5 days left');
     await expect(page.locator('.more-chip')).toHaveText(['Europe', 'Asia', 'Africa', 'Americas', 'Oceania']);

@@ -1,0 +1,99 @@
+/* The calendar of the special days (components/OccasionCalendar.tsx): fetched with it, when it is first opened. */
+.dates-how,
+.dates-sum {
+  color: var(--ink-2);
+  font-size: calc(14.5px * var(--fs));
+  line-height: 1.5;
+}
+.dates-how {
+  margin-top: 12px;
+}
+.dates-sum {
+  color: var(--ink);
+  font-weight: 600;
+}
+.dates-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* A row gives way on a narrow screen or with large text: what the day is goes under its date, and the button under both. */
+.dates-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  min-width: 0;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+.dates-day {
+  flex: 0 0 8.6em;
+  color: var(--ink-3);
+  font-size: calc(13.5px * var(--fs));
+  font-variant-numeric: tabular-nums;
+}
+.dates-what {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: start;
+  flex: 1 1 200px;
+  gap: 3px;
+  min-width: 0;
+}
+.dates-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  font-size: calc(15.5px * var(--fs));
+  line-height: 1.3;
+}
+.dates-name .flag {
+  flex: none;
+}
+.dates-name b {
+  min-width: 0;
+  font-weight: 650;
+  overflow-wrap: break-word;
+}
+.dates-what small {
+  color: var(--ink-2);
+  font-size: calc(13.5px * var(--fs));
+  line-height: 1.4;
+}
+.dates-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  color: var(--ink-2);
+  font-size: calc(12.5px * var(--fs));
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.dates-tag-open {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--line-2));
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent-ink);
+}
+.dates-tag-done {
+  border-color: color-mix(in srgb, var(--ok) 45%, var(--line-2));
+  background: color-mix(in srgb, var(--ok) 9%, transparent);
+  color: var(--ink);
+}
+.dates-tag-done svg {
+  color: var(--ok);
+}
+.dates-row > .btn {
+  flex: none;
+  margin-left: auto;
+}
+.dates-open .dates-day {
+  color: var(--accent-ink);
+  font-weight: 700;
+}
