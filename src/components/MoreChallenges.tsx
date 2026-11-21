@@ -23,7 +23,10 @@ import { lazyScreen } from './lazy';
 import { Flag } from './ui';
 import './more.css';
 
-/** The calendar of the special days: fetched the first time it is opened, and asked for again if it did not come. */
+/**
+ * The calendar of the special days, fetched the first time it is opened. One that did not come is asked for
+ * again the next time, which brings it only in a browser that fetches twice a file that failed (see `Dates`).
+ */
 const OccasionCalendar = lazyScreen(() => import('./OccasionCalendar').then((m) => m.OccasionCalendar));
 
 /** "Banderas · Mundo", "Popurrí · Europa": the way of asking and where. */
@@ -210,7 +213,7 @@ function Dates({ world, date, open }: { world: World; date: string; open: Editio
   const kept = useStore((s) => s.occasions);
   const opts = useStore((s) => s.opts);
   const start = useStore((s) => s.start);
-  /** The calendar: 0 while it is shut, and the number of the time it was opened otherwise, so that one that failed to come is asked for again. */
+  /** The calendar: 0 while it is shut, and the number of the time it was opened otherwise, so that each time starts with no failure left from the one before. */
   const [calendar, setCalendar] = useState(0);
   const next = occasionNext(date);
   /** With several open at once, each button is a small one: the card would be all buttons otherwise. */
