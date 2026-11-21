@@ -1,9 +1,14 @@
+import fs from 'node:fs';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { datedName, datedNote, keepDated } from './dated';
+import { datedName, datedNote, editionNow, keepDated } from './dated';
 import type { DatedResult } from './datedKept';
 import { setLang } from './i18n';
-import { DEFAULT_OPTS, isDated, useStore, type GameConfig } from './store';
-import type { Deck } from './types';
+import { DEFAULT_OPTS, isDated, useStore, type GameConfig, type Opts } from './store';
+import type { Deck, Index } from './types';
+import { weekGame, weekSeed } from './weekly';
+import { zoneGame, zoneSeed } from './zones';
+
+const index = JSON.parse(fs.readFileSync('public/data/index.json', 'utf8')) as Index;
 
 const result = (patch: Partial<DatedResult> = {}): DatedResult => ({ s: 86, ok: 41, n: 50, ms: 252_000, ...patch });
 const game = (patch: Partial<GameConfig>): GameConfig => ({ section: 'countries', mode: 'mix', countries: ['ES', 'FR'], levels: {}, opts: DEFAULT_OPTS, nonce: 1, ...patch });
@@ -42,6 +47,56 @@ describe('a game with a date', () => {
   });
 });
 
+describe('a game with a date that is started when its date has passed', () => {
+  const mine: Opts = { ...DEFAULT_OPTS, wiki: false, length: 20 };
+  const week = (monday: string): GameConfig => ({ ...weekGame(monday, index, mine), nonce: 1 });
+  const zone = (id: string, date: string): GameConfig => ({ ...zoneGame(id, date, index, mine)!, nonce: 1 });
+
+  it('is the one it was all through its week, from its Monday to its Sunday', () => {
+    for (const day of ['2026-11-16', '2026-11-19', '2026-11-22']) expect(editionNow(week('2026-11-16'), index, day), day).toBeNull();
+  });
+
+  it('becomes the challenge of the week it is now, with its own theme, countries and order', () => {
+    // The week of the 16th is a medley of the world; that of the 23rd, the countries of Africa to tell apart.
+    const next = editionNow(week('2026-11-16'), index, '2026-11-23')!;
+    expect(next).toEqual(weekGame('2026-11-23', index, mine));
+    expect(next).toMatchObject({ weekly: '2026-11-23', mode: 'identify', challenge: { seed: weekSeed('2026-11-23') } });
+    expect(next.countries).not.toEqual(week('2026-11-16').countries);
+    // Any later day of that week, and a week long gone, give the same one.
+    expect(editionNow(week('2026-11-16'), index, '2026-11-27')).toEqual(next);
+    expect(editionNow(week('2026-06-01'), index, '2026-11-27')).toEqual(next);
+    // What the player had set that does not change the questions goes on to it.
+    expect(next.opts.wiki).toBe(false);
+  });
+
+  it('is the one it was on its day, and becomes that of the day it is now in the same zone', () => {
+    for (const id of ['p:EU', 'c:ES']) {
+      expect(editionNow(zone(id, '2026-11-20'), index, '2026-11-20'), id).toBeNull();
+      const next = editionNow(zone(id, '2026-11-20'), index, '2026-11-21')!;
+      expect(next, id).toEqual(zoneGame(id, '2026-11-21', index, mine));
+      expect(next, id).toMatchObject({ zone: { id, date: '2026-11-21' }, challenge: { seed: zoneSeed(id, '2026-11-21') } });
+      // The same map, asked in another order.
+      expect(next.countries, id).toEqual(zone(id, '2026-11-20').countries);
+      expect(next.challenge?.seed, id).not.toBe(zone(id, '2026-11-20').challenge?.seed);
+    }
+    expect(editionNow(zone('c:ES', '2026-11-20'), index, '2026-11-21')!.levels).toEqual({ ES: 'g1' });
+  });
+
+  it('is the one of the day it is, too, when the clock has gone back', () => {
+    expect(editionNow(zone('p:EU', '2026-11-20'), index, '2026-11-19')).toMatchObject({ zone: { id: 'p:EU', date: '2026-11-19' } });
+    expect(editionNow(week('2026-11-23'), index, '2026-11-22')).toMatchObject({ weekly: '2026-11-16' });
+  });
+
+  it('is left as it is when its zone has no challenge any more, and is nothing to a game without a date', () => {
+    expect(editionNow(game({ zone: { id: 'c:LU', date: '2026-11-20' } }), index, '2026-11-21')).toBeNull();
+    expect(editionNow(game({ zone: { id: 'p:AN', date: '2026-11-20' } }), index, '2026-11-21')).toBeNull();
+    expect(editionNow(game({}), index, '2026-11-21')).toBeNull();
+    expect(editionNow(game({ daily: '2026-11-20' }), index, '2026-11-21')).toBeNull();
+    // A challenge someone sent carries a seed and no date: it is the game it was whenever it is opened.
+    expect(editionNow(game({ challenge: { seed: 7 } }), index, '2026-11-21')).toBeNull();
+  });
+});
+
 describe('the result of the challenge of a week', () => {
   const cfg = game({ weekly: '2026-11-16' });
 
@@ -56,6 +111,12 @@ describe('the result of the challenge of a week', () => {
     expect(keepDated(cfg, true, result({ s: 100 }))).toBe(86);
     expect(useStore.getState().weekly['2026-11-16'].s).toBe(86);
     expect(datedNote('Reto de la semana · Mundo', cfg, 86, 100)).toBe('Reto de la semana · Mundo: ya tenías apuntado un 86 %. Cuenta la primera vez que se termina.');
+  });
+
+  it('says what it was, and not that it is still to be played, when the week is on record and the replay is left halfway', () => {
+    keepDated(cfg, true, result());
+    expect(keepDated(cfg, false, result({ n: 3, ok: 3, s: 100 }))).toBe(86);
+    expect(useStore.getState().weekly['2026-11-16']).toMatchObject(result());
   });
 
   it('is not written down when the game is left before its end, which leaves the week to be played', () => {
@@ -83,6 +144,13 @@ describe('the result of the challenge of a day of a zone', () => {
     expect(datedNote('Reto del día · España', on('2026-11-20'), 'new', 90)).toBe('Reto del día · España: queda apuntado tu 90 %.');
     expect(keepDated(on('2026-11-20'), true, result({ s: 100, ok: 10, n: 10 }))).toBe(90);
     expect(useStore.getState().zones['c:ES'].s).toBe(90);
+  });
+
+  it('says what it was when the day is on record and the replay is left halfway; and that it comes late, for an earlier day', () => {
+    keepDated(on('2026-11-20'), true, result({ s: 90, ok: 9, n: 10 }));
+    expect(keepDated(on('2026-11-20'), false, result({ s: 100, ok: 2, n: 2 }))).toBe(90);
+    expect(keepDated(on('2026-11-19'), false, result({ s: 100, ok: 2, n: 2 }))).toBe('old');
+    expect(useStore.getState().zones['c:ES']).toMatchObject({ d: '2026-11-20', s: 90, run: 1 });
   });
 
   it('says how many days in a row it makes, from the second on', () => {

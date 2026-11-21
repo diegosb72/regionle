@@ -8,8 +8,9 @@ import { L, nm } from './i18n';
 import type { Places } from './sets';
 import { useStore, type GameConfig } from './store';
 import { nf } from './text';
-import type { Deck } from './types';
-import { themeOf } from './weekly';
+import type { Deck, Index } from './types';
+import { themeOf, weekGame, weekOf } from './weekly';
+import { zoneGame } from './zones';
 
 /**
  * How a game with a date went on record: 'new' when this game is its result; 'short' when it was left
@@ -30,6 +31,21 @@ export function datedName(cfg: GameConfig, deck: Deck, places?: Places): string 
   const { id } = cfg.zone;
   const country = deck.items[0]?.country;
   return `${L('Reto del día', 'Daily challenge')} · ${id.startsWith('p:') || !country ? partName(id.slice(2), places) : nm(country.n)}`;
+}
+
+/**
+ * What a game with a date becomes when it is started on a day (`date`) that is no longer its own: the
+ * challenge of that week, or of that day in the same zone. Null when it has no date, when its date is that
+ * one, or when its zone has no challenge any more.
+ *
+ * A game stays in the browser after its day, at the address of the game: a phone brings back the page that
+ * was open, and so does the button that goes back. Played as it was, it would go on record for the day before
+ * while the first page went on waiting for the one of today.
+ */
+export function editionNow(cfg: GameConfig, index: Index, date: string): Omit<GameConfig, 'nonce'> | null {
+  if (cfg.weekly) return cfg.weekly === weekOf(date) ? null : weekGame(weekOf(date), index, cfg.opts);
+  if (cfg.zone) return cfg.zone.date === date ? null : zoneGame(cfg.zone.id, date, index, cfg.opts);
+  return null;
 }
 
 /**

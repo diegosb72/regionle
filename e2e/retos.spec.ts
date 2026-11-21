@@ -4,7 +4,7 @@
  * like any other; its result is kept the first time it is played to the end.
  */
 import { expect, test, type Page } from '@playwright/test';
-import { OPTS, open, seed } from './helpers';
+import { OPTS, PIN_SPAIN, open, seed } from './helpers';
 
 // The clock of these tests is set by hand, and so is where it is read: their days are Madrid's, whatever
 // E2E_ZONE says (playwright.config.ts).
@@ -20,6 +20,8 @@ interface Kept {
   weekly: Record<string, { s: number; ok: number; n: number; ms: number; t: number }>;
   zones: Record<string, { d: string; s: number; ok: number; n: number; ms: number; run: number }>;
   game: { weekly?: string; zone?: { id: string; date: string }; levels: Record<string, string>; opts: Record<string, unknown> } | null;
+  sessions: { total: number }[];
+  daily: Record<string, unknown>;
 }
 const kept = (page: Page) => page.evaluate(() => JSON.parse(localStorage.getItem('regionle:v1')!).state as Kept);
 
@@ -46,22 +48,33 @@ async function giveUp(page: Page): Promise<string> {
 /**
  * Answers the question on screen any way it can, without knowing the answer: the options in turn where there
  * are options, and giving up where the answer goes on the map. Then moves on to the next.
+ *
+ * All of it inside the page, in one go: an answer right at the first go moves on by itself in about a second,
+ * and a test that looked from outside, one step at a time, could find the next question where it expected the
+ * verdict of this one on a machine that stopped for a moment.
  */
 async function answerAny(page: Page): Promise<void> {
-  const option = page.locator('.choices .choice:not(:disabled)');
-  const verdict = page.locator('.verdict');
-  if (await option.count()) {
+  const how = await page.evaluate(async () => {
+    const pause = (ms: number) => new Promise((go) => setTimeout(go, ms));
+    const button = (text: string) => [...document.querySelectorAll<HTMLButtonElement>('button')].find((b) => !b.disabled && (b.textContent ?? '').trim().startsWith(text));
     // A wrong option may leave another try: the verdict comes when the question is settled.
-    for (let tries = 0; tries < 4 && !(await verdict.count()); tries++) await option.first().click();
-  } else await page.getByRole('button', { name: 'No lo sé' }).click();
-  await expect(verdict).toBeVisible();
-  // An answer right at the first go moves on by itself.
-  if (!(await page.locator('.verdict-ok').count())) await page.getByRole('button', { name: 'Siguiente' }).click();
+    for (let tries = 0; tries < 40 && !document.querySelector('.verdict'); tries++) {
+      (document.querySelector<HTMLButtonElement>('.choices .choice:not(:disabled)') ?? button('No lo sé'))?.click();
+      await pause(100);
+    }
+    const verdict = document.querySelector('.verdict');
+    if (!verdict) return 'unanswered';
+    // An answer right at the first go moves on by itself.
+    if (verdict.classList.contains('verdict-ok')) return 'right';
+    button('Siguiente')?.click();
+    return 'settled';
+  });
+  expect(how).not.toBe('unanswered');
 }
 
-/** Plays `total` questions to the end, the first `trying` of them for real, and stops at the results. */
-async function finish(page: Page, total: number, trying = 0): Promise<void> {
-  for (let n = 1; n <= total; n++) {
+/** Plays `total` questions to the end from the one on screen (`from`), the first `trying` of them for real, and stops at the results. */
+async function finish(page: Page, total: number, trying = 0, from = 1): Promise<void> {
+  for (let n = from; n <= total; n++) {
     await expect(hud(page)).toHaveText(`${n} / ${total}`);
     if (n <= trying) await answerAny(page);
     else await giveUp(page);
@@ -116,9 +129,28 @@ test.describe('more challenges on the first page', () => {
     // Nothing to play until one is chosen.
     await expect(playOther(page)).toHaveText('Jugar');
     await expect(playOther(page)).toBeDisabled();
-    // It comes under the challenge of the day and above the rest.
+    // With nothing to study, it comes right under the challenge of the day.
     const order = await page.locator('.home > *').evaluateAll((all) => all.map((el) => el.className.split(' ')[0]));
     expect(order.indexOf('more')).toBe(order.indexOf('d-card') + 1);
+  });
+
+  test('come after what there is to study today: the goals, the session of the day and the review', async ({ page }) => {
+    const now = NOW.getTime();
+    const day = 86_400_000;
+    await seed(page, {
+      opts: OPTS,
+      // A goal for the week after, Galicia due again and Castilla y León missed twice a moment ago: all three cards.
+      goals: [{ id: 'g1', name: 'España · comunidades autónomas', section: 'regions', countries: ['ES'], levels: { ES: 'g1' }, ids: ['ES-AN', 'ES-AR', 'ES-GA'], skill: 'loc', date: '2026-11-26', made: now - day }],
+      stats: { 'loc:ES-GA': [3, 3, 2, now - 10 * day], 'name:ES-CL': [3, 1, 1, now - 60_000] },
+      where: { 'ES-GA': 'r|ES|g1', 'ES-CL': 'r|ES|g1' },
+      days: { '2026-11-17': [1, 20, 15, 60_000, 1], [TODAY]: [1, 12, 9, 60_000, 0] },
+    });
+    await open(page);
+    await expect(card(page)).toBeVisible();
+    for (const above of ['.goals', '.day-plan', '.review', '.today']) await expect(page.locator(above)).toBeVisible();
+    const order = await page.locator('.home > *').evaluateAll((all) => all.map((el) => el.className.split(' ')[0]));
+    // What is due goes first; then what there is to play besides, and the rest of the page.
+    expect(order.slice(order.indexOf('d-card'), order.indexOf('hero') + 1)).toEqual(['d-card', 'goals', 'day-plan', 'review', 'today', 'more', 'hero']);
   });
 
   test('are not shown to a newcomer, whose page does not even fetch them', async ({ page }) => {
@@ -130,6 +162,54 @@ test.describe('more challenges on the first page', () => {
     await page.waitForLoadState('networkidle');
     expect(await card(page).count()).toBe(0);
     expect(fetched.filter((url) => /MoreChallenges/.test(url))).toEqual([]);
+  });
+
+  test('come to the newcomer who closes the welcome, without the page being taken away to wait for them', async ({ page }) => {
+    await open(page);
+    await expect(page.locator('.welcome')).toBeVisible();
+    // The page as it is drawn is marked, and anything that takes its place is noticed.
+    await page.evaluate(() => {
+      const w = window as unknown as { taken: boolean };
+      w.taken = false;
+      document.querySelector<HTMLElement>('.hero-title')!.dataset.mark = 'mine';
+      new MutationObserver(() => {
+        if (!document.querySelector('.hero-title') || document.querySelector('#root .spinner')) w.taken = true;
+      }).observe(document.getElementById('root')!, { childList: true, subtree: true });
+      window.scrollTo(0, 200);
+    });
+    await page.locator('.welcome-close').click();
+    await expect(page.locator('.welcome')).toHaveCount(0);
+    await expect(card(page)).toBeVisible();
+    await expect(card(page).getByRole('button', { name: 'Jugar el reto de la semana' })).toBeVisible();
+    const after = await page.evaluate(() => ({
+      mark: document.querySelector<HTMLElement>('.hero-title')?.dataset.mark,
+      taken: (window as unknown as { taken: boolean }).taken,
+      top: window.scrollY === 0,
+    }));
+    // The same page, never out of sight, and not sent back to its top.
+    expect(after).toEqual({ mark: 'mine', taken: false, top: false });
+  });
+
+  test('are those of the moment they are started at, on a page that has been open since the day before', async ({ page }) => {
+    // Sunday night: the last day of the week of the 16th.
+    await page.clock.setFixedTime(new Date('2026-11-22T23:50:00+01:00'));
+    await seed(page, { opts: OPTS });
+    await open(page);
+    await expect(card(page).locator('.more-title')).toHaveText('Popurrí · Mundo');
+    await expect(card(page).locator('.more-meta')).toHaveText('Último día');
+    // The page is still there on Monday morning, saying what it said: the game it starts is the one of the new week.
+    await page.clock.setFixedTime(new Date('2026-11-23T08:00:00+01:00'));
+    await card(page).getByRole('button', { name: 'Jugar el reto de la semana' }).click();
+    await expect(subtitle(page)).toHaveText('Reto de la semana · África');
+    expect((await kept(page)).game?.weekly).toBe('2026-11-23');
+
+    // Back on the first page, which is now that of Monday; and on Tuesday the challenge of Europe is Tuesday's.
+    await page.getByRole('button', { name: 'Salir' }).click();
+    await expect(card(page).locator('.more-title')).toHaveText('Identificar · África');
+    await page.clock.setFixedTime(new Date('2026-11-24T08:00:00+01:00'));
+    await chip(page, 'p:EU').click();
+    await expect(subtitle(page)).toHaveText('Reto del día · Europa');
+    expect((await kept(page)).game?.zone).toEqual({ id: 'p:EU', date: '2026-11-24' });
   });
 
   test('speak English to whoever plays in English', async ({ page }) => {
@@ -160,6 +240,11 @@ test.describe('the challenge of the week', () => {
     const week = (await kept(page)).weekly[WEEK];
     expect(week).toMatchObject({ s: Number.parseInt(score, 10), n: 50 });
     expect(Object.keys((await kept(page)).weekly)).toEqual([WEEK]);
+    // It counts as a game like any other, and it is none of the business of the challenge of the day.
+    expect((await kept(page)).sessions).toMatchObject([{ total: 50 }]);
+    expect((await kept(page)).daily).toEqual({});
+    // Like any game, it can be sent to someone with its questions.
+    await expect(page.locator('.duel').getByRole('button', { name: 'Retar a alguien' })).toBeVisible();
 
     // Leaving it goes back to the first page, which is where it was started.
     await page.getByRole('button', { name: 'Volver al inicio' }).click();
@@ -168,6 +253,10 @@ test.describe('the challenge of the week', () => {
     await expect(card(page).locator('.more-text').first()).toContainText(`${week.ok} de 50 a la primera`);
     await expect(card(page).locator('.more-text').first()).toContainText('El lunes hay reto nuevo.');
     await expect(card(page).locator('.more-meta')).toHaveText('Otra vez ya no cuenta: es para practicar.');
+    // It is kept in the browser: there when the page is opened again.
+    await page.reload();
+    await expect(card(page).locator('.more-score')).toHaveText(score);
+    expect((await kept(page)).weekly[WEEK]).toEqual(week);
 
     // Played again, it is the same game and changes nothing: the first time is the one that counts.
     await card(page).getByRole('button', { name: 'Jugarlo otra vez' }).click();
@@ -321,6 +410,87 @@ test.describe('the challenge of the day of a continent', () => {
   });
 });
 
+test.describe('a challenge left in the browser for another day', () => {
+  test('becomes the one of the new day when its page comes back, and that is the day that goes on record', async ({ page }) => {
+    await seed(page, { opts: OPTS });
+    await open(page);
+    await chip(page, 'p:EU').click();
+    await expect(hud(page)).toHaveText('1 / 10');
+    await giveUp(page);
+    await expect(hud(page)).toHaveText('2 / 10');
+    expect((await kept(page)).game?.zone).toEqual({ id: 'p:EU', date: TODAY });
+
+    // The morning after, the phone brings back the page that was open: the game, at its address.
+    await page.clock.setFixedTime(TOMORROW);
+    await page.reload();
+    await expect(subtitle(page)).toHaveText('Reto del día · Europa');
+    await expect(hud(page)).toHaveText('1 / 10');
+    expect((await kept(page)).game?.zone).toEqual({ id: 'p:EU', date: '2026-11-19' });
+    await finish(page, 10);
+    await expect(note(page)).toHaveText('Reto del día · Europa: queda apuntado tu 0 %.');
+    expect((await kept(page)).zones).toEqual({ 'p:EU': expect.objectContaining({ d: '2026-11-19', run: 1 }) });
+    // And the first page, which is that of the new day, has it done.
+    await page.getByRole('button', { name: 'Volver al inicio' }).click();
+    await expect(chip(page, 'p:EU')).toHaveClass(/\bmore-done\b/);
+  });
+
+  test('is the one of the new week, with its own theme, when it was the challenge of the week before', async ({ page }) => {
+    await seed(page, { opts: OPTS });
+    await open(page);
+    await card(page).getByRole('button', { name: 'Jugar el reto de la semana' }).click();
+    await expect(title(page)).toHaveText('Popurrí');
+    await expect(subtitle(page)).toHaveText('Reto de la semana · Mundo');
+
+    await page.clock.setFixedTime(new Date('2026-11-25T12:00:00+01:00'));
+    await page.reload();
+    await expect(title(page)).toHaveText('Identificar');
+    await expect(subtitle(page)).toHaveText('Reto de la semana · África');
+    await expect(hud(page)).toHaveText('1 / 50');
+    expect((await kept(page)).game?.weekly).toBe('2026-11-23');
+  });
+
+  test('goes on record for the day it was started when midnight comes while it is played', async ({ page }) => {
+    await page.clock.setFixedTime(new Date('2026-11-18T23:58:00+01:00'));
+    await seed(page, { opts: OPTS });
+    await open(page);
+    await chip(page, 'p:EU').click();
+    for (let n = 1; n <= 4; n++) {
+      await expect(hud(page)).toHaveText(`${n} / 10`);
+      await giveUp(page);
+    }
+    // Five past midnight, with the game in sight: it is still the game that was started, whatever is drawn
+    // again around it (the list of keys comes from the page that holds the game).
+    await page.clock.setFixedTime(new Date('2026-11-19T00:05:00+01:00'));
+    await expect(hud(page)).toHaveText('5 / 10');
+    await page.locator('body').press('?');
+    await expect(page.locator('dialog.keys-dialog')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('dialog.keys-dialog')).toHaveCount(0);
+    expect((await kept(page)).game?.zone).toEqual({ id: 'p:EU', date: TODAY });
+    await finish(page, 10, 0, 5);
+    await expect(note(page)).toHaveText('Reto del día · Europa: queda apuntado tu 0 %.');
+    expect((await kept(page)).zones).toEqual({ 'p:EU': expect.objectContaining({ d: TODAY, n: 10, run: 1 }) });
+    // The first page is that of the new day, whose challenge is still to be played.
+    await page.getByRole('button', { name: 'Volver al inicio' }).click();
+    await expect(chip(page, 'p:EU')).toHaveAccessibleName('Jugar el reto del día de Europa.');
+    await expect(page.locator('.more-done')).toHaveCount(0);
+  });
+
+  test('is not what the first page offers to go on with: its button is on the card, and starts the one of today', async ({ page }) => {
+    // A game of the player's own is there to go on with.
+    await seed(page, { opts: OPTS, game: PIN_SPAIN });
+    await open(page);
+    const buttons = page.locator('.hero-cta button');
+    await expect(buttons).toHaveText(['Empezar con las regiones', 'Seguir: Señalar']);
+    // A challenge takes its place as the game in course, and is not offered there.
+    await chip(page, 'p:EU').click();
+    await expect(subtitle(page)).toHaveText('Reto del día · Europa');
+    await page.getByRole('button', { name: 'Salir' }).click();
+    await expect(card(page)).toBeVisible();
+    await expect(buttons).toHaveText(['Empezar con las regiones']);
+  });
+});
+
 test.describe('the challenge of the day of a country', () => {
   test('is chosen in the list and played with the button next to it, on the map the country opens with, and stays on the first page', async ({ page }) => {
     // The player has Spain set to its provinces: the challenge is on the communities all the same.
@@ -378,12 +548,12 @@ test.describe('the challenge of the day of a country', () => {
 });
 
 test.describe('more challenges on a phone @movil', () => {
-  test('fit a narrow screen with large text, one part under the other', async ({ page }) => {
+  /** The card with a week done and countries of long names in sight, on the narrowest screen, read as `reading` says. */
+  async function fits(page: Page, reading: Record<string, unknown>): Promise<void> {
     const rec = (d: string, run = 1) => ({ d, s: 100, ok: 10, n: 10, ms: 60_000, run });
     await seed(page, {
       opts: OPTS,
-      textSize: 'xl',
-      dyslexia: true,
+      ...reading,
       weekly: { [WEEK]: { s: 86, ok: 41, n: 50, ms: 252_000, t: NOW.getTime() }, '2026-11-09': { s: 92, ok: 44, n: 48, ms: 200_000, t: 1 } },
       zones: { 'p:EU': rec(TODAY, 12), 'c:BA': rec(TODAY, 30), 'c:CD': rec('2026-11-17', 2), 'c:GB': rec(TODAY), 'c:DO': rec('2026-11-10') },
     });
@@ -394,9 +564,21 @@ test.describe('more challenges on a phone @movil', () => {
     const fit = await page.evaluate(() => {
       const wide = document.documentElement.clientWidth;
       const parts = [...document.querySelectorAll('.more-part')].map((el) => el.getBoundingClientRect());
-      const over = [...document.querySelectorAll('.more *')].filter((el) => el.getBoundingClientRect().right > wide + 0.5).map((el) => el.className || el.tagName);
-      return { page: document.documentElement.scrollWidth - wide, stacked: parts[1].top >= parts[0].bottom, over };
+      const over = [...document.querySelectorAll('.more *')].filter((el) => el.getBoundingClientRect().right > wide + 0.5).map((el) => el.getAttribute('class') || el.tagName);
+      // A name that does not fit its button goes on to another line: none is cut short, nor spills out of it.
+      const cut = [...document.querySelectorAll<HTMLElement>('.more-chip, .more-chip span, .more-other button')].filter((el) => el.scrollWidth > el.clientWidth + 1).map((el) => el.textContent);
+      return { page: document.documentElement.scrollWidth - wide, stacked: parts[1].top >= parts[0].bottom, over, cut };
     });
-    expect(fit).toEqual({ page: 0, stacked: true, over: [] });
-  });
+    expect(fit).toEqual({ page: 0, stacked: true, over: [], cut: [] });
+    // The longest name is read whole, on more than one line.
+    const name = chip(page, 'c:CD').locator('.more-name > span');
+    await expect(name).toHaveText('República Democrática del Congo');
+    expect(await name.evaluate((el) => el.getBoundingClientRect().height > 1.5 * Number.parseFloat(getComputedStyle(el).lineHeight))).toBe(true);
+  }
+
+  test('fit a narrow screen with large text, one part under the other', ({ page }) => fits(page, { textSize: 'xl', dyslexia: true }));
+
+  // With large text every button of the game lets its words go on to another line. With the text as it
+  // comes none does, and the buttons of this card have to say so themselves.
+  test('fit a narrow screen with the text as it comes too, a long name on two lines', ({ page }) => fits(page, {}));
 });

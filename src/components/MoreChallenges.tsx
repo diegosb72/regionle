@@ -1,7 +1,7 @@
 /**
- * More challenges, under the one of the day on the first page: the challenge of the week (lib/weekly.ts) and
- * the ones of the day of a continent or a country (lib/zones.ts). Each is a game like any other, started
- * from here; what is kept of them is what this card shows.
+ * More challenges on the first page, under the one of the day and what there is to study today: the challenge
+ * of the week (lib/weekly.ts) and the ones of the day of a continent or a country (lib/zones.ts). Each is a
+ * game like any other, started from here; what is kept of them is what this card shows.
  */
 // Only icons the first page already carries: another one would make it fetch the rest of them.
 import { CalendarDays, Check, Flame, Map as MapIcon, Play, RotateCcw } from 'lucide-react';

@@ -18,6 +18,7 @@ import { TravelGame } from '../games/Travel';
 import { GameShell, HelpContext, type GameProps } from '../games/common';
 import { answersItself, belongsItself, capitalsNeedTyping } from '../games/quiz';
 import { countryAnswers, countryItem, eligible, levelOf, type World } from '../lib/data';
+import { editionNow } from '../lib/dated';
 import { deckFor } from '../lib/decks';
 import { TOP_MIN, countryFigs, deckFigs, figPlayable, metricsIn, positionFigs, type Fig } from '../lib/figures';
 import { L } from '../lib/i18n';
@@ -27,7 +28,7 @@ import { goneFrom } from '../lib/review';
 import { CONNECT_MIN, FIGURE_MODES, ODD_MIN, PAIRS_MIN } from '../lib/rules';
 import { go } from '../lib/router';
 import { isDated, useStore, type GameConfig } from '../lib/store';
-import { nf } from '../lib/text';
+import { nf, today } from '../lib/text';
 import type { Deck, Mode } from '../lib/types';
 
 /**
@@ -449,8 +450,22 @@ export function Session({ cfg, world, host }: { cfg: GameConfig; world: World; h
   );
 }
 
+/**
+ * A game of the player as it starts. A challenge with a date that is started once its day or its week has
+ * passed is put aside for the one of now (`editionNow`), before anything of it is drawn. It is looked at
+ * once, as the game starts: one that is being played when midnight comes is still the game that was started.
+ */
+function Started({ cfg, world }: { cfg: GameConfig; world: World }) {
+  const start = useStore((s) => s.start);
+  const [now] = useState(() => editionNow(cfg, world.index, today()));
+  useLayoutEffect(() => {
+    if (now) start(now);
+  }, [now, start]);
+  return now ? null : <Session cfg={cfg} world={world} />;
+}
+
 export function Play({ world }: { world: World }) {
   const cfg = useStore((s) => s.game);
   if (!cfg) return <Message title={L('No hay ninguna partida en marcha', 'There is no game in progress')} text={L('Elige países y un modo de juego para empezar.', 'Choose countries and a game mode to start.')} onExit={() => go('')} />;
-  return <Session key={cfg.nonce} cfg={cfg} world={world} />;
+  return <Started key={cfg.nonce} cfg={cfg} world={world} />;
 }

@@ -19,7 +19,7 @@ import { useStore, type Theme } from './lib/store';
 import { cx, today } from './lib/text';
 import { VERSION } from './lib/version';
 import { loadIndex, loadWorldGeo, type World } from './lib/world';
-import { Home, useHomeWhole } from './screens/Home';
+import { HomeWhole, useHomeWhole } from './screens/Home';
 import { NotFound } from './screens/NotFound';
 
 // Every screen but the first is fetched when it is first needed, and all of them once the first is on screen.
@@ -294,7 +294,7 @@ export function App() {
   else if (progress) page = <Progress world={world} />;
   else if (route.kind === 'settings') page = <Settings world={world} path={route.path} />;
   // The same wait as for the atlas, a moment longer where the page has cards whose code comes apart.
-  else page = homeWhole ? <Home world={world} /> : <Spinner label={L('Cargando el atlas…', 'Loading the atlas…')} />;
+  else page = <HomeWhole whole={homeWhole} world={world} waiting={<Spinner label={L('Cargando el atlas…', 'Loading the atlas…')} />} />;
 
   // What breaks stays inside its screen, and moving to another one leaves it behind. A screen is also
   // mounted afresh when the unit of the distances changes: every text that tells one is read again.

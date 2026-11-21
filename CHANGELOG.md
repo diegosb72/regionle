@@ -10,7 +10,7 @@ Lo que ha traído cada versión, de la más reciente a la primera. Es la misma l
 - Retos del día por continente o país: diez preguntas cada día, las mismas para todo el mundo, de los países de un continente o de las regiones de un país.
 - Hay reto de cinco continentes y de 137 países. Los países que juegas se quedan a la vista en la portada, con el resultado de hoy y tus días seguidos.
 - Los dos se juegan con cuatro opciones y cuentan como cualquier partida para tu progreso. No tocan la racha ni los comodines del reto del día.
-- Lo que se apunta de ellos va en la copia de seguridad. Quien llega por primera vez no los ve hasta que ha jugado algo.
+- Lo que se apunta de ellos va en la copia de seguridad. Quien llega por primera vez no los ve hasta que cierra la bienvenida o juega algo.
 
 ## 1.29.0 — 20 de noviembre de 2026
 

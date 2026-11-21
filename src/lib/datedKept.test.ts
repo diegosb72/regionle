@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
+import { backupOf } from './backup';
 import { WEEKS_KEPT, ZONES_KEPT, cleanWeekly, cleanZones, isWeek, isZone, withWeek, withZone, type DatedResult, type WeekRec, type ZoneRec } from './datedKept';
-import { useStore } from './store';
+import { mergeSaved, useStore } from './store';
 
 const result = (patch: Partial<DatedResult> = {}): DatedResult => ({ s: 86, ok: 41, n: 50, ms: 252_000, ...patch });
 const week = (patch: Partial<WeekRec> = {}): WeekRec => ({ ...result(), t: 1_763_600_000_000, ...patch });
@@ -140,6 +141,29 @@ describe('the saved state keeps the weeks and the zones', () => {
     expect(useStore.getState().setZone('c:ES', '2026-11-20', result({ s: 100 }))).toBe(false);
     expect(useStore.getState().setZone('c:ES', '2026-11-21', result({ s: 100 }))).toBe(true);
     expect(useStore.getState().zones).toEqual({ 'c:ES': { d: '2026-11-21', ...result({ s: 100 }), run: 2 } });
+  });
+
+  it('reads them from what the browser kept, without what is not a week or a zone; a browser from before has none', () => {
+    const state = useStore.getState();
+    const read = mergeSaved({ weekly: { '2026-11-16': week(), '2026-11-17': week(), junk: 1 }, zones: { 'c:ES': zone({ run: 5 }), ES: zone(), 'p:EU': 'x' } }, state);
+    expect(read.weekly).toEqual({ '2026-11-16': week() });
+    expect(read.zones).toEqual({ 'c:ES': zone({ run: 5 }) });
+    expect(mergeSaved({}, state).weekly).toEqual({});
+    expect(mergeSaved({}, state).zones).toEqual({});
+    expect(mergeSaved({ weekly: 'x', zones: [zone()] }, state)).toMatchObject({ weekly: {}, zones: {} });
+  });
+
+  it('sends them in the backup, and a browser that reads it has them as they were', () => {
+    useStore.getState().setWeekly('2026-11-16', result());
+    useStore.getState().setZone('c:ES', '2026-11-20', result({ s: 70 }));
+    useStore.getState().setZone('c:ES', '2026-11-21', result({ s: 90 }));
+    const copy = JSON.parse(JSON.stringify(backupOf(useStore.getState(), 1_763_700_000_000))) as Record<string, unknown>;
+    expect(copy.weekly).toEqual(useStore.getState().weekly);
+    expect(copy.zones).toEqual({ 'c:ES': { d: '2026-11-21', ...result({ s: 90 }), run: 2 } });
+    useStore.setState({ weekly: {}, zones: {} });
+    expect(useStore.getState().importData(copy)).toBe(true);
+    expect(useStore.getState().weekly).toEqual(copy.weekly);
+    expect(useStore.getState().zones).toEqual(copy.zones);
   });
 
   it('brings them back from a backup, keeps its own when the backup is from before, and forgets them with the progress', () => {

@@ -74,6 +74,10 @@ describe('the game of a zone on a day', () => {
   it('or on the regions of a country, at the level its map opens with whatever the player has chosen', () => {
     const game = zoneGame('c:ES', '2026-11-20', index, DEFAULT_OPTS)!;
     expect(game).toMatchObject({ section: 'regions', mode: 'mix', countries: ['ES'], levels: { ES: 'g1' }, zone: { id: 'c:ES', date: '2026-11-20' }, challenge: { seed: zoneSeed('c:ES', '2026-11-20') } });
+    // The level a map opens with is neither its first nor its last: the United Kingdom opens with its twelve
+    // regions, between the four nations and the counties; Belgium, with its eleven provinces.
+    expect(zoneGame('c:GB', '2026-11-20', index, DEFAULT_OPTS)!.levels).toEqual({ GB: 'g2' });
+    expect(zoneGame('c:BE', '2026-11-20', index, DEFAULT_OPTS)!.levels).toEqual({ BE: 'f' });
   });
 
   it('settles what changes the questions, and leaves the rest as the player likes it', () => {

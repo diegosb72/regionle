@@ -1,4 +1,4 @@
-/* More challenges, under the one of the day: the challenge of the week and those of the day of a zone, side by side. */
+/* More challenges on the first page: the challenge of the week and those of the day of a zone, side by side. */
 .more {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);

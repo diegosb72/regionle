@@ -1,5 +1,5 @@
 import { ArrowRight, BookOpen, CalendarClock, Filter, Flame, Infinity as InfinityIcon, ListChecks, Star, Swords, X } from 'lucide-react';
-import { Suspense, useMemo } from 'react';
+import { Suspense, useMemo, useState, type ReactNode } from 'react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { lazyScreen, useHere } from '../components/lazy';
 import { ReviewCard } from '../components/ReviewCard';
@@ -15,7 +15,7 @@ import { recentKey, type Recent } from '../lib/recent';
 import { NOT_GAMES } from '../lib/rules';
 import { go, inGame } from '../lib/router';
 import { DUEL_PATH, LIST_PATH, PATHS, PLAY_PATH, screenPage } from '../lib/routes';
-import { useStore, type Fav, type State } from '../lib/store';
+import { isDated, useStore, type Fav, type State } from '../lib/store';
 import { nf, today } from '../lib/text';
 import type { Mode, Section } from '../lib/types';
 
@@ -255,6 +255,18 @@ export function useHomeWhole(): boolean {
 }
 
 /**
+ * The first page once it can be drawn whole (`whole`, from `useHomeWhole`), and from then on for as long as it
+ * is on screen. A card that comes to be wanted with the page in sight (the challenges of the week, when a
+ * newcomer closes the welcome) takes its place when its code arrives: the page is not taken away to wait for
+ * it, which would put it back at its top.
+ */
+export function HomeWhole({ whole, world, waiting }: { whole: boolean; world: World; waiting: ReactNode }) {
+  const [drawn, setDrawn] = useState(whole);
+  if (whole && !drawn) setDrawn(true);
+  return drawn ? <Home world={world} /> : <>{waiting}</>;
+}
+
+/**
  * What today adds up to, in a line that opens Progress: the days played in a row and how far the daily
  * target is. Nothing until there is a day with something done.
  */
@@ -314,14 +326,6 @@ export function Home({ world }: { world: World }) {
       {/* The first heading of the page; the headline further down is drawn as large as ever. */}
       <h1 className="sr-only">{L('Regionle ∞: juego de geografía para aprender el mapa del mundo', 'Regionle ∞: a geography game to learn the map of the world')}</h1>
       <DailyCard world={world} />
-      {/* Whoever has just arrived has enough with the challenge of the day and what the game is. */}
-      {!fresh && (
-        <ErrorBoundary fallback={() => null}>
-          <Suspense fallback={null}>
-            <MoreChallenges world={world} />
-          </Suspense>
-        </ErrorBoundary>
-      )}
       {hasGoals && (
         <ErrorBoundary>
           <Suspense fallback={null}>
@@ -338,6 +342,18 @@ export function Home({ world }: { world: World }) {
       )}
       <ReviewCard world={world} />
       <TodayLine />
+      {/*
+        More to play, under what there is to study today: a goal with a date, the session of the day and the
+        review are what is due, and on a phone this card is a screen tall. Whoever has just arrived has enough
+        with the challenge of the day and what the game is.
+      */}
+      {!fresh && (
+        <ErrorBoundary fallback={() => null}>
+          <Suspense fallback={null}>
+            <MoreChallenges world={world} />
+          </Suspense>
+        </ErrorBoundary>
+      )}
 
       <section className="hero">
         <p className="kicker">{L('Geografía para aprender jugando', 'Geography you learn by playing')}</p>
@@ -357,7 +373,8 @@ export function Home({ world }: { world: World }) {
             {L('Empezar con las regiones', 'Start with the regions')}
             <ArrowRight size={18} aria-hidden="true" />
           </button>
-          {game && !game.review && (
+          {/* A review and a challenge with a date have their own button on this page, which starts the one of today. */}
+          {game && !game.review && !isDated(game) && (
             <button type="button" className="btn btn-lg" onClick={() => go(PLAY_PATH)}>
               {L('Seguir', 'Resume')}: {modeNameIn(game.section, game.mode)}
             </button>
