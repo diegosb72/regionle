@@ -24,6 +24,7 @@ export const RELEASES: Release[] = [
       'Hay reto de cinco continentes y de 137 países. Los países que juegas se quedan a la vista en la portada, con el resultado de hoy y tus días seguidos.',
       'Los dos se juegan con cuatro opciones y cuentan como cualquier partida para tu progreso. No tocan la racha ni los comodines del reto del día.',
       'Lo que se apunta de ellos va en la copia de seguridad. Quien llega por primera vez no los ve hasta que cierra la bienvenida o juega algo.',
+      'Arreglado: si una tarjeta de la portada no terminaba de descargarse, la portada se quedaba cargando. Ahora sale sin ella a los cinco segundos.',
     ],
     en: [
       'Weekly challenge: on the first page, a long game of 50 questions on countries, the same for everybody from Monday to Sunday. The theme changes every week.',
@@ -32,6 +33,7 @@ export const RELEASES: Release[] = [
       'There is one for five continents and for 137 countries. The countries you play stay in sight on the first page, with the result of today and your days in a row.',
       'Both are played with four options and count like any game for your progress. They do not touch the streak or the wildcards of the daily challenge.',
       'What is kept of them travels in the backup. A newcomer does not see them until they close the welcome or play something.',
+      'Fixed: if a card of the first page never finished downloading, the page stayed on the loading message. Now it shows without it after five seconds.',
     ],
   },
   {

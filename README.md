@@ -225,15 +225,15 @@ Para sacar una versión: `npm version minor --no-git-tag-version` (o `patch`), a
 
 ### Tamaño
 
-La portada no descarga el juego entero: cada pantalla va en un archivo aparte que se pide cuando hace falta y, si el navegador no pide ahorrar datos, por adelantado en cuanto la página está ociosa. Los logros se calculan con la página ya dibujada, y los estilos del calendario y las gráficas llegan con Progreso. La pantalla de la partida tampoco lleva todos los juegos: los siete más nuevos (Situar a ciegas y Caliente y frío, Distancias y rumbos, Cadena de vecinos, Marca el grupo, ¿Quién soy?, Fronteras y Coordenadas) van cada uno en su archivo, que se pide mientras se dibuja el mapa. `scripts/budget.mjs`, al final de la compilación, suma lo que pesa comprimido (gzip) lo que una primera visita tiene que descargar y **detiene la compilación** si pasa de su límite:
+La portada no descarga el juego entero: cada pantalla va en un archivo aparte que se pide cuando hace falta y, si el navegador no pide ahorrar datos, por adelantado en cuanto la página está ociosa. Los logros se calculan con la página ya dibujada, y los estilos del calendario y las gráficas llegan con Progreso. La pantalla de la partida tampoco lleva todos los juegos: doce de ellos (Situar a ciegas y Caliente y frío, que comparten el suyo, Distancias y rumbos, Cadena de vecinos, Marca el grupo, ¿Quién soy?, Fronteras, Coordenadas, El intruso, Parejas, Alfabeto y Conexiones) van en archivos aparte, que se piden mientras se dibuja el mapa. Las tarjetas de la portada que no ve todo el mundo (los objetivos con fecha, la sesión del día y los retos de la semana y por zona) también van aparte: la portada espera a tenerlas para dibujarse entera, y si alguna no llega ni falla, a los cinco segundos sale sin ella. `scripts/budget.mjs`, al final de la compilación, suma lo que pesa comprimido (gzip) lo que una primera visita tiene que descargar y **detiene la compilación** si pasa de su límite:
 
 | | Hoy | Límite |
 | --- | --- | --- |
 | La página (la mayor de las diecisiete) | 2,8 kB | 5 kB |
-| Guiones de la primera carga | 128 kB | 130 kB |
+| Guiones de la primera carga | 127 kB | 130 kB |
 | Estilos | 25 kB | 26 kB |
 | Tipografías pedidas con la página | 102 kB | 110 kB |
-| El mayor de los guiones que se piden después | 48 kB | 60 kB |
+| El mayor de los guiones que se piden después | 54 kB | 60 kB |
 
 Antes de repartirlo, el juego era un solo guion de 247 kB comprimido. Los límites dejan algo de margen sobre lo que hay; subir uno es una decisión, no un trámite: se cambia en `scripts/budget.mjs`.
 

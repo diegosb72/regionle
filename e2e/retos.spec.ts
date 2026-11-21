@@ -22,6 +22,7 @@ interface Kept {
   game: { weekly?: string; zone?: { id: string; date: string }; levels: Record<string, string>; opts: Record<string, unknown> } | null;
   sessions: { total: number }[];
   daily: Record<string, unknown>;
+  recent: unknown[];
 }
 const kept = (page: Page) => page.evaluate(() => JSON.parse(localStorage.getItem('regionle:v1')!).state as Kept);
 
@@ -175,8 +176,10 @@ test.describe('more challenges on the first page', () => {
       new MutationObserver(() => {
         if (!document.querySelector('.hero-title') || document.querySelector('#root .spinner')) w.taken = true;
       }).observe(document.getElementById('root')!, { childList: true, subtree: true });
-      window.scrollTo(0, 200);
+      // The welcome is further down the page: that is where whoever closes it is.
+      document.querySelector('.welcome')!.scrollIntoView({ block: 'center' });
     });
+    expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(300);
     await page.locator('.welcome-close').click();
     await expect(page.locator('.welcome')).toHaveCount(0);
     await expect(card(page)).toBeVisible();
@@ -188,6 +191,22 @@ test.describe('more challenges on the first page', () => {
     }));
     // The same page, never out of sight, and not sent back to its top.
     expect(after).toEqual({ mark: 'mine', taken: false, top: false });
+  });
+
+  test('do not hold the first page for ever when their code neither comes nor fails: it is drawn without them', async ({ page }) => {
+    // A download that stalls: the request is never answered.
+    await page.route(/\/assets\/MoreChallenges-[^/]+\.js$/, () => undefined);
+    await seed(page, { opts: OPTS });
+    await page.goto('./#/');
+    // The page waits for the card, to be drawn whole…
+    await expect(page.locator('#root .spinner')).toBeVisible();
+    await page.waitForTimeout(2000);
+    expect(await page.locator('.hero-title').count()).toBe(0);
+    // …and after five seconds it is drawn without it.
+    await expect(page.locator('.hero-title')).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('.d-card')).toBeVisible();
+    await expect(page.locator('#root .spinner')).toHaveCount(0);
+    expect(await card(page).count()).toBe(0);
   });
 
   test('are those of the moment they are started at, on a page that has been open since the day before', async ({ page }) => {
@@ -243,6 +262,8 @@ test.describe('the challenge of the week', () => {
     // It counts as a game like any other, and it is none of the business of the challenge of the day.
     expect((await kept(page)).sessions).toMatchObject([{ total: 50 }]);
     expect((await kept(page)).daily).toEqual({});
+    // Nor is it a map to come back to among those played lately: it is offered here, the one of each week.
+    expect((await kept(page)).recent).toEqual([]);
     // Like any game, it can be sent to someone with its questions.
     await expect(page.locator('.duel').getByRole('button', { name: 'Retar a alguien' })).toBeVisible();
 
