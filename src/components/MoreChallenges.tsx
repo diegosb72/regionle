@@ -6,7 +6,7 @@
  */
 // Only icons the first page already carries: another one would make it fetch the rest of them.
 import { CalendarClock, CalendarDays, Check, Flame, Map as MapIcon, Play, RefreshCw, RotateCcw, Star } from 'lucide-react';
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { L, fmtDay, getLang, nm } from '../lib/i18n';
 import { modeNameIn } from '../lib/modes';
 import { daysTo, editionOn, occasionDate, occasionDone, occasionEnd, occasionGame, occasionName, occasionNext, occasionQuestions, occasionWhat, occasionsOpen, type Edition, type Occasion } from '../lib/occasions';
@@ -28,6 +28,24 @@ import './more.css';
  * again the next time, which brings it only in a browser that fetches twice a file that failed (see `Dates`).
  */
 const OccasionCalendar = lazyScreen(() => import('./OccasionCalendar').then((m) => m.OccasionCalendar));
+
+/** How long the calendar may take to come before the card says it is on its way: sooner, the words would only flicker. */
+const SOON = 400;
+
+/** What the card says while the code of the calendar is on its way, when that takes long enough to be noticed. */
+function Opening() {
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setSlow(true), SOON);
+    return () => clearTimeout(timer);
+  }, []);
+  if (!slow) return null;
+  return (
+    <p className="more-meta" role="status">
+      {L('Abriendo el calendario…', 'Opening the calendar…')}
+    </p>
+  );
+}
 
 /** "Banderas · Mundo", "Popurrí · Europa": the way of asking and where. */
 export const themeName = (theme: WeekTheme, index: Index): string => `${modeNameIn('countries', theme.mode)} · ${theme.part ? nm(index.continents[theme.part]) : L('Mundo', 'World')}`;
@@ -290,9 +308,10 @@ function Dates({ world, date, open }: { world: World; date: string; open: Editio
         )
       )}
       {calendar > 0 && (
-        // If its code does not come, the card is still there, and it says so. Asking again is of no use in a
-        // browser that remembers that a file failed to come and does not ask for it twice (Chrome does): the
-        // way to have it is to load the page again, where a new version of the game, if that was it, comes too.
+        // If its code does not come, the card is still there, and it says so. The button asks for it again,
+        // which is of no use in a browser that remembers that a file failed and does not fetch it twice, as
+        // Chrome long did: the sure way is to load the page again, where a new version of the game, if that
+        // was it, comes too.
         <ErrorBoundary
           key={calendar}
           fallback={() => (
@@ -310,7 +329,7 @@ function Dates({ world, date, open }: { world: World; date: string; open: Editio
             </div>
           )}
         >
-          <Suspense fallback={null}>
+          <Suspense fallback={<Opening />}>
             <OccasionCalendar world={world} onClose={() => setCalendar(0)} />
           </Suspense>
         </ErrorBoundary>

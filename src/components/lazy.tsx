@@ -15,36 +15,94 @@ export interface Part {
 
 export interface LazyScreen<P> extends Part {
   (props: P): ReactElement;
-  /** Fetches the code now. Safe to call many times; a failure is forgotten, so that it can be tried again. */
+  /** Fetches the code now. Safe to call many times: while it is on its way, or here, nothing is asked for again. */
   warm(): void;
+}
+
+/** One fetch of the code of a screen. */
+interface Attempt<P> {
+  /** What it brings. */
+  code: Promise<ComponentType<P>>;
+  /** What draws the screen with it: it waits while the code is on its way, and breaks if it does not come. */
+  screen: ComponentType<P>;
+  /** Whether a screen has been drawn with it, and so waits for it. */
+  shown: boolean;
+}
+
+/** A failure a screen was waiting for, until the boundary around the screen catches it. */
+interface Kept {
+  error: unknown;
+  forget(): void;
+}
+
+/** How long a failure is kept for a boundary that does not catch it: the screen that waited for it was left before. */
+export const KEPT = 10_000;
+
+const uncaught = new Set<Kept>();
+const drop = (kept: Kept): void => {
+  uncaught.delete(kept);
+  kept.forget();
+};
+
+/**
+ * Says that a boundary has caught an error. If it was the code of a screen that did not come, it has told what
+ * it had to tell: it is forgotten, and the next time the screen is shown its code is asked for again.
+ */
+export function caught(error: unknown): void {
+  for (const kept of [...uncaught]) if (kept.error === error) drop(kept);
 }
 
 export function lazyScreen<P extends object>(load: () => Promise<ComponentType<P>>): LazyScreen<P> {
   let loaded: ComponentType<P> | null = null;
-  let pending: Promise<ComponentType<P>> | null = null;
   let failed = false;
+  /** The fetch that is on its way or has come; or the one that failed, while the screen that waited for it has still to say so. */
+  let attempt: Attempt<P> | null = null;
 
-  const fetchIt = (): Promise<ComponentType<P>> =>
-    (pending ??= load().then(
+  const begin = (): Attempt<P> => {
+    const mine = { shown: false } as Attempt<P>;
+    const forget = (): void => {
+      if (attempt === mine) attempt = null;
+    };
+    mine.code = load().then(
       (component) => (loaded = component),
       (error: unknown) => {
-        // `React.lazy` keeps a failure for good: a new one is made so that showing the screen again asks again.
-        pending = null;
         failed = true;
-        waiting = fresh();
+        if (mine.shown) {
+          // A screen is waiting for this code, and has to be told it did not come: the failure stays until the
+          // boundary around the screen has it (`caught`). Were it forgotten now, the screen would ask again as
+          // React draws it again to tell, and again after that. A browser that keeps the failure of a file
+          // answers each of those at once, and it ends there (Chromium did so for years); one that fetches the
+          // file again never lets it end: the message that says to wait stays for good, with one request
+          // after another behind it.
+          const kept: Kept = { error, forget };
+          uncaught.add(kept);
+          setTimeout(() => drop(kept), KEPT);
+        } else {
+          // Fetched ahead of time, with nobody waiting: the next time asks again.
+          forget();
+        }
         throw error;
       },
-    ));
-  const fresh = (): ComponentType<P> => lazy(async () => ({ default: await fetchIt() })) as unknown as ComponentType<P>;
-  let waiting = fresh();
+    );
+    // Whoever waits is told by `ready`, or by the screen: the failure is nobody else's to hear of.
+    mine.code.catch(() => undefined);
+    mine.screen = lazy(async () => ({ default: await mine.code })) as unknown as ComponentType<P>;
+    return mine;
+  };
+  const current = (): Attempt<P> => (attempt ??= begin());
 
   function Screen(props: P) {
     // Decided once for each time the screen is shown: swapping one for the other later would start it again.
-    const [Use] = useState<ComponentType<P>>(() => loaded ?? waiting);
+    const [Use] = useState<ComponentType<P>>(() => {
+      if (loaded) return loaded;
+      const mine = current();
+      mine.shown = true;
+      return mine.screen;
+    });
     return createElement(Use, props);
   }
   const ready = (): Promise<void> =>
-    fetchIt().then(
+    current().code.then(
       () => undefined,
       () => undefined,
     );

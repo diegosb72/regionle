@@ -11,6 +11,7 @@ Lo que ha traído cada versión, de la más reciente a la primera. Es la misma l
 - Mientras hay uno abierto sale el primero en la tarjeta de retos de la portada, con su botón. El resto del año, la tarjeta dice cuál es el siguiente y cuándo.
 - «Ver el calendario» lista las 32 fechas, con lo que pregunta cada una y cómo te fue. Cualquiera se puede practicar todo el año, sin que se apunte nada.
 - Se juegan con cuatro opciones y cuentan como cualquier partida para tu progreso. Lo que se apunta de ellas va en la copia de seguridad.
+- Arreglado: si una pantalla no llegaba a descargarse, algunos navegadores se quedaban en «Cargando…», pidiéndola sin parar. Ahora lo dice y ofrece recargar.
 
 ## 1.30.0 — 21 de noviembre de 2026
 

@@ -462,36 +462,86 @@ test.describe('the calendar of the special days', () => {
     await expect(page).toHaveURL(/#\/$/);
   });
 
-  test('says so when its code does not come, with the way to have it: the page loaded again', async ({ page }) => {
+  /** The file with the code of the calendar. */
+  const CODE = /\/assets\/OccasionCalendar-[^/]+\.js$/;
+  const FAILED = 'No se ha podido abrir el calendario. Suele ser la conexión, o que hay una versión nueva del juego: recarga la página y vuelve a intentarlo.';
+  /** What the special days say, so that a failure here tells what was there instead. */
+  const told = async (page: Page) => (await dates(page).innerText()).replace(/\s+/g, ' ').slice(-220);
+
+  // The download is cut, or what comes is not the code: one way and the other the card says so. A browser may
+  // ask again for a file that failed or keep the failure (Chromium has done both), which is why both are here.
+  for (const [how, what] of [
+    ['is cut', 'cut'],
+    ['brings something broken', 'broken'],
+  ] as const) {
+    test(`says so when the download of its code ${how}, with the way to have it: the page loaded again`, async ({ page }) => {
+      await page.clock.setFixedTime(QUIET);
+      await seed(page, { opts: OPTS });
+      await open(page);
+      await expect(dates(page)).toBeVisible();
+      let asked = 0;
+      await page.route(CODE, (route) => {
+        asked += 1;
+        return what === 'cut' ? route.abort() : route.fulfill({ contentType: 'text/javascript', body: 'throw new Error("roto a propósito");' });
+      });
+      await dates(page).getByRole('button', { name: 'Ver el calendario' }).click();
+      await expect.poll(() => told(page), { timeout: 15_000 }).toContain(FAILED);
+      const alert = dates(page).getByRole('alert');
+      await expect(alert.locator('p')).toHaveText(FAILED);
+      // The card is all there, and so is the page.
+      await expect(next(page)).toBeVisible();
+      await expect(card(page).getByRole('button', { name: 'Jugar el reto de la semana' })).toBeVisible();
+      await expect(page.locator('.hero-title')).toBeVisible();
+      // It was asked for, and it is not asked for over and over while the card says what happened.
+      await page.waitForTimeout(1500);
+      expect(asked).toBeGreaterThan(0);
+      expect(asked).toBeLessThan(4);
+      const once = asked;
+      // Asking again says the same, once: nothing piles up.
+      await dates(page).getByRole('button', { name: 'Ver el calendario' }).click();
+      await expect(alert).toHaveCount(1);
+      await expect(alert.locator('p')).toHaveText(FAILED);
+      await expect(calendar(page)).toHaveCount(0);
+      await page.waitForTimeout(1000);
+      expect(asked - once).toBeLessThan(4);
+
+      // The connection is back: the page is loaded again from its button, and the calendar comes.
+      await page.unroute(CODE);
+      await alert.getByRole('button', { name: 'Recargar la página' }).click();
+      await expect(dates(page)).toBeVisible();
+      await expect(dates(page).getByRole('alert')).toHaveCount(0);
+      await openCalendar(page);
+      await expect(calendar(page).locator('.dates-row')).toHaveCount(32);
+    });
+  }
+
+  test('says it is on its way when its code is slow to come, and opens when it does', async ({ page }) => {
     await page.clock.setFixedTime(QUIET);
     await seed(page, { opts: OPTS });
     await open(page);
     await expect(dates(page)).toBeVisible();
-    let asked = 0;
-    await page.route(/\/assets\/OccasionCalendar-[^/]+\.js$/, (route) => {
-      asked += 1;
-      return route.abort();
+    let come!: () => void;
+    const held = new Promise<void>((done) => (come = done));
+    await page.route(CODE, async (route) => {
+      await held;
+      await route.continue();
     });
     await dates(page).getByRole('button', { name: 'Ver el calendario' }).click();
-    const alert = dates(page).getByRole('alert');
-    await expect(alert.locator('p')).toHaveText('No se ha podido abrir el calendario. Suele ser la conexión, o que hay una versión nueva del juego: recarga la página y vuelve a intentarlo.');
-    expect(asked).toBeGreaterThan(0);
-    // The card is all there, and so is the page.
-    await expect(next(page)).toBeVisible();
-    await expect(card(page).getByRole('button', { name: 'Jugar el reto de la semana' })).toBeVisible();
-    await expect(page.locator('.hero-title')).toBeVisible();
-    // Asking again says the same, once: nothing piles up.
-    await dates(page).getByRole('button', { name: 'Ver el calendario' }).click();
-    await expect(alert).toHaveCount(1);
-    await expect(calendar(page)).toHaveCount(0);
-
-    // The connection is back: the page is loaded again from its button, and the calendar comes.
-    await page.unroute(/\/assets\/OccasionCalendar-[^/]+\.js$/);
-    await alert.getByRole('button', { name: 'Recargar la página' }).click();
-    await expect(dates(page)).toBeVisible();
+    const status = dates(page).getByRole('status');
+    await expect(status).toHaveText('Abriendo el calendario…');
     await expect(dates(page).getByRole('alert')).toHaveCount(0);
-    await openCalendar(page);
+    await expect(calendar(page)).toHaveCount(0);
+    // The card is still to hand meanwhile.
+    await expect(next(page)).toBeVisible();
+    come();
+    await expect(calendar(page)).toBeVisible();
     await expect(calendar(page).locator('.dates-row')).toHaveCount(32);
+    await expect(status).toHaveCount(0);
+    // Open, it comes at once the next time: there is nothing to say meanwhile.
+    await page.keyboard.press('Escape');
+    await expect(calendar(page)).toHaveCount(0);
+    await openCalendar(page);
+    await expect(status).toHaveCount(0);
   });
 
   test('is not fetched until it is asked for', async ({ page }) => {

@@ -24,6 +24,7 @@ export const RELEASES: Release[] = [
       'Mientras hay uno abierto sale el primero en la tarjeta de retos de la portada, con su botón. El resto del año, la tarjeta dice cuál es el siguiente y cuándo.',
       '«Ver el calendario» lista las 32 fechas, con lo que pregunta cada una y cómo te fue. Cualquiera se puede practicar todo el año, sin que se apunte nada.',
       'Se juegan con cuatro opciones y cuentan como cualquier partida para tu progreso. Lo que se apunta de ellas va en la copia de seguridad.',
+      'Arreglado: si una pantalla no llegaba a descargarse, algunos navegadores se quedaban en «Cargando…», pidiéndola sin parar. Ahora lo dice y ofrece recargar.',
     ],
     en: [
       'Special days: 32 days of the year bring a challenge of their own, the same for everybody. It opens on its day and lasts a week.',
@@ -32,6 +33,7 @@ export const RELEASES: Release[] = [
       'While one is open it comes first on the challenges card of the first page, with its button. The rest of the year, the card says which one is next and when.',
       '“See the calendar” lists the 32 days, with what each one asks and how you did. Any of them can be practised all year round, with nothing kept.',
       'They are played with four options and count like any game for your progress. What is kept of them travels in the backup.',
+      'Fixed: when a screen failed to download, some browsers stayed on “Loading…”, asking for it over and over. Now the game says so and offers to reload.',
     ],
   },
   {
