@@ -1,5 +1,5 @@
 import { ArrowRight, BookOpen, CalendarClock, Filter, Flame, Infinity as InfinityIcon, ListChecks, Star, Swords, X } from 'lucide-react';
-import { Suspense, useMemo } from 'react';
+import { Suspense, useMemo, useState, type ReactNode } from 'react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { lazyScreen, useHere } from '../components/lazy';
 import { ReviewCard } from '../components/ReviewCard';
@@ -15,7 +15,7 @@ import { recentKey, type Recent } from '../lib/recent';
 import { NOT_GAMES } from '../lib/rules';
 import { go, inGame } from '../lib/router';
 import { DUEL_PATH, LIST_PATH, PATHS, PLAY_PATH, screenPage } from '../lib/routes';
-import { useStore, type Fav } from '../lib/store';
+import { isDated, useStore, type Fav, type State } from '../lib/store';
 import { nf, today } from '../lib/text';
 import type { Mode, Section } from '../lib/types';
 
@@ -228,12 +228,17 @@ function Recents({ world }: { world: World }) {
   );
 }
 
+/** Someone who has never played: no game finished or in course, no daily challenge, nothing answered. */
+const isFresh = (s: State): boolean => !s.welcomed && !s.sessions.length && !s.game && !s.tot.g && !Object.keys(s.daily).length && !Object.keys(s.stats).length;
+
 const goLabel = (id: Section): string => (id === 'physical' ? L('Elegir qué y dónde', 'Choose what and where') : L('Elegir países', 'Choose countries'));
 
 /** The goals with a date are fetched only by those who have one. */
 const GoalCards = lazyScreen(() => import('../components/GoalCard').then((m) => m.GoalCards));
 /** The session of the day: fetched for whoever has something answered, which is who can have one. */
 const DayCard = lazyScreen(() => import('../components/DayCard').then((m) => m.DayCard));
+/** The challenges of the week and of the zones: fetched for whoever has played before, who is the one that sees them. */
+const MoreChallenges = lazyScreen(() => import('../components/MoreChallenges').then((m) => m.MoreChallenges));
 /** The level, at the foot of the page: it comes with the achievements, which the first page does not carry. */
 const LevelChip = lazyScreen(() => import('../components/Badges').then((m) => m.LevelChip));
 
@@ -245,7 +250,20 @@ const LevelChip = lazyScreen(() => import('../components/Badges').then((m) => m.
 export function useHomeWhole(): boolean {
   const hasGoals = useStore((s) => s.goals.length > 0);
   const hasAnswers = useStore((s) => Object.keys(s.stats).length > 0);
-  return useHere([hasGoals ? GoalCards : null, hasAnswers ? DayCard : null]);
+  const fresh = useStore(isFresh);
+  return useHere([fresh ? null : MoreChallenges, hasGoals ? GoalCards : null, hasAnswers ? DayCard : null]);
+}
+
+/**
+ * The first page once it can be drawn whole (`whole`, from `useHomeWhole`), and from then on for as long as it
+ * is on screen. A card that comes to be wanted with the page in sight (the challenges of the week, when a
+ * newcomer closes the welcome) takes its place when its code arrives: the page is not taken away to wait for
+ * it, which would put it back at its top.
+ */
+export function HomeWhole({ whole, world, waiting }: { whole: boolean; world: World; waiting: ReactNode }) {
+  const [drawn, setDrawn] = useState(whole);
+  if (whole && !drawn) setDrawn(true);
+  return drawn ? <Home world={world} /> : <>{waiting}</>;
 }
 
 /**
@@ -289,8 +307,7 @@ export function Home({ world }: { world: World }) {
   const hasGoals = useStore((s) => s.goals.length > 0);
   const hasAnswers = useStore((s) => Object.keys(s.stats).length > 0);
   const game = useStore((s) => s.game);
-  // Someone who has never played: no game finished or in course, no daily challenge, nothing answered.
-  const fresh = useStore((s) => !s.welcomed && !s.sessions.length && !s.game && !s.tot.g && !Object.keys(s.daily).length && !Object.keys(s.stats).length);
+  const fresh = useStore(isFresh);
 
   const totals = useMemo(() => {
     const cs = world.index.countries.filter((c) => c.cl !== 'other');
@@ -325,6 +342,18 @@ export function Home({ world }: { world: World }) {
       )}
       <ReviewCard world={world} />
       <TodayLine />
+      {/*
+        More to play, under what there is to study today: a goal with a date, the session of the day and the
+        review are what is due, and on a phone this card is a screen tall. Whoever has just arrived has enough
+        with the challenge of the day and what the game is.
+      */}
+      {!fresh && (
+        <ErrorBoundary fallback={() => null}>
+          <Suspense fallback={null}>
+            <MoreChallenges world={world} />
+          </Suspense>
+        </ErrorBoundary>
+      )}
 
       <section className="hero">
         <p className="kicker">{L('Geografía para aprender jugando', 'Geography you learn by playing')}</p>
@@ -344,7 +373,8 @@ export function Home({ world }: { world: World }) {
             {L('Empezar con las regiones', 'Start with the regions')}
             <ArrowRight size={18} aria-hidden="true" />
           </button>
-          {game && !game.review && (
+          {/* A review and a challenge with a date have their own button on this page, which starts the one of today. */}
+          {game && !game.review && !isDated(game) && (
             <button type="button" className="btn btn-lg" onClick={() => go(PLAY_PATH)}>
               {L('Seguir', 'Resume')}: {modeNameIn(game.section, game.mode)}
             </button>

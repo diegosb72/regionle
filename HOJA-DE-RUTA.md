@@ -17,7 +17,7 @@ A petición del dueño del proyecto, desde la 1.18.0 se hace primero lo que meno
 el final lo que más. La estimación es a ojo y cambia al abrir el código:
 
 - **Corto**: nada pendiente
-- **Medio**: 45, 46, 51, 54, 66, 70, 73, 94, 98
+- **Medio**: 51, 54, 66, 70, 73, 94, 98
 - **Largo**: 20, 44 (francés), 65, 67, 68, 83, 90
 - **Depende de conseguir datos**, lleve lo que lleve: 30–32, 37–39, 41–43, 95, y lo que falta del 29 y del 35
 
@@ -78,8 +78,8 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 
 ## Reto del día y retos
 
-- [ ] 45. Retos del día por continente o por país
-- [ ] 46. Reto semanal largo
+- [x] 45. Retos del día por continente o por país: en la portada, diez preguntas al día, las mismas para todos, de los países de un continente (los cinco) o de las regiones de un país (los 137 con diez piezas o más); cuenta la primera vez que se termina cada día, con sus días seguidos por zona, y los países jugados en el último mes quedan a la vista — **1.30.0**
+- [x] 46. Reto semanal largo: en la portada, una partida de 50 preguntas sobre países, la misma para todos de lunes a domingo, con doce temas que se turnan (banderas, capitales, siluetas, señalar, identificar y popurrí, del mundo o de un continente); cuenta la primera vez que se termina, y después se puede repetir para practicar — **1.30.0**
 - [x] 47. Comparar el reto del día por enlace: el enlace del resultado lleva los puntos de las cinco pruebas y el nombre; quien lo abre juega el mismo reto y ve los resultados cara a cara, prueba a prueba, de hasta ocho personas — **1.20.0**
 - [x] 48. Estadísticas del reto: bajo el resultado, retos terminados, media, mejor resultado, racha y mejor racha, reparto de los puntos en cinco tramos y media de cada prueba, con la que mejor se da y la que más cuesta — **1.20.0**
 - [x] 49. Comodín de racha: cada 7 días seguidos de reto se gana un comodín, se guardan hasta 2, y el día que no se juega se gasta solo para que la racha siga — **1.20.0**

@@ -10,13 +10,14 @@ import { MapView, type MapHandle, type Paint } from '../components/MapView';
 import { SpeakButton, canSpeak, hush, speak } from '../components/Speak';
 import { Flag } from '../components/ui';
 import { seedOf } from '../lib/challenge';
+import { datedName, datedNote, keepDated, type Kept } from '../lib/dated';
 import { silhouette } from '../lib/geo';
 import { halve, hintKinds, hintLabel, hintOf, type Hint, type HintAsk, type HintKind } from '../lib/hints';
 import { L, nm } from '../lib/i18n';
 import { timesMixed } from '../lib/mix';
 import { MODE_NAME, formatName } from '../lib/modes';
 import { clockPaused, usePaused } from '../lib/pause';
-import { useStore, type FlagLook, type Format, type Skill } from '../lib/store';
+import { isDated, useStore, type FlagLook, type Format, type Skill } from '../lib/store';
 import { Matcher, shortNote } from '../lib/matcher';
 import type { Places } from '../lib/sets';
 import { cx, fmtTime, hintMax, letterHint, mulberry32, nf, sample, shuffle, type Answerable } from '../lib/text';
@@ -157,6 +158,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   const spent = format === 'lives' && lives === 0;
   /** Best mark of this map in the paced formats: 'new' when just beaten, the old one otherwise. */
   const [mark, setMark] = useState<'new' | number | null>(null);
+  /** A challenge with a date (lib/dated.ts): how its result has gone on record, once the game is over. */
+  const [kept, setKept] = useState<Kept | null>(null);
 
   const [flash, setFlash] = useState<{ id: string; kind: 'bad' | 'ok'; n: number } | null>(null);
   const [note, setNote] = useState<string | null>(null);
@@ -333,6 +336,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
       // A game without a single right answer sets no record.
       setMark(hits > 0 && setBest(key, hits) ? 'new' : (prev ?? null));
     }
+    // A challenge with a date counts the first time it is answered to the end.
+    if (isDated(cfg)) setKept(keepDated(cfg, s.asked >= s.total, { s: scoreOf(s.ok, s.warn, s.asked), ok: s.ok, n: s.asked, ms }));
     // The best mark of a map is that of an exam on all of it, answered to the end.
     if (exam && !cfg.list && s.total === pool.length && s.asked === s.total) {
       const key = `exam:${game}:${deck.key}`;
@@ -580,6 +585,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   if (import.meta.env.DEV) (window as unknown as { __ask?: string }).__ask = ended ? undefined : item?.id;
 
   const title = MODE_NAME[game];
+  /** Under the name of the game, its map; or the challenge with a date that it is. */
+  const subtitle = datedName(cfg, deck, places) ?? deck.title;
   const stage = (
     <>
       <MapView
@@ -628,7 +635,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
     return (
       <GameShell
         title={title}
-        subtitle={deck.title}
+        subtitle={subtitle}
         onExit={onExit}
         hud={<Hud ms={ms} />}
         stage={stage}
@@ -648,7 +655,9 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
                       : L('Partida terminada', 'Game over')
             }
             note={
-              !rows.length && retired.length
+              kept != null && rows.length
+                ? datedNote(subtitle, cfg, kept, score)
+                : !rows.length && retired.length
                 ? L(
                     `Lo que tocaba repasar eran capitales que se llaman como su ${one}: ya no se preguntan, así que salen del repaso.`,
                     `What was due were capitals named after their ${one}: they are no longer asked, so they leave the review.`,
@@ -684,8 +693,10 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
             ms={ms}
             stats={[{ label: L('Mejor racha', 'Best streak'), value: s.bestStreak }]}
             again={rows.length > 0 || !retired.length}
-            onAgain={() => onAgain({ only: cfg.only, list: cfg.list, challenge: undefined })}
-            onReview={(ids) => onAgain({ only: ids, list: undefined, challenge: undefined, lot: medley ? (cfg.lot ?? seed) : undefined })}
+            // A challenge with a date that was left before its end is still to be played: again is the same one.
+            // Once it is on record, again is a game like any other: new questions, and nothing written down.
+            onAgain={() => onAgain(isDated(cfg) && (kept == null || kept === 'short') ? {} : { only: cfg.only, list: cfg.list, challenge: undefined, weekly: undefined, zone: undefined })}
+            onReview={(ids) => onAgain({ only: ids, list: undefined, challenge: undefined, weekly: undefined, zone: undefined, lot: medley ? (cfg.lot ?? seed) : undefined })}
             onExit={onExit}
           >
             {rows.length > 0 && format === 'normal' && s.asked >= s.total && <ChallengeBox cfg={cfg} score={score} ms={ms} what={`${deck.title} · ${title}`} />}
@@ -1009,7 +1020,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   return (
     <GameShell
       title={title}
-      subtitle={deck.title}
+      subtitle={subtitle}
       onExit={onExit}
       progress={format === 'timed' ? ms / TIME_LIMIT : Number.isFinite(s.total) ? s.asked / s.total : undefined}
       hud={

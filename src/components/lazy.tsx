@@ -55,29 +55,40 @@ export function lazyScreen<P extends object>(load: () => Promise<ComponentType<P
   return Object.assign(Screen, { warm, here, ready });
 }
 
+/** How long a page waits for the code of its parts before it is drawn without them. */
+export const PATIENCE = 5000;
+
 /**
  * Whether the code of all these parts is here; one that is not wanted is `null`. What is missing is fetched,
  * and the answer changes when it has come. A page that waits for it is drawn whole: with `Suspense` alone, a
  * part that arrives after the rest is shown a third of a second later at the soonest, and pushes down what
  * was already being read.
+ *
+ * The wait has an end. Code that fails to come is over at once (`Part.here`), but a download can also stall,
+ * neither arriving nor failing, and the page would wait for it for ever: after `patience` the answer is yes,
+ * and a part that comes later is drawn then.
  */
-export function useHere(parts: readonly (Part | null)[]): boolean {
+export function useHere(parts: readonly (Part | null)[], patience = PATIENCE): boolean {
   const [, redraw] = useReducer((n: number) => n + 1, 0);
   const here = parts.every((p) => !p || p.here());
   const wanted = parts.map((p) => (p ? 1 : 0)).join('');
+  // The parts the wait was given up for: when others come to be wanted, they are waited for afresh.
+  const [late, setLate] = useState<string | null>(null);
   useEffect(() => {
     if (here) return undefined;
     let on = true;
     void Promise.all(parts.map((p) => p?.ready())).then(() => {
       if (on) redraw();
     });
+    const timer = setTimeout(() => setLate(wanted), patience);
     return () => {
       on = false;
+      clearTimeout(timer);
     };
     // The parts are the same from one draw to the next: what changes is which of them are wanted.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [here, wanted]);
-  return here;
+  return here || late === wanted;
 }
 
 /** Runs `task` when the browser has nothing better to do, or soon enough where it cannot say. */
