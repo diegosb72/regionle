@@ -2,7 +2,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { NAME_MAX, TESTS, cleanRivals, emptyRec, streakOf, withJokers, withRival, type DailyRec, type Rival } from '../daily/spec';
-import { cleanWeekly, cleanZones, withWeek, withZone, type DatedResult, type WeekRec, type ZoneRec } from './datedKept';
+import { cleanOccasions, cleanWeekly, cleanZones, withOccasion, withWeek, withZone, type DatedResult, type OccasionRec, type WeekRec, type ZoneRec } from './datedKept';
 import { NO_DAY, cleanDayDone, withStep, type DayDone, type Step } from './dayDone';
 import { DAY_GOAL_DEFAULT, cleanDays, dailyWork, daysFrom, isDayGoal, studyStreak, withDay, type Days } from './days';
 import type { CityPick } from './extra';
@@ -148,12 +148,13 @@ export interface GameConfig {
    */
   challenge?: { seed: number; from?: string; score?: number; ms?: number; legacy?: boolean };
   /**
-   * A challenge with a date other than the one of the day: that of a week (lib/weekly.ts), by its Monday, or
-   * that of a day of a continent or a country (lib/zones.ts). Its result is kept the first time it is played
-   * to the end.
+   * A challenge with a date other than the one of the day: that of a week (lib/weekly.ts), by its Monday,
+   * that of a day of a continent or a country (lib/zones.ts), or that of a special day of a year
+   * (lib/occasions.ts). Its result is kept the first time it is played to the end.
    */
   weekly?: string;
   zone?: { id: string; date: string };
+  occasion?: { id: string; year: number };
   /**
    * A medley of its misses: the lot the ways of asking were dealt with in the game they come from, so that
    * each piece is asked again the way it was missed.
@@ -302,6 +303,8 @@ export interface State {
   weekly: Record<string, WeekRec>;
   /** The last day the challenge of each continent or country was finished, by zone. */
   zones: Record<string, ZoneRec>;
+  /** The last year the challenge of each special day was finished, by the name of the day. */
+  occasions: Record<string, OccasionRec>;
   /** Interface language; null until chosen: the browser's language decides. */
   lang: Lang | null;
   /** Name put on the challenges sent to others. */
@@ -412,6 +415,8 @@ export interface State {
   setWeekly(week: string, result: DatedResult): boolean;
   /** Keeps the result of the challenge of a day of a zone, unless that day or a later one is kept; says whether it was. */
   setZone(zone: string, date: string, result: DatedResult): boolean;
+  /** Keeps the result of the challenge of a special day in a year, unless that year or a later one is kept; says whether it was. */
+  setOccasion(id: string, year: number, result: DatedResult): boolean;
   /** Keeps the result somebody sent of the challenge of a day. */
   addRival(date: string, rival: Rival): void;
   /** Takes one of them away: the one at that place of the day's list. */
@@ -470,6 +475,7 @@ export const useStore = create<State>()(
       rivals: {},
       weekly: {},
       zones: {},
+      occasions: {},
       days: {},
       dayGoal: DAY_GOAL_DEFAULT,
       dayPlan: NO_DAY,
@@ -588,6 +594,13 @@ export const useStore = create<State>()(
         set({ zones });
         return true;
       },
+      setOccasion: (id, year, result) => {
+        const before = get().occasions;
+        const occasions = withOccasion(before, id, year, result, Date.now());
+        if (occasions === before) return false;
+        set({ occasions });
+        return true;
+      },
       addRival: (date, rival) => set((s) => ({ rivals: withRival(s.rivals, date, rival) })),
       dropRival: (date, index) => set((s) => ({ rivals: cleanRivals({ ...s.rivals, [date]: (s.rivals[date] ?? []).filter((_, i) => i !== index) }) })),
       setDaily: (date, test, points, figure, hard = false) =>
@@ -686,7 +699,7 @@ export const useStore = create<State>()(
         if (better) set((s) => ({ best: { ...s.best, [key]: value } }));
         return better;
       },
-      resetProgress: () => set({ stats: {}, where: {}, mix: {}, sessions: [], recent: [], best: {}, daily: {}, rivals: {}, weekly: {}, zones: {}, days: {}, dayPlan: NO_DAY, badges: {}, tot: {}, album: {}, backup: NO_BACKUP }),
+      resetProgress: () => set({ stats: {}, where: {}, mix: {}, sessions: [], recent: [], best: {}, daily: {}, rivals: {}, weekly: {}, zones: {}, occasions: {}, days: {}, dayPlan: NO_DAY, badges: {}, tot: {}, album: {}, backup: NO_BACKUP }),
       markBackup: (now) => set((s) => ({ backup: { at: now, from: now, q: s.tot.q ?? 0 } })),
       snoozeBackup: (now) => set((s) => ({ backup: { at: s.backup.at, from: now, q: s.tot.q ?? 0 } })),
       importData: (data, prefs, now = Date.now()) => {
@@ -709,9 +722,10 @@ export const useStore = create<State>()(
           best: d.best ?? {},
           favs: Array.isArray(d.favs) ? d.favs : get().favs,
           daily: d.daily && typeof d.daily === 'object' ? d.daily : get().daily,
-          // A copy from before the challenges of the week and of the zones says nothing about them: they stay.
+          // A copy from before the challenges of the week, of the zones or of the special days says nothing about them: they stay.
           weekly: d.weekly && typeof d.weekly === 'object' ? cleanWeekly(d.weekly) : get().weekly,
           zones: d.zones && typeof d.zones === 'object' ? cleanZones(d.zones) : get().zones,
+          occasions: d.occasions && typeof d.occasions === 'object' ? cleanOccasions(d.occasions) : get().occasions,
           // A copy from before the calendar brings what its sessions and its daily challenges add up to.
           days: d.days && typeof d.days === 'object' ? cleanDays(d.days) : daysFrom(d.sessions ?? [], d.daily && typeof d.daily === 'object' ? d.daily : {}),
           lists: Array.isArray(d.lists) ? d.lists.filter(isList) : get().lists,
@@ -755,6 +769,7 @@ export const useStore = create<State>()(
         rivals: s.rivals,
         weekly: s.weekly,
         zones: s.zones,
+        occasions: s.occasions,
         days: s.days,
         dayGoal: s.dayGoal,
         dayPlan: s.dayPlan,
@@ -839,6 +854,7 @@ export function mergeSaved(saved: unknown, current: State): State {
     rivals: cleanRivals(p.rivals),
     weekly: cleanWeekly(p.weekly),
     zones: cleanZones(p.zones),
+    occasions: cleanOccasions(p.occasions),
     goals: cleanGoals(p.goals),
     notes: cleanNotes(p.notes),
     hand: cleanHand(p.hand),
@@ -884,8 +900,8 @@ export const learntIn = (stats: Record<string, Stat>): number => Object.values(s
  */
 export const gameOn = (s: Pick<State, 'game' | 'hosted'>): GameConfig | null => s.hosted ?? s.game;
 
-/** Whether a game is a challenge with a date other than the one of the day: that of a week, or of a day of a zone. */
-export const isDated = (game: Pick<GameConfig, 'weekly' | 'zone'> | null | undefined): boolean => !!game && !!(game.weekly || game.zone);
+/** Whether a game is a challenge with a date other than the one of the day: that of a week, of a day of a zone, or of a special day. */
+export const isDated = (game: Pick<GameConfig, 'weekly' | 'zone' | 'occasion'> | null | undefined): boolean => !!game && !!(game.weekly || game.zone || game.occasion);
 
 /** The maps played lately once a game has ended: with it first when it is one to come back to. */
 function withRecentOf(list: Recent[], game: GameConfig | null, rec: SessionRec): Recent[] {

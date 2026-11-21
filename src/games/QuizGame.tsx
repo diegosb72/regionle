@@ -37,6 +37,8 @@ const SKILL: Partial<Record<QuizMode, Skill>> = { pin: 'loc', puzzle: 'loc', ide
 
 /** A question nobody has asked for help with. */
 const NO_HELP = { main: 0, used: [], said: [], cut: [], open: false };
+/** What makes a game a challenge with a date, taken away: what is left is a game like any other. */
+const UNDATED = { challenge: undefined, weekly: undefined, zone: undefined, occasion: undefined };
 
 /** Against the clock: how long a game lasts. */
 export const TIME_LIMIT = 60_000;
@@ -695,8 +697,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
             again={rows.length > 0 || !retired.length}
             // A challenge with a date that was left before its end is still to be played: again is the same one.
             // Once it is on record, again is a game like any other: new questions, and nothing written down.
-            onAgain={() => onAgain(isDated(cfg) && (kept == null || kept === 'short') ? {} : { only: cfg.only, list: cfg.list, challenge: undefined, weekly: undefined, zone: undefined })}
-            onReview={(ids) => onAgain({ only: ids, list: undefined, challenge: undefined, weekly: undefined, zone: undefined, lot: medley ? (cfg.lot ?? seed) : undefined })}
+            onAgain={() => onAgain(isDated(cfg) && (kept == null || kept === 'short') ? {} : { only: cfg.only, list: cfg.list, ...UNDATED })}
+            onReview={(ids) => onAgain({ only: ids, list: undefined, ...UNDATED, lot: medley ? (cfg.lot ?? seed) : undefined })}
             onExit={onExit}
           >
             {rows.length > 0 && format === 'normal' && s.asked >= s.total && <ChallengeBox cfg={cfg} score={score} ms={ms} what={`${deck.title} · ${title}`} />}

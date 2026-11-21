@@ -1,13 +1,15 @@
 /**
  * More challenges on the first page, under the one of the day and what there is to study today: the challenge
- * of the week (lib/weekly.ts) and the ones of the day of a continent or a country (lib/zones.ts). Each is a
- * game like any other, started from here; what is kept of them is what this card shows.
+ * of the week (lib/weekly.ts), the ones of the day of a continent or a country (lib/zones.ts) and those of
+ * the special days of the year (lib/occasions.ts). Each is a game like any other, started from here; what is
+ * kept of them is what this card shows.
  */
 // Only icons the first page already carries: another one would make it fetch the rest of them.
-import { CalendarDays, Check, Flame, Map as MapIcon, Play, RotateCcw } from 'lucide-react';
-import { useState } from 'react';
+import { CalendarClock, CalendarDays, Check, Flame, Map as MapIcon, Play, RefreshCw, RotateCcw, Star } from 'lucide-react';
+import { Suspense, useState } from 'react';
 import { L, fmtDay, getLang, nm } from '../lib/i18n';
 import { modeNameIn } from '../lib/modes';
+import { daysTo, editionOn, occasionDate, occasionDone, occasionEnd, occasionGame, occasionName, occasionNext, occasionQuestions, occasionWhat, occasionsOpen, type Edition, type Occasion } from '../lib/occasions';
 import { go } from '../lib/router';
 import { PLAY_PATH } from '../lib/routes';
 import { useStore } from '../lib/store';
@@ -16,8 +18,13 @@ import type { Country, Index } from '../lib/types';
 import { daysLeft, themeOf, weekEnd, weekGame, weekOf, weekQuestions, weekTotals, type WeekTheme } from '../lib/weekly';
 import type { World } from '../lib/world';
 import { ZONE_PARTS, countryZone, partZone, zoneCountries, zoneDone, zoneGame, zoneRun, zonesShown } from '../lib/zones';
+import { ErrorBoundary } from './ErrorBoundary';
+import { lazyScreen } from './lazy';
 import { Flag } from './ui';
 import './more.css';
+
+/** The calendar of the special days: fetched the first time it is opened, and asked for again if it did not come. */
+const OccasionCalendar = lazyScreen(() => import('./OccasionCalendar').then((m) => m.OccasionCalendar));
 
 /** "Banderas · Mundo", "Popurrí · Europa": the way of asking and where. */
 export const themeName = (theme: WeekTheme, index: Index): string => `${modeNameIn('countries', theme.mode)} · ${theme.part ? nm(index.continents[theme.part]) : L('Mundo', 'World')}`;
@@ -186,12 +193,143 @@ function Zones({ world, date }: { world: World; date: string }) {
   );
 }
 
+/** The flag of the country an occasion is the national day of; nothing for an international day. */
+export const occasionFlag = (o: Occasion, index: Index): string | undefined => {
+  const { ask } = o;
+  return ask.section === 'regions' ? index.countries.find((c) => c.id === ask.country)?.fl : undefined;
+};
+
+/** "27 preguntas" */
+export const questions = (n: number): string => L(`${nf(n)} preguntas`, `${nf(n)} questions`);
+
+/**
+ * The special days: the challenges that are open today, each with its button, or else the next one to come;
+ * and the calendar of the whole year, where any of them can be played for practice.
+ */
+function Dates({ world, date, open }: { world: World; date: string; open: Edition[] }) {
+  const kept = useStore((s) => s.occasions);
+  const opts = useStore((s) => s.opts);
+  const start = useStore((s) => s.start);
+  /** The calendar: 0 while it is shut, and the number of the time it was opened otherwise, so that one that failed to come is asked for again. */
+  const [calendar, setCalendar] = useState(0);
+  const next = occasionNext(date);
+  /** With several open at once, each button is a small one: the card would be all buttons otherwise. */
+  const several = open.length > 1;
+  const play = (o: Occasion) => {
+    // The day is read when the game starts: the page may have been open since before the challenge closed,
+    // and then what is left of it is the game for practice.
+    start(occasionGame(o, editionOn(o, today()), world.index, opts));
+    go(PLAY_PATH);
+  };
+  return (
+    <div className="more-dates">
+      <div className="more-dates-head">
+        <h2 className="kicker">
+          <Star size={15} aria-hidden="true" /> {L('Fechas señaladas', 'Special days')}
+        </h2>
+        <button type="button" className="btn btn-sm" onClick={() => setCalendar((n) => n + 1)} aria-haspopup="dialog">
+          <CalendarDays size={15} aria-hidden="true" />
+          {L('Ver el calendario', 'See the calendar')}
+        </button>
+      </div>
+      {open.length > 0 ? (
+        <ul className="more-days">
+          {open.map(({ o, year }) => {
+            const rec = kept[o.id];
+            const done = occasionDone(rec, year);
+            const end = occasionEnd(o, year);
+            const day = occasionDate(o, year);
+            const flag = occasionFlag(o, world.index);
+            return (
+              <li key={o.id} className="more-day" data-occasion={o.id}>
+                <div className="more-day-what">
+                  <h3 className="more-day-name">
+                    {flag && <Flag code={flag} size="sm" />}
+                    <span>{occasionName(o)}</span>
+                  </h3>
+                  <p className="more-text">
+                    {done ? (
+                      <>
+                        <b className="more-score">{percent(rec.s)}</b>{' '}
+                        {L(`${nf(rec.ok)} de ${nf(rec.n)} a la primera, en ${fmtTime(rec.ms)}. ${occasionWhat(o)}.`, `${nf(rec.ok)} of ${nf(rec.n)} right first time, in ${fmtTime(rec.ms)}. ${occasionWhat(o)}.`)}
+                      </>
+                    ) : (
+                      L(`${occasionWhat(o)}: ${questions(occasionQuestions(o, world.index))}, las mismas para todo el mundo.`, `${occasionWhat(o)}: ${questions(occasionQuestions(o, world.index))}, the same for everybody.`)
+                    )}
+                  </p>
+                </div>
+                <div className="more-go">
+                  <button type="button" className={done ? 'btn btn-sm' : several ? 'btn btn-primary btn-sm' : 'btn btn-primary'} onClick={() => play(o)} aria-label={done ? L(`Jugar otra vez: ${occasionName(o)}`, `Play again: ${occasionName(o)}`) : L(`Jugar: ${occasionName(o)}`, `Play: ${occasionName(o)}`)}>
+                    {done ? <RotateCcw size={15} aria-hidden="true" /> : <Play size={16} aria-hidden="true" />}
+                    {done ? L('Jugarlo otra vez', 'Play it again') : L('Jugar', 'Play')}
+                  </button>
+                  <span className="more-meta">
+                    {day === date ? L('Hoy', 'Today') : fmtDay(day)}
+                    {' · '}
+                    {done ? L('Otra vez ya no cuenta', 'Again no longer counts') : end === date ? L('Último día', 'Last day') : L(`Abierto hasta el ${fmtDay(end)}`, `Open until ${fmtDay(end)}`)}
+                  </span>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        next && (
+          <p className="more-text more-next">
+            <CalendarClock size={16} aria-hidden="true" />
+            <span>
+              {L('Próxima: ', 'Next: ')}
+              <b>{occasionName(next.o)}</b>
+              {L(`, el ${fmtDay(occasionDate(next.o, next.year))} (${until(daysTo(date, occasionDate(next.o, next.year)))}). `, `, on ${fmtDay(occasionDate(next.o, next.year))} (${until(daysTo(date, occasionDate(next.o, next.year)))}). `)}
+              {L(`${occasionWhat(next.o)}: el reto se abre ese día y dura una semana.`, `${occasionWhat(next.o)}: the challenge opens that day and lasts a week.`)}
+            </span>
+          </p>
+        )
+      )}
+      {calendar > 0 && (
+        // If its code does not come, the card is still there, and it says so. Asking again is of no use in a
+        // browser that remembers that a file failed to come and does not ask for it twice (Chrome does): the
+        // way to have it is to load the page again, where a new version of the game, if that was it, comes too.
+        <ErrorBoundary
+          key={calendar}
+          fallback={() => (
+            <div className="more-failed" role="alert">
+              <p className="more-meta">
+                {L(
+                  'No se ha podido abrir el calendario. Suele ser la conexión, o que hay una versión nueva del juego: recarga la página y vuelve a intentarlo.',
+                  'The calendar could not be opened. It is usually the connection, or a new version of the game: reload the page and try again.',
+                )}
+              </p>
+              <button type="button" className="btn btn-sm" onClick={() => window.location.reload()}>
+                <RefreshCw size={14} aria-hidden="true" />
+                {L('Recargar la página', 'Reload the page')}
+              </button>
+            </div>
+          )}
+        >
+          <Suspense fallback={null}>
+            <OccasionCalendar world={world} onClose={() => setCalendar(0)} />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+    </div>
+  );
+}
+
+/** "mañana", "dentro de 15 días" */
+const until = (days: number): string => (days === 1 ? L('mañana', 'tomorrow') : L(`dentro de ${nf(days)} días`, `in ${nf(days)} days`));
+
 export function MoreChallenges({ world }: { world: World }) {
   const date = today();
+  // A special day that is open goes first, while it lasts; the rest of the year the next one is told at the foot.
+  const open = occasionsOpen(date);
+  const dates = <Dates world={world} date={date} open={open} />;
   return (
     <section className="more" aria-label={L('Más retos', 'More challenges')}>
+      {open.length > 0 && dates}
       <Week world={world} date={date} />
       <Zones world={world} date={date} />
+      {open.length === 0 && dates}
     </section>
   );
 }

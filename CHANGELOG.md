@@ -3,6 +3,15 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.31.0 — 21 de noviembre de 2026
+
+- Fechas señaladas: 32 días del año traen un reto propio, el mismo para todo el mundo. Se abre ese día y dura una semana.
+- Hay días internacionales (el Agua, la Tierra, Europa, África, los Océanos, las Montañas…) y fiestas de 17 países, cada una con el mapa de su país.
+- Cuenta la primera vez que lo terminas: queda apuntado tu porcentaje de ese año. Si lo dejas a medias no se apunta, y puedes empezarlo otra vez.
+- Mientras hay uno abierto sale el primero en la tarjeta de retos de la portada, con su botón. El resto del año, la tarjeta dice cuál es el siguiente y cuándo.
+- «Ver el calendario» lista las 32 fechas, con lo que pregunta cada una y cómo te fue. Cualquiera se puede practicar todo el año, sin que se apunte nada.
+- Se juegan con cuatro opciones y cuentan como cualquier partida para tu progreso. Lo que se apunta de ellas va en la copia de seguridad.
+
 ## 1.30.0 — 21 de noviembre de 2026
 
 - Reto de la semana: en la portada, una partida larga de 50 preguntas sobre países, la misma para todo el mundo de lunes a domingo. Cada semana cambia el tema.

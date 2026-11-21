@@ -15,6 +15,26 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.31.0',
+    date: '2026-11-21',
+    es: [
+      'Fechas señaladas: 32 días del año traen un reto propio, el mismo para todo el mundo. Se abre ese día y dura una semana.',
+      'Hay días internacionales (el Agua, la Tierra, Europa, África, los Océanos, las Montañas…) y fiestas de 17 países, cada una con el mapa de su país.',
+      'Cuenta la primera vez que lo terminas: queda apuntado tu porcentaje de ese año. Si lo dejas a medias no se apunta, y puedes empezarlo otra vez.',
+      'Mientras hay uno abierto sale el primero en la tarjeta de retos de la portada, con su botón. El resto del año, la tarjeta dice cuál es el siguiente y cuándo.',
+      '«Ver el calendario» lista las 32 fechas, con lo que pregunta cada una y cómo te fue. Cualquiera se puede practicar todo el año, sin que se apunte nada.',
+      'Se juegan con cuatro opciones y cuentan como cualquier partida para tu progreso. Lo que se apunta de ellas va en la copia de seguridad.',
+    ],
+    en: [
+      'Special days: 32 days of the year bring a challenge of their own, the same for everybody. It opens on its day and lasts a week.',
+      'There are international days (Water, Earth, Europe, Africa, Oceans, Mountains…) and the national days of 17 countries, each on the map of its country.',
+      'The first time you finish it is the one that counts: your score for that year goes on record. Left halfway, nothing is kept, and you can start it again.',
+      'While one is open it comes first on the challenges card of the first page, with its button. The rest of the year, the card says which one is next and when.',
+      '“See the calendar” lists the 32 days, with what each one asks and how you did. Any of them can be practised all year round, with nothing kept.',
+      'They are played with four options and count like any game for your progress. What is kept of them travels in the backup.',
+    ],
+  },
+  {
     version: '1.30.0',
     date: '2026-11-21',
     es: [
