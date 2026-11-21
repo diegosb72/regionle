@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { BACKUP_EVERY_ANSWERS, BACKUP_EVERY_MS, BACKUP_VERSION, PREF_KEYS, backupDue, backupName, backupOf, cleanPrefs, prefsOf, shareFile, sinceBackup, summaryOf } from './backup';
+import { cleanGhosts, type Kept } from './ghost';
 import { DEFAULT_OPTS, cleanBackupMark, mergeSaved, useStore, type Stat } from './store';
 
 const DAY = 86_400_000;
@@ -47,6 +48,22 @@ describe('what a backup holds', () => {
       expect(copy.prefs).not.toHaveProperty(key);
     }
     expect(backupName('progreso', Date.UTC(2026, 10, 19, 12))).toBe('regionle-progreso-2026-11-19.json');
+  });
+
+  it('carries the ghosts handed to it, which are kept apart from the rest: none when none are', () => {
+    play();
+    expect(backupOf(state(), NOW).ghosts).toEqual([]);
+    const ghosts: Kept[] = [
+      ['regions|pin|abc123', { k: 7, h: 99, t: NOW - DAY, q: [60, 61, 62], d: 70 }],
+      ['countries|flag|z9', { k: 8, h: 5, t: NOW, q: [30], d: 10 }],
+    ];
+    const copy = JSON.parse(JSON.stringify(backupOf(state(), NOW, ghosts)));
+    expect(copy.ghosts).toEqual(ghosts);
+    // What comes back from the file is what went into it, and is still what the game takes for ghosts.
+    expect(cleanGhosts(copy.ghosts)).toEqual(ghosts);
+    // The rest of the copy is the same with them as without.
+    expect({ ...copy, ghosts: [] }).toEqual(JSON.parse(JSON.stringify(backupOf(state(), NOW))));
+    expect(BACKUP_VERSION).toBe(4);
   });
 
   it('is summed up in a few figures, the same for a file and for the game as it stands', () => {

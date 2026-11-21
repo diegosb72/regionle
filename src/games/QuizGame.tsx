@@ -3,7 +3,7 @@
  * capitals, flags, what each piece belongs to, and the medley that deals the others by turns.
  */
 import { ArrowRight, ChevronDown, Flag as FlagIcon, Heart, Lightbulb, MapPin, Timer } from 'lucide-react';
-import { useEffect, useMemo, useReducer, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, type CSSProperties } from 'react';
 import { AnswerInput, type Suggestion } from '../components/AnswerInput';
 import { ChallengeBox } from '../components/ChallengeBox';
 import { MapView, type MapHandle, type Paint } from '../components/MapView';
@@ -12,6 +12,8 @@ import { Flag } from '../components/ui';
 import { seedOf } from '../lib/challenge';
 import { datedName, datedNote, keepDated, type Kept } from '../lib/dated';
 import { silhouette } from '../lib/geo';
+import type { Ghost } from '../lib/ghost';
+import { anyGhost, ghostable, useGhostCode } from '../lib/ghostLazy';
 import { halve, hintKinds, hintLabel, hintOf, type Hint, type HintAsk, type HintKind } from '../lib/hints';
 import { L, nm } from '../lib/i18n';
 import { timesMixed } from '../lib/mix';
@@ -23,7 +25,8 @@ import type { Places } from '../lib/sets';
 import { cx, fmtTime, hintMax, letterHint, mulberry32, nf, sample, shuffle, type Answerable } from '../lib/text';
 import { capitalAnswers } from '../lib/typeins';
 import type { Belongs, Item, Res } from '../lib/types';
-import { GameShell, Hud, Results, Verdict, answered, nearest, originOf, showsCountry, useElapsed, type GameProps, type ResultRow } from './common';
+import { GameShell, Hud, Results, Verdict, answered, nearest, originOf, showsCountry, useClock, type GameProps, type ResultRow } from './common';
+import type { GhostEnd } from './Ghost';
 import { FLAG_BLUR, answersItself, askOf, asksFor, belongsItself, capitalsNeedTyping, gradeOf, initQuiz, quizReducer, scoreOf, turnOf } from './quiz';
 import './quiz.css';
 
@@ -39,6 +42,8 @@ const SKILL: Partial<Record<QuizMode, Skill>> = { pin: 'loc', puzzle: 'loc', ide
 const NO_HELP = { main: 0, used: [], said: [], cut: [], open: false };
 /** What makes a game a challenge with a date, taken away: what is left is a game like any other. */
 const UNDATED = { challenge: undefined, weekly: undefined, zone: undefined, occasion: undefined };
+/** …and what makes it a game against its ghost (lib/ghost.ts). */
+const NO_GHOST = { ghost: undefined };
 
 /** Against the clock: how long a game lasts. */
 export const TIME_LIMIT = 60_000;
@@ -95,14 +100,21 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
     return { clicky, usable, mustType, typed: !clicky && (opts.answer === 'type' || mustType) };
   };
 
-  /** The way each piece of a medley is asked about. */
-  const asks = useMemo(() => {
-    if (!medley) return null;
+  /**
+   * The way a medley asks about each of its pieces, by the lot of a seed. The misses of a medley are played
+   * again with the lot of the game they come from: each is asked the way it was missed.
+   */
+  const lotOf = (k: number) => {
     // Where the map has too few capitals for four options to be fair, the medley leaves them out.
     const rules = { capitals: opts.answer === 'type' || !capitalsNeedTyping(deck.items), loose: opts.answer !== 'type' };
-    // The misses of a medley are played again with the lot of the game they come from: each is asked the way it was missed.
-    return new Map(deck.items.map((it) => [it.id, askOf(cfg.lot ?? seed, it.id, asksFor(it, deck.scope, rules))] as const));
-  }, [medley, deck, seed, cfg.lot, opts.answer]);
+    return new Map(deck.items.map((it) => [it.id, askOf(cfg.lot ?? k, it.id, asksFor(it, deck.scope, rules))] as const));
+  };
+  /** The way each piece of a medley is asked about. */
+  const asks = useMemo(
+    () => (medley ? lotOf(seed) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [medley, deck, seed, cfg.lot, opts.answer],
+  );
 
   /** Items that can be asked: a place named after its capital would answer itself. */
   const askable = useMemo(() => {
@@ -127,7 +139,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   );
   const pool = useMemo(() => (cfg.only ? askable.filter((it) => cfg.only!.includes(it.id)) : askable), [askable, cfg.only]);
 
-  const [s, dispatch] = useReducer(quizReducer, null, () =>
+  /** The game a seed deals on this map: its own, and the one any other seed would have dealt. */
+  const deal = (k: number) =>
     initQuiz(
       // Sorted first: the same seed must give the same questions whatever order the map was built in.
       pool.map((it) => it.id).sort(),
@@ -135,10 +148,10 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
       // Against the clock there is no time to be shown where each miss was. In a medley, each miss says
       // whether it has a place on the map to show.
       (medley || waysOf(fixed!).clicky) && format !== 'timed',
-      mulberry32(seed),
+      mulberry32(k),
       exam,
-    ),
-  );
+    );
+  const [s, dispatch] = useReducer(quizReducer, null, () => deal(seed));
   const item = s.cur ? (deck.byId.get(s.cur) ?? null) : null;
   /** The way the question in hand is asked. */
   const modeOf = (it: Item | null): QuizMode => fixed ?? (it && asks?.get(it.id)) ?? 'pin';
@@ -147,7 +160,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   /** What was answered to each question of an exam that went wrong, to be read in the marking. */
   const given = useRef<Record<string, string>>({});
   const ended = s.phase === 'end';
-  const ms = useElapsed(!ended);
+  const clock = useClock(!ended);
+  const { ms } = clock;
   const map = useRef<MapHandle>(null);
   const record = useStore((st) => st.record);
   const mixUp = useStore((st) => st.mixUp);
@@ -162,6 +176,41 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   const [mark, setMark] = useState<'new' | number | null>(null);
   /** A challenge with a date (lib/dated.ts): how its result has gone on record, once the game is over. */
   const [kept, setKept] = useState<Kept | null>(null);
+
+  /** Shown in a box of another page (screens/Embed.tsx), where a game is one go and nothing is set beside it. */
+  const boxed = useStore((st) => st.hosted != null);
+  /** A game that leaves a ghost when it is the best of its map, and can be played against the one there is (lib/ghost.ts). */
+  const haunted = useMemo(() => ghostable(cfg), [cfg]) && s.total > 0 && !boxed;
+  /** Played against its ghost: its same questions, with that game moving alongside. */
+  const racing = haunted && !!cfg.ghost;
+  /** When each question was settled, by the clock of the game, and how: what a ghost is made of. */
+  const [trace, setTrace] = useState<[number, Res][]>([]);
+  const [someGhost] = useState(anyGhost);
+  /**
+   * What knows about ghosts, fetched when there is one to show or to keep: from the start in a game against
+   * one; otherwise once half the questions are answered, so that it is here when the game ends, or at the
+   * end of a game left before that if there may be a ghost to offer.
+   */
+  const ghosts = useGhostCode(haunted && (racing || s.asked * 2 >= s.total || (ended && s.asked > 0 && someGhost)));
+  /** The ghost the game is played against: unknown until that code is here, and null if there is none after all. */
+  const [rival, setRival] = useState<Ghost | null | undefined>(undefined);
+  /** What there is to say about the ghost once the game is over. */
+  const [ghostEnd, setGhostEnd] = useState<GhostEnd | null>(null);
+  const ghostSettled = useRef(false);
+  /**
+   * The questions a seed deals here, each as a word and in order: what tells whether a game kept from before
+   * answered these same ones. In a medley the way a piece is asked is part of the question.
+   */
+  const dealt = (k: number): string[] => {
+    const first = deal(k);
+    const ids = first.cur ? [first.cur, ...first.queue] : [];
+    const lot = medley ? lotOf(k) : null;
+    return lot ? ids.map((id) => `${id}:${lot.get(id)}`) : ids;
+  };
+  const race = () => {
+    const countries = new Map(deck.countries.map((c) => [c.id, c] as const));
+    return { cfg, country: (id: string) => countries.get(id), seed, dealt };
+  };
 
   const [flash, setFlash] = useState<{ id: string; kind: 'bad' | 'ok'; n: number } | null>(null);
   const [note, setNote] = useState<string | null>(null);
@@ -350,9 +399,32 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ended]);
 
+  // The ghost to play against is looked for once, as soon as the code that knows about ghosts is here: the
+  // game may well take its place in the end, and it is still the one it was played against. Before the game
+  // is painted: when that code is here from the start, so are the two lanes.
+  useLayoutEffect(() => {
+    if (racing && ghosts && rival === undefined) setRival(ghosts.rivalOf(race()));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ghosts]);
+
+  // The game is over: it is kept as the ghost of its map if it is the best one so far, and the results tell of
+  // it. Before they are painted, so that they come with it and not a moment later.
+  useLayoutEffect(() => {
+    if (!ended || !ghosts || ghostSettled.current || (racing && rival === undefined)) return;
+    ghostSettled.current = true;
+    // The clock is read and not taken as it is shown: it has stopped by now, and what is shown runs half a second late.
+    setGhostEnd(ghosts.settle(race(), trace, clock.read(), rival ?? null, Date.now()));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ended, ghosts, rival]);
+
   const settled = (res: Res, it: Item) => {
     const skill = SKILL[mode];
     if (s.round === 1 && skill) record(skill, it.id, res, originOf(it, cfg));
+    if (s.round === 1 && haunted) {
+      // Read now, and not when the list is put together.
+      const at = clock.read();
+      setTrace((t) => [...t, [at, res]]);
+    }
     // An exam keeps what it knows to itself until it is handed in.
     if (exam) return;
     setFlash({ id: it.id, kind: res === 'bad' ? 'bad' : 'ok', n: Date.now() });
@@ -634,6 +706,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
     const hits = s.ok + s.warn;
     const grade = gradeOf(s.ok, s.total);
     const blank = Number.isFinite(s.total) ? s.total - s.asked : 0;
+    /** Played against the ghost to the end: who won is what the results open with, and the ghost's figures come under it. */
+    const duel = rows.length && ghostEnd?.other && (ghostEnd.how === 'won' || ghostEnd.how === 'lost' || ghostEnd.how === 'tie') ? { how: ghostEnd.how, ghost: ghostEnd.other } : null;
     return (
       <GameShell
         title={title}
@@ -646,6 +720,12 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
             title={
               !rows.length
                 ? L('Sin preguntas', 'No questions')
+                : duel
+                  ? duel.how === 'won'
+                    ? L('¡Has ganado a tu fantasma!', 'You beat your ghost!')
+                    : duel.how === 'lost'
+                      ? L('Gana tu fantasma', 'Your ghost wins')
+                      : L('Empate con tu fantasma', 'A tie with your ghost')
                 : exam
                   ? L(`Nota: ${nf(grade, 1)}`, `Mark: ${nf(grade, 1)} out of 10`)
                   : paced
@@ -659,6 +739,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
             note={
               kept != null && rows.length
                 ? datedNote(subtitle, cfg, kept, score)
+                : duel
+                ? L(`Tu fantasma: ${duel.ghost.score}\u00a0% en ${fmtTime(duel.ghost.ms)}.`, `Your ghost: ${duel.ghost.score}% in ${fmtTime(duel.ghost.ms)}.`)
                 : !rows.length && retired.length
                 ? L(
                     `Lo que tocaba repasar eran capitales que se llaman como su ${one}: ya no se preguntan, así que salen del repaso.`,
@@ -697,10 +779,19 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
             again={rows.length > 0 || !retired.length}
             // A challenge with a date that was left before its end is still to be played: again is the same one.
             // Once it is on record, again is a game like any other: new questions, and nothing written down.
-            onAgain={() => onAgain(isDated(cfg) && (kept == null || kept === 'short') ? {} : { only: cfg.only, list: cfg.list, ...UNDATED })}
-            onReview={(ids) => onAgain({ only: ids, list: undefined, ...UNDATED, lot: medley ? (cfg.lot ?? seed) : undefined })}
+            // Again after a game against the ghost is against the ghost: the one the map has now, which may be this game.
+            onAgain={() => onAgain(isDated(cfg) && (kept == null || kept === 'short') ? {} : { only: cfg.only, list: cfg.list, ...UNDATED, ghost: racing && ghostEnd?.seed != null ? { seed: ghostEnd.seed } : undefined })}
+            onReview={(ids) => onAgain({ only: ids, list: undefined, ...UNDATED, ...NO_GHOST, lot: medley ? (cfg.lot ?? seed) : undefined })}
             onExit={onExit}
           >
+            {rows.length > 0 && ghosts && ghostEnd && (
+              <ghosts.GhostBox
+                end={ghostEnd}
+                racing={racing && !!rival}
+                onRace={(k) => onAgain({ only: cfg.only, list: cfg.list, ghost: { seed: k } })}
+                onPlain={() => onAgain({ only: cfg.only, list: cfg.list, ...NO_GHOST })}
+              />
+            )}
             {rows.length > 0 && format === 'normal' && s.asked >= s.total && <ChallengeBox cfg={cfg} score={score} ms={ms} what={`${deck.title} · ${title}`} />}
           </Results>
         }
@@ -1024,7 +1115,11 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
       title={title}
       subtitle={subtitle}
       onExit={onExit}
-      progress={format === 'timed' ? ms / TIME_LIMIT : Number.isFinite(s.total) ? s.asked / s.total : undefined}
+      // Against the ghost, how far the game has got is said by its lane, beside the ghost's: the bar is drawn
+      // only when there are no lanes, because there is no ghost after all or the code that draws them has not come.
+      progress={racing && ghosts && rival ? undefined : format === 'timed' ? ms / TIME_LIMIT : Number.isFinite(s.total) ? s.asked / s.total : undefined}
+      // The two lanes take their room from the start, so that nothing moves when they come.
+      under={racing ? <>{ghosts && rival !== undefined && <ghosts.GhostTrack rival={rival} trace={trace} total={s.total} ms={ms} />}</> : undefined}
       hud={
         format === 'timed' ? (
           <>
@@ -1048,8 +1143,13 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
             </span>
           </>
         ) : (
-          // The streak of an exam would say how each answer went.
-          <Hud ms={ms} streak={exam ? undefined : s.streak} progress={s.round === 2 ? L('Repaso', 'Review') : Number.isFinite(s.total) ? `${turn} / ${s.total}` : `${turn} · ${L('vuelta', 'lap')} ${s.lap}`} />
+          // The streak of an exam would say how each answer went. Against the ghost, the lanes say how far each
+          // has got: one more count beside them, of the question in hand, would be one too many.
+          <Hud
+            ms={ms}
+            streak={exam ? undefined : s.streak}
+            progress={s.round === 2 ? L('Repaso', 'Review') : racing && ghosts && rival ? undefined : Number.isFinite(s.total) ? `${turn} / ${s.total}` : `${turn} · ${L('vuelta', 'lap')} ${s.lap}`}
+          />
         )
       }
       panel={panel}

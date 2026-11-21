@@ -66,3 +66,15 @@
     cursor: pointer;
   }
 }
+
+/* A line of the game's own at the foot of the header, across it: the header folds to give it one. */
+.play-top.has-under {
+  flex-wrap: wrap;
+}
+.play-under {
+  flex: 0 0 100%;
+  min-width: 0;
+  /* Two lines of small print: the room is there before what fills it. */
+  min-height: calc(26px * var(--fs) + 3px);
+  padding: 0 2px 0 6px;
+}

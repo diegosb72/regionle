@@ -6,6 +6,7 @@
 import { LESSON_ORDERS, LESSON_SIZES } from '../games/lesson';
 import { DAY_GOAL_DEFAULT, isDayGoal } from './days';
 import { CITY_COUNTS } from './extra';
+import type { Kept as Ghosts } from './ghost';
 import { isPalette } from './palette';
 import { isTextSize } from './reading';
 import { isPace, isReviewSize } from './review';
@@ -23,8 +24,12 @@ export function prefsOf(s: Prefs): Prefs {
   return { theme: s.theme, cb: s.cb, sound: s.sound, haptic: s.haptic, hotkeys: s.hotkeys, helpAuto: s.helpAuto, iconBadge: s.iconBadge, miles: s.miles, palette: s.palette, textSize: s.textSize, contrast: s.contrast, dyslexia: s.dyslexia, reviewPace: s.reviewPace, reviewSize: s.reviewSize, dayGoal: s.dayGoal, nick: s.nick, opts: s.opts };
 }
 
-/** The file: the progress, what the player has made (selections, lists, goals, notes, painted maps, short forms) and the preferences. */
-export function backupOf(s: State, now: number) {
+/**
+ * The file: the progress, what the player has made (selections, lists, goals, notes, painted maps, short
+ * forms) and the preferences. And the ghosts (lib/ghost.ts), which are kept apart from the rest and are
+ * handed in by whoever makes the copy.
+ */
+export function backupOf(s: State, now: number, ghosts: readonly Ghosts[] = []) {
   return {
     app: 'regionle',
     version: BACKUP_VERSION,
@@ -50,6 +55,7 @@ export function backupOf(s: State, now: number) {
     tot: s.tot,
     typeins: s.typeins,
     typeinAuto: s.typeinAuto,
+    ghosts,
     prefs: prefsOf(s),
   };
 }

@@ -160,6 +160,11 @@ export interface GameConfig {
    * each piece is asked again the way it was missed.
    */
   lot?: number;
+  /**
+   * Played against its ghost (lib/ghost.ts): the seed of the best game kept of this game on this map, which
+   * deals the same questions again while that game moves alongside.
+   */
+  ghost?: { seed: number };
   /** Changes on every start so that an identical configuration still restarts the game. */
   nonce: number;
 }

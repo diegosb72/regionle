@@ -5,6 +5,7 @@
 import { Download, Save, Send, Trash2, Upload } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { backupDue, backupName, backupOf, cleanPrefs, shareFile, sinceBackup, summaryOf, type Summary } from '../lib/backup';
+import { clearGhosts, ghostsKept, setGhosts } from '../lib/ghostKept';
 import { L, getLang } from '../lib/i18n';
 import { isLearnt, useStore } from '../lib/store';
 import { nf } from '../lib/text';
@@ -39,7 +40,7 @@ let said: string | null = null;
 
 /** Saves a copy and notes that it was made. Returns the text, for whoever wants to send it instead. */
 function makeCopy(now: number): { text: string; name: string } {
-  return { text: JSON.stringify(backupOf(useStore.getState(), now), null, 1), name: backupName(L('progreso', 'progress'), now) };
+  return { text: JSON.stringify(backupOf(useStore.getState(), now, ghostsKept()), null, 1), name: backupName(L('progreso', 'progress'), now) };
 }
 
 function saveCopy(): void {
@@ -160,6 +161,8 @@ export function BackupBlock() {
     // Said before the copy goes in: one that brings other units mounts this screen afresh, and it reads it then.
     say(L(`Copia importada: ${answersWord(sum.answers)}${sum.exported ? `, como estaban el ${dateOf(sum.exported)}` : ''}.`, `Backup imported: ${answersWord(sum.answers)}${sum.exported ? `, as they stood on ${dateOf(sum.exported)}` : ''}.`));
     if (!importData(data, prefs)) say(L('Ese archivo no es una copia de Regionle.', 'That file is not a Regionle backup.'));
+    // A copy from before the ghosts says nothing about them: they stay. One that has them brings its own.
+    else if (Array.isArray((data as { ghosts?: unknown }).ghosts)) setGhosts((data as { ghosts?: unknown }).ghosts);
   };
 
   const rows: [string, keyof Summary][] = [
@@ -178,8 +181,8 @@ export function BackupBlock() {
       <h2>{L('Copia de seguridad', 'Backup')}</h2>
       <p className="tip-line">
         {L(
-          'Todo se guarda solo en este navegador. Una copia lleva tu progreso, tus selecciones guardadas, tus listas, tus apuntes, tus mapas pintados, tus abreviaturas y tus preferencias a otro navegador, o lo deja a salvo por si acaso.',
-          'Everything is kept in this browser alone. A backup takes your progress, your saved selections, your lists, your notes, your painted maps, your short forms and your preferences to another browser, or keeps them safe just in case.',
+          'Todo se guarda solo en este navegador. Una copia lleva tu progreso, tus fantasmas, tus selecciones guardadas, tus listas, tus apuntes, tus mapas pintados, tus abreviaturas y tus preferencias a otro navegador, o lo deja a salvo por si acaso.',
+          'Everything is kept in this browser alone. A backup takes your progress, your ghosts, your saved selections, your lists, your notes, your painted maps, your short forms and your preferences to another browser, or keeps them safe just in case.',
         )}
       </p>
       <p className="backup-last">
@@ -214,6 +217,7 @@ export function BackupBlock() {
               className="btn btn-sm btn-danger"
               onClick={() => {
                 resetProgress();
+                clearGhosts();
                 setConfirming(false);
                 say(L('Progreso borrado.', 'Progress deleted.'));
               }}
