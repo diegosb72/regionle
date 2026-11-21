@@ -39,6 +39,7 @@ export function backupOf(s: State, now: number) {
     daily: s.daily,
     weekly: s.weekly,
     zones: s.zones,
+    occasions: s.occasions,
     days: s.days,
     lists: s.lists,
     goals: s.goals,

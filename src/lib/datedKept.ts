@@ -1,13 +1,15 @@
 /**
  * What is kept of the challenges with a date other than the one of the day: the challenge of the week
- * (lib/weekly.ts) and the ones of the day of a continent or a country (lib/zones.ts). Only what the saved
- * state needs is here, which is what the first page carries; what each challenge asks is in its own file.
+ * (lib/weekly.ts), the ones of the day of a continent or a country (lib/zones.ts) and those of the special
+ * days of the year (lib/occasions.ts). Only what the saved state needs is here, which is what the first page
+ * carries; what each challenge asks is in its own file.
  */
 import { addDays, isDate } from '../daily/spec';
 
-/** How many weeks are kept, and of how many zones their last day. */
+/** How many weeks are kept, of how many zones their last day, and of how many special days their last year. */
 export const WEEKS_KEPT = 60;
 export const ZONES_KEPT = 40;
+export const OCCASIONS_KEPT = 80;
 
 /** How a week went, the first time it was played to the end. */
 export interface WeekRec {
@@ -32,6 +34,17 @@ export interface ZoneRec {
   run: number;
 }
 
+/** The last year the challenge of a special day was played to the end, and how it went. */
+export interface OccasionRec {
+  /** That year, its score, the answers right at the first go, how many were asked, the time, and when it was finished. */
+  y: number;
+  s: number;
+  ok: number;
+  n: number;
+  ms: number;
+  t: number;
+}
+
 /** What a game gives of itself when it ends: the score, what was right at the first go, of how many, and the time. */
 export type DatedResult = Pick<WeekRec, 's' | 'ok' | 'n' | 'ms'>;
 
@@ -44,6 +57,10 @@ export function isWeek(s: unknown): s is string {
 
 /** A zone is a continent ("p:EU") or a country ("c:ES"). */
 export const isZone = (s: unknown): s is string => typeof s === 'string' && /^(?:p:[A-Z]{2}|c:[A-Z][A-Z0-9])$/.test(s);
+
+/** A special day goes by a short name of its own ("europe"), and each of its challenges by a year. */
+export const isOccasion = (s: unknown): s is string => typeof s === 'string' && /^[a-z][a-z0-9]{1,19}$/.test(s);
+export const isYear = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v >= 2000 && v <= 9999;
 
 const whole = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v >= 0;
 
@@ -98,4 +115,29 @@ export function withZone(zones: Record<string, ZoneRec>, zone: string, date: str
   const last = zones[zone];
   if (!isZone(zone) || !isDate(date) || !r || (last && last.d >= date)) return zones;
   return cleanZones({ ...zones, [zone]: { d: date, ...r, run: last && last.d === addDays(date, -1) ? last.run + 1 : 1 } });
+}
+
+/** What storage or a backup holds, with only what is a special day and its last year, and the ones played latest. */
+export function cleanOccasions(raw: unknown): Record<string, OccasionRec> {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+  const good: [string, OccasionRec][] = [];
+  for (const [id, rec] of Object.entries(raw as Record<string, unknown>)) {
+    const r = resultOf(rec);
+    const { y, t } = (rec ?? {}) as { y?: unknown; t?: unknown };
+    if (isOccasion(id) && r && isYear(y) && whole(t)) good.push([id, { y, ...r, t: Math.round(t) }]);
+  }
+  // The latest first; among those of one moment, by name, so that the same ones are kept whatever order they came in.
+  good.sort((a, b) => b[1].t - a[1].t || (a[0] < b[0] ? -1 : 1));
+  return Object.fromEntries(good.slice(0, OCCASIONS_KEPT));
+}
+
+/**
+ * The challenge of a special day in a year, written down: the first time that year is the one that counts,
+ * and a year before the last one kept comes too late.
+ */
+export function withOccasion(occasions: Record<string, OccasionRec>, id: string, year: number, result: DatedResult, t: number): Record<string, OccasionRec> {
+  const r = resultOf(result);
+  const last = occasions[id];
+  if (!isOccasion(id) || !isYear(year) || !r || !whole(t) || (last && last.y >= year)) return occasions;
+  return cleanOccasions({ ...occasions, [id]: { y: year, ...r, t } });
 }

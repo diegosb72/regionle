@@ -54,6 +54,39 @@ test.describe('the first page and the addresses of the game', () => {
     await expect(page.locator('.hero-title')).toBeVisible();
   });
 
+  test('says so when the code of the games does not come, with the page to load again, and does not go on asking for it', async ({ page }) => {
+    // The download is cut every time. A browser that asks again for a file that failed used to be asked for
+    // it without end, and the message to wait never gave way to this one.
+    let asked = 0;
+    await page.route('**/assets/Play-*.js', (route) => {
+      asked += 1;
+      return route.abort();
+    });
+    await seed(page, { game: PIN_SPAIN, helpAuto: false });
+    await page.goto('./#/jugar');
+    await expect.poll(() => asked, { message: 'the code of the games is asked for' }).toBeGreaterThan(0);
+    /** What the page says, so that a failure here tells what was there instead. */
+    const said = async () => (await page.locator('body').innerText()).replace(/\s+/g, ' ').slice(0, 200);
+    await expect.poll(said, { timeout: 30_000 }).toContain('Esta parte del juego no ha llegado a cargarse');
+    const crash = page.locator('.crash');
+    await expect(crash).toContainText('Suele ser la conexión, o que hay una versión nueva del juego. Recarga la página y vuelve a intentarlo.');
+    await expect(crash).toContainText('Tu progreso está a salvo');
+    await expect(crash.getByRole('button', { name: 'Recargar la página' })).toBeVisible();
+    // Trying again what did not come asks for nothing new: that button is for a mistake of the game.
+    await expect(crash.getByRole('button', { name: 'Reintentar' })).toHaveCount(0);
+    // The screen asked for it once; the fetch ahead of time of the other screens may ask once more.
+    await page.waitForTimeout(2000);
+    expect(asked).toBeLessThan(5);
+
+    // The start is a way out, and the page loaded again brings the game when its code comes.
+    await crash.getByRole('link', { name: 'Ir al inicio' }).click();
+    await expect(page.locator('.hero-title')).toBeVisible();
+    await page.unroute('**/assets/Play-*.js');
+    await page.goto('./#/jugar');
+    await page.reload();
+    await expect(page.locator('.q')).toContainText('Te quedan 3 intentos', { timeout: 30_000 });
+  });
+
   test('says so when a game breaks, with the ways out of it together at the top', async ({ page }) => {
     // The code of the games arrives broken: it fails as it starts.
     let asked = 0;

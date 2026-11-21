@@ -133,6 +133,103 @@
   min-width: 0;
   max-width: 100%;
 }
+/*
+ * The special days of the year, across the whole card: first while one is open, and at the foot, where the
+ * next one is told, the rest of the year.
+ */
+.more-dates {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  min-width: 0;
+}
+.more-dates:first-child {
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+.more-dates:last-child {
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.more-dates-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 14px;
+}
+.more-days {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+.more-day {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 24px;
+  min-width: 0;
+}
+.more-day-what {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  flex: 1 1 300px;
+  gap: 4px;
+  min-width: 0;
+}
+.more-day-name {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  font-size: calc(clamp(19px, 2.1vw, 23px) * var(--fs));
+  letter-spacing: -0.02em;
+}
+.more-day-name .flag {
+  flex: none;
+}
+.more-day-name > span {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+.more-day .more-go {
+  flex: 0 1 auto;
+  margin-top: 0;
+}
+/* On a wide card the buttons of the days line up at its edge, each with its dates before it. */
+@media (min-width: 861px) {
+  .more-day .more-go {
+    flex-direction: row-reverse;
+  }
+}
+.more-next {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 78ch;
+}
+.more-next svg {
+  flex: none;
+  margin-top: 3px;
+  color: var(--ink-3);
+}
+.more-next b {
+  color: var(--ink);
+}
+/* The calendar that did not come: what happened, and the button that loads the page again. */
+.more-failed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
+.more-failed .more-meta {
+  flex: 1 1 260px;
+  min-width: 0;
+  max-width: 78ch;
+}
 @media (max-width: 860px) {
   .more {
     grid-template-columns: minmax(0, 1fr);

@@ -6,6 +6,7 @@ import { Home, RefreshCw, RotateCcw } from 'lucide-react';
 import { Component, useState, type ReactNode } from 'react';
 import { L } from '../lib/i18n';
 import { atEmbed } from '../lib/router';
+import { caught } from './lazy';
 
 /** A part of the game that is fetched when it is first needed did not arrive. */
 export function isLoadError(error: Error): boolean {
@@ -99,6 +100,11 @@ export class ErrorBoundary extends Component<Props, { error: Error | null }> {
 
   static getDerivedStateFromError(error: unknown): { error: Error } {
     return { error: error instanceof Error ? error : new Error(String(error)) };
+  }
+
+  componentDidCatch(error: unknown): void {
+    // Code that did not come has said so here: the next time its screen is shown, it is asked for again.
+    caught(error);
   }
 
   retry = (): void => this.setState({ error: null });
