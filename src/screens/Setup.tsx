@@ -11,6 +11,7 @@ import { canSpeak } from '../components/Speak';
 import { Flag, Seg, Toggle, capitalise } from '../components/ui';
 import { eligible, levelOf, loadFile, type World } from '../lib/data';
 import { countriesOf, describeMap } from '../lib/describe';
+import { anyGhost, useGhostCode } from '../lib/ghostLazy';
 import { CITY_COUNTS, PHYS_KINDS, PHYS_PLACES, kindNoun, kindsIn, loadCities, loadPhysical, parsePhys, physCountries, physMatches, physTokens, pickOf, type PhysKind, type PhysSpec } from '../lib/extra';
 import { L, getLang, levelNoun, nm } from '../lib/i18n';
 import { encodeList, listConfig, listPlayable, listUrl } from '../lib/lists';
@@ -452,6 +453,9 @@ export function Setup({ section, world, link }: { section: Section; world: World
    * itself (lib/connect.ts), which is fetched when its turn comes. Until it answers, nothing is said.
    */
   const [boards, setBoards] = useState<'some' | 'few' | 'none'>('some');
+  /** The ghost of the game that is chosen (games/Ghost.tsx): what shows it is fetched only where some ghost is kept. */
+  const [haunted] = useState(anyGhost);
+  const ghosts = useGhostCode(haunted);
   const lang = getLang();
   useEffect(() => {
     if (def.id !== 'connect' || chosen.length < CONNECT_MIN) {
@@ -617,9 +621,17 @@ export function Setup({ section, world, link }: { section: Section; world: World
     for (const c of chosen) picked[c.id] = levelOf(c, levels).k;
     return { section, mode, countries: isPhys ? physTokens(spec) : chosen.map((c) => c.id), levels: picked, opts };
   };
+  /** The game that is chosen now, on the map or the list that is chosen now. */
+  const chosenGame = () => (active ? listConfig(active, def.id, opts) : current(def.id));
   const begin = () => {
     if (problem) return;
-    start(active ? listConfig(active, def.id, opts) : current(def.id));
+    start(chosenGame());
+    go('jugar');
+  };
+  /** The same game with the questions of its ghost, which is dealt by `seed`, and the ghost alongside. */
+  const race = (seed: number) => {
+    if (problem) return;
+    start({ ...chosenGame(), ghost: { seed } });
     go('jugar');
   };
   const newList = () => {
@@ -792,6 +804,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
                 )}
               </ul>
             )}
+            {ghosts && !problem && <ghosts.GhostOffer cfg={chosenGame()} country={(id) => world.byId.get(id)} onPlay={race} />}
           </section>
 
           <section className="step">

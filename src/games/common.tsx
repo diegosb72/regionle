@@ -1,6 +1,6 @@
 /** Pieces shared by every game: screen frame, clock, verdict box and results. */
 import { ArrowLeft, Check, CircleAlert, CircleHelp, Flame, RotateCcw, Settings2, Timer, X } from 'lucide-react';
-import { Suspense, createContext, lazy, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { Suspense, createContext, lazy, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { PieceNote } from '../components/Note';
 import { ReviewNext } from '../components/ReviewCard';
@@ -53,23 +53,38 @@ export interface GameProps {
   onAgain(patch?: Partial<GameConfig>): void;
 }
 
-/** Milliseconds elapsed while `running` is true, and the clocks are not stopped from outside (lib/pause.ts). */
-export function useElapsed(running: boolean): number {
+/**
+ * The clock of a game: the milliseconds elapsed while `running` is true and the clocks are not stopped from
+ * outside (lib/pause.ts), as they are shown, which is every half second; and `read`, the same to the
+ * millisecond, for whoever writes down when something happened.
+ *
+ * It starts and stops as the screen changes and not a moment after it is painted: whatever is drawn of a
+ * game that has just ended finds its clock stopped, and reads from it the time the results show.
+ */
+export function useClock(running: boolean): { ms: number; read(): number } {
   const [ms, setMs] = useState(0);
   const banked = useRef(0);
+  /** When the clock was last set going; null while it is stopped. */
+  const since = useRef<number | null>(null);
   const paused = usePaused();
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!running || paused) return;
     const started = Date.now();
+    since.current = started;
     const timer = setInterval(() => setMs(banked.current + Date.now() - started), 500);
     return () => {
       clearInterval(timer);
+      since.current = null;
       banked.current += Date.now() - started;
       setMs(banked.current);
     };
   }, [running, paused]);
-  return ms;
+  const read = useCallback(() => banked.current + (since.current == null ? 0 : Date.now() - since.current), []);
+  return { ms, read };
 }
+
+/** Milliseconds elapsed while `running` is true, and the clocks are not stopped from outside (lib/pause.ts). */
+export const useElapsed = (running: boolean): number => useClock(running).ms;
 
 export function Hud({ ms, streak, progress }: { ms?: number; streak?: number; progress?: ReactNode }) {
   return (
@@ -105,6 +120,7 @@ export function GameShell({
   stage,
   onExit,
   progress,
+  under,
 }: {
   title: string;
   subtitle: string;
@@ -114,11 +130,13 @@ export function GameShell({
   onExit(): void;
   /** 0–1, drawn as a thin bar under the header. */
   progress?: number;
+  /** Something of the game to keep in sight all along: a line of its own at the foot of the header. */
+  under?: ReactNode;
 }) {
   const showHelp = useContext(HelpContext);
   return (
     <div className="play">
-      <header className="play-top">
+      <header className={cx('play-top', under != null && 'has-under')}>
         <button type="button" className="btn btn-ghost btn-sm" onClick={onExit}>
           <ArrowLeft size={16} aria-hidden="true" />
           <span>{L('Salir', 'Exit')}</span>
@@ -142,6 +160,7 @@ export function GameShell({
             <i style={{ width: `${Math.round(Math.min(1, Math.max(0, progress)) * 100)}%` }} />
           </div>
         )}
+        {under != null && <div className="play-under">{under}</div>}
       </header>
       <div className={cx('play-body', !stage && 'solo')}>
         <section className="panel">{panel}</section>

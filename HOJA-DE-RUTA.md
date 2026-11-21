@@ -17,7 +17,7 @@ A petición del dueño del proyecto, desde la 1.18.0 se hace primero lo que meno
 el final lo que más. La estimación es a ojo y cambia al abrir el código:
 
 - **Corto**: nada pendiente
-- **Medio**: 54, 66, 70, 73, 94, 98
+- **Medio**: 66, 70, 73, 94, 98
 - **Largo**: 20, 44 (francés), 65, 67, 68, 83, 90
 - **Depende de conseguir datos**, lleve lo que lleve: 30–32, 37–39, 41–43, 95, y lo que falta del 29 y del 35
 
@@ -87,7 +87,7 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 - [x] 51. Retos de fechas señaladas: 32 días del año (días internacionales y fiestas de 17 países) traen un reto propio, el mismo para todos, que se abre ese día y dura una semana; cuenta la primera vez que se termina cada año, la portada lo pone el primero mientras está abierto, y un calendario deja practicar cualquiera el resto del año — **1.31.0**
 - [x] 52. Enlace directo a un mapa y un modo: una dirección abre la sección con el mapa y el juego ya elegidos, y cada sección tiene un botón que la copia — **1.18.0**
 - [x] 53. Imagen para compartir de cualquier partida: la pantalla de resultados guarda o comparte una imagen con el juego, el mapa, el porcentaje, los aciertos, el tiempo y el mapa pintado según cómo fue cada pieza — **1.20.0**
-- [ ] 54. Contra tu fantasma
+- [x] 54. Contra tu fantasma: de cada juego de preguntas en cada mapa se guarda la mejor partida, pregunta a pregunta, y se vuelve a jugar con ella avanzando al lado en su carril; gana quien saca más porcentaje y, con el mismo, quien tarda menos, y la que gana pasa a ser el fantasma. Va en la copia de seguridad — **1.32.0**
 
 ## Para aprender mejor
 

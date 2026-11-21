@@ -3,6 +3,16 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.32.0 — 21 de noviembre de 2026
+
+- Contra tu fantasma: se guarda tu mejor partida de cada juego de preguntas en cada mapa, pregunta a pregunta, y puedes jugar contra ella, que avanza a tu lado.
+- Se ofrece al acabar una partida, en la caja «Tu fantasma», y al preparar la partida, bajo lo que se dice del juego elegido. Nunca empieza sola.
+- Son sus mismas preguntas en el mismo orden. Bajo la cabecera van dos carriles, el tuyo y el del fantasma, que avanza con el reloj de la partida.
+- Gana quien saca más porcentaje y, con el mismo, quien tarda menos. El título del resultado dice quién ha ganado, y debajo quedan las dos partidas lado a lado.
+- Si ganas, tu partida pasa a ser el fantasma. Un empate lo deja como estaba, y una partida que dejas antes del final no cuenta.
+- Vale en Señalar, Oye y señala, Identificar, Silueta, Puzle, Popurrí, Capitales, Banderas y ¿A qué pertenece?, en formato normal, en un mapa o en una lista tuya.
+- Los fantasmas se guardan en este navegador (los de los 40 juegos más recientes), van en la copia de seguridad y se borran con «Borrar progreso».
+
 ## 1.31.0 — 21 de noviembre de 2026
 
 - Fechas señaladas: 32 días del año traen un reto propio, el mismo para todo el mundo. Se abre ese día y dura una semana.

@@ -41,8 +41,8 @@ const comesBack = (): string =>
 /** The other ways the question-by-question games can be played. */
 const formats = (): string =>
   L(
-    'Si quieres más reto, cambia el formato antes de empezar: «Examen» (no se corrige nada hasta el final, y pone nota), «Contrarreloj» (un minuto) o «Supervivencia» (tres vidas). En los tres hay un solo intento por pregunta y ninguna pista.',
-    'For more of a challenge, change the format before starting: “Exam” (nothing is marked until the end, and it gives a grade), “Time attack” (one minute) or “Survival” (three lives). In all three there is one try for each question and no hints.',
+    'Si quieres más reto, cambia el formato antes de empezar: «Examen» (no se corrige nada hasta el final, y pone nota), «Contrarreloj» (un minuto) o «Supervivencia» (tres vidas). En los tres hay un solo intento por pregunta y ninguna pista. O juega «Contra tu fantasma», que se ofrece al acabar una partida: tu mejor partida en ese mapa avanza a tu lado, con sus mismas preguntas.',
+    'For more of a challenge, change the format before starting: “Exam” (nothing is marked until the end, and it gives a grade), “Time attack” (one minute) or “Survival” (three lives). In all three there is one try for each question and no hints. Or play “Against your ghost”, which is offered when a game ends: your best game on that map moves alongside you, with its same questions.',
   );
 
 /** The menu of hints of the question-by-question games. */

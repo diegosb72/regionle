@@ -87,6 +87,16 @@ describe('challenge by link', () => {
     expect(decodeChallenge(sent)!.seed).toBe(7);
   });
 
+  it('deals a game against a ghost with the seed of the ghost, and sends that one on', () => {
+    expect(seedOf(game({ nonce: 42, ghost: { seed: 9 } }))).toBe(9);
+    // A seed of nought is a seed like any other.
+    expect(seedOf(game({ nonce: 42, ghost: { seed: 0 } }))).toBe(0);
+    // Whoever is sent the game that was played against the ghost gets its same questions.
+    expect(decodeChallenge(encodeChallenge(game({ nonce: 42, ghost: { seed: 9 } })))!.seed).toBe(9);
+    // A challenge is no game against a ghost, whatever it says: its own seed stands.
+    expect(seedOf(game({ nonce: 42, challenge: { seed: 7 }, ghost: { seed: 9 } }))).toBe(7);
+  });
+
   it('rejects links that are cut, made up or about something that cannot be compared', () => {
     const wire = (o: unknown) => Buffer.from(JSON.stringify(o)).toString('base64url');
     const good = { s: 'regions', m: 'pin', c: 'ES', k: 1 };

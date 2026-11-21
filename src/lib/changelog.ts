@@ -15,6 +15,28 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.32.0',
+    date: '2026-11-21',
+    es: [
+      'Contra tu fantasma: se guarda tu mejor partida de cada juego de preguntas en cada mapa, pregunta a pregunta, y puedes jugar contra ella, que avanza a tu lado.',
+      'Se ofrece al acabar una partida, en la caja «Tu fantasma», y al preparar la partida, bajo lo que se dice del juego elegido. Nunca empieza sola.',
+      'Son sus mismas preguntas en el mismo orden. Bajo la cabecera van dos carriles, el tuyo y el del fantasma, que avanza con el reloj de la partida.',
+      'Gana quien saca más porcentaje y, con el mismo, quien tarda menos. El título del resultado dice quién ha ganado, y debajo quedan las dos partidas lado a lado.',
+      'Si ganas, tu partida pasa a ser el fantasma. Un empate lo deja como estaba, y una partida que dejas antes del final no cuenta.',
+      'Vale en Señalar, Oye y señala, Identificar, Silueta, Puzle, Popurrí, Capitales, Banderas y ¿A qué pertenece?, en formato normal, en un mapa o en una lista tuya.',
+      'Los fantasmas se guardan en este navegador (los de los 40 juegos más recientes), van en la copia de seguridad y se borran con «Borrar progreso».',
+    ],
+    en: [
+      'Against your ghost: your best game of each question game on each map is kept, question by question, and you can play against it as it moves alongside you.',
+      'It is offered when a game ends, in the box “Your ghost”, and when setting a game up, under what is said of the game chosen. It never starts by itself.',
+      'They are its same questions in the same order. Under the header run two lanes, yours and that of the ghost, which moves with the clock of the game.',
+      'The higher percentage wins and, with the same one, the shorter time. The title of the result says who won, and below it the two games stand side by side.',
+      'If you win, your game becomes the ghost. A tie leaves it as it was, and a game you leave before its end does not count.',
+      'For Pin it, Listen and pin, Identify, Outline, Jigsaw, Medley, Capitals, Flags and Where does it belong?, in the normal format, on a map or your own list.',
+      'Ghosts are kept in this browser (those of the 40 games played latest), travel in the backup and are deleted with “Delete progress”.',
+    ],
+  },
+  {
     version: '1.31.0',
     date: '2026-11-21',
     es: [

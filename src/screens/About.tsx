@@ -93,8 +93,8 @@ export function About() {
           <li>
             <b>{L('Qué se guarda, y dónde.', 'What is kept, and where.')}</b>{' '}
             {L(
-              'Tu progreso, tus resultados, tus ajustes, tus listas y el nombre que pongas en los retos se guardan en este navegador y solo en él. Los mapas que descargas para jugar sin conexión, también.',
-              'Your progress, your results, your settings, your lists and the name you put on challenges are kept in this browser and nowhere else. So are the maps you download to play without a connection.',
+              'Tu progreso, tus resultados, tus fantasmas, tus ajustes, tus listas y el nombre que pongas en los retos se guardan en este navegador y solo en él. Los mapas que descargas para jugar sin conexión, también.',
+              'Your progress, your results, your ghosts, your settings, your lists and the name you put on challenges are kept in this browser and nowhere else. So are the maps you download to play without a connection.',
             )}
           </li>
           <li>

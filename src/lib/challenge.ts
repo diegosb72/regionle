@@ -61,9 +61,9 @@ export const fromBase64Url = (code: string): string => {
   return new TextDecoder().decode(Uint8Array.from(bin, (ch) => ch.charCodeAt(0)));
 };
 
-/** Seed of a game: the one it was sent with, or one of its own. */
+/** Seed of a game: the one it was sent with, the one of the ghost it is played against (lib/ghost.ts), or one of its own. */
 export function seedOf(cfg: GameConfig): number {
-  return cfg.challenge?.seed ?? Math.abs(Math.floor(cfg.nonce)) % 2_147_483_647;
+  return cfg.challenge?.seed ?? cfg.ghost?.seed ?? Math.abs(Math.floor(cfg.nonce)) % 2_147_483_647;
 }
 
 export function canChallenge(cfg: GameConfig): boolean {
