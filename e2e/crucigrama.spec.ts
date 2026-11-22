@@ -693,7 +693,16 @@ test.describe('crossword', () => {
     await expect(page.locator('.cw-keys')).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Letras en pantalla' })).toBeVisible();
     await expect(grid(page)).toBeInViewport({ ratio: 1 });
-    expect(await page.locator('.cw-cell').first().evaluate((el) => el.getBoundingClientRect().width)).toBeGreaterThanOrEqual(30);
+    // Which crossword a box starts with is by lot, and a tall one has smaller cells than a low one (six in ten
+    // are twelve or thirteen rows high): what holds for all of them is that the grid reaches down to the
+    // buttons under it, or that its cells are as large as they get.
+    const lies = (await grid(page).boundingBox())!;
+    const foot = (await page.locator('.cw-foot').boundingBox())!;
+    const side = await page.locator('.cw-cell').first().evaluate((el) => el.getBoundingClientRect().width);
+    const rows = await page.locator('.cw-row').count();
+    expect(foot.y - (lies.y + lies.height) < 12 || side >= 37, `${rows} rows: the grid ends at ${lies.y + lies.height} and the buttons start at ${foot.y}, with cells of ${side} px`).toBe(true);
+    // The tallest crossword still has cells that are easy to hit.
+    expect(side, `${rows} rows`).toBeGreaterThanOrEqual(26);
     // The box is narrow: the map takes turns with the crossword, as on a phone.
     await page.getByRole('button', { name: 'Ver el mapa' }).click();
     await expect(page.locator('.stage')).toBeVisible();
