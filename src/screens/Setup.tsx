@@ -22,7 +22,7 @@ import { mapLinkRest, type MapLink } from '../lib/maplink';
 import { opensWithWorld, worldOf } from '../lib/opening';
 import { GROUP_NAME, MODES, MODE_GROUPS, SECTIONS, cardAskName, formatName } from '../lib/modes';
 import { estimateOf, minutesOf, paceOf, percentOf, questionsOf } from '../lib/pace';
-import { CLOCKS, CONNECT_MIN, CONNECT_WIDE, FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, LIVES, MADE_UP_MODES, ODD_MIN, PAIRS_MIN, PAIR_SIZES, PAIR_SIZE_DEFAULT, ROUND_MODES, TOP_MIN, TRIES, USUAL_RULES, asksByFlag, embeddable, isRouteRule, turnsOutlines, type PairSize, type RouteRule } from '../lib/rules';
+import { BINGO_MIN, CLOCKS, CONNECT_MIN, CONNECT_WIDE, FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, LIVES, MADE_UP_MODES, ODD_MIN, PAIRS_MIN, PAIR_SIZES, PAIR_SIZE_DEFAULT, ROUND_MODES, TOP_MIN, TRIES, USUAL_RULES, asksByFlag, embeddable, isRouteRule, turnsOutlines, type PairSize, type RouteRule } from '../lib/rules';
 import { clockShort, clockText, customRules, livesText, rulesIn, rulesOf, rulesOfGame, rulesText, triesText } from '../lib/ruleset';
 import { go, settle } from '../lib/router';
 import { PATHS, mapAt, mapLinkUrl } from '../lib/routes';
@@ -564,7 +564,10 @@ export function Setup({ section, world, link }: { section: Section; world: World
       ? L('Este navegador no tiene voz para decir los nombres: juega a «Señalar».', 'This browser has no voice to say the names: play “Pin it”.')
       : duoOn && units < 2
         ? L('Una partida de dos pide al menos dos piezas.', 'A game of two takes at least two pieces.')
-        : null);
+        : // With fewer, every card would hold nearly all of them (lib/bingo.ts).
+          def.id === 'bingo' && units > 0 && units < BINGO_MIN
+          ? L(`El bingo pide un mapa con al menos ${BINGO_MIN} piezas.`, `Bingo takes a map with at least ${BINGO_MIN} pieces.`)
+          : null);
 
   const typed = ANSWER_MODES.includes(def.id) && opts.answer === 'type';
   /** Initials that are taken where they are promised, and the same in both languages. */
@@ -801,7 +804,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
                                 ))}
                               </span>
                             ) : (
-                              <span className="mode-level mode-paper">{L('en papel', 'on paper')}</span>
+                              <span className="mode-level mode-paper">{m.id === 'bingo' ? L('en grupo', 'for a group') : L('en papel', 'on paper')}</span>
                             )}
                           </span>
                         </button>
@@ -1347,7 +1350,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
           <button type="button" className="btn btn-primary btn-lg" onClick={begin} disabled={!!problem}>
             {/* The sheet is not started: it is laid out to be looked at and sent to the printer. */}
             {def.id === 'print' ? <Printer size={18} aria-hidden="true" /> : <Play size={18} aria-hidden="true" />}
-            {def.id === 'print' ? L('Ver la hoja', 'See the sheet') : L('Empezar', 'Start')}
+            {def.id === 'print' ? L('Ver la hoja', 'See the sheet') : def.id === 'bingo' ? L('Abrir el bingo', 'Open the bingo') : L('Empezar', 'Start')}
           </button>
         </div>
       </aside>

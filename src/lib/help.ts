@@ -156,6 +156,35 @@ export function helpOf(mode: Mode, section: Section): ModeHelp | null {
         ],
         score: L('No es un juego: es el mismo mapa en papel, para clase o para estudiar sin pantalla.', 'It is not a game: it is the same map on paper, for class or to study away from a screen.'),
       };
+    case 'bingo':
+      return {
+        steps: [
+          L(
+            'Elige cómo salen las piezas (señaladas en el mapa, por su bandera, su capital, su silueta o su nombre) y el tamaño de los cartones.',
+            'Choose how the pieces come up (lit on the map, by their flag, their capital, their outline or their name) and the size of the cards.',
+          ),
+          L(
+            'Reparte los cartones: en papel con «Imprimir cartones», o en el móvil de cada cual con «Copiar el enlace» o «Código QR». Cada cartón lleva un número.',
+            'Hand out the cards: on paper with “Print cards”, or on each phone with “Copy the link” or “QR code”. Each card has a number.',
+          ),
+          L(
+            'Pulsa «Sacar la primera» y, cuando todos hayan mirado su cartón, «Sacar otra». «Ver el nombre» dice cuál es la pieza que ha salido.',
+            'Press “Draw the first one” and, once everybody has looked at their card, “Draw another”. “Show the name” says which piece has come up.',
+          ),
+          L(
+            'Cuando alguien cante línea o bingo, escribe el número de su cartón y pulsa «Comprobar»: verás su cartón con lo que ha salido.',
+            'When somebody calls a line or bingo, type the number of their card and press “Check”: you will see their card with what has come up.',
+          ),
+        ],
+        score: L(
+          'Línea es una fila, una columna o una diagonal entera; bingo, el cartón entero. Nadie contesta en esta pantalla: no deja nada en el progreso.',
+          'A line is a whole row, column or diagonal; bingo, the whole card. Nobody answers on this screen: it leaves nothing in the progress.',
+        ),
+        tip: L(
+          'Los cartones valen para todas las partidas de ese mapa y ese tamaño, salgan como salgan las piezas: basta imprimirlos una vez. Si cierras la página, la partida sigue donde estaba.',
+          'The cards are good for every game on that map and of that size, however the pieces come up: printing them once is enough. If you close the page, the game goes on where it was.',
+        ),
+      };
     case 'pin':
       return {
         steps: [

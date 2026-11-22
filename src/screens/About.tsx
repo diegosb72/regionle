@@ -93,8 +93,8 @@ export function About() {
           <li>
             <b>{L('Qué se guarda, y dónde.', 'What is kept, and where.')}</b>{' '}
             {L(
-              'Tu progreso, tus resultados, tus fantasmas, tus ajustes, tus listas, el nombre que pongas en los retos y en las tareas, los de una partida a dos y los justificantes de tarea que hagas o abras se guardan en este navegador y solo en él. Los mapas que descargas para jugar sin conexión, también.',
-              'Your progress, your results, your ghosts, your settings, your lists, the name you put on challenges and on homework, those of a game of two and the homework receipts you make or open are kept in this browser and nowhere else. So are the maps you download to play without a connection.',
+              'Tu progreso, tus resultados, tus fantasmas, tus ajustes, tus listas, el nombre que pongas en los retos y en las tareas, los de una partida a dos y los justificantes de tarea que hagas o abras se guardan en este navegador y solo en él. Los mapas que descargas para jugar sin conexión, también; y de un bingo, las piezas que han salido y las marcas de tu cartón.',
+              'Your progress, your results, your ghosts, your settings, your lists, the name you put on challenges and on homework, those of a game of two and the homework receipts you make or open are kept in this browser and nowhere else. So are the maps you download to play without a connection; and of a bingo, the pieces that have come up and the marks on your card.',
             )}
           </li>
           <li>
@@ -114,7 +114,11 @@ export function About() {
           <li>
             <b>{L('Cómo se borra.', 'How to delete it.')}</b> {L('Con «Borrar progreso», en', 'With “Delete progress”, in')} <a href={`#/${PROGRESS_PATH}`}>{L('Progreso', 'Progress')}</a>
             {L(', o borrando los datos de este sitio en el navegador. Desde esa misma página se exporta y se importa.', ', or by clearing the data of this site in the browser. The same page exports and imports it.')}{' '}
-            {L('Los justificantes de tarea no van en la copia, y se borran en', 'Homework receipts are not in the backup, and are deleted in')} <a href={`#/${RECEIPT_PATH}`}>{L('Justificantes abiertos aquí', 'Receipts opened here')}</a>.
+            {L('Los justificantes de tarea no van en la copia, y se borran en', 'Homework receipts are not in the backup, and are deleted in')} <a href={`#/${RECEIPT_PATH}`}>{L('Justificantes abiertos aquí', 'Receipts opened here')}</a>.{' '}
+            {L(
+              'Lo de un bingo tampoco va en la copia: la partida se borra con «Empezar de nuevo» y las marcas de un cartón, con «Borrar las marcas».',
+              'What a bingo keeps is not in the backup either: the game is deleted with “Start again”, and the marks on a card with “Clear the marks”.',
+            )}
           </li>
         </ul>
       </section>

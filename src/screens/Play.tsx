@@ -47,8 +47,9 @@ const OddOneGame = lazyScreen(() => import('../games/OddOne').then((m) => m.OddO
 const PairsGame = lazyScreen(() => import('../games/Pairs').then((m) => m.PairsGame));
 const AlphabetGame = lazyScreen(() => import('../games/Alphabet').then((m) => m.AlphabetGame));
 const ConnectGame = lazyScreen(() => import('../games/Connect').then((m) => m.ConnectGame));
+const BingoGame = lazyScreen(() => import('../games/Bingo').then((m) => m.BingoGame));
 /** Which of them each mode needs: asked for while the map is being drawn, so that it is here when the map is. */
-const APART: Partial<Record<Mode, { warm(): void }>> = { blind: BlindGame, hotcold: BlindGame, bearing: BearingGame, coords: CoordsGame, chain: ChainGame, border: BorderGame, group: GroupGame, whoami: WhoAmIGame, oddone: OddOneGame, pairs: PairsGame, alphabet: AlphabetGame, connect: ConnectGame };
+const APART: Partial<Record<Mode, { warm(): void }>> = { blind: BlindGame, hotcold: BlindGame, bearing: BearingGame, coords: CoordsGame, chain: ChainGame, border: BorderGame, group: GroupGame, whoami: WhoAmIGame, oddone: OddOneGame, pairs: PairsGame, alphabet: AlphabetGame, connect: ConnectGame, bingo: BingoGame };
 
 function Message({ title, text, onExit, action }: { title: string; text: string; onExit(): void; action?: { label: string; run(): void } }) {
   return (
@@ -80,7 +81,7 @@ function Message({ title, text, onExit, action }: { title: string; text: string;
 }
 
 /** What is opened without being told how it goes: there is nothing in them to get wrong. */
-const QUIET: readonly Mode[] = ['explore', 'print'];
+const QUIET: readonly Mode[] = ['explore', 'print', 'bingo'];
 
 /**
  * A game with «Cómo se juega» at hand: its frame gets the button, and the first time a player opens that
@@ -312,6 +313,16 @@ export function Session({ cfg, world, host }: { cfg: GameConfig; world: World; h
     return (
       <WithHelp cfg={cfg}>
         <PrintSheet deck={deck} cfg={cfg} onExit={onExit} onAgain={onAgain} />
+      </WithHelp>
+    );
+  }
+  // A bingo says for itself how many pieces it needs: which ones take part depends on how they are called.
+  if (cfg.mode === 'bingo') {
+    return (
+      <WithHelp cfg={cfg}>
+        <Suspense fallback={<Spinner />}>
+          <BingoGame deck={deck} cfg={cfg} onExit={onExit} onAgain={onAgain} />
+        </Suspense>
       </WithHelp>
     );
   }

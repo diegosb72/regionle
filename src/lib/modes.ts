@@ -22,6 +22,7 @@ import {
   Link2,
   ListOrdered,
   MapPin,
+  Megaphone,
   Navigation,
   PaintBucket,
   Printer,
@@ -112,6 +113,18 @@ function modesOf(section: Section): ModeDef[] {
       'To print: the map without names, a number on each piece and a line to write each name on. If you like, without numbers and with the answers on another sheet.',
     ),
     icon: Printer,
+    level: 0,
+    group: 'study',
+  };
+  /** For a class or a party: this screen calls the pieces, and the cards are on paper or on the phones (lib/bingo.ts). */
+  const bingo: ModeDef = {
+    id: 'bingo',
+    name: 'Bingo',
+    desc: L(
+      'Para jugar en grupo: esta pantalla va sacando piezas del mapa y cada cual las marca en su cartón, impreso o en el móvil. Quien completa una línea o el cartón lo canta, y el juego lo comprueba.',
+      'To play as a group: this screen draws pieces of the map and everybody marks them on a card, printed or on a phone. Whoever completes a line or the whole card calls it, and the game checks it.',
+    ),
+    icon: Megaphone,
     level: 0,
     group: 'study',
   };
@@ -266,6 +279,7 @@ function modesOf(section: Section): ModeDef[] {
         learn,
         cards,
         print,
+        bingo,
         pin,
         listen,
         blindLand,
@@ -322,6 +336,7 @@ function modesOf(section: Section): ModeDef[] {
         learn,
         cards,
         print,
+        bingo,
         pin,
         listen,
         blindLand,
@@ -372,6 +387,7 @@ function modesOf(section: Section): ModeDef[] {
         learn,
         cards,
         { ...print, desc: L('Para imprimir: el mapa con un punto numerado por ciudad y una línea para escribir cada nombre. Si quieres, sin números y con las soluciones en otra hoja.', 'To print: the map with a numbered dot for each city and a line to write each name on. If you like, without numbers and with the answers on another sheet.') },
+        bingo,
         { ...pin, desc: L('Te damos una ciudad y la buscas entre los puntos del mapa.', 'You get a city and find it among the dots on the map.') },
         listen,
         blind(
@@ -410,6 +426,7 @@ function modesOf(section: Section): ModeDef[] {
         learn,
         cards,
         { ...print, desc: L('Para imprimir: ríos, mares, cordilleras y picos sin nombre, con un número en cada uno y una línea para escribirlo. Si quieres, sin números y con las soluciones en otra hoja.', 'To print: rivers, seas, ranges and peaks without names, a number on each and a line to write it on. If you like, without numbers and with the answers on another sheet.') },
+        bingo,
         pin,
         listen,
         blind(
@@ -507,6 +524,8 @@ function modeName(mode: Mode): string {
       return L('Lista a medida', 'Custom list');
     case 'print':
       return L('Mapa mudo', 'Blank map');
+    case 'bingo':
+      return 'Bingo';
     case 'nameall':
       return L('Rellenar el mapa', 'Fill the map');
     case 'outline':
@@ -634,7 +653,7 @@ function lazy<K extends string, V>(keys: readonly K[], make: (key: K) => V): Rec
   return out;
 }
 
-const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'group', 'neighbours', 'border', 'chain', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'coords', 'edit', 'print', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'oddone', 'pairs', 'alphabet', 'connect', 'topten', 'cards', 'mix', 'listen'];
+const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'group', 'neighbours', 'border', 'chain', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'coords', 'edit', 'print', 'bingo', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'oddone', 'pairs', 'alphabet', 'connect', 'topten', 'cards', 'mix', 'listen'];
 
 export const MODES: Record<Section, ModeDef[]> = lazy(SECTION_IDS, modesOf);
 export const MODE_NAME: Record<Mode, string> = lazy(MODE_IDS, modeName);

@@ -15,6 +15,28 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.35.0',
+    date: '2026-11-22',
+    es: [
+      'Bingo geográfico: un juego para una clase o un grupo. Una pantalla va sacando las piezas de un mapa, una a una, y cada jugador marca en su cartón las que tiene.',
+      'Está entre los juegos de Regiones, Países, Ciudades y Geografía física, y se juega también con tus listas. Pide un mapa de al menos 12 piezas.',
+      'Las piezas salen iluminadas en el mapa, o por su capital, su silueta, su bandera o su nombre, y se puede cambiar a mitad de partida. «Ver el nombre» lo dice.',
+      'Los cartones son de 3, 4 o 5 nombres de lado, todos distintos y numerados. Se imprimen, seis por hoja, o se abren en el móvil con un enlace o un código QR.',
+      'Línea es una fila, una columna o una diagonal; bingo, el cartón entero. Escribes el número del cartón de quien lo canta y la pantalla dice si es verdad.',
+      'No hay servidor: un cartón sale de su mapa, su tamaño y su número, y una hoja impresa vale para todas las partidas. Si cierras la página, la partida sigue.',
+      'Corregido: en los juegos de ríos, el río por el que se preguntaba pintaba de color un triángulo de tierra entre sus dos extremos.',
+    ],
+    en: [
+      'Map bingo: a game for a class or a group. One screen calls the pieces of a map, one by one, and each player marks on a card the ones they have.',
+      'It is among the games of Regions, Countries, Cities and Physical geography, and is played with your lists too. It takes a map of at least 12 pieces.',
+      'Pieces come up lit on the map, or by their capital, outline, flag or name, and the way can change half way through a game. “Show the name” says which it is.',
+      'Cards are 3, 4 or 5 names across, all different and numbered. They are printed, six to a sheet, or opened on a phone with a link or a QR code.',
+      'A line is a row, a column or a diagonal; bingo, the whole card. You type the number of the card of whoever calls it and the screen says whether it is true.',
+      'There is no server: a card comes from its map, its size and its number, so a printed sheet is good for every game. Close the page, and the game goes on.',
+      'Fixed: in the games of rivers, the river that was asked about painted a triangle of land between its two ends.',
+    ],
+  },
+  {
     version: '1.34.0',
     date: '2026-11-22',
     es: [

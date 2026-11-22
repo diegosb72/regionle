@@ -3,6 +3,16 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.35.0 — 22 de noviembre de 2026
+
+- Bingo geográfico: un juego para una clase o un grupo. Una pantalla va sacando las piezas de un mapa, una a una, y cada jugador marca en su cartón las que tiene.
+- Está entre los juegos de Regiones, Países, Ciudades y Geografía física, y se juega también con tus listas. Pide un mapa de al menos 12 piezas.
+- Las piezas salen iluminadas en el mapa, o por su capital, su silueta, su bandera o su nombre, y se puede cambiar a mitad de partida. «Ver el nombre» lo dice.
+- Los cartones son de 3, 4 o 5 nombres de lado, todos distintos y numerados. Se imprimen, seis por hoja, o se abren en el móvil con un enlace o un código QR.
+- Línea es una fila, una columna o una diagonal; bingo, el cartón entero. Escribes el número del cartón de quien lo canta y la pantalla dice si es verdad.
+- No hay servidor: un cartón sale de su mapa, su tamaño y su número, y una hoja impresa vale para todas las partidas. Si cierras la página, la partida sigue.
+- Corregido: en los juegos de ríos, el río por el que se preguntaba pintaba de color un triángulo de tierra entre sus dos extremos.
+
 ## 1.34.0 — 22 de noviembre de 2026
 
 - Reglas a medida: en los nueve juegos de preguntas eliges los intentos de cada pregunta (1, 2 o 3) y si hay pistas. Está en «Reglas», al preparar la partida.

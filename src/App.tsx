@@ -31,6 +31,7 @@ const ListLink = lazyScreen(() => import('./screens/ListLink').then((m) => m.Lis
 const Embed = lazyScreen(() => import('./screens/Embed').then((m) => m.Embed));
 const Task = lazyScreen(() => import('./screens/Task').then((m) => m.Task));
 const Receipt = lazyScreen(() => import('./screens/Task').then((m) => m.Receipt));
+const Bingo = lazyScreen(() => import('./screens/Bingo').then((m) => m.Bingo));
 const Progress = lazyScreen(() => import('./screens/Progress').then((m) => m.Progress));
 const Settings = lazyScreen(() => import('./screens/Settings').then((m) => m.Settings));
 const About = lazyScreen(() => import('./screens/About').then((m) => m.About));
@@ -293,6 +294,7 @@ export function App() {
   else if (route.kind === 'list') page = <ListLink key={route.code} code={route.code} world={world} />;
   else if (route.kind === 'task') page = <Task key={route.rest} rest={route.rest} world={world} />;
   else if (route.kind === 'receipt') page = <Receipt key={route.code} code={route.code} world={world} />;
+  else if (route.kind === 'bingo') page = <Bingo key={route.rest} rest={route.rest} world={world} />;
   else if (route.kind === 'embed') page = <Embed key={route.rest} rest={route.rest} world={world} />;
   else if (section) page = <Setup key={section} section={section} world={world} link={route.kind === 'section' ? route.link : undefined} />;
   else if (progress) page = <Progress world={world} />;
