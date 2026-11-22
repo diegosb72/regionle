@@ -18,7 +18,7 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 
 - **Corto**: nada pendiente
 - **Medio**: nada pendiente
-- **Largo**: 20, 44 (francés), 65, 67, 68, 83, 90
+- **Largo**: lo que falta del 20 (la sopa de letras y el crucigrama), 44 (francés), 65, 67, 68, 83, 90
 - **Depende de conseguir datos**, lleve lo que lleve: 30–32, 37–39, 41–43, 95, y lo que falta del 29 y del 35
 
 ## Modos de juego en el mapa
@@ -41,7 +41,7 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 - [x] 16. Modo examen: un intento por pregunta, sin pistas ni corrección hasta entregar, y nota sobre 10 — **1.8.0**
 - [x] 18. Coordenadas: se marca en el mapa el punto de una latitud y una longitud, o se leen las de un punto marcado, sobre una cuadrícula de paralelos y meridianos; en regiones, países y ciudades — **1.17.0**
 - [x] 19. Ruta con condiciones: antes de empezar una Ruta se elige una condición: una pieza cerrada que hay que rodear, una parada a desmano a la que hay que llegar, o solo por tierra, sin las travesías por mar — **1.28.0**
-- [ ] 20. Juegos de palabras: ahorcado, sopa de letras y crucigrama
+- [~] 20. Juegos de palabras: ahorcado, sopa de letras y crucigrama. El **ahorcado**: un nombre del mapa escondido, que se adivina letra a letra con los botones o con el teclado; cada letra que no está apaga una punta de una rosa de los vientos, y la octava lo pierde. En Regiones, Países, Ciudades y Geografía física, bajo un apartado nuevo del menú, «Juegos de palabras», y también con listas (**decidido**: el dibujo es una rosa de los vientos y no una horca, porque el juego se usa en clase, aunque conserva el nombre por el que se le conoce; el mapa no dice nada hasta que se pide con «Ver en el mapa», y entonces el acierto cuenta como dado con ayuda; las letras falladas no restan, solo acercan el final; las tildes no cuentan y la Ñ es letra aparte en español; no hay contrarreloj ni vidas, ni se pone de tarea, ni alimenta el repaso) — el ahorcado, en **1.36.0**; faltan la sopa de letras y el crucigrama
 
 ## Juegos de datos y cifras
 

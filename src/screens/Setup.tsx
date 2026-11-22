@@ -41,11 +41,11 @@ const COUNTDOWNS = [0, 120, 300, 600, 900];
 const levelName = (n: number): string => [L('Fácil', 'Easy'), L('Medio', 'Medium'), L('Difícil', 'Hard')][n - 1];
 const ANSWER_MODES: Mode[] = ['learn', 'identify', 'outline', 'capital', 'flag', 'parent', 'mix', 'border'];
 /** Games that are one round of everything: they cannot go on for ever. */
-const FINITE_MODES: Mode[] = ['neighbours', 'blind', 'hotcold', 'bearing', 'coords', 'group', 'whoami', 'border', 'cards'];
+const FINITE_MODES: Mode[] = ['neighbours', 'blind', 'hotcold', 'bearing', 'coords', 'group', 'whoami', 'border', 'cards', 'hangman'];
 /** Games where names are typed and a list of suggestions can help. */
 const SUGGEST_MODES: Mode[] = ['travel', 'neighbours', 'chain', 'whoami', 'regionle', 'which', 'topten', 'alphabet'];
 /** Games that stop on a missed answer long enough to read about it. */
-const WIKI_MODES: Mode[] = ['explore', 'pin', 'identify', 'outline', 'regionle', 'puzzle', 'neighbours', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'mix', 'listen', 'alphabet'];
+const WIKI_MODES: Mode[] = ['explore', 'pin', 'identify', 'outline', 'regionle', 'puzzle', 'neighbours', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'mix', 'listen', 'alphabet', 'hangman'];
 
 type Cities = Awaited<ReturnType<typeof loadCities>>;
 type Physical = Awaited<ReturnType<typeof loadPhysical>>;
@@ -834,7 +834,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
                     <span>
                       {estimate && L(minutesOf(estimate.ms) === 1 ? 'Alrededor de 1 min' : `Unos ${nf(minutesOf(estimate.ms))} min`, `About ${nf(minutesOf(estimate.ms))} min`)}
                       {estimate && questions != null && ' · '}
-                      {questions != null && (def.id === 'nameall' ? plural(questions, noun[0], noun[1]) : def.id === 'alphabet' ? plural(questions, L('letra', 'letter'), L('letras', 'letters')) : def.id === 'connect' ? plural(questions, L('grupo', 'group'), L('grupos', 'groups')) : plural(questions, L('pregunta', 'question'), L('preguntas', 'questions')))}
+                      {questions != null && (def.id === 'nameall' ? plural(questions, noun[0], noun[1]) : def.id === 'alphabet' ? plural(questions, L('letra', 'letter'), L('letras', 'letters')) : def.id === 'connect' ? plural(questions, L('grupo', 'group'), L('grupos', 'groups')) : def.id === 'hangman' ? plural(questions, L('nombre', 'name'), L('nombres', 'names')) : plural(questions, L('pregunta', 'question'), L('preguntas', 'questions')))}
                       {duoOn && questions != null && questions > 0 && <small> {L(`(${nf(questions / 2)} para cada uno)`, `(${nf(questions / 2)} each)`)}</small>}
                       {estimate?.own && !duoOn && <small> {L('a tu ritmo', 'at your pace')}</small>}
                     </span>

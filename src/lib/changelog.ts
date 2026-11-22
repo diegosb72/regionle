@@ -15,6 +15,22 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.36.0',
+    date: '2026-11-22',
+    es: [
+      'Ahorcado: un nombre del mapa, escondido. Prueba letras, con los botones o con el teclado, hasta dar con él: la que está aparece en todos sus sitios.',
+      'Cada letra que no está apaga una punta de la rosa de los vientos, y con la octava pierdes el norte y el nombre. Las tildes no cuentan; la Ñ es letra aparte.',
+      '«Ver en el mapa» ilumina la pieza escondida, y entonces el acierto cuenta como dado con ayuda. Al acabar cada nombre, el mapa enseña dónde está.',
+      'Está en Regiones, Países, Ciudades y Geografía física, bajo «Juegos de palabras», y se juega también con tus listas. Un nombre largo se escribe más pequeño.',
+    ],
+    en: [
+      'Hangman: a name from the map, hidden. Try letters, with the buttons or with the keyboard, until you find it: one that is in the name shows wherever it is.',
+      'Each letter that is not there puts out a point of the compass rose, and with the eighth you lose your bearings and the name. Accents do not count.',
+      '“Show on the map” lights up the hidden piece, and the name then counts as found with help. When each name is over, the map shows where it is.',
+      'It is in Regions, Countries, Cities and Physical geography, under “Word games”, and is played with your lists too. A long name is written smaller.',
+    ],
+  },
+  {
     version: '1.35.1',
     date: '2026-11-22',
     es: [

@@ -3,6 +3,13 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.36.0 — 22 de noviembre de 2026
+
+- Ahorcado: un nombre del mapa, escondido. Prueba letras, con los botones o con el teclado, hasta dar con él: la que está aparece en todos sus sitios.
+- Cada letra que no está apaga una punta de la rosa de los vientos, y con la octava pierdes el norte y el nombre. Las tildes no cuentan; la Ñ es letra aparte.
+- «Ver en el mapa» ilumina la pieza escondida, y entonces el acierto cuenta como dado con ayuda. Al acabar cada nombre, el mapa enseña dónde está.
+- Está en Regiones, Países, Ciudades y Geografía física, bajo «Juegos de palabras», y se juega también con tus listas. Un nombre largo se escribe más pequeño.
+
 ## 1.35.1 — 22 de noviembre de 2026
 
 - Corregido: en una tarea, el justificante de un intento no quedaba guardado si se pulsaba «Otra vez» en el primer cuarto de segundo. Ahora se guarda en el acto.

@@ -156,6 +156,36 @@ export function helpOf(mode: Mode, section: Section): ModeHelp | null {
         ],
         score: L('No es un juego: es el mismo mapa en papel, para clase o para estudiar sin pantalla.', 'It is not a game: it is the same map on paper, for class or to study away from a screen.'),
       };
+    case 'hangman':
+      return {
+        steps: [
+          L(
+            'El juego esconde un nombre del mapa: ves cuántas letras tiene cada palabra, y los guiones y apóstrofos que lleve.',
+            'The game hides a name from the map: you see how many letters each word has, and any hyphens and apostrophes in it.',
+          ),
+          L(
+            'Prueba letras, con los botones o con el teclado. La que está aparece en todos sus sitios, con tilde o sin ella; en español la Ñ es una letra aparte.',
+            'Try letters, with the buttons or with the keyboard. One that is in the name shows wherever it is, with or without an accent.',
+          ),
+          L(
+            'Cada letra que no está apaga una punta de la rosa de los vientos. Con la octava pierdes el norte, y el nombre se queda sin adivinar.',
+            'Each letter that is not in the name puts out a point of the compass rose. With the eighth you lose your bearings, and the name is left unguessed.',
+          ),
+          L('Al acabar, el mapa enseña dónde está lo que has adivinado.', 'When it is over, the map shows where what you guessed is.'),
+        ],
+        score: L(
+          'Cuenta «a la primera» si das con el nombre solo con las letras, «con ayuda» si antes pides el mapa, y queda «para repasar» si pierdes el norte o te rindes. Las letras falladas no restan: solo acercan el final.',
+          'It counts as “first time” if you find the name with the letters alone, as “with help” if you ask for the map first, and is left “to review” if you lose your bearings or give up. Wrong letters take nothing off: they only bring the end nearer.',
+        ),
+        aid: L(
+          '«Ver en el mapa» ilumina la pieza: si la reconoces, ya sabes qué nombre es. «Me rindo» lo enseña sin más.',
+          '“Show on the map” lights the piece up: if you recognise it, you know which name it is. “I give up” shows it straight away.',
+        ),
+        tip: L(
+          'Empieza por las vocales, y mira las palabras cortas: en «de», «del» o «la» casi no hay dónde elegir.',
+          'Start with the vowels, and look at the short words: in “of”, “the” or “and” there is little to choose from.',
+        ),
+      };
     case 'bingo':
       return {
         steps: [
