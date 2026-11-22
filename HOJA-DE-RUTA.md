@@ -7,9 +7,9 @@ Se hace por lotes: cada lote sale como una versión, con sus pruebas, y se apunt
 - Hecho no quiere decir publicado: la versión que está en la web es la que dice el pie de página del juego
 - **datos**: hay que conseguir datos nuevos · **decisión**: falta que el dueño del proyecto elija algo · **decidido**: lo eligió quien hace el encargo, porque el dueño lo dejó en sus manos
 
-Fuera del encargo, por decisión expresa: 17 (ortografía estricta), 82 (globo), 86 (capas de contexto),
-89 (celebración), 91 (entrada por voz), 93 (leer cada pregunta) y 104–110 (lo que necesita un servidor o un
-servicio de fuera).
+Fuera del encargo, por decisión expresa: 17 (ortografía estricta), 65 (modo infantil), 67 (modo clase),
+82 (globo), 86 (capas de contexto), 89 (celebración), 91 (entrada por voz), 93 (leer cada pregunta) y
+104–110 (lo que necesita un servidor o un servicio de fuera).
 
 ## Orden
 
@@ -18,8 +18,16 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 
 - **Corto**: nada pendiente
 - **Medio**: nada pendiente
-- **Largo**: 44 (francés), 65, 67, 68, 83, 90
+- **Largo**: 44 (francés), 68, 83, 90
 - **Depende de conseguir datos**, lleve lo que lleve: 30–32, 37–39, 41–43, 95, y lo que falta del 29 y del 35
+
+De dónde saldrían esos datos, mirado el 22 de noviembre de 2026. Donde se hace el juego solo se alcanzan
+GitHub, npm y PyPI; lo demás lo trae el flujo «Traer datos» (véase «Datos de fuera» en el README), que tiene
+que poner el dueño del repositorio:
+
+- **Con fuentes que ya se alcanzan**: 30 y 32 (The World Factbook, que ya es fuente del juego: esperanza de vida, costa, punto más alto, PIB por habitante… y el año de independencia), 31 (GeoNames, en el paquete `geonamescache`: moneda, prefijo, dominio e idiomas), 42 (Natural Earth trae husos horarios, aeropuertos y puertos; las placas, el modelo de Bird de 2003, con atribución) y 95 (el nombre local de los países está en The World Factbook, y el de muchas regiones, en Natural Earth)
+- **Con una decisión de licencia**: 41 (los mapas históricos que hay en GitHub son GPL-3.0)
+- **Con el flujo «Traer datos»**: lo que falta del 29 y el 43 (Wikidata, CC0), lo que falta del 35 (Wikidata), 37 (Wikidata y Wikimedia Commons: cada bandera tiene su autor y su licencia; la de Texas es de dominio público y la de Andalucía pide atribución y compartir igual), 38 y 39 (geoBoundaries: Kenia es de dominio público y Sudán del Sur pide atribución; Ghana y Marruecos vienen de OpenStreetMap y piden además compartir igual). Para las comarcas del 39 no hay fuente todavía
 
 ## Modos de juego en el mapa
 
@@ -101,12 +109,10 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 - [x] 62. Más tipos de pista: junto a la pista de cada juego, un menú «Otra pista» con lo que el juego sabe de la pieza (cuántas letras, su tamaño, dónde cae, a qué pertenece, qué tiene cerca, su capital, su bandera, quitar dos opciones, su nombre); solo lo que la pregunta ni enseña ni pide, y cada una cuenta como ayuda — **1.22.0**
 - [x] 63. Las que más te cuestan: «Lo que más fallas» estaba en Progreso desde la 1.5.0; ahora la portada dice cuántas son y las practica con un clic — **1.14.0**
 - [x] 64. Ficha de cada pieza con tu historial: en Explorar, cómo va cada tipo de pregunta, cuándo vuelve al repaso y con qué se confunde — **1.14.0**
-- [ ] 65. Modo infantil
 
 ## Con otras personas y para clase
 
 - [x] 66. Dos jugadores en el mismo dispositivo: un quinto formato de los nueve juegos de preguntas (**decidido**: por turnos, una pregunta para cada uno; 2 puntos a la primera y 1 con ayuda; sin ronda de fallos; no cuenta para el progreso). Marcador bajo la cabecera, el mapa pintado por quién acertó cada pieza, y al final quién gana y qué contestó cada uno — **1.33.0**
-- [ ] 67. Modo clase
 - [ ] 68. Varios perfiles en un navegador
 - [x] 69. Mapas mudos para imprimir: el mapa numerado con sus líneas, la hoja de soluciones y recuadros para lo que queda lejos — **1.8.0**
 - [x] 70. Tarea con justificante: «Poner de tarea», junto al enlace de un mapa o en una lista, da un enlace y un QR con el juego, sus reglas y un título; quien lo abre escribe su nombre, juega eso mismo y recibe un justificante (un enlace o un QR) con su nombre, el resultado, la fecha y el intento; quien puso la tarea lo abre, ve si su cifra de control cuadra y junta los de una misma tarea en una tabla que se copia a una hoja de cálculo (**decidido**: sin servidor, todo viaja en los enlaces; la cifra descubre un retoque a mano, pero no es a prueba de trampas, y el juego lo dice; cada vez que se empieza es un intento, contado por nombre; lo que se deja sin responder cuenta como fallado) — **1.34.0**
