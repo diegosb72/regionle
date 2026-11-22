@@ -354,6 +354,7 @@ describe('the language of the page before the game starts', () => {
     expect(run({ path: '/regionle/mapa-espana.html', languages: ['en-GB'] }).lang).toBe('en');
     expect(run({ path: '/regionle/mapas-es-espana.html', languages: ['en-GB'] }).lang).toBe('en');
     expect(run({ path: '/regionle/xmap-es-spain.html', languages: ['es-ES'] }).lang).toBe('es');
+    expect(run({ path: '/regionle/xmapa-es-espana.html', languages: ['en-GB'] }).lang).toBe('en');
     expect(run({ path: '/regionle/map-ES-spain.html', languages: ['es-ES'] }).lang).toBe('es');
     expect(run({ path: '/map-es-spain/', languages: ['es-ES'] }).lang).toBe('es');
   });

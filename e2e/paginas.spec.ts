@@ -256,7 +256,13 @@ test.describe('the page of the map of a country', () => {
     await page.locator('.picker-groups .cchip', { hasText: 'Portugal' }).click();
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Regiones, provincias y estados');
     await expect(page.locator('.setup-head .lead')).not.toContainText('52 provincias');
+    // Nor with another country alone: the page is about its own map.
+    await page.locator('.picker-groups .cchip', { hasText: 'España' }).click();
+    await expect(page.locator('.startbar')).toContainText('Portugal · ');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Regiones, provincias y estados');
+    await page.locator('.picker-groups .cchip', { hasText: 'España' }).click();
     await page.locator('.picker-groups .cchip', { hasText: 'Portugal' }).click();
+    await expect(page.locator('.startbar')).toContainText('España · 52 provincias');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('España: provincias en el mapa');
 
     // Read again where it is, it is the same screen of the same page.

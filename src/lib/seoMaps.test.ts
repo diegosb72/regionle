@@ -83,6 +83,10 @@ describe('the pages of the map of a country', () => {
   it('keep the levels apart with semicolons where the name of one has an "y" of its own', () => {
     expect(of(mapPagesOf([UK]), 'es').description).toMatch(/^Reino Unido en el mapa: 4 naciones; 12 naciones y regiones; 232 condados y distritos\. /);
     expect(of(mapPagesOf([UK]), 'en').description).toMatch(/^United Kingdom on the map: 4 nations; 12 nations and regions; 232 counties and districts\. /);
+    // An "y" that is a letter of a word is not one that joins two: those names go in a row like any others.
+    const letters: MapSource = { id: 'ZZ', n: { es: 'Tierra', en: 'Land' }, lv: [{ n: 3, es: 'ayuntamientos', en: 'islands' }, { n: 9, es: 'distritos y', en: 'districts and' }] };
+    expect(of(mapPagesOf([letters]), 'es').description).toMatch(/^Tierra en el mapa: 3 ayuntamientos y 9 distritos y\. /);
+    expect(of(mapPagesOf([letters]), 'en').description).toMatch(/^Land on the map: 3 islands and 9 districts and\. /);
     // One level alone needs nothing between it and anything.
     const one: MapSource = { id: 'ZZ', n: { es: 'Tierra' }, lv: [{ n: 9, es: 'provincias y ciudades', en: 'provinces and cities' }] };
     expect(of(mapPagesOf([one]), 'es').description).toMatch(/^Tierra en el mapa: 9 provincias y ciudades\. /);
@@ -107,7 +111,12 @@ describe('the pages of the map of a country', () => {
     // A level of one piece is not told: the map is that of its finer level.
     const whole: MapSource = { id: 'ZZ', n: { es: 'Tierra' }, lv: [{ n: 1, es: 'reinos', en: 'kingdoms' }, { n: 2, es: 'islas', en: 'islands' }] };
     expect(of(mapPagesOf([whole]), 'es').description).toMatch(/^Tierra en el mapa: 2 islas\. /);
+    expect(of(mapPagesOf([whole]), 'en').description).toMatch(/^Tierra on the map: 2 islands\. /);
     expect(of(mapPagesOf([whole]), 'es').name).toBe('Tierra: islas en el mapa');
+    // The finest level is the last one, whatever the others have.
+    const coarse: MapSource = { id: 'ZZ', n: { es: 'Tierra' }, lv: [{ n: 9, es: 'reinos', en: 'kingdoms' }, { n: 4, es: 'islas', en: 'islands' }] };
+    expect(of(mapPagesOf([coarse]), 'es').name).toBe('Tierra: islas en el mapa');
+    expect(of(mapPagesOf([coarse]), 'en').name).toBe('Tierra: islands on the map');
     // Two pieces are enough.
     expect(mapPagesOf([{ id: 'ZZ', n: { es: 'Tierra' }, lv: [{ n: 2, es: 'islas', en: 'islands' }] }])).toHaveLength(2);
   });
@@ -149,7 +158,7 @@ describe('the name of the page of a map', () => {
     expect(pageMap('/a/b/map-gb-united-kingdom')).toBe('regiones/GB:f');
     // And that is an address the game knows how to read: the regions, that country, that level.
     expect(routeOf('regiones/ES:f')).toEqual({ kind: 'section', section: 'regions', link: { ids: ['ES'], levels: { ES: 'f' } } });
-    for (const path of ['/regionle/', '/regionle/regiones.html', '/regionle/es.html', '/regionle/mapa-espana.html', '/mapa-es-espana/', '/regionle/mapa-es-espana.htm']) {
+    for (const path of ['/regionle/', '/regionle/regiones.html', '/regionle/es.html', '/regionle/mapa-espana.html', '/mapa-es-espana/', '/regionle/mapa-es-espana.htm', '/regionle/Xmapa-es-espana.html', '/regionle/el.mapa-es-espana.html', '/regionle/A_map-es-spain']) {
       expect(mapAt(path), path).toBeNull();
       expect(pageMap(path), path).toBeNull();
     }
