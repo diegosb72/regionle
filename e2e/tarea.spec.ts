@@ -349,6 +349,37 @@ test.describe('an assignment, for whoever does it', () => {
     expect(await given(page)).toMatchObject({ name: 'Bruno', n: 1 });
   });
 
+  test('keeps the receipt of a game that is started again the very moment it ends', async ({ page }) => {
+    await begin(page);
+    // «Otra vez» is pressed as the receipt is drawn. Nobody is that quick; a machine that tries the game out
+    // can be, and so can a finger that was already on its way down.
+    await page.evaluate(() => {
+      const watch = new MutationObserver(() => {
+        const again = [...document.querySelectorAll('button')].find((b) => b.textContent?.trim() === 'Otra vez');
+        if (!again || !document.querySelector('.receipt')) return;
+        watch.disconnect();
+        again.click();
+      });
+      watch.observe(document.body, { childList: true, subtree: true });
+    });
+    for (let i = 0; i < 3; i++) await hit(page);
+    await piece(page, await asked(page)).click();
+    // The second game is on: it is the second attempt, and the first one is kept with all it said.
+    await expect.poll(async () => Object.values((await kept(page))?.n ?? {})).toEqual([2]);
+    await expect(title(page)).toHaveCount(0);
+    expect((await kept(page))?.got.map((code) => receiptOf(`#/justificante/${code}`))).toMatchObject([{ name: 'Ana García', n: 1, ok: 4, bad: 0, sound: true }]);
+    await ready(page);
+    await miss(page);
+    await next(page).click();
+    await toEnd(page);
+    expect(await given(page)).toMatchObject({ n: 2, ok: 3, bad: 1 });
+
+    await page.goto(`./#/tarea/${TASK}`);
+    await expect(rows(page)).toHaveCount(2);
+    await expect(rows(page).nth(0)).toContainText('100\u00a0%');
+    await expect(rows(page).nth(1)).toContainText('75\u00a0%');
+  });
+
   test('counts a game left half-way and opened again as one more attempt', async ({ page }) => {
     await begin(page);
     await hit(page);

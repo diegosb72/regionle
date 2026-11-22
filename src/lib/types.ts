@@ -190,6 +190,8 @@ export type Mode =
   | 'print'
   /** A game for a group: one screen calls the pieces of the map, and each player crosses them off a card. */
   | 'bingo'
+  /** A name is hidden and found letter by letter: each letter that is not in it puts out a point of a compass rose. */
+  | 'hangman'
   | 'pin'
   | 'identify'
   | 'nameall'

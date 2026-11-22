@@ -1,0 +1,213 @@
+/* «Ahorcado»: the rose that goes out point by point, the name cell by cell, and the letters to try. */
+.hang-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.hang-rose {
+  flex: none;
+  width: 78px;
+  height: 78px;
+}
+.hang-ring {
+  fill: none;
+  stroke: var(--line-2);
+  stroke-width: 1;
+}
+.hang-hub {
+  fill: var(--card);
+  stroke: var(--ink-2);
+  stroke-width: 1.2;
+}
+.hang-pt path {
+  stroke: var(--brand);
+  stroke-width: 0.9;
+  stroke-linejoin: round;
+  transition:
+    fill 0.3s ease,
+    stroke 0.3s ease;
+}
+.hang-pt .dark {
+  fill: var(--brand);
+}
+.hang-pt .light {
+  fill: var(--brand-soft);
+}
+/* The north is the one that is lost last, and the one the rose is read by. */
+.hang-pt.north path {
+  stroke: var(--accent-2);
+}
+.hang-pt.north .dark {
+  fill: var(--accent);
+}
+.hang-pt.north .light {
+  fill: var(--accent-soft);
+}
+/* A point that has gone out keeps its outline: what is left of the rose says how many there were. */
+.hang-pt.out path {
+  fill: var(--bg);
+  stroke: var(--line-2);
+  stroke-dasharray: 2.4 2;
+}
+.hang-count {
+  color: var(--ink-2);
+  font-size: calc(14.5px * var(--fs));
+  font-variant-numeric: tabular-nums;
+}
+.hang-count b {
+  color: var(--ink);
+  font-size: calc(19px * var(--fs));
+}
+.hang-count.low b {
+  color: var(--bad-ink);
+}
+
+/* The panel is what the name is measured against. */
+.q.hang {
+  container-type: inline-size;
+}
+/*
+ * The name: each word on a line of its own where they do not fit together, and each letter on its dash.
+ * It is written as large as its longest stretch lets it be (`--n` cells, each 1.08em wide and 4px from the
+ * next), so that no word is cut; a stretch too long even for the smallest size goes on in the next line.
+ */
+.hang-word {
+  --max: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin: 2px 0;
+  font: 650 calc(28px * var(--fs)) / 1 var(--sans);
+  font-size: clamp(13px, calc((100cqw - var(--n, 8) * 4px) / (var(--n, 8) * 1.08)), calc(var(--max) * var(--fs)));
+  text-transform: uppercase;
+}
+.hang-w,
+.hang-p {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px 4px;
+}
+.hang-c {
+  display: inline-grid;
+  place-items: center;
+  width: 1.08em;
+  height: 1.45em;
+  border-bottom: 0.11em solid var(--ink);
+}
+/* What was never hidden (a hyphen, an apostrophe) has no line under it. */
+.hang-c.fixed {
+  width: 0.55em;
+  border-bottom-color: transparent;
+}
+.hang-c.shut {
+  border-bottom-color: var(--ink-3);
+}
+/* A letter that was not found, shown once the round is over: its colour is not all that says so. */
+.hang-c.late {
+  border-bottom-style: dotted;
+  border-bottom-color: var(--bad);
+  color: var(--bad-ink);
+}
+.hang-c.fresh {
+  animation: hang-pop 0.32s ease;
+}
+@keyframes hang-pop {
+  from {
+    transform: translateY(0.35em);
+    opacity: 0;
+  }
+}
+
+.hang-keys {
+  display: grid;
+  /* Beside the map the panel is narrow: seven letters to a row leave each one a size a finger can hit. */
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  max-width: 440px;
+}
+.hang-keys:focus {
+  outline: none;
+}
+.hang-key {
+  min-height: 36px;
+  padding: 0;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-1);
+  background: var(--card);
+  color: var(--ink);
+  font: 650 calc(15.5px * var(--fs)) / 1 var(--sans);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.hang-key:hover {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+.hang-key[aria-disabled='true'] {
+  cursor: default;
+}
+.hang-key.hit {
+  border-color: var(--ok);
+  background: var(--ok-soft);
+  color: var(--ok-ink);
+}
+/* A letter that was not there is struck out too: its colour is not all that says so. */
+.hang-key.miss {
+  border-color: var(--bad);
+  background: var(--bad-soft);
+  color: var(--bad-ink);
+  text-decoration: line-through;
+}
+.q-note.hang-no {
+  color: var(--bad-ink);
+}
+
+@media (max-width: 860px) {
+  /* On a phone the name and its letters take more than half the screen: the map, which says nothing until it is asked, gives up the room. */
+  .play-body:has(.hang) .panel {
+    max-height: 72%;
+  }
+  .play-body:has(.hang) .stage {
+    min-height: 120px;
+  }
+  .q.hang {
+    gap: 12px;
+  }
+  .hang-rose {
+    width: 50px;
+    height: 50px;
+  }
+  .hang-top {
+    gap: 10px;
+  }
+  /* Nobody types on the keyboard of a phone here: the letters are the buttons. */
+  .hang-desk {
+    display: none;
+  }
+  /* Over the map the panel is as wide as the screen and not as tall: nine to a row, in three rows. */
+  .hang-keys {
+    grid-template-columns: repeat(9, minmax(0, 1fr));
+    gap: 5px;
+  }
+  .hang-word {
+    --max: 23px;
+  }
+}
+/* On a short screen the map is left a strip, and its buttons would not fit one over another: they lie side by side. */
+@media (max-width: 860px) and (max-height: 660px) {
+  .play-body:has(.hang) .map-ctl {
+    grid-auto-flow: column;
+  }
+  .play-body:has(.hang) .map-ctl button + button {
+    border-top: 0;
+    border-left: 1px solid var(--line);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hang-c.fresh {
+    animation: none;
+  }
+  .hang-pt path {
+    transition: none;
+  }
+}

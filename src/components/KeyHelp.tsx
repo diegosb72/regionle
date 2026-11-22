@@ -179,6 +179,12 @@ export function GameKeys() {
       </div>
       <div>
         <dt>
+          <Keys>A–Z</Keys>
+        </dt>
+        <dd>{L('En «Ahorcado», cada letra del teclado prueba esa letra; la Ñ también.', 'In “Hangman”, each letter of the keyboard tries that letter.')}</dd>
+      </div>
+      <div>
+        <dt>
           <Keys>↑ ↓</Keys>
         </dt>
         <dd>{L('En «Mayor o menor», responden más o menos. En un campo de respuesta con sugerencias, las recorren; Esc las cierra.', 'In “Higher or lower”, they answer more or less. In an answer field with suggestions, they go through them; Esc closes them.')}</dd>

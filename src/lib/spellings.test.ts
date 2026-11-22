@@ -140,7 +140,8 @@ describe('the patterns the game ships with, as the settings show them', () => {
     expect(cut).toBeLessThan(patterns / 10);
   });
 
-  it('show only what the game takes for the thing on its map', () => {
+  // Every pattern against every name it could show: three seconds on a quiet machine, and more on a busy one.
+  it('show only what the game takes for the thing on its map', { timeout: 30_000 }, () => {
     let shown = 0;
     let lost = 0;
     for (const { group, views } of lists) {

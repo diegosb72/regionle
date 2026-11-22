@@ -196,7 +196,7 @@ test.describe('figures of more than countries', () => {
 test.describe('the menus', () => {
   test('gather the games under headings', async ({ page }) => {
     await open(page, '/regiones');
-    await expect(page.locator('.mode-group-name')).toHaveText(['Para estudiar', 'En el mapa', 'Por la forma', 'Vecinos y posición', 'Datos', 'Cifras']);
+    await expect(page.locator('.mode-group-name')).toHaveText(['Para estudiar', 'En el mapa', 'Por la forma', 'Vecinos y posición', 'Datos', 'Cifras', 'Juegos de palabras']);
   });
 
   test('pick whole groups of countries from "Más atajos"', async ({ page }) => {

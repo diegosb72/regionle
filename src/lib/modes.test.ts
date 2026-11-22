@@ -11,10 +11,10 @@ const ids = (section: (typeof SECTION_IDS)[number]): Mode[] => MODES[section].ma
 
 describe('the games of each section', () => {
   it('are these, in the order of the menu', () => {
-    expect(ids('regions')).toEqual(['explore', 'learn', 'cards', 'print', 'bingo', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'puzzle', 'group', 'mix', 'outline', 'regionle', 'neighbours', 'border', 'chain', 'travel', 'parent', 'compass', 'bearing', 'coords', 'capital', 'whoami', 'hilo', 'rank', 'exact', 'which', 'topten']);
-    expect(ids('countries')).toEqual(['explore', 'learn', 'cards', 'print', 'bingo', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'puzzle', 'group', 'mix', 'outline', 'regionle', 'neighbours', 'border', 'chain', 'travel', 'compass', 'bearing', 'coords', 'capital', 'flag', 'whoami']);
-    expect(ids('cities')).toEqual(['explore', 'learn', 'cards', 'print', 'bingo', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'group', 'mix', 'parent', 'compass', 'bearing', 'coords', 'whoami', 'hilo', 'rank', 'exact', 'which', 'topten']);
-    expect(ids('physical')).toEqual(['explore', 'learn', 'cards', 'print', 'bingo', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'mix', 'hilo', 'rank', 'exact', 'which', 'topten']);
+    expect(ids('regions')).toEqual(['explore', 'learn', 'cards', 'print', 'bingo', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'puzzle', 'group', 'mix', 'outline', 'regionle', 'neighbours', 'border', 'chain', 'travel', 'parent', 'compass', 'bearing', 'coords', 'capital', 'whoami', 'hilo', 'rank', 'exact', 'which', 'topten', 'hangman']);
+    expect(ids('countries')).toEqual(['explore', 'learn', 'cards', 'print', 'bingo', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'puzzle', 'group', 'mix', 'outline', 'regionle', 'neighbours', 'border', 'chain', 'travel', 'compass', 'bearing', 'coords', 'capital', 'flag', 'whoami', 'hangman']);
+    expect(ids('cities')).toEqual(['explore', 'learn', 'cards', 'print', 'bingo', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'group', 'mix', 'parent', 'compass', 'bearing', 'coords', 'whoami', 'hilo', 'rank', 'exact', 'which', 'topten', 'hangman']);
+    expect(ids('physical')).toEqual(['explore', 'learn', 'cards', 'print', 'bingo', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'mix', 'hilo', 'rank', 'exact', 'which', 'topten', 'hangman']);
     expect(ids('pops')).toEqual(['hilo', 'rank', 'exact', 'which', 'topten', 'truefalse', 'oddone', 'pairs', 'alphabet', 'connect']);
   });
 
@@ -53,9 +53,10 @@ describe('the games of each section', () => {
       const firstSeen = groups.filter((g, i) => groups.indexOf(g) === i);
       expect(groups.join(), section).toBe(firstSeen.flatMap((g) => groups.filter((x) => x === g)).join());
     }
-    expect(MODE_GROUPS.map((g) => GROUP_NAME[g])).toEqual(['Para estudiar', 'En el mapa', 'Por la forma', 'Vecinos y posición', 'Datos', 'Cifras']);
+    expect(MODE_GROUPS.map((g) => GROUP_NAME[g])).toEqual(['Para estudiar', 'En el mapa', 'Por la forma', 'Vecinos y posición', 'Datos', 'Cifras', 'Juegos de palabras']);
     setLang('en');
     expect(GROUP_NAME.figures).toBe('Figures');
+    expect(GROUP_NAME.words).toBe('Word games');
   });
 
   it('put every figure game under "Cifras" and nothing else there', () => {
@@ -150,6 +151,29 @@ describe('the rules the menus go by', () => {
     expect(TYPICAL_S.bingo).toBeUndefined();
     expect(embeddable('bingo')).toBe(false);
     expect(MODE_NAME.bingo).toBe('Bingo');
+  });
+
+  it('place the hangman among the word games of every section with a map, as a game of one player', () => {
+    // It is played with the names of what a map has: a section of figures alone has none.
+    for (const section of SECTION_IDS) expect(ids(section).includes('hangman'), section).toBe(section !== 'pops');
+    for (const section of ['regions', 'countries', 'cities', 'physical'] as const) {
+      const def = MODES[section].find((m) => m.id === 'hangman')!;
+      expect(def.group, section).toBe('words');
+      expect(def.level, section).toBe(2);
+      expect(def.name, section).toBe('Ahorcado');
+      // The word games are the last heading of the menu.
+      expect(ids(section).at(-1), section).toBe('hangman');
+    }
+    expect(MODE_GROUPS.at(-1)).toBe('words');
+    expect(MODE_NAME.hangman).toBe('Ahorcado');
+    expect(NOT_GAMES).not.toContain('hangman');
+    expect(embeddable('hangman')).toBe(true);
+    // As many names as are asked for; and no clock or lives, which are of the games that ask one thing after another.
+    expect(LENGTH_MODES).toContain('hangman');
+    expect(FORMAT_MODES).not.toContain('hangman');
+    setLang('en');
+    expect(MODE_NAME.hangman).toBe('Hangman');
+    expect(MODES.regions.find((m) => m.id === 'hangman')!.name).toBe('Hangman');
   });
 
   it('give a typical pace to every game with a number of questions', () => {

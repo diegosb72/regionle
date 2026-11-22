@@ -27,6 +27,7 @@ import {
   PaintBucket,
   Printer,
   Puzzle,
+  RectangleEllipsis,
   Route,
   ScanSearch,
   Shapes,
@@ -48,8 +49,8 @@ import type { CardAsk, Format } from './store';
 import type { Mode, Section } from './types';
 
 /** What the modes of a section are gathered by in its menu. */
-export type ModeGroup = 'study' | 'map' | 'shape' | 'links' | 'facts' | 'figures';
-export const MODE_GROUPS: readonly ModeGroup[] = ['study', 'map', 'shape', 'links', 'facts', 'figures'];
+export type ModeGroup = 'study' | 'map' | 'shape' | 'links' | 'facts' | 'figures' | 'words';
+export const MODE_GROUPS: readonly ModeGroup[] = ['study', 'map', 'shape', 'links', 'facts', 'figures', 'words'];
 
 export interface ModeDef {
   id: Mode;
@@ -77,6 +78,8 @@ function groupName(group: ModeGroup): string {
       return L('Vecinos y posición', 'Neighbours and position');
     case 'facts':
       return L('Datos', 'Facts');
+    case 'words':
+      return L('Juegos de palabras', 'Word games');
     default:
       return L('Cifras', 'Figures');
   }
@@ -127,6 +130,18 @@ function modesOf(section: Section): ModeDef[] {
     icon: Megaphone,
     level: 0,
     group: 'study',
+  };
+  /** The names of the map as words to be found: nothing is asked of where things are until the map is asked (lib/hangman.ts). */
+  const hangman: ModeDef = {
+    id: 'hangman',
+    name: L('Ahorcado', 'Hangman'),
+    desc: L(
+      'Un nombre del mapa, escondido: prueba letras hasta dar con él. Cada letra que no está apaga una punta de la rosa de los vientos, y a la octava lo pierdes. Si te atascas, el mapa te enseña de qué se trata.',
+      'A name from the map, hidden: try letters until you find it. Each letter that is not in it puts out a point of the compass rose, and with the eighth you lose it. If you get stuck, the map shows you what it is.',
+    ),
+    icon: RectangleEllipsis,
+    level: 2,
+    group: 'words',
   };
   const pin: ModeDef = { id: 'pin', name: L('Señalar', 'Pin it'), desc: L('Te damos un nombre y lo buscas en el mapa.', 'You get a name and find it on the map.'), icon: MapPin, level: 1, group: 'map' };
   const listen: ModeDef = {
@@ -329,6 +344,7 @@ function modesOf(section: Section): ModeDef[] {
           ),
         ),
         ...figures(L('Aquí, por la superficie de cada región.', 'Here, by the area of each region.'), L('¿Qué región?', 'Which region?')),
+        hangman,
       ];
     case 'countries':
       return [
@@ -380,6 +396,7 @@ function modesOf(section: Section): ModeDef[] {
             'A country tells about itself, clue by clue: its size, its part of the world, its borders, a neighbour, its capital, its flag. Guess it with as few clues as you can.',
           ),
         ),
+        hangman,
       ];
     case 'cities':
       return [
@@ -419,6 +436,7 @@ function modesOf(section: Section): ModeDef[] {
           ),
         ),
         ...figures(L('Aquí, por la población de cada ciudad.', 'Here, by the population of each city.'), L('¿Qué ciudad?', 'Which city?')),
+        hangman,
       ];
     case 'physical':
       return [
@@ -440,6 +458,7 @@ function modesOf(section: Section): ModeDef[] {
         nameall,
         mixDots,
         ...figures(L('Aquí, por la altitud de los picos y la superficie de continentes, océanos, mares, lagos e islas.', 'Here, by the height of peaks and the area of continents, oceans, seas, lakes and islands.'), L('¿Cuál es?', 'Which one?')),
+        hangman,
       ];
     default:
       return [
@@ -526,6 +545,8 @@ function modeName(mode: Mode): string {
       return L('Mapa mudo', 'Blank map');
     case 'bingo':
       return 'Bingo';
+    case 'hangman':
+      return L('Ahorcado', 'Hangman');
     case 'nameall':
       return L('Rellenar el mapa', 'Fill the map');
     case 'outline':
@@ -653,7 +674,7 @@ function lazy<K extends string, V>(keys: readonly K[], make: (key: K) => V): Rec
   return out;
 }
 
-const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'group', 'neighbours', 'border', 'chain', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'coords', 'edit', 'print', 'bingo', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'oddone', 'pairs', 'alphabet', 'connect', 'topten', 'cards', 'mix', 'listen'];
+const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'group', 'neighbours', 'border', 'chain', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'coords', 'edit', 'print', 'bingo', 'hangman', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'oddone', 'pairs', 'alphabet', 'connect', 'topten', 'cards', 'mix', 'listen'];
 
 export const MODES: Record<Section, ModeDef[]> = lazy(SECTION_IDS, modesOf);
 export const MODE_NAME: Record<Mode, string> = lazy(MODE_IDS, modeName);

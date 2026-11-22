@@ -51,6 +51,8 @@ export const TYPICAL_S: Partial<Record<Mode, number>> = {
   coords: 12,
   group: 25,
   whoami: 30,
+  // A name found letter by letter.
+  hangman: 35,
   border: 9,
   nameall: 5,
   which: 6,

@@ -104,8 +104,14 @@ export function started(task: string, nonce: number, name = ''): number {
   return before + 1;
 }
 
+/** The receipt that each game that ended since the page was opened has left here. */
+const ended = new Map<number, string>();
+
 /** For the tests: what was counted since the page was opened is forgotten. */
-export const forgetCounted = (): void => counted.clear();
+export function forgetCounted(): void {
+  counted.clear();
+  ended.clear();
+}
 
 /** A receipt that was opened here is kept, if what it says is what the game wrote. Returns whether it is kept. */
 export function keepReceipt(code: string): boolean {
@@ -121,10 +127,17 @@ export function keepReceipt(code: string): boolean {
  * phone does it when it comes back from the chat the receipt was sent in), the game would start anew as
  * one more attempt, and its receipt would be gone with the screen that showed it. `doneWith` tells that
  * game apart, and the receipt is with its assignment.
+ *
+ * It is told as soon as the result is drawn, and not a moment later: whoever starts again at once has
+ * that attempt kept all the same. And it may be told again, should the receipt come to say something else
+ * (the clock of a game can tick once more after its last answer): a game leaves one receipt, the last it said.
  */
 export function finish(nonce: number, code: string): void {
-  keepReceipt(code);
-  write({ ...read(), done: nonce });
+  const kept = read();
+  if (!decodeReceipt(code)?.sound) return write({ ...kept, done: nonce });
+  const before = ended.get(nonce);
+  ended.set(nonce, code);
+  write({ ...kept, got: [...kept.got.filter((c) => c !== code && c !== before), code].slice(-RECEIPTS_MAX), done: nonce });
 }
 
 /** Whether the game with this mark is the last one of an assignment that ended here. */
