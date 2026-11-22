@@ -1,14 +1,38 @@
 /** What a game can be played as. Kept apart from the menus, which bring their icons: the saved state asks too. */
+import type { Format, GameConfig } from './store';
 import type { Mode, Section } from './types';
 
 /** Games that can also be played against the clock or until the lives run out. */
 export const FORMAT_MODES: readonly Mode[] = ['pin', 'identify', 'outline', 'puzzle', 'capital', 'flag', 'parent', 'mix', 'listen'];
 
 /**
+ * The format a game is played in: the one its options ask for, where there are formats to choose from. A
+ * review, a challenge received and the repeat of what was missed are always a plain set of questions; and so
+ * is a step of the session of the day that asks for two players: it is one player's, and nobody sat down to a
+ * game of two there.
+ */
+export function formatOfGame(game: Pick<GameConfig, 'mode' | 'review' | 'challenge' | 'only' | 'list' | 'step'> & { opts: { format?: Format } }): Format {
+  if (!FORMAT_MODES.includes(game.mode) || game.review || game.challenge || (game.only && !game.list)) return 'normal';
+  const wanted = game.opts.format ?? 'normal';
+  return wanted === 'duo' && game.step ? 'normal' : wanted;
+}
+
+/**
  * A game of two players who answer by turns (lib/duo.ts) is dealt in pairs of questions: one more would be a
  * turn that only one of them had.
  */
 export const evenOf = (n: number): number => (n > 0 ? n - (n % 2) : 0);
+
+/**
+ * «Reglas a medida» (lib/ruleset.ts): what can be changed of how the question games are played. The tries a
+ * question takes where it is answered on the map or by typing, the seconds a time attack lasts and the lives
+ * a survival starts with: what each of them can be.
+ */
+export const TRIES = [1, 2, 3] as const;
+export const CLOCKS = [30, 60, 120, 300] as const;
+export const LIVES = [1, 3, 5] as const;
+/** The rules the game always had, and the ones it has until something else is chosen. */
+export const USUAL_RULES = { tries: 3, hints: true, clock: 60, lives: 3 } as const;
 
 /** What sits in the menus without being a game: it is not counted among them, and leaves nothing in the progress. */
 export const NOT_GAMES: readonly Mode[] = ['print', 'edit'];

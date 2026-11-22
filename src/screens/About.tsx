@@ -5,7 +5,7 @@ import { GameKeys, GlobalKeys } from '../components/KeyHelp';
 import { RELEASES } from '../lib/changelog';
 import { L, fmtDay, getLang } from '../lib/i18n';
 import { REPO, reportUrl } from '../lib/report';
-import { PROGRESS_PATH } from '../lib/routes';
+import { PROGRESS_PATH, RECEIPT_PATH } from '../lib/routes';
 import { VERSION } from '../lib/version';
 
 
@@ -93,15 +93,15 @@ export function About() {
           <li>
             <b>{L('Qué se guarda, y dónde.', 'What is kept, and where.')}</b>{' '}
             {L(
-              'Tu progreso, tus resultados, tus fantasmas, tus ajustes, tus listas, el nombre que pongas en los retos y los de una partida a dos se guardan en este navegador y solo en él. Los mapas que descargas para jugar sin conexión, también.',
-              'Your progress, your results, your ghosts, your settings, your lists, the name you put on challenges and those of a game of two are kept in this browser and nowhere else. So are the maps you download to play without a connection.',
+              'Tu progreso, tus resultados, tus fantasmas, tus ajustes, tus listas, el nombre que pongas en los retos y en las tareas, los de una partida a dos y los justificantes de tarea que hagas o abras se guardan en este navegador y solo en él. Los mapas que descargas para jugar sin conexión, también.',
+              'Your progress, your results, your ghosts, your settings, your lists, the name you put on challenges and on homework, those of a game of two and the homework receipts you make or open are kept in this browser and nowhere else. So are the maps you download to play without a connection.',
             )}
           </li>
           <li>
             <b>{L('Qué sale de aquí.', 'What leaves it.')}</b>{' '}
             {L(
-              'Solo lo que tú envías: el enlace de un reto o de una lista lleva dentro las preguntas, tu resultado y tu nombre; la copia de seguridad, la tabla del repaso y la imagen del reto del día son archivos que guardas tú.',
-              'Only what you send yourself: the link of a challenge or of a list carries the questions, your result and your name; the backup, the table of the review and the picture of the daily challenge are files that you keep.',
+              'Solo lo que tú envías: el enlace de un reto o de una lista lleva dentro las preguntas, tu resultado y tu nombre; el justificante de una tarea, tu nombre, tu resultado y la fecha; la copia de seguridad, la tabla del repaso y la imagen del reto del día son archivos que guardas tú.',
+              'Only what you send yourself: the link of a challenge or of a list carries the questions, your result and your name; the receipt of homework, your name, your result and the date; the backup, the table of the review and the picture of the daily challenge are files that you keep.',
             )}
           </li>
           <li>
@@ -113,7 +113,8 @@ export function About() {
           </li>
           <li>
             <b>{L('Cómo se borra.', 'How to delete it.')}</b> {L('Con «Borrar progreso», en', 'With “Delete progress”, in')} <a href={`#/${PROGRESS_PATH}`}>{L('Progreso', 'Progress')}</a>
-            {L(', o borrando los datos de este sitio en el navegador. Desde esa misma página se exporta y se importa.', ', or by clearing the data of this site in the browser. The same page exports and imports it.')}
+            {L(', o borrando los datos de este sitio en el navegador. Desde esa misma página se exporta y se importa.', ', or by clearing the data of this site in the browser. The same page exports and imports it.')}{' '}
+            {L('Los justificantes de tarea no van en la copia, y se borran en', 'Homework receipts are not in the backup, and are deleted in')} <a href={`#/${RECEIPT_PATH}`}>{L('Justificantes abiertos aquí', 'Receipts opened here')}</a>.
           </li>
         </ul>
       </section>

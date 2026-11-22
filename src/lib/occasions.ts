@@ -6,6 +6,7 @@
  * the year the same game can be played for practice, with questions of its own and nothing written down.
  * What is kept of them is in lib/datedKept.ts.
  */
+import { USUAL_RULES } from './rules';
 import { addDays, dayNumber } from '../daily/spec';
 import type { OccasionRec } from './datedKept';
 import { ARAB_LEAGUE, EU, SPANISH } from './groups';
@@ -196,7 +197,7 @@ export function occasionGame(o: Occasion, year: number | null, index: Index, opt
     mode: ask.section === 'countries' ? ask.mode : 'mix',
     countries: ask.section === 'countries' ? ask.of(index) : ask.section === 'regions' ? [ask.country] : [...ask.tokens],
     levels: ask.section === 'regions' ? { [ask.country]: ask.level } : {},
-    opts: { ...opts, answer: 'choice', length: lengthOf(o), pinBy: 'name', turned: false, flagLook: 'plain', format: 'normal' },
+    opts: { ...opts, answer: 'choice', length: lengthOf(o), pinBy: 'name', turned: false, flagLook: 'plain', format: 'normal', ...USUAL_RULES },
   };
   return year == null ? game : { ...game, challenge: { seed: occasionSeed(o.id, year) }, occasion: { id: o.id, year } };
 }

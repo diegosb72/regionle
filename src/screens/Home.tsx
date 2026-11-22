@@ -14,7 +14,7 @@ import { MODES, SECTIONS, SECTION_IDS, cardAskName, formatName, modeNameIn, rout
 import { recentKey, type Recent } from '../lib/recent';
 import { NOT_GAMES } from '../lib/rules';
 import { go, inGame } from '../lib/router';
-import { DUEL_PATH, LIST_PATH, PATHS, PLAY_PATH, screenPage } from '../lib/routes';
+import { DUEL_PATH, LIST_PATH, PATHS, PLAY_PATH, TASK_PATH, screenPage } from '../lib/routes';
 import { isDated, useStore, type Fav, type State } from '../lib/store';
 import { nf, today } from '../lib/text';
 import type { Mode, Section } from '../lib/types';
@@ -496,13 +496,16 @@ export function Home({ world }: { world: World }) {
         </article>
         <article>
           <ListChecks size={22} aria-hidden="true" />
-          <h3>{L('Listas para pasar', 'Lists to pass on')}</h3>
+          <h3>{L('Listas y tareas', 'Lists and homework')}</h3>
           <p>
             {L(
-              'Haz una lista con las piezas que tú elijas, las del examen del jueves o las de un viaje, y pásala con un enlace para que otros jueguen con ella.',
-              'Make a list with the pieces you choose, the ones for Thursday’s exam or for a trip, and pass it on with a link for others to play.',
+              'Haz una lista con las piezas que tú elijas, las del examen del jueves o las de un viaje, y pásala con un enlace.',
+              'Make a list with the pieces you choose, the ones for Thursday’s exam or for a trip, and pass it on with a link.',
             )}{' '}
-            <a href={`#/${LIST_PATH}`}>{L('Cómo se hace una lista', 'How to make a list')}</a>
+            <a href={`#/${LIST_PATH}`}>{L('Cómo se hace una lista', 'How to make a list')}</a>{' '}
+            {/* Homework with a receipt (lib/task.ts): its button is where a game is chosen, and nothing there says so until it is looked for. */}
+            {L('O pon de tarea cualquier mapa: cada cual te manda un justificante con su resultado.', 'Or set any map as homework: each one sends you a receipt with their result.')}{' '}
+            <a href={`#/${TASK_PATH}`}>{L('Cómo se pone una tarea', 'How homework is set')}</a>
           </p>
         </article>
       </section>

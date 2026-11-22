@@ -10,6 +10,7 @@
 import { scoreOf } from '../games/quiz';
 import { ghostable } from './ghostLazy';
 import { asksByFlag, turnsOutlines } from './rules';
+import { rulesMark, rulesOfGame } from './ruleset';
 import type { GameConfig } from './store';
 import { hashStr } from './text';
 import type { Country, Mode, Res } from './types';
@@ -74,6 +75,10 @@ export function ghostKey(cfg: Omit<GameConfig, 'nonce'>, country: (id: string) =
     asksByFlag(section, mode, { pinBy }) ? (opts.flagLook ?? 'plain') : 'plain',
     cfg.list ? [...new Set(cfg.only)].sort().join(',') : '',
   ];
+  // The rules of the game are part of it too: a game of one try is not measured against one of three. The
+  // usual ones add nothing, so that the ghosts kept before the rules could be set are still found.
+  const mark = rulesMark(rulesOfGame(cfg));
+  if (mark) parts.push(mark);
   return `${section}|${mode}|${hashStr(parts.join('|')).toString(36)}`;
 }
 

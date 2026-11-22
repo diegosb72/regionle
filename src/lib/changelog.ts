@@ -15,6 +15,28 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.34.0',
+    date: '2026-11-22',
+    es: [
+      'Reglas a medida: en los nueve juegos de preguntas eliges los intentos de cada pregunta (1, 2 o 3) y si hay pistas. Está en «Reglas», al preparar la partida.',
+      'La contrarreloj dura 30 segundos, 1, 2 o 5 minutos, y la supervivencia empieza con 1, 3 o 5 vidas. Cada duración y cada número de vidas guarda su propio récord.',
+      'Las reglas se quedan como las dejas y se dicen antes de empezar. Van en el reto por enlace y en el juego incrustado. El repaso y los retos con fecha no cambian.',
+      'Tarea con justificante: «Poner de tarea», junto al enlace de un mapa o en una lista, da un enlace y un QR para una clase, con el juego, sus reglas y un título.',
+      'Quien lo abre escribe su nombre y juega eso mismo. Al acabar recibe un justificante: un enlace o un QR con su nombre, el resultado, la fecha y el intento.',
+      'Al abrir un justificante se ve todo eso y si su cifra de control cuadra. Los de una misma tarea se juntan en una tabla que se copia a una hoja de cálculo.',
+      'No hay servidor: la cifra descubre un enlace retocado a mano, pero no es a prueba de trampas. Sirve para ver quién ha hecho la tarea, no para poner una nota.',
+    ],
+    en: [
+      'Custom rules: in the nine question games you choose the tries of each question (1, 2 or 3) and whether there are hints. It is under “Rules”, in the setup.',
+      'A time attack lasts 30 seconds, 1, 2 or 5 minutes, and a survival starts with 1, 3 or 5 lives. Each length and each number of lives keeps a record of its own.',
+      'The rules stay as you leave them and are said before starting. They go in a challenge link and in an embedded game. Reviews and dated challenges do not change.',
+      'Homework with a receipt: “Set as homework”, next to the link to a map or on a list, gives a link and a QR for a class, with the game, its rules and a title.',
+      'Whoever opens it types a name and plays that very game. At the end they get a receipt: a link or a QR with the name, the result, the date and the attempt.',
+      'Opening a receipt shows all that and whether its check figure holds. Those of the same homework gather in a table that can be copied into a spreadsheet.',
+      'There is no server: the figure gives away a link touched up by hand, but it is not cheat-proof. It shows who did the homework; it is not for giving a mark.',
+    ],
+  },
+  {
     version: '1.33.0',
     date: '2026-11-22',
     es: [

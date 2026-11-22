@@ -3,6 +3,7 @@
  * about its pieces and a day. Nothing else is stored for it: what has been answered already says how
  * much is known, and the days that are left say how much there is to do today.
  */
+import { USUAL_RULES } from './rules';
 import type { CityPick } from './extra';
 import { SKILL_MODE, dueAt, isDue, reviewMax } from './review';
 import type { GameConfig, Opts, Skill, Stat } from './store';
@@ -186,7 +187,7 @@ export function nextStep(state: GoalState): 'learn' | 'review' | null {
 export function goalGame(goal: Goal, state: GoalState, opts: Opts, step: GoalStep): Omit<GameConfig, 'nonce'> {
   const mode = SKILL_MODE[goal.skill];
   const base = { section: goal.section, countries: goal.countries, levels: goal.levels };
-  const plain: Opts = { ...opts, cityPick: goal.cityPick ?? opts.cityPick, cityCount: goal.cityCount ?? opts.cityCount, length: 'all', format: 'normal' };
+  const plain: Opts = { ...opts, cityPick: goal.cityPick ?? opts.cityPick, cityCount: goal.cityCount ?? opts.cityCount, length: 'all', format: 'normal', ...USUAL_RULES };
   if (step === 'exam') return { ...base, mode, opts: { ...plain, format: 'exam' }, only: goal.ids, list: goal.name };
   if (step === 'review') return { ...base, mode, opts: plain, only: state.pending.slice(0, reviewMax()) };
   if (goal.skill === 'loc' || goal.skill === 'name') return { ...base, mode: 'learn', opts: plain, only: goal.ids, list: goal.name };

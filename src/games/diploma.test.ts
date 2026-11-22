@@ -78,6 +78,20 @@ describe('what a diploma says', () => {
     expect(diplomaOf(game({}, { format: 'lives' }), 'España · provincias', { ok: 12, warn: 0, bad: 2 }, 60_000, day, site).what).toBe('Regiones · Señalar · Supervivencia');
   });
 
+  it('says the rules of the game when they were not the usual ones', () => {
+    const what = (opts: Partial<Opts>, patch: Partial<GameConfig> = {}) => diplomaOf(game(patch, opts), 'España · provincias', { ok: 12, warn: 0, bad: 2 }, 60_000, day, site).what;
+    expect(what({ tries: 1, hints: false })).toBe('Regiones · Señalar · 1 intento, sin pistas');
+    expect(what({ tries: 2 })).toBe('Regiones · Señalar · 2 intentos');
+    expect(what({ format: 'timed', clock: 120 })).toBe('Regiones · Señalar · Contrarreloj · 2 minutos');
+    expect(what({ format: 'lives', lives: 1 })).toBe('Regiones · Señalar · Supervivencia · 1 vida');
+    // Each rule in its format: the tries of a game at ease are of no account against the clock, nor in an exam.
+    expect(what({ format: 'timed', tries: 1, hints: false })).toBe('Regiones · Señalar · Contrarreloj');
+    expect(what({ format: 'exam', tries: 1, hints: false, clock: 30, lives: 5 })).toBe('Regiones · Señalar · Examen');
+    expect(what({ clock: 30, lives: 5 })).toBe('Regiones · Señalar');
+    // A step of the day is played by the usual ones.
+    expect(what({ tries: 1 }, { step: { id: 'a' } as unknown as GameConfig['step'] })).toBe('Regiones · Señalar');
+  });
+
   it('names the game where there is no map to name', () => {
     const d = diplomaOf(game({ section: 'pops', mode: 'hilo', countries: [] }), undefined, { ok: 8, warn: 0, bad: 2 }, undefined, day, site);
     expect(d.where).toBe('Mayor o menor');

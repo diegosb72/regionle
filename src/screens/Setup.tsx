@@ -2,6 +2,7 @@
 import { Check, ChevronDown, Globe, Infinity as InfinityIcon, Link2, ListChecks, ListPlus, Pencil, Play, Printer, Share2, Shuffle, Target, Timer, Trash2, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { EmbedButton } from '../components/EmbedButton';
+import { TaskButton } from '../components/TaskButton';
 import { GoalBar } from '../components/GoalBar';
 import { LESSON_SIZES, OLD, lessonOrder, lessonOrders, lessonSize } from '../games/lesson';
 import { HelpButton } from '../components/Help';
@@ -21,12 +22,13 @@ import { mapLinkRest, type MapLink } from '../lib/maplink';
 import { opensWithWorld, worldOf } from '../lib/opening';
 import { GROUP_NAME, MODES, MODE_GROUPS, SECTIONS, cardAskName, formatName } from '../lib/modes';
 import { estimateOf, minutesOf, paceOf, percentOf, questionsOf } from '../lib/pace';
-import { CONNECT_MIN, CONNECT_WIDE, FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, MADE_UP_MODES, ODD_MIN, PAIRS_MIN, PAIR_SIZES, PAIR_SIZE_DEFAULT, ROUND_MODES, TOP_MIN, asksByFlag, embeddable, isRouteRule, turnsOutlines, type PairSize, type RouteRule } from '../lib/rules';
+import { CLOCKS, CONNECT_MIN, CONNECT_WIDE, FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, LIVES, MADE_UP_MODES, ODD_MIN, PAIRS_MIN, PAIR_SIZES, PAIR_SIZE_DEFAULT, ROUND_MODES, TOP_MIN, TRIES, USUAL_RULES, asksByFlag, embeddable, isRouteRule, turnsOutlines, type PairSize, type RouteRule } from '../lib/rules';
+import { clockShort, clockText, customRules, livesText, rulesIn, rulesOf, rulesOfGame, rulesText, triesText } from '../lib/ruleset';
 import { go, settle } from '../lib/router';
 import { PATHS, mapAt, mapLinkUrl } from '../lib/routes';
 import { pageTitle } from '../lib/seo';
 import { mapPagesOf } from '../lib/seoMaps';
-import { useStore, type CardAsk, type CustomList, type LessonOrder, type Length, type Opts } from '../lib/store';
+import { useStore, type CardAsk, type CustomList, type Format, type LessonOrder, type Length, type Opts } from '../lib/store';
 import { cx, initialOf, mulberry32, nf, plural } from '../lib/text';
 import { areaUnit, distWord } from '../lib/units';
 import { SAMPLES, settingsLink } from '../lib/typeinList';
@@ -273,7 +275,7 @@ function ListCard({ list, others, world, onEdit, onLeave, onRemove, onUse, more 
  * The link to the map and the game that are chosen: copied, or shown to be copied by hand where the browser
  * will not, or as a QR code to point a phone at. `what` names them: "España · Señalar".
  */
-function CopyLink({ url, what, more }: { url: string; what: string; more?: ReactNode }) {
+function CopyLink({ url, what, more, task }: { url: string; what: string; more?: ReactNode; task?: ReactNode }) {
   const [state, setState] = useState<'idle' | 'copied' | 'shown'>('idle');
   // Another map is another link: what was said of the last one no longer holds.
   useEffect(() => setState('idle'), [url]);
@@ -294,6 +296,7 @@ function CopyLink({ url, what, more }: { url: string; what: string; more?: React
         </button>
         <QrButton small url={url} what={what} />
         {more}
+        {task}
       </div>
       <p className="opt-hint">
         {L(
@@ -301,6 +304,7 @@ function CopyLink({ url, what, more }: { url: string; what: string; more?: React
           'It opens the game with this map and this game already chosen: to send to someone, to keep as a bookmark or, with the QR code, to open in class from the board.',
         )}
         {more && ` ${L('«Incrustar» da el código para ponerlo dentro de otra web.', '“Embed” gives the code to put it inside another page.')}`}
+        {task && ` ${L('«Poner de tarea» da un enlace para una clase: quien la hace recibe un justificante con su nombre y su resultado.', '“Set as homework” gives a link for a class: whoever does it gets a receipt with their name and their result.')}`}
       </p>
       {state === 'shown' && <input className="maplink-url" type="text" readOnly value={url} aria-label={L('Enlace a este mapa', 'Link to this map')} onFocus={(e) => e.currentTarget.select()} />}
       <span className="sr-only" role="status">
@@ -623,6 +627,13 @@ export function Setup({ section, world, link }: { section: Section; world: World
     wiki: WIKI_MODES.includes(def.id) && !(paced && opts.format === 'timed') && !exam,
   };
   const anyOption = Object.values(show).some(Boolean);
+  /** The format the game would be played in: the one chosen, where the game has formats to choose from. */
+  const format: Format = show.format ? (opts.format ?? 'normal') : 'normal';
+  /** «Reglas a medida» (lib/ruleset.ts): what the options ask for, which of it this game lets one set in this format, and the rules it would be played by. */
+  const asked = rulesOf(opts);
+  const ruled = show.format ? rulesIn(format, def.id, opts.answer) : [];
+  const rules = rulesOfGame({ mode: def.id, opts });
+  const custom = show.format && customRules(rules);
   const pairSize: PairSize = (PAIR_SIZES as readonly number[]).includes(opts.pairs) ? opts.pairs : PAIR_SIZE_DEFAULT;
   const routeRule: RouteRule = isRouteRule(opts.routeRule) ? opts.routeRule : 'none';
   const endless = { value: 'endless' as Length, label: <InfinityIcon size={16} aria-label={L('Sin fin', 'Endless')} /> };
@@ -735,7 +746,15 @@ export function Setup({ section, world, link }: { section: Section; world: World
           <>
             <ListCard key={active.id} list={active} others={mine.filter((l) => l.id !== active.id)} world={world} onEdit={() => editList(active)} onLeave={() => setListOn(section, null)} onRemove={() => removeList(active.id)} onUse={(id) => setListOn(section, id)}
               // The list with the game that is chosen, for a box in another page: where that game is played with a list.
-              more={!problem && embeddable(def.id) ? <EmbedButton small source={{ list: encodeList(active), mode: def.id }} opts={opts} what={`${active.name} · ${def.name}`} /> : undefined}
+              more={
+                problem ? undefined : (
+                  <>
+                    {embeddable(def.id) && <EmbedButton small source={{ list: encodeList(active), mode: def.id }} opts={opts} what={`${active.name} · ${def.name}`} />}
+                    {/* …and as homework (lib/task.ts), where the game is one of questions that one player does. */}
+                    {show.format && format !== 'duo' && <TaskButton small source={{ list: encodeList(active), mode: def.id }} opts={opts} world={world} />}
+                  </>
+                )
+              }
             />
             <GoalBar key={`goal:${active.id}`} section={section} mode={def.id} config={listConfig(active, 'pin', opts)} />
           </>
@@ -794,7 +813,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
             <p className="mode-about" aria-live="polite">
               {def.level > 0 && <strong>{levelName(def.level)}. </strong>}
               {def.desc} {/* The rules of the game, step by step: the panel a game opens the first time it is played. */}
-              <HelpButton key={def.id} mode={def.id} section={section} />
+              <HelpButton key={def.id} mode={def.id} section={section} rules={custom ? rulesText(rules) : undefined} />
             </p>
             {(estimate || questions != null || pace.first != null || boards === 'few' || byWorld) && (
               <ul className="mode-facts">
@@ -1113,8 +1132,8 @@ export function Setup({ section, world, link }: { section: Section; world: World
                     onChange={(format) => set({ format })}
                     options={[
                       { value: 'normal', label: L('Normal', 'Standard') },
-                      { value: 'timed', label: L('Contrarreloj', 'Time attack'), title: L('Todas las que puedas en 60 segundos', 'As many as you can in 60 seconds') },
-                      { value: 'lives', label: L('Supervivencia', 'Survival'), title: L('Hasta que falles tres veces', 'Until you miss three times') },
+                      { value: 'timed', label: L('Contrarreloj', 'Time attack'), title: L(`Todas las que puedas en ${clockText(asked.clock)}`, `As many as you can in ${clockText(asked.clock)}`) },
+                      { value: 'lives', label: L('Supervivencia', 'Survival'), title: L('Hasta que te quedes sin vidas', 'Until you run out of lives') },
                       { value: 'exam', label: L('Examen', 'Exam'), title: L('Sin pistas ni corrección hasta el final', 'No hints and no marking until the end') },
                       { value: 'duo', label: L('Dos jugadores', 'Two players'), title: L('Por turnos, en este dispositivo', 'By turns, on this device') },
                     ]}
@@ -1129,8 +1148,14 @@ export function Setup({ section, world, link }: { section: Section; world: World
                             'Like an exam: one try per question, no hints and no telling whether you are right until you hand it in. At the end, a mark out of 10 and the marking, with what you answered where you were wrong.',
                           )
                         : opts.format === 'timed'
-                        ? L('60 segundos, un intento por pregunta y sin pistas. Se guarda tu récord en cada mapa.', '60 seconds, one try per question and no hints. Your record on each map is kept.')
-                        : L('Tres vidas: cada fallo quita una. Un intento por pregunta y sin pistas. Se guarda tu récord en cada mapa.', 'Three lives: each miss takes one. One try per question and no hints. Your record on each map is kept.')}
+                        ? L(
+                            `${capitalise(clockText(rules.clock))}, un intento por pregunta y sin pistas. Se guarda tu récord en cada mapa, uno por cada duración.`,
+                            `${capitalise(clockText(rules.clock))}, one try per question and no hints. Your record on each map is kept, one for each length.`,
+                          )
+                        : L(
+                            `${capitalise(livesText(rules.lives))}: ${rules.lives === 1 ? 'el primer fallo termina la partida' : 'cada fallo quita una'}. Un intento por pregunta y sin pistas. Se guarda tu récord en cada mapa, uno por cada número de vidas.`,
+                            `${capitalise(livesText(rules.lives))}: ${rules.lives === 1 ? 'the first miss ends the game' : 'each miss takes one'}. One try per question and no hints. Your record on each map is kept, one for each number of lives.`,
+                          )}
                     </p>
                   )}
                   {duoOn && duoUi && <duoUi.DuoNames />}
@@ -1218,6 +1243,42 @@ export function Setup({ section, world, link }: { section: Section; world: World
                   />
                 </div>
               )}
+              {ruled.length > 0 && (
+                <div className="opt">
+                  <span className="opt-label">{L('Reglas', 'Rules')}</span>
+                  {ruled.includes('tries') && (
+                    <Seg label={L('Intentos por pregunta', 'Tries per question')} value={asked.tries} onChange={(tries) => set({ tries })} options={TRIES.map((n) => ({ value: n, label: triesText(n) }))} />
+                  )}
+                  {ruled.includes('clock') && (
+                    <Seg label={L('Duración de la contrarreloj', 'Length of the time attack')} value={asked.clock} onChange={(clock) => set({ clock })} options={CLOCKS.map((n) => ({ value: n, label: clockShort(n), title: clockText(n) }))} />
+                  )}
+                  {ruled.includes('lives') && (
+                    <Seg label={L('Vidas de la supervivencia', 'Lives of the survival')} value={asked.lives} onChange={(lives) => set({ lives })} options={LIVES.map((n) => ({ value: n, label: livesText(n) }))} />
+                  )}
+                  {ruled.includes('hints') && (
+                    <Toggle
+                      checked={asked.hints}
+                      onChange={(hints) => set({ hints })}
+                      hint={
+                        asked.hints
+                          ? L('Puedes pedir pistas; una respuesta con pista cuenta como dada con ayuda.', 'You can ask for hints; an answer with a hint counts as given with help.')
+                          : L('Sin el botón de pista ni el menú de otras pistas.', 'Without the hint button and the menu of other hints.')
+                      }
+                    >
+                      {L('Pistas', 'Hints')}
+                    </Toggle>
+                  )}
+                  {/* Rules that are not the usual ones are said, with the way back: they stay as they are left, and a game that is harder than it was would not say why. */}
+                  {custom && (
+                    <p className="opt-hint rules-custom">
+                      {L(`Reglas a medida: ${rulesText(rules)}.`, `Custom rules: ${rulesText(rules)}.`)}{' '}
+                      <button type="button" className="link" onClick={() => set(Object.fromEntries(ruled.map((rule) => [rule, USUAL_RULES[rule]])))}>
+                        {L('Volver a las de siempre', 'Back to the usual ones')}
+                      </button>
+                    </p>
+                  )}
+                </div>
+              )}
               {show.suggest && (
                 <Toggle checked={opts.suggest} onChange={(suggest) => set({ suggest })} hint={L('Más fácil: eliges de una lista mientras escribes.', 'Easier: you pick from a list while typing.')}>
                   {L('Sugerencias al escribir', 'Suggestions while typing')}
@@ -1258,6 +1319,8 @@ export function Setup({ section, world, link }: { section: Section; world: World
                 what={`${meta.name} · ${summary} · ${def.name}`}
                 // What cannot be played (too few countries for the game) is not offered for another page; nor is a sheet to print.
                 more={embeddable(def.id) && !problem ? <EmbedButton small source={{ section, link: mapLink }} opts={opts} what={`${section === 'regions' ? `${summary} · ${noun[1]}` : summary} · ${def.name}`} /> : undefined}
+                // Homework is a game of questions that one player does (lib/task.ts).
+                task={show.format && format !== 'duo' && !problem ? <TaskButton small source={{ section, link: mapLink }} opts={opts} world={world} /> : undefined}
               />
             )}
           </section>
@@ -1269,7 +1332,9 @@ export function Setup({ section, world, link }: { section: Section; world: World
               {(active || (section !== 'countries' && section !== 'pops')) && units > 0 ? ` · ${plural(units, noun[0], noun[1])}` : ''}
             </strong>
             <span>
-              <b className={problem ? 'problem' : undefined}>{problem ?? `${def.name}${paced || exam || duoOn ? ` · ${formatName(opts.format).toLowerCase()}` : show.length && opts.length === 'endless' && !finite ? ` · ${L('sin fin', 'endless')}` : ''}`}</b>
+              <b className={problem ? 'problem' : undefined}>
+                {problem ?? `${def.name}${paced || exam || duoOn ? ` · ${formatName(opts.format).toLowerCase()}` : show.length && opts.length === 'endless' && !finite ? ` · ${L('sin fin', 'endless')}` : ''}${custom ? ` · ${rulesText(rules)}` : ''}`}
+              </b>
               <ChevronDown size={14} aria-hidden="true" />
             </span>
           </button>

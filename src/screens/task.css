@@ -1,0 +1,203 @@
+/* Homework with a receipt (lib/task.ts): the assignment, the receipt at the end of its game, and the receipt as whoever set it reads it. */
+
+/* The receipt at the end of a game: the name and how it went, side by side. */
+.receipt {
+  border-color: var(--brand);
+}
+.receipt .kicker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.receipt-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2px 14px;
+  font: 560 calc(22px * var(--fs)) / 1.15 var(--serif);
+  letter-spacing: -0.015em;
+  overflow-wrap: anywhere;
+}
+.receipt-main span {
+  font-variant-numeric: tabular-nums;
+}
+.receipt-line {
+  color: var(--ink-2);
+  font-size: calc(13.5px * var(--fs));
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.receipt-short,
+.task-problem {
+  padding: 8px 11px;
+  border-radius: var(--r-1);
+  background: var(--warn-soft);
+  color: var(--ink);
+  font-size: calc(13.5px * var(--fs));
+  line-height: 1.45;
+}
+
+/* The name of whoever does the assignment, and the title of the one that is being made. */
+.task-name,
+.task-title {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  max-width: 420px;
+  color: var(--ink-2);
+  font-size: calc(13.5px * var(--fs));
+  font-weight: 600;
+}
+.task-name input,
+.task-title input {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-1);
+  background: var(--card);
+  color: var(--ink);
+  font-size: calc(16px * var(--fs));
+  font-weight: 400;
+}
+.task-name input[aria-invalid='true'] {
+  border-color: var(--bad);
+}
+.task-name small,
+.task-title small {
+  color: var(--ink-3);
+  font-size: calc(12.5px * var(--fs));
+  font-weight: 400;
+  line-height: 1.4;
+}
+.task-title {
+  max-width: none;
+}
+/* The link of the assignment keeps its three lines where the panel is short of room and what is in it has to give way. */
+.embed-dialog .duel-link {
+  min-height: calc(51px * var(--fs) + 18px);
+}
+
+/* The receipt as it is read: a sheet with each figure on its line. */
+.receipt-sheet {
+  display: grid;
+  width: 100%;
+  padding: 4px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--card);
+  box-shadow: var(--shadow-1);
+}
+.receipt-sheet > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2px 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.receipt-sheet > div:last-child {
+  border-bottom: 0;
+}
+.receipt-sheet dt {
+  color: var(--ink-3);
+  font-size: calc(13.5px * var(--fs));
+  font-weight: 600;
+}
+.receipt-sheet dd {
+  font-size: calc(15.5px * var(--fs));
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.receipt-sheet .receipt-big dd {
+  font: 560 calc(28px * var(--fs)) / 1.1 var(--serif);
+}
+.receipt-seal {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: var(--r-2);
+  background: var(--ok-soft);
+  color: var(--ink);
+  font-size: calc(14px * var(--fs));
+  line-height: 1.45;
+}
+.receipt-seal svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--ok);
+}
+.receipt-seal.broken {
+  background: var(--bad-soft);
+}
+.receipt-seal.broken svg {
+  color: var(--bad);
+}
+
+/* The receipts of a class, together. */
+.receipt-class {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+}
+.receipt-class h2 {
+  font-size: calc(20px * var(--fs));
+}
+/* On a narrow screen the table is wider than its box: a shade on the side that has more says so, and goes once it is reached. */
+.receipt-scroll {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background:
+    linear-gradient(to right, var(--card) 40%, transparent) left / 36px 100% no-repeat local,
+    linear-gradient(to left, var(--card) 40%, transparent) right / 36px 100% no-repeat local,
+    linear-gradient(to right, var(--line-2), transparent) left / 12px 100% no-repeat scroll,
+    linear-gradient(to left, var(--line-2), transparent) right / 12px 100% no-repeat scroll,
+    var(--card);
+}
+.receipt-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: calc(14px * var(--fs));
+  font-variant-numeric: tabular-nums;
+}
+.receipt-table th,
+.receipt-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  white-space: nowrap;
+}
+.receipt-table thead th {
+  color: var(--ink-3);
+  font-size: calc(12.5px * var(--fs));
+  font-weight: 600;
+}
+.receipt-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+.receipt-table tbody th {
+  min-width: 132px;
+  font-weight: 600;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.receipt-table tr.now > * {
+  background: var(--accent-soft);
+}
+
+/* The panel where an assignment is made: what is set, in words. */
+.task-what {
+  color: var(--ink-2);
+  font-size: calc(14.5px * var(--fs));
+  line-height: 1.45;
+}
+.task-what b {
+  color: var(--ink);
+}

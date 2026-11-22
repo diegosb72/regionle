@@ -14,12 +14,12 @@ export const GHOSTS_KEY = 'regionle:ghosts';
  * The games a ghost is kept of: those that ask one thing after another (games/QuizGame.tsx), played at
  * ease and with an end. A custom list is one of them, asked whole. Not a review, a step of the session of
  * the day or a round of what was missed, which are about what is due and not about a map; not a challenge,
- * which has its own rival or its own date; and not an exam, a minute against the clock or three lives,
- * which keep a mark of their own.
+ * which has its own rival or its own date; not homework, which is done for whoever set it; and not an exam,
+ * a time attack or a survival, which keep a mark of their own.
  */
 export function ghostable(cfg: Omit<GameConfig, 'nonce'>): boolean {
   if (cfg.section === 'pops' || !FORMAT_MODES.includes(cfg.mode)) return false;
-  if (cfg.review || cfg.daily || cfg.step || cfg.challenge || cfg.weekly || cfg.zone || cfg.occasion) return false;
+  if (cfg.review || cfg.daily || cfg.step || cfg.challenge || cfg.weekly || cfg.zone || cfg.occasion || cfg.task) return false;
   if ((cfg.opts.format ?? 'normal') !== 'normal') return false;
   return cfg.list ? !!cfg.only?.length : !cfg.only && cfg.opts.length !== 'endless';
 }

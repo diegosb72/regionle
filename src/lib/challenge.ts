@@ -5,6 +5,7 @@
  */
 import type { CityPick } from './extra';
 import { DUEL_PATH, linkTo } from './routes';
+import { TRIES, USUAL_RULES } from './rules';
 import type { GameConfig, Length, Opts } from './store';
 import type { Mode, Section } from './types';
 
@@ -38,10 +39,11 @@ interface Wire {
   l?: Record<string, string>;
   /**
    * The options that change the questions: how they are answered, how many, what "pin it" shows, which
-   * cities and how many of them; and, since the hard looks came, whether outlines are turned (1) and how
-   * flags are shown. A link from before has five entries and is played plain.
+   * cities and how many of them; since the hard looks came, whether outlines are turned (1) and how flags are
+   * shown; and, since the rules can be set (lib/ruleset.ts), the tries of a question and whether there are
+   * hints (1). A link from before has five entries and is played plain, by the usual rules.
    */
-  o?: [string, string | number, string, string, number, number?, string?];
+  o?: [string, string | number, string, string, number, number?, string?, number?, number?];
   k: number;
   f?: string;
   r?: [number, number];
@@ -67,7 +69,8 @@ export function seedOf(cfg: GameConfig): number {
 }
 
 export function canChallenge(cfg: GameConfig): boolean {
-  return CHALLENGE_SECTIONS.includes(cfg.section) && CHALLENGE_MODES.includes(cfg.mode) && !cfg.only && !cfg.daily && cfg.opts.length !== 'endless';
+  // Homework ends with its receipt, which is what there is to send.
+  return CHALLENGE_SECTIONS.includes(cfg.section) && CHALLENGE_MODES.includes(cfg.mode) && !cfg.only && !cfg.daily && !cfg.task && cfg.opts.length !== 'endless';
 }
 
 export function encodeChallenge(cfg: GameConfig, result?: { score: number; ms: number }, from?: string): string {
@@ -81,7 +84,12 @@ export function encodeChallenge(cfg: GameConfig, result?: { score: number; ms: n
   };
   // The hard looks are part of the game: whoever opens the link gets the outlines turned the same way.
   const look = opts.flagLook ?? 'plain';
-  if (opts.turned || look !== 'plain') wire.o!.push(opts.turned ? 1 : 0, look);
+  // So are the rules: the same tries and the same hints, or none, for whoever opens the link.
+  const tries = (TRIES as readonly number[]).includes(opts.tries) ? opts.tries : USUAL_RULES.tries;
+  const hints = opts.hints !== false;
+  const ruled = tries !== USUAL_RULES.tries || !hints;
+  if (opts.turned || look !== 'plain' || ruled) wire.o!.push(opts.turned ? 1 : 0, look);
+  if (ruled) wire.o!.push(tries, hints ? 1 : 0);
   const levels = Object.fromEntries(Object.entries(cfg.levels).filter(([id]) => cfg.countries.includes(id)));
   if (Object.keys(levels).length) wire.l = levels;
   // A challenge that is passed on keeps the rules it was made with.
@@ -108,10 +116,11 @@ export function decodeChallenge(code: string): Challenge | null {
   // Codes of countries, or the words of a physical map: "river", "EU", "all", and "in:ES" for the map of one country.
   if (!countries.length || countries.length > 300 || !countries.every((id) => /^(?:[A-Za-z0-9]{1,12}|in:[A-Z]{2})$/.test(id))) return null;
   if (!Number.isFinite(wire.k)) return null;
-  // Said or not, the hard looks are settled here: the receiver's own taste for them must not change the game.
-  const opts: Partial<Opts> = { turned: false, flagLook: 'plain' };
+  // Said or not, the hard looks and the rules are settled here: the receiver's own taste for them must not
+  // change the game.
+  const opts: Partial<Opts> = { turned: false, flagLook: 'plain', tries: USUAL_RULES.tries, hints: USUAL_RULES.hints };
   if (Array.isArray(wire.o)) {
-    const [answer, length, pinBy, cityPick, cityCount, turned, look] = wire.o;
+    const [answer, length, pinBy, cityPick, cityCount, turned, look, tries, hints] = wire.o;
     if (answer === 'choice' || answer === 'type') opts.answer = answer;
     if (length === 'all' || length === 10 || length === 20 || length === 50) opts.length = length as Length;
     if (pinBy === 'name' || pinBy === 'capital' || pinBy === 'flag') opts.pinBy = pinBy;
@@ -119,6 +128,8 @@ export function decodeChallenge(code: string): Challenge | null {
     if (typeof cityCount === 'number' && cityCount > 0 && cityCount <= 200) opts.cityCount = cityCount;
     opts.turned = turned === 1;
     if (look === 'grey' || look === 'blur') opts.flagLook = look;
+    if ((TRIES as readonly number[]).includes(tries as number)) opts.tries = tries as number;
+    if (hints === 0) opts.hints = false;
   }
   const levels: Record<string, string> = {};
   if (wire.l && typeof wire.l === 'object') for (const [id, lv] of Object.entries(wire.l)) if (isStr(lv) && /^[a-z0-9]{1,3}$/.test(lv)) levels[id] = lv;

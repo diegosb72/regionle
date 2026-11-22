@@ -10,6 +10,7 @@ import { MODES, MODE_NAME, SECTIONS } from '../lib/modes';
 import { go } from '../lib/router';
 import { PATHS } from '../lib/routes';
 import { asksByFlag, turnsOutlines } from '../lib/rules';
+import { rulesOfGame, rulesText } from '../lib/ruleset';
 import { DEFAULT_OPTS, useStore } from '../lib/store';
 import { fmtTime, listed } from '../lib/text';
 import type { Country } from '../lib/types';
@@ -91,10 +92,11 @@ export function Duel({ code, world }: { code: string; world: World }) {
 
   const who = challenge.from || L('Alguien', 'Someone');
   const length = challenge.opts.length ?? 'all';
-  /** The hard looks the sender played with: they come with the challenge, whatever the receiver has set. */
+  /** The hard looks and the rules the sender played with: they come with the challenge, whatever the receiver has set. */
   const looks = [
     challenge.opts.turned && turnsOutlines(challenge.section, challenge.mode) ? L('siluetas giradas', 'turned outlines') : '',
     asksByFlag(challenge.section, challenge.mode, { pinBy: challenge.opts.pinBy }) ? { plain: '', grey: L('banderas en gris', 'flags in grey'), blur: L('banderas desenfocadas', 'blurred flags') }[challenge.opts.flagLook ?? 'plain'] : '',
+    rulesText(rulesOfGame({ mode: challenge.mode, opts: challenge.opts, challenge: { seed: challenge.seed } })),
   ].filter(Boolean);
   const accept = () => {
     start({

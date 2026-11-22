@@ -1,4 +1,5 @@
 /** The album of flags, on the Progress page: a page for each continent and a place for each flag, filled once it is learnt. */
+import { USUAL_RULES } from '../lib/rules';
 import { ArrowRight } from 'lucide-react';
 import { useId, useMemo, useState } from 'react';
 import { albumOf, missingOf, type AlbumPage } from '../lib/album';
@@ -26,7 +27,7 @@ export function AlbumBlock({ world }: { world: World }) {
   /** A game of flags with the ones the page lacks, drawn by lot when they are many. */
   const play = (page: AlbumPage) => {
     const ids = shuffle(missingOf(page)).slice(0, ALBUM_GAME);
-    start({ section: 'countries', mode: 'flag', countries: ids, levels: {}, opts: { ...opts, length: 'all' }, only: ids });
+    start({ section: 'countries', mode: 'flag', countries: ids, levels: {}, opts: { ...opts, length: 'all', ...USUAL_RULES }, only: ids });
     go('jugar');
   };
 

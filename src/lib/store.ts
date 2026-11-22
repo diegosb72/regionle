@@ -17,7 +17,7 @@ import { RECENT_MAX, isRecent, recentConfig, recentOf, withLeft, withRecent, typ
 import { PACE_DEFAULT, REVIEW_MAX, isPace, isReviewSize, setReviewPrefs, type Pace } from './review';
 import { today } from './text';
 import { cleanTypeins, setTypeins as applyTypeins, type Typeins } from './typeinPrefs';
-import type { PairOf, PairSize, RouteRule } from './rules';
+import { USUAL_RULES, type PairOf, type PairSize, type RouteRule } from './rules';
 import type { Mode, Res, Section } from './types';
 import { setUnits } from './units';
 
@@ -117,6 +117,14 @@ export interface Opts {
   lessonSize: number;
   /** Lessons: the order the new pieces come in; `auto` is the one that suits the map. */
   lessonOrder: LessonOrder | 'auto';
+  /**
+   * «Reglas a medida» (lib/ruleset.ts): the tries a question takes, whether hints can be asked for, the
+   * seconds a time attack lasts and the lives a survival starts with.
+   */
+  tries: number;
+  hints: boolean;
+  clock: number;
+  lives: number;
 }
 
 export type FlagLook = 'plain' | 'grey' | 'blur';
@@ -170,6 +178,11 @@ export interface GameConfig {
   ghost?: { seed: number };
   /** A game of two players (lib/duo.ts): which of them opens it. They take it in turns from one game to the next. */
   duo?: { first: 0 | 1 };
+  /**
+   * Homework (lib/task.ts): the assignment this game is, by what follows `tarea/` in its address, and the
+   * name of whoever does it. Where the game ends, the receipt for whoever set it is made.
+   */
+  task?: { path: string; name: string };
   /** Changes on every start so that an identical configuration still restarts the game. */
   nonce: number;
 }
@@ -246,6 +259,7 @@ export const DEFAULT_OPTS: Opts = {
   pairs: 8,
   lessonSize: 5,
   lessonOrder: 'auto',
+  ...USUAL_RULES,
 };
 
 /** `stats` and `where` without anything about the given ids ("loc:x", "name:x"… and the map x was learnt on). */

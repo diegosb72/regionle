@@ -19,7 +19,8 @@ import { mapLinkRest, parseMapLink, type MapLink } from './maplink';
 import { MODES, type ModeDef } from './modes';
 import { PHYS_KINDS } from './phys';
 import { EMBED_PATH, LIST_PATH, PATHS, canonicalPath, langPage, siteRoot } from './routes';
-import { embeddable } from './rules';
+import { USUAL_RULES, embeddable } from './rules';
+import { rulesIn, type Rule } from './ruleset';
 import { DEFAULT_OPTS, type GameConfig, type Opts } from './store';
 import type { Mode, Section } from './types';
 import { eligible, type World } from './world';
@@ -40,11 +41,18 @@ const MODE = /^[a-z]{2,12}$/;
 /** How a game opens inside another page when its address says nothing about it. */
 export const EMBED_OPTS: Opts = { ...DEFAULT_OPTS, wiki: false };
 
-/** The options of a game as an address carries them: only those that are not how a game opens. */
+/**
+ * The options of a game as an address carries them: only those that are not how a game opens. Of the rules
+ * (lib/ruleset.ts), only those of the format it is played in: the length a clock was once left at is of no
+ * account in a survival, and an address that named it would be another address for the same game.
+ */
 export function writeOpts(opts: Opts): string {
   const parts: string[] = [];
+  // Every rule the format can go by: the tries count on the map and by typing, and which of them it is to be is not known here.
+  const ruled = rulesIn(opts.format ?? DEFAULT_OPTS.format, 'pin', 'type');
   for (const key of Object.keys(DEFAULT_OPTS) as (keyof Opts)[]) {
     if (NOT_SENT.includes(key)) continue;
+    if (Object.hasOwn(USUAL_RULES, key) && !ruled.includes(key as Rule)) continue;
     const value = opts[key];
     if (value == null || value === DEFAULT_OPTS[key]) continue;
     // A game of two is set up by the two who sit down to it: a box in another page is played as it comes.

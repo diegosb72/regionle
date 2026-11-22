@@ -29,6 +29,10 @@ export function routeName(route: Route, now: string = today()): string | null {
       return route.code ? L('Reto recibido', 'Challenge received') : L('Retos entre dos', 'Challenges for two');
     case 'list':
       return route.code ? L('Lista recibida', 'List received') : L('Listas a medida', 'Custom lists');
+    case 'task':
+      return route.rest ? L('Tarea', 'Homework') : L('Tareas con justificante', 'Homework with a receipt');
+    case 'receipt':
+      return L('Justificante de tarea', 'Homework receipt');
     case 'embed':
       return L('Mapa incrustado', 'Embedded map');
     case 'progress':

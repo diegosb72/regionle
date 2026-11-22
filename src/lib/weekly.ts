@@ -4,6 +4,7 @@
  * by a seed made from the date of its Monday, as those of a game sent by link are (lib/challenge.ts).
  * What is kept of it is in lib/datedKept.ts.
  */
+import { USUAL_RULES } from './rules';
 import { capitalGivenAway } from '../daily/spec';
 import type { WeekRec } from './datedKept';
 import type { GameConfig, Opts } from './store';
@@ -98,7 +99,7 @@ export function weekGame(week: string, index: Index, opts: Opts): Omit<GameConfi
     mode: theme.mode,
     countries: weekCountries(theme, index),
     levels: {},
-    opts: { ...opts, answer: 'choice', length: WEEK_LENGTH, pinBy: 'name', turned: false, flagLook: 'plain', format: 'normal' },
+    opts: { ...opts, answer: 'choice', length: WEEK_LENGTH, pinBy: 'name', turned: false, flagLook: 'plain', format: 'normal', ...USUAL_RULES },
     challenge: { seed: weekSeed(week) },
     weekly: week,
   };

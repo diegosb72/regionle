@@ -135,6 +135,26 @@
 .help-foot .btn {
   flex: none;
 }
+.help-rules {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--bg-2);
+  color: var(--ink-2);
+  font-size: calc(14px * var(--fs));
+  line-height: 1.45;
+}
+.help-rules b {
+  color: var(--ink);
+}
+.help-rules svg {
+  flex: none;
+  margin-top: 3px;
+  color: var(--accent);
+}
 .help-note {
   color: var(--ink-3);
   font-size: calc(13px * var(--fs));

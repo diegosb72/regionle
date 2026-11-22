@@ -3,6 +3,16 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.34.0 — 22 de noviembre de 2026
+
+- Reglas a medida: en los nueve juegos de preguntas eliges los intentos de cada pregunta (1, 2 o 3) y si hay pistas. Está en «Reglas», al preparar la partida.
+- La contrarreloj dura 30 segundos, 1, 2 o 5 minutos, y la supervivencia empieza con 1, 3 o 5 vidas. Cada duración y cada número de vidas guarda su propio récord.
+- Las reglas se quedan como las dejas y se dicen antes de empezar. Van en el reto por enlace y en el juego incrustado. El repaso y los retos con fecha no cambian.
+- Tarea con justificante: «Poner de tarea», junto al enlace de un mapa o en una lista, da un enlace y un QR para una clase, con el juego, sus reglas y un título.
+- Quien lo abre escribe su nombre y juega eso mismo. Al acabar recibe un justificante: un enlace o un QR con su nombre, el resultado, la fecha y el intento.
+- Al abrir un justificante se ve todo eso y si su cifra de control cuadra. Los de una misma tarea se juntan en una tabla que se copia a una hoja de cálculo.
+- No hay servidor: la cifra descubre un enlace retocado a mano, pero no es a prueba de trampas. Sirve para ver quién ha hecho la tarea, no para poner una nota.
+
 ## 1.33.0 — 22 de noviembre de 2026
 
 - Dos jugadores: un formato nuevo de los nueve juegos de preguntas, para dos personas con un dispositivo. Las preguntas se reparten por turnos, una a cada uno.
