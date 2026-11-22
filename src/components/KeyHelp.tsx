@@ -196,6 +196,17 @@ export function GameKeys() {
       </div>
       <div>
         <dt>
+          <Keys>{L('A–Z ← ↑ → ↓', 'A–Z ← ↑ → ↓')}</Keys>
+        </dt>
+        <dd>
+          {L(
+            'En «Crucigrama», las letras se escriben en la casilla y las flechas van de una a otra; Espacio cambia entre la palabra horizontal y la vertical, Intro pasa a la palabra siguiente y Retroceso borra.',
+            'In “Crossword”, letters are written in the cell and the arrows go from one to another; Space changes between the word across and the word down, Enter goes to the next word and Backspace erases.',
+          )}
+        </dd>
+      </div>
+      <div>
+        <dt>
           <Keys>↑ ↓</Keys>
         </dt>
         <dd>{L('En «Mayor o menor», responden más o menos. En un campo de respuesta con sugerencias, las recorren; Esc las cierra.', 'In “Higher or lower”, they answer more or less. In an answer field with suggestions, they go through them; Esc closes them.')}</dd>

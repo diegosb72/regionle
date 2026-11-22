@@ -3,6 +3,13 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.38.0 — 22 de noviembre de 2026
+
+- Crucigrama: los nombres de hasta diez piezas se cruzan en una cuadrícula, y las pistas están en el mapa: cada pieza lleva escrito el número de su palabra.
+- Se escribe con el teclado o, en pantallas táctiles, con letras en pantalla. Tocar una pieza del mapa o la casilla de un número elige su palabra.
+- La palabra bien escrita se queda fija y su nombre aparece en el mapa. La que completas mal se avisa; «Dar una letra» y «Me rindo» ayudan.
+- Está en Regiones, Países, Ciudades y Geografía física, y con tus listas. Una partida larga son varios crucigramas; en el móvil se turna con el mapa.
+
 ## 1.37.0 — 22 de noviembre de 2026
 
 - Sopa de letras: el mapa ilumina hasta diez piezas sin decir cómo se llaman, y sus nombres están escondidos en una cuadrícula de letras. Encuéntralos.

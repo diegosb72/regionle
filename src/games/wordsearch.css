@@ -223,7 +223,7 @@
  * Where the map is not beside the square but under it (a phone, a tablet held upright), and on a phone
  * lying down, the square would leave the map a strip too small to tell ten pieces apart. There they take
  * turns: each has the whole screen, and a button goes from one to the other. The map keeps its size while
- * it is out of sight, so that it is ready when it is asked for. The same rule is in WordSearch.tsx.
+ * it is out of sight, so that it is ready when it is asked for. The same rule is in phone.ts.
  */
 @media (max-width: 860px), (max-width: 1000px) and (max-height: 500px) {
   .play-body:has(.ws) {

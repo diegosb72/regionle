@@ -5,6 +5,7 @@ import { GUESSES } from '../daily/spec';
 import { LESSON } from '../games/lesson';
 import { HOT_TRIES } from './blind';
 import { CHAIN_MISSES } from './chain';
+import { CW_PER_BOARD } from './crossword';
 import { helpOf, type ModeHelp } from './help';
 import { setLang, type Lang } from './i18n';
 import { MODES, SECTION_IDS } from './modes';
@@ -89,6 +90,8 @@ describe('how each game is played', () => {
     expect(es('whoami')).toContain(`con ${word[CLUES_OK]} pistas o menos`);
     expect(es('wordsearch')).toContain('hasta diez en cada sopa');
     expect(WS_PER_BOARD).toBe(10);
+    expect(es('crossword')).toContain('Hasta diez palabras en cada crucigrama');
+    expect(CW_PER_BOARD).toBe(10);
   });
 
   it('says what a section adds to a game', () => {

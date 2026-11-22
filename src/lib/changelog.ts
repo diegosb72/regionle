@@ -15,6 +15,22 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.38.0',
+    date: '2026-11-22',
+    es: [
+      'Crucigrama: los nombres de hasta diez piezas se cruzan en una cuadrícula, y las pistas están en el mapa: cada pieza lleva escrito el número de su palabra.',
+      'Se escribe con el teclado o, en pantallas táctiles, con letras en pantalla. Tocar una pieza del mapa o la casilla de un número elige su palabra.',
+      'La palabra bien escrita se queda fija y su nombre aparece en el mapa. La que completas mal se avisa; «Dar una letra» y «Me rindo» ayudan.',
+      'Está en Regiones, Países, Ciudades y Geografía física, y con tus listas. Una partida larga son varios crucigramas; en el móvil se turna con el mapa.',
+    ],
+    en: [
+      'Crossword: the names of up to ten pieces cross in a grid, and the clues are on the map: each piece carries the number of its word.',
+      'Write with the keyboard or, on touch screens, with letters on the screen. Pressing a piece of the map or the cell of a number chooses its word.',
+      'A word written rightly stays and its name comes up on the map. One you complete wrongly is flagged; “Give a letter” and “I give up” help.',
+      'It is in Regions, Countries, Cities and Physical geography, and with your lists. A long game is several crosswords; on a phone it takes turns with the map.',
+    ],
+  },
+  {
     version: '1.37.0',
     date: '2026-11-22',
     es: [
