@@ -15,8 +15,14 @@ import zlib from 'node:zlib';
 export const LIMITS = {
   /** The page itself: the heaviest of the pages of the site, which only differ in their head. */
   html: 5,
-  /** Scripts fetched before anything is drawn: the entry and what it imports from the start. */
-  script: 130,
+  /**
+   * Scripts fetched before anything is drawn: the entry and what it imports from the start. It was 130
+   * until 1.36.0, when the site was at 129,2 and every new game adds some half a kB (its name and what it
+   * is, which travel with the front page). Raised by the owner of the project, who was told what it
+   * costs: 5 kB are 2 % of a first visit, a tenth of a second on a slow phone line, and nothing from the
+   * second visit on, which is served from the copy the device keeps.
+   */
+  script: 135,
   /** Style sheets. */
   style: 26,
   /** The typefaces asked for with the page. */
