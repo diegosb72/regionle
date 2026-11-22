@@ -15,10 +15,24 @@ export interface ScreenPage {
   lang: SeoLang;
 }
 /**
- * A page of the site: the first one, which follows the language of whoever opens it; the page of one
- * language; or the page of one screen in one language.
+ * The page of the map of one country in one language: `mapa-es-espana.html`, `map-es-spain.html`. It opens
+ * the game on the regions of that country, and says what they are before the game is there to say it.
  */
-export type SeoPage = 'index' | SeoLang | ScreenPage;
+export interface MapPage {
+  /** The code of the country ("ES"). */
+  map: string;
+  lang: SeoLang;
+  /** The name of its page in each language, without `.html`. */
+  files: Record<SeoLang, string>;
+  /** How its title starts, and what it is called in the trail of pages. */
+  name: string;
+  description: string;
+}
+/**
+ * A page of the site: the first one, which follows the language of whoever opens it; the page of one
+ * language; the page of one screen in one language; or the page of the map of one country in one language.
+ */
+export type SeoPage = 'index' | SeoLang | ScreenPage | MapPage;
 
 export interface SeoText {
   /** `<title>` of the first page. */
@@ -173,7 +187,24 @@ export const SCREEN_IDS = Object.keys(SCREENS) as ScreenId[];
 /** Every page of the site, the first one first. */
 export const SITE_PAGES: readonly SeoPage[] = ['index', ...SEO_LANGS, ...SCREEN_IDS.flatMap((screen) => SEO_LANGS.map((lang): ScreenPage => ({ screen, lang })))];
 
-const isScreen = (page: SeoPage): page is ScreenPage => typeof page === 'object';
+const isScreen = (page: SeoPage): page is ScreenPage => typeof page === 'object' && 'screen' in page;
+const isMap = (page: SeoPage): page is MapPage => typeof page === 'object' && 'map' in page;
+
+/**
+ * How the name of the page of a map starts in each language. After it come the code of the country, which
+ * is what the game reads to know which map to open, and its name, which is what a person reads.
+ */
+export const MAP_WORD: Record<SeoLang, string> = { es: 'mapa', en: 'map' };
+
+/**
+ * The map a page is of and the language it is written in, by its name with or without `.html`
+ * ("mapa-es-espana", "map-gb-united-kingdom.html"); null when the name is not that of the page of a map.
+ * Nothing but the name is looked at: the game reads this before it knows which countries there are.
+ */
+export function mapPageNamed(name: string): { map: string; lang: SeoLang } | null {
+  const m = /^(mapa|map)-([a-z][a-z0-9])-[a-z0-9]+(?:-[a-z0-9]+)*(?:\.html)?$/.exec(name);
+  return m ? { map: m[2].toUpperCase(), lang: m[1] === MAP_WORD.es ? 'es' : 'en' } : null;
+}
 
 /** The picture of the card, 1200 × 630 (`npm run social` draws them). */
 export const SOCIAL_IMAGE: Record<SeoLang, string> = { es: 'social-es.png', en: 'social-en.png' };
@@ -185,7 +216,7 @@ export function pageTitle(name: string): string {
 }
 
 /** The language a page is written in before the game starts: the first page is written in Spanish. */
-export const pageLangOf = (page: SeoPage): SeoLang => (page === 'index' ? 'es' : isScreen(page) ? page.lang : page);
+export const pageLangOf = (page: SeoPage): SeoLang => (page === 'index' ? 'es' : typeof page === 'string' ? page : page.lang);
 
 /** Where the site is published, ending in a slash; null when it has not been said (`homepage` in package.json). */
 export function siteUrl(raw: string | null | undefined): string | null {
@@ -197,6 +228,7 @@ export function siteUrl(raw: string | null | undefined): string | null {
 /** The file a page is written to. */
 export function pageFile(page: SeoPage): string {
   if (page === 'index') return 'index.html';
+  if (isMap(page)) return `${page.files[page.lang]}.html`;
   return isScreen(page) ? `${SCREENS[page.screen][page.lang].file}.html` : LANG_PAGE[page];
 }
 
@@ -216,8 +248,8 @@ export function pageNamed(name: string): SeoLang | ScreenPage | null {
 /** What a page says of itself: the first page and those of a language speak of the game; that of a screen, of the screen. */
 export function pageText(page: SeoPage): { title: string; description: string; cardTitle: string; noscript: string } {
   const t = SEO[pageLangOf(page)];
-  if (!isScreen(page)) return { title: t.title, description: t.description, cardTitle: t.cardTitle, noscript: t.noscript };
-  const screen = SCREENS[page.screen][page.lang];
+  if (typeof page === 'string') return { title: t.title, description: t.description, cardTitle: t.cardTitle, noscript: t.noscript };
+  const screen = isMap(page) ? page : SCREENS[page.screen][page.lang];
   const title = pageTitle(screen.name);
   return { title, description: screen.description, cardTitle: title, noscript: `${screen.description} ${t.needsScripts}` };
 }
@@ -227,8 +259,8 @@ export function pageText(page: SeoPage): { title: string; description: string; c
  * browser, or the Spanish page of a screen, Spanish being what the game speaks when it has to choose.
  */
 export function alternates(site: string, page: SeoPage): { lang: string; url: string }[] {
-  const of = (lang: SeoLang): string => pageUrl(site, isScreen(page) ? { screen: page.screen, lang } : lang);
-  return [...SEO_LANGS.map((lang) => ({ lang: lang as string, url: of(lang) })), { lang: 'x-default', url: isScreen(page) ? of('es') : site }];
+  const of = (lang: SeoLang): string => pageUrl(site, typeof page === 'string' ? lang : { ...page, lang });
+  return [...SEO_LANGS.map((lang) => ({ lang: lang as string, url: of(lang) })), { lang: 'x-default', url: typeof page === 'string' ? site : of('es') }];
 }
 
 const esc = (text: string): string => text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -241,25 +273,22 @@ export function jsonLd(page: SeoPage, site: string, version: string): Record<str
   const lang = pageLangOf(page);
   const t = SEO[lang];
   const image = `${site}${SOCIAL_IMAGE[lang]}`;
-  if (isScreen(page)) {
-    const screen = SCREENS[page.screen][page.lang];
+  if (typeof page !== 'string') {
+    const screen = isMap(page) ? page : SCREENS[page.screen][page.lang];
     const url = pageUrl(site, page);
     const home = pageUrl(site, lang);
+    // The page of a map hangs from the screen it opens: that of the regions.
+    const over = isMap(page) ? [{ name: SCREENS.regiones[lang].name, item: pageUrl(site, { screen: 'regiones', lang }) }] : [];
+    const trail = [{ name: SITE_NAME, item: home }, ...over, { name: screen.name, item: url }];
     return {
       '@context': 'https://schema.org',
-      '@type': page.screen === 'acerca' ? 'AboutPage' : 'WebPage',
+      '@type': isScreen(page) && page.screen === 'acerca' ? 'AboutPage' : 'WebPage',
       name: pageTitle(screen.name),
       url,
       description: screen.description,
       inLanguage: lang,
       isPartOf: { '@type': 'WebApplication', name: SITE_NAME, url: home, applicationCategory: 'EducationalApplication', operatingSystem: 'Any', softwareVersion: version },
-      breadcrumb: {
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: SITE_NAME, item: home },
-          { '@type': 'ListItem', position: 2, name: screen.name, item: url },
-        ],
-      },
+      breadcrumb: { '@type': 'BreadcrumbList', itemListElement: trail.map((step, i) => ({ '@type': 'ListItem', position: i + 1, ...step })) },
       image,
     };
   }
@@ -341,9 +370,12 @@ export function localise(html: string, page: SeoPage, site: string | null, versi
   return out;
 }
 
-/** The pages a search engine should know: every one there is, each with its versions in other languages. */
-export function sitemap(site: string, lastmod: string): string {
-  const urls = SITE_PAGES.map((page) => {
+/**
+ * The pages a search engine should know: every one there is, each with its versions in other languages.
+ * `maps` are the pages of the maps, which depend on the countries there are and so are not in `SITE_PAGES`.
+ */
+export function sitemap(site: string, lastmod: string, maps: readonly MapPage[] = []): string {
+  const urls = [...SITE_PAGES, ...maps].map((page) => {
     const links = alternates(site, page)
       .map((a) => `    <xhtml:link rel="alternate" hreflang="${a.lang}" href="${esc(a.url)}" />`)
       .join('\n');

@@ -295,8 +295,8 @@ test.describe('listen and pin', () => {
     await open(page, '/regiones');
     await expect(page.locator('.setup-side')).toContainText('Los nombres los dice la voz de tu dispositivo');
     await expect(page.getByRole('button', { name: 'Empezar' })).toBeEnabled();
-    // It is "pin it" in every other way: against the clock, with lives, as an exam.
-    await expect(page.getByRole('radiogroup', { name: 'Formato de la partida' }).getByRole('radio')).toHaveCount(4);
+    // It is "pin it" in every other way: against the clock, with lives, as an exam, by two players.
+    await expect(page.getByRole('radiogroup', { name: 'Formato de la partida' }).getByRole('radio')).toHaveCount(5);
   });
 });
 

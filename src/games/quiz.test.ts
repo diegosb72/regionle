@@ -162,6 +162,56 @@ describe('an exam', () => {
   });
 });
 
+describe('a game where each question is one turn', () => {
+  /** As a game of two players is dealt: not an exam, and nothing that was missed comes back. */
+  const turns = (pool: string[], reveal = true) => initQuiz(pool, 'all', reveal, mulberry32(3), false, true);
+
+  it('does not ask again what was missed: it ends with its last question', () => {
+    let s = turns(['a', 'b', 'c', 'd'], false);
+    expect(s.once).toBe(true);
+    s = run(s, { type: 'wrong', max: 1 }, { type: 'next' }, { type: 'giveup' }, { type: 'next' }, { type: 'right' }, { type: 'next' }, { type: 'right' }, { type: 'next' });
+    expect(s.phase).toBe('end');
+    expect(s.round).toBe(1);
+    expect(s.again).toEqual([]);
+    expect([s.ok, s.warn, s.bad, s.asked]).toEqual([2, 0, 2, 4]);
+  });
+
+  it('is no exam: an answer is told about, a miss is shown on the map and help makes an answer one with help', () => {
+    let s = turns(['a', 'b', 'c']);
+    expect(s.exam).toBe(false);
+    expect(s.reveal).toBe(true);
+    s = run(s, { type: 'wrong', max: 3 }, { type: 'right' });
+    // The question stays on screen with its verdict until the player goes on.
+    expect(s.phase).toBe('done');
+    expect(s.last).toBe('warn');
+    s = run(s, { type: 'next' }, { type: 'giveup' });
+    expect(s.phase).toBe('reveal');
+    s = run(s, { type: 'next' }, { type: 'hint' }, { type: 'right' });
+    expect(s.last).toBe('warn');
+    expect([s.ok, s.warn, s.bad]).toEqual([0, 2, 1]);
+    expect(run(s, { type: 'next' }).phase).toBe('end');
+  });
+
+  it('is what an exam is as well, and what the other games are not', () => {
+    expect(initQuiz(['a', 'b'], 'all', true, mulberry32(3), true).once).toBe(true);
+    expect(initQuiz(['a', 'b'], 'all', true, mulberry32(3), true, false).once).toBe(true);
+    expect(initQuiz(['a', 'b'], 'all', true, mulberry32(3)).once).toBe(false);
+    expect(initQuiz(['a', 'b'], 'all', true, mulberry32(3), false).once).toBe(false);
+    // A game at ease asks its misses again; this one, dealt the same, does not.
+    const missAll = (s: QuizState) => run(s, { type: 'giveup', reveal: false }, { type: 'next' }, { type: 'giveup', reveal: false }, { type: 'next' });
+    expect(missAll(initQuiz(['a', 'b'], 'all', false, mulberry32(3))).round).toBe(2);
+    expect(missAll(turns(['a', 'b'], false)).phase).toBe('end');
+  });
+
+  it('asks as many questions as it is told to, from the same deal as any other game', () => {
+    const plain = initQuiz(['a', 'b', 'c', 'd', 'e'], 4, false, mulberry32(9));
+    const two = initQuiz(['a', 'b', 'c', 'd', 'e'], 4, false, mulberry32(9), false, true);
+    expect(two.total).toBe(4);
+    expect([two.cur, ...two.queue]).toEqual([plain.cur, ...plain.queue]);
+    expect(initQuiz(['a'], 0, false, mulberry32(9), false, true).phase).toBe('end');
+  });
+});
+
 describe('capitals that answer themselves', () => {
   const it_ = (name: string, ...capital: string[]) => ({ name, capital });
 

@@ -120,7 +120,7 @@ test.describe('an exam', () => {
     await seed(page, { mode: { regions: 'pin' }, sel: { regions: ['ES'] } });
     await open(page, '/regiones');
     const format = page.getByRole('radiogroup', { name: 'Formato de la partida' });
-    await expect(format.getByRole('radio')).toHaveText(['Normal', 'Contrarreloj', 'Supervivencia', 'Examen']);
+    await expect(format.getByRole('radio')).toHaveText(['Normal', 'Contrarreloj', 'Supervivencia', 'Examen', 'Dos jugadores']);
     await expect(page.getByText('Dejar los nombres en el mapa')).toBeVisible();
 
     await format.getByRole('radio', { name: 'Examen' }).click();

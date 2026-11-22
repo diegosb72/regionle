@@ -68,8 +68,11 @@ export function cleanAlbum(raw: unknown): FlagAlbum {
 export type Length = 'all' | 10 | 20 | 50 | 'endless';
 export type Theme = 'auto' | 'light' | 'dark';
 /** How a question-by-question game is paced: a set of questions, against the clock, or until the lives run out. */
-/** How a game of questions is played: at ease, against the clock, until the lives run out, or as an exam. */
-export type Format = 'normal' | 'timed' | 'lives' | 'exam';
+/**
+ * How a game of questions is played: at ease, against the clock, until the lives run out, as an exam, or by
+ * two players who share the device and answer by turns (lib/duo.ts).
+ */
+export type Format = 'normal' | 'timed' | 'lives' | 'exam' | 'duo';
 
 export interface Opts {
   /** How names are answered: four options or typing. */
@@ -165,6 +168,8 @@ export interface GameConfig {
    * deals the same questions again while that game moves alongside.
    */
   ghost?: { seed: number };
+  /** A game of two players (lib/duo.ts): which of them opens it. They take it in turns from one game to the next. */
+  duo?: { first: 0 | 1 };
   /** Changes on every start so that an identical configuration still restarts the game. */
   nonce: number;
 }

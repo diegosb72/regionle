@@ -11,6 +11,8 @@ import { SpeakButton, canSpeak, hush, speak } from '../components/Speak';
 import { Flag } from '../components/ui';
 import { seedOf } from '../lib/challenge';
 import { datedName, datedNote, keepDated, type Kept } from '../lib/dated';
+import { namesKept, namesShown, otherOf, tally, verdictOf, whoOf, type Who } from '../lib/duo';
+import { useDuoCode } from '../lib/duoLazy';
 import { silhouette } from '../lib/geo';
 import type { Ghost } from '../lib/ghost';
 import { anyGhost, ghostable, useGhostCode } from '../lib/ghostLazy';
@@ -19,6 +21,7 @@ import { L, nm } from '../lib/i18n';
 import { timesMixed } from '../lib/mix';
 import { MODE_NAME, formatName } from '../lib/modes';
 import { clockPaused, usePaused } from '../lib/pause';
+import { evenOf } from '../lib/rules';
 import { isDated, useStore, type FlagLook, type Format, type Skill } from '../lib/store';
 import { Matcher, shortNote } from '../lib/matcher';
 import type { Places } from '../lib/sets';
@@ -65,7 +68,16 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   const pinBy = game === 'pin' && deck.scope === 'countries' ? opts.pinBy : 'name';
   const seed = useMemo(() => seedOf(cfg), [cfg]);
   // Reviews, challenges and the repeat of what was missed are always a plain set of questions.
-  const format: Format = cfg.review || cfg.challenge || (cfg.only && !cfg.list) ? 'normal' : (opts.format ?? 'normal');
+  const wanted: Format = cfg.review || cfg.challenge || (cfg.only && !cfg.list) ? 'normal' : (opts.format ?? 'normal');
+  // So is a step of the session of the day, which is one player's: nobody sat down to a game of two there.
+  const format: Format = wanted === 'duo' && cfg.step ? 'normal' : wanted;
+  /**
+   * Two players who share the device (lib/duo.ts): a question each, by turns. Nothing of such a game is
+   * written down: neither the answers, which are not one person's, nor the game among those played.
+   */
+  const duo = format === 'duo';
+  /** Which of the two opens this game. */
+  const first: Who = duo && cfg.duo?.first === 1 ? 1 : 0;
   /** Against the clock or with lives: the game lasts what the clock or the lives say. */
   const paced = format === 'timed' || format === 'lives';
   /** An exam: nothing is said about an answer until it is handed in. */
@@ -144,12 +156,15 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
     initQuiz(
       // Sorted first: the same seed must give the same questions whatever order the map was built in.
       pool.map((it) => it.id).sort(),
-      paced ? 'endless' : cfg.only ? 'all' : opts.length,
+      // A game of two is dealt in pairs of questions, so that both have as many turns.
+      duo ? evenOf(cfg.only || typeof opts.length !== 'number' ? pool.length : Math.min(opts.length, pool.length)) : paced ? 'endless' : cfg.only ? 'all' : opts.length,
       // Against the clock there is no time to be shown where each miss was. In a medley, each miss says
       // whether it has a place on the map to show.
       (medley || waysOf(fixed!).clicky) && format !== 'timed',
       mulberry32(k),
       exam,
+      // Nor is a miss asked again: a question is one turn.
+      duo,
     );
   const [s, dispatch] = useReducer(quizReducer, null, () => deal(seed));
   const item = s.cur ? (deck.byId.get(s.cur) ?? null) : null;
@@ -211,6 +226,23 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
     const countries = new Map(deck.countries.map((c) => [c.id, c] as const));
     return { cfg, country: (id: string) => countries.get(id), seed, dealt };
   };
+
+  /** A game of two: how each answer went, in the order they were asked. Whose each one was follows from that. */
+  const [plays, setPlays] = useState<[string, Res][]>([]);
+  /** What the two are called: read once, since names are given where the game is set up. */
+  const [players] = useState(() => namesShown(namesKept()));
+  /** What draws a game of two (games/Duo.tsx), fetched as it starts. */
+  const duoUi = useDuoCode(duo);
+  /** That code is taking long, or is not coming: the game says the same in plain words meanwhile. */
+  const [duoLate, setDuoLate] = useState(false);
+  useEffect(() => {
+    if (!duo || duoUi) return undefined;
+    const t = setTimeout(() => setDuoLate(true), 1500);
+    return () => clearTimeout(t);
+  }, [duo, duoUi]);
+  const tallied = useMemo(() => tally(plays.map((p) => p[1]), first), [plays, first]);
+  /** Whose each piece is: the map of a game of two is painted by who got it, once what colours it is here. */
+  const owners = useMemo(() => (duo && duoUi ? new Map(plays.map(([id], i) => [id, whoOf(i, first)] as const)) : null), [duo, duoUi, plays, first]);
 
   const [flash, setFlash] = useState<{ id: string; kind: 'bad' | 'ok'; n: number } | null>(null);
   const [note, setNote] = useState<string | null>(null);
@@ -366,7 +398,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   }, [format, ended, ms]);
 
   useEffect(() => {
-    if (!ended || !s.asked) return;
+    // A game of two is not one of the games of whoever keeps their progress here.
+    if (!ended || !s.asked || duo) return;
     const what = cfg.list ? `${deck.title} · ${cfg.list}` : deck.title;
     addSession({
       t: Date.now(),
@@ -419,7 +452,9 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
 
   const settled = (res: Res, it: Item) => {
     const skill = SKILL[mode];
-    if (s.round === 1 && skill) record(skill, it.id, res, originOf(it, cfg));
+    // Once each: a piece is asked one time in such a game.
+    if (duo) setPlays((p) => (p.some(([id]) => id === it.id) ? p : [...p, [it.id, res]]));
+    else if (s.round === 1 && skill) record(skill, it.id, res, originOf(it, cfg));
     if (s.round === 1 && haunted) {
       // Read now, and not when the list is put together.
       const at = clock.read();
@@ -459,7 +494,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
    */
   const mixed = (given: string): string => {
     const skill = SKILL[mode];
-    if (!item || !skill || given === item.id || !deck.byId.has(given)) return '';
+    // Nor are the mix-ups of two players anybody's.
+    if (duo || !item || !skill || given === item.id || !deck.byId.has(given)) return '';
     const before = timesMixed(useStore.getState().mix, skill, item.id, given);
     mixUp(skill, item.id, given);
     // Nothing is said in an exam, and the first time is just a miss.
@@ -605,7 +641,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   const paint = useMemo(() => {
     const p: Record<string, Paint> = {};
     // The map of an exam stays as blank as the sheet it is: how each answer went is seen at the end.
-    if (!exam || ended) for (const [id, res] of Object.entries(s.marks)) if (!hidden.has(id)) p[id] = res;
+    if (!exam || ended) for (const [id, res] of Object.entries(s.marks)) if (!hidden.has(id)) p[id] = !owners ? res : res === 'bad' ? 'px' : owners.get(id) === 1 ? 'pb' : 'pa';
     if (item && !ended) {
       // A city lit up on a map of several countries would show which one it is in, and that is the question.
       const shown = mode === 'identify' || mode === 'capital' || (mode === 'parent' && item.kind !== 'city') || (mode === 'outline' && showMap);
@@ -613,7 +649,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
       if (narrow && s.phase === 'ask') for (const it of deck.items) if (!narrow.has(it.id) && !p[it.id]) p[it.id] = 'dim';
     }
     return p;
-  }, [s.marks, s.phase, hidden, item, ended, mode, showMap, narrow, deck, exam]);
+  }, [s.marks, s.phase, hidden, item, ended, mode, showMap, narrow, deck, exam, owners]);
 
   const labels = useMemo(() => {
     if (ended) return 'all' as const;
@@ -701,13 +737,31 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
       ];
       return parts.filter(Boolean).join(' · ') || undefined;
     };
-    const rows: ResultRow[] = Object.entries(s.results).map(([id, res]) => ({ item: deck.byId.get(id)!, res, note: marking(deck.byId.get(id)!, res) }));
+    // In a game of two the order matters: it says whose each answer was.
+    const rows: ResultRow[] = (duo ? plays : Object.entries(s.results)).map(([id, res]) => ({ item: deck.byId.get(id)!, res, note: marking(deck.byId.get(id)!, res) }));
     const score = scoreOf(s.ok, s.warn, s.asked);
     const hits = s.ok + s.warn;
     const grade = gradeOf(s.ok, s.total);
     const blank = Number.isFinite(s.total) ? s.total - s.asked : 0;
     /** Played against the ghost to the end: who won is what the results open with, and the ghost's figures come under it. */
     const duel = rows.length && ghostEnd?.other && (ghostEnd.how === 'won' || ghostEnd.how === 'lost' || ghostEnd.how === 'tie') ? { how: ghostEnd.how, ghost: ghostEnd.other } : null;
+    /** A game of two answered to its end; one ended before that is settled by its whole rounds, and nobody wins it. */
+    const duoDone = s.asked >= s.total;
+    /** Another game of two: the one who went second opens it. */
+    const duoAgain = () => onAgain({ only: cfg.only, list: cfg.list, duo: { first: otherOf(first) } });
+    /** What the result of a game of two says first, for when what draws it has not come. */
+    const duoSaid = duo && rows.length ? verdictOf(players, tally(plays.map((p) => p[1]), first, true), duoDone) : null;
+    if (duo && duoUi && rows.length)
+      return (
+        <GameShell
+          title={title}
+          subtitle={subtitle}
+          onExit={onExit}
+          hud={<Hud ms={ms} />}
+          stage={stage}
+          panel={<duoUi.DuoResults names={players} rows={rows} first={first} done={duoDone} several={several} onAgain={duoAgain} onExit={onExit} />}
+        />
+      );
     return (
       <GameShell
         title={title}
@@ -720,6 +774,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
             title={
               !rows.length
                 ? L('Sin preguntas', 'No questions')
+                : duoSaid
+                  ? duoSaid.title
                 : duel
                   ? duel.how === 'won'
                     ? L('¡Has ganado a tu fantasma!', 'You beat your ghost!')
@@ -739,6 +795,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
             note={
               kept != null && rows.length
                 ? datedNote(subtitle, cfg, kept, score)
+                : duoSaid
+                ? duoSaid.note
                 : duel
                 ? L(`Tu fantasma: ${duel.ghost.score}\u00a0% en ${fmtTime(duel.ghost.ms)}.`, `Your ghost: ${duel.ghost.score}% in ${fmtTime(duel.ghost.ms)}.`)
                 : !rows.length && retired.length
@@ -780,8 +838,9 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
             // A challenge with a date that was left before its end is still to be played: again is the same one.
             // Once it is on record, again is a game like any other: new questions, and nothing written down.
             // Again after a game against the ghost is against the ghost: the one the map has now, which may be this game.
-            onAgain={() => onAgain(isDated(cfg) && (kept == null || kept === 'short') ? {} : { only: cfg.only, list: cfg.list, ...UNDATED, ghost: racing && ghostEnd?.seed != null ? { seed: ghostEnd.seed } : undefined })}
-            onReview={(ids) => onAgain({ only: ids, list: undefined, ...UNDATED, ...NO_GHOST, lot: medley ? (cfg.lot ?? seed) : undefined })}
+            onAgain={duo ? duoAgain : () => onAgain(isDated(cfg) && (kept == null || kept === 'short') ? {} : { only: cfg.only, list: cfg.list, ...UNDATED, ghost: racing && ghostEnd?.seed != null ? { seed: ghostEnd.seed } : undefined })}
+            // The misses of a game of two are of both: there is no round of them for one.
+            onReview={duo ? undefined : (ids) => onAgain({ only: ids, list: undefined, ...UNDATED, ...NO_GHOST, lot: medley ? (cfg.lot ?? seed) : undefined })}
             onExit={onExit}
           >
             {rows.length > 0 && ghosts && ghostEnd && (
@@ -801,6 +860,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
 
   const answer = item ? answerOf(item) : '';
   const asking = s.phase === 'ask';
+  /** In a game of two, whose the question on screen is: it stays theirs until the next one comes. */
+  const whose: Who = whoOf(Math.max(0, asking ? s.asked : s.asked - 1), first);
   /** The hint its game always had: a letter, the search narrowed, the map or the name. */
   const ownHint = (clicky || typed || mode === 'outline') && !strict;
   /** The others that are still to be had: not the one that counts letters once some are in sight. */
@@ -977,6 +1038,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   const panel = (
     <div className="q" ref={box}>
       {s.round === 2 && <p className="q-round">{L(`Repaso de fallos · quedan ${s.queue.length + (asking ? 1 : 0)}`, `Reviewing misses · ${s.queue.length + (asking ? 1 : 0)} left`)}</p>}
+      {duo && (duoUi ? <duoUi.DuoTurn names={players} who={whose} /> : duoLate && <p role="status">{L(`Turno de ${players[whose]}`, `${players[whose]}’s turn`)}</p>)}
       <div className="q-prompt">{question}</div>
 
       {/* Said aloud to whoever does not see them: the region is there, empty, before the first one comes. */}
@@ -1056,6 +1118,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
         <Verdict res={s.last} title={verdictTitle} item={item} wiki={opts.wiki && format !== 'timed'} say={answer}>
           {s.phase === 'reveal' && <p className="q-how">{L(`Haz clic en ${theOne} que parpadea para seguir.`, `Click the blinking ${one} to go on.`)}</p>}
           {spent && <p className="q-how">{L('Te has quedado sin vidas.', 'You are out of lives.')}</p>}
+          {duo && duoUi && <duoUi.DuoGain names={players} who={whose} res={s.last} last={s.asked >= s.total} />}
         </Verdict>
       )}
 
@@ -1119,7 +1182,14 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
       // only when there are no lanes, because there is no ghost after all or the code that draws them has not come.
       progress={racing && ghosts && rival ? undefined : format === 'timed' ? ms / TIME_LIMIT : Number.isFinite(s.total) ? s.asked / s.total : undefined}
       // The two lanes take their room from the start, so that nothing moves when they come.
-      under={racing ? <>{ghosts && rival !== undefined && <ghosts.GhostTrack rival={rival} trace={trace} total={s.total} ms={ms} />}</> : undefined}
+      under={
+        duo ? (
+          // The scoreboard of a game of two: its room is there from the start as well.
+          <>{duoUi ? <duoUi.DuoBoard names={players} score={tallied} turn={whose} /> : duoLate && <p>{`${players[0]} ${tallied.of[0].pts} · ${players[1]} ${tallied.of[1].pts}`}</p>}</>
+        ) : racing ? (
+          <>{ghosts && rival !== undefined && <ghosts.GhostTrack rival={rival} trace={trace} total={s.total} ms={ms} />}</>
+        ) : undefined
+      }
       hud={
         format === 'timed' ? (
           <>
@@ -1147,7 +1217,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
           // has got: one more count beside them, of the question in hand, would be one too many.
           <Hud
             ms={ms}
-            streak={exam ? undefined : s.streak}
+            // Nor is there a streak to show in a game of two: it would be of both.
+            streak={exam || duo ? undefined : s.streak}
             progress={s.round === 2 ? L('Repaso', 'Review') : racing && ghosts && rival ? undefined : Number.isFinite(s.total) ? `${turn} / ${s.total}` : `${turn} · ${L('vuelta', 'lap')} ${s.lap}`}
           />
         )

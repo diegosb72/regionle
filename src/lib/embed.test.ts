@@ -47,6 +47,18 @@ describe('the options a game takes into another page', () => {
     for (const patch of cases) expect(readOpts(writeOpts(opts(patch))), JSON.stringify(patch)).toEqual({ ...EMBED_OPTS, ...patch });
   });
 
+  it('never make a game of two players of a box in another page', () => {
+    // Not sent: whoever copies the code while that format is the one chosen gets a game like any other.
+    expect(writeOpts(opts({ format: 'duo' }))).toBe('');
+    expect(writeOpts(opts({ format: 'duo', answer: 'choice', turned: true }))).toBe('answer=choice;turned=1');
+    // Nor read, from an address written by hand.
+    expect(readOpts('format=duo')).toEqual(EMBED_OPTS);
+    expect(readOpts('answer=choice;format=duo;turned=1')).toEqual({ ...EMBED_OPTS, answer: 'choice', turned: true });
+    // The other formats travel as they did.
+    expect(readOpts('format=exam').format).toBe('exam');
+    expect(readOpts(writeOpts(opts({ format: 'timed' }))).format).toBe('timed');
+  });
+
   it('take from an address only what each option can be', () => {
     expect(readOpts('answer=shout;length=7;suggest=yes;format=;pairs=9;countdown=99999;nothing=1;=3;;lessonOrder=zz')).toEqual(EMBED_OPTS);
     expect(readOpts('answer=choice;length=7;suggest=1;extra=x')).toEqual({ ...EMBED_OPTS, answer: 'choice', suggest: true });

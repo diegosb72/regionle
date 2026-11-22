@@ -29,7 +29,7 @@
     <meta name="twitter:description" content="Regionle ∞: a geography game with no limits to learn the countries of the world and their regions, capitals, flags, cities, rivers, seas and mountains." />
     <meta name="twitter:image" content="https://diegosb72.github.io/regionle/social-en.png" />
     <meta name="twitter:image:alt" content="Regionle ∞: the map of the world, piece by piece. A world map with some countries coloured in." />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Regionle ∞","url":"https://diegosb72.github.io/regionle/en.html","description":"Regionle ∞: a geography game with no limits to learn the countries of the world and their regions, capitals, flags, cities, rivers, seas and mountains.","inLanguage":"en","applicationCategory":"EducationalApplication","genre":["Geography","Education"],"operatingSystem":"Any","browserRequirements":"Requires JavaScript","softwareVersion":"1.32.0","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"image":"https://diegosb72.github.io/regionle/social-en.png"}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Regionle ∞","url":"https://diegosb72.github.io/regionle/en.html","description":"Regionle ∞: a geography game with no limits to learn the countries of the world and their regions, capitals, flags, cities, rivers, seas and mountains.","inLanguage":"en","applicationCategory":"EducationalApplication","genre":["Geography","Education"],"operatingSystem":"Any","browserRequirements":"Requires JavaScript","softwareVersion":"1.33.0","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"image":"https://diegosb72.github.io/regionle/social-en.png"}</script>
     <!--/seo-->
     <meta name="theme-color" content="#f4efe6" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0e1a21" media="(prefers-color-scheme: dark)" />
@@ -46,13 +46,13 @@
         window.__regionleIndex.catch(function () {});
       } catch (e) {}
     </script>
-    <script type="module" crossorigin src="./assets/index-CkNmVZsy.js"></script>
+    <script type="module" crossorigin src="./assets/index-DlrY49mz.js"></script>
     <link rel="modulepreload" crossorigin href="./assets/rolldown-runtime-WkwZ5CU-.js">
     <link rel="modulepreload" crossorigin href="./assets/react-azO-dF6c.js">
     <link rel="modulepreload" crossorigin href="./assets/icons-BCDS-7Qj.js">
     <link rel="modulepreload" crossorigin href="./assets/text-Bhm2OnvE.js">
-    <link rel="modulepreload" crossorigin href="./assets/rules-DHqkNOkp.js">
-    <link rel="modulepreload" crossorigin href="./assets/store-DlxejJaJ.js">
+    <link rel="modulepreload" crossorigin href="./assets/rules-FOxS3VLx.js">
+    <link rel="modulepreload" crossorigin href="./assets/store-Cm90-uwh.js">
     <link rel="stylesheet" crossorigin href="./assets/index-B68HprvO.css">
     <link rel="preload" as="font" type="font/woff2" crossorigin href="./assets/dm-sans-latin-wght-normal-Xz1IZZA0.woff2">
     <link rel="preload" as="font" type="font/woff2" crossorigin href="./assets/fraunces-latin-opsz-normal-DihXLNYH.woff2">
@@ -61,8 +61,8 @@
     <script>
       // Before the first paint, to avoid a flash: the theme, the colours of the map, how it is read (the size of the
       // letter, more contrast, the typeface for dyslexia: src/lib/reading.ts), and the language the page is going to speak
-      // (the one chosen; else the one of the page, en.html or es.html and the pages of each screen in that
-      // language, which are the ones of src/lib/seo.ts; else the browser's).
+      // (the one chosen; else the one of the page, en.html or es.html and the pages of each screen and of each
+      // map in that language, which are the ones of src/lib/seo.ts; else the browser's).
       try {
         var saved = (JSON.parse(localStorage.getItem('regionle:v1') || '{}').state || {});
         var theme = saved.theme || 'auto';
@@ -71,8 +71,8 @@
         if (/^(l|xl)$/.test(saved.textSize)) document.documentElement.dataset.text = saved.textSize;
         if (saved.contrast === true || matchMedia('(prefers-contrast: more)').matches) document.documentElement.dataset.contrast = 'more';
         if (saved.dyslexia === true) document.documentElement.dataset.font = 'dyslexia';
-        var name = (/\/([a-z]+)(?:\.html)?$/.exec(location.pathname) || [])[1] || '';
-        var page = /^(en|regions|countries|cities|physical|figures|daily|about)$/.test(name) ? 'en' : /^(es|regiones|paises|ciudades|fisica|cifras|reto|acerca)$/.test(name) ? 'es' : '';
+        var name = (/\/([a-z0-9-]+)(?:\.html)?$/.exec(location.pathname) || [])[1] || '';
+        var page = /^(en|regions|countries|cities|physical|figures|daily|about)$|^map-[a-z][a-z0-9]-[a-z0-9]/.test(name) ? 'en' : /^(es|regiones|paises|ciudades|fisica|cifras|reto|acerca)$|^mapa-[a-z][a-z0-9]-[a-z0-9]/.test(name) ? 'es' : '';
         var lang = saved.lang === 'es' || saved.lang === 'en' ? saved.lang : page;
         if (!lang) {
           lang = 'es';

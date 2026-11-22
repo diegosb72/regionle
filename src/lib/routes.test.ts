@@ -101,6 +101,13 @@ describe('links', () => {
     // The page of a language, the first page and anything else are the page of no screen.
     for (const path of ['/regionle/en.html', '/regionle/es', '/regionle/', '/regionle/index.html', '/regions/', '/regionle/regions.htm', '/regionle/poblaciones.html', '/regionle/Regions.html']) expect(pageScreen(path), path).toBeNull();
     expect(pageLang('/regionle/poblaciones.html')).toBeNull();
+    // The page of the map of a country is written in a language as well, and is the page of no screen.
+    expect(pageLang('/regionle/mapa-es-espana.html')).toBe('es');
+    expect(pageLang('/regionle/map-es-spain')).toBe('en');
+    expect(pageScreen('/regionle/mapa-es-espana.html')).toBeNull();
+    expect(pageScreen('/regionle/map-es-spain.html')).toBeNull();
+    expect(pageLang('/regionle/mapa-espana.html')).toBeNull();
+    expect(pageLang('/regionle/map-es-spain.htm')).toBeNull();
   });
 
   it('has, for every screen with a page, an address the game knows and a name it takes after the hash too', () => {
@@ -131,6 +138,12 @@ describe('links', () => {
     expect(linkTo('reto/2026-11-17', 'https://diegosb72.github.io/regionle/en.html#/reto')).toBe('https://diegosb72.github.io/regionle/#/reto/2026-11-17');
     // Nor the page of a screen.
     expect(siteRoot('https://diegosb72.github.io/regionle/regions.html')).toBe('https://diegosb72.github.io/regionle/');
+    // Nor that of the map of a country.
+    expect(siteRoot('https://diegosb72.github.io/regionle/mapa-es-espana.html#/regiones')).toBe('https://diegosb72.github.io/regionle/');
+    expect(siteRoot('https://diegosb72.github.io/regionle/map-gb-united-kingdom?x=1')).toBe('https://diegosb72.github.io/regionle/');
+    expect(linkTo('regiones/ES:f/pin', 'https://diegosb72.github.io/regionle/map-es-spain.html#/regiones')).toBe('https://diegosb72.github.io/regionle/#/regiones/ES:f/pin');
+    // A file that only looks like one of those pages is a file like any other.
+    expect(siteRoot('http://localhost:5173/mapa-espana.html')).toBe('http://localhost:5173/mapa-espana.html');
     expect(siteRoot('https://diegosb72.github.io/regionle/cifras?x=1#/reto')).toBe('https://diegosb72.github.io/regionle/');
     expect(siteRoot('http://localhost:5173/daily.html')).toBe('http://localhost:5173/');
     expect(linkTo('duelo/Ab9', 'https://diegosb72.github.io/regionle/regiones.html')).toBe('https://diegosb72.github.io/regionle/#/duelo/Ab9');

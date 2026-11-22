@@ -131,6 +131,26 @@ describe('how many questions a game will ask', () => {
     expect(questionsOf(size({ mode: 'rank', length: 'endless' }))).toBeNull();
   });
 
+  it('is an even number in a game of two players, which has an end whatever the length chosen', () => {
+    expect(questionsOf(size({ format: 'duo' }))).toBe(52);
+    expect(questionsOf(size({ format: 'duo', units: 19 }))).toBe(18);
+    expect(questionsOf(size({ format: 'duo', units: 19, length: 10 }))).toBe(10);
+    expect(questionsOf(size({ format: 'duo', units: 19, length: 20 }))).toBe(18);
+    expect(questionsOf(size({ format: 'duo', units: 7, length: 50 }))).toBe(6);
+    // No end was chosen for the other games: this one has one.
+    expect(questionsOf(size({ format: 'duo', units: 19, length: 'endless' }))).toBe(18);
+    // A list is asked whole, less one piece when its pieces are odd.
+    expect(questionsOf(size({ format: 'duo', units: 9, length: 20, list: true }))).toBe(8);
+    expect(questionsOf(size({ format: 'duo', units: 8, length: 20, list: true }))).toBe(8);
+    expect(questionsOf(size({ format: 'duo', units: 20, length: 10, list: true }))).toBe(20);
+    // One piece is no game for two.
+    expect(questionsOf(size({ format: 'duo', units: 1 }))).toBe(0);
+    // The format is of some games only: elsewhere the option says nothing.
+    expect(questionsOf(size({ mode: 'blind', format: 'duo', units: 19 }))).toBe(19);
+    expect(questionsOf(size({ mode: 'nameall', format: 'duo', units: 19 }))).toBe(19);
+    expect(questionsOf(size({ mode: 'rank', format: 'duo' }))).toBe(10);
+  });
+
   it('has no number where the game is not a count of questions, or the map is empty', () => {
     for (const mode of ['explore', 'learn', 'travel', 'hilo'] as const) expect(questionsOf(size({ mode }))).toBeNull();
     expect(questionsOf(size({ units: 0 }))).toBeNull();

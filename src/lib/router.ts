@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { EMBED_PATH, canonicalPath, langPage, pageLang, pageScreen, screenPage, siteRoot } from './routes';
+import { EMBED_PATH, PATHS, canonicalPath, langPage, pageLang, pageMap, pageScreen, screenPage, siteRoot } from './routes';
 
 /** Writes another address in the bar for where the game already is: no new entry in the history, nothing loaded. */
 function rewrite(address: string): void {
@@ -18,14 +18,19 @@ function rewrite(address: string): void {
  * copied from there is the real one. And the page of a screen stands for that screen alone: once the game
  * moves on from it, the address becomes that of the game in the language of the page (`es.html#/paises`),
  * since `regiones.html#/paises` would name two screens.
+ *
+ * The page of a map (`mapa-es-espana.html`) is its map on the screen of the regions. Once that map is the
+ * one chosen, the game is on that screen as on any day (`#/regiones`), and the page stays in the bar for as
+ * long as it is: it is still what the page is about.
  */
 function current(): string {
   const { hash, pathname } = window.location;
-  const own = pageScreen(pathname);
+  const map = pageMap(pathname);
+  const own = map ?? pageScreen(pathname);
   if (own != null && hash.length < 2) return own;
   const raw = hash.replace(/^#\/?/, '').split('?')[0];
   const path = canonicalPath(raw);
-  if (own != null) rewrite(`${siteRoot()}${langPage(pageLang(pathname) ?? 'es')}#/${path}`);
+  if (own != null && !(map && path === PATHS.regions)) rewrite(`${siteRoot()}${langPage(pageLang(pathname) ?? 'es')}#/${path}`);
   else if (path !== raw) rewrite(`#/${path}`);
   return path;
 }
@@ -78,8 +83,13 @@ export function followLang(lang: 'es' | 'en', chosen = false): void {
   const at = pageLang(pathname);
   if (!at) return;
   const screen = pageScreen(pathname);
+  const map = pageMap(pathname);
   if (screen != null) {
     if (at !== lang) rewrite(`${siteRoot()}${screenPage(screen, lang)}${hash}`);
+  } else if (map != null) {
+    // The page of a map is written in one language, and what it is called in the other is not known here:
+    // in another language the game goes on at its own address, with that map.
+    if (at !== lang) rewrite(`${siteRoot()}${hash.length > 1 ? hash : `#/${map}`}`);
   } else if (chosen) rewrite(`${siteRoot()}${hash}`);
 }
 

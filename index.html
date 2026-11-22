@@ -28,8 +28,8 @@
     <script>
       // Before the first paint, to avoid a flash: the theme, the colours of the map, how it is read (the size of the
       // letter, more contrast, the typeface for dyslexia: src/lib/reading.ts), and the language the page is going to speak
-      // (the one chosen; else the one of the page, en.html or es.html and the pages of each screen in that
-      // language, which are the ones of src/lib/seo.ts; else the browser's).
+      // (the one chosen; else the one of the page, en.html or es.html and the pages of each screen and of each
+      // map in that language, which are the ones of src/lib/seo.ts; else the browser's).
       try {
         var saved = (JSON.parse(localStorage.getItem('regionle:v1') || '{}').state || {});
         var theme = saved.theme || 'auto';
@@ -38,8 +38,8 @@
         if (/^(l|xl)$/.test(saved.textSize)) document.documentElement.dataset.text = saved.textSize;
         if (saved.contrast === true || matchMedia('(prefers-contrast: more)').matches) document.documentElement.dataset.contrast = 'more';
         if (saved.dyslexia === true) document.documentElement.dataset.font = 'dyslexia';
-        var name = (/\/([a-z]+)(?:\.html)?$/.exec(location.pathname) || [])[1] || '';
-        var page = /^(en|regions|countries|cities|physical|figures|daily|about)$/.test(name) ? 'en' : /^(es|regiones|paises|ciudades|fisica|cifras|reto|acerca)$/.test(name) ? 'es' : '';
+        var name = (/\/([a-z0-9-]+)(?:\.html)?$/.exec(location.pathname) || [])[1] || '';
+        var page = /^(en|regions|countries|cities|physical|figures|daily|about)$|^map-[a-z][a-z0-9]-[a-z0-9]/.test(name) ? 'en' : /^(es|regiones|paises|ciudades|fisica|cifras|reto|acerca)$|^mapa-[a-z][a-z0-9]-[a-z0-9]/.test(name) ? 'es' : '';
         var lang = saved.lang === 'es' || saved.lang === 'en' ? saved.lang : page;
         if (!lang) {
           lang = 'es';

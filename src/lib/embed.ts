@@ -47,6 +47,8 @@ export function writeOpts(opts: Opts): string {
     if (NOT_SENT.includes(key)) continue;
     const value = opts[key];
     if (value == null || value === DEFAULT_OPTS[key]) continue;
+    // A game of two is set up by the two who sit down to it: a box in another page is played as it comes.
+    if (key === 'format' && value === 'duo') continue;
     parts.push(`${key}=${typeof value === 'boolean' ? (value ? '1' : '0') : String(value)}`);
   }
   return parts.join(';');
@@ -63,7 +65,8 @@ export function readOpts(text: string): Opts {
     if (!Object.hasOwn(DEFAULT_OPTS, key) || NOT_SENT.includes(key)) continue;
     raw[key] = typeof DEFAULT_OPTS[key] === 'boolean' ? (value === '1' ? true : value === '0' ? false : undefined) : /^\d{1,4}$/.test(value) ? Number(value) : value;
   }
-  return cleanOpts(raw, EMBED_OPTS);
+  const opts = cleanOpts(raw, EMBED_OPTS);
+  return opts.format === 'duo' ? { ...opts, format: EMBED_OPTS.format } : opts;
 }
 
 /** What follows `#/` in the address of a game inside another page. */

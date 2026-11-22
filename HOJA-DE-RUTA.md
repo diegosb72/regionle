@@ -17,7 +17,7 @@ A petición del dueño del proyecto, desde la 1.18.0 se hace primero lo que meno
 el final lo que más. La estimación es a ojo y cambia al abrir el código:
 
 - **Corto**: nada pendiente
-- **Medio**: 66, 70, 73, 94, 98
+- **Medio**: 70, 73, 94
 - **Largo**: 20, 44 (francés), 65, 67, 68, 83, 90
 - **Depende de conseguir datos**, lleve lo que lleve: 30–32, 37–39, 41–43, 95, y lo que falta del 29 y del 35
 
@@ -105,7 +105,7 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 
 ## Con otras personas y para clase
 
-- [ ] 66. Dos jugadores en el mismo dispositivo
+- [x] 66. Dos jugadores en el mismo dispositivo: un quinto formato de los nueve juegos de preguntas (**decidido**: por turnos, una pregunta para cada uno; 2 puntos a la primera y 1 con ayuda; sin ronda de fallos; no cuenta para el progreso). Marcador bajo la cabecera, el mapa pintado por quién acertó cada pieza, y al final quién gana y qué contestó cada uno — **1.33.0**
 - [ ] 67. Modo clase
 - [ ] 68. Varios perfiles en un navegador
 - [x] 69. Mapas mudos para imprimir: el mapa numerado con sus líneas, la hoja de soluciones y recuadros para lo que queda lejos — **1.8.0**
@@ -144,7 +144,7 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 ## La aplicación y el sitio
 
 - [x] 97. Contador de repasos pendientes en el icono: con el juego instalado, donde el navegador sabe poner un número en un icono — **1.18.0**
-- [ ] 98. Una página por país para buscadores
+- [x] 98. Una página por país para buscadores: dos por cada país con mapa de regiones, una en cada idioma (`mapa-es-espana.html`, `map-es-spain.html`), con su título («España: provincias en el mapa»), cuántas piezas tiene en cada nivel, sus datos estructurados y su sitio en `sitemap.xml`; abren el juego en ese mapa, en su nivel más fino (**decidido**: son el juego mismo con otra cabecera, como las páginas de pantalla, y no páginas de texto aparte) — **1.33.0**
 - [x] 99. Botón «Avisar de un error»: bajo cada respuesta, un enlace abre un aviso en GitHub ya rellenado con la pieza, el mapa, el juego y la versión — **1.18.0**
 - [x] 100. Ayuda y tutorial de cada modo: «Cómo se juega» explica cada juego (los pasos, cómo cuenta, las ayudas y un consejo); sale solo la primera vez que se abre un juego, con el tiempo parado, y está en el botón «?» de la partida y donde se elige el juego — **1.22.0**
 - [x] 101. Copia de seguridad más cómoda: al importar se ve qué trae el archivo antes de sustituir nada, la copia lleva las preferencias, se puede enviar desde el móvil y Progreso recuerda hacerla — **1.19.0**
