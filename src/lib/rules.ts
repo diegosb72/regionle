@@ -34,8 +34,13 @@ export const LIVES = [1, 3, 5] as const;
 /** The rules the game always had, and the ones it has until something else is chosen. */
 export const USUAL_RULES = { tries: 3, hints: true, clock: 60, lives: 3 } as const;
 
-/** What sits in the menus without being a game: it is not counted among them, and leaves nothing in the progress. */
-export const NOT_GAMES: readonly Mode[] = ['print', 'edit'];
+/**
+ * What sits in the menus without being a game of one player: it is not counted among them, and leaves
+ * nothing in the progress. The bingo is played by a group, and nobody answers anything on this screen.
+ */
+export const NOT_GAMES: readonly Mode[] = ['print', 'bingo', 'edit'];
+/** The fewest pieces a map needs for a bingo: what its smallest card asks (lib/bingo.ts). Here, for the menus to say so without the code of the bingo. */
+export const BINGO_MIN = 12;
 
 /** Games that ask as many questions as the player chooses under "Preguntas". */
 export const LENGTH_MODES: readonly Mode[] = ['pin', 'identify', 'outline', 'regionle', 'puzzle', 'neighbours', 'capital', 'flag', 'blind', 'hotcold', 'bearing', 'coords', 'group', 'whoami', 'border', 'exact', 'which', 'rank', 'compass', 'parent', 'truefalse', 'oddone', 'cards', 'mix', 'listen'];
@@ -76,8 +81,11 @@ export const ROUTE_RULES = ['none', 'avoid', 'via', 'land'] as const;
 export type RouteRule = (typeof ROUTE_RULES)[number];
 export const isRouteRule = (x: unknown): x is RouteRule => (ROUTE_RULES as readonly unknown[]).includes(x);
 
-/** What is not played, and so is not put inside another page (lib/embed.ts): the sheet to print, and the making of a list. */
-export const NOT_EMBEDDED: readonly Mode[] = ['print', 'edit'];
+/**
+ * What is not put inside another page (lib/embed.ts): the sheet to print, the making of a list, and the
+ * bingo, whose cards have addresses of their own (lib/bingo.ts).
+ */
+export const NOT_EMBEDDED: readonly Mode[] = ['print', 'bingo', 'edit'];
 export const embeddable = (mode: Mode): boolean => !NOT_EMBEDDED.includes(mode);
 
 /** A board of "connections": four groups of four countries, and so sixteen is the fewest it takes. */

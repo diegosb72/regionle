@@ -3,7 +3,7 @@
  * game was called; this keeps what it takes to start it: which countries, at which level, in which game.
  */
 import { PATHS } from './routes';
-import { FIGURE_MODES, FORMAT_MODES, isRouteRule } from './rules';
+import { FIGURE_MODES, FORMAT_MODES, NOT_GAMES, isRouteRule } from './rules';
 import type { GameConfig, Opts, SessionRec } from './store';
 import type { Mode, Section } from './types';
 
@@ -62,10 +62,10 @@ function optsOf(game: GameConfig): RecentOpts {
 /**
  * What is kept of a game that has just ended, or null when it is not one to come back to: a review, a
  * challenge received, a round of only what was missed and a custom list are offered elsewhere, each with
- * what is current, and the editor of lists is not a game.
+ * what is current, and the editor of lists, a sheet to print and a bingo are not games of one player.
  */
 export function recentOf(game: GameConfig, rec: SessionRec): Recent | null {
-  if (game.review || game.daily || game.challenge || game.only || game.list || game.listId || game.mode === 'edit' || game.mode === 'print') return null;
+  if (game.review || game.daily || game.challenge || game.only || game.list || game.listId || NOT_GAMES.includes(game.mode)) return null;
   if (game.section !== rec.section || game.mode !== rec.mode || !game.countries.length) return null;
   // Levels are those of the regions of a country: the other maps are the same whatever they say.
   const levels: Record<string, string> = {};

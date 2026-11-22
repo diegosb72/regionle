@@ -14,7 +14,7 @@ import { MODES, SECTIONS, SECTION_IDS, cardAskName, formatName, modeNameIn, rout
 import { recentKey, type Recent } from '../lib/recent';
 import { NOT_GAMES } from '../lib/rules';
 import { go, inGame } from '../lib/router';
-import { DUEL_PATH, LIST_PATH, PATHS, PLAY_PATH, TASK_PATH, screenPage } from '../lib/routes';
+import { BINGO_PATH, DUEL_PATH, LIST_PATH, PATHS, PLAY_PATH, TASK_PATH, screenPage } from '../lib/routes';
 import { isDated, useStore, type Fav, type State } from '../lib/store';
 import { nf, today } from '../lib/text';
 import type { Mode, Section } from '../lib/types';
@@ -496,7 +496,7 @@ export function Home({ world }: { world: World }) {
         </article>
         <article>
           <ListChecks size={22} aria-hidden="true" />
-          <h3>{L('Listas y tareas', 'Lists and homework')}</h3>
+          <h3>{L('Listas, tareas y bingo', 'Lists, homework and bingo')}</h3>
           <p>
             {L(
               'Haz una lista con las piezas que tú elijas, las del examen del jueves o las de un viaje, y pásala con un enlace.',
@@ -505,7 +505,10 @@ export function Home({ world }: { world: World }) {
             <a href={`#/${LIST_PATH}`}>{L('Cómo se hace una lista', 'How to make a list')}</a>{' '}
             {/* Homework with a receipt (lib/task.ts): its button is where a game is chosen, and nothing there says so until it is looked for. */}
             {L('O pon de tarea cualquier mapa: cada cual te manda un justificante con su resultado.', 'Or set any map as homework: each one sends you a receipt with their result.')}{' '}
-            <a href={`#/${TASK_PATH}`}>{L('Cómo se pone una tarea', 'How homework is set')}</a>
+            <a href={`#/${TASK_PATH}`}>{L('Cómo se pone una tarea', 'How homework is set')}</a>{' '}
+            {/* The bingo (lib/bingo.ts) is one more game in the menu of a map, and the only one that is not for one player. */}
+            {L('Y con toda la clase a la vez, un bingo de cualquier mapa.', 'And with the whole class at once, a bingo of any map.')}{' '}
+            <a href={`#/${BINGO_PATH}`}>{L('Cómo se juega al bingo', 'How bingo is played')}</a>
           </p>
         </article>
       </section>

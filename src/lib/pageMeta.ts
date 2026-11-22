@@ -33,6 +33,8 @@ export function routeName(route: Route, now: string = today()): string | null {
       return route.rest ? L('Tarea', 'Homework') : L('Tareas con justificante', 'Homework with a receipt');
     case 'receipt':
       return L('Justificante de tarea', 'Homework receipt');
+    case 'bingo':
+      return 'Bingo';
     case 'embed':
       return L('Mapa incrustado', 'Embedded map');
     case 'progress':

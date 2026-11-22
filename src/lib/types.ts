@@ -188,6 +188,8 @@ export type Mode =
   | 'edit'
   /** Not a game either: the map without names, laid out on paper to be printed. */
   | 'print'
+  /** A game for a group: one screen calls the pieces of the map, and each player crosses them off a card. */
+  | 'bingo'
   | 'pin'
   | 'identify'
   | 'nameall'

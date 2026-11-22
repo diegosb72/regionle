@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { setLang } from './i18n';
 import { GROUP_NAME, MODES, MODE_GROUPS, MODE_NAME, SECTION_IDS, cardAskName, modeNameIn } from './modes';
 import { TYPICAL_S } from './pace';
-import { FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, MADE_UP_MODES, NOT_GAMES, ROUND_MODES, asksByFlag, turnsOutlines } from './rules';
+import { FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, MADE_UP_MODES, NOT_GAMES, ROUND_MODES, asksByFlag, embeddable, turnsOutlines } from './rules';
 import type { Mode } from './types';
 
 beforeEach(() => setLang('es'));
@@ -11,10 +11,10 @@ const ids = (section: (typeof SECTION_IDS)[number]): Mode[] => MODES[section].ma
 
 describe('the games of each section', () => {
   it('are these, in the order of the menu', () => {
-    expect(ids('regions')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'puzzle', 'group', 'mix', 'outline', 'regionle', 'neighbours', 'border', 'chain', 'travel', 'parent', 'compass', 'bearing', 'coords', 'capital', 'whoami', 'hilo', 'rank', 'exact', 'which', 'topten']);
-    expect(ids('countries')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'puzzle', 'group', 'mix', 'outline', 'regionle', 'neighbours', 'border', 'chain', 'travel', 'compass', 'bearing', 'coords', 'capital', 'flag', 'whoami']);
-    expect(ids('cities')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'group', 'mix', 'parent', 'compass', 'bearing', 'coords', 'whoami', 'hilo', 'rank', 'exact', 'which', 'topten']);
-    expect(ids('physical')).toEqual(['explore', 'learn', 'cards', 'print', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'mix', 'hilo', 'rank', 'exact', 'which', 'topten']);
+    expect(ids('regions')).toEqual(['explore', 'learn', 'cards', 'print', 'bingo', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'puzzle', 'group', 'mix', 'outline', 'regionle', 'neighbours', 'border', 'chain', 'travel', 'parent', 'compass', 'bearing', 'coords', 'capital', 'whoami', 'hilo', 'rank', 'exact', 'which', 'topten']);
+    expect(ids('countries')).toEqual(['explore', 'learn', 'cards', 'print', 'bingo', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'puzzle', 'group', 'mix', 'outline', 'regionle', 'neighbours', 'border', 'chain', 'travel', 'compass', 'bearing', 'coords', 'capital', 'flag', 'whoami']);
+    expect(ids('cities')).toEqual(['explore', 'learn', 'cards', 'print', 'bingo', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'group', 'mix', 'parent', 'compass', 'bearing', 'coords', 'whoami', 'hilo', 'rank', 'exact', 'which', 'topten']);
+    expect(ids('physical')).toEqual(['explore', 'learn', 'cards', 'print', 'bingo', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'mix', 'hilo', 'rank', 'exact', 'which', 'topten']);
     expect(ids('pops')).toEqual(['hilo', 'rank', 'exact', 'which', 'topten', 'truefalse', 'oddone', 'pairs', 'alphabet', 'connect']);
   });
 
@@ -130,7 +130,26 @@ describe('the rules the menus go by', () => {
     for (const section of SECTION_IDS) for (const m of MODES[section]) if (m.id === 'print') expect(m.group, section).toBe('study');
     for (const list of [FORMAT_MODES, LENGTH_MODES, FIGURE_MODES, ROUND_MODES]) expect(list, 'print').not.toContain('print');
     expect(TYPICAL_S.print).toBeUndefined();
-    expect(NOT_GAMES).toEqual(['print', 'edit']);
+    expect(NOT_GAMES).toEqual(['print', 'bingo', 'edit']);
+  });
+
+  it('keep the bingo, which a group plays, out of everything a game of one player has', () => {
+    // It is played with the names of what a map has: a section of figures alone has none.
+    for (const section of SECTION_IDS) expect(ids(section).includes('bingo'), section).toBe(section !== 'pops');
+    for (const section of SECTION_IDS) {
+      const def = MODES[section].find((m) => m.id === 'bingo');
+      if (!def) continue;
+      expect(def.group, section).toBe('study');
+      // Neither easy nor hard: nobody answers on that screen.
+      expect(def.level, section).toBe(0);
+      expect(def.name, section).toBe('Bingo');
+      // It comes after the sheet to print: the two things of a class.
+      expect(ids(section).indexOf('bingo'), section).toBe(ids(section).indexOf('print') + 1);
+    }
+    for (const list of [FORMAT_MODES, LENGTH_MODES, FIGURE_MODES, ROUND_MODES]) expect(list, 'bingo').not.toContain('bingo');
+    expect(TYPICAL_S.bingo).toBeUndefined();
+    expect(embeddable('bingo')).toBe(false);
+    expect(MODE_NAME.bingo).toBe('Bingo');
   });
 
   it('give a typical pace to every game with a number of questions', () => {

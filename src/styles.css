@@ -2585,6 +2585,16 @@ button.chip.on:hover:not(:disabled) {
   stroke: var(--m-target);
   stroke-width: 5px;
 }
+/* A line that is asked about beats in its stroke: the beat of a shape is in its fill, and a river has none
+   (an animation is above `fill: none`, and painted the land between its two ends). */
+.m-items path.ln.st-target {
+  animation-name: m-pulse-ln;
+}
+@keyframes m-pulse-ln {
+  to {
+    stroke: color-mix(in srgb, var(--m-target) 55%, var(--land));
+  }
+}
 .m-items path.ln.st-sel,
 .m-items path.ln.st-from,
 .m-items path.ln.st-near {
