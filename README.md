@@ -229,6 +229,16 @@ El último paso de la compilación (`scripts/pwa/build.mjs`) escribe en la carpe
 - **Publicar con él es opcional.** Tal como está el repositorio, GitHub Pages publica la carpeta `docs/` de `main`, que se compila y se sube a mano (`npm run build:pages`), y el flujo solo prueba. Si en *Settings → Pages → Build and deployment → Source* se elige **GitHub Actions**, el flujo publica él mismo lo que compila cada vez que cambia `main` y las pruebas pasan, y `docs/` deja de hacer falta.
 - El archivo solo lo puede cambiar el dueño del repositorio, en la web de GitHub o desde su ordenador: el asistente con el que se hace el juego no tiene permiso para escribir en `.github/workflows/`.
 
+#### Datos de fuera (GitHub Actions)
+
+El asistente con el que se hace el juego solo puede descargar de GitHub, npm y PyPI. Parte de lo que pide la hoja de ruta está en otros sitios (Wikidata, Wikimedia Commons, geoBoundaries…), así que esos datos los descarga GitHub: `scripts/data/outside.mjs` (`npm run data:outside`) dice qué se trae y de dónde, y el flujo **Traer datos** lo ejecuta y guarda el resultado en la rama `datos` de este repositorio.
+
+- **Ponerlo, una vez.** El flujo es `scripts/data/traer-datos.yml`, pero GitHub solo ejecuta los que están en `.github/workflows/`, y ahí solo escribe el dueño del repositorio: se copia el contenido de ese archivo y se crea con él `.github/workflows/datos.yml` en `main` (en la web de GitHub, *Add file → Create new file*).
+- **Usarlo.** Pestaña *Actions* → *Traer datos* → *Run workflow* → se elige la rama (la del juego que tenga la lista que se quiere traer; normalmente `main`) → *Run workflow*. «Solo estas fuentes» limita la descarga a las que se nombren, y «Vaciar antes la rama datos» borra lo que hubiera.
+- **Qué hace y qué no.** Solo se pone en marcha con ese botón. Un primer trabajo descarga, con permiso de lectura sobre el repositorio y nada más; un segundo trabajo, que no ejecuta nada del repositorio, guarda lo descargado en la rama `datos`. Es lo único que escribe: no toca `main` ni publica nada. Lo que no se pide en una descarga se queda en la rama como estaba.
+- **Si algo no se deja leer**, el flujo acaba en rojo después de guardar lo que sí se leyó. El resumen de la ejecución y `LEEME.md` en la rama `datos` dicen qué pasó con cada fuente y qué sitios contestan; `estado.json` dice lo mismo para un programa.
+- **Qué trae hoy.** La población de las divisiones de los mapas que tienen identificador de Wikidata (CC0), que es lo que le falta al punto 29 de la hoja de ruta, y una petición pequeña a cada sitio del que saldrían otros puntos pendientes, para saber cuáles contestan. Cada archivo de datos dice de dónde viene y con qué licencia.
+
 ### Versiones y novedades
 
 El número de versión está en `package.json` y se ve en el pie de página y en «Acerca de». Lo que trae cada versión se escribe en `src/lib/changelog.ts`, en los dos idiomas: de ahí salen la lista de «Acerca de» y el archivo [`CHANGELOG.md`](CHANGELOG.md), que no se edita a mano. Las pruebas fallan si la primera entrada de la lista no es la versión de `package.json` o si `CHANGELOG.md` no dice lo mismo que la lista.
@@ -265,6 +275,7 @@ npm i --no-save all-the-cities@3.1.0 && npm run data:check   # segunda opinión 
 ```
 
 - `data:fetch` descarga archivos de GitHub (Natural Earth, la población del Banco Mundial, tres capas del Atlas Nacional de España y seis páginas de The World Factbook) fijados por *commit* y verificados por su SHA. Usa la API si hay un token (`GH_TOKEN`, `GITHUB_TOKEN` o la CLI `gh`) y, si no, `raw.githubusercontent.com`.
+- `data:outside` no forma parte de `npm run data`: trae lo que no está en GitHub, y lo ejecuta el flujo «Traer datos» (véase [Datos de fuera](#datos-de-fuera-github-actions)), que lo deja en la rama `datos`.
 - `data:build` puede usar hasta unos 3 GB de memoria. Une las divisiones de Natural Earth en una topología por país, las simplifica, calcula vecinos por tierra y travesías cortas por mar (hasta 40 km), y escribe:
   - `index.json`: países con nombre, capital, población, superficie, vecinos y niveles disponibles;
   - `world.json`: el mapa del mundo por países;
@@ -316,12 +327,12 @@ npm i --no-save all-the-cities@3.1.0 && npm run data:check   # segunda opinión 
 ## Estructura
 
 ```
-scripts/data/      Descarga y construcción de los datos (España al detalle, en spain.mjs)
+scripts/data/      Descarga y construcción de los datos (España al detalle, en spain.mjs; lo que no está en GitHub, en outside.mjs, y el flujo que lo trae, en traer-datos.yml)
 scripts/typeins/   Lista de type-ins de JetPunk, la de países y ciudades y el script que escribe lo que el juego trae de fábrica
 scripts/pwa/       Service worker y paso final de la compilación
 scripts/social/    Dibuja las imágenes que acompañan al enlace del juego en redes
 scripts/budget.mjs Límites de tamaño de la primera carga
-.github/workflows/ El flujo de GitHub Actions: pruebas en cada cambio y, si se elige en GitHub, publicación
+.github/workflows/ Los flujos de GitHub Actions: pruebas en cada cambio y, si se elige en GitHub, publicación (pruebas.yml); y, si el dueño lo pone, la descarga de los datos de fuera (datos.yml)
 e2e/               Pruebas en un navegador de verdad (Playwright)
 public/data/       Datos generados que usa el juego
 public/icons/      Iconos de la aplicación instalada

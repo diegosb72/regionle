@@ -19,6 +19,7 @@
     "data:build": "node --max-old-space-size=3200 scripts/data/build.mjs",
     "data:physical": "node scripts/data/physical.mjs",
     "data:check": "node scripts/data/check.mjs",
+    "data:outside": "node scripts/data/outside.mjs",
     "data": "npm run data:fetch && npm run data:build && npm run data:physical",
     "typeins": "node scripts/typeins/build.mjs",
     "social": "node scripts/social/build.mjs"
