@@ -219,6 +219,39 @@ export function helpOf(mode: Mode, section: Section): ModeHelp | null {
           'Look first for the letters that come up least, such as Z, J or K: from them you get to the name sooner. And long names fit in few places.',
         ),
       };
+    case 'crossword':
+      return {
+        steps: [
+          L(
+            'Las pistas están en el mapa: cada palabra tiene un número, y ese número está escrito sobre su pieza. Hasta diez palabras en cada crucigrama, y varios seguidos si la partida es más larga.',
+            'The clues are on the map: each word has a number, and that number is written on its piece. Up to ten words in each crossword, and several in a row when the game is longer.',
+          ),
+          L(
+            'Elige una casilla y escribe el nombre de su pieza, sin espacios ni tildes (en español la Ñ es una letra aparte). Tocar otra vez una casilla donde se cruzan dos palabras cambia de una a la otra, y tocar una pieza del mapa elige su palabra.',
+            'Choose a cell and write the name of its piece, without spaces or accents. Pressing again a cell where two words cross changes from one to the other, and pressing a piece of the map chooses its word.',
+          ),
+          L(
+            'La palabra bien escrita se queda fija, y su nombre aparece en el mapa. La que completas mal se queda en rojo hasta que la corriges.',
+            'A word written rightly stays, and its name comes up on the map. One you complete wrongly stays red until you put it right.',
+          ),
+          L(
+            'En el móvil, el mapa y el crucigrama se turnan la pantalla: «Ver el mapa» enseña uno y «Volver al crucigrama», el otro.',
+            'On a phone, the map and the crossword take turns on the screen: “See the map” shows one and “Back to the crossword”, the other.',
+          ),
+        ],
+        score: L(
+          'Cuenta «a la primera» la palabra que escribes bien sin pedir letras y sin haberla completado mal antes, y «con ayuda» la que aciertas después de eso; queda «para repasar» la que falta cuando te rindes.',
+          'A word you write rightly without asking for letters and without having completed it wrongly before counts as “first time”, and one you get right after that as “with help”; one that is missing when you give up is left “to review”.',
+        ),
+        aid: L(
+          '«Dar una letra» escribe la letra de la casilla en la que estás. «Me rindo» escribe las palabras que faltan, en el crucigrama y en el mapa.',
+          '“Give a letter” writes the letter of the cell you are on. “I give up” writes the missing words, in the crossword and on the map.',
+        ),
+        tip: L(
+          'Empieza por las piezas que sabes seguro: sus letras caen en las palabras que las cruzan y dejan las demás a medio escribir.',
+          'Start with the pieces you are sure of: their letters fall in the words that cross them and leave the others half written.',
+        ),
+      };
     case 'bingo':
       return {
         steps: [

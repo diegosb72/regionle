@@ -56,6 +56,8 @@ interface Props {
   labels?: ReadonlySet<string> | 'all';
   /** Names always drawn. */
   pinned?: ReadonlySet<string>;
+  /** What is written on a piece in the place of its name, where its name would be written: its number in a crossword. */
+  tags?: ReadonlyMap<string, string>;
   /** Text shown when the pointer rests on an item; nothing when it returns a falsy value. */
   tip?: (id: string) => string | null | undefined;
   /** Hides the borders of unpainted items. */
@@ -352,6 +354,7 @@ interface OverlayProps {
   paint?: PaintMap;
   labels?: ReadonlySet<string> | 'all';
   pinned?: ReadonlySet<string>;
+  tags?: ReadonlyMap<string, string>;
   only?: ReadonlySet<string>;
   marks?: { x: number; y: number; kind: string }[];
   /** Keyboard: the item the cursor is on, and what may be said of it. */
@@ -367,7 +370,7 @@ interface OverlayProps {
  * visible at the current zoom is in the document at all.
  */
 const Overlay = memo(
-  forwardRef<OverlayHandle, OverlayProps>(function Overlay({ shapes, paint, labels, pinned, only, marks, cursor, cursorText, cross }, ref) {
+  forwardRef<OverlayHandle, OverlayProps>(function Overlay({ shapes, paint, labels, pinned, tags, only, marks, cursor, cursorText, cross }, ref) {
     const gRef = useRef<SVGGElement>(null);
     const stepRef = useRef<number | null>(null);
     const [step, setStep] = useState<number | null>(null);
@@ -398,17 +401,19 @@ const Overlay = memo(
     const dots = useMemo(() => shapes.filter((s) => s.kind === 'point' && (!only || only.has(s.id))), [shapes, only]);
     const named = useMemo(() => {
       if (!labels && !pinned?.size) return [];
-      const out: { s: Shape; min: number; pin: boolean }[] = [];
+      const out: { s: Shape; min: number; pin: boolean; text: string; tag: boolean }[] = [];
       for (const s of shapes) {
         const pin = !!pinned?.has(s.id);
         if (!pin && !(labels === 'all' || labels?.has(s.id))) continue;
         if (only && !only.has(s.id)) continue;
+        const tag = tags?.get(s.id);
+        const text = tag ?? s.name;
         // A dot has no room of its own: whether its name fits depends on what lies around it, and is settled below.
         const room = s.kind === 'point' ? Infinity : Math.max(s.x1 - s.x0, (s.y1 - s.y0) * 0.6, 0.02);
-        out.push({ s, pin, min: pin ? 0 : ((s.name.length * 6.3 * wide + 8) * 0.9) / room });
+        out.push({ s, pin, text, tag: tag != null, min: pin ? 0 : ((text.length * 6.3 * wide + 8) * 0.9) / room });
       }
       return out;
-    }, [shapes, labels, pinned, only, wide]);
+    }, [shapes, labels, pinned, tags, only, wide]);
     /** Maps of dots, and physical maps that mix kinds lying on top of one another (a river crossing a desert): names can collide. */
     const crowded = useMemo(() => shapes.some((s) => s.kind !== 'area' || !!s.cls), [shapes]);
     const shown = useMemo(() => {
@@ -420,7 +425,7 @@ const Overlay = memo(
       return [...fit]
         .sort((a, b) => Number(b.pin) - Number(a.pin) || a.min - b.min)
         .filter((l) => {
-          const half = (l.s.name.length * 6.3 * wide + 10) / 2;
+          const half = (l.text.length * 6.3 * wide + 10) / 2;
           const x = l.s.x * k;
           const y = l.s.y * k - (l.s.kind === 'point' ? 12 * tall : 0);
           if (!l.pin) {
@@ -474,12 +479,12 @@ const Overlay = memo(
           </g>
         )}
         <g className="m-labels">
-          {shown.map(({ s, pin }) =>
+          {shown.map(({ s, pin, text, tag }) =>
             // The name under the keyboard cursor is written by the cursor itself.
             cursorText && s.id === cursor?.id ? null : (
               <g key={s.id} transform={`translate(${s.x} ${s.y})`}>
-                <text className={cx('m-lbl', pin && 'm-lbl-pin')} y={s.kind === 'point' ? -12 * tall : undefined}>
-                  {s.name}
+                <text className={cx('m-lbl', pin && 'm-lbl-pin', tag && 'm-lbl-tag')} y={s.kind === 'point' ? -12 * tall : undefined}>
+                  {text}
                 </text>
               </g>
             ),
@@ -669,7 +674,7 @@ const Grid = memo(
   }),
 );
 
-export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, paint, pickable, pressable, onPick, labels, pinned, tip, blind, links, flash, onPoint, only, marks, traces, grid }, ref) {
+export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, paint, pickable, pressable, onPick, labels, pinned, tags, tip, blind, links, flash, onPoint, only, marks, traces, grid }, ref) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const rootRef = useRef<SVGGElement>(null);
@@ -1386,6 +1391,7 @@ export const MapView = forwardRef<MapHandle, Props>(function MapView({ deck, pai
             paint={paint}
             labels={labels}
             pinned={pinned}
+            tags={tags}
             only={only}
             marks={markPoints}
             cursor={keying ? cursor : null}

@@ -15,6 +15,7 @@ import { cx, nf } from '../lib/text';
 import type { Res } from '../lib/types';
 import { WS_SIDE, cellsOf, lineOf, snapTo, spelled, wsBoard, wsDeal, wsMatch, wsPool, wsRes, type Cell } from '../lib/wordsearch';
 import { GameShell, Hud, Results, Verdict, answered, useElapsed, type GameProps, type ResultRow } from './common';
+import { usePhone } from './phone';
 import './wordsearch.css';
 
 /** A name of the square in hand that has been settled: found between two cells, or shown where it was. */
@@ -43,27 +44,6 @@ function Bar({ a, b, kind }: { a: Cell; b: Cell; kind: string }) {
   const dy = b.r - a.r;
   const turn = (Math.atan2(dy, dx) * 180) / Math.PI;
   return <rect className={`ws-bar ${kind}`} x={x - BAR / 2} y={y - BAR / 2} width={Math.hypot(dx, dy) + BAR} height={BAR} rx={BAR / 2} transform={`rotate(${turn.toFixed(2)} ${x} ${y})`} />;
-}
-
-/**
- * A phone, upright or lying down, or a tablet held upright: a screen where the map is not beside the square,
- * and the square would leave it a strip too small to tell ten pieces apart. There the two take turns, each
- * with the whole screen (the same rule is in wordsearch.css).
- */
-const PHONE = '(max-width: 860px), (max-width: 1000px) and (max-height: 500px)';
-
-/** Whether the screen is one of those now. */
-function usePhone(): boolean {
-  const [phone, setPhone] = useState(() => typeof matchMedia === 'function' && matchMedia(PHONE).matches);
-  useEffect(() => {
-    if (typeof matchMedia !== 'function') return;
-    const mq = matchMedia(PHONE);
-    const on = () => setPhone(mq.matches);
-    on();
-    mq.addEventListener('change', on);
-    return () => mq.removeEventListener('change', on);
-  }, []);
-  return phone;
 }
 
 export function WordSearchGame({ deck, cfg, onExit, onAgain }: GameProps) {

@@ -194,6 +194,8 @@ export type Mode =
   | 'hangman'
   /** The names of the pieces that the map lights up, hidden in a square of letters: each is marked from its first letter to its last. */
   | 'wordsearch'
+  /** The names of some pieces cross each other in a grid: each word has a number, and the map carries it on its piece. */
+  | 'crossword'
   | 'pin'
   | 'identify'
   | 'nameall'

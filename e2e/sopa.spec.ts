@@ -408,7 +408,7 @@ test.describe('word search', () => {
     for (const route of ['/paises', '/ciudades', '/fisica', '/regiones']) {
       await open(page, route);
       const words = page.getByRole('group', { name: 'Juegos de palabras' });
-      await expect(words.getByRole('button'), route).toHaveText([/^Ahorcado/, /^Sopa de letras/]);
+      await expect(words.getByRole('button'), route).toHaveText([/^Ahorcado/, /^Sopa de letras/, /^Crucigrama/]);
       await words.getByRole('button', { name: /^Sopa de letras/ }).click();
       await expect(page.locator('.mode-about'), route).toContainText('El mapa ilumina unas piezas y sus nombres están escondidos en una sopa de letras');
     }

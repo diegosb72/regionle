@@ -8,7 +8,7 @@
  * Nothing here knows of the screen: the game is drawn in games/WordSearch.tsx.
  */
 import type { Lang } from './i18n';
-import { letterOf } from './letters';
+import { gridWord } from './letters';
 import { mulberry32, shuffle, type Rng } from './text';
 import type { Res } from './types';
 
@@ -34,22 +34,8 @@ export const WS_DIRS: readonly Dir[] = [
 /** How the way of a name is drawn: along a row or a column twice as often as along each slant. */
 const WS_LOTS: readonly Dir[] = [WS_DIRS[0], WS_DIRS[0], WS_DIRS[1], WS_DIRS[1], WS_DIRS[2], WS_DIRS[3]];
 
-/**
- * A name as it is written in the square: its letters alone, in capitals and without accents, with no
- * spaces, hyphens or apostrophes («La Coruña» is LACORUÑA; in English, ACORUNA). Nothing for a name that
- * cannot be written so: one with a figure, or with a letter no letter of the alphabet stands for.
- */
-export function gridWord(name: string, lang: Lang): string {
-  let word = '';
-  for (const ch of name.normalize('NFC')) {
-    if (/\p{N}/u.test(ch)) return '';
-    if (!/\p{L}/u.test(ch)) continue;
-    const letter = letterOf(ch, lang);
-    if (!letter) return '';
-    word += letter;
-  }
-  return word;
-}
+/** A name as it is written in the square: its letters alone, in capitals and without accents (lib/letters.ts). */
+export { gridWord };
 
 /** Whether a name, as it is written in the square, can be hidden in one of that side. */
 export const fitsGrid = (word: string, side: number = WS_SIDE): boolean => word.length >= WS_MIN && word.length <= side;
