@@ -3,6 +3,10 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.35.1 — 22 de noviembre de 2026
+
+- Corregido: en una tarea, el justificante de un intento no quedaba guardado si se pulsaba «Otra vez» en el primer cuarto de segundo. Ahora se guarda en el acto.
+
 ## 1.35.0 — 22 de noviembre de 2026
 
 - Bingo geográfico: un juego para una clase o un grupo. Una pantalla va sacando las piezas de un mapa, una a una, y cada jugador marca en su cartón las que tiene.

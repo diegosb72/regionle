@@ -251,6 +251,42 @@ describe('a game of an assignment that ended', () => {
     expect(doneWith(5)).toBe(true);
     expect(receiptsKept()).toEqual([]);
   });
+
+  it('leaves one receipt, the last it said: its clock may tick once more after the result is drawn', () => {
+    finish(77, code({ secs: 125 }));
+    expect(stored()!.got).toEqual([code({ secs: 125 })]);
+    finish(77, code({ secs: 126 }));
+    expect(stored()!.got).toEqual([code({ secs: 126 })]);
+    // Told the same twice, it is kept once.
+    finish(77, code({ secs: 126 }));
+    expect(stored()!.got).toEqual([code({ secs: 126 })]);
+    expect(doneWith(77)).toBe(true);
+  });
+
+  it('takes the place of no receipt but its own', () => {
+    keepReceipt(code({ name: 'Bruno' }));
+    finish(77, code());
+    finish(78, code({ n: 2 }));
+    finish(78, code({ n: 2, secs: 130 }));
+    expect(stored()!.got).toEqual([code({ name: 'Bruno' }), code(), code({ n: 2, secs: 130 })]);
+    // What is not a receipt takes nobody's place, and the game goes on having left its own.
+    finish(78, 'nonsense');
+    expect(stored()!.got).toEqual([code({ name: 'Bruno' }), code(), code({ n: 2, secs: 130 })]);
+    finish(78, code({ n: 2, secs: 131 }));
+    expect(stored()!.got).toEqual([code({ name: 'Bruno' }), code(), code({ n: 2, secs: 131 })]);
+    // One that was already here, opened by its link, goes to the end as the latest and is there once.
+    finish(79, code({ name: 'Bruno' }));
+    expect(stored()!.got).toEqual([code(), code({ n: 2, secs: 131 }), code({ name: 'Bruno' })]);
+  });
+
+  it('makes the oldest receipts give way, as one that is opened does', () => {
+    store({ name: '', n: {}, got: Array.from({ length: RECEIPTS_MAX }, (_, i) => code({ n: i + 1 })) });
+    finish(9, code({ name: 'Nueva' }));
+    const got = stored()!.got;
+    expect(got).toHaveLength(RECEIPTS_MAX);
+    expect(got[0]).toBe(code({ n: 2 }));
+    expect(got.at(-1)).toBe(code({ name: 'Nueva' }));
+  });
 });
 
 describe('what is found in the browser', () => {

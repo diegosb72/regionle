@@ -15,6 +15,16 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.35.1',
+    date: '2026-11-22',
+    es: [
+      'Corregido: en una tarea, el justificante de un intento no quedaba guardado si se pulsaba «Otra vez» en el primer cuarto de segundo. Ahora se guarda en el acto.',
+    ],
+    en: [
+      'Fixed: in homework, the receipt of an attempt was not kept if “Again” was pressed within a quarter of a second of the end. It is now kept at once.',
+    ],
+  },
+  {
     version: '1.35.0',
     date: '2026-11-22',
     es: [

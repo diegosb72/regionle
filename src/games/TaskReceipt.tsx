@@ -30,11 +30,10 @@ export function TaskReceipt({ task, nonce, tally, format }: { task: { path: stri
   const [state, setState] = useState<'idle' | 'copied' | 'shown'>('idle');
   const code = encodeReceipt(receipt);
   const url = receiptUrl(code);
-  // Kept here too, once the clock of the game has said its last word: a receipt that was not sent in time is not lost.
-  useEffect(() => {
-    const timer = setTimeout(() => finish(nonce, code), 250);
-    return () => clearTimeout(timer);
-  }, [nonce, code]);
+  // Kept here too, so that a receipt that was not sent in time is not lost; and kept as soon as it is drawn,
+  // however soon the next game starts. If the clock of the game has one more word to say, the receipt that
+  // says it takes the place of this one (lib/taskKept.ts).
+  useEffect(() => finish(nonce, code), [nonce, code]);
   const title = parseTask(task.path)?.title ?? '';
   const outcome = outcomeOf(receipt);
   const said = receiptLine(receipt, format);
