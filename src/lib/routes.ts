@@ -15,6 +15,9 @@ export const PLAY_PATH = 'jugar';
 export const DAILY_PATH = 'reto' satisfies ScreenId;
 export const DUEL_PATH = 'duelo';
 export const LIST_PATH = 'lista';
+/** Homework with a receipt (lib/task.ts): what a teacher sets, and what whoever did it sends back. */
+export const TASK_PATH = 'tarea';
+export const RECEIPT_PATH = 'justificante';
 /** The game alone, to be put inside another page (lib/embed.ts). */
 export const EMBED_PATH = 'incrustar';
 export const PROGRESS_PATH = 'progreso';
@@ -36,6 +39,10 @@ export type Route =
   | { kind: 'duel'; code: string }
   /** `#/lista/<code>`: a custom list sent by someone else. Without a code, the screen that says how one is made. */
   | { kind: 'list'; code: string }
+  /** `#/tarea/<title>/<game>`: a map and a game set as homework. With nothing after it, the screen that says how one is set. */
+  | { kind: 'task'; rest: string }
+  /** `#/justificante/<code>`: how somebody did an assignment. Without a code, the receipts opened on this device. */
+  | { kind: 'receipt'; code: string }
   /**
    * `#/incrustar/regiones/ES:f/pin`: a map and a game with nothing around them, for an `<iframe>` in another
    * page. What follows is read where it is played (lib/embed.ts): this file is in the first load.
@@ -80,6 +87,11 @@ const ALIASES: Record<string, string> = {
   retodiario: DAILY_PATH,
   duel: DUEL_PATH,
   list: LIST_PATH,
+  task: TASK_PATH,
+  tareas: TASK_PATH,
+  homework: TASK_PATH,
+  receipt: RECEIPT_PATH,
+  justificantes: RECEIPT_PATH,
   embed: EMBED_PATH,
   incrusta: EMBED_PATH,
   iframe: EMBED_PATH,
@@ -96,7 +108,7 @@ const ALIASES: Record<string, string> = {
   privacy: ABOUT_PATH,
 };
 
-const KNOWN = new Set<string>(['', ...Object.values(PATHS), PLAY_PATH, DAILY_PATH, DUEL_PATH, LIST_PATH, EMBED_PATH, PROGRESS_PATH, SETTINGS_PATH, ABOUT_PATH]);
+const KNOWN = new Set<string>(['', ...Object.values(PATHS), PLAY_PATH, DAILY_PATH, DUEL_PATH, LIST_PATH, TASK_PATH, RECEIPT_PATH, EMBED_PATH, PROGRESS_PATH, SETTINGS_PATH, ABOUT_PATH]);
 
 function decoded(text: string): string {
   try {
@@ -154,6 +166,10 @@ export function routeOf(path: string, now: string = today()): Route {
       return { kind: 'duel', code: rest };
     case LIST_PATH:
       return { kind: 'list', code: rest };
+    case TASK_PATH:
+      return { kind: 'task', rest };
+    case RECEIPT_PATH:
+      return { kind: 'receipt', code: rest };
     case EMBED_PATH:
       return { kind: 'embed', rest };
     case PROGRESS_PATH:

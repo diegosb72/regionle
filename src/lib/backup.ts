@@ -10,7 +10,7 @@ import type { Kept as Ghosts } from './ghost';
 import { isPalette } from './palette';
 import { isTextSize } from './reading';
 import { isPace, isReviewSize } from './review';
-import { PAIR_OFS, PAIR_SIZES, ROUTE_RULES } from './rules';
+import { CLOCKS, LIVES, PAIR_OFS, PAIR_SIZES, ROUTE_RULES, TRIES } from './rules';
 import { isLearnt, type BackupMark, type Opts, type State, type Stat, type Theme } from './store';
 
 /** 4: the preferences travel too. A copy of an earlier version is read all the same. */
@@ -113,6 +113,9 @@ const OPT_CHOICES: { [K in keyof Opts]?: readonly Opts[K][] } = {
   cityPick: ['top', 'caps', 'regcaps'],
   cityCount: CITY_COUNTS,
   format: ['normal', 'timed', 'lives', 'exam', 'duo'],
+  tries: TRIES,
+  clock: CLOCKS,
+  lives: LIVES,
   flagLook: ['plain', 'grey', 'blur'],
   cardAsk: ['name', 'where', 'capital', 'flag'],
   bearingAsk: ['both', 'dir', 'dist'],

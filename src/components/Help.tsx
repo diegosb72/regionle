@@ -32,7 +32,7 @@ export function HelpPanel(props: HelpProps) {
 }
 
 /** What opens it where a game is chosen: a link at the end of what the game is, in the same line. */
-export function HelpButton({ mode, section }: { mode: Mode; section: Section }) {
+export function HelpButton({ mode, section, rules }: { mode: Mode; section: Section; rules?: string }) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -40,7 +40,7 @@ export function HelpButton({ mode, section }: { mode: Mode; section: Section }) 
         <CircleHelp size={14} aria-hidden="true" />
         {L('Cómo se juega', 'How to play')}
       </button>
-      {open && <HelpPanel mode={mode} section={section} onClose={() => setOpen(false)} />}
+      {open && <HelpPanel mode={mode} section={section} rules={rules} onClose={() => setOpen(false)} />}
     </>
   );
 }

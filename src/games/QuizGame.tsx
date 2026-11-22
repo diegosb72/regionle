@@ -13,6 +13,7 @@ import { seedOf } from '../lib/challenge';
 import { datedName, datedNote, keepDated, type Kept } from '../lib/dated';
 import { namesKept, namesShown, otherOf, tally, verdictOf, whoOf, type Who } from '../lib/duo';
 import { useDuoCode } from '../lib/duoLazy';
+import { useTaskCode } from '../lib/taskLazy';
 import { silhouette } from '../lib/geo';
 import type { Ghost } from '../lib/ghost';
 import { anyGhost, ghostable, useGhostCode } from '../lib/ghostLazy';
@@ -21,7 +22,8 @@ import { L, nm } from '../lib/i18n';
 import { timesMixed } from '../lib/mix';
 import { MODE_NAME, formatName } from '../lib/modes';
 import { clockPaused, usePaused } from '../lib/pause';
-import { evenOf } from '../lib/rules';
+import { evenOf, formatOfGame } from '../lib/rules';
+import { clockText, customRules, recordName, rulesOfGame, rulesText } from '../lib/ruleset';
 import { isDated, useStore, type FlagLook, type Format, type Skill } from '../lib/store';
 import { Matcher, shortNote } from '../lib/matcher';
 import type { Places } from '../lib/sets';
@@ -48,11 +50,6 @@ const UNDATED = { challenge: undefined, weekly: undefined, zone: undefined, occa
 /** …and what makes it a game against its ghost (lib/ghost.ts). */
 const NO_GHOST = { ghost: undefined };
 
-/** Against the clock: how long a game lasts. */
-export const TIME_LIMIT = 60_000;
-/** Survival: misses allowed. */
-export const LIVES = 3;
-
 /** `places` names the parts of the world: what a hint says a country is in. */
 export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { places?: Places }) {
   const game = cfg.mode as QuizId;
@@ -68,9 +65,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   const pinBy = game === 'pin' && deck.scope === 'countries' ? opts.pinBy : 'name';
   const seed = useMemo(() => seedOf(cfg), [cfg]);
   // Reviews, challenges and the repeat of what was missed are always a plain set of questions.
-  const wanted: Format = cfg.review || cfg.challenge || (cfg.only && !cfg.list) ? 'normal' : (opts.format ?? 'normal');
-  // So is a step of the session of the day, which is one player's: nobody sat down to a game of two there.
-  const format: Format = wanted === 'duo' && cfg.step ? 'normal' : wanted;
+  const format: Format = formatOfGame(cfg);
   /**
    * Two players who share the device (lib/duo.ts): a question each, by turns. Nothing of such a game is
    * written down: neither the answers, which are not one person's, nor the game among those played.
@@ -84,6 +79,15 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   const exam = format === 'exam';
   /** One go at each question, and no hints. */
   const strict = paced || exam;
+  /**
+   * The rules the game is played by (lib/ruleset.ts): the tries of a question, whether hints can be asked
+   * for, how long the clock runs and how many lives there are.
+   */
+  const rules = useMemo(() => rulesOfGame(cfg), [cfg]);
+  /** Against the clock: how long the game lasts. */
+  const limit = rules.clock * 1000;
+  /** No hint can be asked for: the format gives none, or the player has done without them. */
+  const unaided = strict || !rules.hints;
 
   /** Items that can be offered as wrong options when asking in a given way. */
   const usableFor = useMemo(() => {
@@ -183,8 +187,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   const forget = useStore((st) => st.forget);
   const addSession = useStore((st) => st.addSession);
   const setBest = useStore((st) => st.setBest);
-  const timeLeft = Math.max(0, TIME_LIMIT - ms);
-  const lives = Math.max(0, LIVES - s.bad);
+  const timeLeft = Math.max(0, limit - ms);
+  const lives = Math.max(0, rules.lives - s.bad);
   /** Out of lives: the answer in hand is the last one. */
   const spent = format === 'lives' && lives === 0;
   /** Best mark of this map in the paced formats: 'new' when just beaten, the old one otherwise. */
@@ -241,6 +245,11 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
     return () => clearTimeout(t);
   }, [duo, duoUi]);
   const tallied = useMemo(() => tally(plays.map((p) => p[1]), first), [plays, first]);
+  /** What a game set as homework ends with (games/TaskReceipt.tsx), fetched as it starts: each start of it is counted. */
+  const homework = useTaskCode(!!cfg.task);
+  useEffect(() => {
+    if (cfg.task) homework?.begin(cfg.task, cfg.nonce);
+  }, [homework, cfg]);
   /** Whose each piece is: the map of a game of two is painted by who got it, once what colours it is here. */
   const owners = useMemo(() => (duo && duoUi ? new Map(plays.map(([id], i) => [id, whoOf(i, first)] as const)) : null), [duo, duoUi, plays, first]);
 
@@ -285,7 +294,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   const lettersShown = !typed ? 0 : mode === 'outline' ? Math.max(0, help.main - 1) : help.main;
   const answerOf = (it: Item, m: QuizMode = mode) => (m === 'capital' ? it.capital![0] : m === 'parent' ? it.belongs!.name : it.name);
   // A paced game moves fast, and an exam is an exam: one go at each question.
-  const maxTries = strict ? 1 : clicky || typed ? 3 : 1;
+  const maxTries = strict ? 1 : clicky || typed ? rules.tries : 1;
   const several = showsCountry(deck);
   const fem = deck.noun.fem;
   const one = deck.noun.one;
@@ -326,7 +335,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
 
   /** The kinds of hint the question in hand admits besides the one of its game: a fact about the piece each. */
   const kinds = useMemo((): HintKind[] => {
-    if (!item || strict) return [];
+    if (!item || unaided) return [];
     const ask: HintAsk = {
       wants: clicky ? 'place' : mode === 'capital' ? 'capital' : mode === 'parent' ? 'parent' : 'name',
       by: clicky ? 'click' : typed ? 'type' : 'pick',
@@ -339,7 +348,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
       },
     };
     return hintKinds(item, deck, ask, places);
-  }, [item, strict, clicky, typed, mode, pinBy, showMap, deck, places]);
+  }, [item, unaided, clicky, typed, mode, pinBy, showMap, deck, places]);
 
   // New question: clean the per-question state and, when a region lights up, bring it into view.
   useEffect(() => {
@@ -394,8 +403,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
 
   // Time is up.
   useEffect(() => {
-    if (format === 'timed' && !ended && ms >= TIME_LIMIT) dispatch({ type: 'finish' });
-  }, [format, ended, ms]);
+    if (format === 'timed' && !ended && ms >= limit) dispatch({ type: 'finish' });
+  }, [format, ended, ms, limit]);
 
   useEffect(() => {
     // A game of two is not one of the games of whoever keeps their progress here.
@@ -414,7 +423,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
       ...(format !== 'normal' ? { note: format } : {}),
     });
     if (paced && !cfg.list) {
-      const key = `${format}:${game}:${deck.key}`;
+      // Each length of the clock and each number of lives has a record of its own.
+      const key = `${recordName(format as 'timed' | 'lives', rules)}:${game}:${deck.key}`;
       const prev = useStore.getState().best[key];
       const hits = s.ok + s.warn;
       // A game without a single right answer sets no record.
@@ -581,7 +591,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   };
 
   const hint = () => {
-    if (!item || s.phase !== 'ask' || strict) return;
+    if (!item || s.phase !== 'ask' || unaided) return;
     dispatch({ type: 'hint' });
     setHelp((h) => ({ ...h, main: h.main + 1 }));
     // By ear, the help is to read the name: the hint writes it.
@@ -743,6 +753,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
     const hits = s.ok + s.warn;
     const grade = gradeOf(s.ok, s.total);
     const blank = Number.isFinite(s.total) ? s.total - s.asked : 0;
+    /** The paced format as its record is told of: with its rule when it is not the usual one ("contrarreloj de 2 minutos"). */
+    const paceName = `${formatName(format).toLowerCase()}${customRules(rules) ? L(` de ${rulesText(rules)}`, ` of ${rulesText(rules)}`) : ''}`;
     /** Played against the ghost to the end: who won is what the results open with, and the ghost's figures come under it. */
     const duel = rows.length && ghostEnd?.other && (ghostEnd.how === 'won' || ghostEnd.how === 'lost' || ghostEnd.how === 'tie') ? { how: ghostEnd.how, ghost: ghostEnd.other } : null;
     /** A game of two answered to its end; one ended before that is settled by its whole rounds, and nobody wins it. */
@@ -785,7 +797,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
                 : exam
                   ? L(`Nota: ${nf(grade, 1)}`, `Mark: ${nf(grade, 1)} out of 10`)
                   : paced
-                  ? L(`${hits} ${hits === 1 ? 'acierto' : 'aciertos'}${format === 'timed' ? ' en un minuto' : ''}`, `${hits} right${format === 'timed' ? ' in a minute' : ''}`)
+                  ? L(`${hits} ${hits === 1 ? 'acierto' : 'aciertos'}${format === 'timed' ? ` en ${clockText(rules.clock)}` : ''}`, `${hits} right${format === 'timed' ? ` in ${clockText(rules.clock)}` : ''}`)
                   : s.bad === 0 && s.warn === 0
                     ? L('¡Pleno!', 'Full marks!')
                     : s.bad === 0
@@ -823,9 +835,9 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
                 : !paced || !rows.length
                 ? undefined
                 : mark === 'new'
-                  ? L(`Nuevo récord de ${formatName(format).toLowerCase()} en este mapa.`, `New ${formatName(format).toLowerCase()} record on this map.`)
+                  ? L(`Nuevo récord de ${paceName} en este mapa.`, `New ${paceName} record on this map.`)
                   : typeof mark === 'number'
-                    ? L(`Tu récord de ${formatName(format).toLowerCase()} en este mapa: ${mark}.`, `Your ${formatName(format).toLowerCase()} record on this map: ${mark}.`)
+                    ? L(`Tu récord de ${paceName} en este mapa: ${mark}.`, `Your ${paceName} record on this map: ${mark}.`)
                     : undefined
             }
             deck={deck}
@@ -840,9 +852,19 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
             // Again after a game against the ghost is against the ghost: the one the map has now, which may be this game.
             onAgain={duo ? duoAgain : () => onAgain(isDated(cfg) && (kept == null || kept === 'short') ? {} : { only: cfg.only, list: cfg.list, ...UNDATED, ghost: racing && ghostEnd?.seed != null ? { seed: ghostEnd.seed } : undefined })}
             // The misses of a game of two are of both: there is no round of them for one.
-            onReview={duo ? undefined : (ids) => onAgain({ only: ids, list: undefined, ...UNDATED, ...NO_GHOST, lot: medley ? (cfg.lot ?? seed) : undefined })}
+            // The round of what was missed is not the assignment: it leaves no receipt.
+            onReview={duo ? undefined : (ids) => onAgain({ only: ids, list: undefined, ...UNDATED, ...NO_GHOST, task: undefined, lot: medley ? (cfg.lot ?? seed) : undefined })}
             onExit={onExit}
+            // Homework ends on its receipt: Enter must not start it again, which would be one more attempt.
+            focus={!cfg.task}
           >
+            {cfg.task &&
+              rows.length > 0 &&
+              (homework ? (
+                <homework.TaskReceipt task={cfg.task} nonce={cfg.nonce} tally={{ ok: s.ok, warn: s.warn, bad: s.bad, total: !paced && Number.isFinite(s.total) ? s.total : 0, ms: format === 'timed' ? Math.min(ms, limit) : ms }} format={format} />
+              ) : (
+                <p role="status">{L('Preparando el justificante…', 'Getting the receipt ready…')}</p>
+              ))}
             {rows.length > 0 && ghosts && ghostEnd && (
               <ghosts.GhostBox
                 end={ghostEnd}
@@ -863,14 +885,14 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   /** In a game of two, whose the question on screen is: it stays theirs until the next one comes. */
   const whose: Who = whoOf(Math.max(0, asking ? s.asked : s.asked - 1), first);
   /** The hint its game always had: a letter, the search narrowed, the map or the name. */
-  const ownHint = (clicky || typed || mode === 'outline') && !strict;
+  const ownHint = (clicky || typed || mode === 'outline') && !unaided;
   /** The others that are still to be had: not the one that counts letters once some are in sight. */
   const offer = kinds.filter((k) => !help.used.includes(k) && !(k === 'count' && lettersShown > 0) && !(k === 'half' && choices.length < 4));
   /** A question with one other hint and no more has no menu to choose from: its button says which it is, and gives it. */
   const sole = kinds.length === 1 ? kinds[0] : null;
   /** One more hint, of the kind chosen: like any other, it makes the answer one given with help. */
   const more = (kind: HintKind) => {
-    if (!item || !asking || strict || !offer.includes(kind)) return;
+    if (!item || !asking || unaided || !offer.includes(kind)) return;
     dispatch({ type: 'hint' });
     const said = kind === 'half' ? null : hintOf(kind, item, deck, answer, places);
     // Two of the three wrong options go, by the lot of this question: the same two to whoever plays the same game.
@@ -1064,7 +1086,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
         <p className="q-how">
           <MapPin size={15} aria-hidden="true" /> {mode === 'puzzle' ? L('Haz clic en su sitio en el mapa.', 'Click where it goes on the map.') : L(`Haz clic en ${theOne}.`, `Click ${theOne}.`)}{' '}
           {/* In an exam every question has its one try: counting it down to nothing would say nothing. */}
-          {exam ? L('El primer clic es tu respuesta.', 'Your first click is your answer.') : left(maxTries - s.tries)}
+          {exam ? L('El primer clic es tu respuesta.', 'Your first click is your answer.') : maxTries === 1 ? L('Solo hay un intento.', 'There is only one try.') : left(maxTries - s.tries)}
         </p>
       )}
 
@@ -1180,7 +1202,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
       onExit={onExit}
       // Against the ghost, how far the game has got is said by its lane, beside the ghost's: the bar is drawn
       // only when there are no lanes, because there is no ghost after all or the code that draws them has not come.
-      progress={racing && ghosts && rival ? undefined : format === 'timed' ? ms / TIME_LIMIT : Number.isFinite(s.total) ? s.asked / s.total : undefined}
+      progress={racing && ghosts && rival ? undefined : format === 'timed' ? ms / limit : Number.isFinite(s.total) ? s.asked / s.total : undefined}
       // The two lanes take their room from the start, so that nothing moves when they come.
       under={
         duo ? (
@@ -1206,8 +1228,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
             <span className="hud-chip hud-main" title={L('Aciertos', 'Right answers')}>
               {s.ok}
             </span>
-            <span className="hud-chip hud-lives" aria-label={L(`Vidas: ${lives} de ${LIVES}`, `Lives: ${lives} of ${LIVES}`)} title={L('Vidas', 'Lives')}>
-              {Array.from({ length: LIVES }, (_, i) => (
+            <span className="hud-chip hud-lives" aria-label={L(`Vidas: ${lives} de ${rules.lives}`, `Lives: ${lives} of ${rules.lives}`)} title={L('Vidas', 'Lives')}>
+              {Array.from({ length: rules.lives }, (_, i) => (
                 <Heart key={i} size={14} className={i < lives ? 'on' : undefined} aria-hidden="true" />
               ))}
             </span>

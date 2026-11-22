@@ -140,7 +140,7 @@ test.describe('a link to a map and a game', () => {
     const field = page.getByRole('textbox', { name: 'Link to this map' });
     await expect(field).toHaveValue(/#\/ciudades\/ES\/pin\/top25$/);
     await expect(page.locator('.maplink .opt-hint')).toHaveText(
-      'It opens the game with this map and this game already chosen: to send to someone, to keep as a bookmark or, with the QR code, to open in class from the board. “Embed” gives the code to put it inside another page.',
+      'It opens the game with this map and this game already chosen: to send to someone, to keep as a bookmark or, with the QR code, to open in class from the board. “Embed” gives the code to put it inside another page. “Set as homework” gives a link for a class: whoever does it gets a receipt with their name and their result.',
     );
     // In English the notice is in English.
     await follow(page, 'paises/ES+FR/flag');

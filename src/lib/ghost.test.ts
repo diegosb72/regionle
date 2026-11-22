@@ -150,6 +150,31 @@ describe('the name the ghost of a game is kept under', () => {
     expect(keyOf({ mode: 'identify', ghost: { seed: 9 } }, { answer: 'type' })).toBe(plain);
   });
 
+  it('tells apart the rules of the game, each where it counts', () => {
+    const plain = keyOf();
+    const keys = [plain, keyOf({}, { tries: 1 }), keyOf({}, { tries: 2 }), keyOf({}, { hints: false }), keyOf({}, { tries: 1, hints: false }), keyOf({}, { tries: 2, hints: false })];
+    expect(new Set(keys).size).toBe(keys.length);
+    // The clock and the lives are those of other formats, which leave no ghost.
+    expect(keyOf({}, { clock: 120, lives: 5 })).toBe(plain);
+    // Among four options a question takes one try whatever the rules say: the hints still count.
+    const picked = keyOf({ mode: 'flag', section: 'countries' }, { answer: 'choice' });
+    expect(keyOf({ mode: 'flag', section: 'countries' }, { answer: 'choice', tries: 1 })).toBe(picked);
+    expect(keyOf({ mode: 'flag', section: 'countries' }, { answer: 'choice', hints: false })).not.toBe(picked);
+    expect(keyOf({ mode: 'flag', section: 'countries' }, { answer: 'type', tries: 1 })).not.toBe(keyOf({ mode: 'flag', section: 'countries' }, { answer: 'type' }));
+    // Rules that cannot be are the usual ones.
+    expect(keyOf({}, { tries: 9, hints: 'no' as unknown as boolean })).toBe(plain);
+  });
+
+  it('is, for the usual rules, the one it was before the rules could be set', () => {
+    // Taken from version 1.33.0: the ghosts kept by then are found under these names.
+    expect(keyOf()).toBe('regions|pin|1ngm9m7');
+    expect(ghostKey({ section: 'countries', mode: 'flag', countries: ['ES', 'FR'], levels: {}, opts: { ...DEFAULT_OPTS, answer: 'choice' } }, country)).toBe('countries|flag|k97nkw');
+    // Options kept by then said nothing of the rules.
+    const { tries: _tries, hints: _hints, clock: _clock, lives: _lives, ...before } = { ...DEFAULT_OPTS, length: 10 as const };
+    expect([_tries, _hints, _clock, _lives]).toEqual([3, true, 60, 3]);
+    expect(ghostKey({ section: 'regions', mode: 'pin', countries: ['ES'], levels: { ES: 'g1' }, opts: before as Opts }, country)).toBe('regions|pin|1ngm9m7');
+  });
+
   it('tells a list from the whole map and from another list, whatever their names', () => {
     const list = keyOf({ only: ['b', 'a'], list: 'Examen' });
     expect(list).not.toBe(keyOf());

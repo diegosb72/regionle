@@ -5,7 +5,8 @@
  */
 import { L } from '../lib/i18n';
 import { SECTIONS, formatName, modeNameIn } from '../lib/modes';
-import { FORMAT_MODES } from '../lib/rules';
+import { formatOfGame } from '../lib/rules';
+import { customRules, rulesOfGame, rulesText } from '../lib/ruleset';
 import type { Format, GameConfig } from '../lib/store';
 import { fmtTime, nf } from '../lib/text';
 import { scoreOf } from './quiz';
@@ -26,7 +27,7 @@ export function earnsDiploma(game: GameConfig | null | undefined, count: Tally):
 }
 
 /** How a game was played, where that can be chosen: against the clock, with lives, as an exam. */
-export const formatOf = (game: GameConfig): Format => (FORMAT_MODES.includes(game.mode) && !game.challenge && !partial(game) ? (game.opts.format ?? 'normal') : 'normal');
+export const formatOf = (game: GameConfig): Format => formatOfGame(game);
 
 export interface DiplomaText {
   heading: string;
@@ -55,7 +56,9 @@ export function diplomaOf(game: GameConfig, map: string | undefined, count: Tall
   const section = SECTIONS[game.section].name;
   const mode = modeNameIn(game.section, game.mode);
   const format = formatOf(game);
-  const how = format === 'normal' ? [] : [formatName(format)];
+  // …and by which rules, when they were not the usual ones: "1 intento, sin pistas".
+  const rules = rulesOfGame(game);
+  const how = [...(format === 'normal' ? [] : [formatName(format)]), ...(customRules(rules) ? [rulesText(rules)] : [])];
   const result = [L(`${nf(count.ok)} de ${nf(total)} a la primera`, `${nf(count.ok)} of ${nf(total)} right first time`)];
   if (count.warn > 0) result.push(L(`${nf(count.warn)} con ayuda`, `${nf(count.warn)} with help`));
   if (ms != null) result.push(L(`en ${fmtTime(ms)}`, `in ${fmtTime(ms)}`));

@@ -2,7 +2,7 @@
  * «Cómo se juega»: the rules of a game, in a panel over the page. Fetched when it is first asked for, with
  * the texts of every game (lib/help.ts).
  */
-import { ArrowRight, Lightbulb, LifeBuoy, Target } from 'lucide-react';
+import { ArrowRight, Lightbulb, LifeBuoy, SlidersHorizontal, Target } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { helpOf } from '../lib/help';
 import { L } from '../lib/i18n';
@@ -20,10 +20,12 @@ export interface HelpProps {
   first?: boolean;
   /** Over a game in course, whose clock is stopped meanwhile. */
   playing?: boolean;
+  /** «Reglas a medida» (lib/ruleset.ts): the rules of the game that are not the usual ones, in words. What follows tells the usual ones. */
+  rules?: string;
   onClose(): void;
 }
 
-export function HelpDialog({ mode, section, first, playing, onClose }: HelpProps) {
+export function HelpDialog({ mode, section, first, playing, rules, onClose }: HelpProps) {
   const auto = useStore((s) => s.helpAuto);
   const setAuto = useStore((s) => s.setHelpAuto);
   const go = useRef<HTMLButtonElement>(null);
@@ -55,6 +57,14 @@ export function HelpDialog({ mode, section, first, playing, onClose }: HelpProps
           {MODE_NAME[mode]}
         </h3>
         {def && <p className="help-lead">{def.desc}</p>}
+        {rules && (
+          <p className="help-rules">
+            <SlidersHorizontal size={15} aria-hidden="true" />
+            <span>
+              <b>{L(`Reglas a medida: ${rules}.`, `Custom rules: ${rules}.`)}</b> {L('Donde lo que sigue diga otra cosa, valen estas.', 'Where what follows says otherwise, these hold.')}
+            </span>
+          </p>
+        )}
         <ol className="help-steps">
           {help.steps.map((step, i) => (
             <li key={i}>{step}</li>

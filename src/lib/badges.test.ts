@@ -99,6 +99,17 @@ describe('achievements', () => {
     expect(badge(ctx({ best: { 'lives:pin:r:ES.g1': 300 } }), 'lives30').done).toBe(30);
   });
 
+  it('count the records of harder rules, and not those of easier ones', () => {
+    // Twenty in half a minute are twenty in a minute; in two minutes or in five they are not.
+    expect(earned(ctx({ best: { 'timed30:pin:r:ES.g1': 20 } }))).toEqual(['timed20']);
+    expect(earned(ctx({ best: { 'timed120:pin:r:ES.g1': 99, 'timed300:pin:r:ES.g1': 99 } }))).toEqual([]);
+    // Thirty with one life are thirty with three; with five they are not.
+    expect(earned(ctx({ best: { 'lives1:pin:r:ES.g1': 30 } }))).toEqual(['lives30']);
+    expect(earned(ctx({ best: { 'lives5:pin:r:ES.g1': 99 } }))).toEqual([]);
+    expect(badge(ctx({ best: { 'timed:pin:r:ES.g1': 7, 'timed30:pin:r:ES.g1': 12, 'timed120:pin:r:ES.g1': 40 } }), 'timed20').done).toBe(12);
+    expect(badge(ctx({ best: { 'lives:pin:r:ES.g1': 7, 'lives1:pin:r:ES.g1': 3, 'lives5:pin:r:ES.g1': 40 } }), 'lives30').done).toBe(7);
+  });
+
   it('reward the cards, the medley, the game by ear and a ten in an exam', () => {
     const played = (mode: SessionRec['mode'], total: number, ok: number): SessionRec => ({ ...session(total, ok), mode });
     expect(badge(ctx({ tot: { cards: 99 } }), 'cards100')).toMatchObject({ done: 99, goal: 100 });

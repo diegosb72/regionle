@@ -131,7 +131,7 @@ export function badgesOf(ctx: BadgeCtx): Badge[] {
     if (got / level.n > detail[0] / detail[1]) detail = [got, level.n];
   }
 
-  const top = (prefix: string) => Object.entries(best).reduce((m, [k, v]) => (k.startsWith(prefix) ? Math.max(m, v) : m), 0);
+  const top = (...prefixes: string[]) => Object.entries(best).reduce((m, [k, v]) => (prefixes.some((prefix) => k.startsWith(prefix)) ? Math.max(m, v) : m), 0);
   const streak = best['daily:streak'] ?? 0;
   const perfect = sessions.some((r) => r.total >= 10 && r.ok === r.total) ? 1 : 0;
   /** A game of ten questions or more of one kind with everything right first time, among the latest. */
@@ -178,8 +178,10 @@ export function badgesOf(ctx: BadgeCtx): Badge[] {
   add('regionle1', 'modes', L('A la primera', 'First go'), L('Acierta un Regionle al primer intento.', 'Get a Regionle right at the first try.'), tot.regionle1 ?? 0, 1);
   add('fill', 'modes', L('Mapa completo', 'Map complete'), L('Rellena un mapa entero escribiendo todos sus nombres.', 'Fill a whole map by typing all its names.'), filled, 1);
   add('near', 'modes', L('Puntería', 'Marksman'), L(`Sitúa una ciudad a ciegas a menos de ${fmtDist(NEAR_KM)}.`, `Place a city blind within ${fmtDist(NEAR_KM)}.`), tot.near ?? 0, 1);
-  add('timed20', 'modes', L('Contrarreloj', 'Against the clock'), L('Consigue 20 aciertos en un minuto.', 'Get 20 right in a minute.'), top('timed:'), 20);
-  add('lives30', 'modes', L('Superviviente', 'Survivor'), L('Consigue 30 aciertos en supervivencia.', 'Get 30 right in survival.'), top('lives:'), 30);
+  // «Reglas a medida» (lib/ruleset.ts) keeps a record apart for each length of the clock and each number of
+  // lives: the usual ones count here, and the harder ones, which are the same feat and more.
+  add('timed20', 'modes', L('Contrarreloj', 'Against the clock'), L('Consigue 20 aciertos en un minuto.', 'Get 20 right in a minute.'), top('timed:', 'timed30:'), 20);
+  add('lives30', 'modes', L('Superviviente', 'Survivor'), L('Consigue 30 aciertos en supervivencia, con tres vidas como mucho.', 'Get 30 right in survival, with three lives at most.'), top('lives:', 'lives1:'), 30);
   add('list', 'modes', L('A tu medida', 'Made to measure'), L('Crea una lista a medida.', 'Make a custom list.'), lists.length, 1);
   // Kept in tenths: 100 is a 10.
   add('exam10', 'modes', L('Matrícula de honor', 'Top of the class'), L('Saca un 10 en el examen de un mapa entero.', 'Get a 10 in the exam of a whole map.'), top('exam:') >= 100 ? 1 : 0, 1);

@@ -26,6 +26,7 @@ import { MODE_NAME, PATHS } from '../lib/modes';
 import { pauseClock } from '../lib/pause';
 import { goneFrom } from '../lib/review';
 import { CONNECT_MIN, FIGURE_MODES, ODD_MIN, PAIRS_MIN } from '../lib/rules';
+import { rulesOfGame, rulesText } from '../lib/ruleset';
 import { go } from '../lib/router';
 import { isDated, useStore, type GameConfig } from '../lib/store';
 import { nf, today } from '../lib/text';
@@ -105,7 +106,7 @@ function WithHelp({ cfg, children }: { cfg: GameConfig; children: ReactNode }) {
   return (
     <HelpContext.Provider value={show}>
       {children}
-      {help && <HelpPanel mode={cfg.mode} section={cfg.section} first={help === 'first'} playing onClose={() => setHelp(null)} />}
+      {help && <HelpPanel mode={cfg.mode} section={cfg.section} first={help === 'first'} playing rules={rulesText(rulesOfGame(cfg)) || undefined} onClose={() => setHelp(null)} />}
     </HelpContext.Provider>
   );
 }

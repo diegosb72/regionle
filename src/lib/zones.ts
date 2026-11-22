@@ -4,6 +4,7 @@
  * challenge of the week (lib/weekly.ts), each is a game put in order by a seed, here made from the zone and
  * the day, so it is the same for everyone. What is kept of them is in lib/datedKept.ts.
  */
+import { USUAL_RULES } from './rules';
 import { addDays } from '../daily/spec';
 import type { ZoneRec } from './datedKept';
 import type { GameConfig, Opts } from './store';
@@ -56,7 +57,7 @@ export const zoneSeed = (id: string, date: string): number => hashStr(`regionle|
 export function zoneGame(id: string, date: string, index: Index, opts: Opts): Omit<GameConfig, 'nonce'> | null {
   const zone = zoneOf(id, index);
   if (!zone) return null;
-  const settled: Opts = { ...opts, answer: 'choice', length: ZONE_LENGTH, pinBy: 'name', turned: false, flagLook: 'plain', format: 'normal' };
+  const settled: Opts = { ...opts, answer: 'choice', length: ZONE_LENGTH, pinBy: 'name', turned: false, flagLook: 'plain', format: 'normal', ...USUAL_RULES };
   const game = { mode: 'mix' as const, opts: settled, challenge: { seed: zoneSeed(id, date) }, zone: { id, date } };
   if (zone.country) return { ...game, section: 'regions', countries: [zone.country.id], levels: { [zone.country.id]: levelOf(zone.country).k } };
   return {

@@ -17,7 +17,7 @@ A petición del dueño del proyecto, desde la 1.18.0 se hace primero lo que meno
 el final lo que más. La estimación es a ojo y cambia al abrir el código:
 
 - **Corto**: nada pendiente
-- **Medio**: 70, 73, 94
+- **Medio**: 73
 - **Largo**: 20, 44 (francés), 65, 67, 68, 83, 90
 - **Depende de conseguir datos**, lleve lo que lleve: 30–32, 37–39, 41–43, 95, y lo que falta del 29 y del 35
 
@@ -109,7 +109,7 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 - [ ] 67. Modo clase
 - [ ] 68. Varios perfiles en un navegador
 - [x] 69. Mapas mudos para imprimir: el mapa numerado con sus líneas, la hoja de soluciones y recuadros para lo que queda lejos — **1.8.0**
-- [ ] 70. Tarea con justificante
+- [x] 70. Tarea con justificante: «Poner de tarea», junto al enlace de un mapa o en una lista, da un enlace y un QR con el juego, sus reglas y un título; quien lo abre escribe su nombre, juega eso mismo y recibe un justificante (un enlace o un QR) con su nombre, el resultado, la fecha y el intento; quien puso la tarea lo abre, ve si su cifra de control cuadra y junta los de una misma tarea en una tabla que se copia a una hoja de cálculo (**decidido**: sin servidor, todo viaja en los enlaces; la cifra descubre un retoque a mano, pero no es a prueba de trampas, y el juego lo dice; cada vez que se empieza es un intento, contado por nombre; lo que se deja sin responder cuenta como fallado) — **1.34.0**
 - [x] 71. Diploma: al acabar una partida con la mitad o más bien, una hoja apaisada para imprimir o guardar como PDF con el nombre (que no se guarda), el mapa, el juego, los aciertos, el tiempo, la fecha, un sello con el porcentaje y sitio para una firma — **1.21.0**
 - [x] 72. Códigos QR: junto al enlace a un mapa y un juego, al de una lista, al de un reto y al del resultado del día, un código que se abre grande, se guarda como imagen o se imprime; lo calcula el propio juego, sin servicios de fuera — **1.21.0**
 - [ ] 73. Bingo geográfico
@@ -137,7 +137,7 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 ## Ajustes y accesibilidad
 
 - [x] 92. Letra grande, alto contraste y tipografía para dislexia: tres ajustes al pie. La letra, normal, grande o muy grande, también en los nombres del mapa; el contraste alto, en claro y en oscuro, y solo si el dispositivo lo pide; y Lexend con más aire y sin cursivas (**decidido**: Lexend y no OpenDyslexic, que es un 60 % más ancha y no cabía en un móvil) — **1.21.0**
-- [ ] 94. Reglas a medida
+- [x] 94. Reglas a medida: en los nueve juegos de preguntas se eligen los intentos de cada pregunta (1, 2 o 3) y si hay pistas, lo que dura la contrarreloj (30 s, 1, 2 o 5 min) y las vidas de la supervivencia (1, 3 o 5); se quedan como se dejan, se dicen antes de empezar y viajan en el reto por enlace y en el juego incrustado (**decidido**: las de siempre son el juego como era; cada duración y cada número de vidas guarda su récord aparte; el repaso, la sesión del día y los retos con fecha van siempre con las de siempre) — **1.34.0**
 - [ ] 95. Nombres en el idioma local
 - [x] 96. Millas además de kilómetros: un ajuste del pie pasa a millas y millas cuadradas todo lo que el juego dice en kilómetros; las altitudes siguen en metros — **1.19.0**
 

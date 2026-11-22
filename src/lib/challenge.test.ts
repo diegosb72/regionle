@@ -13,7 +13,7 @@ describe('challenge by link', () => {
       mode: 'pin',
       countries: ['ES'],
       levels: { ES: 'g1' },
-      opts: { answer: 'type', length: 10, pinBy: 'name', cityPick: 'top', cityCount: 25, turned: false, flagLook: 'plain' },
+      opts: { answer: 'type', length: 10, pinBy: 'name', cityPick: 'top', cityCount: 25, turned: false, flagLook: 'plain', tries: 3, hints: true },
       seed: 123456,
       from: 'Diego',
       score: 85,
@@ -37,7 +37,7 @@ describe('challenge by link', () => {
     expect(decodeChallenge(old)!.opts).toMatchObject({ turned: false, flagLook: 'plain' });
     const odd = btoa(JSON.stringify({ s: 'countries', m: 'flag', c: 'ESFR', k: 5, v: 2, o: ['type', 10, 'name', 'top', 25, 'yes', 'sepia'] }));
     expect(decodeChallenge(odd)!.opts).toMatchObject({ turned: false, flagLook: 'plain' });
-    expect(decodeChallenge(btoa(JSON.stringify({ s: 'countries', m: 'flag', c: 'ESFR', k: 5, v: 2 })))!.opts).toEqual({ turned: false, flagLook: 'plain' });
+    expect(decodeChallenge(btoa(JSON.stringify({ s: 'countries', m: 'flag', c: 'ESFR', k: 5, v: 2 })))!.opts).toEqual({ turned: false, flagLook: 'plain', tries: 3, hints: true });
   });
 
   it('is offered for the medley, and not for the games that are not marked the same for everyone', () => {
@@ -133,7 +133,7 @@ describe('challenge by link', () => {
     const back = decodeChallenge(wire({ s: 'cities', m: 'pin', c: 'ESFR', k: 3.9, o: ['shout', 'endless', 'smell', 'all', 9999], l: { ES: '<script>' }, f: '   ', r: [250, -5] }))!;
     expect(back.countries).toEqual(['ES', 'FR']);
     // Nothing of what it said is taken; the hard looks, which it did not ask for, are off.
-    expect(back.opts).toEqual({ turned: false, flagLook: 'plain' });
+    expect(back.opts).toEqual({ turned: false, flagLook: 'plain', tries: 3, hints: true });
     expect(back.levels).toEqual({});
     expect(back.seed).toBe(3);
     expect(back.from).toBeUndefined();
