@@ -430,6 +430,8 @@ describe('the address of the cards of a bingo', () => {
     // What follows the dash has to be a number as well: one that is not would make a sheet with no end.
     for (const bad of ['1-x', '1-07', '1-5.5', '1-100000', '1-1e2', '3-0x10']) expect(who(bad), bad).toBeNull();
     for (const bad of ['', '0', '07', '100000', '-1', '1-', '30-1', '1-2-3', 'x', '1.5', '1-0', '0-5', '--', '1 ']) expect(who(bad), bad).toBeNull();
+    // An address with nobody to give a card to is no address, however good the rest of it is.
+    for (const bad of ['x', '0', '30-1', '']) expect(parseBingo(`${bad}/4/regiones/ES`), bad).toBeNull();
   });
 
   it('is nothing when it does not say all of it', () => {
@@ -540,6 +542,11 @@ describe('the cards on the atlas of today', () => {
     expect(cities.pool).toEqual(cities.here);
     expect(cities.there.cfg.opts.cityCount).toBe(50);
 
+    // The level chosen for the regions of a country is not of the map of countries, nor of its cities: a game
+    // carries it all the same, and the address of the cards leaves it out.
+    expect(bingoKey(3, sourceOf(game({ section: 'countries', countries: ['ES', 'PT'], levels: { ES: 'f' } })))).toBe('3/paises/ES+PT');
+    expect(bingoKey(3, sourceOf(game({ section: 'cities', countries: ['ES'], levels: { ES: 'f' }, opts: { ...DEFAULT_OPTS, cityPick: 'top', cityCount: 50 } })))).toBe('3/ciudades/ES/bingo/top50');
+
     const seas = await bothPools(game({ section: 'physical', countries: ['sea', 'lake', 'EU'], levels: {} }));
     expect(seas.key).toBe('3/fisica/sea+lake+EU');
     expect(seas.here.length).toBeGreaterThanOrEqual(BINGO_MIN);
@@ -562,6 +569,8 @@ describe('the cards on the atlas of today', () => {
     expect(decodeList(key.slice('3/lista/'.length))).toMatchObject({ name: 'Las del examen', section: 'regions', countries: ['ES'], levels: { ES: 'f' } });
     // A game on the pieces missed (no list) is a game on its map.
     expect(bingoKey(3, sourceOf(game({ only })))).toBe('3/regiones/ES:f');
+    // …and so is one with the name of a list and none of its pieces.
+    expect(bingoKey(3, sourceOf(game({ list: 'Las del examen' })))).toBe('3/regiones/ES:f');
   });
 
   it('are of nothing when the atlas has nothing of what the address names', () => {
