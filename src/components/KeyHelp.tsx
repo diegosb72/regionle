@@ -185,6 +185,17 @@ export function GameKeys() {
       </div>
       <div>
         <dt>
+          <Keys>{L('← ↑ → ↓ Intro', '← ↑ → ↓ Enter')}</Keys>
+        </dt>
+        <dd>
+          {L(
+            'En «Sopa de letras», las flechas recorren las letras; Intro marca la primera letra de un nombre y, después, la última. Esc anula la marca.',
+            'In “Word search”, the arrows go through the letters; Enter marks the first letter of a name and then the last. Esc cancels the mark.',
+          )}
+        </dd>
+      </div>
+      <div>
+        <dt>
           <Keys>↑ ↓</Keys>
         </dt>
         <dd>{L('En «Mayor o menor», responden más o menos. En un campo de respuesta con sugerencias, las recorren; Esc las cierra.', 'In “Higher or lower”, they answer more or less. In an answer field with suggestions, they go through them; Esc closes them.')}</dd>

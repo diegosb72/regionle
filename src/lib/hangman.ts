@@ -6,27 +6,18 @@
  * Nothing here knows of the screen: the game is drawn in games/Hangman.tsx.
  */
 import type { Lang } from './i18n';
-import { fold, mulberry32, shuffle } from './text';
+import { letterOf, lettersOf } from './letters';
+import { mulberry32, shuffle } from './text';
 import type { Res } from './types';
+
+/**
+ * The letters there are to try, and the one that uncovers each character of a name (lib/letters.ts). What
+ * no single letter stands for (a hyphen, a figure, «ß») is in sight from the start.
+ */
+export { letterOf, lettersOf };
 
 /** Letters that are not in the name before it is lost: as many as the rose has points. */
 export const HANG_MISSES = 8;
-
-const AZ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
-/** The letters there are to try: the alphabet of the language. The Spanish one has the Ñ, after the N. */
-export const lettersOf = (lang: Lang): string[] => [...(lang === 'es' ? AZ.replace('N', 'NÑ') : AZ)];
-
-/**
- * The letter that uncovers a character: its own without its accent («Á» is uncovered by the A, «ü» by the
- * U, «ł» by the L). The Ñ is a letter of its own in Spanish, and an N in English. Nothing for what no
- * single letter of the alphabet stands for (a hyphen, a figure, «ß»): that is in sight from the start.
- */
-export function letterOf(ch: string, lang: Lang): string {
-  if (lang === 'es' && (ch === 'ñ' || ch === 'Ñ')) return 'Ñ';
-  const plain = fold(ch);
-  return /^[a-z]$/.test(plain) ? plain.toUpperCase() : '';
-}
 
 export interface HangCell {
   /** The character, as the name writes it. */

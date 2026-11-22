@@ -3,6 +3,13 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.37.0 — 22 de noviembre de 2026
+
+- Sopa de letras: el mapa ilumina hasta diez piezas sin decir cómo se llaman, y sus nombres están escondidos en una cuadrícula de letras. Encuéntralos.
+- Un nombre se marca arrastrando de su primera letra a la última, tocando una y luego la otra, o con las flechas e Intro. Los nombres nunca van al revés.
+- Cada nombre encontrado se escribe en su pieza del mapa. «Ver los nombres» enseña la lista, y lo que encuentres después cuenta como dado con ayuda.
+- Está en Regiones, Países, Ciudades y Geografía física, y con tus listas. Una partida larga son varias sopas; en el móvil, la sopa y el mapa se turnan.
+
 ## 1.36.0 — 22 de noviembre de 2026
 
 - Ahorcado: un nombre del mapa, escondido. Prueba letras, con los botones o con el teclado, hasta dar con él: la que está aparece en todos sus sitios.

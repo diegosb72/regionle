@@ -192,6 +192,8 @@ export type Mode =
   | 'bingo'
   /** A name is hidden and found letter by letter: each letter that is not in it puts out a point of a compass rose. */
   | 'hangman'
+  /** The names of the pieces that the map lights up, hidden in a square of letters: each is marked from its first letter to its last. */
+  | 'wordsearch'
   | 'pin'
   | 'identify'
   | 'nameall'

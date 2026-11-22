@@ -15,6 +15,22 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.37.0',
+    date: '2026-11-22',
+    es: [
+      'Sopa de letras: el mapa ilumina hasta diez piezas sin decir cómo se llaman, y sus nombres están escondidos en una cuadrícula de letras. Encuéntralos.',
+      'Un nombre se marca arrastrando de su primera letra a la última, tocando una y luego la otra, o con las flechas e Intro. Los nombres nunca van al revés.',
+      'Cada nombre encontrado se escribe en su pieza del mapa. «Ver los nombres» enseña la lista, y lo que encuentres después cuenta como dado con ayuda.',
+      'Está en Regiones, Países, Ciudades y Geografía física, y con tus listas. Una partida larga son varias sopas; en el móvil, la sopa y el mapa se turnan.',
+    ],
+    en: [
+      'Word search: the map lights up to ten pieces without saying what they are called, and their names are hidden in a grid of letters. Find them.',
+      'Mark a name by dragging from its first letter to its last, by pressing one and then the other, or with the arrows and Enter. Names never run backwards.',
+      'Each name you find is written on its piece of the map. “Show the names” shows the list, and what you find afterwards counts as found with help.',
+      'It is in Regions, Countries, Cities and Physical geography, and with your lists. A long game is several grids; on a phone, grid and map take turns.',
+    ],
+  },
+  {
     version: '1.36.0',
     date: '2026-11-22',
     es: [

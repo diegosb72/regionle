@@ -43,7 +43,7 @@ export const NOT_GAMES: readonly Mode[] = ['print', 'bingo', 'edit'];
 export const BINGO_MIN = 12;
 
 /** Games that ask as many questions as the player chooses under "Preguntas". */
-export const LENGTH_MODES: readonly Mode[] = ['pin', 'identify', 'outline', 'regionle', 'puzzle', 'neighbours', 'capital', 'flag', 'blind', 'hotcold', 'bearing', 'coords', 'group', 'whoami', 'border', 'exact', 'which', 'rank', 'compass', 'parent', 'truefalse', 'oddone', 'cards', 'mix', 'listen', 'hangman'];
+export const LENGTH_MODES: readonly Mode[] = ['pin', 'identify', 'outline', 'regionle', 'puzzle', 'neighbours', 'capital', 'flag', 'blind', 'hotcold', 'bearing', 'coords', 'group', 'whoami', 'border', 'exact', 'which', 'rank', 'compass', 'parent', 'truefalse', 'oddone', 'cards', 'mix', 'listen', 'hangman', 'wordsearch'];
 
 /**
  * Games whose questions are made up as the game goes, from what is known of the countries chosen: there are

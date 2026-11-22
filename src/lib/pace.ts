@@ -53,6 +53,8 @@ export const TYPICAL_S: Partial<Record<Mode, number>> = {
   whoami: 30,
   // A name found letter by letter.
   hangman: 35,
+  // A name found among the letters of a square, with nine others.
+  wordsearch: 30,
   border: 9,
   nameall: 5,
   which: 6,
