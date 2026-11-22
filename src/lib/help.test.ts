@@ -10,6 +10,7 @@ import { setLang, type Lang } from './i18n';
 import { MODES, SECTION_IDS } from './modes';
 import { CLUES_OK, RIDDLE_POINTS } from './riddle';
 import type { Mode, Section } from './types';
+import { WS_PER_BOARD } from './wordsearch';
 
 afterEach(() => setLang('es'));
 
@@ -86,6 +87,8 @@ describe('how each game is played', () => {
     expect(CHAIN_MISSES).toBe(3);
     expect(es('whoami')).toContain(`vale ${word[RIDDLE_POINTS]} puntos`);
     expect(es('whoami')).toContain(`con ${word[CLUES_OK]} pistas o menos`);
+    expect(es('wordsearch')).toContain('hasta diez en cada sopa');
+    expect(WS_PER_BOARD).toBe(10);
   });
 
   it('says what a section adds to a game', () => {

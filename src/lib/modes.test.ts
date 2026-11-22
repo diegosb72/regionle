@@ -11,10 +11,10 @@ const ids = (section: (typeof SECTION_IDS)[number]): Mode[] => MODES[section].ma
 
 describe('the games of each section', () => {
   it('are these, in the order of the menu', () => {
-    expect(ids('regions')).toEqual(['explore', 'learn', 'cards', 'print', 'bingo', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'puzzle', 'group', 'mix', 'outline', 'regionle', 'neighbours', 'border', 'chain', 'travel', 'parent', 'compass', 'bearing', 'coords', 'capital', 'whoami', 'hilo', 'rank', 'exact', 'which', 'topten', 'hangman']);
-    expect(ids('countries')).toEqual(['explore', 'learn', 'cards', 'print', 'bingo', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'puzzle', 'group', 'mix', 'outline', 'regionle', 'neighbours', 'border', 'chain', 'travel', 'compass', 'bearing', 'coords', 'capital', 'flag', 'whoami', 'hangman']);
-    expect(ids('cities')).toEqual(['explore', 'learn', 'cards', 'print', 'bingo', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'group', 'mix', 'parent', 'compass', 'bearing', 'coords', 'whoami', 'hilo', 'rank', 'exact', 'which', 'topten', 'hangman']);
-    expect(ids('physical')).toEqual(['explore', 'learn', 'cards', 'print', 'bingo', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'mix', 'hilo', 'rank', 'exact', 'which', 'topten', 'hangman']);
+    expect(ids('regions')).toEqual(['explore', 'learn', 'cards', 'print', 'bingo', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'puzzle', 'group', 'mix', 'outline', 'regionle', 'neighbours', 'border', 'chain', 'travel', 'parent', 'compass', 'bearing', 'coords', 'capital', 'whoami', 'hilo', 'rank', 'exact', 'which', 'topten', 'hangman', 'wordsearch']);
+    expect(ids('countries')).toEqual(['explore', 'learn', 'cards', 'print', 'bingo', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'puzzle', 'group', 'mix', 'outline', 'regionle', 'neighbours', 'border', 'chain', 'travel', 'compass', 'bearing', 'coords', 'capital', 'flag', 'whoami', 'hangman', 'wordsearch']);
+    expect(ids('cities')).toEqual(['explore', 'learn', 'cards', 'print', 'bingo', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'group', 'mix', 'parent', 'compass', 'bearing', 'coords', 'whoami', 'hilo', 'rank', 'exact', 'which', 'topten', 'hangman', 'wordsearch']);
+    expect(ids('physical')).toEqual(['explore', 'learn', 'cards', 'print', 'bingo', 'pin', 'listen', 'blind', 'hotcold', 'identify', 'nameall', 'mix', 'hilo', 'rank', 'exact', 'which', 'topten', 'hangman', 'wordsearch']);
     expect(ids('pops')).toEqual(['hilo', 'rank', 'exact', 'which', 'topten', 'truefalse', 'oddone', 'pairs', 'alphabet', 'connect']);
   });
 
@@ -162,7 +162,7 @@ describe('the rules the menus go by', () => {
       expect(def.level, section).toBe(2);
       expect(def.name, section).toBe('Ahorcado');
       // The word games are the last heading of the menu.
-      expect(ids(section).at(-1), section).toBe('hangman');
+      expect(ids(section).at(-2), section).toBe('hangman');
     }
     expect(MODE_GROUPS.at(-1)).toBe('words');
     expect(MODE_NAME.hangman).toBe('Ahorcado');
@@ -174,6 +174,26 @@ describe('the rules the menus go by', () => {
     setLang('en');
     expect(MODE_NAME.hangman).toBe('Hangman');
     expect(MODES.regions.find((m) => m.id === 'hangman')!.name).toBe('Hangman');
+  });
+
+  it('place the word search after the hangman, among the word games of every section with a map', () => {
+    for (const section of SECTION_IDS) expect(ids(section).includes('wordsearch'), section).toBe(section !== 'pops');
+    for (const section of ['regions', 'countries', 'cities', 'physical'] as const) {
+      const def = MODES[section].find((m) => m.id === 'wordsearch')!;
+      expect(def.group, section).toBe('words');
+      expect(def.level, section).toBe(2);
+      expect(def.name, section).toBe('Sopa de letras');
+      expect(ids(section).at(-1), section).toBe('wordsearch');
+    }
+    expect(MODE_NAME.wordsearch).toBe('Sopa de letras');
+    expect(NOT_GAMES).not.toContain('wordsearch');
+    expect(embeddable('wordsearch')).toBe(true);
+    // As many names as are asked for, ten to a grid; and no clock or lives: a grid is not one question after another.
+    expect(LENGTH_MODES).toContain('wordsearch');
+    expect(FORMAT_MODES).not.toContain('wordsearch');
+    setLang('en');
+    expect(MODE_NAME.wordsearch).toBe('Word search');
+    expect(MODES.regions.find((m) => m.id === 'wordsearch')!.name).toBe('Word search');
   });
 
   it('give a typical pace to every game with a number of questions', () => {

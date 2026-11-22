@@ -41,7 +41,7 @@ const COUNTDOWNS = [0, 120, 300, 600, 900];
 const levelName = (n: number): string => [L('Fácil', 'Easy'), L('Medio', 'Medium'), L('Difícil', 'Hard')][n - 1];
 const ANSWER_MODES: Mode[] = ['learn', 'identify', 'outline', 'capital', 'flag', 'parent', 'mix', 'border'];
 /** Games that are one round of everything: they cannot go on for ever. */
-const FINITE_MODES: Mode[] = ['neighbours', 'blind', 'hotcold', 'bearing', 'coords', 'group', 'whoami', 'border', 'cards', 'hangman'];
+const FINITE_MODES: Mode[] = ['neighbours', 'blind', 'hotcold', 'bearing', 'coords', 'group', 'whoami', 'border', 'cards', 'hangman', 'wordsearch'];
 /** Games where names are typed and a list of suggestions can help. */
 const SUGGEST_MODES: Mode[] = ['travel', 'neighbours', 'chain', 'whoami', 'regionle', 'which', 'topten', 'alphabet'];
 /** Games that stop on a missed answer long enough to read about it. */
@@ -661,6 +661,11 @@ export function Setup({ section, world, link }: { section: Section; world: World
   /** The alphabet is as long as the letters the names of the countries begin with, which depend on the language. */
   const letters = def.id === 'alphabet' ? new Set(chosen.map((c) => initialOf(nm(c.n))).filter(Boolean)).size : undefined;
   const questions = problem ? null : questionsOf({ mode: def.id, units, length: finite && opts.length === 'endless' ? 'all' : opts.length, format: opts.format, list: !!active, letters });
+  /**
+   * A word search of a whole map or of a list leaves out the names that do not fit its square, and which
+   * ones is not known until the names are fetched: it says «up to» so many.
+   */
+  const upTo = def.id === 'wordsearch' && questions != null && questions >= units;
   const guess = problem ? null : estimateOf(def.id, questions, pace);
   // A countdown is the longest the map can take.
   const estimate = guess && def.id === 'nameall' && opts.countdown > 0 ? { ...guess, ms: Math.min(guess.ms, opts.countdown * 1000) } : guess;
@@ -834,7 +839,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
                     <span>
                       {estimate && L(minutesOf(estimate.ms) === 1 ? 'Alrededor de 1 min' : `Unos ${nf(minutesOf(estimate.ms))} min`, `About ${nf(minutesOf(estimate.ms))} min`)}
                       {estimate && questions != null && ' · '}
-                      {questions != null && (def.id === 'nameall' ? plural(questions, noun[0], noun[1]) : def.id === 'alphabet' ? plural(questions, L('letra', 'letter'), L('letras', 'letters')) : def.id === 'connect' ? plural(questions, L('grupo', 'group'), L('grupos', 'groups')) : def.id === 'hangman' ? plural(questions, L('nombre', 'name'), L('nombres', 'names')) : plural(questions, L('pregunta', 'question'), L('preguntas', 'questions')))}
+                      {questions != null && (def.id === 'nameall' ? plural(questions, noun[0], noun[1]) : def.id === 'alphabet' ? plural(questions, L('letra', 'letter'), L('letras', 'letters')) : def.id === 'connect' ? plural(questions, L('grupo', 'group'), L('grupos', 'groups')) : def.id === 'hangman' || def.id === 'wordsearch' ? `${upTo ? L('hasta ', 'up to ') : ''}${plural(questions, L('nombre', 'name'), L('nombres', 'names'))}` : plural(questions, L('pregunta', 'question'), L('preguntas', 'questions')))}
                       {duoOn && questions != null && questions > 0 && <small> {L(`(${nf(questions / 2)} para cada uno)`, `(${nf(questions / 2)} each)`)}</small>}
                       {estimate?.own && !duoOn && <small> {L('a tu ritmo', 'at your pace')}</small>}
                     </span>

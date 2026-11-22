@@ -186,6 +186,39 @@ export function helpOf(mode: Mode, section: Section): ModeHelp | null {
           'Start with the vowels, and look at the short words: in “of”, “the” or “and” there is little to choose from.',
         ),
       };
+    case 'wordsearch':
+      return {
+        steps: [
+          L(
+            'El mapa ilumina las piezas cuyos nombres están escondidos entre las letras, sin decir cómo se llaman: hasta diez en cada sopa, y varias sopas seguidas si la partida es más larga.',
+            'The map lights up the pieces whose names are hidden among the letters, without saying what they are called: up to ten in each grid, and several grids in a row when the game is longer.',
+          ),
+          L(
+            'Los nombres van sin espacios ni tildes y nunca al revés: se leen hacia la derecha, hacia abajo o en diagonal hacia la derecha. En español la Ñ es una letra aparte.',
+            'Names go without spaces or accents and never backwards: they read to the right, downwards or diagonally to the right.',
+          ),
+          L(
+            'Marca cada nombre arrastrando de su primera letra a la última, o tocando la primera y después la última. Con el teclado, las flechas recorren las letras e Intro marca.',
+            'Mark each name by dragging from its first letter to its last, or by pressing the first and then the last. With the keyboard, the arrows go through the letters and Enter marks.',
+          ),
+          L(
+            'El nombre encontrado se escribe en su pieza del mapa. En el móvil, el mapa y la sopa se turnan la pantalla: «Ver el mapa» enseña uno y «Volver a la sopa», la otra.',
+            'A name you find is written on its piece of the map. On a phone, the map and the grid take turns on the screen: “See the map” shows one and “Back to the grid”, the other.',
+          ),
+        ],
+        score: L(
+          'Cuenta «a la primera» el nombre que encuentras solo con el mapa y «con ayuda» el que encuentras con la lista de nombres a la vista; queda «para repasar» el que falta cuando te rindes. Marcar donde no hay nada no resta.',
+          'A name found with the map alone counts as “first time”, and one found with the list of names in sight as “with help”; one that is missing when you give up is left “to review”. Marking where there is nothing takes nothing off.',
+        ),
+        aid: L(
+          '«Ver los nombres» enseña la lista de lo que hay que buscar. «Me rindo» enseña dónde estaban los que faltan, en la sopa y en el mapa.',
+          '“Show the names” shows the list of what there is to find. “I give up” shows where the missing ones were, in the grid and on the map.',
+        ),
+        tip: L(
+          'Busca primero las letras que menos se repiten, como la Z, la J o la Ñ: desde ellas se llega antes al nombre. Y los nombres largos caben en pocos sitios.',
+          'Look first for the letters that come up least, such as Z, J or K: from them you get to the name sooner. And long names fit in few places.',
+        ),
+      };
     case 'bingo':
       return {
         steps: [

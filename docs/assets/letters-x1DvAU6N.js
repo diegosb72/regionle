@@ -1,0 +1,1 @@
+import{u as e}from"./text-Bhm2OnvE.js";var t=`ABCDEFGHIJKLMNOPQRSTUVWXYZ`,n=e=>[...e===`es`?t.replace(`N`,`NÑ`):t];function r(t,n){if(n===`es`&&(t===`ñ`||t===`Ñ`))return`Ñ`;let r=e(t);return/^[a-z]$/.test(r)?r.toUpperCase():``}export{n,r as t};

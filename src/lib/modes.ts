@@ -34,6 +34,7 @@ import {
   Shuffle,
   Signpost,
   Target,
+  TextSearch,
   Thermometer,
   Trophy,
   VenetianMask,
@@ -140,6 +141,18 @@ function modesOf(section: Section): ModeDef[] {
       'A name from the map, hidden: try letters until you find it. Each letter that is not in it puts out a point of the compass rose, and with the eighth you lose it. If you get stuck, the map shows you what it is.',
     ),
     icon: RectangleEllipsis,
+    level: 2,
+    group: 'words',
+  };
+  /** The names of the map as words to be found among letters: the map says which pieces, and not what they are called (lib/wordsearch.ts). */
+  const wordsearch: ModeDef = {
+    id: 'wordsearch',
+    name: L('Sopa de letras', 'Word search'),
+    desc: L(
+      'El mapa ilumina unas piezas y sus nombres están escondidos en una sopa de letras: márcalos de la primera letra a la última. El mapa no dice cómo se llaman; si te atascas, pide la lista de nombres.',
+      'The map lights up some pieces and their names are hidden in a grid of letters: mark each one from its first letter to its last. The map does not say what they are called; if you get stuck, ask for the list of names.',
+    ),
+    icon: TextSearch,
     level: 2,
     group: 'words',
   };
@@ -345,6 +358,7 @@ function modesOf(section: Section): ModeDef[] {
         ),
         ...figures(L('Aquí, por la superficie de cada región.', 'Here, by the area of each region.'), L('¿Qué región?', 'Which region?')),
         hangman,
+        wordsearch,
       ];
     case 'countries':
       return [
@@ -397,6 +411,7 @@ function modesOf(section: Section): ModeDef[] {
           ),
         ),
         hangman,
+        wordsearch,
       ];
     case 'cities':
       return [
@@ -437,6 +452,7 @@ function modesOf(section: Section): ModeDef[] {
         ),
         ...figures(L('Aquí, por la población de cada ciudad.', 'Here, by the population of each city.'), L('¿Qué ciudad?', 'Which city?')),
         hangman,
+        wordsearch,
       ];
     case 'physical':
       return [
@@ -459,6 +475,7 @@ function modesOf(section: Section): ModeDef[] {
         mixDots,
         ...figures(L('Aquí, por la altitud de los picos y la superficie de continentes, océanos, mares, lagos e islas.', 'Here, by the height of peaks and the area of continents, oceans, seas, lakes and islands.'), L('¿Cuál es?', 'Which one?')),
         hangman,
+        wordsearch,
       ];
     default:
       return [
@@ -547,6 +564,8 @@ function modeName(mode: Mode): string {
       return 'Bingo';
     case 'hangman':
       return L('Ahorcado', 'Hangman');
+    case 'wordsearch':
+      return L('Sopa de letras', 'Word search');
     case 'nameall':
       return L('Rellenar el mapa', 'Fill the map');
     case 'outline':
@@ -674,7 +693,7 @@ function lazy<K extends string, V>(keys: readonly K[], make: (key: K) => V): Rec
   return out;
 }
 
-const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'group', 'neighbours', 'border', 'chain', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'coords', 'edit', 'print', 'bingo', 'hangman', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'oddone', 'pairs', 'alphabet', 'connect', 'topten', 'cards', 'mix', 'listen'];
+const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'group', 'neighbours', 'border', 'chain', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'coords', 'edit', 'print', 'bingo', 'hangman', 'wordsearch', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'oddone', 'pairs', 'alphabet', 'connect', 'topten', 'cards', 'mix', 'listen'];
 
 export const MODES: Record<Section, ModeDef[]> = lazy(SECTION_IDS, modesOf);
 export const MODE_NAME: Record<Mode, string> = lazy(MODE_IDS, modeName);

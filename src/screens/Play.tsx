@@ -49,8 +49,9 @@ const AlphabetGame = lazyScreen(() => import('../games/Alphabet').then((m) => m.
 const ConnectGame = lazyScreen(() => import('../games/Connect').then((m) => m.ConnectGame));
 const BingoGame = lazyScreen(() => import('../games/Bingo').then((m) => m.BingoGame));
 const HangmanGame = lazyScreen(() => import('../games/Hangman').then((m) => m.HangmanGame));
+const WordSearchGame = lazyScreen(() => import('../games/WordSearch').then((m) => m.WordSearchGame));
 /** Which of them each mode needs: asked for while the map is being drawn, so that it is here when the map is. */
-const APART: Partial<Record<Mode, { warm(): void }>> = { blind: BlindGame, hotcold: BlindGame, bearing: BearingGame, coords: CoordsGame, chain: ChainGame, border: BorderGame, group: GroupGame, whoami: WhoAmIGame, oddone: OddOneGame, pairs: PairsGame, alphabet: AlphabetGame, connect: ConnectGame, bingo: BingoGame, hangman: HangmanGame };
+const APART: Partial<Record<Mode, { warm(): void }>> = { blind: BlindGame, hotcold: BlindGame, bearing: BearingGame, coords: CoordsGame, chain: ChainGame, border: BorderGame, group: GroupGame, whoami: WhoAmIGame, oddone: OddOneGame, pairs: PairsGame, alphabet: AlphabetGame, connect: ConnectGame, bingo: BingoGame, hangman: HangmanGame, wordsearch: WordSearchGame };
 
 function Message({ title, text, onExit, action }: { title: string; text: string; onExit(): void; action?: { label: string; run(): void } }) {
   return (
@@ -433,6 +434,8 @@ export function Session({ cfg, world, host }: { cfg: GameConfig; world: World; h
         return <CardsGame {...props} />;
       case 'hangman':
         return <HangmanGame {...props} />;
+      case 'wordsearch':
+        return <WordSearchGame {...props} />;
       case 'pin':
       case 'puzzle':
       case 'identify':
