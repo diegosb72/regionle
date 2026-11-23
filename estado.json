@@ -1,6 +1,6 @@
 {
-  "when": "2026-11-23T19:17:22.554Z",
-  "from": "arena/baec5cdd-regionle@1c91f1f",
+  "when": "2026-11-23T19:30:26.097Z",
+  "from": "arena/baec5cdd-regionle@14653d2",
   "workflow": "same",
   "sources": [
     {
@@ -9,13 +9,13 @@
       "from": "Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org)",
       "licence": "La de cada archivo, que su entrada dice: dominio público o una licencia libre",
       "flags": true,
-      "what": "The flag of each division of the maps, at every level they have, by its id in the game. items: the Wikidata entity whose flag it is (wd), how it was found when it is not the one the game names (by: redirect or code; hand when the flag is one given in scripts/data/flags-hand.json, with the one Wikidata gave under instead), the Commons file of the flag it flies today (file) and since when (from), other flags the entity gives as of today (also) and those it gives as past or less fit (old), the flag of the entity that carries its ISO 3166-2 code when that is another (other), and whether the entity is far smaller than the division (tiny). files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; where the file is kept in this branch (kept); the 960 px picture that Wikimedia draws of it (picture), which stands for an original of more than 1 MB and goes with a drawing that has words in it (words); and, for a photograph, the drawing of the same flag that is kept in its place (drawn). The files themselves are under flags/files, each named after its SHA-1.",
+      "what": "The flag of each division of the maps, at every level they have, by its id in the game. items: the Wikidata entity whose flag it is (wd), how it was found when it is not the one the game names (by: redirect or code; hand when the flag is one given in scripts/data/flags-hand.json, with the one Wikidata gave under instead), the Commons file of the flag it flies today (file) and since when (from), other flags the entity gives as of today (also) and those it gives as past or less fit (old), the flag of the entity that carries its ISO 3166-2 code when that is another (other), and whether the entity is far smaller than the division (tiny). files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; where the file is kept in this branch (kept); the 960 px picture that Wikimedia draws of it (picture), which stands for an original of more than 2 MB and goes with a drawing that has words in it (words); and, for a photograph, the drawing of the same flag that is kept in its place (drawn). The files themselves are under flags/files, each named after its SHA-1.",
       "es": "Banderas de las divisiones de los mapas",
       "needs": "37",
       "ok": true,
-      "bytes": 1056941,
-      "blob": "37257b6737a040d484bfd07b8887d77a8a4fd297",
-      "note": "2014 de 4647 tienen bandera; 2010 archivos: 469 descargados (60.811 kB, con 32 imágenes), 1541 que ya estaban",
+      "bytes": 1057059,
+      "blob": "3f57eb20206e7036cd45b3484c97a3064f462123",
+      "note": "2014 de 4647 tienen bandera; 2010 archivos: 34 descargados (49.863 kB), 1976 que ya estaban",
       "detail": {
         "asked": 4647,
         "found": 2014,
@@ -32,13 +32,13 @@
           "all": 2056,
           "missing": 1,
           "drawn": 46,
-          "words": 33,
+          "words": 37,
           "wanted": 2010,
-          "brought": 469,
-          "there": 1541,
+          "brought": 34,
+          "there": 1976,
           "left": 0,
-          "pictures": 32,
-          "bytes": 60811426
+          "pictures": 0,
+          "bytes": 49862813
         },
         "kinds": {
           "svg": 1743,
@@ -66,7 +66,7 @@
         },
         "undone": []
       },
-      "ms": 672501
+      "ms": 117876
     },
     {
       "id": "flags-capitals",
@@ -74,13 +74,13 @@
       "from": "Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org)",
       "licence": "La de cada archivo, que su entrada dice: dominio público o una licencia libre",
       "flags": true,
-      "what": "The flag of the capital, or capitals, of each country, by the id the city has in the game. items: the Wikidata entity whose flag it is (wd), how it was found when it is not the one the game names (by: redirect or code; hand when the flag is one given in scripts/data/flags-hand.json, with the one Wikidata gave under instead), the Commons file of the flag it flies today (file) and since when (from), other flags the entity gives as of today (also) and those it gives as past or less fit (old), the flag of the entity that carries its ISO 3166-2 code when that is another (other), and whether the entity is far smaller than the division (tiny). files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; where the file is kept in this branch (kept); the 960 px picture that Wikimedia draws of it (picture), which stands for an original of more than 1 MB and goes with a drawing that has words in it (words); and, for a photograph, the drawing of the same flag that is kept in its place (drawn). The files themselves are under flags/files, each named after its SHA-1.",
+      "what": "The flag of the capital, or capitals, of each country, by the id the city has in the game. items: the Wikidata entity whose flag it is (wd), how it was found when it is not the one the game names (by: redirect or code; hand when the flag is one given in scripts/data/flags-hand.json, with the one Wikidata gave under instead), the Commons file of the flag it flies today (file) and since when (from), other flags the entity gives as of today (also) and those it gives as past or less fit (old), the flag of the entity that carries its ISO 3166-2 code when that is another (other), and whether the entity is far smaller than the division (tiny). files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; where the file is kept in this branch (kept); the 960 px picture that Wikimedia draws of it (picture), which stands for an original of more than 2 MB and goes with a drawing that has words in it (words); and, for a photograph, the drawing of the same flag that is kept in its place (drawn). The files themselves are under flags/files, each named after its SHA-1.",
       "es": "Banderas de las capitales de los países",
       "needs": "112",
       "ok": true,
       "bytes": 76237,
-      "blob": "2b71e891eeb42561a0423368edacc08a3ef86771",
-      "note": "144 de 243 tienen bandera; 144 archivos: 1 descargados (0,2 kB), 143 que ya estaban",
+      "blob": "5fd0dab89a4760c41750bbb92ebe9fa7e8c0aa94",
+      "note": "144 de 243 tienen bandera; 144 archivos: 0 descargados (0 kB), 144 que ya estaban",
       "detail": {
         "asked": 243,
         "found": 144,
@@ -98,11 +98,11 @@
           "drawn": 1,
           "words": 0,
           "wanted": 144,
-          "brought": 1,
-          "there": 143,
+          "brought": 0,
+          "there": 144,
           "left": 0,
           "pictures": 0,
-          "bytes": 228
+          "bytes": 0
         },
         "kinds": {
           "svg": 133,
@@ -124,7 +124,7 @@
         },
         "undone": []
       },
-      "ms": 5570
+      "ms": 4801
     }
   ],
   "reach": []
