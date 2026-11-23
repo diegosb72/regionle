@@ -1,0 +1,78 @@
+{
+  "when": "2026-11-23T00:19:05.642Z",
+  "from": "main@9910d04",
+  "sources": [
+    {
+      "id": "wikidata-region-population",
+      "file": "wikidata/region-population.json",
+      "from": "Wikidata (https://www.wikidata.org)",
+      "licence": "CC0 1.0",
+      "what": "Population (P1082) of each division of the maps that has a Wikidata id: the statements of best rank, the newest first, as [people, day]",
+      "es": "Población de las divisiones de los mapas",
+      "needs": "29",
+      "ok": true,
+      "bytes": 152309,
+      "blob": "ef73a03f79c8efa7e695c934f45db6c0a4f83bb7",
+      "note": "3783 de 4243 divisiones tienen cifra",
+      "ms": 28689
+    }
+  ],
+  "reach": [
+    {
+      "name": "Wikidata, consultas",
+      "host": "query.wikidata.org",
+      "ok": true,
+      "status": 200,
+      "bytes": 235,
+      "ms": 109
+    },
+    {
+      "name": "Wikidata, fichas",
+      "host": "www.wikidata.org",
+      "ok": true,
+      "status": 200,
+      "bytes": 3462,
+      "ms": 142
+    },
+    {
+      "name": "Wikimedia Commons, fichas de los archivos",
+      "host": "commons.wikimedia.org",
+      "ok": true,
+      "status": 200,
+      "bytes": 620,
+      "ms": 96
+    },
+    {
+      "name": "Wikimedia Commons, archivos",
+      "host": "upload.wikimedia.org",
+      "ok": true,
+      "status": 200,
+      "bytes": 594,
+      "ms": 33
+    },
+    {
+      "name": "geoBoundaries, fichas de los mapas",
+      "host": "www.geoboundaries.org",
+      "ok": true,
+      "status": 200,
+      "bytes": 1710,
+      "ms": 225
+    },
+    {
+      "name": "geoBoundaries, archivos",
+      "host": "github.com",
+      "ok": true,
+      "status": 200,
+      "bytes": 1007,
+      "ms": 344
+    },
+    {
+      "name": "GeoNames, descargas",
+      "host": "download.geonames.org",
+      "ok": true,
+      "status": 200,
+      "bytes": 32112,
+      "ms": 992
+    }
+  ]
+}
