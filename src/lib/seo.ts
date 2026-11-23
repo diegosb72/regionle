@@ -8,7 +8,7 @@
  */
 export type SeoLang = 'es' | 'en';
 /** The screens that have a page of their own, each by the address it has in the game (what follows `#/`). */
-export type ScreenId = 'regiones' | 'paises' | 'ciudades' | 'fisica' | 'poblaciones' | 'reto' | 'acerca';
+export type ScreenId = 'regiones' | 'paises' | 'ciudades' | 'fisica' | 'poblaciones' | 'banderas' | 'reto' | 'acerca';
 /** The page of one screen in one language: `regiones.html`, `regions.html`. */
 export interface ScreenPage {
   screen: ScreenId;
@@ -154,6 +154,18 @@ export const SCREENS: Record<ScreenId, Record<SeoLang, ScreenText>> = {
       file: 'figures',
       name: 'Countries in figures',
       description: 'Play with ten figures of the countries, from population and area to life expectancy or GDP per head: higher or lower, sort five, the exact figure, the top ten…',
+    },
+  },
+  banderas: {
+    es: {
+      file: 'banderas',
+      name: 'Banderas del mundo',
+      description: 'Las banderas de los países, de sus regiones y de sus capitales, más de dos mil, para verlas y repasarlas: España, Estados Unidos, Japón, Alemania, Rusia…',
+    },
+    en: {
+      file: 'flags',
+      name: 'Flags of the world',
+      description: 'The flags of the countries, of their regions and of their capitals, more than two thousand of them, to look at and go over: Spain, the United States, Japan…',
     },
   },
   reto: {

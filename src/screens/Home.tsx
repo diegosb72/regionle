@@ -14,7 +14,7 @@ import { MODES, SECTIONS, SECTION_IDS, cardAskName, factName, formatName, modeNa
 import { recentKey, type Recent } from '../lib/recent';
 import { NOT_GAMES } from '../lib/rules';
 import { go, inGame } from '../lib/router';
-import { BINGO_PATH, DUEL_PATH, LIST_PATH, PATHS, PLAY_PATH, TASK_PATH, screenPage } from '../lib/routes';
+import { BINGO_PATH, DUEL_PATH, FLAGS_PATH, LIST_PATH, PATHS, PLAY_PATH, TASK_PATH, screenPage } from '../lib/routes';
 import { isDated, useStore, type Fav, type State } from '../lib/store';
 import { nf, today } from '../lib/text';
 import type { Mode, Section } from '../lib/types';
@@ -26,6 +26,9 @@ const SAMPLE: Record<Section, string[]> = {
   physical: [],
   pops: ['CN', 'IN', 'US', 'NG', 'BR', 'RU', 'AU', 'DE'],
 };
+
+/** The flags on the card of the gallery of flags. */
+const FLAG_SAMPLE = ['NP', 'BR', 'KR', 'ZA', 'CA', 'SC', 'KI', 'BT'];
 
 /** The first sentence of a description (no look-behind: old Safari does not read it). */
 const firstSentence = (text: string): string => /^.*?\.(?=\s|$)/.exec(text)?.[0] ?? text;
@@ -449,6 +452,26 @@ export function Home({ world }: { world: World }) {
             </a>
           );
         })}
+        {/* The flags are not played yet: their card opens the gallery. */}
+        <a className="scard" href={screenPage(FLAGS_PATH, getLang())} onClick={inGame(FLAGS_PATH)}>
+          <span className="scard-n">{String(SECTION_IDS.length + 1).padStart(2, '0')}</span>
+          <h2>{L('Banderas', 'Flags')}</h2>
+          <p>{L('Las banderas de los países, de sus regiones y de sus capitales, para verlas y repasarlas. Sus juegos están en camino.', 'The flags of the countries, of their regions and of their capitals, to look at and go over. Their games are on the way.')}</p>
+          <ul className="scard-modes">
+            <li>{L('Países', 'Countries')}</li>
+            <li>{L('Regiones', 'Regions')}</li>
+            <li>{L('Capitales', 'Capitals')}</li>
+          </ul>
+          <span className="scard-flags" aria-hidden="true">
+            {FLAG_SAMPLE.map((c) => (
+              <Flag key={c} code={world.byId.get(c)?.fl} size="sm" />
+            ))}
+          </span>
+          <span className="scard-go">
+            {L('Ver las banderas', 'See the flags')}
+            <ArrowRight size={16} aria-hidden="true" />
+          </span>
+        </a>
       </section>
 
       <section className="why">

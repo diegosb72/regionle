@@ -633,7 +633,7 @@ describe('the file of each flag', () => {
     expect(r.kept()).toHaveLength(5);
   });
 
-  it('tells which categories of Commons say that a file is not a flag that flies', async () => {
+  it('tells which categories of Commons may say that a file is not a flag that flies', async () => {
     const data = PLAIN();
     world.files['Flag of Uno.svg'].categories = ['Flags of the province of Uno', 'Historical flags of provinces of Spain', 'SVG flags with an aspect ratio of 3:2'];
     world.files['Flag of Dos.svg'].categories = ['SVG proposed flags of provinces of Spain', 'Proposals for municipality flags of East Timor 2009', 'Special or fictional flags'];

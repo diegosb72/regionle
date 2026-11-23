@@ -4,16 +4,24 @@
 // in it and its numbers are kept to the decimals its size calls for, and it is then drawn next to the
 // original to see that nothing changed; when something did, it is cleaned with a lighter hand. What is not a
 // drawing (a photograph, or a drawing that is the frame of one), what each device would draw its own way
-// (words set in a typeface) and what is still too heavy goes as a picture (WebP), no wider than the game
-// shows it.
+// (words set in a typeface) and what is heavier than any image of a page should be goes as a picture
+// (WebP), no wider than the game shows it.
+//
+// A drawing that stays one and is heavy is also given a picture, for where a flag is shown small: a list
+// of fifty flags then asks for fifty light files, and the drawing is asked for when one of them is looked at.
 //
 // Used by scripts/data/flags.mjs, which says which files there are; nothing here knows where they come from.
 
 import sharp from 'sharp';
 import { optimize } from 'svgo';
 
-/** A drawing heavier than this once cleaned, in bytes, goes as a picture: the heaviest flags the game had before were about this. */
-export const SVG_MAX = 150_000;
+/**
+ * A drawing heavier than this once cleaned, in bytes, goes as a picture. It is what a large photograph
+ * weighs: sent compressed, as a server sends it, such a drawing is about a third of this.
+ */
+export const SVG_MAX = 750_000;
+/** A drawing heavier than this once cleaned, in bytes, is also given a picture for where it is shown small. */
+export const LIGHT_FROM = 100_000;
 /** How wide a picture is, in px: twice what the game shows a flag at, for the screens that draw two dots to one. */
 export const PICTURE = 640;
 /** How wide two drawings are compared, in px; and how wide once squinted at, to tell a change from a line that moved a hair. */
@@ -98,7 +106,9 @@ export function clean(svg, precision, gentle = false) {
   const plugins = gentle
     ? ['removeDoctype', 'removeXMLProcInst', 'removeComments', 'removeMetadata', 'removeEditorsNSData', 'cleanupAttrs', 'removeTitle', 'removeDesc', ...always, 'removeUnusedNS']
     : [{ name: 'preset-default' }, 'removeTitle', ...always];
-  return optimize(svg, { multipass: !gentle, ...(gentle ? {} : { floatPrecision: precision }), plugins }).data;
+  const out = optimize(svg, { multipass: !gentle, ...(gentle ? {} : { floatPrecision: precision }), plugins }).data;
+  // A typeface that the drawing still names, when nothing in it is set in words: it is of no use, and it is a thing to fetch.
+  return /<(text|tspan|textPath|tref)\b/i.test(out) ? out : out.replace(/@font-face\s*\{[^}]*\}/gi, '');
 }
 
 /** A drawing as so many dots on white: `width` wide and, unless it is said, as high as its own shape makes it. */

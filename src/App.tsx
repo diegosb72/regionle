@@ -13,7 +13,7 @@ import { applyMeta } from './lib/pageMeta';
 import { PALETTES, applyPalette, paletteHint, paletteName } from './lib/palette';
 import { CONTRAST_QUERY, TEXT_SIZES, applyReading, textSizeName } from './lib/reading';
 import { followLang, go, inGame, useRoute } from './lib/router';
-import { ABOUT_PATH, DAILY_PATH, PATHS, PROGRESS_PATH, SETTINGS_PATH, routeOf, screenPage } from './lib/routes';
+import { ABOUT_PATH, DAILY_PATH, FLAGS_PATH, PATHS, PROGRESS_PATH, SETTINGS_PATH, routeOf, screenPage } from './lib/routes';
 import { shortcutOf } from './lib/shortcuts';
 import { useStore, type Theme } from './lib/store';
 import { cx, today } from './lib/text';
@@ -32,11 +32,12 @@ const Embed = lazyScreen(() => import('./screens/Embed').then((m) => m.Embed));
 const Task = lazyScreen(() => import('./screens/Task').then((m) => m.Task));
 const Receipt = lazyScreen(() => import('./screens/Task').then((m) => m.Receipt));
 const Bingo = lazyScreen(() => import('./screens/Bingo').then((m) => m.Bingo));
+const Flags = lazyScreen(() => import('./screens/Flags').then((m) => m.Flags));
 const Progress = lazyScreen(() => import('./screens/Progress').then((m) => m.Progress));
 const Settings = lazyScreen(() => import('./screens/Settings').then((m) => m.Settings));
 const About = lazyScreen(() => import('./screens/About').then((m) => m.About));
 /** In the order they are most likely to be asked for. */
-const SCREENS = [Setup, Play, Daily, Progress, Settings, Duel, ListLink, About];
+const SCREENS = [Setup, Play, Daily, Progress, Settings, Duel, ListLink, About, Flags];
 /** The panel of keyboard shortcuts: asked for with "?" by few, so it comes when it is asked for. */
 const KeysDialog = lazyScreen(() => import('./components/KeyHelp').then((m) => m.KeysDialog));
 /** The achievements are worked out once the page is drawn: none is earned before something is played. */
@@ -268,6 +269,7 @@ export function App() {
 
   const section = route.kind === 'section' ? route.section : null;
   const settings = route.kind === 'settings';
+  const flags = route.kind === 'flags';
   const progress = route.kind === 'progress';
   const about = route.kind === 'about';
   const ThemeIcon = THEME_ICON[theme];
@@ -297,6 +299,7 @@ export function App() {
   else if (route.kind === 'bingo') page = <Bingo key={route.rest} rest={route.rest} world={world} />;
   else if (route.kind === 'embed') page = <Embed key={route.rest} rest={route.rest} world={world} />;
   else if (section) page = <Setup key={section} section={section} world={world} link={route.kind === 'section' ? route.link : undefined} />;
+  else if (route.kind === 'flags') page = <Flags world={world} rest={route.rest} />;
   else if (progress) page = <Progress world={world} />;
   else if (route.kind === 'settings') page = <Settings world={world} path={route.path} />;
   // The same wait as for the atlas, a moment longer where the page has cards whose code comes apart.
@@ -306,7 +309,8 @@ export function App() {
   // mounted afresh when the unit of the distances changes: every text that tells one is read again.
   // A link that a screen applies and then swaps for its plain address (a map and a game, somebody's result
   // of a daily challenge) is the same screen before and after: it must not be mounted twice.
-  const screen = route.kind === 'settings' ? SETTINGS_PATH : route.kind === 'section' ? PATHS[route.section] : route.kind === 'daily' ? `${DAILY_PATH}/${route.date}` : path;
+  // (The gallery of flags is one screen whichever of its pages is open.)
+  const screen = route.kind === 'settings' ? SETTINGS_PATH : route.kind === 'flags' ? FLAGS_PATH : route.kind === 'section' ? PATHS[route.section] : route.kind === 'daily' ? `${DAILY_PATH}/${route.date}` : path;
   const guarded = (
     <ErrorBoundary key={`${miles ? 'mi' : 'km'} ${screen}`}>
       <Suspense fallback={<Spinner label={L('Cargando…', 'Loading…')} />}>{page}</Suspense>
@@ -352,6 +356,9 @@ export function App() {
               {SECTIONS[s].name}
             </a>
           ))}
+          <a href={`#/${FLAGS_PATH}`} className={cx(flags && 'on')} aria-current={flags ? 'page' : undefined}>
+            {L('Banderas', 'Flags')}
+          </a>
           <a href={`#/${PROGRESS_PATH}`} className={cx(progress && 'on')} aria-current={progress ? 'page' : undefined}>
             {L('Progreso', 'Progress')}
           </a>

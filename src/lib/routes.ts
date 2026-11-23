@@ -22,6 +22,8 @@ export const RECEIPT_PATH = 'justificante';
 export const BINGO_PATH = 'bingo';
 /** The game alone, to be put inside another page (lib/embed.ts). */
 export const EMBED_PATH = 'incrustar';
+/** The flags there are, to look at (screens/Flags.tsx): `#/banderas`, and `#/banderas/regiones/ES` for those of the regions of a country. */
+export const FLAGS_PATH = 'banderas' satisfies ScreenId;
 export const PROGRESS_PATH = 'progreso';
 export const SETTINGS_PATH = 'configuracion';
 export const ABOUT_PATH = 'acerca' satisfies ScreenId;
@@ -52,6 +54,8 @@ export type Route =
    * page. What follows is read where it is played (lib/embed.ts): this file is in the first load.
    */
   | { kind: 'embed'; rest: string }
+  /** `#/banderas`, or `#/banderas/regiones/ES`: the gallery of flags, on one of its pages. What follows is read where it is shown. */
+  | { kind: 'flags'; rest: string }
   | { kind: 'progress' }
   /** `#/configuracion`, or `#/configuracion/regiones/US` to open the settings on a list. */
   | { kind: 'settings'; path: string }
@@ -99,6 +103,9 @@ const ALIASES: Record<string, string> = {
   embed: EMBED_PATH,
   incrusta: EMBED_PATH,
   iframe: EMBED_PATH,
+  flags: FLAGS_PATH,
+  flag: FLAGS_PATH,
+  bandera: FLAGS_PATH,
   progress: PROGRESS_PATH,
   settings: SETTINGS_PATH,
   ajustes: SETTINGS_PATH,
@@ -112,7 +119,7 @@ const ALIASES: Record<string, string> = {
   privacy: ABOUT_PATH,
 };
 
-const KNOWN = new Set<string>(['', ...Object.values(PATHS), PLAY_PATH, DAILY_PATH, DUEL_PATH, LIST_PATH, TASK_PATH, RECEIPT_PATH, BINGO_PATH, EMBED_PATH, PROGRESS_PATH, SETTINGS_PATH, ABOUT_PATH]);
+const KNOWN = new Set<string>(['', ...Object.values(PATHS), PLAY_PATH, DAILY_PATH, DUEL_PATH, LIST_PATH, TASK_PATH, RECEIPT_PATH, BINGO_PATH, EMBED_PATH, FLAGS_PATH, PROGRESS_PATH, SETTINGS_PATH, ABOUT_PATH]);
 
 function decoded(text: string): string {
   try {
@@ -178,6 +185,8 @@ export function routeOf(path: string, now: string = today()): Route {
       return { kind: 'bingo', rest };
     case EMBED_PATH:
       return { kind: 'embed', rest };
+    case FLAGS_PATH:
+      return { kind: 'flags', rest };
     case PROGRESS_PATH:
       return rest ? { kind: 'unknown', path } : { kind: 'progress' };
     case SETTINGS_PATH:

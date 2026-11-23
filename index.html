@@ -39,7 +39,7 @@
         if (saved.contrast === true || matchMedia('(prefers-contrast: more)').matches) document.documentElement.dataset.contrast = 'more';
         if (saved.dyslexia === true) document.documentElement.dataset.font = 'dyslexia';
         var name = (/\/([a-z0-9-]+)(?:\.html)?$/.exec(location.pathname) || [])[1] || '';
-        var page = /^(en|regions|countries|cities|physical|figures|daily|about)$|^map-[a-z][a-z0-9]-[a-z0-9]/.test(name) ? 'en' : /^(es|regiones|paises|ciudades|fisica|cifras|reto|acerca)$|^mapa-[a-z][a-z0-9]-[a-z0-9]/.test(name) ? 'es' : '';
+        var page = /^(en|regions|countries|cities|physical|figures|flags|daily|about)$|^map-[a-z][a-z0-9]-[a-z0-9]/.test(name) ? 'en' : /^(es|regiones|paises|ciudades|fisica|cifras|banderas|reto|acerca)$|^mapa-[a-z][a-z0-9]-[a-z0-9]/.test(name) ? 'es' : '';
         var lang = saved.lang === 'es' || saved.lang === 'en' ? saved.lang : page;
         if (!lang) {
           lang = 'es';

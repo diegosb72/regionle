@@ -684,9 +684,10 @@ const FLAG_HAND = path.resolve(ROOT, process.env.OUTSIDE_FLAG_HAND ?? 'scripts/d
 /** Words in a drawing: text that is set, and not shapes that are drawn. */
 const WORDS = /<(text|tspan|textPath|tref)\b/i;
 /**
- * A category of Commons that says of the file in it that it is not a flag that flies: one of other times,
- * one that somebody proposed, one that nobody ever flew. A flag that is only unofficial is not among them:
- * many of the flags that regions are known by have no law behind them.
+ * A category of Commons that may say of the file in it that it is not a flag that flies: one of other
+ * times, one that somebody proposed, one that nobody ever flew. It is told and nothing more: «Historical
+ * flags of…» holds many a flag that flies, and «Flags of former…» speaks of the thing and not of its flag.
+ * What is made of it is decided where the flags are prepared (scripts/data/flags.mjs).
  */
 const NOT_FLOWN = new RegExp(
   [
@@ -1191,7 +1192,7 @@ const FLAGS = {
 const FLAGS_WHAT =
   'items: the Wikidata entity whose flag it is (wd), how it was found when it is not the one the game names (by: redirect or code; hand when the flag is one given in scripts/data/flags-hand.json, with the one Wikidata gave under instead), the Commons file of the flag it flies today (file) and since when (from), ' +
   'other flags the entity gives as of today (also) and those it gives as past or less fit (old), the flag of the entity that carries its ISO 3166-2 code when that is another (other), and whether the entity is far smaller than the division (tiny). ' +
-  `files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; where the file is kept in this branch (kept); the ${FLAG_PICTURE} px picture that Wikimedia draws of it (picture), which stands for an original of more than ${FLAG_MAX / 1e6} MB and goes with a drawing that has words in it (words); for a photograph, the drawing of the same flag that is kept in its place (drawn); and the categories of Commons that say the file is not a flag that flies, when it is in any: historical, proposed or made up (marks). ` +
+  `files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; where the file is kept in this branch (kept); the ${FLAG_PICTURE} px picture that Wikimedia draws of it (picture), which stands for an original of more than ${FLAG_MAX / 1e6} MB and goes with a drawing that has words in it (words); for a photograph, the drawing of the same flag that is kept in its place (drawn); and the categories of Commons it is in that speak of other times, of a proposal or of an invention, which may mean that it is not a flag that flies (marks). ` +
   `The files themselves are under ${FLAG_FILES}, each named after its SHA-1.`;
 
 /**

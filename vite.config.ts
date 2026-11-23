@@ -9,6 +9,82 @@ import { mapPagesOf, type MapSource } from './src/lib/seoMaps.ts';
 
 const FLAG_DIR = path.resolve(process.cwd(), 'node_modules/flag-icons/flags/4x3');
 
+/** Where the flags taken from Wikimedia Commons are kept: in the folder that GitHub Pages publishes, and nowhere else. */
+const COMMONS_DIR = path.resolve(process.cwd(), 'docs/flags/commons');
+/** Where they are served from, under the folder of the site. */
+const COMMONS_AT = ['flags', 'commons'];
+const COMMONS_TYPE: Record<string, string> = { svg: 'image/svg+xml', webp: 'image/webp' };
+
+/** Empties a folder but for one path inside it, which is left as it is. */
+function emptyBut(dir: string, keep: string[]): void {
+  if (!fs.existsSync(dir)) return;
+  for (const name of fs.readdirSync(dir)) {
+    if (name === '.git') continue;
+    const at = path.join(dir, name);
+    if (name !== keep[0]) fs.rmSync(at, { recursive: true, force: true });
+    else if (keep.length > 1) emptyBut(at, keep.slice(1));
+  }
+}
+
+/** Leaves in a folder the files of another, and only those: what is already there stays, since a file never changes under its name. */
+function mirror(from: string, to: string): void {
+  const wanted = new Set(fs.existsSync(from) ? fs.readdirSync(from) : []);
+  fs.mkdirSync(to, { recursive: true });
+  for (const name of fs.readdirSync(to)) if (!wanted.has(name)) fs.rmSync(path.join(to, name), { recursive: true, force: true });
+  for (const name of wanted) {
+    const dest = path.join(to, name);
+    if (fs.existsSync(dest)) continue;
+    try {
+      // The same file under another name, where the disc allows it: nothing is written twice.
+      fs.linkSync(path.join(from, name), dest);
+    } catch {
+      fs.copyFileSync(path.join(from, name), dest);
+    }
+  }
+}
+
+/**
+ * The flags of the divisions and of the capitals (scripts/data/flags.mjs) are thousands of files and tens
+ * of megabytes. The repository keeps them once, in `docs/flags/commons`, where GitHub Pages publishes them
+ * from: a copy in `public/`, for the build to take, would be the same weight again in every clone. So:
+ *
+ *   - the development server reads them from there, at `<base>flags/commons/<file>`;
+ *   - a build empties its folder itself and leaves that one alone (Vite would take it away with the rest);
+ *   - a build into another folder (`dist`) ends by bringing them over, so that what it leaves is the whole site.
+ */
+function commonsFlags(): Plugin {
+  let out = '';
+  let building = false;
+  return {
+    name: 'regionle-commons-flags',
+    config: () => ({ build: { emptyOutDir: false } }),
+    configResolved(config) {
+      out = path.resolve(config.root, config.build.outDir);
+      building = config.command === 'build';
+      if (building && config.build.emptyOutDir !== false) throw new Error('The build must not empty its folder by itself: the flags of docs/flags/commons would go with it. Run it without --emptyOutDir.');
+    },
+    buildStart() {
+      if (building) emptyBut(out, COMMONS_AT);
+    },
+    closeBundle() {
+      const mine = path.join(out, ...COMMONS_AT);
+      if (building && mine !== COMMONS_DIR) mirror(COMMONS_DIR, mine);
+    },
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const m = /\/flags\/commons\/([0-9a-f]{10})\.(svg|webp)(?:\?.*)?$/.exec(req.url ?? '');
+        if (!m) return next();
+        fs.readFile(path.join(COMMONS_DIR, `${m[1]}.${m[2]}`), (err, data) => {
+          if (err) return next();
+          res.setHeader('Content-Type', COMMONS_TYPE[m[2]]);
+          res.setHeader('Cache-Control', 'public, max-age=86400');
+          res.end(data);
+        });
+      });
+    },
+  };
+}
+
 /**
  * Serves the flag-icons SVGs at `<base>flags/<code>.svg`.
  * They stay in node_modules: the dev server reads them on demand and the build copies them into dist.
@@ -155,7 +231,7 @@ export default defineConfig({
   define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   // Relative base: the built site works from any folder (GitHub Pages, a sub-path, file server…).
   base: './',
-  plugins: [react(), flags(), pages()],
+  plugins: [react(), flags(), commonsFlags(), pages()],
   server: { host: '0.0.0.0', port: 5173, strictPort: true, allowedHosts: true },
   preview: { host: '0.0.0.0', port: 4173, strictPort: true, allowedHosts: true },
   build: {

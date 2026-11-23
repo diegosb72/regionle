@@ -5,13 +5,14 @@ import { PIN_SPAIN, open, seed } from './helpers';
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')) as { version: string };
 
 test.describe('the first page and the addresses of the game', () => {
-  test('opens in Spanish, with one main heading and the five sections', async ({ page }) => {
+  test('opens in Spanish, with one main heading, the five sections and the flags', async ({ page }) => {
     await seed(page);
     await open(page);
     await expect(page.locator('html')).toHaveAttribute('lang', 'es');
     await expect(page).toHaveTitle('Regionle ∞ — Aprende las regiones del mundo');
     await expect(page.locator('h1')).toHaveCount(1);
-    for (const path of ['regiones', 'paises', 'ciudades', 'fisica', 'poblaciones']) await expect(page.locator(`nav.nav a[href="#/${path}"]`)).toBeVisible();
+    for (const path of ['regiones', 'paises', 'ciudades', 'fisica', 'poblaciones', 'banderas']) await expect(page.locator(`nav.nav a[href="#/${path}"]`)).toBeVisible();
+    await expect(page.locator('.sections a.scard')).toHaveCount(6);
     await expect(page.locator('.welcome')).toHaveCount(0);
   });
 
