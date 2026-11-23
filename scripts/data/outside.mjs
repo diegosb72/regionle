@@ -81,8 +81,9 @@ function retryAfter(res) {
  * The body of an answer. A place that is busy (429) or broken for a moment (5xx), or that does not answer,
  * is asked again a few times, each time after a longer wait; any other refusal is final. The error of a
  * place that was slow to fail says so (`slow`), and whoever is `impatient` is not made to wait for it twice.
+ * Nor is it asked again past the time there is for it (`until`): the first try is always made.
  */
-async function request(url, { method = 'GET', headers = {}, body, timeout = 60_000, tries = 4, impatient = false } = {}) {
+async function request(url, { method = 'GET', headers = {}, body, timeout = 60_000, tries = 4, impatient = false, until = Infinity } = {}) {
   let last;
   for (let n = 0; n < tries; n++) {
     let wait = PAUSE * 4 ** n;
@@ -101,13 +102,14 @@ async function request(url, { method = 'GET', headers = {}, body, timeout = 60_0
     }
     last.slow = Date.now() - started >= SLOW;
     if (impatient && last.slow) break;
-    if (n < tries - 1) await sleep(wait);
+    if (n === tries - 1 || Date.now() + wait > until) break;
+    await sleep(wait);
   }
   throw last;
 }
 
 /** The rows that Wikidata answers a question with. */
-async function sparql(query, { tries, impatient } = {}) {
+async function sparql(query, { tries, impatient, until } = {}) {
   const { body } = await request(WDQS, {
     method: 'POST',
     headers: { Accept: 'application/sparql-results+json', 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8' },
@@ -115,18 +117,41 @@ async function sparql(query, { tries, impatient } = {}) {
     timeout: 90_000,
     tries,
     impatient,
+    until,
   });
   const rows = JSON.parse(body.toString('utf8'))?.results?.bindings;
   if (!Array.isArray(rows)) throw new Error('Wikidata answered something that is not a table');
   return rows;
 }
 
-/** The rows of a question about a long list, asked a part at a time. */
+/** How many parts of a question may be left for later before the place is taken to be down, and not asked the rest. */
+const LATER = 3;
+
+/**
+ * The rows of a question about a long list, asked a part at a time. A part that is refused is not the end
+ * of the question: it is asked again when the others have been, by when a bad moment of the place has
+ * usually passed. (The query service has one in most runs, and a single one cost a run every entity it
+ * would have set right.) A refusal that is final is not asked about again, nor is anything asked once the
+ * time there was for it is up.
+ */
 async function inParts(list, size, question, opts) {
   const rows = [];
-  for (const part of chunks(list, size)) {
+  const later = [];
+  const ask = async (part) => {
     rows.push(...(await sparql(question(part), opts)));
     await sleep(PAUSE);
+  };
+  for (const part of chunks(list, size)) {
+    try {
+      await ask(part);
+    } catch (err) {
+      if (err.final || later.length >= LATER || Date.now() >= (opts?.until ?? Infinity)) throw err;
+      later.push({ part, err });
+    }
+  }
+  for (const { part, err } of later) {
+    if (Date.now() >= (opts?.until ?? Infinity)) throw err;
+    await ask(part);
   }
   return rows;
 }
@@ -417,7 +442,8 @@ async function regionPopulation(source) {
   const own = new Set(units.filter((u) => u.wd && carried.get(u.wd) === 1));
   if (!own.size) throw new Error('No division of public/data/r has a Wikidata id of its own');
 
-  const figures = await figuresOf([...own].map((u) => u.wd).sort(byNumber));
+  // The one question everything else hangs from. It has half the time of the rest to be answered in.
+  const figures = await figuresOf([...own].map((u) => u.wd).sort(byNumber), { until: Date.now() + PATIENCE / 2 });
   const areas = new Map();
   const measured = new Set();
   const asked = new Set([...own].map((u) => u.wd));
@@ -426,11 +452,15 @@ async function regionPopulation(source) {
   const matched = new Map();
   for (const u of own) if (figures.has(u.wd)) matched.set(u.id, { wd: u.wd, pop: figures.get(u.wd) });
 
-  const lax = { tries: 2 };
+  const until = Date.now() + PATIENCE;
+  /**
+   * How the rest is asked: as often as the first question when it is refused, but not twice of a place that
+   * is slow to fail, and never past the time there is.
+   */
+  const lax = { tries: 4, impatient: true, until };
   const undone = [];
   /** The divisions whose name could not be asked about: which they are says what the service chokes on. */
   const unnamed = [];
-  const until = Date.now() + PATIENCE;
   /** One of the things that can be done without: what it finds is kept, and what stops it is told. */
   const attempt = async (what, find) => {
     if (Date.now() >= until) return void undone.push(`${what} (no quedaba tiempo)`);

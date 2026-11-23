@@ -14,6 +14,7 @@ import { seedOf } from '../lib/challenge';
 import { tolerances } from '../lib/geo';
 import { L, nm } from '../lib/i18n';
 import { MODE_NAME } from '../lib/modes';
+import { usePaused } from '../lib/pause';
 import { NEAR_KM } from '../lib/rules';
 import { useStore } from '../lib/store';
 import { cx, fmtDist, mulberry32, shuffle } from '../lib/text';
@@ -123,12 +124,13 @@ export function BlindGame({ deck, cfg, onExit, onAgain }: GameProps) {
     map.current?.restore();
   };
 
-  // A bull's-eye moves on by itself.
+  // A bull's-eye moves on by itself: not while the clock is stopped, with a note half written or the rules open.
+  const waiting = usePaused();
   useEffect(() => {
-    if (done !== 'ok') return;
+    if (done !== 'ok' || waiting) return;
     const t = setTimeout(next, 1300);
     return () => clearTimeout(t);
-  }, [done, at]);
+  }, [done, at, waiting]);
 
   useEffect(() => {
     if (!ended) return;

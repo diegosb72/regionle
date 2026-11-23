@@ -15,6 +15,18 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.39.1',
+    date: '2026-11-23',
+    es: [
+      'Apuntes: si empiezas uno justo después de acertar a la primera, la partida ya no pasa sola a la siguiente pregunta mientras lo escribes.',
+      'Mientras escribes un apunte el reloj de la partida se para. Al guardarlo o dejarlo, la partida sigue sola un momento después, como siempre.',
+    ],
+    en: [
+      'Notes: if you begin one right after getting an answer right at the first go, the game no longer moves on to the next question while you write it.',
+      'While you write a note the clock of the game stops. Once it is saved or left, the game goes on by itself a moment later, as ever.',
+    ],
+  },
+  {
     version: '1.39.0',
     date: '2026-11-23',
     es: [

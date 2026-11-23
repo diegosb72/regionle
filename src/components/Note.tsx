@@ -1,8 +1,9 @@
 /** The player's own note about a piece: read wherever the piece is shown, and written there too. */
 import { NotebookPen, Pencil } from 'lucide-react';
-import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { L } from '../lib/i18n';
 import { NOTE_MAX, tidyNote } from '../lib/notes';
+import { pauseClock } from '../lib/pause';
 import { useStore } from '../lib/store';
 import './note.css';
 
@@ -43,6 +44,13 @@ export function PieceNote({ id, open = false }: { id: string; open?: boolean }) 
       if (tidyNote(text) !== kept) useStore.getState().setNote(at, text);
     };
   }, [open]);
+
+  // A note that is being written stops the clock of the game (lib/pause.ts): its time does not run, and a
+  // game that moves on by itself after a right answer waits. That answer is on screen for a second, and
+  // the note was taken from under the hands of whoever had begun it.
+  useLayoutEffect(() => {
+    if (editing) return pauseClock();
+  }, [editing]);
 
   if (open) {
     return (

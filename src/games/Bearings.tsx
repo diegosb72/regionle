@@ -12,6 +12,7 @@ import { seedOf } from '../lib/challenge';
 import { spanKm } from '../lib/geo';
 import { L, nm } from '../lib/i18n';
 import { MODE_NAME } from '../lib/modes';
+import { usePaused } from '../lib/pause';
 import { useStore } from '../lib/store';
 import { cx, mulberry32, nf, shuffle } from '../lib/text';
 import { dist, distUnit } from '../lib/units';
@@ -87,12 +88,14 @@ export function BearingGame({ deck, cfg, onExit, onAgain }: GameProps) {
     map.current?.restore();
   };
 
-  // A right answer moves on by itself, once the map has shown it.
+  // A right answer moves on by itself, once the map has shown it: not while the clock is stopped, with a
+  // note half written or the rules open.
+  const waiting = usePaused();
   useEffect(() => {
-    if (done !== 'ok') return;
+    if (done !== 'ok' || waiting) return;
     const t = setTimeout(next, 2200);
     return () => clearTimeout(t);
-  }, [done, at]);
+  }, [done, at, waiting]);
 
   useEffect(() => {
     if (!ended || !results.length) return;
