@@ -35,6 +35,36 @@ test.describe('an exam', () => {
     await expect(page.locator('.answer-input')).toHaveValue('');
   });
 
+  test('takes what is typed at once after an answer for the answer to the next question', async ({ page }) => {
+    await start(page, CAPITALS);
+    await expect(hud(page)).toHaveText('1 / 8');
+    const capital = CAPITAL[await asked(page)];
+    // An answer, and the next one begun in the same breath: before the page has had a moment to itself.
+    const next = await page.evaluate(async (text) => {
+      const input = document.querySelector<HTMLInputElement>('.answer-input')!;
+      const write = (value: string) => {
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, value);
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      };
+      write(text);
+      await null;
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+      await null;
+      const before = input.value;
+      write('Atlántida');
+      await null;
+      return { before, hud: document.querySelector('.hud-main')?.textContent };
+    }, capital);
+    // The question changed with the answer, and the field was emptied with it: not a moment later, when it
+    // would have taken with it what had been typed since.
+    expect(next).toEqual({ before: '', hud: '2 / 8' });
+    await page.waitForTimeout(300);
+    await expect(page.locator('.answer-input')).toHaveValue('Atlántida');
+    await page.keyboard.press('Enter');
+    await expect(hud(page)).toHaveText('3 / 8');
+    await expect(page.locator('.answer-input')).toHaveValue('');
+  });
+
   test('is marked out of ten when it is handed in, with what was answered', async ({ page }) => {
     await start(page, CAPITALS);
     const right = await answer(page, 1);
