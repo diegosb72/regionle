@@ -7,22 +7,9 @@ Qué se trae y de dónde lo dice `scripts/data/outside.mjs`, en la rama del jueg
 
 ## Última descarga: 2026-11-23
 
-Hecha con `main@edaa24b`. Lo que no se pidió esta vez sigue en la rama `datos` como estaba.
+Hecha con `arena/baec5cdd-regionle@624706f`. Lo que no se pidió esta vez sigue en la rama `datos` como estaba.
 
 | Archivo | Qué es | De dónde | Licencia | Resultado |
 | --- | --- | --- | --- | --- |
-| `wikidata/region-population.json` | Población de las divisiones de los mapas | Wikidata (https://www.wikidata.org) | CC0 1.0 | 287 kB · 3884 de 4477 divisiones tienen cifra (3747 por su identificador, 3 por uno que cambió, 3 por la entidad que la sustituyó, 64 por su código ISO, 67 por su nombre) |
-
-## Sitios que contestan
-
-Una petición pequeña a cada sitio del que saldrían los puntos pendientes de la hoja de ruta:
-
-| Sitio | Servidor | Contesta |
-| --- | --- | --- |
-| Wikidata, consultas | `query.wikidata.org` | sí (87 ms) |
-| Wikidata, fichas | `www.wikidata.org` | sí (219 ms) |
-| Wikimedia Commons, fichas de los archivos | `commons.wikimedia.org` | sí (162 ms) |
-| Wikimedia Commons, archivos | `upload.wikimedia.org` | sí (120 ms) |
-| geoBoundaries, fichas de los mapas | `www.geoboundaries.org` | sí (441 ms) |
-| geoBoundaries, archivos | `github.com` | sí (760 ms) |
-| GeoNames, descargas | `download.geonames.org` | sí (1130 ms) |
+| `flags/regions.json` | Banderas de las divisiones de los mapas | Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org) | La de cada archivo, que su entrada dice: dominio público o una licencia libre | 968 kB · 2014 de 4647 tienen bandera; 2001 archivos: 849 descargados (72.600 kB), 1152 sin traer; sin mirar: 1152 de 2001 archivos (HTTP 429 Your bot is making too many requests. Please reduce your request rate or contact bot-traffic@wikimedia.org (f263c81)) |
+| `flags/capitals.json` | Banderas de las capitales de los países | Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org) | La de cada archivo, que su entrada dice: dominio público o una licencia libre | 76 kB · 144 de 243 tienen bandera; 144 archivos: 141 descargados (16.175 kB), 3 sin traer; sin mirar: 3 de 144 archivos (HTTP 429 Your bot is making too many requests. Please reduce your request rate or contact bot-traffic@wikimedia.org (f263c81)) |

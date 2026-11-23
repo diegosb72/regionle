@@ -1,106 +1,130 @@
 {
-  "when": "2026-11-23T12:03:19.506Z",
-  "from": "main@edaa24b",
+  "when": "2026-11-23T18:37:45.744Z",
+  "from": "arena/baec5cdd-regionle@624706f",
   "workflow": "same",
   "sources": [
     {
-      "id": "wikidata-region-population",
-      "file": "wikidata/region-population.json",
-      "from": "Wikidata (https://www.wikidata.org)",
-      "licence": "CC0 1.0",
-      "what": "Population (P1082) of each division of the maps, by its id in the game: the Wikidata entity the figure is of (wd), how it was found when it is not the one the maps name (by: redirect, successor, code or name; with its English name), the area Wikidata gives it (km2), whether it says it is not where its map is (abroad), and its statements of best rank, the newest first, as [people, day]",
-      "es": "Población de las divisiones de los mapas",
-      "needs": "29",
+      "id": "flags-regions",
+      "file": "flags/regions.json",
+      "from": "Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org)",
+      "licence": "La de cada archivo, que su entrada dice: dominio público o una licencia libre",
+      "flags": true,
+      "what": "The flag of each division of the maps, at every level they have, by its id in the game. items: the Wikidata entity whose flag it is (wd), how it was found when it is not the one the game names (by: redirect or code), the Commons file of the flag it flies today (file) and since when (from), other flags the entity gives as of today (also) and those it gives as past or less fit (old), the flag of the entity that carries its ISO 3166-2 code when that is another (other), and whether the entity is far smaller than the division (tiny). files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; where the file is kept in this branch (kept), or the 960 px picture of an original of more than 1 MB (picture); and, for a photograph, the drawing of the same flag that is kept in its place (drawn). The files themselves are under flags/files, each named after its SHA-1.",
+      "es": "Banderas de las divisiones de los mapas",
+      "needs": "37",
       "ok": true,
-      "bytes": 286813,
-      "blob": "ffc738167dd3f24413fd636391709a5889b15602",
-      "note": "3884 de 4477 divisiones tienen cifra (3747 por su identificador, 3 por uno que cambió, 3 por la entidad que la sustituyó, 64 por su código ISO, 67 por su nombre)",
+      "bytes": 967614,
+      "blob": "0a15ff1e7a58debb3abda5dc9f5acc1c71ce9c8d",
+      "note": "2014 de 4647 tienen bandera; 2001 archivos: 849 descargados (72.600 kB), 1152 sin traer; sin mirar: 1152 de 2001 archivos (HTTP 429 Your bot is making too many requests. Please reduce your request rate or contact bot-traffic@wikimedia.org (f263c81))",
       "detail": {
-        "divisions": 4477,
-        "found": 3884,
+        "asked": 4647,
+        "found": 2014,
         "by": {
-          "id": 3747,
-          "redirect": 3,
-          "successor": 3,
-          "code": 64,
-          "name": 67
+          "id": 1904,
+          "code": 108,
+          "redirect": 2
         },
-        "abroad": 0,
-        "doubted": 32,
-        "proposed": {
-          "redirect": 3,
-          "successor": 7,
-          "code": 82,
-          "name": 203
+        "doubted": {
+          "other": 12,
+          "tiny": 12
         },
-        "refused": {
-          "redirect": 0,
-          "successor": 0,
-          "code": 6,
-          "name": 64
+        "files": {
+          "all": 2047,
+          "missing": 1,
+          "drawn": 46,
+          "wanted": 2001,
+          "brought": 849,
+          "there": 0,
+          "left": 1152,
+          "bytes": 72600327
         },
-        "undone": [],
-        "unnamed": []
+        "kinds": {
+          "svg": 1734,
+          "png": 237,
+          "gif": 60,
+          "jpg": 16
+        },
+        "licences": {
+          "Public domain": 1224,
+          "CC BY-SA 4.0": 348,
+          "CC BY-SA 3.0": 331,
+          "CC0": 81,
+          "CC BY-SA 2.5": 30,
+          "CC BY 4.0": 12,
+          "CC BY 3.0": 9,
+          "CC BY 2.5": 3,
+          "FAL": 2,
+          "?": 1,
+          "Attribution": 1,
+          "CC BY 2.5 ar": 1,
+          "CC BY-SA 1.0": 1,
+          "CC BY-SA 3.0 gr": 1,
+          "Copyrighted free use": 1,
+          "GFDL": 1
+        },
+        "undone": [
+          "1152 de 2001 archivos (HTTP 429 Your bot is making too many requests. Please reduce your request rate or contact bot-traffic@wikimedia.org (f263c81))"
+        ]
       },
-      "ms": 218316
+      "ms": 717356
+    },
+    {
+      "id": "flags-capitals",
+      "file": "flags/capitals.json",
+      "from": "Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org)",
+      "licence": "La de cada archivo, que su entrada dice: dominio público o una licencia libre",
+      "flags": true,
+      "what": "The flag of the capital, or capitals, of each country, by the id the city has in the game. items: the Wikidata entity whose flag it is (wd), how it was found when it is not the one the game names (by: redirect or code), the Commons file of the flag it flies today (file) and since when (from), other flags the entity gives as of today (also) and those it gives as past or less fit (old), the flag of the entity that carries its ISO 3166-2 code when that is another (other), and whether the entity is far smaller than the division (tiny). files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; where the file is kept in this branch (kept), or the 960 px picture of an original of more than 1 MB (picture); and, for a photograph, the drawing of the same flag that is kept in its place (drawn). The files themselves are under flags/files, each named after its SHA-1.",
+      "es": "Banderas de las capitales de los países",
+      "needs": "112",
+      "ok": true,
+      "bytes": 75554,
+      "blob": "80f22c51cd3b3481e6f73e0378dbc4ac260e32cb",
+      "note": "144 de 243 tienen bandera; 144 archivos: 141 descargados (16.175 kB), 3 sin traer; sin mirar: 3 de 144 archivos (HTTP 429 Your bot is making too many requests. Please reduce your request rate or contact bot-traffic@wikimedia.org (f263c81))",
+      "detail": {
+        "asked": 243,
+        "found": 144,
+        "by": {
+          "id": 144
+        },
+        "doubted": {
+          "other": 0,
+          "tiny": 0
+        },
+        "files": {
+          "all": 145,
+          "missing": 0,
+          "drawn": 1,
+          "wanted": 144,
+          "brought": 141,
+          "there": 0,
+          "left": 3,
+          "bytes": 16175164
+        },
+        "kinds": {
+          "svg": 133,
+          "png": 7,
+          "jpg": 3,
+          "gif": 2
+        },
+        "licences": {
+          "Public domain": 96,
+          "CC BY-SA 4.0": 19,
+          "CC BY-SA 3.0": 11,
+          "CC0": 11,
+          "CC BY 3.0": 3,
+          "CC BY 2.5 ar": 1,
+          "CC BY 4.0": 1,
+          "CC BY-SA 2.5": 1,
+          "CC BY-SA 3.0 lu": 1,
+          "Copyrighted free use": 1
+        },
+        "undone": [
+          "3 de 144 archivos (HTTP 429 Your bot is making too many requests. Please reduce your request rate or contact bot-traffic@wikimedia.org (f263c81))"
+        ]
+      },
+      "ms": 141487
     }
   ],
-  "reach": [
-    {
-      "name": "Wikidata, consultas",
-      "host": "query.wikidata.org",
-      "ok": true,
-      "status": 200,
-      "bytes": 235,
-      "ms": 87
-    },
-    {
-      "name": "Wikidata, fichas",
-      "host": "www.wikidata.org",
-      "ok": true,
-      "status": 200,
-      "bytes": 3462,
-      "ms": 219
-    },
-    {
-      "name": "Wikimedia Commons, fichas de los archivos",
-      "host": "commons.wikimedia.org",
-      "ok": true,
-      "status": 200,
-      "bytes": 620,
-      "ms": 162
-    },
-    {
-      "name": "Wikimedia Commons, archivos",
-      "host": "upload.wikimedia.org",
-      "ok": true,
-      "status": 200,
-      "bytes": 594,
-      "ms": 120
-    },
-    {
-      "name": "geoBoundaries, fichas de los mapas",
-      "host": "www.geoboundaries.org",
-      "ok": true,
-      "status": 200,
-      "bytes": 1710,
-      "ms": 441
-    },
-    {
-      "name": "geoBoundaries, archivos",
-      "host": "github.com",
-      "ok": true,
-      "status": 200,
-      "bytes": 1007,
-      "ms": 760
-    },
-    {
-      "name": "GeoNames, descargas",
-      "host": "download.geonames.org",
-      "ok": true,
-      "status": 200,
-      "bytes": 32112,
-      "ms": 1130
-    }
-  ]
+  "reach": []
 }
