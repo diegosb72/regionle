@@ -124,6 +124,11 @@ describe('the preferences of a backup', () => {
     expect(cleanPrefs({ opts: { pairOf: 'capital', pairs: 12 } }, here)!.opts).toMatchObject({ pairOf: 'capital', pairs: 12 });
     expect(cleanPrefs({ opts: { pairOf: 'anthem', pairs: 7 } }, here)!.opts).toMatchObject({ pairOf: DEFAULT_OPTS.pairOf, pairs: DEFAULT_OPTS.pairs });
     expect(cleanPrefs({ opts: { countdown: 1e9 } }, here)!.opts.countdown).toBe(DEFAULT_OPTS.countdown);
+    // What the game of the facts asks for, and what "pin it" shows of a country: each one of those the game has.
+    for (const fact of ['currency', 'language', 'domain', 'dial'] as const) expect(cleanPrefs({ opts: { fact } }, here)!.opts.fact).toBe(fact);
+    for (const fact of ['anthem', 'capital', '', 3, null]) expect(cleanPrefs({ opts: { fact } }, here)!.opts.fact, String(fact)).toBe('currency');
+    for (const pinBy of ['name', 'capital', 'flag', 'domain', 'dial'] as const) expect(cleanPrefs({ opts: { pinBy } }, here)!.opts.pinBy).toBe(pinBy);
+    for (const pinBy of ['currency', 'language', 'smell']) expect(cleanPrefs({ opts: { pinBy } }, here)!.opts.pinBy, pinBy).toBe('name');
     // The rule of the route game, when it is one.
     expect(cleanPrefs({ opts: { routeRule: 'via' } }, here)!.opts.routeRule).toBe('via');
     expect(cleanPrefs({ opts: { routeRule: 'swim' } }, here)!.opts.routeRule).toBe('none');

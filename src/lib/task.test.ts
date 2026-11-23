@@ -184,6 +184,17 @@ describe('a game that is set, in words', () => {
     expect(said({ section: 'countries', link: { ids: ['ES', 'FR', 'PT', 'IT'], levels: {}, mode: 'flag' } }, opts({ flagLook: 'grey', answer: 'choice' }))).toBe('Banderas · todas las preguntas · banderas en gris');
   });
 
+  it('says what the game of the facts asks for', () => {
+    const facts = { section: 'countries' as const, link: { ids: ['ES', 'FR', 'PT', 'IT'], levels: {}, mode: 'fact' } };
+    expect(said(facts, opts({ answer: 'choice' }))).toBe('Datos del país · moneda · todas las preguntas');
+    expect(said(facts, opts({ fact: 'language', answer: 'type' }))).toBe('Datos del país · idioma · todas las preguntas · escribiendo');
+    expect(said(facts, opts({ fact: 'dial', format: 'exam', length: 10, answer: 'type' }))).toBe('Datos del país · prefijo · Examen · 10 preguntas · escribiendo');
+    // Another game says nothing of it, whatever was chosen for this one.
+    expect(said({ ...facts, link: { ...facts.link, mode: 'capital' } }, opts({ fact: 'dial', answer: 'choice' }))).toBe('Capitales · todas las preguntas');
+    setLang('en');
+    expect(said(facts, opts({ fact: 'domain', answer: 'choice' }))).toBe('Country facts · domain · every question');
+  });
+
   it('is said in English too', () => {
     setLang('en');
     expect(said(SPAIN, HARD)).toBe('Pin it · every question · 1 try, no hints');

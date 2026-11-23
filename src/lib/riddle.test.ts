@@ -3,6 +3,7 @@ import path from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { buildDeck, loadIndex, setLoader } from './data';
 import { buildCityDeck, buildPhysicalDeck } from './extra';
+import { loadFacts } from './facts';
 import { setLang } from './i18n';
 import { CLUES_OK, cluesFor, judgeRiddle, riddlePoints, type Clue } from './riddle';
 import type { Places } from './sets';
@@ -52,6 +53,41 @@ describe('the clues of a country', () => {
     expect(ids(cluesFor(deck.byId.get('MC')!, deck, places, mulberry32(1)))).not.toContain('capital');
     const gb = cluesFor(deck.byId.get('GB')!, deck, places, mulberry32(1));
     expect(text(gb, 'initial')).toBe('Mi nombre empieza por «R» y tiene 10 letras, en 2 palabras.');
+  });
+
+  it('say what it speaks and what it pays with, where that has come with the map, and not what its name gives away', async () => {
+    const map = await buildDeck({ scope: 'countries', countries: world, levels: {} });
+    const deck = { ...map, facts: await loadFacts() };
+    const of = (id: string) => cluesFor(deck.byId.get(id)!, deck, places, mulberry32(1));
+    // After its borders and before a neighbour: many countries share a language or a currency.
+    const at = of('AT');
+    expect(ids(at)).toEqual(['size', 'part', 'borders', 'language', 'currency', 'neighbour', 'capital', 'flag', 'initial']);
+    expect(text(at, 'language')).toBe('Mi idioma oficial es el alemán.');
+    expect(text(at, 'currency')).toBe('Mi moneda se llama euro.');
+    // Where there are several, one of them is told, and said to be one.
+    expect(text(of('CH'), 'language')).toBe('Uno de mis idiomas oficiales es el alemán.');
+    expect(text(of('CH'), 'currency')).toBe('Mi moneda se llama franco.');
+    expect(text(of('PA'), 'language')).toBe('Mi idioma oficial es el español.');
+    expect(text(of('PA'), 'currency')).toBe('Una de mis monedas se llama balboa.');
+    // French would be the answer; so would the boliviano.
+    expect(ids(of('FR'))).not.toContain('language');
+    expect(text(of('FR'), 'currency')).toBe('Mi moneda se llama euro.');
+    expect(ids(of('BO'))).not.toContain('currency');
+    expect(text(of('BO'), 'language')).toBe('Uno de mis idiomas oficiales es el español.');
+    // Without them the clues are the ones there always were.
+    expect(ids(cluesFor(map.byId.get('AT')!, map, places, mulberry32(1)))).toEqual(['size', 'part', 'borders', 'neighbour', 'capital', 'flag', 'initial']);
+
+    setLang('en');
+    const en = { ...(await buildDeck({ scope: 'countries', countries: world, levels: {} })), facts: deck.facts };
+    const said = (id: string) => cluesFor(en.byId.get(id)!, en, places, mulberry32(1));
+    const [austria, panama, swiss, germany] = [said('AT'), said('PA'), said('CH'), said('DE')];
+    setLang('es');
+    expect(text(austria, 'language')).toBe('My official language is German.');
+    expect(text(austria, 'currency')).toBe('My currency is called the euro.');
+    expect(text(panama, 'currency')).toBe('One of my currencies is called the balboa.');
+    expect(text(swiss, 'language')).toBe('One of my official languages is German.');
+    // What gives a country away is judged by its name in the language of the game: German says Germany, not Alemania... nor Austria.
+    expect(ids(germany)).not.toContain('language');
   });
 
   it('name the part of the world only where the map has several', async () => {

@@ -135,6 +135,30 @@ describe('what is kept of a game to play it again', () => {
     expect(list.every(isRecent)).toBe(true);
   });
 
+  it('keeps what the game of the facts asked for, which is the game, and what a country was pinned by', () => {
+    const countries = { section: 'countries' as const, countries: ['ES', 'FR'] };
+    const facts = (fact: GameConfig['opts']['fact']) => recentOf(game({ ...countries, mode: 'fact', opts: { ...DEFAULT_OPTS, fact } }), session({ section: 'countries', mode: 'fact' }))!;
+    expect(facts('language').o).toEqual({ fact: 'language', format: 'normal' });
+    expect(facts('dial').o).toEqual({ fact: 'dial', format: 'normal' });
+    // A state kept from before the game says nothing of it: the currency, which the game opens with.
+    expect(facts(undefined as unknown as GameConfig['opts']['fact']).o.fact).toBe('currency');
+    // The currencies and the languages of the same map are two games to play again.
+    expect(recentKey(facts('currency'))).not.toBe(recentKey(facts('language')));
+    expect(isRecent(facts('domain'))).toBe(true);
+    // Played again, it asks the same whatever the game is set to by then.
+    const again = recentConfig(facts('language'), { ...DEFAULT_OPTS, fact: 'dial', answer: 'choice' });
+    expect(again.opts.fact).toBe('language');
+    expect(again.opts.answer).toBe('choice');
+    // Another game keeps nothing of it.
+    expect(recentOf(game({ ...countries, mode: 'capital', opts: { ...DEFAULT_OPTS, fact: 'dial' } }), session({ section: 'countries', mode: 'capital' }))!.o).toEqual({ format: 'normal' });
+    // "Pin it" by a domain or by a dialling code.
+    for (const pinBy of ['domain', 'dial'] as const) {
+      const pin = recentOf(game({ ...countries, mode: 'pin', opts: { ...DEFAULT_OPTS, pinBy } }), session({ section: 'countries' }))!;
+      expect(pin.o).toEqual({ pinBy, format: 'normal' });
+      expect(isRecent(pin)).toBe(true);
+    }
+  });
+
   it('keeps that a map of regions was played by its people, and says nothing when it was by its area', () => {
     const hilo = (regionFig: typeof DEFAULT_OPTS.regionFig) => recentOf(game({ mode: 'hilo', opts: { ...DEFAULT_OPTS, regionFig } }), session({ mode: 'hilo' }))!;
     expect(hilo('pop').o).toEqual({ regionFig: 'pop' });

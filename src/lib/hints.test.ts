@@ -3,10 +3,10 @@ import path from 'node:path';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { buildDeck, loadIndex, setLoader } from './data';
 import { buildCityDeck, buildPhysicalDeck } from './extra';
-import { HINT_KINDS, NEAR_MAX, halve, hintKinds, hintLabel, hintOf, type HintAsk } from './hints';
+import { HINT_KINDS, NEAR_MAX, halve, hintKinds, hintLabel, hintOf, isDigits, type HintAsk } from './hints';
 import { setLang } from './i18n';
 import type { Places } from './sets';
-import { letterHint, mulberry32 } from './text';
+import { hintMax, letterHint, mulberry32 } from './text';
 import type { Deck, Item } from './types';
 
 let places: Places;
@@ -211,6 +211,48 @@ describe('the hints about the answer itself', () => {
     }
     expect(say(deck, 'ES-CM', 'count', "Ha'apai")).toBe('Tiene 6 letras.');
     expect(say(deck, 'ES-CM', 'count', 'Saint-Pierre-et-Miquelon')).toBe('Tiene 21 letras, en 4 palabras.');
+  });
+
+  it('count the digits of a dialling code, and the letters of a domain', async () => {
+    const deck = await buildDeck({ scope: 'countries', countries: europe });
+    expect(say(deck, 'ES', 'count', '+34')).toBe('Tiene 2 cifras.');
+    expect(say(deck, 'ES', 'count', '+7')).toBe('Tiene 1 cifra.');
+    expect(say(deck, 'ES', 'count', '+351')).toBe('Tiene 3 cifras.');
+    // Two groups, as it is said: the one of the Dominican Republic.
+    expect(say(deck, 'ES', 'count', '+1 809')).toBe('Tiene 4 cifras, en 2 grupos.');
+    expect(say(deck, 'ES', 'count', '.es')).toBe('Tiene 2 letras.');
+    // A currency or a language is counted like any other name.
+    expect(say(deck, 'ES', 'count', 'euro')).toBe('Tiene 4 letras.');
+    expect(say(deck, 'ES', 'count', 'sotho septentrional')).toBe('Tiene 18 letras, en 2 palabras.');
+    setLang('en');
+    expect(say(deck, 'ES', 'count', '+34')).toBe('It has 2 digits.');
+    expect(say(deck, 'ES', 'count', '+7')).toBe('It has 1 digit.');
+    expect(say(deck, 'ES', 'count', '+1 809')).toBe('It has 4 digits, in 2 groups.');
+
+    for (const code of ['+34', '+1 809', '34', '1 829', '+7']) expect(isDigits(code), code).toBe(true);
+    for (const text of ['.es', 'euro', '', '+', ' ', 'B2', '3M']) expect(isDigits(text), text).toBe(false);
+    // The plus and the dot are given, like a hyphen: what is left to write are the digits and the letters.
+    expect(letterHint('+34', 0)).toBe('+ _ _');
+    expect(letterHint('+351', 1)).toBe('+ 3 _ _');
+    expect(letterHint('+1 809', 1)).toBe('+ 1   _ _ _');
+    expect(letterHint('.es', 0)).toBe('. _ _');
+    expect(letterHint('.es', 1)).toBe('. e _');
+    // The last one is always left for the player.
+    expect(hintMax('+34')).toBe(1);
+    expect(hintMax('+7')).toBe(0);
+    expect(hintMax('.es')).toBe(1);
+  });
+
+  it('are the only ones about something said of a country: the question shows it whole', async () => {
+    const deck = await buildDeck({ scope: 'countries', countries: europe });
+    const shows = { ...NOTHING, place: true };
+    expect(hintKinds(deck.byId.get('ES')!, deck, { wants: 'fact', by: 'type', shows }, places)).toEqual(['count']);
+    expect(hintKinds(deck.byId.get('ES')!, deck, { wants: 'fact', by: 'pick', shows }, places)).toEqual(['half']);
+    // A country to be found by its domain or its dialling code is helped like one found by its capital: its name is one more hint.
+    const byFact = hintKinds(deck.byId.get('ES')!, deck, { wants: 'place', by: 'click', shows: NOTHING }, places);
+    expect(byFact).toContain('name');
+    expect(byFact).toContain('capital');
+    expect(byFact).not.toContain('count');
   });
 
   it('take away two of the three wrong options, by lot, and never the right one', () => {
