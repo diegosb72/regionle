@@ -1,20 +1,48 @@
 {
-  "when": "2026-11-23T00:19:05.642Z",
-  "from": "main@9910d04",
+  "when": "2026-11-23T09:18:04.407Z",
+  "from": "main@f337bb6",
+  "workflow": "same",
   "sources": [
     {
       "id": "wikidata-region-population",
       "file": "wikidata/region-population.json",
       "from": "Wikidata (https://www.wikidata.org)",
       "licence": "CC0 1.0",
-      "what": "Population (P1082) of each division of the maps that has a Wikidata id: the statements of best rank, the newest first, as [people, day]",
+      "what": "Population (P1082) of each division of the maps, by its id in the game: the Wikidata entity the figure is of (wd), how it was found when it is not the one the maps name (by: redirect, successor, code or name; with its English name), the area Wikidata gives it (km2), whether it says it is not where its map is (abroad), and its statements of best rank, the newest first, as [people, day]",
       "es": "Población de las divisiones de los mapas",
       "needs": "29",
       "ok": true,
-      "bytes": 152309,
-      "blob": "ef73a03f79c8efa7e695c934f45db6c0a4f83bb7",
-      "note": "3783 de 4243 divisiones tienen cifra",
-      "ms": 28689
+      "bytes": 283585,
+      "blob": "f7e529145836551ab1308893555075babe0f0da0",
+      "note": "3858 de 4477 divisiones tienen cifra (3762 por su identificador, 3 por uno que cambió, 3 por la entidad que la sustituyó, 52 por su código ISO, 38 por su nombre); 1 cuya entidad dice estar en otro país; sin mirar: los nombres de 84 de 204 divisiones (HTTP 504 Gateway Timeout)",
+      "detail": {
+        "divisions": 4477,
+        "found": 3858,
+        "by": {
+          "id": 3762,
+          "redirect": 3,
+          "successor": 3,
+          "code": 52,
+          "name": 38
+        },
+        "abroad": 1,
+        "proposed": {
+          "redirect": 3,
+          "successor": 7,
+          "code": 67,
+          "name": 111
+        },
+        "refused": {
+          "redirect": 0,
+          "successor": 0,
+          "code": 6,
+          "name": 34
+        },
+        "undone": [
+          "los nombres de 84 de 204 divisiones (HTTP 504 Gateway Timeout)"
+        ]
+      },
+      "ms": 340421
     }
   ],
   "reach": [
@@ -24,7 +52,7 @@
       "ok": true,
       "status": 200,
       "bytes": 235,
-      "ms": 109
+      "ms": 656
     },
     {
       "name": "Wikidata, fichas",
@@ -32,7 +60,7 @@
       "ok": true,
       "status": 200,
       "bytes": 3462,
-      "ms": 142
+      "ms": 114
     },
     {
       "name": "Wikimedia Commons, fichas de los archivos",
@@ -40,7 +68,7 @@
       "ok": true,
       "status": 200,
       "bytes": 620,
-      "ms": 96
+      "ms": 149
     },
     {
       "name": "Wikimedia Commons, archivos",
@@ -48,7 +76,7 @@
       "ok": true,
       "status": 200,
       "bytes": 594,
-      "ms": 33
+      "ms": 179
     },
     {
       "name": "geoBoundaries, fichas de los mapas",
@@ -56,7 +84,7 @@
       "ok": true,
       "status": 200,
       "bytes": 1710,
-      "ms": 225
+      "ms": 188
     },
     {
       "name": "geoBoundaries, archivos",
@@ -64,7 +92,7 @@
       "ok": true,
       "status": 200,
       "bytes": 1007,
-      "ms": 344
+      "ms": 498
     },
     {
       "name": "GeoNames, descargas",
@@ -72,7 +100,7 @@
       "ok": true,
       "status": 200,
       "bytes": 32112,
-      "ms": 992
+      "ms": 855
     }
   ]
 }
