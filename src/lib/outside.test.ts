@@ -147,7 +147,7 @@ interface Result {
   report: () => {
     from: string | null;
     workflow: 'same' | 'behind' | 'absent';
-    sources: { id: string; ok: boolean; note?: string; error?: string; blob?: string; bytes?: number; detail?: { divisions: number; found: number; by: Record<string, number>; abroad: number; proposed: Record<string, number>; refused: Record<string, number>; undone: string[]; unnamed: string[] } }[];
+    sources: { id: string; ok: boolean; note?: string; error?: string; blob?: string; bytes?: number; detail?: { divisions: number; found: number; by: Record<string, number>; abroad: number; doubted: number; proposed: Record<string, number>; refused: Record<string, number>; undone: string[]; unnamed: string[] } }[];
     reach: unknown[];
   };
 }
@@ -316,6 +316,8 @@ describe('the population of the divisions', () => {
       found: 11,
       by: { id: 3, redirect: 1, successor: 1, code: 2, name: 4 },
       abroad: 1,
+      // The division whose entity is abroad, which nothing else was found for.
+      doubted: 1,
       // How many divisions each way had an entity for (one that is already another division's does not
       // count), and how many of those it left with nothing although an entity had a figure: by its code,
       // the one of another size and the one with two; by its name, the one with two, the one with no area
@@ -357,12 +359,14 @@ describe('the population of the divisions', () => {
   it('looks for a name alone and with each kind of division after it, in English, and alone in Spanish', async () => {
     await run(['--only', SOURCE, '--data', GAME()]);
     const names = asked.filter((q) => q.includes('?called'));
-    // Twelve divisions to look for, four to a group, and two questions to a group: who names the country or
-    // is in it, and who is in something that is in it.
-    expect(names).toHaveLength(6);
-    expect(names.map((q) => q.includes('?mid'))).toEqual([false, true, false, true, false, true]);
-    expect(names.map((q) => new Set([...q.matchAll(/\("([^"]+)" wd:/g)].map((m) => m[1])).size)).toEqual([4, 4, 4, 4, 4, 4]);
-    for (const q of names.slice(4)) expect(q).toContain('("CC-x1" wd:Q300 "Alpha"@en)');
+    // Thirteen divisions to look for (twelve with no entity and the one whose entity is abroad), four to a
+    // group, and two questions to a group: who names the country or is in it, and who is in something that
+    // is in it.
+    expect(names).toHaveLength(8);
+    expect(names.map((q) => q.includes('?mid'))).toEqual([false, true, false, true, false, true, false, true]);
+    expect(names.map((q) => new Set([...q.matchAll(/\("([^"]+)" wd:/g)].map((m) => m[1])).size)).toEqual([4, 4, 4, 4, 4, 4, 1, 1]);
+    for (const q of names.slice(4, 6)) expect(q).toContain('("CC-x1" wd:Q300 "Alpha"@en)');
+    for (const q of names.slice(6)) expect(q).toContain('("CC-x3" wd:Q300 "Gamma"@es)');
     // Each of the two questions, over its three groups, names every division with every name.
     for (const q of [names.filter((x) => !x.includes('?mid')).join(' '), names.filter((x) => x.includes('?mid')).join(' ')]) {
       expect(q).toContain('("AA-x12" wd:Q100 "Doce"@en)');
@@ -429,6 +433,51 @@ describe('the population of the divisions', () => {
     expect(new Set(located).size).toBe(located.length);
   });
 
+  it('looks again, by its code and by its name, for a division whose entity is something else', async () => {
+    const game = maps({
+      HH: {
+        wd: 'Q800',
+        units: [
+          { id: 'HH-x1', es: 'Uno', wd: 'Q801' }, // its entity is a tenth of its size: the city. The region is found by its name
+          { id: 'HH-02', es: 'Dos', wd: 'Q802' }, // the same, and the region is found by its code
+          { id: 'HH-x3', es: 'Tres', wd: 'Q803' }, // the same, and nothing else is found
+          { id: 'HH-x4', es: 'Cuatro', wd: 'Q804' }, // a thousandth of its size: 1.234 written for 1234
+          { id: 'HH-x5', es: 'Cinco', wd: 'Q805' }, // its entity is in another country. The right one is found by its name
+          { id: 'HH-x6', es: 'Seis', wd: 'Q806' }, // its entity is its size
+          { id: 'HH-x7', es: 'Siete', wd: 'Q807' }, // Wikidata does not say how large its entity is
+          { id: 'HH-x8', es: 'Ocho', wd: 'Q808' }, // one of the areas its entity has is its size
+        ],
+      },
+    });
+    const one = (people: number): Figure[] => [[people, '2020-01-01']];
+    world.figures = { Q801: one(1), Q802: one(2), Q803: one(3), Q804: one(4), Q805: one(5), Q806: one(6), Q807: one(7), Q808: one(8), Q811: one(11), Q812: one(12), Q815: one(15), Q816: one(16) };
+    world.areas = { Q801: [10], Q802: [10], Q803: [29], Q804: [0.1], Q805: [100], Q806: [31], Q808: [5, 90], Q811: [105], Q812: [95], Q815: [100], Q816: [100] };
+    world.places = { Q801: ['Q800'], Q802: ['Q800'], Q803: ['Q800'], Q804: ['Q800'], Q805: ['Q777'], Q806: ['Q800'], Q807: ['Q800'], Q808: ['Q800'], Q811: ['Q800'], Q812: ['Q800'], Q815: ['Q800'], Q816: ['Q800'] };
+    world.codes = { 'HH-02': ['Q812'] };
+    // A division that is not doubted is not looked for, whatever else goes by its name.
+    world.names = { 'Q800 Uno Region@en': ['Q811'], 'Q800 Cinco@es': ['Q815'], 'Q800 Seis@es': ['Q816'], 'Q800 Cuatro@es': ['Q816'] };
+    world.labels = { Q811: 'Uno Region', Q812: 'Two', Q815: 'Five' };
+    const r = await run(['--only', SOURCE, '--data', game]);
+    expect(r.data().items).toEqual({
+      'HH-x1': { wd: 'Q811', by: 'name', name: 'Uno Region', km2: 105, pop: one(11) },
+      'HH-02': { wd: 'Q812', by: 'code', name: 'Two', km2: 95, pop: one(12) },
+      'HH-x3': { wd: 'Q803', km2: 29, pop: one(3) },
+      'HH-x4': { wd: 'Q804', km2: 0.1, pop: one(4) },
+      'HH-x5': { wd: 'Q815', by: 'name', name: 'Five', km2: 100, pop: one(15) },
+      'HH-x6': { wd: 'Q806', km2: 31, pop: one(6) },
+      'HH-x7': { wd: 'Q807', pop: one(7) },
+      'HH-x8': { wd: 'Q808', km2: 90, pop: one(8) },
+    });
+    expect(r.report().sources[0].detail).toMatchObject({ found: 8, by: { id: 5, code: 1, name: 2 }, doubted: 4, abroad: 0, undone: [] });
+    const names = asked.filter((q) => q.includes('?called')).join(' ');
+    // By its name, only what its code did not find; and none of those whose entity is not doubted.
+    for (const id of ['HH-x1', 'HH-x3', 'HH-x5']) expect(names).toContain(`"${id}"`);
+    for (const id of ['HH-02', 'HH-x4', 'HH-x6', 'HH-x7', 'HH-x8']) expect(names).not.toContain(`"${id}"`);
+    // The area of each entity is asked once.
+    const measured = asked.filter((q) => q.includes('p:P2046')).flatMap(ids);
+    expect(new Set(measured).size).toBe(measured.length);
+  });
+
   it('escapes a name that would break the question', async () => {
     const game = maps({ AA: { wd: 'Q100', units: [{ id: 'AA-x1', es: 'El "Valle" de\\Arriba' }, { id: 'AA-x2', es: 'Otro', wd: 'Q1' }] } });
     const r = await run(['--only', SOURCE, '--data', game]);
@@ -448,10 +497,12 @@ describe('when Wikidata does not answer', () => {
     expect(source.detail).toMatchObject({ found: 7, by: { id: 3, redirect: 1, successor: 1, code: 2, name: 0 }, undone: ['los nombres (HTTP 500 Internal Server Error)'] });
     expect(source.note).toContain('; sin mirar: los nombres (HTTP 500 Internal Server Error)');
     // Each question twice and no more: a way that fails is not worth the minutes of a fourth try. And only
-    // the first question of each group: the second is of no use without the first.
+    // the first question of each group: the second is of no use without the first. Two groups are refused,
+    // the third is not asked about, and the two are asked about once more at the end.
     const names = asked.filter((q) => q.includes('?called'));
-    expect(names).toHaveLength(4);
+    expect(names).toHaveLength(2 * 2 + 2 * 2);
     expect(names.some((q) => q.includes('?mid'))).toBe(false);
+    expect(names.some((q) => q.includes('"CC-x1"'))).toBe(false);
     // A run that kept everything it could read is not a failed one.
     expect((await run(['--verdict'], { out: r.dir })).code).toBe(0);
   });
@@ -467,11 +518,25 @@ describe('when Wikidata does not answer', () => {
     expect(source.detail).toMatchObject({
       found: 10,
       by: { name: 3 },
-      undone: ['los nombres de 4 de 12 divisiones (HTTP 500 Internal Server Error)'],
+      undone: ['los nombres de 4 de 13 divisiones (HTTP 500 Internal Server Error)'],
       unnamed: ['AA-x12', 'AA-x13', 'AA-x14', 'AA-15'],
     });
-    // The second group: one question answered and the other asked twice. The other two: their two questions.
-    expect(asked.filter((q) => q.includes('?called'))).toHaveLength(2 + 3 + 2);
+    // The second group: one question answered and the other asked twice, and the same again at the end.
+    // The other three: their two questions.
+    expect(asked.filter((q) => q.includes('?called'))).toHaveLength(2 + 3 + 2 + 2 + 3);
+  });
+
+  it('asks once more, at the end, about a group of names that was refused', async () => {
+    // A bad moment of the service: the two tries of one question, and then it answers again.
+    refusals = [{ when: (q) => q.includes('?called') && q.includes('"AA-x12"'), status: 502, times: 2 }];
+    const r = await run(['--only', SOURCE, '--data', GAME()]);
+    expect(r.data().items).toEqual(FOUND);
+    expect(r.report().sources[0].detail).toMatchObject({ undone: [], unnamed: [] });
+    const names = asked.filter((q) => q.includes('?called'));
+    expect(names).toHaveLength(2 + 2 + 2 + 2 + 2);
+    // The group that was refused comes last.
+    expect(names.at(-1)).toContain('"AA-x12"');
+    expect(names.at(-3)).toContain('"CC-x3"');
   });
 
   /** A service that works for a while on what is asked and then gives up, as the real one does at a minute. */
@@ -486,7 +551,7 @@ describe('when Wikidata does not answer', () => {
     expect(r.report().sources[0].detail).toMatchObject({ undone: [], unnamed: [] });
     const names = asked.filter((q) => q.includes('?called'));
     // What it did not finish is not asked again as it was: the group once, and then its four divisions.
-    expect(names).toHaveLength(2 + (1 + 4 * 2) + 2);
+    expect(names).toHaveLength(2 + (1 + 4 * 2) + 2 + 2);
     expect(names.filter((q) => q.includes('"AA-x12"') && q.includes('"AA-x13"'))).toHaveLength(1);
   });
 
@@ -496,9 +561,9 @@ describe('when Wikidata does not answer', () => {
     const { 'AA-x12': left, ...rest } = FOUND;
     expect(left.by).toBe('name');
     expect(r.data().items).toEqual(rest);
-    expect(r.report().sources[0].detail).toMatchObject({ undone: ['los nombres de 1 de 12 divisiones (HTTP 504 Gateway Timeout)'], unnamed: ['AA-x12'] });
+    expect(r.report().sources[0].detail).toMatchObject({ undone: ['los nombres de 1 de 13 divisiones (HTTP 504 Gateway Timeout)'], unnamed: ['AA-x12'] });
     // The group once, the division alone once, and the other three with their two questions.
-    expect(asked.filter((q) => q.includes('?called'))).toHaveLength(2 + (1 + 1 + 3 * 2) + 2);
+    expect(asked.filter((q) => q.includes('?called'))).toHaveLength(2 + (1 + 1 + 3 * 2) + 2 + 2);
   });
 
   it('leaves the names when too many of them are too much for the service', async () => {
@@ -526,8 +591,9 @@ describe('when Wikidata does not answer', () => {
     const r = await run(['--only', SOURCE, '--data', game]);
     expect(Object.keys(r.data().items)).toEqual(['GG-x0', 'GG-x1']);
     expect(r.report().sources[0].detail?.undone).toEqual(['los nombres de 19 de 35 divisiones (HTTP 503 Service Unavailable)']);
-    // A question that is refused at once is asked twice, and its group is not taken apart: it would be refused again.
-    expect(asked.filter((q) => q.includes('?called'))).toHaveLength(4 * 2 + 2 * 2);
+    // A question that is refused at once is asked twice, and its group is not taken apart: it would be refused
+    // again. The two groups that were refused are asked about once more at the end.
+    expect(asked.filter((q) => q.includes('?called'))).toHaveLength(4 * 2 + 2 * 2 + 2 * 2);
     expect(asked.join('\n')).not.toContain('"GG-x31"');
   });
 
@@ -538,7 +604,7 @@ describe('when Wikidata does not answer', () => {
     expect(asked).toHaveLength(1);
     expect(r.data().items).toEqual({ 'AA-01': { wd: 'Q1', pop: FOUND['AA-01'].pop }, 'CC-x2': { wd: 'Q320', pop: [[0, '2020-01-01']] }, 'CC-x3': { wd: 'Q330', pop: [[330, '2021-01-01']] } });
     const undone = r.report().sources[0].detail?.undone ?? [];
-    expect(undone).toHaveLength(7);
+    expect(undone).toHaveLength(8);
     expect(undone.every((what) => what.endsWith('(no quedaba tiempo)'))).toBe(true);
     expect((await run(['--verdict'], { out: r.dir })).code).toBe(0);
   });
@@ -563,6 +629,7 @@ describe('when Wikidata does not answer', () => {
       'CC-x3': { wd: 'Q330', pop: [[330, '2021-01-01']] },
     });
     expect(r.report().sources[0].detail?.undone.map((what) => what.replace(/ \(.*/, ''))).toEqual([
+      'las entidades que no parecen su división',
       'las entidades que sustituyeron a otra',
       'los códigos ISO 3166-2',
       'los nombres',

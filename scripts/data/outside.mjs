@@ -253,13 +253,15 @@ const NAMED_REFUSED = 2;
  * some groups of names that it answers at once when they are fewer (ten divisions at a time cost the first
  * run on GitHub two groups, a minute each), so the groups are small, and one that it does not finish is
  * asked again a division at a time: only the division it cannot take is left out. Asking stops when the
- * service refuses outright, when too many divisions are too much for it, and when the time is up.
+ * service refuses outright, when too many divisions are too much for it, and when the time is up. A group
+ * that was refused is asked about once more at the end: a bad moment of the service passes.
  *
  * Gives what it found, the divisions it could not ask about, and the last thing that went wrong.
  */
 async function namedOf(units, until = Infinity) {
   const named = new Map();
   const unasked = [];
+  const again = [];
   let [heavy, refused, last] = [0, 0, null];
   const over = () => Date.now() >= until || heavy >= NAMED_HEAVY || refused >= NAMED_REFUSED;
   const ask = async (part) => {
@@ -284,9 +286,13 @@ async function namedOf(units, until = Infinity) {
     } catch (err) {
       last = err;
       // Refused, or a division that is already alone: nothing smaller to ask.
-      if (!err.slow || part.length === 1) {
-        if (err.slow) heavy++;
-        else refused++;
+      if (!err.slow) {
+        refused++;
+        again.push(part);
+        continue;
+      }
+      if (part.length === 1) {
+        heavy++;
         unasked.push(...ids);
         continue;
       }
@@ -304,6 +310,15 @@ async function namedOf(units, until = Infinity) {
         else refused++;
         unasked.push(u.id);
       }
+    }
+  }
+  for (const part of again) {
+    try {
+      if (Date.now() >= until) throw last;
+      await ask(part);
+    } catch (err) {
+      last = err;
+      unasked.push(...part.map((u) => u.id));
     }
   }
   return { named, unasked, last };
@@ -348,6 +363,10 @@ function lined(head, items) {
 
 /** How far the area that Wikidata gives may be from that of the division for both to be the same land. */
 const SAME_SIZE = [2 / 3, 3 / 2];
+/** An entity with less than this share of the area of a division is something else: the city a province is called after. */
+const TINY = 0.3;
+/** Unless it is a thousandth of it: 1.234 written where 1234 was meant, which Wikidata has here and there. */
+const SLIP = [0.0008, 0.00125];
 /** What Wikidata adds in English to the name of a place to name the division that is called after it. */
 const KINDS = ['Region', 'District', 'Province', 'Municipality', 'Parish', 'County', 'Department', 'Governorate', 'Prefecture', 'State'];
 /** The ways a figure is found, as the file names them (`by`) and as the report tells them. */
@@ -376,10 +395,13 @@ const WAYS = [
  * has to be answered: a way that Wikidata does not answer, or that there is no time left for, is left out,
  * and the note says so.
  *
- * The id that the maps name is taken as it comes, and it can be wrong (the source gives a Belgian province
- * the id of a district of Luxembourg). So that it can be seen, each entity comes with the area Wikidata gives
- * it (`km2`) and, when it says it is somewhere that is not where its map is, with `abroad`. What to do with
- * those is for the build to decide, with the figures in hand.
+ * The id that the maps name can be wrong: the source gives a Belgian province the id of a district of
+ * Luxembourg, and more than one region the id of the city it is called after. An entity that says it is
+ * somewhere else than its map, or that is far smaller than its division, is doubted: the division is looked
+ * for by its code and by its name too, like those with no entity, and what that finds takes its place. With
+ * nothing better found it keeps the entity of the maps. So that it can be seen, each entity comes with the
+ * area Wikidata gives it (`km2`) and, when it says it is not where its map is, with `abroad`: what to do
+ * with those is for the build to decide, with the figures in hand.
  *
  * Where a map is: its country, the state that country depends on and whatever most of its divisions say they
  * are in. The last is needed because the id the maps give a country is not always the one its divisions
@@ -487,6 +509,21 @@ async function regionPopulation(source) {
     refused[by] = [...free].filter(([u, ids]) => !matched.has(u.id) && ids.some((id) => figures.has(id))).length;
   };
 
+  const doubted = new Set();
+  const tiny = (u, id) => {
+    const known = areas.get(id) ?? [];
+    return !!u.area && known.length > 0 && known.every((km2) => km2 / u.area < TINY && !(km2 / u.area >= SLIP[0] && km2 / u.area <= SLIP[1]));
+  };
+  await attempt('las entidades que no parecen su división', async () => {
+    await calibrate();
+    const ids = [...own].filter((u) => matched.has(u.id)).map((u) => u.wd).sort(byNumber);
+    for (const [id, list] of await areasOf(ids, lax)) areas.set(id, list);
+    for (const id of ids) measured.add(id);
+    for (const u of own) if (matched.has(u.id) && ((places.has(u.wd) && !within(u, u.wd)) || tiny(u, u.wd))) doubted.add(u);
+  });
+  /** Whether a division is still to be found: it has no entity of its own, or the one it has is doubted and nothing has taken its place. */
+  const wanting = (u) => (own.has(u) ? doubted.has(u) && !matched.get(u.id)?.by : !matched.has(u.id));
+
   await attempt('los identificadores que han cambiado', async () => {
     const lacking = [...own].filter((u) => !matched.has(u.id));
     const moved = await movedOf(lacking.map((u) => u.wd).sort(byNumber), lax);
@@ -507,7 +544,7 @@ async function regionPopulation(source) {
   });
 
   await attempt('los códigos ISO 3166-2', async () => {
-    const lacking = units.filter((u) => !own.has(u) && ISO.test(u.id));
+    const lacking = units.filter((u) => wanting(u) && ISO.test(u.id));
     const coded = await codedOf(lacking.map((u) => u.id), lax);
     await calibrate();
     await locate([...coded.values()].flatMap((ids) => [...ids]).filter((id) => !taken.has(id)));
@@ -520,7 +557,7 @@ async function regionPopulation(source) {
   });
 
   await attempt('los nombres', async () => {
-    const lacking = units.filter((u) => !own.has(u) && !matched.has(u.id) && u.country && (u.en || u.es));
+    const lacking = units.filter((u) => wanting(u) && u.country && (u.en || u.es));
     const called = (u) => [...(u.en ? [u.en, ...KINDS.map((kind) => `${u.en} ${kind}`)].map((name) => [name, 'en']) : []), ...(u.es ? [[u.es, 'es']] : [])];
     const { named, unasked, last } = await namedOf(lacking.map((u) => ({ id: u.id, country: u.country, names: called(u) })), until);
     unnamed.push(...unasked);
@@ -571,7 +608,7 @@ async function regionPopulation(source) {
       ...(abroad ? [`${abroad} cuya entidad dice estar en otro país`] : []),
       ...(undone.length ? [`sin mirar: ${undone.join('; ')}`] : []),
     ].join('; '),
-    detail: { divisions: units.length, found: matched.size, by, abroad, proposed, refused, undone, unnamed },
+    detail: { divisions: units.length, found: matched.size, by, abroad, doubted: doubted.size, proposed, refused, undone, unnamed },
   };
 }
 
