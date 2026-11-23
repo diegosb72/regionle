@@ -676,8 +676,9 @@ const FLAGS_FAILED = 8;
  */
 const FLAG_PICTURES = path.resolve(ROOT, process.env.OUTSIDE_FLAG_PICTURES ?? 'scripts/data/flags-pictures.txt');
 /**
- * The flags that are given by hand: for each source, by the id of the thing, the Commons title of its flag.
- * For what Wikidata has no flag of, or gives one that is not the flag (the banner of the city of Rome).
+ * The flags that are given by hand: for each source, by the id of the thing, the Commons title of its flag
+ * (`file`) and how it is known to be the one (`why`). For what Wikidata has no flag of, or gives one that
+ * is not the flag (the banner of the city of Rome).
  */
 const FLAG_HAND = path.resolve(ROOT, process.env.OUTSIDE_FLAG_HAND ?? 'scripts/data/flags-hand.json');
 /** Words in a drawing: text that is set, and not shapes that are drawn. */
@@ -894,7 +895,7 @@ async function keptFiles() {
 function byHand(source) {
   try {
     const said = JSON.parse(fs.readFileSync(FLAG_HAND, 'utf8'))[source.id] ?? {};
-    return new Map(Object.entries(said).filter(([, title]) => typeof title === 'string' && title.trim()).map(([id, title]) => [id, title.trim()]));
+    return new Map(Object.entries(said).filter(([, one]) => typeof one?.file === 'string' && one.file.trim()).map(([id, one]) => [id, one.file.trim()]));
   } catch {
     return new Map();
   }

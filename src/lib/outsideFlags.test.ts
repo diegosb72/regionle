@@ -450,7 +450,8 @@ describe('the flag of each division', () => {
     delete world.flags.Q2;
     for (const name of ['The real flag of Uno.svg', 'Flag of Dos by hand.svg']) world.files[name] = { body: svg(name) };
     const hand = path.join(fresh('hand'), 'hand.json');
-    fs.writeFileSync(hand, JSON.stringify({ 'flags-regions': { 'AA-01': 'The real flag of Uno.svg', 'AA-02': 'Flag of Dos by hand.svg', 'AA-03': 'Flag of Tres.svg', 'ZZ-99': 'Nowhere.svg', 'AA-04': '' }, 'flags-capitals': { 'AA-04': 'Capital.svg' } }));
+    const given = (file: string) => ({ file, why: 'seen' });
+    fs.writeFileSync(hand, JSON.stringify({ 'flags-regions': { 'AA-01': given('The real flag of Uno.svg'), 'AA-02': given('Flag of Dos by hand.svg'), 'AA-03': given('Flag of Tres.svg'), 'ZZ-99': given('Nowhere.svg'), 'AA-04': given('') }, 'flags-capitals': { 'AA-04': given('Capital.svg') } }));
     const r = await run('flags-regions', data, { OUTSIDE_FLAG_HAND: hand });
     expect(r.data().items).toEqual({
       'AA-01': { wd: 'Q1', by: 'hand', file: 'The real flag of Uno.svg', instead: 'Flag of Uno.svg' },
@@ -808,19 +809,20 @@ describe('the lists of the repository', () => {
     for (const id of Object.keys(FILE)) expect(script).toContain(`id: '${id}'`);
   });
 
-  it('gives flags by hand to sources that exist, each to a thing of the game and by a file with a name', () => {
-    const hand = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/data/flags-hand.json'), 'utf8')) as Record<string, Record<string, string>>;
+  it('gives flags by hand to sources that exist, each to a thing of the game, by a file with a name and with its reason', () => {
+    const hand = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/data/flags-hand.json'), 'utf8')) as Record<string, Record<string, { file: string; why: string }>>;
     expect(Object.keys(hand).sort()).toEqual(Object.keys(FILE).sort());
     const cities = (JSON.parse(fs.readFileSync(path.join(ROOT, 'public/data/cities.json'), 'utf8')) as { c: Record<string, { i: string; k?: number }[]> }).c;
     const capitals = new Set(Object.values(cities).flat().filter((c) => (c.k ?? 0) >= 2).map((c) => c.i));
-    for (const [id, title] of Object.entries(hand['flags-capitals'])) {
-      expect(capitals, id).toContain(id);
-      expect(title).toMatch(/\S\.(svg|png|gif|jpe?g)$/i);
-    }
-    for (const [id, title] of Object.entries(hand['flags-regions'])) {
+    for (const id of Object.keys(hand['flags-capitals'])) expect(capitals, id).toContain(id);
+    for (const id of Object.keys(hand['flags-regions'])) {
       const file = path.join(ROOT, 'public/data/r', `${id.slice(0, 2)}.json`);
       expect(fs.existsSync(file) && fs.readFileSync(file, 'utf8').includes(`"id":"${id}"`), id).toBe(true);
-      expect(title).toMatch(/\S\.(svg|png|gif|jpe?g)$/i);
+    }
+    for (const one of Object.values(hand).flatMap((by) => Object.values(by))) {
+      expect(Object.keys(one)).toEqual(['file', 'why']);
+      expect(one.file).toMatch(/^\S.*\.(svg|png|gif|jpe?g)$/i);
+      expect(one.why.length).toBeGreaterThan(10);
     }
   });
 
