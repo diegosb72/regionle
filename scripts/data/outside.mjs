@@ -651,8 +651,12 @@ const COMMONS = process.env.OUTSIDE_COMMONS ?? 'https://commons.wikimedia.org/w/
  * a run that was cut short is taken up where it stopped. Nowhere, away from GitHub.
  */
 const KEPT = process.env.OUTSIDE_KEPT ?? (process.env.GITHUB_REPOSITORY ? `https://raw.githubusercontent.com/${process.env.GITHUB_REPOSITORY}/datos` : '');
-/** An original heavier than this, in bytes, is not brought: the picture that Wikimedia draws of it is. */
-const FLAG_MAX = Number(process.env.OUTSIDE_FLAG_MAX ?? 1_000_000);
+/**
+ * An original heavier than this, in bytes, is not brought: the picture that Wikimedia draws of it is. A
+ * drawing is left at well under half its weight once it is cleaned (scripts/data/flag-image.mjs), and the
+ * game keeps as drawings those that then weigh up to 750 kB: one of more than this would not be among them.
+ */
+const FLAG_MAX = Number(process.env.OUTSIDE_FLAG_MAX ?? 2_000_000);
 /** How wide that picture is, in px: one of the widths Wikimedia draws. */
 const FLAG_PICTURE = 960;
 /**
