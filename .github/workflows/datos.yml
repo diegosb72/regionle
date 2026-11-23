@@ -1,0 +1,124 @@
+# Brings into the repository the source data that are kept outside GitHub, npm and PyPI, which is all that
+# the place where the game is written can reach: Wikidata, Wikimedia Commons, geoBoundaries…
+#
+# It runs only when somebody presses its button (Actions → Traer datos → Run workflow), on the branch that
+# is chosen there:
+#
+#   · "Descargar" runs `npm run data:outside` (scripts/data/outside.mjs), which downloads what its list
+#     says. This job can read the repository and nothing else.
+#   · "Guardar en la rama datos" runs nothing of the repository: it takes what the first job downloaded and
+#     keeps it in the branch `datos`. That branch is the only thing this workflow ever writes: `main` is not
+#     touched and nothing is published.
+#
+# A source that could not be read ends the run in red, after what was read has been kept.
+#
+# This file works from .github/workflows/datos.yml. Only the owner of the repository can put it there (the
+# README says how); scripts/data/traer-datos.yml is the copy to take it from, and is not run from where it is.
+name: Traer datos
+
+on:
+  workflow_dispatch:
+    inputs:
+      solo:
+        description: 'Solo estas fuentes, separadas por comas (vacío: todas)'
+        type: string
+        default: ''
+      vaciar:
+        description: Vaciar antes la rama datos
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# One at a time: two runs would write the same branch.
+concurrency:
+  group: traer-datos
+  cancel-in-progress: false
+
+jobs:
+  descargar:
+    name: Descargar
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      hay: ${{ steps.mira.outputs.hay }}
+    env:
+      OUTSIDE_OUT: datos-de-fuera
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # A branch from before the script existed has nothing to bring, and that is not a failure.
+      - name: Descargar lo de fuera
+        env:
+          OUTSIDE_ONLY: ${{ inputs.solo }}
+        run: npm run data:outside --if-present
+      - name: ¿Ha traído algo?
+        id: mira
+        run: |
+          if [ -n "$(ls -A "$OUTSIDE_OUT" 2>/dev/null)" ]; then
+            echo "hay=si" >> "$GITHUB_OUTPUT"
+          else
+            echo "hay=no" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Nada que guardar::Esta rama no tiene nada que traer de fuera."
+          fi
+      - name: Lo descargado, para guardarlo
+        if: steps.mira.outputs.hay == 'si'
+        uses: actions/upload-artifact@v7
+        with:
+          name: datos
+          path: datos-de-fuera
+          retention-days: 1
+          overwrite: true
+          if-no-files-found: error
+      # Once what was read is on its way to the branch: a source that was left unread ends the run in red.
+      - name: ¿Se ha leído todo?
+        run: npm run data:outside --if-present -- --verdict
+
+  guardar:
+    name: Guardar en la rama datos
+    needs: descargar
+    if: ${{ !cancelled() && needs.descargar.outputs.hay == 'si' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Lo descargado
+        uses: actions/download-artifact@v8
+        with:
+          name: datos
+          path: nuevo
+      - name: Guardarlo
+        env:
+          REMOTO: https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git
+          VACIAR: ${{ inputs.vaciar }}
+          DE: ${{ github.ref_name }}@${{ github.sha }}
+        run: |
+          set -euo pipefail
+          # What was downloaded is data and is kept as such: no hidden files and no links travel with it.
+          find nuevo -name '.*' -prune -exec rm -rf {} +
+          find nuevo -type l -delete
+          if git ls-remote --exit-code "$REMOTO" refs/heads/datos > /dev/null 2>&1; then
+            git clone --quiet --depth 1 --branch datos "$REMOTO" rama
+          else
+            git init --quiet --initial-branch=datos rama
+            git -C rama remote add origin "$REMOTO"
+          fi
+          cd rama
+          if [ "$VACIAR" = "true" ]; then
+            git rm -r --quiet --ignore-unmatch .
+          fi
+          cp -R ../nuevo/. .
+          git add --all
+          if git diff --cached --quiet; then
+            echo "::notice title=Sin cambios::Lo descargado es igual que lo que ya había en la rama datos."
+            exit 0
+          fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" -c core.hooksPath=/dev/null commit --quiet --message "Datos de fuera, traídos con $DE"
+          git push --quiet origin HEAD:refs/heads/datos
+          echo "::notice title=Guardado::La rama datos tiene lo que se acaba de traer."
