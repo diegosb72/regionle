@@ -659,6 +659,8 @@ const FLAG_PICTURE = 960;
  * The wait between one download and the next, in ms. Wikimedia gives a program that says who it is two
  * hundred requests a minute, all its sites together, and answers the rest with a 429: the first run, at two
  * files at once and no wait, was refused 1152 of 2001. A file every 400 ms is 150 a minute, one at a time.
+ * (Even so, the second run was refused after some seven hundred files: what is left is for the next run,
+ * which is why a refusal that outlasts its waits ends the downloads instead of being tried on file after file.)
  */
 const FLAG_GAP = Number(process.env.OUTSIDE_FLAG_GAP ?? 400);
 /** How many files in a row may fail before the place is taken to be refusing, and left alone. */
@@ -669,6 +671,11 @@ const FLAGS_FAILED = 8;
  * scripts/data/flags.mjs, which is who looks inside the files, writes the list.
  */
 const FLAG_PICTURES = path.resolve(ROOT, process.env.OUTSIDE_FLAG_PICTURES ?? 'scripts/data/flags-pictures.txt');
+/**
+ * The flags that are given by hand: for each source, by the id of the thing, the Commons title of its flag.
+ * For what Wikidata has no flag of, or gives one that is not the flag (the banner of the city of Rome).
+ */
+const FLAG_HAND = path.resolve(ROOT, process.env.OUTSIDE_FLAG_HAND ?? 'scripts/data/flags-hand.json');
 /** Words in a drawing: text that is set, and not shapes that are drawn. */
 const WORDS = /<(text|tspan|textPath|tref)\b/i;
 /** Where the files are kept in the branch, whatever source named them: each under the SHA-1 of what it holds. */
@@ -879,6 +886,16 @@ async function keptFiles() {
   return { kept, words };
 }
 
+/** The flags given by hand for a source, by the id of each thing: none where there is no list. */
+function byHand(source) {
+  try {
+    const said = JSON.parse(fs.readFileSync(FLAG_HAND, 'utf8'))[source.id] ?? {};
+    return new Map(Object.entries(said).filter(([, title]) => typeof title === 'string' && title.trim()).map(([id, title]) => [id, title.trim()]));
+  } catch {
+    return new Map();
+  }
+}
+
 /** The titles of the list of pictures that are wanted: none where there is no list. */
 function picturesWanted() {
   try {
@@ -907,7 +924,8 @@ function listed(head, lists) {
  * carries its ISO 3166-2 code and has a flag. Where the entity of the maps and the one with the code are
  * not the same and fly different flags, the first is believed and the other is told (`other`), unless the
  * first is far smaller than the division (the city a province is called after): then it is the other way
- * round. An entity that small with nothing to take its place keeps its flag, and says so (`tiny`).
+ * round. An entity that small with nothing to take its place keeps its flag, and says so (`tiny`). A flag
+ * given by hand (`by: hand`) comes before any of them, and what Wikidata gave is told (`instead`).
  *
  * Which file: what Commons keeps under that name, with who made it and on what terms it is given, which a
  * game that shows it has to say. A photograph whose page says that somebody has drawn the flag again is
@@ -986,6 +1004,12 @@ async function flagsFor(source, subjects, keep) {
       ...(other && other.now[0].file !== flag.file ? { other: { wd: other.wd, file: other.now[0].file } } : {}),
       ...(pick === first && small ? { tiny: true } : {}),
     };
+  }
+
+  for (const [id, title] of byHand(source)) {
+    if (!subjects.some((u) => u.id === id)) continue;
+    const was = items[id];
+    items[id] = { ...(was ? { wd: was.wd } : {}), by: 'hand', file: title, ...(was && was.file !== title ? { instead: was.file } : {}) };
   }
 
   /* The files: what Commons says of each, and the drawing that stands for a photograph. */
@@ -1072,8 +1096,10 @@ async function flagsFor(source, subjects, keep) {
     }
     (fresh ? brought : there).push(title);
   };
+  /** The place has said that this is too much, and went on saying so after the waits it asked for: no more is asked of it in this run. */
+  let refused = false;
   for (const title of wanted) {
-    if (Date.now() >= until || failed >= FLAGS_FAILED) {
+    if (Date.now() >= until || failed >= FLAGS_FAILED || refused) {
       left.push(title);
       continue;
     }
@@ -1084,6 +1110,7 @@ async function flagsFor(source, subjects, keep) {
       failed++;
       last = err;
       left.push(title);
+      refused = /^HTTP 429\b/.test(String(err?.message ?? ''));
     }
   }
   if (left.length) undone.push(`${left.length} de ${wanted.length} archivos (${last ? short(last) : 'no quedaba tiempo'})`);
@@ -1123,7 +1150,7 @@ const FLAGS = {
   flags: true,
 };
 const FLAGS_WHAT =
-  'items: the Wikidata entity whose flag it is (wd), how it was found when it is not the one the game names (by: redirect or code), the Commons file of the flag it flies today (file) and since when (from), ' +
+  'items: the Wikidata entity whose flag it is (wd), how it was found when it is not the one the game names (by: redirect or code; hand when the flag is one given in scripts/data/flags-hand.json, with the one Wikidata gave under instead), the Commons file of the flag it flies today (file) and since when (from), ' +
   'other flags the entity gives as of today (also) and those it gives as past or less fit (old), the flag of the entity that carries its ISO 3166-2 code when that is another (other), and whether the entity is far smaller than the division (tiny). ' +
   `files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; where the file is kept in this branch (kept); the ${FLAG_PICTURE} px picture that Wikimedia draws of it (picture), which stands for an original of more than ${FLAG_MAX / 1e6} MB and goes with a drawing that has words in it (words); and, for a photograph, the drawing of the same flag that is kept in its place (drawn). ` +
   `The files themselves are under ${FLAG_FILES}, each named after its SHA-1.`;

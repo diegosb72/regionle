@@ -210,9 +210,10 @@ function game(countries: Record<string, { units: Unit[]; groups?: Unit[] }>, cit
 }
 
 interface Item {
-  wd: string;
+  wd?: string;
   by?: string;
   file: string;
+  instead?: string;
   from?: string;
   also?: string[];
   old?: string[];
@@ -266,8 +267,9 @@ const FILE: Record<string, string> = { 'flags-regions': 'flags/regions.json', 'f
 /** Runs the script. It gets no variable of the machine but the ones named here. */
 function run(source: string, data: string, env: Record<string, string> = {}, out = fresh('out')): Promise<Result> {
   return new Promise((done) => {
-    // No wait between downloads, and no list of pictures but the one a test writes.
-    const vars = { PATH: process.env.PATH ?? '', OUTSIDE_WDQS: `${base}/sparql`, OUTSIDE_COMMONS: `${base}/api`, OUTSIDE_KEPT: `${base}/branch`, OUTSIDE_PAUSE: '0', OUTSIDE_FLAG_GAP: '0', OUTSIDE_FLAG_PICTURES: path.join(TMP, 'no-list.txt'), ...env };
+    // No wait between downloads, and no list of pictures or of flags given by hand but the one a test writes.
+    const none = path.join(TMP, 'no-list');
+    const vars = { PATH: process.env.PATH ?? '', OUTSIDE_WDQS: `${base}/sparql`, OUTSIDE_COMMONS: `${base}/api`, OUTSIDE_KEPT: `${base}/branch`, OUTSIDE_PAUSE: '0', OUTSIDE_FLAG_GAP: '0', OUTSIDE_FLAG_PICTURES: none, OUTSIDE_FLAG_HAND: none, ...env };
     execFile('node', ['scripts/data/outside.mjs', '--out', out, '--only', source, '--data', data], { cwd: ROOT, env: vars }, (error, stdout) => {
       const walk = (dir: string, at = ''): string[] => fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(dir, e.name), `${at}${e.name}/`) : [`${at}${e.name}`]));
       const report = () => JSON.parse(fs.readFileSync(path.join(out, 'estado.json'), 'utf8')) as { sources: ReturnType<Result['source']>[] };
@@ -441,6 +443,25 @@ describe('the flag of each division', () => {
     const r = await run('flags-regions', data);
     expect(r.data().asked).toBe(3);
     expect(r.data().items).toEqual({ 'AA-01': { wd: 'Q1', file: 'One.svg' }, 'AA-CE': { wd: 'Q60', file: 'Both.svg' }, 'AA-G': { wd: 'Q50', by: 'code', file: 'Group.svg' } });
+  });
+
+  it('takes the flag that is given by hand before the one Wikidata gives, and where Wikidata gives none', async () => {
+    const data = PLAIN();
+    delete world.flags.Q2;
+    for (const name of ['The real flag of Uno.svg', 'Flag of Dos by hand.svg']) world.files[name] = { body: svg(name) };
+    const hand = path.join(fresh('hand'), 'hand.json');
+    fs.writeFileSync(hand, JSON.stringify({ 'flags-regions': { 'AA-01': 'The real flag of Uno.svg', 'AA-02': 'Flag of Dos by hand.svg', 'AA-03': 'Flag of Tres.svg', 'ZZ-99': 'Nowhere.svg', 'AA-04': '' }, 'flags-capitals': { 'AA-04': 'Capital.svg' } }));
+    const r = await run('flags-regions', data, { OUTSIDE_FLAG_HAND: hand });
+    expect(r.data().items).toEqual({
+      'AA-01': { wd: 'Q1', by: 'hand', file: 'The real flag of Uno.svg', instead: 'Flag of Uno.svg' },
+      // Nothing of Wikidata to tell: it had no flag, or the same one.
+      'AA-02': { by: 'hand', file: 'Flag of Dos by hand.svg' },
+      'AA-03': { wd: 'Q3', by: 'hand', file: 'Flag of Tres.svg' },
+      'AA-04': { wd: 'Q4', file: 'Flag of Cuatro.svg' },
+    });
+    // The flag that gave way is not brought, and the one given is.
+    expect(Object.keys(r.data().files)).toEqual(['Flag of Cuatro.svg', 'Flag of Dos by hand.svg', 'Flag of Tres.svg', 'The real flag of Uno.svg']);
+    expect(r.source().detail?.by).toEqual({ hand: 3, id: 1 });
   });
 
   it('writes the same file for the same answers, with one entry to a line', async () => {
@@ -731,6 +752,16 @@ describe('when a place does not answer', () => {
     expect(asked.filter((q) => q === 'file Flag of Dos.svg')).toHaveLength(3);
   });
 
+  it('asks for no more files in a run once the place goes on saying that it is too much', async () => {
+    refusals = [{ when: (q) => q === 'file Flag of Dos.svg', status: 429, times: 99 }];
+    const r = await run('flags-regions', PLAIN());
+    expect(r.source().ok).toBe(true);
+    // In the order of the alphabet: Cuatro came, Dos was refused three times, and Tres and Uno were not asked for.
+    expect(asked.filter((q) => q.startsWith('file '))).toEqual(['file Flag of Cuatro.svg', 'file Flag of Dos.svg', 'file Flag of Dos.svg', 'file Flag of Dos.svg']);
+    expect(r.kept()).toEqual([at(svg('Cuatro'))]);
+    expect(r.source().detail?.undone).toEqual(['3 de 4 archivos (HTTP 429 Too Many Requests)']);
+  });
+
   it('does not keep a file that is not what its page says', async () => {
     const data = PLAIN();
     world.files['Flag of Uno.svg'].sha1 = sha1('something else');
@@ -771,9 +802,31 @@ describe('when a place does not answer', () => {
   });
 });
 
-describe('the list of the repository', () => {
+describe('the lists of the repository', () => {
   it('names the sources of flags, which say what their files hold', () => {
     const script = fs.readFileSync(path.join(ROOT, 'scripts/data/outside.mjs'), 'utf8');
     for (const id of Object.keys(FILE)) expect(script).toContain(`id: '${id}'`);
+  });
+
+  it('gives flags by hand to sources that exist, each to a thing of the game and by a file with a name', () => {
+    const hand = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/data/flags-hand.json'), 'utf8')) as Record<string, Record<string, string>>;
+    expect(Object.keys(hand).sort()).toEqual(Object.keys(FILE).sort());
+    const cities = (JSON.parse(fs.readFileSync(path.join(ROOT, 'public/data/cities.json'), 'utf8')) as { c: Record<string, { i: string; k?: number }[]> }).c;
+    const capitals = new Set(Object.values(cities).flat().filter((c) => (c.k ?? 0) >= 2).map((c) => c.i));
+    for (const [id, title] of Object.entries(hand['flags-capitals'])) {
+      expect(capitals, id).toContain(id);
+      expect(title).toMatch(/\S\.(svg|png|gif|jpe?g)$/i);
+    }
+    for (const [id, title] of Object.entries(hand['flags-regions'])) {
+      const file = path.join(ROOT, 'public/data/r', `${id.slice(0, 2)}.json`);
+      expect(fs.existsSync(file) && fs.readFileSync(file, 'utf8').includes(`"id":"${id}"`), id).toBe(true);
+      expect(title).toMatch(/\S\.(svg|png|gif|jpe?g)$/i);
+    }
+  });
+
+  it('names the pictures that are wanted one to a line', () => {
+    const lines = fs.readFileSync(path.join(ROOT, 'scripts/data/flags-pictures.txt'), 'utf8').split('\n').filter((line) => line && !line.startsWith('#'));
+    expect(new Set(lines).size).toBe(lines.length);
+    for (const line of lines) expect(line).toBe(line.trim());
   });
 });
