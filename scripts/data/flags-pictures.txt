@@ -1,0 +1,35 @@
+# The files whose picture, as Wikimedia draws it, the workflow "Traer datos" brings besides the original:
+# one Commons title to a line. They are the drawings with words in them, which each device would set in a
+# typeface of its own, so the game shows the picture. `npm run data:flags` writes this list from the files
+# it has looked inside; a drawing that is brought after the list was written is looked at as it comes.
+Bandera de Arequipa.svg
+Bandera de la Provincia de Alajuela.svg
+Bandera de la Provincia de Puntarenas.svg
+Bandera de la provincia de Palencia1.svg
+Borgo Maggiore (RSM)-Bandiera.svg
+Chiesanuova (RSM)-Bandiera.svg
+Drapèu de la Contèa de Niça.svg
+Flag of Antioquia Department.svg
+Flag of Ayeyarwady Region.svg
+Flag of Behira Govenorate.svg
+Flag of Brvenica Municipality, North Macedonia.svg
+Flag of Centar Župa Municipality, North Macedonia.svg
+Flag of Chalatenango.svg
+Flag of Changhua County.svg
+Flag of Chimaltenango Department.svg
+Flag of Debarca Municipality, North Macedonia.svg
+Flag of Demir Hisar Municipality, North Macedonia.svg
+Flag of Dojran Municipality, North Macedonia.svg
+Flag of Extremadura, Spain (with coat of arms).svg
+Flag of Guadalcanal.svg
+Flag of Guanajuato.svg
+Flag of Hargeisa.svg
+Flag of Hualien County.svg
+Flag of Ilinden Municipality, North Macedonia.svg
+Flag of Jegunovce Municipality, North Macedonia.svg
+Flag of Karpoš Municipality, North Macedonia.svg
+Flag of Kisela Voda Municipality, North Macedonia.svg
+Flag of Manila.svg
+Flag of NCD.svg
+Flag of Port Louis, Mauritius.svg
+Flag of San Juan, Puerto Rico.svg

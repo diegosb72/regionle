@@ -63,6 +63,8 @@
     "jsdom": "^31.0.1",
     "jsqr": "^1.4.0",
     "polylabel": "^2.1.0",
+    "sharp": "^0.35.5",
+    "svgo": "^4.1.0",
     "topojson-server": "^3.0.1",
     "topojson-simplify": "^3.0.3",
     "typescript": "^7.0.2",

@@ -655,10 +655,22 @@ const KEPT = process.env.OUTSIDE_KEPT ?? (process.env.GITHUB_REPOSITORY ? `https
 const FLAG_MAX = Number(process.env.OUTSIDE_FLAG_MAX ?? 1_000_000);
 /** How wide that picture is, in px: one of the widths Wikimedia draws. */
 const FLAG_PICTURE = 960;
-/** How many files are downloaded at once: a couple, to go easy on the place they come from. */
-const FLAGS_AT_ONCE = 2;
+/**
+ * The wait between one download and the next, in ms. Wikimedia gives a program that says who it is two
+ * hundred requests a minute, all its sites together, and answers the rest with a 429: the first run, at two
+ * files at once and no wait, was refused 1152 of 2001. A file every 400 ms is 150 a minute, one at a time.
+ */
+const FLAG_GAP = Number(process.env.OUTSIDE_FLAG_GAP ?? 400);
 /** How many files in a row may fail before the place is taken to be refusing, and left alone. */
 const FLAGS_FAILED = 8;
+/**
+ * The files whose picture, as Wikimedia draws it, is wanted besides the original: one Commons title to a
+ * line. They are the drawings with words in them, which each device would set in a typeface of its own;
+ * scripts/data/flags.mjs, which is who looks inside the files, writes the list.
+ */
+const FLAG_PICTURES = path.resolve(ROOT, process.env.OUTSIDE_FLAG_PICTURES ?? 'scripts/data/flags-pictures.txt');
+/** Words in a drawing: text that is set, and not shapes that are drawn. */
+const WORDS = /<(text|tspan|textPath|tref)\b/i;
 /** Where the files are kept in the branch, whatever source named them: each under the SHA-1 of what it holds. */
 const FLAG_FILES = 'flags/files';
 const SVG = /\.svg$/i;
@@ -846,19 +858,34 @@ function drawnAs(text) {
   return m ? m[1].replace(/_/g, ' ').trim() : null;
 }
 
-/** The files that the branch already keeps, as the data files of the sources of flags say: none where it cannot be read. */
+/**
+ * The files that the branch already keeps, as the data files of the sources of flags say (none where it
+ * cannot be read), and the SHA-1 of those that were seen to have words in them when they were brought.
+ */
 async function keptFiles() {
-  const kept = new Set();
-  if (!KEPT) return kept;
+  const [kept, words] = [new Set(), new Set()];
+  if (!KEPT) return { kept, words };
   for (const source of SOURCES.filter((s) => s.flags)) {
     try {
       const { body } = await request(`${KEPT}/${source.file}`, { tries: 2, timeout: 30_000 });
-      for (const file of Object.values(JSON.parse(body.toString('utf8')).files ?? {})) for (const name of [file.kept, file.picture]) if (name) kept.add(name);
+      for (const file of Object.values(JSON.parse(body.toString('utf8')).files ?? {})) {
+        for (const name of [file.kept, file.picture]) if (name) kept.add(name);
+        if (file.words && file.sha1) words.add(file.sha1);
+      }
     } catch {
       // The first time there is nothing kept, and a branch that cannot be read is one more download.
     }
   }
-  return kept;
+  return { kept, words };
+}
+
+/** The titles of the list of pictures that are wanted: none where there is no list. */
+function picturesWanted() {
+  try {
+    return new Set(fs.readFileSync(FLAG_PICTURES, 'utf8').split(/\r?\n/).map((line) => line.trim()).filter((line) => line && !line.startsWith('#')));
+  } catch {
+    return new Set();
+  }
 }
 
 /** A JSON file of several lists, with one entry to a line in each. */
@@ -885,7 +912,9 @@ function listed(head, lists) {
  * Which file: what Commons keeps under that name, with who made it and on what terms it is given, which a
  * game that shows it has to say. A photograph whose page says that somebody has drawn the flag again is
  * brought as that drawing (`drawn`), with the photograph left out. An original too heavy to be of use
- * is brought as the picture Wikimedia draws of it (`picture`).
+ * is brought as the picture Wikimedia draws of it (`picture`); a drawing with words in it (`words`), and
+ * any other that the list of pictures names, is brought both ways. The flag that is only told (`other`)
+ * is brought too: which of the two it is, is for whoever builds the game to say.
  *
  * Only the first question has to be answered. What Wikidata does not answer after it is left out and told;
  * a file that cannot be downloaded, or that there was no time for, has its entry with no file, and the
@@ -974,9 +1003,12 @@ async function flagsFor(source, subjects, keep) {
     }
     return titles;
   };
-  const asked = [...new Set(Object.values(items).map((item) => item.file))].sort();
+  const asked = [...new Set(Object.values(items).flatMap((item) => [item.file, ...(item.other ? [item.other.file] : [])]))].sort();
   const titles = await learn(asked);
-  for (const item of Object.values(items)) item.file = titles.get(item.file) ?? item.file;
+  for (const item of Object.values(items)) {
+    item.file = titles.get(item.file) ?? item.file;
+    if (item.other) item.other.file = titles.get(item.other.file) ?? item.other.file;
+  }
 
   await attempt('los dibujos de las banderas que son fotografías', async () => {
     const photos = Object.keys(files).filter((title) => !files[title].missing && files[title].mime !== 'image/svg+xml').sort();
@@ -994,46 +1026,66 @@ async function flagsFor(source, subjects, keep) {
     }
   });
 
-  /* The download: every file that some thing flies, less the photographs that have a drawing. */
-  const kept = await keptFiles();
+  /* The download: every file that some thing flies, less the photographs that have a drawing; one at a time, and unhurried. */
+  const { kept, words } = await keptFiles();
+  const pictured = picturesWanted();
   const wanted = Object.keys(files)
-    .filter((title) => !files[title].missing && !files[title].drawn && files[title].sha1)
+    .filter((title) => !files[title].missing && !files[title].drawn)
     .sort();
   const [brought, there, left] = [[], [], []];
-  let [next, failed, bytes] = [0, 0, 0];
+  let [failed, bytes, pictures] = [0, 0, 0];
   let last = null;
+  let free = 0;
+  /** A file of the place the flags come from, asked for no sooner than the wait after the one before. */
+  const fetched = async (url) => {
+    await sleep(Math.max(0, free - Date.now()));
+    free = Date.now() + FLAG_GAP;
+    return (await request(url, { tries: 3, until })).body;
+  };
   const one = async (title) => {
     const file = files[title];
-    const heavy = file.bytes > FLAG_MAX && !!sources.get(title).thumburl;
+    const from = sources.get(title);
     const kind = KIND[file.mime] ?? (path.extname(title).slice(1).toLowerCase() || 'bin');
-    const name = `${FLAG_FILES}/${file.sha1.slice(0, 2)}/${file.sha1}${heavy ? `.${FLAG_PICTURE}.png` : `.${kind}`}`;
-    if (!kept.has(name)) {
-      const { body } = await request(heavy ? sources.get(title).thumburl : sources.get(title).url, { tries: 3, until });
-      if (!heavy && createHash('sha1').update(body).digest('hex') !== file.sha1) throw new Error('lo descargado no es lo que su ficha dice');
-      keep(name, body);
-      bytes += body.length;
-      brought.push(title);
-    } else there.push(title);
-    file[heavy ? 'picture' : 'kept'] = name;
-  };
-  const worker = async () => {
-    while (next < wanted.length) {
-      const title = wanted[next++];
-      if (Date.now() >= until || failed >= FLAGS_FAILED) {
-        left.push(title);
-        continue;
-      }
-      try {
-        await one(title);
-        failed = 0;
-      } catch (err) {
-        failed++;
-        last = err;
-        left.push(title);
-      }
+    const at = `${FLAG_FILES}/${file.sha1.slice(0, 2)}/${file.sha1}`;
+    const heavy = file.bytes > FLAG_MAX && !!from.thumburl;
+    let fresh = false;
+    if (!heavy) {
+      if (!kept.has(`${at}.${kind}`)) {
+        const body = await fetched(from.url);
+        if (createHash('sha1').update(body).digest('hex') !== file.sha1) throw new Error('lo descargado no es lo que su ficha dice');
+        if (kind === 'svg' && WORDS.test(body.toString('utf8'))) file.words = true;
+        keep(`${at}.${kind}`, body);
+        bytes += body.length;
+        fresh = true;
+      } else if (words.has(file.sha1)) file.words = true;
+      file.kept = `${at}.${kind}`;
     }
+    if (from.thumburl && (heavy || file.words || pictured.has(title))) {
+      if (!kept.has(`${at}.${FLAG_PICTURE}.png`)) {
+        const body = await fetched(from.thumburl);
+        keep(`${at}.${FLAG_PICTURE}.png`, body);
+        bytes += body.length;
+        pictures++;
+        fresh = true;
+      }
+      file.picture = `${at}.${FLAG_PICTURE}.png`;
+    }
+    (fresh ? brought : there).push(title);
   };
-  await Promise.all(Array.from({ length: FLAGS_AT_ONCE }, worker));
+  for (const title of wanted) {
+    if (Date.now() >= until || failed >= FLAGS_FAILED) {
+      left.push(title);
+      continue;
+    }
+    try {
+      await one(title);
+      failed = 0;
+    } catch (err) {
+      failed++;
+      last = err;
+      left.push(title);
+    }
+  }
   if (left.length) undone.push(`${left.length} de ${wanted.length} archivos (${last ? short(last) : 'no quedaba tiempo'})`);
 
   const count = (list, of) => {
@@ -1048,7 +1100,7 @@ async function flagsFor(source, subjects, keep) {
     text: listed({ source: source.from, licence: source.licence, what: source.what, asked: subjects.length }, { items, files }),
     note: [
       `${flying.length} de ${subjects.length} tienen bandera`,
-      `${wanted.length} archivos: ${brought.length} descargados (${kB(bytes)})${there.length ? `, ${there.length} que ya estaban` : ''}${left.length ? `, ${left.length} sin traer` : ''}`,
+      `${wanted.length} archivos: ${brought.length} descargados (${kB(bytes)}${pictures ? `, con ${pictures} imágenes` : ''})${there.length ? `, ${there.length} que ya estaban` : ''}${left.length ? `, ${left.length} sin traer` : ''}`,
       ...(undone.length ? [`sin mirar: ${undone.join('; ')}`] : []),
     ].join('; '),
     detail: {
@@ -1056,7 +1108,7 @@ async function flagsFor(source, subjects, keep) {
       found: flying.length,
       by,
       doubted: { other: flying.filter((item) => item.other).length, tiny: flying.filter((item) => item.tiny).length },
-      files: { all: real.length, missing: Object.values(files).length - real.length, drawn: real.filter((f) => f.drawn).length, wanted: wanted.length, brought: brought.length, there: there.length, left: left.length, bytes },
+      files: { all: real.length, missing: Object.values(files).length - real.length, drawn: real.filter((f) => f.drawn).length, words: real.filter((f) => f.words).length, wanted: wanted.length, brought: brought.length, there: there.length, left: left.length, pictures, bytes },
       kinds: count(real, (f) => KIND[f.mime] ?? f.mime),
       licences: count(real, (f) => f.licence || '?'),
       undone,
@@ -1073,7 +1125,7 @@ const FLAGS = {
 const FLAGS_WHAT =
   'items: the Wikidata entity whose flag it is (wd), how it was found when it is not the one the game names (by: redirect or code), the Commons file of the flag it flies today (file) and since when (from), ' +
   'other flags the entity gives as of today (also) and those it gives as past or less fit (old), the flag of the entity that carries its ISO 3166-2 code when that is another (other), and whether the entity is far smaller than the division (tiny). ' +
-  `files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; where the file is kept in this branch (kept), or the ${FLAG_PICTURE} px picture of an original of more than ${FLAG_MAX / 1e6} MB (picture); and, for a photograph, the drawing of the same flag that is kept in its place (drawn). ` +
+  `files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; where the file is kept in this branch (kept); the ${FLAG_PICTURE} px picture that Wikimedia draws of it (picture), which stands for an original of more than ${FLAG_MAX / 1e6} MB and goes with a drawing that has words in it (words); and, for a photograph, the drawing of the same flag that is kept in its place (drawn). ` +
   `The files themselves are under ${FLAG_FILES}, each named after its SHA-1.`;
 
 /**

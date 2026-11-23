@@ -66,6 +66,8 @@ let world: World;
 let refusals: Refusal[] = [];
 /** What was asked, in order: `sparql <query>`, `api <form>`, `file <title>`, `picture <title>`, `branch <path>`. */
 let asked: string[] = [];
+/** When each of those was asked, in ms. */
+let times: number[] = [];
 let agents: string[] = [];
 let base = '';
 let server: http.Server;
@@ -156,6 +158,7 @@ beforeAll(async () => {
       const form = new URLSearchParams(body);
       const said = place === 'sparql' ? `sparql ${form.get('query') ?? ''}` : place === 'api' ? `api ${body}` : `${place} ${what}`;
       asked.push(said);
+      times.push(Date.now());
       agents.push(String(req.headers['user-agent']));
       const refusal = refusals.find((r) => r.times > 0 && r.when(said));
       if (refusal) {
@@ -232,6 +235,7 @@ interface FileSaid {
   kept?: string;
   picture?: string;
   drawn?: string;
+  words?: true;
   missing?: true;
 }
 interface Detail {
@@ -239,7 +243,7 @@ interface Detail {
   found: number;
   by: Record<string, number>;
   doubted: { other: number; tiny: number };
-  files: { all: number; missing: number; drawn: number; wanted: number; brought: number; there: number; left: number; bytes: number };
+  files: { all: number; missing: number; drawn: number; words: number; wanted: number; brought: number; there: number; left: number; pictures: number; bytes: number };
   kinds: Record<string, number>;
   licences: Record<string, number>;
   undone: string[];
@@ -262,7 +266,8 @@ const FILE: Record<string, string> = { 'flags-regions': 'flags/regions.json', 'f
 /** Runs the script. It gets no variable of the machine but the ones named here. */
 function run(source: string, data: string, env: Record<string, string> = {}, out = fresh('out')): Promise<Result> {
   return new Promise((done) => {
-    const vars = { PATH: process.env.PATH ?? '', OUTSIDE_WDQS: `${base}/sparql`, OUTSIDE_COMMONS: `${base}/api`, OUTSIDE_KEPT: `${base}/branch`, OUTSIDE_PAUSE: '0', ...env };
+    // No wait between downloads, and no list of pictures but the one a test writes.
+    const vars = { PATH: process.env.PATH ?? '', OUTSIDE_WDQS: `${base}/sparql`, OUTSIDE_COMMONS: `${base}/api`, OUTSIDE_KEPT: `${base}/branch`, OUTSIDE_PAUSE: '0', OUTSIDE_FLAG_GAP: '0', OUTSIDE_FLAG_PICTURES: path.join(TMP, 'no-list.txt'), ...env };
     execFile('node', ['scripts/data/outside.mjs', '--out', out, '--only', source, '--data', data], { cwd: ROOT, env: vars }, (error, stdout) => {
       const walk = (dir: string, at = ''): string[] => fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(dir, e.name), `${at}${e.name}/`) : [`${at}${e.name}`]));
       const report = () => JSON.parse(fs.readFileSync(path.join(out, 'estado.json'), 'utf8')) as { sources: ReturnType<Result['source']>[] };
@@ -287,6 +292,7 @@ const at = (body: string, kind = 'svg') => `flags/files/${sha1(body).slice(0, 2)
 beforeEach(() => {
   refusals = [];
   asked = [];
+  times = [];
   agents = [];
   world = { flags: {}, moved: {}, codes: {}, areas: {}, files: {}, leads: {}, branch: {} };
 });
@@ -381,18 +387,22 @@ describe('the flag of each division', () => {
     world.flags.Q20 = [{ file: 'Same.svg' }];
     world.codes = { 'AA-01': ['Q10'], 'AA-02': ['Q20'], 'AA-03': ['Q3'] };
     world.flags.Q3 = [{ file: 'Three.svg' }];
-    for (const name of ['Mine.svg', 'Same.svg', 'Three.svg']) world.files[name] = { body: svg(name) };
+    for (const name of ['Mine.svg', 'Coded.svg', 'Same.svg', 'Three.svg']) world.files[name] = { body: svg(name) };
+    world.leads = { 'Coded.svg': 'Flag of the code.svg' };
+    world.files['Flag of the code.svg'] = { body: svg('Coded') };
     const data = game({ AA: { units: [{ id: 'AA-01', wd: 'Q1' }, { id: 'AA-02', wd: 'Q2' }, { id: 'AA-03', wd: 'Q3' }] } });
     const r = await run('flags-regions', data);
     expect(r.data().items).toEqual({
-      'AA-01': { wd: 'Q1', file: 'Mine.svg', other: { wd: 'Q10', file: 'Coded.svg' } },
+      // The other goes by the title Commons gives it, like any file.
+      'AA-01': { wd: 'Q1', file: 'Mine.svg', other: { wd: 'Q10', file: 'Flag of the code.svg' } },
       // Another entity with the same flag is nothing to tell, and the same entity is no other.
       'AA-02': { wd: 'Q2', file: 'Same.svg' },
       'AA-03': { wd: 'Q3', file: 'Three.svg' },
     });
     expect(r.source().detail?.doubted).toEqual({ other: 1, tiny: 0 });
-    // The flag that is only told is not brought.
-    expect(Object.keys(r.data().files)).toEqual(['Mine.svg', 'Same.svg', 'Three.svg']);
+    // The flag that is only told is brought too: which of the two it is, is not for this script to say.
+    expect(Object.keys(r.data().files)).toEqual(['Flag of the code.svg', 'Mine.svg', 'Same.svg', 'Three.svg']);
+    expect(r.data().files['Flag of the code.svg'].kept).toBe(at(svg('Coded')));
   });
 
   it('believes the one with the code when the entity of the maps is far smaller than the division', async () => {
@@ -404,7 +414,7 @@ describe('the flag of each division', () => {
     world.codes = { 'AA-01': ['Q10'] };
     // Q1 and Q2 are a hundredth of their divisions; Q3 is a thousandth, which is a figure written wrong; Q4 has no area.
     world.areas = { Q1: [10], Q2: [10], Q3: [1], Q10: [990] };
-    for (const name of ['Province.svg', 'Town.svg', 'Slip.svg', 'Unmeasured.svg']) world.files[name] = { body: svg(name) };
+    for (const name of ['City.svg', 'Province.svg', 'Town.svg', 'Slip.svg', 'Unmeasured.svg']) world.files[name] = { body: svg(name) };
     const data = game({ AA: { units: [{ id: 'AA-01', wd: 'Q1', ar: 1000 }, { id: 'AA-02', wd: 'Q2', ar: 1000 }, { id: 'AA-03', wd: 'Q3', ar: 1000 }, { id: 'AA-04', wd: 'Q4', ar: 1000 }] } });
     const r = await run('flags-regions', data);
     expect(r.data().items).toEqual({
@@ -579,6 +589,53 @@ describe('the file of each flag', () => {
     expect(asked).toContain('picture Flag of Uno.svg');
     expect(asked).not.toContain('file Flag of Uno.svg');
     expect(asked.find((q) => q.startsWith('api ') && q.includes('prop=imageinfo'))).toContain('iiurlwidth=960');
+    expect(r.source().detail?.files).toMatchObject({ brought: 4, pictures: 1 });
+    expect(r.source().note).toContain('con 1 imágenes');
+  });
+
+  it('brings a drawing with words in it both ways: as it is, and as Wikimedia draws it', async () => {
+    const data = PLAIN();
+    const worded = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2"><text x="1" y="1">UNO</text></svg>';
+    world.files['Flag of Uno.svg'] = { body: worded };
+    // A title is not words, nor is a word in the name of something else.
+    world.files['Flag of Dos.svg'] = { body: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2"><title>text</title><g id="textile"/></svg>' };
+    const r = await run('flags-regions', data);
+    const file = r.data().files['Flag of Uno.svg'];
+    expect(file).toMatchObject({ words: true, kept: at(worded), picture: at(worded, '960.png') });
+    expect(r.read(at(worded))).toBe(worded);
+    expect(r.read(at(worded, '960.png'))).toBe('a picture of Flag of Uno.svg');
+    expect(r.data().files['Flag of Dos.svg']).not.toHaveProperty('words');
+    expect(r.data().files['Flag of Dos.svg']).not.toHaveProperty('picture');
+    expect(r.source().detail?.files).toMatchObject({ words: 1, brought: 4, pictures: 1 });
+
+    // The next run knows it has words from what the branch says, and brings nothing again.
+    world.branch['flags/regions.json'] = r.raw();
+    asked = [];
+    const again = await run('flags-regions', data);
+    expect(asked.filter((q) => q.startsWith('file ') || q.startsWith('picture '))).toEqual([]);
+    expect(again.data().files['Flag of Uno.svg']).toMatchObject({ words: true, kept: at(worded), picture: at(worded, '960.png') });
+    expect(again.raw()).toBe(r.raw());
+
+    // A drawing that the branch kept before anybody looked inside is brought as a picture once the list names it.
+    world.branch['flags/regions.json'] = r.raw().replace('"words":true,', '').replace(/,"picture":"[^"]+"/, '');
+    asked = [];
+    const unaware = await run('flags-regions', data);
+    expect(asked.filter((q) => q.startsWith('file ') || q.startsWith('picture '))).toEqual([]);
+    expect(unaware.data().files['Flag of Uno.svg']).not.toHaveProperty('picture');
+    const list = path.join(fresh('list'), 'pictures.txt');
+    fs.writeFileSync(list, '# Drawings with words in them\nFlag of Uno.svg\n\nFlag of nowhere.svg\n');
+    const listed = await run('flags-regions', data, { OUTSIDE_FLAG_PICTURES: list });
+    expect(asked.filter((q) => q.startsWith('file ') || q.startsWith('picture '))).toEqual(['picture Flag of Uno.svg']);
+    expect(listed.data().files['Flag of Uno.svg']).toMatchObject({ kept: at(worded), picture: at(worded, '960.png') });
+    expect(listed.kept()).toEqual([at(worded, '960.png')]);
+  });
+
+  it('downloads one file at a time, each after a wait', async () => {
+    const r = await run('flags-regions', PLAIN(), { OUTSIDE_FLAG_GAP: '120' });
+    expect(r.kept()).toHaveLength(4);
+    const when = times.filter((_, i) => asked[i].startsWith('file '));
+    expect(when).toHaveLength(4);
+    for (let i = 1; i < when.length; i++) expect(when[i] - when[i - 1]).toBeGreaterThanOrEqual(110);
   });
 
   it('does not download again what the branch already keeps', async () => {
@@ -701,8 +758,7 @@ describe('when a place does not answer', () => {
     refusals = [{ when: (q) => q.startsWith('file '), status: 404, times: 99 }];
     const r = await run('flags-regions', game({ AA: { units } }));
     expect(r.kept()).toEqual([]);
-    // Two at a time: the ninth may be on its way when the eighth fails, and no more are asked for.
-    expect(asked.filter((q) => q.startsWith('file ')).length).toBeLessThanOrEqual(9);
+    expect(asked.filter((q) => q.startsWith('file '))).toHaveLength(8);
     expect(r.source().detail?.files).toMatchObject({ wanted: 14, brought: 0, left: 14 });
   });
 
