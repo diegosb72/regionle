@@ -22,7 +22,7 @@ import { mapLinkRest, type MapLink } from '../lib/maplink';
 import { opensWithWorld, worldOf } from '../lib/opening';
 import { GROUP_NAME, MODES, MODE_GROUPS, SECTIONS, cardAskName, formatName } from '../lib/modes';
 import { estimateOf, minutesOf, paceOf, percentOf, questionsOf } from '../lib/pace';
-import { BINGO_MIN, CLOCKS, CONNECT_MIN, CONNECT_WIDE, FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, LIVES, MADE_UP_MODES, ODD_MIN, PAIRS_MIN, PAIR_SIZES, PAIR_SIZE_DEFAULT, ROUND_MODES, TOP_MIN, TRIES, USUAL_RULES, asksByFlag, embeddable, isRouteRule, turnsOutlines, type PairSize, type RouteRule } from '../lib/rules';
+import { BINGO_MIN, CLOCKS, CONNECT_MIN, CONNECT_WIDE, FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, LIVES, MADE_UP_MODES, ODD_MIN, PAIRS_MIN, PAIR_SIZES, PAIR_SIZE_DEFAULT, REGION_FIGS, ROUND_MODES, TOP_MIN, TRIES, USUAL_RULES, asksByFlag, embeddable, isRouteRule, peopled, turnsOutlines, type PairSize, type RegionFig, type RouteRule } from '../lib/rules';
 import { clockShort, clockText, customRules, livesText, rulesIn, rulesOf, rulesOfGame, rulesText, triesText } from '../lib/ruleset';
 import { go, settle } from '../lib/router';
 import { PATHS, mapAt, mapLinkUrl } from '../lib/routes';
@@ -618,6 +618,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
     blind: def.id === 'travel',
     routeRule: def.id === 'travel',
     metric: section === 'pops' && FIGURE_MODES.includes(def.id),
+    regionFig: section === 'regions' && FIGURE_MODES.includes(def.id),
     axis: def.id === 'compass',
     bearingAsk: def.id === 'bearing',
     coordsAsk: def.id === 'coords',
@@ -630,6 +631,25 @@ export function Setup({ section, world, link }: { section: Section; world: World
     wiki: WIKI_MODES.includes(def.id) && !(paced && opts.format === 'timed') && !exam,
   };
   const anyOption = Object.values(show).some(Boolean);
+  /** The countries of the map that would be played: those of the list in use, or the ones chosen. */
+  const lands = useMemo(() => (active ? countriesOf(active, world) : chosen), [active, chosen, world]);
+  /** The regions can be played by their people where the data vouch for the figures of every one of them. */
+  const canPeople = show.regionFig && peopled(lands);
+  const regionFig: RegionFig = canPeople && REGION_FIGS.includes(opts.regionFig) ? opts.regionFig : 'area';
+  const peopleYears = useMemo(() => {
+    const years = lands.flatMap((c) => (c.rp ? [c.rp] : []));
+    const [from, to] = [Math.min(...years), Math.max(...years)];
+    return !years.length ? '' : from === to ? String(from) : L(`${from} a ${to}`, `${from} to ${to}`);
+  }, [lands]);
+  const unpeopled = useMemo(() => {
+    const lacking = lands.filter((c) => c.rp == null).map((c) => nm(c.n));
+    return lacking.length > 2 ? L(`${lacking[0]}, ${lacking[1]} y ${nf(lacking.length - 2)} más`, `${lacking[0]}, ${lacking[1]} and ${nf(lacking.length - 2)} more`) : lacking.join(L(' y ', ' and '));
+  }, [lands]);
+  /** The options a game is started with here: it says the figure it is played by, the people of the regions only where this map has them. */
+  const optsFor = (mode: Mode): Opts => {
+    const fig: RegionFig = section === 'regions' && FIGURE_MODES.includes(mode) && peopled(lands) && REGION_FIGS.includes(opts.regionFig) ? opts.regionFig : 'area';
+    return opts.regionFig === fig ? opts : { ...opts, regionFig: fig };
+  };
   /** The format the game would be played in: the one chosen, where the game has formats to choose from. */
   const format: Format = show.format ? (opts.format ?? 'normal') : 'normal';
   /** «Reglas a medida» (lib/ruleset.ts): what the options ask for, which of it this game lets one set in this format, and the rules it would be played by. */
@@ -674,10 +694,10 @@ export function Setup({ section, world, link }: { section: Section; world: World
   const current = (mode: Mode) => {
     const picked: Record<string, string> = {};
     for (const c of chosen) picked[c.id] = levelOf(c, levels).k;
-    return { section, mode, countries: isPhys ? physTokens(spec) : chosen.map((c) => c.id), levels: picked, opts };
+    return { section, mode, countries: isPhys ? physTokens(spec) : chosen.map((c) => c.id), levels: picked, opts: optsFor(mode) };
   };
   /** The game that is chosen now, on the map or the list that is chosen now. */
-  const chosenGame = () => (active ? listConfig(active, def.id, opts) : current(def.id));
+  const chosenGame = () => (active ? listConfig(active, def.id, optsFor(def.id)) : current(def.id));
   const begin = () => {
     if (problem) return;
     start(chosenGame());
@@ -939,6 +959,28 @@ export function Setup({ section, world, link }: { section: Section; world: World
                       { value: 'density', label: L('Densidad', 'Density'), title: L(`Habitantes por ${areaUnit()}`, `People per ${areaUnit()}`) },
                     ]}
                   />
+                </div>
+              )}
+              {show.regionFig && (
+                <div className="opt">
+                  <span className="opt-label">{L('Cifra', 'Figure')}</span>
+                  {canPeople ? (
+                    <>
+                      <Seg
+                        label={L('Cifra', 'Figure')}
+                        value={regionFig}
+                        onChange={(regionFig) => set({ regionFig })}
+                        options={[
+                          { value: 'area', label: L('Superficie', 'Area') },
+                          { value: 'pop', label: L('Población', 'Population') },
+                          { value: 'density', label: L('Densidad', 'Density'), title: L(`Habitantes por ${areaUnit()}`, `People per ${areaUnit()}`) },
+                        ]}
+                      />
+                      {regionFig !== 'area' && <p className="opt-hint">{L(`Cifras de Wikidata, de ${peopleYears}: cada una dice su año.`, `Figures from Wikidata, of ${peopleYears}: each says its year.`)}</p>}
+                    </>
+                  ) : (
+                    <p className="opt-hint">{L(`Se juega con la superficie: de ${unpeopled} no hay cifras de población de fiar.`, `Played by area: there are no population figures to rely on for ${unpeopled}.`)}</p>
+                  )}
                 </div>
               )}
               {show.countdown && (

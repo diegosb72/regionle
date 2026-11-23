@@ -109,6 +109,10 @@ describe('the preferences of a backup', () => {
     // Every format a game can be played in is one a copy can bring, and nothing else is.
     for (const format of ['normal', 'timed', 'lives', 'exam', 'duo'] as const) expect(cleanPrefs({ opts: { format } }, here)!.opts.format).toBe(format);
     expect(cleanPrefs({ opts: { format: 'trio' } }, here)!.opts.format).toBe(DEFAULT_OPTS.format);
+    // The figure a map of regions is played by: its area, its people or how thickly they live.
+    for (const regionFig of ['area', 'pop', 'density'] as const) expect(cleanPrefs({ opts: { regionFig } }, here)!.opts.regionFig).toBe(regionFig);
+    expect(cleanPrefs({ opts: { regionFig: 'elev' } }, here)!.opts.regionFig).toBe('area');
+    expect(cleanPrefs({ opts: {} }, here)!.opts.regionFig).toBe('area');
     // What the pairs are made of and how many are dealt: only what the game knows how to deal.
     expect(cleanPrefs({ opts: { pairOf: 'capital', pairs: 12 } }, here)!.opts).toMatchObject({ pairOf: 'capital', pairs: 12 });
     expect(cleanPrefs({ opts: { pairOf: 'anthem', pairs: 7 } }, here)!.opts).toMatchObject({ pairOf: DEFAULT_OPTS.pairOf, pairs: DEFAULT_OPTS.pairs });

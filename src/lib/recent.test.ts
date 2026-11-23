@@ -112,6 +112,26 @@ describe('what is kept of a game to play it again', () => {
     expect(odd?.o).toEqual({});
   });
 
+  it('keeps that a map of regions was played by its people, and says nothing when it was by its area', () => {
+    const hilo = (regionFig: typeof DEFAULT_OPTS.regionFig) => recentOf(game({ mode: 'hilo', opts: { ...DEFAULT_OPTS, regionFig } }), session({ mode: 'hilo' }))!;
+    expect(hilo('pop').o).toEqual({ regionFig: 'pop' });
+    expect(hilo('density').o).toEqual({ regionFig: 'density' });
+    // By its area, as before there was a choice: the same game as one kept then.
+    expect(hilo('area').o).toEqual({});
+    expect(recentKey(hilo('area'))).toBe(recentKey({ ...hilo('pop'), o: {} }));
+    expect(recentKey(hilo('pop'))).not.toBe(recentKey(hilo('area')));
+    expect(recentKey(hilo('pop'))).not.toBe(recentKey(hilo('density')));
+    // Only the games of figures have one, and only on a map of regions.
+    expect(recentOf(game({ mode: 'pin', opts: { ...DEFAULT_OPTS, regionFig: 'pop' } }), session())?.o).toEqual({ format: 'normal' });
+    const pops = recentOf(game({ section: 'pops', mode: 'hilo', countries: ['ES', 'FR'], opts: { ...DEFAULT_OPTS, regionFig: 'pop' } }), session({ section: 'pops', mode: 'hilo' }));
+    expect(pops?.o).toEqual({ metric: 'pop' });
+    // Started again, it is played by the same figure, whatever is chosen now.
+    expect(recentConfig(hilo('density'), DEFAULT_OPTS).opts.regionFig).toBe('density');
+    expect(recentConfig(hilo('area'), { ...DEFAULT_OPTS, regionFig: 'pop' }).opts.regionFig).toBe('area');
+    // The other games of the map take nothing from it.
+    expect(recentConfig(recentOf(game(), session())!, { ...DEFAULT_OPTS, regionFig: 'pop' }).opts.regionFig).toBe('pop');
+  });
+
   it('tells pairs of flags from pairs of capitals, and not a table of twelve cards from one of twenty-four', () => {
     const pairs = (opts: Partial<typeof DEFAULT_OPTS>) => recentOf(game({ section: 'pops', mode: 'pairs', countries: ['ES', 'FR', 'PT'], opts: { ...DEFAULT_OPTS, metric: 'density', ...opts } }), session({ section: 'pops', mode: 'pairs' }))!;
     // Nor is the figure of the other games of the section theirs.

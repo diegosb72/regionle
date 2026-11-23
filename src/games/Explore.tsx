@@ -210,6 +210,15 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
                     <dd>{fmtPop(item.pop)}</dd>
                   </div>
                 ) : null}
+                {item.kind === 'unit' && item.people ? (
+                  <div>
+                    <dt>{L('Población', 'Population')}</dt>
+                    <dd>
+                      {fmtPop(item.people)}
+                      {item.peopleYear ? ` (${item.peopleYear})` : ''}
+                    </dd>
+                  </div>
+                ) : null}
                 {item.area > 0 && (
                   <div>
                     <dt>{L('Superficie', 'Area')}</dt>

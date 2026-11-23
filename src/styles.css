@@ -3907,6 +3907,12 @@ button.chip.on:hover:not(:disabled) {
   border-color: var(--ok);
   background: var(--ok-soft);
 }
+/* The year a count of people is of: said, and not shouted. */
+.pcard-year {
+  font-size: 0.62em;
+  font-weight: 500;
+  white-space: nowrap;
+}
 .pcard.right .pcard-value {
   color: var(--ok-ink);
 }

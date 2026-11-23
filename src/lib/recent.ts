@@ -11,7 +11,7 @@ import type { Mode, Section } from './types';
  * The options that say which game it was, as against how one likes to play: which cities, which figure,
  * what countries are pinned by, what the cards ask, against the clock or with lives.
  */
-export type RecentOpts = Partial<Pick<Opts, 'cityPick' | 'cityCount' | 'metric' | 'pinBy' | 'format' | 'axis' | 'countdown' | 'cardAsk' | 'bearingAsk' | 'coordsAsk' | 'pairOf' | 'routeRule'>>;
+export type RecentOpts = Partial<Pick<Opts, 'cityPick' | 'cityCount' | 'metric' | 'regionFig' | 'pinBy' | 'format' | 'axis' | 'countdown' | 'cardAsk' | 'bearingAsk' | 'coordsAsk' | 'pairOf' | 'routeRule'>>;
 
 export interface Recent {
   /** When it was last played. */
@@ -42,6 +42,9 @@ function optsOf(game: GameConfig): RecentOpts {
   // The figure is the game where there is a choice of them; the games of facts (statements that are true or
   // false, the odd one out, pairs) are not played with one.
   if (game.section === 'pops' && FIGURE_MODES.includes(game.mode)) o.metric = game.opts.metric;
+  // The regions are played by their area unless something else is asked for: said only then, so that a game
+  // kept before there was a choice is the same game as one of today.
+  if (game.section === 'regions' && FIGURE_MODES.includes(game.mode) && (game.opts.regionFig === 'pop' || game.opts.regionFig === 'density')) o.regionFig = game.opts.regionFig;
   // Pairs of flags and pairs of capitals are two games; how many are dealt is a matter of taste.
   if (game.mode === 'pairs') o.pairOf = game.opts.pairOf ?? 'flag';
   if (game.mode === 'compass') o.axis = game.opts.axis ?? 'ns';
@@ -74,10 +77,15 @@ export function recentOf(game: GameConfig, rec: SessionRec): Recent | null {
 }
 
 /**
- * The options of a game that was kept, with what it did not say because the option did not exist yet: a
- * route from before there were rules was a plain one.
+ * The options of a game that was kept, with what it did not say because the option did not exist yet, or
+ * because it goes without saying: a route from before there were rules was a plain one, and a game of
+ * figures on a map of regions that names none was played by their area.
  */
-const optsKept = (r: Recent): RecentOpts => (r.mode === 'travel' && !r.o.routeRule ? { ...r.o, routeRule: 'none' } : r.o);
+function optsKept(r: Recent): RecentOpts {
+  if (r.mode === 'travel' && !r.o.routeRule) return { ...r.o, routeRule: 'none' };
+  if (r.section === 'regions' && FIGURE_MODES.includes(r.mode) && !r.o.regionFig) return { ...r.o, regionFig: 'area' };
+  return r.o;
+}
 
 /** Two games are the same one when they are the same game on the same map, whatever the order of its countries. */
 export function recentKey(r: Recent): string {

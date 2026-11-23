@@ -5,13 +5,13 @@
  */
 import { L, getLang, nm } from './i18n';
 import { metricNoun, metricOrder, type MetricId } from './metricNames';
-import { TOP_MIN } from './rules';
+import { REGION_FIGS, TOP_MIN, peopled, type RegionFig } from './rules';
 import { fmtArea, fmtPop, fmtShort, nf, pick, sample, type Answerable, type Rng } from './text';
 import { area, areaScale, areaUnit, getUnits } from './units';
 import type { Country, Deck, Item } from './types';
 
-export type { MetricId };
-export { TOP_MIN };
+export type { MetricId, RegionFig };
+export { REGION_FIGS, TOP_MIN, peopled };
 
 export interface Metric {
   id: MetricId;
@@ -183,6 +183,9 @@ export function metricOf(id: MetricId): Metric {
   return m;
 }
 
+/** A figure in full, with the year it is of where that is told: "1,99 millones de habitantes (2024)". */
+export const fullOf = (f: Fig, m: Metric = metricOf(f.metric)): string => (f.year ? `${m.full(f.value)} (${f.year})` : m.full(f.value));
+
 /** One thing with a figure: a country and its population, a peak and its height. */
 export interface Fig {
   id: string;
@@ -195,6 +198,8 @@ export interface Fig {
   type: string;
   value: number;
   metric: MetricId;
+  /** The year the figure is of, where it matters and the data say it: how many people a region has. */
+  year?: number;
   /** For the card of facts and links shown with the answer. */
   item: Item;
   /** What it answers to when typed. */
@@ -236,7 +241,7 @@ export function figureOf(it: Item): { metric: MetricId; value: number } | null {
   return it.shape === 'area' && it.area > 0 ? { metric: 'area', value: it.area } : null;
 }
 
-const figOf = (it: Item, metric: MetricId, value: number, several: boolean): Fig => ({
+const figOf = (it: Item, metric: MetricId, value: number, several: boolean, year?: number): Fig => ({
   id: it.id,
   name: it.name,
   // On a map of one country every flag would be the same one: it says nothing.
@@ -245,16 +250,37 @@ const figOf = (it: Item, metric: MetricId, value: number, several: boolean): Fig
   type: it.type,
   value,
   metric,
+  ...(year ? { year } : {}),
   item: it,
   answers: it,
 });
 
-/** The figures of the things on a map: each with the one its kind is known by. */
-export function deckFigs(deck: Deck): Fig[] {
+/**
+ * The figure a map of regions is played with: the one asked for, where every region of the map has it, and
+ * the area where some does not (a game kept from before the data changed, a link written by hand).
+ */
+export function regionFigOf(deck: Deck, wanted: RegionFig | undefined): RegionFig {
+  if (deck.scope !== 'regions' || !wanted || wanted === 'area' || !REGION_FIGS.includes(wanted)) return 'area';
+  return deck.items.length > 0 && deck.items.every((it) => (it.people ?? 0) > 0 && (wanted === 'pop' || it.area > 0)) ? wanted : 'area';
+}
+
+/** The figure of a region when the game is about its people. */
+function peopleOf(it: Item, fig: RegionFig): { metric: MetricId; value: number } | null {
+  if (!it.people || it.people <= 0) return null;
+  if (fig === 'pop') return { metric: 'pop', value: it.people };
+  return it.area > 0 ? { metric: 'density', value: it.people / it.area } : null;
+}
+
+/**
+ * The figures of the things on a map: each with the one its kind is known by. The regions have a choice:
+ * their area, which is what they are known by, or their people (`regions`), with the year they were counted.
+ */
+export function deckFigs(deck: Deck, regions: RegionFig = 'area'): Fig[] {
   const several = deck.countries.length > 1;
   return deck.items.flatMap((it) => {
-    const f = figureOf(it);
-    return f ? [figOf(it, f.metric, f.value, several)] : [];
+    const people = regions !== 'area' && it.kind === 'unit';
+    const f = people ? peopleOf(it, regions) : figureOf(it);
+    return f ? [figOf(it, f.metric, f.value, several, people ? it.peopleYear : undefined)] : [];
   });
 }
 
@@ -281,6 +307,21 @@ export function topOf(figs: readonly Fig[], n: number): Fig[] {
   return [...figs].sort((a, b) => b.value - a.value).slice(0, n);
 }
 
+/** What a place can gain or lose in people in a year, as a share: what two counts of different years may be apart for that alone. */
+const DRIFT = 0.015;
+/** The years that a count with no date is taken to be away from one that has it. */
+const UNDATED = 10;
+
+/**
+ * How far apart two figures have to be, as a share of the larger, to be told apart. Counts of people of
+ * different years need more: the older one has moved since, and the two could have changed places.
+ */
+function margin(a: Fig, b: Fig): number {
+  if (a.year == null && b.year == null) return 0.02;
+  const years = a.year != null && b.year != null ? Math.abs(a.year - b.year) : UNDATED;
+  return Math.min(0.3, 0.02 + DRIFT * years);
+}
+
 /**
  * Two figures too close to call are not asked against each other: a difference smaller than this share of
  * the larger one cannot be known, only guessed. Positions are told apart by degrees instead.
@@ -288,7 +329,7 @@ export function topOf(figs: readonly Fig[], n: number): Fig[] {
 export function tooClose(a: Fig, b: Fig): boolean {
   if (a.metric === 'lat' || a.metric === 'lon') return Math.abs(a.value - b.value) < 0.5;
   const hi = Math.max(Math.abs(a.value), Math.abs(b.value));
-  return hi > 0 && Math.abs(a.value - b.value) / hi < 0.02;
+  return hi > 0 && Math.abs(a.value - b.value) / hi < margin(a, b);
 }
 
 /** The things of a list that share their figure with at least another one: nothing else can be compared. */
@@ -312,12 +353,15 @@ export function challenger(list: readonly Fig[], current: Fig, streak: number, r
   const same = list.filter((f) => f.metric === current.metric && f.id !== current.id);
   const base = current.value;
   const [lo, hi] = streak < 3 ? [1.4, Infinity] : streak < 8 ? [1.12, 15] : [1.03, 4];
+  // Counts of different years are not set against each other when the years alone could tell them apart.
+  const apart = (f: Fig): boolean => (current.year == null && f.year == null) || !tooClose(current, f);
   const free = same.filter((f) => !recent.includes(f.id));
   const fit = free.filter((f) => {
     const r = Math.max(f.value / base, base / f.value);
-    return r >= lo && r <= hi;
+    return r >= lo && r <= hi && apart(f);
   });
-  return choose(fit.length ? fit : free.length ? free : same);
+  const clear = free.filter(apart);
+  return choose(fit.length ? fit : clear.length ? clear : free.length ? free : same);
 }
 
 /** Are two of them too close to tell which comes first? */

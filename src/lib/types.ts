@@ -44,6 +44,11 @@ export interface Country {
   ll?: 1;
   pop?: number;
   py?: number;
+  /**
+   * The year the population of its divisions is of, in the countries whose divisions carry one: those where
+   * the figures of all of them hold together (scripts/data/population.mjs).
+   */
+  rp?: number;
   ar: number;
   cap?: Capital;
   lp: LL;
@@ -78,6 +83,9 @@ export interface Item {
   /** Cities: inhabitants, and 3 for the capital of the country, 2 for its second capital, 1 for the capital of a region. */
   pop?: number;
   cap?: number;
+  /** Regions: how many people live there, and the year the figure is of when the source says it. */
+  people?: number;
+  peopleYear?: number;
   /** Names of its capital: the first one is shown, all of them are accepted. */
   capital?: string[];
   /** Display name, in the language of the interface. */

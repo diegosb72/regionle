@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { TOP_MIN, challenger, comparable, countryFigs, countryValue, dealFive, deckFigs, figPlayable, figureOf, metricOf, metricsIn, positionFigs, tooClose, topOf, topSize, type Fig, type MetricId } from './figures';
+import { TOP_MIN, challenger, comparable, countryFigs, countryValue, dealFive, deckFigs, figPlayable, figureOf, fullOf, metricOf, metricsIn, peopled, positionFigs, regionFigOf, tooClose, topOf, topSize, type Fig, type MetricId } from './figures';
 import { setLang } from './i18n';
 import { mulberry32 } from './text';
 import type { Country, Deck, Index, Item } from './types';
@@ -128,6 +128,82 @@ describe('the figure of each thing on a map', () => {
   });
 });
 
+describe('the people of the regions', () => {
+  const regions = (items: Item[]): Deck => ({ scope: 'regions', items, countries: [country('ES')] }) as unknown as Deck;
+  const madrid = item({ id: 'ES-M', area: 8000, people: 7_000_000, peopleYear: 2024 });
+  const soria = item({ id: 'ES-SO', area: 10_000, people: 90_000, peopleYear: 2021 });
+  const undated = item({ id: 'ES-X', area: 500, people: 1000 });
+
+  it('are the figure of a map of regions when the game asks for them, each with its year', () => {
+    expect(deckFigs(regions([madrid, soria, undated]), 'pop').map((f) => [f.id, f.metric, f.value, f.year])).toEqual([
+      ['ES-M', 'pop', 7_000_000, 2024],
+      ['ES-SO', 'pop', 90_000, 2021],
+      ['ES-X', 'pop', 1000, undefined],
+    ]);
+    expect(deckFigs(regions([madrid, soria]), 'density').map((f) => [f.id, f.metric, f.value, f.year])).toEqual([
+      ['ES-M', 'density', 875, 2024],
+      ['ES-SO', 'density', 9, 2021],
+    ]);
+  });
+
+  it('leave the area as the figure when nothing else is asked for, with no year', () => {
+    for (const figs of [deckFigs(regions([madrid, soria])), deckFigs(regions([madrid, soria]), 'area')]) {
+      expect(figs.map((f) => [f.metric, f.value, f.year])).toEqual([
+        ['area', 8000, undefined],
+        ['area', 10_000, undefined],
+      ]);
+    }
+  });
+
+  it('are asked only of the regions: a city keeps its own figure, and a region with none is left out', () => {
+    const city = item({ id: 'c', kind: 'city', shape: 'point', pop: 300_000, people: 5 });
+    const empty = item({ id: 'ES-Y', area: 700 });
+    expect(deckFigs(regions([madrid, city, empty]), 'pop').map((f) => [f.id, f.value])).toEqual([
+      ['ES-M', 7_000_000],
+      ['c', 300_000],
+    ]);
+    // Nor is there a density where the data give no area to spread the people over.
+    expect(deckFigs(regions([item({ id: 'ES-Z', people: 10 })]), 'density')).toEqual([]);
+  });
+
+  it('are played only where every region of the map has them: with one missing, the map is played by its area', () => {
+    expect(regionFigOf(regions([madrid, soria]), 'pop')).toBe('pop');
+    expect(regionFigOf(regions([madrid, soria]), 'density')).toBe('density');
+    expect(regionFigOf(regions([madrid, item({ id: 'ES-Y', area: 700 })]), 'pop')).toBe('area');
+    expect(regionFigOf(regions([madrid, item({ id: 'ES-Y', area: 700 })]), 'density')).toBe('area');
+    // People with no area can be counted, and cannot be spread.
+    expect(regionFigOf(regions([madrid, item({ id: 'ES-Z', people: 10 })]), 'pop')).toBe('pop');
+    expect(regionFigOf(regions([madrid, item({ id: 'ES-Z', people: 10 })]), 'density')).toBe('area');
+    expect(regionFigOf(regions([]), 'pop')).toBe('area');
+  });
+
+  it('are not the figure of any other map, nor of a game that asks for nothing or for something unknown', () => {
+    expect(regionFigOf({ scope: 'cities', items: [madrid], countries: [country('ES')] } as unknown as Deck, 'pop')).toBe('area');
+    expect(regionFigOf(regions([madrid]), undefined)).toBe('area');
+    expect(regionFigOf(regions([madrid]), 'area')).toBe('area');
+    expect(regionFigOf(regions([madrid]), 'elev' as never)).toBe('area');
+  });
+
+  it('can be played in the countries whose divisions carry them, and only when all the countries chosen do', () => {
+    expect(peopled([country('ES')])).toBe(true);
+    expect(peopled([country('ES'), country('FR'), country('DE')])).toBe(true);
+    // Every district of Portugal carries in Wikidata the people of its capital: they do not add up.
+    expect(country('PT').rp).toBeUndefined();
+    expect(peopled([country('PT')])).toBe(false);
+    expect(peopled([country('ES'), country('PT')])).toBe(false);
+    expect(peopled([])).toBe(false);
+  });
+
+  it('are said with their year', () => {
+    const [m, x] = deckFigs(regions([madrid, undated]), 'pop');
+    expect(fullOf(m)).toBe('7 millones de habitantes (2024)');
+    expect(fullOf(x)).toBe('1000 habitantes');
+    expect(fullOf(fig('ES', 47_400_000))).toBe('47,4 millones de habitantes');
+    setLang('en');
+    expect(fullOf(deckFigs(regions([madrid]), 'pop')[0])).toBe('7 million people (2024)');
+  });
+});
+
 describe('where things lie, as figures', () => {
   const north = item({ id: 'n', lp: [-5.8, 43.4] });
   const south = item({ id: 's', lp: [-4.4, 36.7] });
@@ -158,6 +234,26 @@ describe('telling figures apart', () => {
     // Either side of the equator, or of Greenwich.
     expect(tooClose(fig('a', -0.2, 'lon'), fig('b', 0.2, 'lon'))).toBe(true);
     expect(tooClose(fig('a', -3, 'lat'), fig('b', 3, 'lat'))).toBe(false);
+  });
+
+  it('asks more of two counts of people of different years: the older one has moved since', () => {
+    const of = (id: string, value: number, year?: number): Fig => ({ ...fig(id, value), ...(year ? { year } : {}) });
+    // The same year: 2 %, as ever.
+    expect(tooClose(of('a', 1000, 2020), of('b', 970, 2020))).toBe(false);
+    expect(tooClose(of('a', 1000, 2020), of('b', 985, 2020))).toBe(true);
+    // A year and a half per cent for each year between them, on top of the 2 %: ten years, 17 %.
+    expect(tooClose(of('a', 1000, 2020), of('b', 970, 2010))).toBe(true);
+    expect(tooClose(of('a', 1000, 2020), of('b', 840, 2010))).toBe(true);
+    expect(tooClose(of('a', 1000, 2020), of('b', 820, 2010))).toBe(false);
+    expect(tooClose(of('a', 1000, 2010), of('b', 820, 2020))).toBe(false);
+    // Never more than 30 %, however far apart the years.
+    expect(tooClose(of('a', 1000, 2024), of('b', 710, 1990))).toBe(true);
+    expect(tooClose(of('a', 1000, 2024), of('b', 690, 1990))).toBe(false);
+    // A count with no date is taken to be ten years from one that has it.
+    expect(tooClose(of('a', 1000, 2020), of('b', 840))).toBe(true);
+    expect(tooClose(of('a', 1000), of('b', 820, 2020))).toBe(false);
+    // And two with no date are told apart as any two figures.
+    expect(tooClose(of('a', 1000), of('b', 970))).toBe(false);
   });
 
   it('counts the figures of a mixed map, the commonest first', () => {
@@ -237,6 +333,26 @@ describe('higher or lower: who comes next', () => {
     const seen: Fig[][] = [];
     challenger([fig('a', 100), fig('c', 104)], list[0], 0, [], all(seen));
     expect(seen[0].map((f) => f.id)).toEqual(['c']);
+  });
+
+  it('does not set against each other two counts that their years alone could tell apart', () => {
+    const of = (id: string, value: number, year: number): Fig => ({ ...fig(id, value), year });
+    const now = of('a', 1000, 2024);
+    // 12 % more people, counted fourteen years before: the two may have changed places since. 12 % more,
+    // counted the same year: a fair question from the third in a row.
+    const dated = [now, of('old', 1120, 2010), of('same', 1125, 2024), of('far', 3000, 2010)];
+    const at = (streak: number, recent: string[] = []) => {
+      const seen: Fig[][] = [];
+      challenger(dated, now, streak, recent, all(seen));
+      return seen[0].map((f) => f.id);
+    };
+    expect(at(3)).toEqual(['same', 'far']);
+    expect(at(8)).toEqual(['same', 'far']);
+    // With nothing the right distance away, what is clear comes before what is not…
+    expect(at(8, ['same', 'far'])).toEqual(['old']);
+    const seen: Fig[][] = [];
+    challenger([now, of('old', 1120, 2010), of('huge', 90_000, 2024)], now, 8, [], all(seen));
+    expect(seen[0].map((f) => f.id)).toEqual(['huge']);
   });
 });
 
