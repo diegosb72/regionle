@@ -146,6 +146,33 @@ test.describe('the game of the facts of the countries: four options', () => {
     await expect(page.locator('.results-title')).toHaveText('¡Pleno!');
   });
 
+  test('offers four domains or four dialling codes, each of a country of the map', async ({ page }) => {
+    const six = ['ES', 'PT', 'FR', 'IT', 'DE', 'GB'];
+    await start(page, { ...GAME, countries: six, opts: { fact: 'domain', answer: 'choice', length: 'all' } });
+    await expect(kicker(page)).toHaveText('¿Cuál es el dominio de internet de…?');
+    for (let n = 1; n <= 2; n++) {
+      await expect(hud(page)).toHaveText(`${n} / 6`);
+      const id = await asked(page);
+      const options = await page.locator('.choice span').allTextContents();
+      expect(new Set(options).size, nameOf(id)).toBe(4);
+      expect(options, nameOf(id)).toContain(domain(id));
+      for (const option of options) expect(six.map(domain), option).toContain(option);
+      await page.locator('.choice', { hasText: domain(id) }).click();
+      await expect(verdict(page)).toHaveText(`¡Correcto! ${domain(id)}`);
+      await next(page);
+    }
+
+    await restart(page, { ...GAME, countries: six, opts: { fact: 'dial', answer: 'choice', length: 'all' } });
+    await expect(kicker(page)).toHaveText('¿Cuál es el prefijo telefónico de…?');
+    const id = await asked(page);
+    const options = await page.locator('.choice span').allTextContents();
+    expect(new Set(options).size, nameOf(id)).toBe(4);
+    expect(options, nameOf(id)).toContain(dial(id));
+    for (const option of options) expect(six.map(dial), option).toContain(option);
+    await page.locator('.choice').filter({ hasNotText: dial(id) }).first().click();
+    await expect(verdict(page)).toHaveText(`Era ${dial(id)}`);
+  });
+
   test('asks the answer typed where the map does not give four to choose from', async ({ page }) => {
     // English, English and Spanish.
     await start(page, { ...GAME, countries: ['US', 'CA', 'MX'], opts: { fact: 'language', answer: 'choice', length: 'all' } });

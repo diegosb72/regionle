@@ -15,6 +15,24 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.41.0',
+    date: '2026-11-23',
+    es: [
+      'Datos del país, un juego nuevo en Países: pregunta de cada país su moneda, su idioma oficial, su dominio de internet o su prefijo telefónico.',
+      'Con cuatro opciones o escribiendo. Vale cualquier idioma oficial del país, y la moneda por su nombre a secas, entero, en plural o por su código.',
+      'No se pregunta lo que el nombre del país ya dice (el francés de Francia), y entre las opciones falsas no sale nada que también sea verdad de él.',
+      'En Señalar, «Te mostramos» tiene también el dominio y el prefijo: sale «.pt» o «+351» y señalas el país.',
+      'La ficha de Explorar trae los cuatro datos, y ¿Quién soy? da dos pistas más: un idioma y la moneda. Son de Unicode CLDR y de GeoNames.',
+    ],
+    en: [
+      'Country facts, a new game in Countries: it asks each country its currency, its official language, its internet domain or its dialling code.',
+      'With four options or typed. Any official language of the country is right, and a currency by its plain name, its whole name, its plural or its code.',
+      'What the name of a country already says is not asked (the French of France), and no wrong option is ever something that is also true of it.',
+      'In Pin it, “You are shown” now has the domain and the dialling code too: you get “.pt” or “+351” and pin the country.',
+      'The Explore card has the four facts, and Who am I? gives two more clues: a language and the currency. They come from Unicode CLDR and GeoNames.',
+    ],
+  },
+  {
     version: '1.40.0',
     date: '2026-11-23',
     es: [

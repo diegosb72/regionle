@@ -3,6 +3,14 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.41.0 — 23 de noviembre de 2026
+
+- Datos del país, un juego nuevo en Países: pregunta de cada país su moneda, su idioma oficial, su dominio de internet o su prefijo telefónico.
+- Con cuatro opciones o escribiendo. Vale cualquier idioma oficial del país, y la moneda por su nombre a secas, entero, en plural o por su código.
+- No se pregunta lo que el nombre del país ya dice (el francés de Francia), y entre las opciones falsas no sale nada que también sea verdad de él.
+- En Señalar, «Te mostramos» tiene también el dominio y el prefijo: sale «.pt» o «+351» y señalas el país.
+- La ficha de Explorar trae los cuatro datos, y ¿Quién soy? da dos pistas más: un idioma y la moneda. Son de Unicode CLDR y de GeoNames.
+
 ## 1.40.0 — 23 de noviembre de 2026
 
 - Siete cifras más de los países: esperanza de vida, PIB por habitante, edad mediana, población urbana, hijos por mujer, costa y punto más alto.
