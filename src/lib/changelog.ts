@@ -15,6 +15,24 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.42.0',
+    date: '2026-11-23',
+    es: [
+      'Banderas, un apartado nuevo: una galería con las banderas de los países y, por primera vez, las de sus regiones (1995, de 120 países) y las de 138 capitales.',
+      'Tres pestañas: Países, Regiones (eliges el país; si tiene dos niveles, salen los dos) y Capitales. El buscador mira en todos los países a la vez.',
+      'Toca una bandera para verla grande, con el archivo de Wikimedia Commons del que sale, quién la dibujó, con qué licencia y un enlace para avisar de un error.',
+      'Casi todas son dibujos, nítidos a cualquier tamaño. No pesan al abrir el juego: cada bandera se descarga cuando se va a ver, y se guarda.',
+      'Por ahora son para mirarlas: los juegos con ellas llegarán en las próximas versiones. Qué bandera es cada una lo dice Wikidata.',
+    ],
+    en: [
+      'Flags, a new section: a gallery with the flags of the countries and, for the first time, those of their regions (1995, of 120 countries) and of 138 capitals.',
+      'Three tabs: Countries, Regions (you choose the country; if it has two levels, both are shown) and Capitals. The search looks through every country at once.',
+      'Touch a flag to see it large, with the Wikimedia Commons file it comes from, who drew it, on what licence, and a link to report a mistake.',
+      'Nearly all are drawings, sharp at any size. They add nothing to opening the game: each flag is downloaded when it is about to be seen, and kept.',
+      'For now they are to look at: the games with them will come in the next versions. Which flag each one is, Wikidata says.',
+    ],
+  },
+  {
     version: '1.41.0',
     date: '2026-11-23',
     es: [

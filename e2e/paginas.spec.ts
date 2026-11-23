@@ -13,6 +13,8 @@ const PAGES = [
   ['physical.html', 'en', 'Rivers, seas and mountains'],
   ['cifras.html', 'es', 'Los países en cifras'],
   ['figures.html', 'en', 'Countries in figures'],
+  ['banderas.html', 'es', 'Banderas del mundo'],
+  ['flags.html', 'en', 'Flags of the world'],
   ['reto.html', 'es', 'Reto del día'],
   ['daily.html', 'en', 'Daily challenge'],
   ['acerca.html', 'es', 'Acerca de'],
@@ -133,7 +135,7 @@ test.describe('the page of each screen', () => {
     await page.goto('./');
     await shown(page);
     const hrefs = await page.locator('.sections a.scard').evaluateAll((links) => links.map((a) => a.getAttribute('href')));
-    expect(hrefs).toEqual(['regiones.html', 'paises.html', 'ciudades.html', 'fisica.html', 'cifras.html']);
+    expect(hrefs).toEqual(['regiones.html', 'paises.html', 'ciudades.html', 'fisica.html', 'cifras.html', 'banderas.html']);
     await expect(page.locator('.foot-about a').first()).toHaveAttribute('href', 'acerca.html');
 
     // Nothing is loaded again: what the page holds in memory is still there afterwards.

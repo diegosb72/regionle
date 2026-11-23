@@ -4,7 +4,7 @@ import { SCREENS, SCREEN_IDS, SEO_LANGS } from './seo';
 
 describe('addresses', () => {
   it('leaves the addresses of the game as they are', () => {
-    for (const path of ['', 'regiones', 'paises', 'ciudades', 'fisica', 'poblaciones', 'jugar', 'reto', 'reto/2026-11-10', 'progreso', 'configuracion', 'configuracion/regiones/US', 'acerca']) {
+    for (const path of ['', 'regiones', 'paises', 'ciudades', 'fisica', 'poblaciones', 'banderas', 'banderas/regiones/ES', 'jugar', 'reto', 'reto/2026-11-10', 'progreso', 'configuracion', 'configuracion/regiones/US', 'acerca']) {
       expect(canonicalPath(path)).toBe(path);
     }
   });
@@ -19,6 +19,10 @@ describe('addresses', () => {
     expect(canonicalPath('settings/regiones/US')).toBe('configuracion/regiones/US');
     expect(canonicalPath('about')).toBe('acerca');
     expect(canonicalPath('inicio')).toBe('');
+    // The gallery of flags, as the English page is called and in the singular.
+    expect(canonicalPath('flags')).toBe('banderas');
+    expect(canonicalPath('Flags/regiones/US')).toBe('banderas/regiones/US');
+    expect(canonicalPath('bandera')).toBe('banderas');
   });
 
   it('takes capitals, accents and slashes at the ends', () => {
@@ -53,6 +57,10 @@ describe('screens', () => {
     // Without a code, the screen that says what a duel or a list is and how one is sent.
     expect(routeOf('duelo', now)).toEqual({ kind: 'duel', code: '' });
     expect(routeOf('lista', now)).toEqual({ kind: 'list', code: '' });
+    // The gallery of flags: which of its pages, it reads itself (`flags.ts`).
+    expect(routeOf('banderas', now)).toEqual({ kind: 'flags', rest: '' });
+    expect(routeOf('banderas/regiones/ES', now)).toEqual({ kind: 'flags', rest: 'regiones/ES' });
+    expect(routeOf(canonicalPath('flags/capitales'), now)).toEqual({ kind: 'flags', rest: 'capitales' });
     // A game for a box in another page: what follows is read where it is played (`embed.ts`).
     expect(routeOf('incrustar/regiones/ES:p/pin', now)).toEqual({ kind: 'embed', rest: 'regiones/ES:p/pin' });
     expect(routeOf('incrustar', now)).toEqual({ kind: 'embed', rest: '' });
@@ -97,6 +105,10 @@ describe('links', () => {
     expect(pageScreen('/regionle/regions.html')).toBe('regiones');
     expect(pageScreen('/regionle/cifras.html')).toBe('poblaciones');
     expect(pageScreen('/regionle/daily')).toBe('reto');
+    expect(pageScreen('/regionle/banderas.html')).toBe('banderas');
+    expect(pageScreen('/regionle/flags')).toBe('banderas');
+    expect(pageLang('/regionle/flags.html')).toBe('en');
+    expect(pageLang('/regionle/banderas')).toBe('es');
     expect(pageScreen('/about.html')).toBe('acerca');
     // The page of a language, the first page and anything else are the page of no screen.
     for (const path of ['/regionle/en.html', '/regionle/es', '/regionle/', '/regionle/index.html', '/regions/', '/regionle/regions.htm', '/regionle/poblaciones.html', '/regionle/Regions.html']) expect(pageScreen(path), path).toBeNull();

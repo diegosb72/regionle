@@ -14,11 +14,13 @@ export interface ReportAbout {
   item?: Pick<Item, 'id' | 'name' | 'kind' | 'type' | 'country' | 'cat'> | null;
   /** The game in course, as the store keeps it. */
   game?: { section: string; mode: string; countries: string[]; levels: Record<string, string> } | null;
+  /** The file of a flag, as Wikimedia Commons titles it, when what is wrong is the flag (screens/Flags.tsx). */
+  flag?: string;
   version: string;
 }
 
 /** The lines that say what the report is about, for whoever reads it: ids, not names that change with the language. */
-export function reportFacts({ item, game, version }: ReportAbout): string[] {
+export function reportFacts({ item, game, flag, version }: ReportAbout): string[] {
   const lines: string[] = [];
   if (item) {
     const kind = item.kind === 'feature' ? (item.cat ?? item.type) : item.type;
@@ -35,6 +37,7 @@ export function reportFacts({ item, game, version }: ReportAbout): string[] {
     lines.push(`${L('Mapa', 'Map')}: \`${game.section}\` · ${countries}${levels ? ` · ${levels}` : ''}`);
     lines.push(`${L('Juego', 'Game')}: \`${game.mode}\``);
   }
+  if (flag) lines.push(`${L('Bandera', 'Flag')}: \`${flag}\``);
   lines.push(`${L('Versión', 'Version')}: ${version} · ${L('idioma', 'language')}: ${getLang()}`);
   return lines;
 }

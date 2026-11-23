@@ -1,6 +1,6 @@
 /** Title and description of each screen: what the tab, the history and a search engine say of it. */
 import { L, fmtDay, getLang } from './i18n';
-import { ABOUT_PATH, DAILY_PATH, PATHS, mapAt, type Route } from './routes';
+import { ABOUT_PATH, DAILY_PATH, FLAGS_PATH, PATHS, mapAt, type Route } from './routes';
 import { SCREENS, SEO, pageTitle, type ScreenId } from './seo';
 import { today } from './text';
 
@@ -11,6 +11,7 @@ import { today } from './text';
 function screenOf(route: Route, now: string): ScreenId | null {
   if (route.kind === 'section') return PATHS[route.section];
   if (route.kind === 'daily') return route.date === now ? DAILY_PATH : null;
+  if (route.kind === 'flags') return FLAGS_PATH;
   return route.kind === 'about' ? ABOUT_PATH : null;
 }
 

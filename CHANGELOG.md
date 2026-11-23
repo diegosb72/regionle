@@ -3,6 +3,14 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.42.0 — 23 de noviembre de 2026
+
+- Banderas, un apartado nuevo: una galería con las banderas de los países y, por primera vez, las de sus regiones (1995, de 120 países) y las de 138 capitales.
+- Tres pestañas: Países, Regiones (eliges el país; si tiene dos niveles, salen los dos) y Capitales. El buscador mira en todos los países a la vez.
+- Toca una bandera para verla grande, con el archivo de Wikimedia Commons del que sale, quién la dibujó, con qué licencia y un enlace para avisar de un error.
+- Casi todas son dibujos, nítidos a cualquier tamaño. No pesan al abrir el juego: cada bandera se descarga cuando se va a ver, y se guarda.
+- Por ahora son para mirarlas: los juegos con ellas llegarán en las próximas versiones. Qué bandera es cada una lo dice Wikidata.
+
 ## 1.41.0 — 23 de noviembre de 2026
 
 - Datos del país, un juego nuevo en Países: pregunta de cada país su moneda, su idioma oficial, su dominio de internet o su prefijo telefónico.

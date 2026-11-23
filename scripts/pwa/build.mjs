@@ -8,7 +8,7 @@
  *                 the page that answers a visit to each page of the site (and to the pages of the maps, by
  *                 the word their names start with)
  *   offline.json  what "download everything" has to fetch (maps of every country, cities, physical
- *                 geography, flags) and how much it weighs once compressed
+ *                 geography, the flags of the countries) and how much it weighs once compressed
  */
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
@@ -72,8 +72,15 @@ for (const f of screenPages) pages[f] = pages[f.slice(0, -5)] = `${langOf(f)}.ht
  * screen with the page of its language: neither stored nor counted in the version.
  */
 const forCrawlers = (f) => f === 'robots.txt' || f === 'sitemap.xml' || /^social-[\w-]+\.png$/.test(f) || screenPages.includes(f) || mapPages.has(f);
+/**
+ * The flags that come from Wikimedia Commons (scripts/data/flags.mjs): thousands of files, of which a
+ * player sees a few. They are neither stored with the application nor part of what "download everything"
+ * fetches: the worker keeps each one the first time it is shown, like any flag. Each is named after what it
+ * holds, so the version of the site does not have to count them either: their list (data/flags.json) does.
+ */
+const onDemand = (f) => f.startsWith('flags/commons/');
 const files = walk(out)
-  .filter((f) => !GENERATED.has(f) && !f.startsWith('.') && !forCrawlers(f))
+  .filter((f) => !GENERATED.has(f) && !f.startsWith('.') && !forCrawlers(f) && !onDemand(f))
   .sort();
 const digest = (list) => {
   const h = createHash('sha1');
@@ -117,3 +124,5 @@ console.log(`pwa · versión ${version}`);
 console.log(`pwa · aplicación: ${shell.length} archivos, ${kb(shellBytes)} comprimidos`);
 console.log(`pwa · páginas: ${langPages.length} de idioma, guardadas; ${screenPages.length} de pantalla y ${mapPages.size} de mapa, que contesta la de su idioma`);
 console.log(`pwa · descarga completa: ${pack.length} archivos, ${kb(offline.bytes)} comprimidos`);
+const later = walk(out).filter(onDemand);
+if (later.length) console.log(`pwa · banderas de Wikimedia Commons, que se guardan al verse: ${later.length} archivos, ${kb(later.reduce((n, f) => n + fs.statSync(path.join(out, f)).size, 0))}`);

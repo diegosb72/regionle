@@ -5,7 +5,7 @@ import { GameKeys, GlobalKeys } from '../components/KeyHelp';
 import { RELEASES } from '../lib/changelog';
 import { L, fmtDay, getLang } from '../lib/i18n';
 import { REPO, reportUrl } from '../lib/report';
-import { PROGRESS_PATH, RECEIPT_PATH } from '../lib/routes';
+import { FLAGS_PATH, PROGRESS_PATH, RECEIPT_PATH } from '../lib/routes';
 import { VERSION } from '../lib/version';
 
 
@@ -182,9 +182,21 @@ export function About() {
             </dd>
           </div>
           <div>
-            <dt>{L('Banderas', 'Flags')}</dt>
+            <dt>{L('Banderas de los países', 'Flags of the countries')}</dt>
             <dd>
               <Out href="https://github.com/lipis/flag-icons">flag-icons</Out> · MIT
+            </dd>
+          </div>
+          <div>
+            <dt>{L('Banderas de las regiones y de las capitales', 'Flags of the regions and of the capitals')}</dt>
+            <dd>
+              {L('Cuál es la de cada una, de', 'Which one each has, from')} <Out href="https://www.wikidata.org/">Wikidata</Out> (CC0);{' '}
+              {L('los archivos, de', 'the files, from')} <Out href="https://commons.wikimedia.org/">Wikimedia Commons</Out>
+              {L(
+                ', cada uno de su autor y con su licencia: dominio público, CC0, CC BY o CC BY-SA. Los dibujos se han aligerado y algunos se muestran como imagen, sin cambiar lo que se ve. ',
+                ', each by its author and under its licence: public domain, CC0, CC BY or CC BY-SA. The drawings have been made lighter and some are shown as pictures, without changing what is seen. ',
+              )}
+              <a href={`#/${FLAGS_PATH}`}>{L('El autor y la licencia de cada bandera están en Banderas', 'The author and the licence of each flag are in Flags')}</a>
             </dd>
           </div>
           <div>

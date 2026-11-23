@@ -1,7 +1,7 @@
 {
   "name": "regionle",
   "private": true,
-  "version": "1.41.0",
+  "version": "1.42.0",
   "homepage": "https://diegosb72.github.io/regionle/",
   "description": "Regionle ∞ — juego de geografía ilimitado para aprender países y regiones del mundo",
   "license": "MIT",
@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build && node scripts/pwa/build.mjs dist && node scripts/budget.mjs dist",
-    "build:pages": "tsc --noEmit && vite build --outDir docs --emptyOutDir && node scripts/pwa/build.mjs docs && node scripts/budget.mjs docs",
+    "build:pages": "tsc --noEmit && vite build --outDir docs && node scripts/pwa/build.mjs docs && node scripts/budget.mjs docs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -23,6 +23,7 @@
     "data:facts": "node scripts/data/facts.mjs",
     "data:check": "node scripts/data/check.mjs",
     "data:outside": "node scripts/data/outside.mjs",
+    "data:flags": "node scripts/data/flags.mjs",
     "data": "npm run data:fetch && npm run data:build && npm run data:population && npm run data:physical && npm run data:figures && npm run data:facts",
     "typeins": "node scripts/typeins/build.mjs",
     "social": "node scripts/social/build.mjs"
@@ -63,6 +64,8 @@
     "jsdom": "^31.0.1",
     "jsqr": "^1.4.0",
     "polylabel": "^2.1.0",
+    "sharp": "^0.35.5",
+    "svgo": "^4.1.0",
     "topojson-server": "^3.0.1",
     "topojson-simplify": "^3.0.3",
     "typescript": "^7.0.2",

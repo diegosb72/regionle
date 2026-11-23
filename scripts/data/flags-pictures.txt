@@ -1,0 +1,57 @@
+# The files whose picture, as Wikimedia draws it, the workflow "Traer datos" brings besides the original:
+# one Commons title to a line. They are the drawings with words in them, which each device would set in a
+# typeface of its own, so the game shows the picture. `npm run data:flags` writes this list from the files
+# it has looked inside; a drawing that is brought after the list was written is looked at as it comes.
+Bandera de Arequipa.svg
+Bandera de la Provincia de Alajuela.svg
+Bandera de la Provincia de Puntarenas.svg
+Bandera de la provincia de Palencia1.svg
+Bandera de la provincia de Ávila.svg
+Drapèu de la Contèa de Niça.svg
+Flag of Antioquia Department.svg
+Flag of Ayeyarwady Region.svg
+Flag of Behira Govenorate.svg
+Flag of Chalatenango.svg
+Flag of Extremadura, Spain (with coat of arms).svg
+Flag of Granada, Nicaragua.svg
+Flag of Guadalcanal.svg
+Flag of Guanajuato.svg
+Flag of Hargeisa.svg
+Flag of Ilinden Municipality, North Macedonia.svg
+Flag of Kratovo Municipality, North Macedonia.svg
+Flag of Krivogaštani Municipality, North Macedonia.svg
+Flag of Leon, Nicaragua.svg
+Flag of Masaya.svg
+Flag of Maule, Chile.svg
+Flag of Misamis Occidental.svg
+Flag of Mogila Municipality, North Macedonia.svg
+Flag of Morazán Department.svg
+Flag of Moselle.svg
+Flag of NCD.svg
+Flag of Ngaraard State.svg
+Flag of North Dakota.svg
+Flag of Novaci Municipality, North Macedonia.svg
+Flag of Pehčevo Municipality, North Macedonia.svg
+Flag of Resen Municipality.svg
+Flag of Rivas.svg
+Flag of Salto Department.svg
+Flag of San Juan, Puerto Rico.svg
+Flag of Sopište Municipality, North Macedonia.svg
+Flag of Struga Municipality.svg
+Flag of Strumica Municipality.svg
+Flag of Sulu.svg
+Flag of Usti nad Labem Region.svg
+Flag of Veles Municipality, North Macedonia.svg
+Flag of Veneto.svg
+Flag of West Sumatra.svg
+Flag of the London Borough of Havering.svg
+Flag of the province of Livorno.svg
+Flag of the province of Perugia.svg
+Flag of Álava.svg
+Flag of Čučer Sandevo Municipality, North Macedonia.svg
+Flag of Štip Municipality, North Macedonia.svg
+Flag of Želino Municipality, North Macedonia.svg
+Montegiardino (RSM)-Bandiera.svg
+Provincia de Badajoz - Bandera.svg
+Provincia di Benevento-Gonfalone.svg
+Provincia di Savona-Bandiera.svg

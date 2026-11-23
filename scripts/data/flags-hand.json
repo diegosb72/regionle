@@ -1,0 +1,26 @@
+{
+  "flags-regions": {
+    "CZ-PL": {
+      "file": "Flag of Plzen Region.svg",
+      "why": "Las catorce regiones checas tienen bandera oficial; la entidad de Wikidata que el juego tiene para esta no la trae"
+    },
+    "CZ-ZL": {
+      "file": "Flag of Zlin Region.svg",
+      "why": "Como la de Pilsen"
+    },
+    "FR-COR": {
+      "file": "Flag of Corsica.svg",
+      "why": "La cabeza de moro es la bandera oficial de la Colectividad de Córcega; Wikidata la da de la isla, no de la región que el juego dibuja"
+    }
+  },
+  "flags-capitals": {
+    "cj64n3d": {
+      "file": "Flag of Rome.svg",
+      "why": "Wikidata da el gonfalón de la ciudad, que cuelga de un travesaño y no es su bandera"
+    },
+    "cj64n3x": {
+      "file": "Flag of Paris.svg",
+      "why": "Wikidata da un estandarte con las armas de la ciudad. La bandera de París es la bicolor azul y roja, partida en vertical (en.wikipedia, «Flag of Paris»)"
+    }
+  }
+}
