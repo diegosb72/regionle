@@ -1,9 +1,9 @@
 /** What a game can be played as. Kept apart from the menus, which bring their icons: the saved state asks too. */
 import type { Format, GameConfig } from './store';
-import type { Mode, Section } from './types';
+import type { FactKind, Mode, Section } from './types';
 
 /** Games that can also be played against the clock or until the lives run out. */
-export const FORMAT_MODES: readonly Mode[] = ['pin', 'identify', 'outline', 'puzzle', 'capital', 'flag', 'parent', 'mix', 'listen'];
+export const FORMAT_MODES: readonly Mode[] = ['pin', 'identify', 'outline', 'puzzle', 'capital', 'flag', 'fact', 'parent', 'mix', 'listen'];
 
 /**
  * The format a game is played in: the one its options ask for, where there are formats to choose from. A
@@ -43,7 +43,7 @@ export const NOT_GAMES: readonly Mode[] = ['print', 'bingo', 'edit'];
 export const BINGO_MIN = 12;
 
 /** Games that ask as many questions as the player chooses under "Preguntas". */
-export const LENGTH_MODES: readonly Mode[] = ['pin', 'identify', 'outline', 'regionle', 'puzzle', 'neighbours', 'capital', 'flag', 'blind', 'hotcold', 'bearing', 'coords', 'group', 'whoami', 'border', 'exact', 'which', 'rank', 'compass', 'parent', 'truefalse', 'oddone', 'cards', 'mix', 'listen', 'hangman', 'wordsearch', 'crossword'];
+export const LENGTH_MODES: readonly Mode[] = ['pin', 'identify', 'outline', 'regionle', 'puzzle', 'neighbours', 'capital', 'flag', 'fact', 'blind', 'hotcold', 'bearing', 'coords', 'group', 'whoami', 'border', 'exact', 'which', 'rank', 'compass', 'parent', 'truefalse', 'oddone', 'cards', 'mix', 'listen', 'hangman', 'wordsearch', 'crossword'];
 
 /**
  * Games whose questions are made up as the game goes, from what is known of the countries chosen: there are
@@ -115,6 +115,24 @@ export const turnsOutlines = (section: Section, mode: Mode): boolean => mode ===
  */
 export const asksByFlag = (section: Section, mode: Mode, by: { pinBy?: string; cardAsk?: string } = {}): boolean =>
   section === 'countries' && (mode === 'flag' || mode === 'mix' || (mode === 'pin' && by.pinBy === 'flag') || (mode === 'cards' && by.cardAsk === 'flag'));
+
+/** The four things said of a country besides its figures (lib/facts.ts), in the order the menus give them. */
+export const FACT_KINDS: readonly FactKind[] = ['currency', 'language', 'domain', 'dial'];
+/** What "pin it" can show of a country for it to be found: its name, its capital, its flag, its domain or its dialling code. */
+export const PIN_BYS = ['name', 'capital', 'flag', 'domain', 'dial'] as const;
+export type PinBy = (typeof PIN_BYS)[number];
+
+/**
+ * The fact a game is about, where it is about one: the one chosen in the game that asks for them, or the one
+ * "pin it" shows. Only the countries have them. Such a game cannot start without the file they come in.
+ */
+export function factOf(section: Section, mode: Mode, opts: { fact?: FactKind; pinBy?: string }): FactKind | null {
+  if (section !== 'countries') return null;
+  if (mode === 'fact') return opts.fact && FACT_KINDS.includes(opts.fact) ? opts.fact : 'currency';
+  return mode === 'pin' && (opts.pinBy === 'domain' || opts.pinBy === 'dial') ? opts.pinBy : null;
+}
+/** Games of the countries that show those things beside what they ask: they are played without them if they do not come. */
+export const FACT_EXTRAS: readonly Mode[] = ['explore', 'whoami'];
 
 /** How close a city has to be placed blind for it to be told as a feat, in kilometres. */
 export const NEAR_KM = 10;

@@ -5,9 +5,9 @@
  */
 import type { CityPick } from './extra';
 import { DUEL_PATH, linkTo } from './routes';
-import { TRIES, USUAL_RULES } from './rules';
+import { FACT_KINDS, PIN_BYS, TRIES, USUAL_RULES, factOf, type PinBy } from './rules';
 import type { GameConfig, Length, Opts } from './store';
-import type { Mode, Section } from './types';
+import type { FactKind, Mode, Section } from './types';
 
 export interface Challenge {
   section: Section;
@@ -29,7 +29,7 @@ const RULES = 2;
 
 export const CHALLENGE_SECTIONS: Section[] = ['regions', 'countries', 'cities', 'physical'];
 /** Games that ask one thing after another and end with a score: the ones that can be compared. */
-export const CHALLENGE_MODES: Mode[] = ['pin', 'identify', 'outline', 'puzzle', 'capital', 'flag', 'mix'];
+export const CHALLENGE_MODES: Mode[] = ['pin', 'identify', 'outline', 'puzzle', 'capital', 'flag', 'fact', 'mix'];
 
 interface Wire {
   s: string;
@@ -44,6 +44,8 @@ interface Wire {
    * hints (1). A link from before has five entries and is played plain, by the usual rules.
    */
   o?: [string, string | number, string, string, number, number?, string?, number?, number?];
+  /** What is asked of each country, in the game that asks one thing said of them (lib/facts.ts): its currency, its language… */
+  d?: string;
   k: number;
   f?: string;
   r?: [number, number];
@@ -90,6 +92,7 @@ export function encodeChallenge(cfg: GameConfig, result?: { score: number; ms: n
   const ruled = tries !== USUAL_RULES.tries || !hints;
   if (opts.turned || look !== 'plain' || ruled) wire.o!.push(opts.turned ? 1 : 0, look);
   if (ruled) wire.o!.push(tries, hints ? 1 : 0);
+  if (cfg.mode === 'fact') wire.d = factOf(cfg.section, cfg.mode, opts) ?? undefined;
   const levels = Object.fromEntries(Object.entries(cfg.levels).filter(([id]) => cfg.countries.includes(id)));
   if (Object.keys(levels).length) wire.l = levels;
   // A challenge that is passed on keeps the rules it was made with.
@@ -123,7 +126,7 @@ export function decodeChallenge(code: string): Challenge | null {
     const [answer, length, pinBy, cityPick, cityCount, turned, look, tries, hints] = wire.o;
     if (answer === 'choice' || answer === 'type') opts.answer = answer;
     if (length === 'all' || length === 10 || length === 20 || length === 50) opts.length = length as Length;
-    if (pinBy === 'name' || pinBy === 'capital' || pinBy === 'flag') opts.pinBy = pinBy;
+    if ((PIN_BYS as readonly string[]).includes(pinBy)) opts.pinBy = pinBy as PinBy;
     if (cityPick === 'top' || cityPick === 'caps' || cityPick === 'regcaps') opts.cityPick = cityPick as CityPick;
     if (typeof cityCount === 'number' && cityCount > 0 && cityCount <= 200) opts.cityCount = cityCount;
     opts.turned = turned === 1;
@@ -131,6 +134,8 @@ export function decodeChallenge(code: string): Challenge | null {
     if ((TRIES as readonly number[]).includes(tries as number)) opts.tries = tries as number;
     if (hints === 0) opts.hints = false;
   }
+  // Said or not, what is asked is settled here as well: a link that does not say it asks what the game opens with.
+  if (wire.m === 'fact') opts.fact = (FACT_KINDS as readonly string[]).includes(wire.d ?? '') ? (wire.d as FactKind) : 'currency';
   const levels: Record<string, string> = {};
   if (wire.l && typeof wire.l === 'object') for (const [id, lv] of Object.entries(wire.l)) if (isStr(lv) && /^[a-z0-9]{1,3}$/.test(lv)) levels[id] = lv;
   const out: Challenge = { section: wire.s as Section, mode: wire.m as Mode, countries, levels, opts, seed: Math.floor(wire.k) };

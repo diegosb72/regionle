@@ -9,7 +9,7 @@
  */
 import { scoreOf } from '../games/quiz';
 import { ghostable } from './ghostLazy';
-import { asksByFlag, turnsOutlines } from './rules';
+import { asksByFlag, factOf, turnsOutlines } from './rules';
 import { rulesMark, rulesOfGame } from './ruleset';
 import type { GameConfig } from './store';
 import { hashStr } from './text';
@@ -79,6 +79,8 @@ export function ghostKey(cfg: Omit<GameConfig, 'nonce'>, country: (id: string) =
   // usual ones add nothing, so that the ghosts kept before the rules could be set are still found.
   const mark = rulesMark(rulesOfGame(cfg));
   if (mark) parts.push(mark);
+  // What the game of the facts asks for is the game: its currencies and its languages have a ghost each.
+  if (mode === 'fact') parts.push(factOf(section, mode, opts) ?? '');
   return `${section}|${mode}|${hashStr(parts.join('|')).toString(36)}`;
 }
 

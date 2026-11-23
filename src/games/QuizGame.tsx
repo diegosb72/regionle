@@ -1,6 +1,7 @@
 /**
  * Question-by-question games: pin on the map (by its written name or by ear), jigsaw, identify, outline,
- * capitals, flags, what each piece belongs to, and the medley that deals the others by turns.
+ * capitals, flags, one thing said of each country (its currency, its language…), what each piece belongs to,
+ * and the medley that deals the others by turns.
  */
 import { ArrowRight, ChevronDown, Flag as FlagIcon, Heart, Lightbulb, MapPin, Timer } from 'lucide-react';
 import { useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, type CSSProperties } from 'react';
@@ -17,12 +18,12 @@ import { useTaskCode } from '../lib/taskLazy';
 import { silhouette } from '../lib/geo';
 import type { Ghost } from '../lib/ghost';
 import { anyGhost, ghostable, useGhostCode } from '../lib/ghostLazy';
-import { halve, hintKinds, hintLabel, hintOf, type Hint, type HintAsk, type HintKind } from '../lib/hints';
+import { halve, hintKinds, hintLabel, hintOf, isDigits, type Hint, type HintAsk, type HintKind } from '../lib/hints';
 import { L, nm } from '../lib/i18n';
 import { timesMixed } from '../lib/mix';
-import { MODE_NAME, formatName } from '../lib/modes';
+import { MODE_NAME, factName, formatName } from '../lib/modes';
 import { clockPaused, usePaused } from '../lib/pause';
-import { evenOf, formatOfGame } from '../lib/rules';
+import { evenOf, factOf, formatOfGame } from '../lib/rules';
 import { clockText, customRules, recordName, rulesOfGame, rulesText } from '../lib/ruleset';
 import { isDated, useStore, type FlagLook, type Format, type Skill } from '../lib/store';
 import { Matcher, shortNote } from '../lib/matcher';
@@ -36,7 +37,7 @@ import { FLAG_BLUR, answersItself, askOf, asksFor, belongsItself, capitalsNeedTy
 import './quiz.css';
 
 /** The ways a question is asked. */
-type QuizMode = 'pin' | 'puzzle' | 'identify' | 'outline' | 'capital' | 'flag' | 'parent';
+type QuizMode = 'pin' | 'puzzle' | 'identify' | 'outline' | 'capital' | 'flag' | 'fact' | 'parent';
 /** What the menus call the game: one of those ways, the medley of them, or "pin it" by ear. */
 type QuizId = QuizMode | 'mix' | 'listen';
 
@@ -63,6 +64,12 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   const fixed: QuizMode | null = medley ? null : byEar ? 'pin' : game;
   const { opts } = cfg;
   const pinBy = game === 'pin' && deck.scope === 'countries' ? opts.pinBy : 'name';
+  /** What is said of the countries besides their figures (lib/facts.ts): it comes with the map of a game about it. */
+  const facts = deck.facts;
+  /** The one the game is about, where it is about one: the one it asks for, or the one "pin it" shows for the country to be found. */
+  const fact = facts ? factOf(cfg.section, cfg.mode, opts) : null;
+  /** …as the answer it is: "euro", "español", ".es", "+34". Nothing where the country has none. */
+  const saidOf = (it: Item) => (fact ? facts!.said(fact, it.id) : '');
   const seed = useMemo(() => seedOf(cfg), [cfg]);
   // Reviews, challenges and the repeat of what was missed are always a plain set of questions.
   const format: Format = formatOfGame(cfg);
@@ -97,12 +104,19 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
       if (!list) {
         const needsCapital = m === 'capital' || (m === 'pin' && pinBy === 'capital');
         const needsFlag = m === 'flag' || (m === 'pin' && pinBy === 'flag');
-        list = deck.items.filter((it) => (!needsCapital || it.capital?.length) && (!needsFlag || it.country.fl) && (m !== 'puzzle' || it.shape === 'area') && (m !== 'parent' || it.belongs));
+        list = deck.items.filter((it) => (!needsCapital || it.capital?.length) && (!needsFlag || it.country.fl) && (m !== 'puzzle' || it.shape === 'area') && (m !== 'parent' || it.belongs) && (!fact || saidOf(it)));
         cache.set(m, list);
       }
       return list;
     };
-  }, [deck, pinBy]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deck, pinBy, fact]);
+  /** Whether the map gives every question about something said of its countries four answers to choose from. */
+  const factPicks = useMemo(
+    () => game !== 'fact' || !fact || facts!.choosable(fact, usableFor('fact').map((it) => it.id), cfg.only),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [usableFor, game, fact, cfg.only],
+  );
   /** How a question asked in a given way is answered, and among what. */
   const waysOf = (m: QuizMode) => {
     /** Answered by clicking on the map. */
@@ -112,7 +126,9 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
      * Four options are no good where the wrong ones would be capitals named after their own region: there
      * the answer is typed, whatever the settings say.
      */
-    const mustType = m === 'capital' && opts.answer !== 'type' && !cfg.challenge?.legacy && capitalsNeedTyping(usable);
+    // Nor where the map does not give four different answers to something said of its countries: three that
+    // are wrong of each one asked.
+    const mustType = opts.answer !== 'type' && (m === 'capital' ? !cfg.challenge?.legacy && capitalsNeedTyping(usable) : m === 'fact' && !factPicks);
     return { clicky, usable, mustType, typed: !clicky && (opts.answer === 'type' || mustType) };
   };
 
@@ -137,6 +153,11 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
     // In a medley every piece is asked in a way that suits it.
     if (!fixed) return deck.items;
     const { usable, typed } = waysOf(fixed);
+    // What the name of a country gives away is not asked of it, and neither is the country to be found by what it shares with another.
+    if (fact) {
+      const can = new Set(facts!.asked(fact, usable.map((it) => it.id), fixed === 'pin'));
+      return usable.filter((it) => can.has(it.id));
+    }
     const needsCapital = fixed === 'capital' || pinBy === 'capital';
     // A piece named after what it belongs to would answer itself as well.
     if (fixed === 'parent') return usable.filter((it) => !belongsItself(it, !typed));
@@ -147,7 +168,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
     if (cfg.review) return fixed === 'capital' ? usable.filter((it) => !answersItself(it, false)) : usable;
     return usable.filter((it) => !answersItself(it, !typed));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [usableFor, fixed, pinBy, deck, opts.answer, cfg.review, cfg.challenge]);
+  }, [usableFor, fixed, pinBy, fact, deck, opts.answer, cfg.review, cfg.challenge]);
   /** Capitals that were due for review and are no longer asked: taken off the tallies, or they would be due for ever. */
   const retired = useMemo(
     () => (fixed === 'capital' && cfg.review && cfg.only ? usableFor('capital').filter((it) => cfg.only!.includes(it.id) && answersItself(it, false)).map((it) => it.id) : []),
@@ -191,6 +212,10 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   const lives = Math.max(0, rules.lives - s.bad);
   /** Out of lives: the answer in hand is the last one. */
   const spent = format === 'lives' && lives === 0;
+  /** The name the marks of a map are kept under: that of the game, and what it asks where it is about one thing said of the countries. */
+  const gameKey = game === 'fact' ? `fact-${fact}` : game;
+  /** …and what is said of it beside the name of its map, on the screen and in the list of the games played: "Europa · moneda". */
+  const about = game === 'fact' && fact ? ` · ${factName(fact).toLowerCase()}` : '';
   /** Best mark of this map in the paced formats: 'new' when just beaten, the old one otherwise. */
   const [mark, setMark] = useState<'new' | number | null>(null);
   /** A challenge with a date (lib/dated.ts): how its result has gone on record, once the game is over. */
@@ -291,7 +316,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   const matcher = mode === 'capital' ? capitals : mode === 'parent' ? parents : names;
   /** How many letters of the answer the hints have put in sight (the first hint of an outline is the map). */
   const lettersShown = !typed ? 0 : mode === 'outline' ? Math.max(0, help.main - 1) : help.main;
-  const answerOf = (it: Item, m: QuizMode = mode) => (m === 'capital' ? it.capital![0] : m === 'parent' ? it.belongs!.name : it.name);
+  const answerOf = (it: Item, m: QuizMode = mode) => (m === 'capital' ? it.capital![0] : m === 'parent' ? it.belongs!.name : m === 'fact' ? saidOf(it) : it.name);
   // A paced game moves fast, and an exam is an exam: one go at each question.
   const maxTries = strict ? 1 : clicky || typed ? rules.tries : 1;
   const several = showsCountry(deck);
@@ -305,7 +330,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   const choices = useMemo(() => {
     if (!item || typed || clicky) return [];
     const label = answerOf(item);
-    let cands = usable.filter((o) => o.id !== item.id && answerOf(o) !== label);
+    // Of what is said of a country, nothing that is true of it as well can be a wrong option: another of its languages, its other currency.
+    let cands = usable.filter((o) => o.id !== item.id && (mode === 'fact' ? !facts!.holds(fact!, item.id, answerOf(o)) : answerOf(o) !== label));
     // A capital named after its own place ("Madrid") is ruled out at a glance, and three of those leave the
     // answer standing alone: the wrong options are capitals that have to be known.
     if (mode === 'capital') {
@@ -317,8 +343,9 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
       const same = cands.filter((o) => o.cat === item.cat);
       if (same.length >= 3) cands = same;
     }
-    if (mode === 'parent') {
+    if (mode === 'parent' || mode === 'fact') {
       // The options are groups, not pieces: one piece stands for each of the other groups, the nearest first.
+      // And so with a currency or a language, which many countries share.
       const seen = new Set([label]);
       cands = nearest(item, cands, cands.length).filter((o) => !seen.has(answerOf(o)) && !!seen.add(answerOf(o)));
     } else {
@@ -336,7 +363,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   const kinds = useMemo((): HintKind[] => {
     if (!item || unaided) return [];
     const ask: HintAsk = {
-      wants: clicky ? 'place' : mode === 'capital' ? 'capital' : mode === 'parent' ? 'parent' : 'name',
+      wants: clicky ? 'place' : mode === 'capital' || mode === 'parent' || mode === 'fact' ? mode : 'name',
       by: clicky ? 'click' : typed ? 'type' : 'pick',
       shows: {
         // By ear the name is not written, but writing it is the hint that game always had.
@@ -409,7 +436,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   useEffect(() => {
     // A game of two is not one of the games of whoever keeps their progress here.
     if (!ended || !s.asked || duo) return;
-    const what = cfg.list ? `${deck.title} · ${cfg.list}` : deck.title;
+    const what = `${deck.title}${about}${cfg.list ? ` · ${cfg.list}` : ''}`;
     addSession({
       t: Date.now(),
       section: cfg.section,
@@ -424,7 +451,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
     });
     if (paced && !cfg.list) {
       // Each length of the clock and each number of lives has a record of its own.
-      const key = `${recordName(format as 'timed' | 'lives', rules)}:${game}:${deck.key}`;
+      const key = `${recordName(format as 'timed' | 'lives', rules)}:${gameKey}:${deck.key}`;
       const prev = useStore.getState().best[key];
       const hits = s.ok + s.warn;
       // A game without a single right answer sets no record.
@@ -434,7 +461,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
     if (isDated(cfg)) setKept(keepDated(cfg, s.asked >= s.total, { s: scoreOf(s.ok, s.warn, s.asked), ok: s.ok, n: s.asked, ms }));
     // The best mark of a map is that of an exam on all of it, answered to the end.
     if (exam && !cfg.list && s.total === pool.length && s.asked === s.total) {
-      const key = `exam:${game}:${deck.key}`;
+      const key = `exam:${gameKey}:${deck.key}`;
       const prev = useStore.getState().best[key];
       const tenths = Math.round(gradeOf(s.ok, s.total) * 10);
       setMark(tenths > 0 && setBest(key, tenths) ? 'new' : (prev ?? null));
@@ -545,11 +572,20 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
       setNote(L(`${other.name} está ${fem ? 'descartada' : 'descartado'}: busca entre ${fem ? 'las iluminadas' : 'los iluminados'}.`, `${other.name} is ruled out: look among the lit ones.`));
       return;
     }
-    wrong(`${L(`Eso es ${other.name}.`, `That is ${other.name}.`)}${mixed(id)}`, id);
+    // Where a domain or a dialling code is what is shown, that of the piece clicked is said with its name.
+    const its = fact && saidOf(other) ? ` (${saidOf(other)})` : '';
+    wrong(`${L(`Eso es ${other.name}${its}.`, `That is ${other.name}${its}.`)}${mixed(id)}`, id);
   };
 
   const onSubmit = (text: string) => {
     if (!item || s.phase !== 'ask') return;
+    if (mode === 'fact') {
+      // Judged by what knows the currencies and the languages of the world, which says what there is to say of a miss.
+      const v = facts!.check(fact!, item.id, text, deck.items.map((it) => it.id));
+      if (v.right) return right();
+      if (exam) given.current[item.id] = v.meant ?? text.trim();
+      return wrong(exam ? null : (v.note ?? L('No es correcto.', 'That is not right.')));
+    }
     // Letters of the answer in sight would spell its abbreviation out: the name has to be written.
     const v = matcher.check(text, mode === 'parent' ? item.belongs!.id : item.id, { whole: lettersShown > 0 });
     if (v.res === 'yes') return right();
@@ -654,7 +690,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
     if (!exam || ended) for (const [id, res] of Object.entries(s.marks)) if (!hidden.has(id)) p[id] = !owners ? res : res === 'bad' ? 'px' : owners.get(id) === 1 ? 'pb' : 'pa';
     if (item && !ended) {
       // A city lit up on a map of several countries would show which one it is in, and that is the question.
-      const shown = mode === 'identify' || mode === 'capital' || (mode === 'parent' && item.kind !== 'city') || (mode === 'outline' && showMap);
+      const shown = mode === 'identify' || mode === 'capital' || mode === 'fact' || (mode === 'parent' && item.kind !== 'city') || (mode === 'outline' && showMap);
       if (s.phase === 'reveal' || (s.phase === 'ask' && shown)) p[item.id] = 'target';
       if (narrow && s.phase === 'ask') for (const it of deck.items) if (!narrow.has(it.id) && !p[it.id]) p[it.id] = 'dim';
     }
@@ -682,6 +718,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
 
   const suggest = useMemo(() => {
     if (!typed || !opts.suggest) return undefined;
+    if (mode === 'fact') return (text: string): Suggestion[] => facts!.suggest(fact!, text).map((label) => ({ id: label, label }));
     if (mode === 'parent') {
       return (text: string): Suggestion[] =>
         matcher
@@ -706,7 +743,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
 
   const title = MODE_NAME[game];
   /** Under the name of the game, its map; or the challenge with a date that it is. */
-  const subtitle = datedName(cfg, deck, places) ?? deck.title;
+  const subtitle = datedName(cfg, deck, places) ?? `${deck.title}${about}`;
   const stage = (
     <>
       <MapView
@@ -742,7 +779,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
       const parts = [
         // A medley says how each piece was asked about.
         medley ? MODE_NAME[m] : '',
-        (exam || medley) && (m === 'capital' || m === 'parent') ? answerOf(it, m) : '',
+        // What is said of a country is what its game is about: it is read beside each one, whatever the format.
+        m === 'fact' || ((exam || medley) && (m === 'capital' || m === 'parent')) ? answerOf(it, m) : '',
         !exam || res !== 'bad' ? '' : !said ? L('en blanco', 'left blank') : waysOf(m).clicky ? L(`señalaste ${said}`, `you picked ${said}`) : L(`respondiste «${said}»`, `you answered “${said}”`),
       ];
       return parts.filter(Boolean).join(' · ') || undefined;
@@ -873,7 +911,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
                 onPlain={() => onAgain({ only: cfg.only, list: cfg.list, ...NO_GHOST })}
               />
             )}
-            {rows.length > 0 && format === 'normal' && s.asked >= s.total && <ChallengeBox cfg={cfg} score={score} ms={ms} what={`${deck.title} · ${title}`} />}
+            {rows.length > 0 && format === 'normal' && s.asked >= s.total && <ChallengeBox cfg={cfg} score={score} ms={ms} what={`${deck.title} · ${title}${about}`} />}
           </Results>
         }
       />
@@ -881,6 +919,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   }
 
   const answer = item ? answerOf(item) : '';
+  /** …and as it is told once the question is settled: a country with two currencies or three languages has them all said. */
+  const told = mode === 'fact' && item ? facts!.all(fact!, item.id) : answer;
   const asking = s.phase === 'ask';
   /** In a game of two, whose the question on screen is: it stays theirs until the next one comes. */
   const whose: Who = whoOf(Math.max(0, asking ? s.asked : s.asked - 1), first);
@@ -888,6 +928,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   const ownHint = (clicky || typed || mode === 'outline') && !unaided;
   /** The others that are still to be had: not the one that counts letters once some are in sight. */
   const offer = kinds.filter((k) => !help.used.includes(k) && !(k === 'count' && lettersShown > 0) && !(k === 'half' && choices.length < 4));
+  /** What a hint is called in the menu: a dialling code has digits to count, not letters. */
+  const labelOf = (k: HintKind) => (k === 'count' && isDigits(answer) ? L('Cuántas cifras', 'How many digits') : hintLabel(k));
   /** A question with one other hint and no more has no menu to choose from: its button says which it is, and gives it. */
   const sole = kinds.length === 1 ? kinds[0] : null;
   /** One more hint, of the kind chosen: like any other, it makes the answer one given with help. */
@@ -923,6 +965,13 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
     if (!item) return null;
     const c = item.country;
     if (mode === 'pin') {
+      if (fact)
+        return (
+          <>
+            <p className="kicker">{facts!.ask(fact, true)}</p>
+            <h2 className="q-name">{saidOf(item)}</h2>
+          </>
+        );
       if (pinBy === 'flag')
         return (
           <>
@@ -1016,10 +1065,10 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
         </>
       );
     }
-    if (mode === 'capital')
+    if (mode === 'capital' || mode === 'fact')
       return (
         <>
-          <p className="kicker">{L('¿Cuál es la capital de…?', 'What is the capital of…?')}</p>
+          <p className="kicker">{mode === 'fact' ? facts!.ask(fact!) : L('¿Cuál es la capital de…?', 'What is the capital of…?')}</p>
           <h2 className="q-name">
             {(item.kind === 'country' || several) && <Flag code={c.fl} size="md" />} {item.name}
           </h2>
@@ -1040,12 +1089,12 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
         L('¡Correcto!', 'Correct!')
       ) : (
         <>
-          {mode === 'puzzle' ? L('¡Encaja!', 'It fits!') : L('¡Correcto!', 'Correct!')} <b>{answer}</b>
+          {mode === 'puzzle' ? L('¡Encaja!', 'It fits!') : L('¡Correcto!', 'Correct!')} <b>{told}</b>
         </>
       )
     ) : s.last === 'warn' ? (
       <>
-        {L('Bien, con ayuda:', 'Right, with help:')} <b>{answer}</b>
+        {L('Bien, con ayuda:', 'Right, with help:')} <b>{told}</b>
       </>
     ) : clicky ? (
       <>
@@ -1053,7 +1102,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
       </>
     ) : (
       <>
-        {L('Era', 'It was')} <b>{answer}</b>
+        {L('Era', 'It was')} <b>{told}</b>
       </>
     );
 
@@ -1111,7 +1160,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
         <>
           <AnswerInput
             label={L('Tu respuesta', 'Your answer')}
-            placeholder={mode === 'capital' ? L('Escribe la capital…', 'Type the capital…') : mode === 'parent' ? L('Escribe tu respuesta…', 'Type your answer…') : L(`Escribe ${theOne}…`, `Type ${theOne}…`)}
+            placeholder={mode === 'capital' ? L('Escribe la capital…', 'Type the capital…') : mode === 'parent' || mode === 'fact' ? L('Escribe tu respuesta…', 'Type your answer…') : L(`Escribe ${theOne}…`, `Type ${theOne}…`)}
             onSubmit={onSubmit}
             suggest={suggest}
             shake={shake}
@@ -1121,10 +1170,12 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
           />
           {mustType && s.asked === 0 && s.tries === 0 && s.hints === 0 && (
             <p className="q-note">
-              {L(
-                `Aquí la respuesta se escribe: entre cuatro opciones, las demás capitales se llaman como su ${one} y dejarían la buena a la vista.`,
-                `Here the answer is typed: among four options, the other capitals are named after their ${one} and would leave the right one in plain sight.`,
-              )}
+              {mode === 'fact'
+                ? L('Aquí la respuesta se escribe: este mapa no da cuatro respuestas distintas entre las que elegir.', 'Here the answer is typed: this map does not give four different answers to choose from.')
+                : L(
+                    `Aquí la respuesta se escribe: entre cuatro opciones, las demás capitales se llaman como su ${one} y dejarían la buena a la vista.`,
+                    `Here the answer is typed: among four options, the other capitals are named after their ${one} and would leave the right one in plain sight.`,
+                  )}
             </p>
           )}
           {(lettersShown > 0 || help.used.includes('count')) && <p className="q-letters">{letterHint(answer, lettersShown)}</p>}
@@ -1139,7 +1190,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
       )}
 
       {!asking && s.last && (
-        <Verdict res={s.last} title={verdictTitle} item={item} wiki={opts.wiki && format !== 'timed'} say={answer}>
+        <Verdict res={s.last} title={verdictTitle} item={item} wiki={opts.wiki && format !== 'timed'} say={told}>
           {s.phase === 'reveal' && <p className="q-how">{L(`Haz clic en ${theOne} que parpadea para seguir.`, `Click the blinking ${one} to go on.`)}</p>}
           {spent && <p className="q-how">{L('Te has quedado sin vidas.', 'You are out of lives.')}</p>}
           {duo && duoUi && <duoUi.DuoGain names={players} who={whose} res={s.last} last={s.asked >= s.total} />}
@@ -1152,13 +1203,13 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
             {ownHint && (
               <button type="button" className="btn btn-sm" onClick={hint} disabled={clicky ? help.main > 0 : mode === 'outline' && !typed ? showMap : help.main >= hintMax(answer)}>
                 <Lightbulb size={15} aria-hidden="true" />
-                {voiced ? L('Ver el nombre', 'Show the name') : clicky ? L('Pista', 'Hint') : mode === 'outline' && (!showMap || !typed) ? L('Ver en el mapa', 'Show on the map') : L('Una letra', 'A letter')}
+                {voiced ? L('Ver el nombre', 'Show the name') : clicky ? L('Pista', 'Hint') : mode === 'outline' && (!showMap || !typed) ? L('Ver en el mapa', 'Show on the map') : isDigits(answer) ? L('Una cifra', 'A digit') : L('Una letra', 'A letter')}
               </button>
             )}
             {offer.length > 0 && sole && (
               <button type="button" className="btn btn-sm q-more-btn" onClick={() => more(sole)}>
                 {!ownHint && <Lightbulb size={15} aria-hidden="true" />}
-                {hintLabel(sole)}
+                {labelOf(sole)}
               </button>
             )}
             {offer.length > 0 && !sole && (
@@ -1188,7 +1239,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
         <div className="q-more" id="q-more" role="group" aria-label={L('Otras pistas', 'Other hints')} onKeyDown={shut}>
           {offer.map((k) => (
             <button key={k} type="button" className="chip" onClick={() => more(k)}>
-              {hintLabel(k)}
+              {labelOf(k)}
             </button>
           ))}
           <p>{L('Con cualquiera de ellas la respuesta cuenta como dada con ayuda.', 'With any of them the answer counts as given with help.')}</p>

@@ -388,8 +388,8 @@ export function namesEcho(a: string, b: string): boolean {
   return x.some((p) => y.some((q) => p.startsWith(q) || q.startsWith(p)));
 }
 
-/** Characters a hint always shows: they are not letters to guess. */
-const SEPARATOR = /[\s\-'’.,()]/;
+/** Characters a hint always shows: they are not letters to guess. The plus sign is that of a dialling code. */
+const SEPARATOR = /[\s\-'’.,()+]/;
 
 /** "Te _ _ _ _": the first `shown` letters of an answer, the rest as blanks. */
 export function letterHint(answer: string, shown: number): string {

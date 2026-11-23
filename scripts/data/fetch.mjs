@@ -20,6 +20,10 @@
 //     workflow "Traer datos" of this repository asks it (scripts/data/outside.mjs) and keeps the answer in
 //     the branch `datos`, from which it is taken like any other source
 //       https://github.com/diegosb72/regionle/tree/datos @ 9747b70
+//   · Unicode CLDR 49 (Unicode License v3), as cldr-json keeps it: what each currency and each language is
+//     called in Spanish and in English, which currency each country uses today and which languages are
+//     official in it (scripts/data/facts.mjs)
+//       https://github.com/unicode-org/cldr-json @ a4b6724 (49.0.0)
 //
 // Files are fetched by Git blob SHA, so the build is reproducible and the
 // download is verified for free. With a GitHub token available (GH_TOKEN,
@@ -41,6 +45,7 @@ const POP = { repo: 'datasets/population', commit: 'd4b1a4a9a17e2123baf0ef119de0
 const ANE = { repo: 'rOpenSpain/mapSpain', commit: '365286363cab2266d81f981093525edd50e2ce15', dir: 'data-raw/2020/SIANE_CARTO_BASE_S_3M/todo/' };
 const WFB = { repo: 'factbook/factbook.json', commit: '144d6977b2b01ac1cbd220de754c0a005616760b', dir: '' };
 const OUTSIDE = { repo: 'diegosb72/regionle', commit: '9747b70461386b6bc38d89fd6eea5dc78c438aef', dir: '' };
+const CLDR = { repo: 'unicode-org/cldr-json', commit: 'a4b67247b446fd51b475991017a2481911210c60', dir: 'cldr-json/' };
 
 const FILES = [
   { ...NE, file: 'ne_10m_admin_1_states_provinces_lakes.geojson', sha: 'c4a7366cd343d5e3df150c048e0a4e0f3bf02b1b' },
@@ -77,6 +82,14 @@ const FILES = [
   { ...OUTSIDE, file: 'wikidata/region-population.json', as: 'wikidata-region-population.json', sha: 'ffc738167dd3f24413fd636391709a5889b15602' },
   // What The World Factbook says of each country (scripts/data/figures.mjs), each page under the code the book has for it.
   ...Object.values(PAGES).flatMap((pages) => pages.map(([file, sha]) => ({ ...WFB, file, as: `factbook/${path.basename(file)}`, sha }))),
+  // The currency, the languages, the internet domain and the dialling code of each country (scripts/data/facts.mjs):
+  // the names of currencies and languages in the two languages of the game, and who uses and speaks what.
+  { ...CLDR, file: 'cldr-numbers-full/main/es/currencies.json', as: 'cldr/currencies-es.json', sha: '6cd069bc06018a88bf7e4699f3ed6f79d73f4bf6' },
+  { ...CLDR, file: 'cldr-numbers-full/main/en/currencies.json', as: 'cldr/currencies-en.json', sha: '278b16c8005fff6e83405df1a2c6668925716133' },
+  { ...CLDR, file: 'cldr-localenames-full/main/es/languages.json', as: 'cldr/languages-es.json', sha: 'b7047db6f799ec5450d94ba4598124ac3a01f076' },
+  { ...CLDR, file: 'cldr-localenames-full/main/en/languages.json', as: 'cldr/languages-en.json', sha: 'b39472304a74554021eaf73a290d18714d8f7fca' },
+  { ...CLDR, file: 'cldr-core/supplemental/territoryInfo.json', as: 'cldr/territoryInfo.json', sha: '4bee3ddc0c987adcf4d66130c74fb1e973a314d6' },
+  { ...CLDR, file: 'cldr-core/supplemental/currencyData.json', as: 'cldr/currencyData.json', sha: '3f66e0733c578ddea370fdcd2829263f31b40dfc' },
 ];
 
 function token() {

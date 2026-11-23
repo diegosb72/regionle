@@ -15,6 +15,7 @@ import {
   GraduationCap,
   Grid2x2X,
   Hash,
+  IdCard,
   Landmark,
   LassoSelect,
   Layers,
@@ -48,7 +49,7 @@ import { PATHS } from './routes';
 import type { RouteRule } from './rules';
 import { SCREENS } from './seo';
 import type { CardAsk, Format } from './store';
-import type { Mode, Section } from './types';
+import type { FactKind, Mode, Section } from './types';
 
 /** What the modes of a section are gathered by in its menu. */
 export type ModeGroup = 'study' | 'map' | 'shape' | 'links' | 'facts' | 'figures' | 'words';
@@ -418,10 +419,21 @@ function modesOf(section: Section): ModeDef[] {
           level: 2,
           group: 'facts',
         },
+        {
+          id: 'fact',
+          name: L('Datos del país', 'Country facts'),
+          desc: L(
+            'De cada país, un dato: su moneda, su idioma oficial, su dominio de internet o su prefijo telefónico. Lo que ya dice su nombre —el francés de Francia— no se pregunta.',
+            'One fact about each country: its currency, its official language, its internet domain or its dialling code. What its name already says — the French of France — is not asked.',
+          ),
+          icon: IdCard,
+          level: 2,
+          group: 'facts',
+        },
         whoami(
           L(
-            'Un país habla de sí mismo, pista a pista: su tamaño, su parte del mundo, sus fronteras, un vecino, su capital, su bandera. Adivínalo con las menos pistas que puedas.',
-            'A country tells about itself, clue by clue: its size, its part of the world, its borders, a neighbour, its capital, its flag. Guess it with as few clues as you can.',
+            'Un país habla de sí mismo, pista a pista: su tamaño, su parte del mundo, sus fronteras, su idioma, su moneda, un vecino, su capital, su bandera. Adivínalo con las menos pistas que puedas.',
+            'A country tells about itself, clue by clue: its size, its part of the world, its borders, its language, its currency, a neighbour, its capital, its flag. Guess it with as few clues as you can.',
           ),
         ),
         hangman,
@@ -608,6 +620,8 @@ function modeName(mode: Mode): string {
       return L('Capitales', 'Capitals');
     case 'flag':
       return L('Banderas', 'Flags');
+    case 'fact':
+      return L('Datos del país', 'Country facts');
     case 'whoami':
       return L('¿Quién soy?', 'Who am I?');
     case 'hilo':
@@ -649,6 +663,10 @@ export const formatName = (f: Format): string =>
 /** The rule of a route, in two or three words: "con un cierre". Nothing for a plain one. */
 export const routeRuleName = (rule: RouteRule): string =>
   rule === 'avoid' ? L('con un cierre', 'with a closure') : rule === 'via' ? L('con una parada', 'with a stop') : rule === 'land' ? L('solo por tierra', 'by land only') : '';
+
+/** One of the things said of a country besides its figures (lib/facts.ts), in a word. */
+export const factName = (kind: FactKind): string =>
+  kind === 'language' ? L('Idioma', 'Language') : kind === 'domain' ? L('Dominio', 'Domain') : kind === 'dial' ? L('Prefijo', 'Dialling code') : L('Moneda', 'Currency');
 
 /** What a pack of flashcards asks, as the question it is. */
 export const cardAskName = (ask: CardAsk): string =>
@@ -715,7 +733,7 @@ function lazy<K extends string, V>(keys: readonly K[], make: (key: K) => V): Rec
   return out;
 }
 
-const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'group', 'neighbours', 'border', 'chain', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'coords', 'edit', 'print', 'bingo', 'hangman', 'wordsearch', 'crossword', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'oddone', 'pairs', 'alphabet', 'connect', 'topten', 'cards', 'mix', 'listen'];
+const MODE_IDS: readonly Mode[] = ['explore', 'learn', 'pin', 'identify', 'nameall', 'outline', 'regionle', 'travel', 'puzzle', 'group', 'neighbours', 'border', 'chain', 'capital', 'flag', 'fact', 'whoami', 'blind', 'hotcold', 'bearing', 'coords', 'edit', 'print', 'bingo', 'hangman', 'wordsearch', 'crossword', 'exact', 'which', 'hilo', 'rank', 'compass', 'parent', 'truefalse', 'oddone', 'pairs', 'alphabet', 'connect', 'topten', 'cards', 'mix', 'listen'];
 
 export const MODES: Record<Section, ModeDef[]> = lazy(SECTION_IDS, modesOf);
 export const MODE_NAME: Record<Mode, string> = lazy(MODE_IDS, modeName);

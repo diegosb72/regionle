@@ -25,8 +25,8 @@ export const HINT_KINDS: readonly HintKind[] = ['count', 'size', 'where', 'part'
 
 /** How the question in hand is asked: all a hint needs to know to say something and not the answer. */
 export interface HintAsk {
-  /** What is asked for: the piece on the map, its name, its capital, or what it belongs to. */
-  wants: 'place' | 'name' | 'capital' | 'parent';
+  /** What is asked for: the piece on the map, its name, its capital, what it belongs to, or one thing said of it (lib/facts.ts). */
+  wants: 'place' | 'name' | 'capital' | 'parent' | 'fact';
   /** How it is answered: typed, among four options, or with a click on the map. */
   by: 'type' | 'pick' | 'click';
   /** What the question shows of the piece. */
@@ -93,10 +93,15 @@ function placeIn(rank: number, total: number, fem: boolean, most: [string, strin
   return L(`${fem ? 'la' : 'el'} ${ordinal(rank, fem)}`, `the ${ordinal(rank, fem)}`);
 }
 
+/** Whether an answer is a number: a dialling code, whose blanks are digits and not letters. */
+export const isDigits = (answer: string): boolean => /^[+\d\s]*\d[+\d\s]*$/.test(answer);
+
 /** As many letters as blanks the game writes for the answer (text.ts), and the words they come in. */
 function countHint(answer: string): Hint {
   const n = letterCount(answer);
   const words = answer.split(/[\s-]+/).filter((w) => letterCount(w) > 0).length;
+  // A dialling code has digits, said in groups: "+1 809".
+  if (isDigits(answer)) return { kind: 'count', text: L(`Tiene ${nf(n)} ${n === 1 ? 'cifra' : 'cifras'}${words > 1 ? `, en ${nf(words)} grupos` : ''}.`, `It has ${nf(n)} ${n === 1 ? 'digit' : 'digits'}${words > 1 ? `, in ${nf(words)} groups` : ''}.`) };
   return {
     kind: 'count',
     text: L(`Tiene ${nf(n)} ${n === 1 ? 'letra' : 'letras'}${words > 1 ? `, en ${nf(words)} palabras` : ''}.`, `It has ${nf(n)} ${n === 1 ? 'letter' : 'letters'}${words > 1 ? `, in ${nf(words)} words` : ''}.`),

@@ -25,7 +25,7 @@ const ghostOf = (how: string, step = 2000, patch: Partial<Ghost> = {}): Ghost =>
 
 describe('the games a ghost is kept of', () => {
   it('are those that ask one thing after another, played at ease and with an end', () => {
-    for (const mode of ['pin', 'identify', 'outline', 'puzzle', 'capital', 'flag', 'parent', 'mix', 'listen'] as const) expect(ghostable(game({ mode })), mode).toBe(true);
+    for (const mode of ['pin', 'identify', 'outline', 'puzzle', 'capital', 'flag', 'fact', 'parent', 'mix', 'listen'] as const) expect(ghostable(game({ mode })), mode).toBe(true);
     for (const mode of ['explore', 'learn', 'nameall', 'cards', 'regionle', 'blind', 'hotcold', 'travel', 'print', 'edit'] as const) expect(ghostable(game({ mode })), mode).toBe(false);
     for (const length of ['all', 10, 20, 50] as const) expect(ghostable(game({}, { length })), String(length)).toBe(true);
     expect(ghostable(game({}, { length: 'endless' }))).toBe(false);
@@ -132,6 +132,22 @@ describe('the name the ghost of a game is kept under', () => {
     expect(keyOf({ ...countries, mode: 'capital' }, { flagLook: 'grey' })).toBe(keyOf({ ...countries, mode: 'capital' }, { flagLook: 'plain' }));
     // A state kept from before the looks says nothing of them: plain flags.
     expect(keyOf({ ...countries, mode: 'flag' }, { flagLook: undefined as unknown as Opts['flagLook'] })).toBe(keyOf({ ...countries, mode: 'flag' }, { flagLook: 'plain' }));
+  });
+
+  it('tells apart what the game of the facts asks for, and what a country is pinned by', () => {
+    const countries = { section: 'countries' as const, levels: {}, countries: ['ES', 'FR'] };
+    // Its currencies and its languages have a ghost each.
+    const keys = (['currency', 'language', 'domain', 'dial'] as const).map((fact) => keyOf({ ...countries, mode: 'fact' }, { fact }));
+    expect(new Set(keys).size).toBe(4);
+    for (const key of keys) expect(key).toMatch(/^countries\|fact\|[0-9a-z]+$/);
+    // A state kept from before the game says nothing of it: the currency, which the game opens with.
+    expect(keyOf({ ...countries, mode: 'fact' }, { fact: undefined as unknown as Opts['fact'] })).toBe(keys[0]);
+    // Another game asks what it asks, whatever was chosen for this one.
+    expect(keyOf({ ...countries, mode: 'capital' }, { fact: 'dial' })).toBe(keyOf({ ...countries, mode: 'capital' }, { fact: 'currency' }));
+    expect(keyOf({ ...countries, mode: 'pin' }, { fact: 'dial' })).toBe(keyOf({ ...countries, mode: 'pin' }, { fact: 'currency' }));
+    // A country found by its domain is not one found by its dialling code, nor by its name.
+    const pins = (['name', 'capital', 'flag', 'domain', 'dial'] as const).map((pinBy) => keyOf({ ...countries, mode: 'pin' }, { pinBy }));
+    expect(new Set(pins).size).toBe(5);
   });
 
   it('tells apart which cities are on the map, and how many only where they are the biggest', () => {

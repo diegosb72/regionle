@@ -160,9 +160,17 @@ export function About() {
             </dd>
           </div>
           <div>
-            <dt>{L('Capitales, superficies y otros datos de países', 'Capitals, areas and other country data')}</dt>
+            <dt>{L('Capitales, superficies, dominios de internet y prefijos telefónicos de los países', 'Capitals, areas, internet domains and dialling codes of the countries')}</dt>
             <dd>
               <Out href="https://www.geonames.org/">GeoNames</Out> · CC BY 4.0
+            </dd>
+          </div>
+          <div>
+            <dt>{L('Monedas e idiomas oficiales de cada país, y sus nombres', 'Currencies and official languages of each country, and their names')}</dt>
+            <dd>
+              <Out href="https://cldr.unicode.org/">Unicode CLDR</Out> · © Unicode, Inc. ·{' '}
+              <Out href={`${REPO}/blob/main/scripts/data/static/UNICODE-LICENSE.txt`}>Unicode License v3</Out> · {L('a través de', 'through')}{' '}
+              <Out href="https://github.com/unicode-org/cldr-json">unicode-org/cldr-json</Out>
             </dd>
           </div>
           <div>

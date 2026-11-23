@@ -338,7 +338,7 @@ test.describe('what is done with someone else', () => {
     await expect(page).toHaveTitle('Retos entre dos — Regionle ∞');
     await expect(page.locator('.how-steps > li')).toHaveCount(3);
     await expect(page.locator('.how-steps')).toContainText('«Retar a alguien»');
-    await expect(page.locator('.how-steps')).toContainText('cualquier mapa de Regiones, Países, Ciudades o Física en los modos Señalar, Identificar, Silueta, Puzle, Capitales, Banderas y Popurrí');
+    await expect(page.locator('.how-steps')).toContainText('cualquier mapa de Regiones, Países, Ciudades o Física en los modos Señalar, Identificar, Silueta, Puzle, Capitales, Banderas, Datos del país y Popurrí');
     await page.getByRole('link', { name: 'Elegir a qué jugar' }).click();
     await expect(page).toHaveURL(/#\/regiones$/);
 

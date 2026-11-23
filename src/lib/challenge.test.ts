@@ -40,6 +40,36 @@ describe('challenge by link', () => {
     expect(decodeChallenge(btoa(JSON.stringify({ s: 'countries', m: 'flag', c: 'ESFR', k: 5, v: 2 })))!.opts).toEqual({ turned: false, flagLook: 'plain', tries: 3, hints: true });
   });
 
+  it('carries what the game of the facts asks for, and what a country is pinned by', () => {
+    const wireOf = (code: string) => JSON.parse(atob(code.replace(/-/g, '+').replace(/_/g, '/'))) as { d?: string; o: unknown[] };
+    const facts = (fact: GameConfig['opts']['fact']) => game({ section: 'countries', mode: 'fact', countries: ['ES', 'FR'], levels: {}, opts: { ...DEFAULT_OPTS, fact } });
+    for (const fact of ['currency', 'language', 'domain', 'dial'] as const) {
+      const code = encodeChallenge(facts(fact));
+      expect(wireOf(code).d).toBe(fact);
+      expect(decodeChallenge(code)).toMatchObject({ section: 'countries', mode: 'fact', countries: ['ES', 'FR'], opts: { fact } });
+    }
+    expect(canChallenge(facts('language'))).toBe(true);
+    // Another game says nothing of it, and leaves the receiver what they had chosen for theirs.
+    const capitals = encodeChallenge(game({ section: 'countries', mode: 'capital', countries: ['ES', 'FR'], levels: {}, opts: { ...DEFAULT_OPTS, fact: 'dial' } }));
+    expect(wireOf(capitals).d).toBeUndefined();
+    expect(decodeChallenge(capitals)!.opts).not.toHaveProperty('fact');
+    // A link that does not say it, or that says nonsense, asks what the game opens with: never what the receiver has set.
+    expect(decodeChallenge(btoa(JSON.stringify({ s: 'countries', m: 'fact', c: 'ESFR', k: 5, v: 2 })))!.opts.fact).toBe('currency');
+    expect(decodeChallenge(btoa(JSON.stringify({ s: 'countries', m: 'fact', c: 'ESFR', k: 5, v: 2, d: 'anthem' })))!.opts.fact).toBe('currency');
+    expect(decodeChallenge(btoa(JSON.stringify({ s: 'countries', m: 'fact', c: 'ESFR', k: 5, v: 2, d: 7 })))!.opts.fact).toBe('currency');
+
+    // "Pin it" by a domain or by a dialling code, as by a capital or a flag.
+    for (const pinBy of ['name', 'capital', 'flag', 'domain', 'dial'] as const) {
+      const code = encodeChallenge(game({ section: 'countries', mode: 'pin', countries: ['ES', 'FR'], levels: {}, opts: { ...DEFAULT_OPTS, pinBy } }));
+      expect(decodeChallenge(code)!.opts.pinBy).toBe(pinBy);
+      // Nothing about the facts where the game is not the one that asks for them.
+      expect(wireOf(code).d).toBeUndefined();
+    }
+    // Something a country is not pinned by is not taken: the receiver's own choice stays.
+    const odd = btoa(JSON.stringify({ s: 'countries', m: 'pin', c: 'ESFR', k: 5, v: 2, o: ['type', 10, 'currency', 'top', 25] }));
+    expect(decodeChallenge(odd)!.opts).not.toHaveProperty('pinBy');
+  });
+
   it('is offered for the medley, and not for the games that are not marked the same for everyone', () => {
     expect(canChallenge(game({ mode: 'mix' }))).toBe(true);
     // By ear, the other may have no voice; with cards, each is their own judge.
