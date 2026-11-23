@@ -8,7 +8,10 @@
 "population": 77006,
 "capital": "Andorra la Vella",
 "continent": "EU",
-"neighbours": "ES,FR"
+"neighbours": "ES,FR",
+"tld": ".ad",
+"currency": "EUR",
+"phone": "376"
 },
 "AE": {
 "name": "United Arab Emirates",
@@ -17,7 +20,10 @@
 "population": 9630959,
 "capital": "Abu Dhabi",
 "continent": "AS",
-"neighbours": "SA,OM"
+"neighbours": "SA,OM",
+"tld": ".ae",
+"currency": "AED",
+"phone": "971"
 },
 "AF": {
 "name": "Afghanistan",
@@ -26,7 +32,10 @@
 "population": 37172386,
 "capital": "Kabul",
 "continent": "AS",
-"neighbours": "TM,CN,IR,TJ,PK,UZ"
+"neighbours": "TM,CN,IR,TJ,PK,UZ",
+"tld": ".af",
+"currency": "AFN",
+"phone": "93"
 },
 "AG": {
 "name": "Antigua and Barbuda",
@@ -35,7 +44,10 @@
 "population": 96286,
 "capital": "St. John's",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".ag",
+"currency": "XCD",
+"phone": "+1-268"
 },
 "AI": {
 "name": "Anguilla",
@@ -44,7 +56,10 @@
 "population": 13254,
 "capital": "The Valley",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".ai",
+"currency": "XCD",
+"phone": "+1-264"
 },
 "AL": {
 "name": "Albania",
@@ -53,7 +68,10 @@
 "population": 2866376,
 "capital": "Tirana",
 "continent": "EU",
-"neighbours": "MK,GR,ME,RS,XK"
+"neighbours": "MK,GR,ME,RS,XK",
+"tld": ".al",
+"currency": "ALL",
+"phone": "355"
 },
 "AM": {
 "name": "Armenia",
@@ -62,7 +80,10 @@
 "population": 3090500,
 "capital": "Yerevan",
 "continent": "AS",
-"neighbours": "GE,IR,AZ,TR"
+"neighbours": "GE,IR,AZ,TR",
+"tld": ".am",
+"currency": "AMD",
+"phone": "374"
 },
 "AN": {
 "name": "Netherlands Antilles",
@@ -71,7 +92,10 @@
 "population": 300000,
 "capital": "Willemstad",
 "continent": "NA",
-"neighbours": "GP"
+"neighbours": "GP",
+"tld": ".an",
+"currency": "ANG",
+"phone": "599"
 },
 "AO": {
 "name": "Angola",
@@ -80,7 +104,10 @@
 "population": 30809762,
 "capital": "Luanda",
 "continent": "AF",
-"neighbours": "CD,NA,ZM,CG"
+"neighbours": "CD,NA,ZM,CG",
+"tld": ".ao",
+"currency": "AOA",
+"phone": "244"
 },
 "AQ": {
 "name": "Antarctica",
@@ -89,7 +116,10 @@
 "population": 0,
 "capital": "",
 "continent": "AN",
-"neighbours": ""
+"neighbours": "",
+"tld": ".aq",
+"currency": "",
+"phone": ""
 },
 "AR": {
 "name": "Argentina",
@@ -98,7 +128,10 @@
 "population": 44494502,
 "capital": "Buenos Aires",
 "continent": "SA",
-"neighbours": "CL,BO,UY,PY,BR"
+"neighbours": "CL,BO,UY,PY,BR",
+"tld": ".ar",
+"currency": "ARS",
+"phone": "54"
 },
 "AS": {
 "name": "American Samoa",
@@ -107,7 +140,10 @@
 "population": 55465,
 "capital": "Pago Pago",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".as",
+"currency": "USD",
+"phone": "+1-684"
 },
 "AT": {
 "name": "Austria",
@@ -116,7 +152,10 @@
 "population": 8847037,
 "capital": "Vienna",
 "continent": "EU",
-"neighbours": "CH,DE,HU,SK,CZ,IT,SI,LI"
+"neighbours": "CH,DE,HU,SK,CZ,IT,SI,LI",
+"tld": ".at",
+"currency": "EUR",
+"phone": "43"
 },
 "AU": {
 "name": "Australia",
@@ -125,7 +164,10 @@
 "population": 24992369,
 "capital": "Canberra",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".au",
+"currency": "AUD",
+"phone": "61"
 },
 "AW": {
 "name": "Aruba",
@@ -134,7 +176,10 @@
 "population": 105845,
 "capital": "Oranjestad",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".aw",
+"currency": "AWG",
+"phone": "297"
 },
 "AX": {
 "name": "Aland Islands",
@@ -143,7 +188,10 @@
 "population": 26711,
 "capital": "Mariehamn",
 "continent": "EU",
-"neighbours": ""
+"neighbours": "",
+"tld": ".ax",
+"currency": "EUR",
+"phone": "+358-18"
 },
 "AZ": {
 "name": "Azerbaijan",
@@ -152,7 +200,10 @@
 "population": 10224900,
 "capital": "Baku",
 "continent": "AS",
-"neighbours": "GE,IR,AM,TR,RU"
+"neighbours": "GE,IR,AM,TR,RU",
+"tld": ".az",
+"currency": "AZN",
+"phone": "994"
 },
 "BA": {
 "name": "Bosnia and Herzegovina",
@@ -161,7 +212,10 @@
 "population": 3323929,
 "capital": "Sarajevo",
 "continent": "EU",
-"neighbours": "HR,ME,RS"
+"neighbours": "HR,ME,RS",
+"tld": ".ba",
+"currency": "BAM",
+"phone": "387"
 },
 "BB": {
 "name": "Barbados",
@@ -170,7 +224,10 @@
 "population": 286641,
 "capital": "Bridgetown",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".bb",
+"currency": "BBD",
+"phone": "+1-246"
 },
 "BD": {
 "name": "Bangladesh",
@@ -179,7 +236,10 @@
 "population": 161356039,
 "capital": "Dhaka",
 "continent": "AS",
-"neighbours": "MM,IN"
+"neighbours": "MM,IN",
+"tld": ".bd",
+"currency": "BDT",
+"phone": "880"
 },
 "BE": {
 "name": "Belgium",
@@ -188,7 +248,10 @@
 "population": 11422068,
 "capital": "Brussels",
 "continent": "EU",
-"neighbours": "DE,NL,LU,FR"
+"neighbours": "DE,NL,LU,FR",
+"tld": ".be",
+"currency": "EUR",
+"phone": "32"
 },
 "BF": {
 "name": "Burkina Faso",
@@ -197,7 +260,10 @@
 "population": 19751535,
 "capital": "Ouagadougou",
 "continent": "AF",
-"neighbours": "NE,BJ,GH,CI,TG,ML"
+"neighbours": "NE,BJ,GH,CI,TG,ML",
+"tld": ".bf",
+"currency": "XOF",
+"phone": "226"
 },
 "BG": {
 "name": "Bulgaria",
@@ -206,7 +272,10 @@
 "population": 7000039,
 "capital": "Sofia",
 "continent": "EU",
-"neighbours": "MK,GR,RO,TR,RS"
+"neighbours": "MK,GR,RO,TR,RS",
+"tld": ".bg",
+"currency": "BGN",
+"phone": "359"
 },
 "BH": {
 "name": "Bahrain",
@@ -215,7 +284,10 @@
 "population": 1569439,
 "capital": "Manama",
 "continent": "AS",
-"neighbours": ""
+"neighbours": "",
+"tld": ".bh",
+"currency": "BHD",
+"phone": "973"
 },
 "BI": {
 "name": "Burundi",
@@ -224,7 +296,10 @@
 "population": 11175378,
 "capital": "Gitega",
 "continent": "AF",
-"neighbours": "TZ,CD,RW"
+"neighbours": "TZ,CD,RW",
+"tld": ".bi",
+"currency": "BIF",
+"phone": "257"
 },
 "BJ": {
 "name": "Benin",
@@ -233,7 +308,10 @@
 "population": 11485048,
 "capital": "Porto-Novo",
 "continent": "AF",
-"neighbours": "NE,TG,BF,NG"
+"neighbours": "NE,TG,BF,NG",
+"tld": ".bj",
+"currency": "XOF",
+"phone": "229"
 },
 "BL": {
 "name": "Saint Barthelemy",
@@ -242,7 +320,10 @@
 "population": 8450,
 "capital": "Gustavia",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".gp",
+"currency": "EUR",
+"phone": "590"
 },
 "BM": {
 "name": "Bermuda",
@@ -251,7 +332,10 @@
 "population": 63968,
 "capital": "Hamilton",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".bm",
+"currency": "BMD",
+"phone": "+1-441"
 },
 "BN": {
 "name": "Brunei",
@@ -260,7 +344,10 @@
 "population": 428962,
 "capital": "Bandar Seri Begawan",
 "continent": "AS",
-"neighbours": "MY"
+"neighbours": "MY",
+"tld": ".bn",
+"currency": "BND",
+"phone": "673"
 },
 "BO": {
 "name": "Bolivia",
@@ -269,7 +356,10 @@
 "population": 11353142,
 "capital": "Sucre",
 "continent": "SA",
-"neighbours": "PE,CL,PY,BR,AR"
+"neighbours": "PE,CL,PY,BR,AR",
+"tld": ".bo",
+"currency": "BOB",
+"phone": "591"
 },
 "BQ": {
 "name": "Bonaire, Saint Eustatius and Saba ",
@@ -278,7 +368,10 @@
 "population": 18012,
 "capital": "",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".bq",
+"currency": "USD",
+"phone": "599"
 },
 "BR": {
 "name": "Brazil",
@@ -287,7 +380,10 @@
 "population": 209469333,
 "capital": "Brasilia",
 "continent": "SA",
-"neighbours": "SR,PE,BO,UY,GY,PY,GF,VE,CO,AR"
+"neighbours": "SR,PE,BO,UY,GY,PY,GF,VE,CO,AR",
+"tld": ".br",
+"currency": "BRL",
+"phone": "55"
 },
 "BS": {
 "name": "Bahamas",
@@ -296,7 +392,10 @@
 "population": 385640,
 "capital": "Nassau",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".bs",
+"currency": "BSD",
+"phone": "+1-242"
 },
 "BT": {
 "name": "Bhutan",
@@ -305,7 +404,10 @@
 "population": 754394,
 "capital": "Thimphu",
 "continent": "AS",
-"neighbours": "CN,IN"
+"neighbours": "CN,IN",
+"tld": ".bt",
+"currency": "BTN",
+"phone": "975"
 },
 "BV": {
 "name": "Bouvet Island",
@@ -314,7 +416,10 @@
 "population": 0,
 "capital": "",
 "continent": "AN",
-"neighbours": ""
+"neighbours": "",
+"tld": ".bv",
+"currency": "NOK",
+"phone": ""
 },
 "BW": {
 "name": "Botswana",
@@ -323,7 +428,10 @@
 "population": 2254126,
 "capital": "Gaborone",
 "continent": "AF",
-"neighbours": "ZW,ZA,NA"
+"neighbours": "ZW,ZA,NA",
+"tld": ".bw",
+"currency": "BWP",
+"phone": "267"
 },
 "BY": {
 "name": "Belarus",
@@ -332,7 +440,10 @@
 "population": 9485386,
 "capital": "Minsk",
 "continent": "EU",
-"neighbours": "PL,LT,UA,RU,LV"
+"neighbours": "PL,LT,UA,RU,LV",
+"tld": ".by",
+"currency": "BYN",
+"phone": "375"
 },
 "BZ": {
 "name": "Belize",
@@ -341,7 +452,10 @@
 "population": 383071,
 "capital": "Belmopan",
 "continent": "NA",
-"neighbours": "GT,MX"
+"neighbours": "GT,MX",
+"tld": ".bz",
+"currency": "BZD",
+"phone": "501"
 },
 "CA": {
 "name": "Canada",
@@ -350,7 +464,10 @@
 "population": 37058856,
 "capital": "Ottawa",
 "continent": "NA",
-"neighbours": "US"
+"neighbours": "US",
+"tld": ".ca",
+"currency": "CAD",
+"phone": "1"
 },
 "CC": {
 "name": "Cocos Islands",
@@ -359,7 +476,10 @@
 "population": 628,
 "capital": "West Island",
 "continent": "AS",
-"neighbours": ""
+"neighbours": "",
+"tld": ".cc",
+"currency": "AUD",
+"phone": "61"
 },
 "CD": {
 "name": "Democratic Republic of the Congo",
@@ -368,7 +488,10 @@
 "population": 84068091,
 "capital": "Kinshasa",
 "continent": "AF",
-"neighbours": "TZ,CF,SS,RW,ZM,BI,UG,CG,AO"
+"neighbours": "TZ,CF,SS,RW,ZM,BI,UG,CG,AO",
+"tld": ".cd",
+"currency": "CDF",
+"phone": "243"
 },
 "CF": {
 "name": "Central African Republic",
@@ -377,7 +500,10 @@
 "population": 4666377,
 "capital": "Bangui",
 "continent": "AF",
-"neighbours": "TD,SD,CD,SS,CM,CG"
+"neighbours": "TD,SD,CD,SS,CM,CG",
+"tld": ".cf",
+"currency": "XAF",
+"phone": "236"
 },
 "CG": {
 "name": "Republic of the Congo",
@@ -386,7 +512,10 @@
 "population": 5244363,
 "capital": "Brazzaville",
 "continent": "AF",
-"neighbours": "CF,GA,CD,CM,AO"
+"neighbours": "CF,GA,CD,CM,AO",
+"tld": ".cg",
+"currency": "XAF",
+"phone": "242"
 },
 "CH": {
 "name": "Switzerland",
@@ -395,7 +524,10 @@
 "population": 8516543,
 "capital": "Bern",
 "continent": "EU",
-"neighbours": "DE,IT,LI,FR,AT"
+"neighbours": "DE,IT,LI,FR,AT",
+"tld": ".ch",
+"currency": "CHF",
+"phone": "41"
 },
 "CI": {
 "name": "Ivory Coast",
@@ -404,7 +536,10 @@
 "population": 25069229,
 "capital": "Yamoussoukro",
 "continent": "AF",
-"neighbours": "LR,GH,GN,BF,ML"
+"neighbours": "LR,GH,GN,BF,ML",
+"tld": ".ci",
+"currency": "XOF",
+"phone": "225"
 },
 "CK": {
 "name": "Cook Islands",
@@ -413,7 +548,10 @@
 "population": 21388,
 "capital": "Avarua",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".ck",
+"currency": "NZD",
+"phone": "682"
 },
 "CL": {
 "name": "Chile",
@@ -422,7 +560,10 @@
 "population": 18729160,
 "capital": "Santiago",
 "continent": "SA",
-"neighbours": "PE,BO,AR"
+"neighbours": "PE,BO,AR",
+"tld": ".cl",
+"currency": "CLP",
+"phone": "56"
 },
 "CM": {
 "name": "Cameroon",
@@ -431,7 +572,10 @@
 "population": 25216237,
 "capital": "Yaounde",
 "continent": "AF",
-"neighbours": "TD,CF,GA,GQ,CG,NG"
+"neighbours": "TD,CF,GA,GQ,CG,NG",
+"tld": ".cm",
+"currency": "XAF",
+"phone": "237"
 },
 "CN": {
 "name": "China",
@@ -440,7 +584,10 @@
 "population": 1411778724,
 "capital": "Beijing",
 "continent": "AS",
-"neighbours": "LA,BT,TJ,KZ,MN,AF,NP,MM,KG,PK,KP,RU,VN,IN"
+"neighbours": "LA,BT,TJ,KZ,MN,AF,NP,MM,KG,PK,KP,RU,VN,IN",
+"tld": ".cn",
+"currency": "CNY",
+"phone": "86"
 },
 "CO": {
 "name": "Colombia",
@@ -449,7 +596,10 @@
 "population": 49648685,
 "capital": "Bogota",
 "continent": "SA",
-"neighbours": "EC,PE,PA,BR,VE"
+"neighbours": "EC,PE,PA,BR,VE",
+"tld": ".co",
+"currency": "COP",
+"phone": "57"
 },
 "CR": {
 "name": "Costa Rica",
@@ -458,7 +608,10 @@
 "population": 4999441,
 "capital": "San Jose",
 "continent": "NA",
-"neighbours": "PA,NI"
+"neighbours": "PA,NI",
+"tld": ".cr",
+"currency": "CRC",
+"phone": "506"
 },
 "CS": {
 "name": "Serbia and Montenegro",
@@ -467,7 +620,10 @@
 "population": 10829175,
 "capital": "Belgrade",
 "continent": "EU",
-"neighbours": "AL,HU,MK,RO,HR,BA,BG"
+"neighbours": "AL,HU,MK,RO,HR,BA,BG",
+"tld": ".cs",
+"currency": "RSD",
+"phone": "381"
 },
 "CU": {
 "name": "Cuba",
@@ -476,7 +632,10 @@
 "population": 11338138,
 "capital": "Havana",
 "continent": "NA",
-"neighbours": "US"
+"neighbours": "US",
+"tld": ".cu",
+"currency": "CUP",
+"phone": "53"
 },
 "CV": {
 "name": "Cabo Verde",
@@ -485,7 +644,10 @@
 "population": 543767,
 "capital": "Praia",
 "continent": "AF",
-"neighbours": ""
+"neighbours": "",
+"tld": ".cv",
+"currency": "CVE",
+"phone": "238"
 },
 "CW": {
 "name": "Curacao",
@@ -494,7 +656,10 @@
 "population": 159849,
 "capital": " Willemstad",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".cw",
+"currency": "XCG",
+"phone": "599"
 },
 "CX": {
 "name": "Christmas Island",
@@ -503,7 +668,10 @@
 "population": 1500,
 "capital": "Flying Fish Cove",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".cx",
+"currency": "AUD",
+"phone": "61"
 },
 "CY": {
 "name": "Cyprus",
@@ -512,7 +680,10 @@
 "population": 1189265,
 "capital": "Nicosia",
 "continent": "EU",
-"neighbours": ""
+"neighbours": "",
+"tld": ".cy",
+"currency": "EUR",
+"phone": "357"
 },
 "CZ": {
 "name": "Czechia",
@@ -521,7 +692,10 @@
 "population": 10625695,
 "capital": "Prague",
 "continent": "EU",
-"neighbours": "PL,DE,SK,AT"
+"neighbours": "PL,DE,SK,AT",
+"tld": ".cz",
+"currency": "CZK",
+"phone": "420"
 },
 "DE": {
 "name": "Germany",
@@ -530,7 +704,10 @@
 "population": 82927922,
 "capital": "Berlin",
 "continent": "EU",
-"neighbours": "CH,PL,NL,DK,BE,CZ,LU,FR,AT"
+"neighbours": "CH,PL,NL,DK,BE,CZ,LU,FR,AT",
+"tld": ".de",
+"currency": "EUR",
+"phone": "49"
 },
 "DJ": {
 "name": "Djibouti",
@@ -539,7 +716,10 @@
 "population": 958920,
 "capital": "Djibouti",
 "continent": "AF",
-"neighbours": "ER,ET,SO"
+"neighbours": "ER,ET,SO",
+"tld": ".dj",
+"currency": "DJF",
+"phone": "253"
 },
 "DK": {
 "name": "Denmark",
@@ -548,7 +728,10 @@
 "population": 5797446,
 "capital": "Copenhagen",
 "continent": "EU",
-"neighbours": "DE"
+"neighbours": "DE",
+"tld": ".dk",
+"currency": "DKK",
+"phone": "45"
 },
 "DM": {
 "name": "Dominica",
@@ -557,7 +740,10 @@
 "population": 71625,
 "capital": "Roseau",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".dm",
+"currency": "XCD",
+"phone": "+1-767"
 },
 "DO": {
 "name": "Dominican Republic",
@@ -566,7 +752,10 @@
 "population": 10627165,
 "capital": "Santo Domingo",
 "continent": "NA",
-"neighbours": "HT"
+"neighbours": "HT",
+"tld": ".do",
+"currency": "DOP",
+"phone": "+1-809 and 1-829"
 },
 "DZ": {
 "name": "Algeria",
@@ -575,7 +764,10 @@
 "population": 42228429,
 "capital": "Algiers",
 "continent": "AF",
-"neighbours": "NE,EH,LY,MR,TN,MA,ML"
+"neighbours": "NE,EH,LY,MR,TN,MA,ML",
+"tld": ".dz",
+"currency": "DZD",
+"phone": "213"
 },
 "EC": {
 "name": "Ecuador",
@@ -584,7 +776,10 @@
 "population": 17084357,
 "capital": "Quito",
 "continent": "SA",
-"neighbours": "PE,CO"
+"neighbours": "PE,CO",
+"tld": ".ec",
+"currency": "USD",
+"phone": "593"
 },
 "EE": {
 "name": "Estonia",
@@ -593,7 +788,10 @@
 "population": 1320884,
 "capital": "Tallinn",
 "continent": "EU",
-"neighbours": "RU,LV"
+"neighbours": "RU,LV",
+"tld": ".ee",
+"currency": "EUR",
+"phone": "372"
 },
 "EG": {
 "name": "Egypt",
@@ -602,7 +800,10 @@
 "population": 98423595,
 "capital": "Cairo",
 "continent": "AF",
-"neighbours": "LY,SD,IL,PS"
+"neighbours": "LY,SD,IL,PS",
+"tld": ".eg",
+"currency": "EGP",
+"phone": "20"
 },
 "EH": {
 "name": "Western Sahara",
@@ -611,7 +812,10 @@
 "population": 273008,
 "capital": "El-Aaiun",
 "continent": "AF",
-"neighbours": "DZ,MR,MA"
+"neighbours": "DZ,MR,MA",
+"tld": ".eh",
+"currency": "MAD",
+"phone": "212"
 },
 "ER": {
 "name": "Eritrea",
@@ -620,7 +824,10 @@
 "population": 6209262,
 "capital": "Asmara",
 "continent": "AF",
-"neighbours": "ET,SD,DJ"
+"neighbours": "ET,SD,DJ",
+"tld": ".er",
+"currency": "ERN",
+"phone": "291"
 },
 "ES": {
 "name": "Spain",
@@ -629,7 +836,10 @@
 "population": 46723749,
 "capital": "Madrid",
 "continent": "EU",
-"neighbours": "AD,PT,GI,FR,MA"
+"neighbours": "AD,PT,GI,FR,MA",
+"tld": ".es",
+"currency": "EUR",
+"phone": "34"
 },
 "ET": {
 "name": "Ethiopia",
@@ -638,7 +848,10 @@
 "population": 109224559,
 "capital": "Addis Ababa",
 "continent": "AF",
-"neighbours": "ER,KE,SD,SS,SO,DJ"
+"neighbours": "ER,KE,SD,SS,SO,DJ",
+"tld": ".et",
+"currency": "ETB",
+"phone": "251"
 },
 "FI": {
 "name": "Finland",
@@ -647,7 +860,10 @@
 "population": 5518050,
 "capital": "Helsinki",
 "continent": "EU",
-"neighbours": "NO,RU,SE"
+"neighbours": "NO,RU,SE",
+"tld": ".fi",
+"currency": "EUR",
+"phone": "358"
 },
 "FJ": {
 "name": "Fiji",
@@ -656,7 +872,10 @@
 "population": 883483,
 "capital": "Suva",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".fj",
+"currency": "FJD",
+"phone": "679"
 },
 "FK": {
 "name": "Falkland Islands",
@@ -665,7 +884,10 @@
 "population": 2638,
 "capital": "Stanley",
 "continent": "SA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".fk",
+"currency": "FKP",
+"phone": "500"
 },
 "FM": {
 "name": "Micronesia",
@@ -674,7 +896,10 @@
 "population": 112640,
 "capital": "Palikir",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".fm",
+"currency": "USD",
+"phone": "691"
 },
 "FO": {
 "name": "Faroe Islands",
@@ -683,7 +908,10 @@
 "population": 48497,
 "capital": "Torshavn",
 "continent": "EU",
-"neighbours": ""
+"neighbours": "",
+"tld": ".fo",
+"currency": "DKK",
+"phone": "298"
 },
 "FR": {
 "name": "France",
@@ -692,7 +920,10 @@
 "population": 66987244,
 "capital": "Paris",
 "continent": "EU",
-"neighbours": "CH,DE,BE,LU,IT,AD,MC,ES"
+"neighbours": "CH,DE,BE,LU,IT,AD,MC,ES",
+"tld": ".fr",
+"currency": "EUR",
+"phone": "33"
 },
 "GA": {
 "name": "Gabon",
@@ -701,7 +932,10 @@
 "population": 2119275,
 "capital": "Libreville",
 "continent": "AF",
-"neighbours": "CM,GQ,CG"
+"neighbours": "CM,GQ,CG",
+"tld": ".ga",
+"currency": "XAF",
+"phone": "241"
 },
 "GB": {
 "name": "United Kingdom",
@@ -710,7 +944,10 @@
 "population": 66488991,
 "capital": "London",
 "continent": "EU",
-"neighbours": "IE"
+"neighbours": "IE",
+"tld": ".uk",
+"currency": "GBP",
+"phone": "44"
 },
 "GD": {
 "name": "Grenada",
@@ -719,7 +956,10 @@
 "population": 111454,
 "capital": "St. George's",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".gd",
+"currency": "XCD",
+"phone": "+1-473"
 },
 "GE": {
 "name": "Georgia",
@@ -728,7 +968,10 @@
 "population": 3704500,
 "capital": "Tbilisi",
 "continent": "AS",
-"neighbours": "AM,AZ,TR,RU"
+"neighbours": "AM,AZ,TR,RU",
+"tld": ".ge",
+"currency": "GEL",
+"phone": "995"
 },
 "GF": {
 "name": "French Guiana",
@@ -737,7 +980,10 @@
 "population": 195506,
 "capital": "Cayenne",
 "continent": "SA",
-"neighbours": "SR,BR"
+"neighbours": "SR,BR",
+"tld": ".gf",
+"currency": "EUR",
+"phone": "594"
 },
 "GG": {
 "name": "Guernsey",
@@ -746,7 +992,10 @@
 "population": 65228,
 "capital": "St Peter Port",
 "continent": "EU",
-"neighbours": ""
+"neighbours": "",
+"tld": ".gg",
+"currency": "GBP",
+"phone": "+44-1481"
 },
 "GH": {
 "name": "Ghana",
@@ -755,7 +1004,10 @@
 "population": 29767108,
 "capital": "Accra",
 "continent": "AF",
-"neighbours": "CI,TG,BF"
+"neighbours": "CI,TG,BF",
+"tld": ".gh",
+"currency": "GHS",
+"phone": "233"
 },
 "GI": {
 "name": "Gibraltar",
@@ -764,7 +1016,10 @@
 "population": 33718,
 "capital": "Gibraltar",
 "continent": "EU",
-"neighbours": "ES"
+"neighbours": "ES",
+"tld": ".gi",
+"currency": "GIP",
+"phone": "350"
 },
 "GL": {
 "name": "Greenland",
@@ -773,7 +1028,10 @@
 "population": 56025,
 "capital": "Nuuk",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".gl",
+"currency": "DKK",
+"phone": "299"
 },
 "GM": {
 "name": "Gambia",
@@ -782,7 +1040,10 @@
 "population": 2280102,
 "capital": "Banjul",
 "continent": "AF",
-"neighbours": "SN"
+"neighbours": "SN",
+"tld": ".gm",
+"currency": "GMD",
+"phone": "220"
 },
 "GN": {
 "name": "Guinea",
@@ -791,7 +1052,10 @@
 "population": 12414318,
 "capital": "Conakry",
 "continent": "AF",
-"neighbours": "LR,SN,SL,CI,GW,ML"
+"neighbours": "LR,SN,SL,CI,GW,ML",
+"tld": ".gn",
+"currency": "GNF",
+"phone": "224"
 },
 "GP": {
 "name": "Guadeloupe",
@@ -800,7 +1064,10 @@
 "population": 443000,
 "capital": "Basse-Terre",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".gp",
+"currency": "EUR",
+"phone": "590"
 },
 "GQ": {
 "name": "Equatorial Guinea",
@@ -809,7 +1076,10 @@
 "population": 1308974,
 "capital": "Ciudad de la Paz",
 "continent": "AF",
-"neighbours": "GA,CM"
+"neighbours": "GA,CM",
+"tld": ".gq",
+"currency": "XAF",
+"phone": "240"
 },
 "GR": {
 "name": "Greece",
@@ -818,7 +1088,10 @@
 "population": 10727668,
 "capital": "Athens",
 "continent": "EU",
-"neighbours": "AL,MK,TR,BG"
+"neighbours": "AL,MK,TR,BG",
+"tld": ".gr",
+"currency": "EUR",
+"phone": "30"
 },
 "GS": {
 "name": "South Georgia and the South Sandwich Islands",
@@ -827,7 +1100,10 @@
 "population": 30,
 "capital": "Grytviken",
 "continent": "AN",
-"neighbours": ""
+"neighbours": "",
+"tld": ".gs",
+"currency": "GBP",
+"phone": ""
 },
 "GT": {
 "name": "Guatemala",
@@ -836,7 +1112,10 @@
 "population": 17247807,
 "capital": "Guatemala City",
 "continent": "NA",
-"neighbours": "MX,HN,BZ,SV"
+"neighbours": "MX,HN,BZ,SV",
+"tld": ".gt",
+"currency": "GTQ",
+"phone": "502"
 },
 "GU": {
 "name": "Guam",
@@ -845,7 +1124,10 @@
 "population": 165768,
 "capital": "Hagatna",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".gu",
+"currency": "USD",
+"phone": "+1-671"
 },
 "GW": {
 "name": "Guinea-Bissau",
@@ -854,7 +1136,10 @@
 "population": 1874309,
 "capital": "Bissau",
 "continent": "AF",
-"neighbours": "SN,GN"
+"neighbours": "SN,GN",
+"tld": ".gw",
+"currency": "XOF",
+"phone": "245"
 },
 "GY": {
 "name": "Guyana",
@@ -863,7 +1148,10 @@
 "population": 779004,
 "capital": "Georgetown",
 "continent": "SA",
-"neighbours": "SR,BR,VE"
+"neighbours": "SR,BR,VE",
+"tld": ".gy",
+"currency": "GYD",
+"phone": "592"
 },
 "HK": {
 "name": "Hong Kong",
@@ -872,7 +1160,10 @@
 "population": 7396076,
 "capital": "Hong Kong",
 "continent": "AS",
-"neighbours": ""
+"neighbours": "",
+"tld": ".hk",
+"currency": "HKD",
+"phone": "852"
 },
 "HM": {
 "name": "Heard Island and McDonald Islands",
@@ -881,7 +1172,10 @@
 "population": 0,
 "capital": "",
 "continent": "AN",
-"neighbours": ""
+"neighbours": "",
+"tld": ".hm",
+"currency": "AUD",
+"phone": " "
 },
 "HN": {
 "name": "Honduras",
@@ -890,7 +1184,10 @@
 "population": 9587522,
 "capital": "Tegucigalpa",
 "continent": "NA",
-"neighbours": "GT,NI,SV"
+"neighbours": "GT,NI,SV",
+"tld": ".hn",
+"currency": "HNL",
+"phone": "504"
 },
 "HR": {
 "name": "Croatia",
@@ -899,7 +1196,10 @@
 "population": 3871833,
 "capital": "Zagreb",
 "continent": "EU",
-"neighbours": "HU,SI,BA,ME,RS"
+"neighbours": "HU,SI,BA,ME,RS",
+"tld": ".hr",
+"currency": "EUR",
+"phone": "385"
 },
 "HT": {
 "name": "Haiti",
@@ -908,7 +1208,10 @@
 "population": 11123176,
 "capital": "Port-au-Prince",
 "continent": "NA",
-"neighbours": "DO"
+"neighbours": "DO",
+"tld": ".ht",
+"currency": "HTG",
+"phone": "509"
 },
 "HU": {
 "name": "Hungary",
@@ -917,7 +1220,10 @@
 "population": 9768785,
 "capital": "Budapest",
 "continent": "EU",
-"neighbours": "SK,SI,RO,UA,HR,AT,RS"
+"neighbours": "SK,SI,RO,UA,HR,AT,RS",
+"tld": ".hu",
+"currency": "HUF",
+"phone": "36"
 },
 "ID": {
 "name": "Indonesia",
@@ -926,7 +1232,10 @@
 "population": 267663435,
 "capital": "Jakarta",
 "continent": "AS",
-"neighbours": "PG,TL,MY"
+"neighbours": "PG,TL,MY",
+"tld": ".id",
+"currency": "IDR",
+"phone": "62"
 },
 "IE": {
 "name": "Ireland",
@@ -935,7 +1244,10 @@
 "population": 4853506,
 "capital": "Dublin",
 "continent": "EU",
-"neighbours": "GB"
+"neighbours": "GB",
+"tld": ".ie",
+"currency": "EUR",
+"phone": "353"
 },
 "IL": {
 "name": "Israel",
@@ -944,7 +1256,10 @@
 "population": 8883800,
 "capital": "Jerusalem",
 "continent": "AS",
-"neighbours": "SY,JO,LB,EG,PS"
+"neighbours": "SY,JO,LB,EG,PS",
+"tld": ".il",
+"currency": "ILS",
+"phone": "972"
 },
 "IM": {
 "name": "Isle of Man",
@@ -953,7 +1268,10 @@
 "population": 84077,
 "capital": "Douglas",
 "continent": "EU",
-"neighbours": ""
+"neighbours": "",
+"tld": ".im",
+"currency": "GBP",
+"phone": "+44-1624"
 },
 "IN": {
 "name": "India",
@@ -962,7 +1280,10 @@
 "population": 1352617328,
 "capital": "New Delhi",
 "continent": "AS",
-"neighbours": "CN,NP,MM,BT,PK,BD"
+"neighbours": "CN,NP,MM,BT,PK,BD",
+"tld": ".in",
+"currency": "INR",
+"phone": "91"
 },
 "IO": {
 "name": "British Indian Ocean Territory",
@@ -971,7 +1292,10 @@
 "population": 4000,
 "capital": "Diego Garcia",
 "continent": "AS",
-"neighbours": ""
+"neighbours": "",
+"tld": ".io",
+"currency": "USD",
+"phone": "246"
 },
 "IQ": {
 "name": "Iraq",
@@ -980,7 +1304,10 @@
 "population": 38433600,
 "capital": "Baghdad",
 "continent": "AS",
-"neighbours": "SY,SA,IR,JO,TR,KW"
+"neighbours": "SY,SA,IR,JO,TR,KW",
+"tld": ".iq",
+"currency": "IQD",
+"phone": "964"
 },
 "IR": {
 "name": "Iran",
@@ -989,7 +1316,10 @@
 "population": 81800269,
 "capital": "Tehran",
 "continent": "AS",
-"neighbours": "TM,AF,IQ,AM,PK,AZ,TR"
+"neighbours": "TM,AF,IQ,AM,PK,AZ,TR",
+"tld": ".ir",
+"currency": "IRR",
+"phone": "98"
 },
 "IS": {
 "name": "Iceland",
@@ -998,7 +1328,10 @@
 "population": 353574,
 "capital": "Reykjavik",
 "continent": "EU",
-"neighbours": ""
+"neighbours": "",
+"tld": ".is",
+"currency": "ISK",
+"phone": "354"
 },
 "IT": {
 "name": "Italy",
@@ -1007,7 +1340,10 @@
 "population": 60431283,
 "capital": "Rome",
 "continent": "EU",
-"neighbours": "CH,VA,SI,SM,FR,AT"
+"neighbours": "CH,VA,SI,SM,FR,AT",
+"tld": ".it",
+"currency": "EUR",
+"phone": "39"
 },
 "JE": {
 "name": "Jersey",
@@ -1016,7 +1352,10 @@
 "population": 90812,
 "capital": "Saint Helier",
 "continent": "EU",
-"neighbours": ""
+"neighbours": "",
+"tld": ".je",
+"currency": "GBP",
+"phone": "+44-1534"
 },
 "JM": {
 "name": "Jamaica",
@@ -1025,7 +1364,10 @@
 "population": 2934855,
 "capital": "Kingston",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".jm",
+"currency": "JMD",
+"phone": "+1-876"
 },
 "JO": {
 "name": "Jordan",
@@ -1034,7 +1376,10 @@
 "population": 9956011,
 "capital": "Amman",
 "continent": "AS",
-"neighbours": "SY,SA,IQ,IL,PS"
+"neighbours": "SY,SA,IQ,IL,PS",
+"tld": ".jo",
+"currency": "JOD",
+"phone": "962"
 },
 "JP": {
 "name": "Japan",
@@ -1043,7 +1388,10 @@
 "population": 126529100,
 "capital": "Tokyo",
 "continent": "AS",
-"neighbours": ""
+"neighbours": "",
+"tld": ".jp",
+"currency": "JPY",
+"phone": "81"
 },
 "KE": {
 "name": "Kenya",
@@ -1052,7 +1400,10 @@
 "population": 51393010,
 "capital": "Nairobi",
 "continent": "AF",
-"neighbours": "ET,TZ,SS,SO,UG"
+"neighbours": "ET,TZ,SS,SO,UG",
+"tld": ".ke",
+"currency": "KES",
+"phone": "254"
 },
 "KG": {
 "name": "Kyrgyzstan",
@@ -1061,7 +1412,10 @@
 "population": 6315800,
 "capital": "Bishkek",
 "continent": "AS",
-"neighbours": "CN,TJ,UZ,KZ"
+"neighbours": "CN,TJ,UZ,KZ",
+"tld": ".kg",
+"currency": "KGS",
+"phone": "996"
 },
 "KH": {
 "name": "Cambodia",
@@ -1070,7 +1424,10 @@
 "population": 16249798,
 "capital": "Phnom Penh",
 "continent": "AS",
-"neighbours": "LA,TH,VN"
+"neighbours": "LA,TH,VN",
+"tld": ".kh",
+"currency": "KHR",
+"phone": "855"
 },
 "KI": {
 "name": "Kiribati",
@@ -1079,7 +1436,10 @@
 "population": 115847,
 "capital": "Tarawa",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".ki",
+"currency": "AUD",
+"phone": "686"
 },
 "KM": {
 "name": "Comoros",
@@ -1088,7 +1448,10 @@
 "population": 832322,
 "capital": "Moroni",
 "continent": "AF",
-"neighbours": ""
+"neighbours": "",
+"tld": ".km",
+"currency": "KMF",
+"phone": "269"
 },
 "KN": {
 "name": "Saint Kitts and Nevis",
@@ -1097,7 +1460,10 @@
 "population": 52441,
 "capital": "Basseterre",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".kn",
+"currency": "XCD",
+"phone": "+1-869"
 },
 "KP": {
 "name": "North Korea",
@@ -1106,7 +1472,10 @@
 "population": 25549819,
 "capital": "Pyongyang",
 "continent": "AS",
-"neighbours": "CN,KR,RU"
+"neighbours": "CN,KR,RU",
+"tld": ".kp",
+"currency": "KPW",
+"phone": "850"
 },
 "KR": {
 "name": "South Korea",
@@ -1115,7 +1484,10 @@
 "population": 51635256,
 "capital": "Seoul",
 "continent": "AS",
-"neighbours": "KP"
+"neighbours": "KP",
+"tld": ".kr",
+"currency": "KRW",
+"phone": "82"
 },
 "KW": {
 "name": "Kuwait",
@@ -1124,7 +1496,10 @@
 "population": 4137309,
 "capital": "Kuwait City",
 "continent": "AS",
-"neighbours": "SA,IQ"
+"neighbours": "SA,IQ",
+"tld": ".kw",
+"currency": "KWD",
+"phone": "965"
 },
 "KY": {
 "name": "Cayman Islands",
@@ -1133,7 +1508,10 @@
 "population": 64174,
 "capital": "George Town",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".ky",
+"currency": "KYD",
+"phone": "+1-345"
 },
 "KZ": {
 "name": "Kazakhstan",
@@ -1142,7 +1520,10 @@
 "population": 18276499,
 "capital": "Nur-Sultan",
 "continent": "AS",
-"neighbours": "TM,CN,KG,UZ,RU"
+"neighbours": "TM,CN,KG,UZ,RU",
+"tld": ".kz",
+"currency": "KZT",
+"phone": "7"
 },
 "LA": {
 "name": "Laos",
@@ -1151,7 +1532,10 @@
 "population": 7061507,
 "capital": "Vientiane",
 "continent": "AS",
-"neighbours": "CN,MM,KH,TH,VN"
+"neighbours": "CN,MM,KH,TH,VN",
+"tld": ".la",
+"currency": "LAK",
+"phone": "856"
 },
 "LB": {
 "name": "Lebanon",
@@ -1160,7 +1544,10 @@
 "population": 6848925,
 "capital": "Beirut",
 "continent": "AS",
-"neighbours": "SY,IL"
+"neighbours": "SY,IL",
+"tld": ".lb",
+"currency": "LBP",
+"phone": "961"
 },
 "LC": {
 "name": "Saint Lucia",
@@ -1169,7 +1556,10 @@
 "population": 181889,
 "capital": "Castries",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".lc",
+"currency": "XCD",
+"phone": "+1-758"
 },
 "LI": {
 "name": "Liechtenstein",
@@ -1178,7 +1568,10 @@
 "population": 37910,
 "capital": "Vaduz",
 "continent": "EU",
-"neighbours": "CH,AT"
+"neighbours": "CH,AT",
+"tld": ".li",
+"currency": "CHF",
+"phone": "423"
 },
 "LK": {
 "name": "Sri Lanka",
@@ -1187,7 +1580,10 @@
 "population": 21670000,
 "capital": "Colombo",
 "continent": "AS",
-"neighbours": ""
+"neighbours": "",
+"tld": ".lk",
+"currency": "LKR",
+"phone": "94"
 },
 "LR": {
 "name": "Liberia",
@@ -1196,7 +1592,10 @@
 "population": 4818977,
 "capital": "Monrovia",
 "continent": "AF",
-"neighbours": "SL,CI,GN"
+"neighbours": "SL,CI,GN",
+"tld": ".lr",
+"currency": "LRD",
+"phone": "231"
 },
 "LS": {
 "name": "Lesotho",
@@ -1205,7 +1604,10 @@
 "population": 2108132,
 "capital": "Maseru",
 "continent": "AF",
-"neighbours": "ZA"
+"neighbours": "ZA",
+"tld": ".ls",
+"currency": "LSL",
+"phone": "266"
 },
 "LT": {
 "name": "Lithuania",
@@ -1214,7 +1616,10 @@
 "population": 2789533,
 "capital": "Vilnius",
 "continent": "EU",
-"neighbours": "PL,BY,RU,LV"
+"neighbours": "PL,BY,RU,LV",
+"tld": ".lt",
+"currency": "EUR",
+"phone": "370"
 },
 "LU": {
 "name": "Luxembourg",
@@ -1223,7 +1628,10 @@
 "population": 607728,
 "capital": "Luxembourg",
 "continent": "EU",
-"neighbours": "DE,BE,FR"
+"neighbours": "DE,BE,FR",
+"tld": ".lu",
+"currency": "EUR",
+"phone": "352"
 },
 "LV": {
 "name": "Latvia",
@@ -1232,7 +1640,10 @@
 "population": 1926542,
 "capital": "Riga",
 "continent": "EU",
-"neighbours": "LT,EE,BY,RU"
+"neighbours": "LT,EE,BY,RU",
+"tld": ".lv",
+"currency": "EUR",
+"phone": "371"
 },
 "LY": {
 "name": "Libya",
@@ -1241,7 +1652,10 @@
 "population": 6678567,
 "capital": "Tripoli",
 "continent": "AF",
-"neighbours": "TD,NE,DZ,SD,TN,EG"
+"neighbours": "TD,NE,DZ,SD,TN,EG",
+"tld": ".ly",
+"currency": "LYD",
+"phone": "218"
 },
 "MA": {
 "name": "Morocco",
@@ -1250,7 +1664,10 @@
 "population": 36029138,
 "capital": "Rabat",
 "continent": "AF",
-"neighbours": "DZ,EH,ES"
+"neighbours": "DZ,EH,ES",
+"tld": ".ma",
+"currency": "MAD",
+"phone": "212"
 },
 "MC": {
 "name": "Monaco",
@@ -1259,7 +1676,10 @@
 "population": 38682,
 "capital": "Monaco",
 "continent": "EU",
-"neighbours": "FR"
+"neighbours": "FR",
+"tld": ".mc",
+"currency": "EUR",
+"phone": "377"
 },
 "MD": {
 "name": "Moldova",
@@ -1268,7 +1688,10 @@
 "population": 3545883,
 "capital": "Chisinau",
 "continent": "EU",
-"neighbours": "RO,UA"
+"neighbours": "RO,UA",
+"tld": ".md",
+"currency": "MDL",
+"phone": "373"
 },
 "ME": {
 "name": "Montenegro",
@@ -1277,7 +1700,10 @@
 "population": 622345,
 "capital": "Podgorica",
 "continent": "EU",
-"neighbours": "AL,HR,BA,RS,XK"
+"neighbours": "AL,HR,BA,RS,XK",
+"tld": ".me",
+"currency": "EUR",
+"phone": "382"
 },
 "MF": {
 "name": "Saint Martin",
@@ -1286,7 +1712,10 @@
 "population": 37264,
 "capital": "Marigot",
 "continent": "NA",
-"neighbours": "SX"
+"neighbours": "SX",
+"tld": ".gp",
+"currency": "EUR",
+"phone": "590"
 },
 "MG": {
 "name": "Madagascar",
@@ -1295,7 +1724,10 @@
 "population": 26262368,
 "capital": "Antananarivo",
 "continent": "AF",
-"neighbours": ""
+"neighbours": "",
+"tld": ".mg",
+"currency": "MGA",
+"phone": "261"
 },
 "MH": {
 "name": "Marshall Islands",
@@ -1304,7 +1736,10 @@
 "population": 58413,
 "capital": "Majuro",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".mh",
+"currency": "USD",
+"phone": "692"
 },
 "MK": {
 "name": "North Macedonia",
@@ -1313,7 +1748,10 @@
 "population": 2082958,
 "capital": "Skopje",
 "continent": "EU",
-"neighbours": "AL,GR,BG,RS,XK"
+"neighbours": "AL,GR,BG,RS,XK",
+"tld": ".mk",
+"currency": "MKD",
+"phone": "389"
 },
 "ML": {
 "name": "Mali",
@@ -1322,7 +1760,10 @@
 "population": 19077690,
 "capital": "Bamako",
 "continent": "AF",
-"neighbours": "SN,NE,DZ,CI,GN,MR,BF"
+"neighbours": "SN,NE,DZ,CI,GN,MR,BF",
+"tld": ".ml",
+"currency": "XOF",
+"phone": "223"
 },
 "MM": {
 "name": "Myanmar",
@@ -1331,7 +1772,10 @@
 "population": 53708395,
 "capital": "Nay Pyi Taw",
 "continent": "AS",
-"neighbours": "CN,LA,TH,BD,IN"
+"neighbours": "CN,LA,TH,BD,IN",
+"tld": ".mm",
+"currency": "MMK",
+"phone": "95"
 },
 "MN": {
 "name": "Mongolia",
@@ -1340,7 +1784,10 @@
 "population": 3170208,
 "capital": "Ulaanbaatar",
 "continent": "AS",
-"neighbours": "CN,RU"
+"neighbours": "CN,RU",
+"tld": ".mn",
+"currency": "MNT",
+"phone": "976"
 },
 "MO": {
 "name": "Macao",
@@ -1349,7 +1796,10 @@
 "population": 631636,
 "capital": "Macao",
 "continent": "AS",
-"neighbours": ""
+"neighbours": "",
+"tld": ".mo",
+"currency": "MOP",
+"phone": "853"
 },
 "MP": {
 "name": "Northern Mariana Islands",
@@ -1358,7 +1808,10 @@
 "population": 56882,
 "capital": "Saipan",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".mp",
+"currency": "USD",
+"phone": "+1-670"
 },
 "MQ": {
 "name": "Martinique",
@@ -1367,7 +1820,10 @@
 "population": 432900,
 "capital": "Fort-de-France",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".mq",
+"currency": "EUR",
+"phone": "596"
 },
 "MR": {
 "name": "Mauritania",
@@ -1376,7 +1832,10 @@
 "population": 4403319,
 "capital": "Nouakchott",
 "continent": "AF",
-"neighbours": "SN,DZ,EH,ML"
+"neighbours": "SN,DZ,EH,ML",
+"tld": ".mr",
+"currency": "MRU",
+"phone": "222"
 },
 "MS": {
 "name": "Montserrat",
@@ -1385,7 +1844,10 @@
 "population": 9341,
 "capital": "Plymouth",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".ms",
+"currency": "XCD",
+"phone": "+1-664"
 },
 "MT": {
 "name": "Malta",
@@ -1394,7 +1856,10 @@
 "population": 483530,
 "capital": "Valletta",
 "continent": "EU",
-"neighbours": ""
+"neighbours": "",
+"tld": ".mt",
+"currency": "EUR",
+"phone": "356"
 },
 "MU": {
 "name": "Mauritius",
@@ -1403,7 +1868,10 @@
 "population": 1265303,
 "capital": "Port Louis",
 "continent": "AF",
-"neighbours": ""
+"neighbours": "",
+"tld": ".mu",
+"currency": "MUR",
+"phone": "230"
 },
 "MV": {
 "name": "Maldives",
@@ -1412,7 +1880,10 @@
 "population": 515696,
 "capital": "Male",
 "continent": "AS",
-"neighbours": ""
+"neighbours": "",
+"tld": ".mv",
+"currency": "MVR",
+"phone": "960"
 },
 "MW": {
 "name": "Malawi",
@@ -1421,7 +1892,10 @@
 "population": 17563749,
 "capital": "Lilongwe",
 "continent": "AF",
-"neighbours": "TZ,MZ,ZM"
+"neighbours": "TZ,MZ,ZM",
+"tld": ".mw",
+"currency": "MWK",
+"phone": "265"
 },
 "MX": {
 "name": "Mexico",
@@ -1430,7 +1904,10 @@
 "population": 126190788,
 "capital": "Mexico City",
 "continent": "NA",
-"neighbours": "GT,US,BZ"
+"neighbours": "GT,US,BZ",
+"tld": ".mx",
+"currency": "MXN",
+"phone": "52"
 },
 "MY": {
 "name": "Malaysia",
@@ -1439,7 +1916,10 @@
 "population": 31528585,
 "capital": "Kuala Lumpur",
 "continent": "AS",
-"neighbours": "BN,TH,ID"
+"neighbours": "BN,TH,ID",
+"tld": ".my",
+"currency": "MYR",
+"phone": "60"
 },
 "MZ": {
 "name": "Mozambique",
@@ -1448,7 +1928,10 @@
 "population": 29495962,
 "capital": "Maputo",
 "continent": "AF",
-"neighbours": "ZW,TZ,SZ,ZA,ZM,MW"
+"neighbours": "ZW,TZ,SZ,ZA,ZM,MW",
+"tld": ".mz",
+"currency": "MZN",
+"phone": "258"
 },
 "NA": {
 "name": "Namibia",
@@ -1457,7 +1940,10 @@
 "population": 2448255,
 "capital": "Windhoek",
 "continent": "AF",
-"neighbours": "ZA,BW,ZM,AO"
+"neighbours": "ZA,BW,ZM,AO",
+"tld": ".na",
+"currency": "NAD",
+"phone": "264"
 },
 "NC": {
 "name": "New Caledonia",
@@ -1466,7 +1952,10 @@
 "population": 284060,
 "capital": "Noumea",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".nc",
+"currency": "XPF",
+"phone": "687"
 },
 "NE": {
 "name": "Niger",
@@ -1475,7 +1964,10 @@
 "population": 22442948,
 "capital": "Niamey",
 "continent": "AF",
-"neighbours": "TD,BJ,DZ,LY,BF,NG,ML"
+"neighbours": "TD,BJ,DZ,LY,BF,NG,ML",
+"tld": ".ne",
+"currency": "XOF",
+"phone": "227"
 },
 "NF": {
 "name": "Norfolk Island",
@@ -1484,7 +1976,10 @@
 "population": 1828,
 "capital": "Kingston",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".nf",
+"currency": "AUD",
+"phone": "672"
 },
 "NG": {
 "name": "Nigeria",
@@ -1493,7 +1988,10 @@
 "population": 195874740,
 "capital": "Abuja",
 "continent": "AF",
-"neighbours": "TD,NE,BJ,CM"
+"neighbours": "TD,NE,BJ,CM",
+"tld": ".ng",
+"currency": "NGN",
+"phone": "234"
 },
 "NI": {
 "name": "Nicaragua",
@@ -1502,7 +2000,10 @@
 "population": 6465513,
 "capital": "Managua",
 "continent": "NA",
-"neighbours": "CR,HN"
+"neighbours": "CR,HN",
+"tld": ".ni",
+"currency": "NIO",
+"phone": "505"
 },
 "NL": {
 "name": "The Netherlands",
@@ -1511,7 +2012,10 @@
 "population": 17231017,
 "capital": "Amsterdam",
 "continent": "EU",
-"neighbours": "DE,BE"
+"neighbours": "DE,BE",
+"tld": ".nl",
+"currency": "EUR",
+"phone": "31"
 },
 "NO": {
 "name": "Norway",
@@ -1520,7 +2024,10 @@
 "population": 5314336,
 "capital": "Oslo",
 "continent": "EU",
-"neighbours": "FI,RU,SE"
+"neighbours": "FI,RU,SE",
+"tld": ".no",
+"currency": "NOK",
+"phone": "47"
 },
 "NP": {
 "name": "Nepal",
@@ -1529,7 +2036,10 @@
 "population": 28087871,
 "capital": "Kathmandu",
 "continent": "AS",
-"neighbours": "CN,IN"
+"neighbours": "CN,IN",
+"tld": ".np",
+"currency": "NPR",
+"phone": "977"
 },
 "NR": {
 "name": "Nauru",
@@ -1538,7 +2048,10 @@
 "population": 12704,
 "capital": "Yaren",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".nr",
+"currency": "AUD",
+"phone": "674"
 },
 "NU": {
 "name": "Niue",
@@ -1547,7 +2060,10 @@
 "population": 2166,
 "capital": "Alofi",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".nu",
+"currency": "NZD",
+"phone": "683"
 },
 "NZ": {
 "name": "New Zealand",
@@ -1556,7 +2072,10 @@
 "population": 4885500,
 "capital": "Wellington",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".nz",
+"currency": "NZD",
+"phone": "64"
 },
 "OM": {
 "name": "Oman",
@@ -1565,7 +2084,10 @@
 "population": 4829483,
 "capital": "Muscat",
 "continent": "AS",
-"neighbours": "SA,YE,AE"
+"neighbours": "SA,YE,AE",
+"tld": ".om",
+"currency": "OMR",
+"phone": "968"
 },
 "PA": {
 "name": "Panama",
@@ -1574,7 +2096,10 @@
 "population": 4176873,
 "capital": "Panama City",
 "continent": "NA",
-"neighbours": "CR,CO"
+"neighbours": "CR,CO",
+"tld": ".pa",
+"currency": "PAB",
+"phone": "507"
 },
 "PE": {
 "name": "Peru",
@@ -1583,7 +2108,10 @@
 "population": 31989256,
 "capital": "Lima",
 "continent": "SA",
-"neighbours": "EC,CL,BO,BR,CO"
+"neighbours": "EC,CL,BO,BR,CO",
+"tld": ".pe",
+"currency": "PEN",
+"phone": "51"
 },
 "PF": {
 "name": "French Polynesia",
@@ -1592,7 +2120,10 @@
 "population": 277679,
 "capital": "Papeete",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".pf",
+"currency": "XPF",
+"phone": "689"
 },
 "PG": {
 "name": "Papua New Guinea",
@@ -1601,7 +2132,10 @@
 "population": 8606316,
 "capital": "Port Moresby",
 "continent": "OC",
-"neighbours": "ID"
+"neighbours": "ID",
+"tld": ".pg",
+"currency": "PGK",
+"phone": "675"
 },
 "PH": {
 "name": "Philippines",
@@ -1610,7 +2144,10 @@
 "population": 106651922,
 "capital": "Manila",
 "continent": "AS",
-"neighbours": ""
+"neighbours": "",
+"tld": ".ph",
+"currency": "PHP",
+"phone": "63"
 },
 "PK": {
 "name": "Pakistan",
@@ -1619,7 +2156,10 @@
 "population": 212215030,
 "capital": "Islamabad",
 "continent": "AS",
-"neighbours": "CN,AF,IR,IN"
+"neighbours": "CN,AF,IR,IN",
+"tld": ".pk",
+"currency": "PKR",
+"phone": "92"
 },
 "PL": {
 "name": "Poland",
@@ -1628,7 +2168,10 @@
 "population": 37978548,
 "capital": "Warsaw",
 "continent": "EU",
-"neighbours": "DE,LT,SK,CZ,BY,UA,RU"
+"neighbours": "DE,LT,SK,CZ,BY,UA,RU",
+"tld": ".pl",
+"currency": "PLN",
+"phone": "48"
 },
 "PM": {
 "name": "Saint Pierre and Miquelon",
@@ -1637,7 +2180,10 @@
 "population": 7012,
 "capital": "Saint-Pierre",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".pm",
+"currency": "EUR",
+"phone": "508"
 },
 "PN": {
 "name": "Pitcairn",
@@ -1646,7 +2192,10 @@
 "population": 46,
 "capital": "Adamstown",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".pn",
+"currency": "NZD",
+"phone": "870"
 },
 "PR": {
 "name": "Puerto Rico",
@@ -1655,7 +2204,10 @@
 "population": 3195153,
 "capital": "San Juan",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".pr",
+"currency": "USD",
+"phone": "+1-787 and 1-939"
 },
 "PS": {
 "name": "Palestinian Territory",
@@ -1664,7 +2216,10 @@
 "population": 4569087,
 "capital": "East Jerusalem",
 "continent": "AS",
-"neighbours": "JO,IL,EG"
+"neighbours": "JO,IL,EG",
+"tld": ".ps",
+"currency": "ILS",
+"phone": "970"
 },
 "PT": {
 "name": "Portugal",
@@ -1673,7 +2228,10 @@
 "population": 10281762,
 "capital": "Lisbon",
 "continent": "EU",
-"neighbours": "ES"
+"neighbours": "ES",
+"tld": ".pt",
+"currency": "EUR",
+"phone": "351"
 },
 "PW": {
 "name": "Palau",
@@ -1682,7 +2240,10 @@
 "population": 17907,
 "capital": "Melekeok",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".pw",
+"currency": "USD",
+"phone": "680"
 },
 "PY": {
 "name": "Paraguay",
@@ -1691,7 +2252,10 @@
 "population": 6956071,
 "capital": "Asuncion",
 "continent": "SA",
-"neighbours": "BO,BR,AR"
+"neighbours": "BO,BR,AR",
+"tld": ".py",
+"currency": "PYG",
+"phone": "595"
 },
 "QA": {
 "name": "Qatar",
@@ -1700,7 +2264,10 @@
 "population": 2781677,
 "capital": "Doha",
 "continent": "AS",
-"neighbours": "SA"
+"neighbours": "SA",
+"tld": ".qa",
+"currency": "QAR",
+"phone": "974"
 },
 "RE": {
 "name": "Reunion",
@@ -1709,7 +2276,10 @@
 "population": 776948,
 "capital": "Saint-Denis",
 "continent": "AF",
-"neighbours": ""
+"neighbours": "",
+"tld": ".re",
+"currency": "EUR",
+"phone": "262"
 },
 "RO": {
 "name": "Romania",
@@ -1718,7 +2288,10 @@
 "population": 19473936,
 "capital": "Bucharest",
 "continent": "EU",
-"neighbours": "MD,HU,UA,BG,RS"
+"neighbours": "MD,HU,UA,BG,RS",
+"tld": ".ro",
+"currency": "RON",
+"phone": "40"
 },
 "RS": {
 "name": "Serbia",
@@ -1727,7 +2300,10 @@
 "population": 6982084,
 "capital": "Belgrade",
 "continent": "EU",
-"neighbours": "AL,HU,MK,RO,HR,BA,BG,ME,XK"
+"neighbours": "AL,HU,MK,RO,HR,BA,BG,ME,XK",
+"tld": ".rs",
+"currency": "RSD",
+"phone": "381"
 },
 "RU": {
 "name": "Russia",
@@ -1736,7 +2312,10 @@
 "population": 144478050,
 "capital": "Moscow",
 "continent": "EU",
-"neighbours": "GE,CN,BY,UA,KZ,LV,PL,EE,LT,FI,MN,NO,AZ,KP"
+"neighbours": "GE,CN,BY,UA,KZ,LV,PL,EE,LT,FI,MN,NO,AZ,KP",
+"tld": ".ru",
+"currency": "RUB",
+"phone": "7"
 },
 "RW": {
 "name": "Rwanda",
@@ -1745,7 +2324,10 @@
 "population": 12301939,
 "capital": "Kigali",
 "continent": "AF",
-"neighbours": "TZ,CD,BI,UG"
+"neighbours": "TZ,CD,BI,UG",
+"tld": ".rw",
+"currency": "RWF",
+"phone": "250"
 },
 "SA": {
 "name": "Saudi Arabia",
@@ -1754,7 +2336,10 @@
 "population": 33699947,
 "capital": "Riyadh",
 "continent": "AS",
-"neighbours": "QA,OM,IQ,YE,JO,AE,KW"
+"neighbours": "QA,OM,IQ,YE,JO,AE,KW",
+"tld": ".sa",
+"currency": "SAR",
+"phone": "966"
 },
 "SB": {
 "name": "Solomon Islands",
@@ -1763,7 +2348,10 @@
 "population": 652858,
 "capital": "Honiara",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".sb",
+"currency": "SBD",
+"phone": "677"
 },
 "SC": {
 "name": "Seychelles",
@@ -1772,7 +2360,10 @@
 "population": 96762,
 "capital": "Victoria",
 "continent": "AF",
-"neighbours": ""
+"neighbours": "",
+"tld": ".sc",
+"currency": "SCR",
+"phone": "248"
 },
 "SD": {
 "name": "Sudan",
@@ -1781,7 +2372,10 @@
 "population": 41801533,
 "capital": "Khartoum",
 "continent": "AF",
-"neighbours": "SS,TD,EG,ET,ER,LY,CF"
+"neighbours": "SS,TD,EG,ET,ER,LY,CF",
+"tld": ".sd",
+"currency": "SDG",
+"phone": "249"
 },
 "SE": {
 "name": "Sweden",
@@ -1790,7 +2384,10 @@
 "population": 10183175,
 "capital": "Stockholm",
 "continent": "EU",
-"neighbours": "NO,FI"
+"neighbours": "NO,FI",
+"tld": ".se",
+"currency": "SEK",
+"phone": "46"
 },
 "SG": {
 "name": "Singapore",
@@ -1799,7 +2396,10 @@
 "population": 5638676,
 "capital": "Singapore",
 "continent": "AS",
-"neighbours": ""
+"neighbours": "",
+"tld": ".sg",
+"currency": "SGD",
+"phone": "65"
 },
 "SH": {
 "name": "Saint Helena",
@@ -1808,7 +2408,10 @@
 "population": 7460,
 "capital": "Jamestown",
 "continent": "AF",
-"neighbours": ""
+"neighbours": "",
+"tld": ".sh",
+"currency": "SHP",
+"phone": "290"
 },
 "SI": {
 "name": "Slovenia",
@@ -1817,7 +2420,10 @@
 "population": 2067372,
 "capital": "Ljubljana",
 "continent": "EU",
-"neighbours": "HU,IT,HR,AT"
+"neighbours": "HU,IT,HR,AT",
+"tld": ".si",
+"currency": "EUR",
+"phone": "386"
 },
 "SJ": {
 "name": "Svalbard and Jan Mayen",
@@ -1826,7 +2432,10 @@
 "population": 2550,
 "capital": "Longyearbyen",
 "continent": "EU",
-"neighbours": ""
+"neighbours": "",
+"tld": ".sj",
+"currency": "NOK",
+"phone": "47"
 },
 "SK": {
 "name": "Slovakia",
@@ -1835,7 +2444,10 @@
 "population": 5447011,
 "capital": "Bratislava",
 "continent": "EU",
-"neighbours": "PL,HU,CZ,UA,AT"
+"neighbours": "PL,HU,CZ,UA,AT",
+"tld": ".sk",
+"currency": "EUR",
+"phone": "421"
 },
 "SL": {
 "name": "Sierra Leone",
@@ -1844,7 +2456,10 @@
 "population": 7650154,
 "capital": "Freetown",
 "continent": "AF",
-"neighbours": "LR,GN"
+"neighbours": "LR,GN",
+"tld": ".sl",
+"currency": "SLE",
+"phone": "232"
 },
 "SM": {
 "name": "San Marino",
@@ -1853,7 +2468,10 @@
 "population": 33785,
 "capital": "San Marino",
 "continent": "EU",
-"neighbours": "IT"
+"neighbours": "IT",
+"tld": ".sm",
+"currency": "EUR",
+"phone": "378"
 },
 "SN": {
 "name": "Senegal",
@@ -1862,7 +2480,10 @@
 "population": 15854360,
 "capital": "Dakar",
 "continent": "AF",
-"neighbours": "GN,MR,GW,GM,ML"
+"neighbours": "GN,MR,GW,GM,ML",
+"tld": ".sn",
+"currency": "XOF",
+"phone": "221"
 },
 "SO": {
 "name": "Somalia",
@@ -1871,7 +2492,10 @@
 "population": 15008154,
 "capital": "Mogadishu",
 "continent": "AF",
-"neighbours": "ET,KE,DJ"
+"neighbours": "ET,KE,DJ",
+"tld": ".so",
+"currency": "SOS",
+"phone": "252"
 },
 "SR": {
 "name": "Suriname",
@@ -1880,7 +2504,10 @@
 "population": 575991,
 "capital": "Paramaribo",
 "continent": "SA",
-"neighbours": "GY,BR,GF"
+"neighbours": "GY,BR,GF",
+"tld": ".sr",
+"currency": "SRD",
+"phone": "597"
 },
 "SS": {
 "name": "South Sudan",
@@ -1889,7 +2516,10 @@
 "population": 8260490,
 "capital": "Juba",
 "continent": "AF",
-"neighbours": "CD,CF,ET,KE,SD,UG"
+"neighbours": "CD,CF,ET,KE,SD,UG",
+"tld": ".ss",
+"currency": "SSP",
+"phone": "211"
 },
 "ST": {
 "name": "Sao Tome and Principe",
@@ -1898,7 +2528,10 @@
 "population": 197700,
 "capital": "Sao Tome",
 "continent": "AF",
-"neighbours": ""
+"neighbours": "",
+"tld": ".st",
+"currency": "STN",
+"phone": "239"
 },
 "SV": {
 "name": "El Salvador",
@@ -1907,7 +2540,10 @@
 "population": 6420744,
 "capital": "San Salvador",
 "continent": "NA",
-"neighbours": "GT,HN"
+"neighbours": "GT,HN",
+"tld": ".sv",
+"currency": "USD",
+"phone": "503"
 },
 "SX": {
 "name": "Sint Maarten",
@@ -1916,7 +2552,10 @@
 "population": 40654,
 "capital": "Philipsburg",
 "continent": "NA",
-"neighbours": "MF"
+"neighbours": "MF",
+"tld": ".sx",
+"currency": "XCG",
+"phone": "599"
 },
 "SY": {
 "name": "Syria",
@@ -1925,7 +2564,10 @@
 "population": 16906283,
 "capital": "Damascus",
 "continent": "AS",
-"neighbours": "IQ,JO,IL,TR,LB"
+"neighbours": "IQ,JO,IL,TR,LB",
+"tld": ".sy",
+"currency": "SYP",
+"phone": "963"
 },
 "SZ": {
 "name": "Eswatini",
@@ -1934,7 +2576,10 @@
 "population": 1136191,
 "capital": "Mbabane",
 "continent": "AF",
-"neighbours": "ZA,MZ"
+"neighbours": "ZA,MZ",
+"tld": ".sz",
+"currency": "SZL",
+"phone": "268"
 },
 "TC": {
 "name": "Turks and Caicos Islands",
@@ -1943,7 +2588,10 @@
 "population": 37665,
 "capital": "Cockburn Town",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".tc",
+"currency": "USD",
+"phone": "+1-649"
 },
 "TD": {
 "name": "Chad",
@@ -1952,7 +2600,10 @@
 "population": 15477751,
 "capital": "N'Djamena",
 "continent": "AF",
-"neighbours": "NE,LY,CF,SD,CM,NG"
+"neighbours": "NE,LY,CF,SD,CM,NG",
+"tld": ".td",
+"currency": "XAF",
+"phone": "235"
 },
 "TF": {
 "name": "French Southern Territories",
@@ -1961,7 +2612,10 @@
 "population": 140,
 "capital": "Port-aux-Francais",
 "continent": "AN",
-"neighbours": ""
+"neighbours": "",
+"tld": ".tf",
+"currency": "EUR",
+"phone": ""
 },
 "TG": {
 "name": "Togo",
@@ -1970,7 +2624,10 @@
 "population": 7889094,
 "capital": "Lome",
 "continent": "AF",
-"neighbours": "BJ,GH,BF"
+"neighbours": "BJ,GH,BF",
+"tld": ".tg",
+"currency": "XOF",
+"phone": "228"
 },
 "TH": {
 "name": "Thailand",
@@ -1979,7 +2636,10 @@
 "population": 69428524,
 "capital": "Bangkok",
 "continent": "AS",
-"neighbours": "LA,MM,KH,MY"
+"neighbours": "LA,MM,KH,MY",
+"tld": ".th",
+"currency": "THB",
+"phone": "66"
 },
 "TJ": {
 "name": "Tajikistan",
@@ -1988,7 +2648,10 @@
 "population": 9100837,
 "capital": "Dushanbe",
 "continent": "AS",
-"neighbours": "CN,AF,KG,UZ"
+"neighbours": "CN,AF,KG,UZ",
+"tld": ".tj",
+"currency": "TJS",
+"phone": "992"
 },
 "TK": {
 "name": "Tokelau",
@@ -1997,7 +2660,10 @@
 "population": 1466,
 "capital": "",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".tk",
+"currency": "NZD",
+"phone": "690"
 },
 "TL": {
 "name": "Timor Leste",
@@ -2006,7 +2672,10 @@
 "population": 1267972,
 "capital": "Dili",
 "continent": "OC",
-"neighbours": "ID"
+"neighbours": "ID",
+"tld": ".tl",
+"currency": "USD",
+"phone": "670"
 },
 "TM": {
 "name": "Turkmenistan",
@@ -2015,7 +2684,10 @@
 "population": 5850908,
 "capital": "Ashgabat",
 "continent": "AS",
-"neighbours": "AF,IR,UZ,KZ"
+"neighbours": "AF,IR,UZ,KZ",
+"tld": ".tm",
+"currency": "TMT",
+"phone": "993"
 },
 "TN": {
 "name": "Tunisia",
@@ -2024,7 +2696,10 @@
 "population": 11565204,
 "capital": "Tunis",
 "continent": "AF",
-"neighbours": "DZ,LY"
+"neighbours": "DZ,LY",
+"tld": ".tn",
+"currency": "TND",
+"phone": "216"
 },
 "TO": {
 "name": "Tonga",
@@ -2033,7 +2708,10 @@
 "population": 103197,
 "capital": "Nuku'alofa",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".to",
+"currency": "TOP",
+"phone": "676"
 },
 "TR": {
 "name": "Turkey",
@@ -2042,7 +2720,10 @@
 "population": 82319724,
 "capital": "Ankara",
 "continent": "AS",
-"neighbours": "SY,GE,IQ,IR,GR,AM,AZ,BG"
+"neighbours": "SY,GE,IQ,IR,GR,AM,AZ,BG",
+"tld": ".tr",
+"currency": "TRY",
+"phone": "90"
 },
 "TT": {
 "name": "Trinidad and Tobago",
@@ -2051,7 +2732,10 @@
 "population": 1389858,
 "capital": "Port of Spain",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".tt",
+"currency": "TTD",
+"phone": "+1-868"
 },
 "TV": {
 "name": "Tuvalu",
@@ -2060,7 +2744,10 @@
 "population": 11508,
 "capital": "Funafuti",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".tv",
+"currency": "AUD",
+"phone": "688"
 },
 "TW": {
 "name": "Taiwan",
@@ -2069,7 +2756,10 @@
 "population": 23451837,
 "capital": "Taipei",
 "continent": "AS",
-"neighbours": ""
+"neighbours": "",
+"tld": ".tw",
+"currency": "TWD",
+"phone": "886"
 },
 "TZ": {
 "name": "Tanzania",
@@ -2078,7 +2768,10 @@
 "population": 56318348,
 "capital": "Dodoma",
 "continent": "AF",
-"neighbours": "MZ,KE,CD,RW,ZM,BI,UG,MW"
+"neighbours": "MZ,KE,CD,RW,ZM,BI,UG,MW",
+"tld": ".tz",
+"currency": "TZS",
+"phone": "255"
 },
 "UA": {
 "name": "Ukraine",
@@ -2087,7 +2780,10 @@
 "population": 40000000,
 "capital": "Kyiv",
 "continent": "EU",
-"neighbours": "PL,MD,HU,SK,BY,RO,RU"
+"neighbours": "PL,MD,HU,SK,BY,RO,RU",
+"tld": ".ua",
+"currency": "UAH",
+"phone": "380"
 },
 "UG": {
 "name": "Uganda",
@@ -2096,7 +2792,10 @@
 "population": 42723139,
 "capital": "Kampala",
 "continent": "AF",
-"neighbours": "TZ,KE,SS,CD,RW"
+"neighbours": "TZ,KE,SS,CD,RW",
+"tld": ".ug",
+"currency": "UGX",
+"phone": "256"
 },
 "UM": {
 "name": "United States Minor Outlying Islands",
@@ -2105,7 +2804,10 @@
 "population": 0,
 "capital": "",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".um",
+"currency": "USD",
+"phone": "1"
 },
 "US": {
 "name": "United States",
@@ -2114,7 +2816,10 @@
 "population": 327167434,
 "capital": "Washington",
 "continent": "NA",
-"neighbours": "CA,MX,CU"
+"neighbours": "CA,MX,CU",
+"tld": ".us",
+"currency": "USD",
+"phone": "1"
 },
 "UY": {
 "name": "Uruguay",
@@ -2123,7 +2828,10 @@
 "population": 3449299,
 "capital": "Montevideo",
 "continent": "SA",
-"neighbours": "BR,AR"
+"neighbours": "BR,AR",
+"tld": ".uy",
+"currency": "UYU",
+"phone": "598"
 },
 "UZ": {
 "name": "Uzbekistan",
@@ -2132,7 +2840,10 @@
 "population": 32955400,
 "capital": "Tashkent",
 "continent": "AS",
-"neighbours": "TM,AF,KG,TJ,KZ"
+"neighbours": "TM,AF,KG,TJ,KZ",
+"tld": ".uz",
+"currency": "UZS",
+"phone": "998"
 },
 "VA": {
 "name": "Vatican",
@@ -2141,7 +2852,10 @@
 "population": 921,
 "capital": "Vatican City",
 "continent": "EU",
-"neighbours": "IT"
+"neighbours": "IT",
+"tld": ".va",
+"currency": "EUR",
+"phone": "379"
 },
 "VC": {
 "name": "Saint Vincent and the Grenadines",
@@ -2150,7 +2864,10 @@
 "population": 110211,
 "capital": "Kingstown",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".vc",
+"currency": "XCD",
+"phone": "+1-784"
 },
 "VE": {
 "name": "Venezuela",
@@ -2159,7 +2876,10 @@
 "population": 28870195,
 "capital": "Caracas",
 "continent": "SA",
-"neighbours": "GY,BR,CO"
+"neighbours": "GY,BR,CO",
+"tld": ".ve",
+"currency": "VES",
+"phone": "58"
 },
 "VG": {
 "name": "British Virgin Islands",
@@ -2168,7 +2888,10 @@
 "population": 29802,
 "capital": "Road Town",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".vg",
+"currency": "USD",
+"phone": "+1-284"
 },
 "VI": {
 "name": "U.S. Virgin Islands",
@@ -2177,7 +2900,10 @@
 "population": 106977,
 "capital": "Charlotte Amalie",
 "continent": "NA",
-"neighbours": ""
+"neighbours": "",
+"tld": ".vi",
+"currency": "USD",
+"phone": "+1-340"
 },
 "VN": {
 "name": "Vietnam",
@@ -2186,7 +2912,10 @@
 "population": 95540395,
 "capital": "Hanoi",
 "continent": "AS",
-"neighbours": "CN,LA,KH"
+"neighbours": "CN,LA,KH",
+"tld": ".vn",
+"currency": "VND",
+"phone": "84"
 },
 "VU": {
 "name": "Vanuatu",
@@ -2195,7 +2924,10 @@
 "population": 292680,
 "capital": "Port Vila",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".vu",
+"currency": "VUV",
+"phone": "678"
 },
 "WF": {
 "name": "Wallis and Futuna",
@@ -2204,7 +2936,10 @@
 "population": 16025,
 "capital": "Mata Utu",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".wf",
+"currency": "XPF",
+"phone": "681"
 },
 "WS": {
 "name": "Samoa",
@@ -2213,7 +2948,10 @@
 "population": 196130,
 "capital": "Apia",
 "continent": "OC",
-"neighbours": ""
+"neighbours": "",
+"tld": ".ws",
+"currency": "WST",
+"phone": "685"
 },
 "XK": {
 "name": "Kosovo",
@@ -2222,7 +2960,10 @@
 "population": 1845300,
 "capital": "Pristina",
 "continent": "EU",
-"neighbours": "RS,AL,MK,ME"
+"neighbours": "RS,AL,MK,ME",
+"tld": "",
+"currency": "EUR",
+"phone": ""
 },
 "YE": {
 "name": "Yemen",
@@ -2231,7 +2972,10 @@
 "population": 28498687,
 "capital": "Sanaa",
 "continent": "AS",
-"neighbours": "SA,OM"
+"neighbours": "SA,OM",
+"tld": ".ye",
+"currency": "YER",
+"phone": "967"
 },
 "YT": {
 "name": "Mayotte",
@@ -2240,7 +2984,10 @@
 "population": 279471,
 "capital": "Mamoudzou",
 "continent": "AF",
-"neighbours": ""
+"neighbours": "",
+"tld": ".yt",
+"currency": "EUR",
+"phone": "262"
 },
 "ZA": {
 "name": "South Africa",
@@ -2249,7 +2996,10 @@
 "population": 57779622,
 "capital": "Pretoria",
 "continent": "AF",
-"neighbours": "ZW,SZ,MZ,BW,NA,LS"
+"neighbours": "ZW,SZ,MZ,BW,NA,LS",
+"tld": ".za",
+"currency": "ZAR",
+"phone": "27"
 },
 "ZM": {
 "name": "Zambia",
@@ -2258,7 +3008,10 @@
 "population": 17351822,
 "capital": "Lusaka",
 "continent": "AF",
-"neighbours": "ZW,TZ,MZ,CD,NA,MW,AO"
+"neighbours": "ZW,TZ,MZ,CD,NA,MW,AO",
+"tld": ".zm",
+"currency": "ZMW",
+"phone": "260"
 },
 "ZW": {
 "name": "Zimbabwe",
@@ -2267,7 +3020,10 @@
 "population": 16868409,
 "capital": "Harare",
 "continent": "AF",
-"neighbours": "ZA,MZ,BW,ZM"
+"neighbours": "ZA,MZ,BW,ZM",
+"tld": ".zw",
+"currency": "ZWG",
+"phone": "263"
 }
 }
 }
