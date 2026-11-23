@@ -488,13 +488,13 @@ export function Session({ cfg, world, host }: { cfg: GameConfig; world: World; h
         return <WordSearchGame {...props} />;
       case 'crossword':
         return <CrosswordGame {...props} />;
+      case 'fact':
+        // Only the countries have what this game asks about.
+        return fact ? <QuizGame {...props} places={world.index} /> : null;
       case 'pin':
       case 'puzzle':
       case 'identify':
       case 'outline':
-      case 'fact':
-        // Only the countries have what this game asks about.
-        return fact ? <QuizGame {...props} places={world.index} /> : null;
       case 'capital':
       case 'flag':
       case 'parent':
