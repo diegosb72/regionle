@@ -145,7 +145,7 @@ interface Result {
   report: () => {
     from: string | null;
     workflow: 'same' | 'behind' | 'absent';
-    sources: { id: string; ok: boolean; note?: string; error?: string; blob?: string; bytes?: number; detail?: { divisions: number; found: number; by: Record<string, number>; abroad: number; undone: string[] } }[];
+    sources: { id: string; ok: boolean; note?: string; error?: string; blob?: string; bytes?: number; detail?: { divisions: number; found: number; by: Record<string, number>; abroad: number; proposed: Record<string, number>; refused: Record<string, number>; undone: string[] } }[];
     reach: unknown[];
   };
 }
@@ -309,7 +309,19 @@ describe('the population of the divisions', () => {
     expect(source.note).toBe(
       '11 de 24 divisiones tienen cifra (3 por su identificador, 1 por uno que cambió, 1 por la entidad que la sustituyó, 2 por su código ISO, 4 por su nombre); 1 cuya entidad dice estar en otro país',
     );
-    expect(source.detail).toEqual({ divisions: 24, found: 11, by: { id: 3, redirect: 1, successor: 1, code: 2, name: 4 }, abroad: 1, undone: [] });
+    expect(source.detail).toEqual({
+      divisions: 24,
+      found: 11,
+      by: { id: 3, redirect: 1, successor: 1, code: 2, name: 4 },
+      abroad: 1,
+      // How many divisions each way had an entity for (one that is already another division's does not
+      // count), and how many of those it left with nothing although an entity had a figure: by its code,
+      // the one of another size and the one with two; by its name, the one with two, the one with no area
+      // and the two that go by the name of the same entity.
+      proposed: { redirect: 1, successor: 2, code: 4, name: 8 },
+      refused: { redirect: 0, successor: 1, code: 2, name: 4 },
+      undone: [],
+    });
     expect(r.out).toContain('11 de 24 divisiones tienen cifra');
     expect(fs.readFileSync(path.join(r.dir, 'LEEME.md'), 'utf8')).toContain('| `wikidata/region-population.json` | Población de las divisiones de los mapas |');
   });

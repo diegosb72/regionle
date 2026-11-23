@@ -405,11 +405,20 @@ async function regionPopulation(source) {
     return known.some((km2) => km2 / u.area >= SAME_SIZE[0] && km2 / u.area <= SAME_SIZE[1]);
   };
   /**
+   * How far each way got, in divisions: those it had some entity to propose for, and those of them left
+   * with nothing although one of the entities had a figure (it was of another size, or Wikidata does not
+   * give its area, or there were several, or it was the one of two divisions). The second number is where
+   * a rule that is too strict would show.
+   */
+  const proposed = {};
+  const refused = {};
+  /**
    * Gives each division the one entity, of those proposed for it, that has a figure, is nobody else's and
    * is its size: `same` does not look at the size, `likely` looks when Wikidata gives it, `maybe` needs it.
    */
   const settle = async (proposals, by, trust) => {
     const free = new Map([...proposals].map(([u, ids]) => [u, [...ids].filter((id) => !taken.has(id))]));
+    proposed[by] = [...free.values()].filter((ids) => ids.length).length;
     const fresh = [...new Set([...free.values()].flat())].filter((id) => !asked.has(id)).sort(byNumber);
     for (const id of fresh) asked.add(id);
     for (const [id, list] of await figuresOf(fresh, lax)) figures.set(id, list);
@@ -429,6 +438,7 @@ async function regionPopulation(source) {
       matched.set(u.id, { wd: id, by, pop: figures.get(id) });
       taken.add(id);
     }
+    refused[by] = [...free].filter(([u, ids]) => !matched.has(u.id) && ids.some((id) => figures.has(id))).length;
   };
 
   await attempt('los identificadores que han cambiado', async () => {
@@ -512,7 +522,7 @@ async function regionPopulation(source) {
       ...(abroad ? [`${abroad} cuya entidad dice estar en otro país`] : []),
       ...(undone.length ? [`sin mirar: ${undone.join('; ')}`] : []),
     ].join('; '),
-    detail: { divisions: units.length, found: matched.size, by, abroad, undone },
+    detail: { divisions: units.length, found: matched.size, by, abroad, proposed, refused, undone },
   };
 }
 
