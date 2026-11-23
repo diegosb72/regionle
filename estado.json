@@ -1,6 +1,6 @@
 {
-  "when": "2026-11-23T10:59:32.679Z",
-  "from": "main@f13f078",
+  "when": "2026-11-23T11:45:33.158Z",
+  "from": "arena/7819a48a-regionle@305fd70",
   "workflow": "same",
   "sources": [
     {
@@ -12,39 +12,59 @@
       "es": "Población de las divisiones de los mapas",
       "needs": "29",
       "ok": true,
-      "bytes": 286212,
-      "blob": "200d76168ee4832e4078ee1fcfca9f9f387aed9b",
-      "note": "3884 de 4477 divisiones tienen cifra (3762 por su identificador, 3 por uno que cambió, 3 por la entidad que la sustituyó, 52 por su código ISO, 64 por su nombre); 1 cuya entidad dice estar en otro país; sin mirar: las entidades que no parecen su división (HTTP 502 Bad Gateway)",
+      "bytes": 240235,
+      "blob": "a0cfb5221396683a5f1761ddf95078b857f7a62b",
+      "note": "3878 de 4477 divisiones tienen cifra (3747 por su identificador, 3 por uno que cambió, 3 por la entidad que la sustituyó, 64 por su código ISO, 61 por su nombre); sin mirar: los nombres de 16 de 224 divisiones (no quedaba tiempo); los nombres de lo encontrado (no quedaba tiempo); la superficie de cada entidad (no quedaba tiempo); el país de cada entidad (no quedaba tiempo)",
       "detail": {
         "divisions": 4477,
-        "found": 3884,
+        "found": 3878,
         "by": {
-          "id": 3762,
+          "id": 3747,
           "redirect": 3,
           "successor": 3,
-          "code": 52,
-          "name": 64
+          "code": 64,
+          "name": 61
         },
-        "abroad": 1,
-        "doubted": 0,
+        "abroad": 0,
+        "doubted": 32,
         "proposed": {
           "redirect": 3,
           "successor": 7,
-          "code": 67,
-          "name": 185
+          "code": 82,
+          "name": 188
         },
         "refused": {
           "redirect": 0,
           "successor": 0,
           "code": 6,
-          "name": 64
+          "name": 60
         },
         "undone": [
-          "las entidades que no parecen su división (HTTP 502 Bad Gateway)"
+          "los nombres de 16 de 224 divisiones (no quedaba tiempo)",
+          "los nombres de lo encontrado (no quedaba tiempo)",
+          "la superficie de cada entidad (no quedaba tiempo)",
+          "el país de cada entidad (no quedaba tiempo)"
         ],
-        "unnamed": []
+        "unnamed": [
+          "XK-x5899",
+          "XK-x5900",
+          "XK-x5901",
+          "XK-x5902",
+          "XK-x5903",
+          "XK-x5904",
+          "XK-x5905",
+          "XK-x5906",
+          "XK-x5908",
+          "XK-x5909",
+          "XK-x5910",
+          "XK-x5911",
+          "XK-x5912",
+          "XK-x5913",
+          "XK-x5914",
+          "XK-x5915"
+        ]
       },
-      "ms": 474092
+      "ms": 912410
     }
   ],
   "reach": [
@@ -54,7 +74,7 @@
       "ok": true,
       "status": 200,
       "bytes": 235,
-      "ms": 161
+      "ms": 67
     },
     {
       "name": "Wikidata, fichas",
@@ -62,7 +82,7 @@
       "ok": true,
       "status": 200,
       "bytes": 3462,
-      "ms": 97
+      "ms": 69
     },
     {
       "name": "Wikimedia Commons, fichas de los archivos",
@@ -70,7 +90,7 @@
       "ok": true,
       "status": 200,
       "bytes": 620,
-      "ms": 64
+      "ms": 69
     },
     {
       "name": "Wikimedia Commons, archivos",
@@ -78,7 +98,7 @@
       "ok": true,
       "status": 200,
       "bytes": 594,
-      "ms": 18
+      "ms": 16
     },
     {
       "name": "geoBoundaries, fichas de los mapas",
@@ -86,7 +106,7 @@
       "ok": true,
       "status": 200,
       "bytes": 1710,
-      "ms": 218
+      "ms": 225
     },
     {
       "name": "geoBoundaries, archivos",
@@ -94,7 +114,7 @@
       "ok": true,
       "status": 200,
       "bytes": 1007,
-      "ms": 275
+      "ms": 397
     },
     {
       "name": "GeoNames, descargas",
@@ -102,7 +122,7 @@
       "ok": true,
       "status": 200,
       "bytes": 32112,
-      "ms": 861
+      "ms": 951
     }
   ]
 }
