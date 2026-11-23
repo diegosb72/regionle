@@ -638,14 +638,83 @@ describe('when Wikidata does not answer', () => {
     ]);
   });
 
+  /** A country of six hundred divisions, each with an entity of its own that is in it: three parts to a question. */
+  const LARGE = () => {
+    const units = Array.from({ length: 600 }, (_, i) => ({ id: `GG-x${i + 1}`, es: `Lugar ${i + 1}`, wd: `Q${1001 + i}` }));
+    world.figures = Object.fromEntries(units.map((u, i) => [u.wd, [[i + 1, '2020-01-01']] as Figure[]]));
+    world.places = Object.fromEntries(units.map((u) => [u.wd, ['Q700']]));
+    world.areas = Object.fromEntries(units.map((u) => [u.wd, [100]]));
+    return { game: maps({ GG: { wd: 'Q700', units } }) };
+  };
+  /** The first entity of each part that a question was asked about, in the order they were asked. */
+  const parts = (kind: string) => asked.filter((q) => q.includes(kind)).map((q) => ids(q)[0]);
+
+  it('asks again about a part of a question that was refused, once the rest has been asked', async () => {
+    const { game } = LARGE();
+    // A bad moment of the service: where the first two hundred and fifty entities are, the four times it is asked.
+    refusals = [{ when: (q) => q.includes('?within ?in') && q.includes('wd:Q1001 '), status: 502, times: 4 }];
+    const r = await run(['--only', SOURCE, '--data', game]);
+    expect(Object.keys(r.data().items)).toHaveLength(600);
+    expect(r.data().items['GG-x1']).toEqual({ wd: 'Q1001', km2: 100, pop: [[1, '2020-01-01']] });
+    expect(r.report().sources[0].detail).toMatchObject({ found: 600, by: { id: 600 }, abroad: 0, undone: [] });
+    // Four tries of the first part, the other two, and the first one again at the end.
+    expect(parts('?within ?in')).toEqual(['Q1001', 'Q1001', 'Q1001', 'Q1001', 'Q1251', 'Q1501', 'Q1001']);
+  });
+
+  it('gives a question up when the part left for later is refused again', async () => {
+    const { game } = LARGE();
+    refusals = [{ when: (q) => q.includes('?within ?in') && q.includes('wd:Q1251 '), status: 502, times: Infinity }];
+    const r = await run(['--only', SOURCE, '--data', game]);
+    // What the maps name is kept as it comes, and what could not be looked at is told.
+    expect(Object.keys(r.data().items)).toHaveLength(600);
+    expect(r.report().sources[0].detail?.undone).toContain('las entidades que no parecen su división (HTTP 502 Bad Gateway)');
+    // The first part, four tries of the second, the third, and four more tries of the second.
+    expect(parts('?within ?in').slice(0, 10)).toEqual(['Q1001', ...Array<string>(4).fill('Q1251'), 'Q1501', ...Array<string>(4).fill('Q1251')]);
+  });
+
+  it('takes a service that refuses part after part to be down, and asks it no more of that question', async () => {
+    const units = Array.from({ length: 1300 }, (_, i) => ({ id: `GG-x${i + 1}`, es: `Lugar ${i + 1}`, wd: `Q${1001 + i}` }));
+    world.figures = Object.fromEntries(units.map((u, i) => [u.wd, [[i + 1, null]] as Figure[]]));
+    refusals = [{ when: (q) => q.includes('?within ?in'), status: 503, times: Infinity }];
+    const r = await run(['--only', SOURCE, '--data', maps({ GG: { wd: 'Q700', units } })]);
+    expect(Object.keys(r.data().items)).toHaveLength(1300);
+    // Six parts. Three are left for later, the fourth ends it: the last two are not asked about, nor the three again.
+    const first = parts('?within ?in').slice(0, 16);
+    expect(first).toEqual(['Q1001', 'Q1251', 'Q1501', 'Q1751'].flatMap((id) => Array<string>(4).fill(id)));
+    expect(parts('?within ?in').filter((id) => id === 'Q2001' || id === 'Q2251')).toEqual([]);
+  });
+
+  it('does not ask again a service that is slow to fail, but leaves the part for later like any other', async () => {
+    const { game } = LARGE();
+    refusals = [{ when: (q) => q.includes('?within ?in') && q.includes('wd:Q1001 '), status: 504, times: 1, after: 300 }];
+    const r = await run(['--only', SOURCE, '--data', game], { env: { OUTSIDE_SLOW: '150' } });
+    expect(r.report().sources[0].detail).toMatchObject({ found: 600, undone: [] });
+    expect(parts('?within ?in')).toEqual(['Q1001', 'Q1251', 'Q1501', 'Q1001']);
+  });
+
+  it('asks about nothing more of a question once the time is up', async () => {
+    const { game } = LARGE();
+    // The first question takes longer than there is for all the rest.
+    refusals = [{ when: (q) => q.includes('?within ?in'), status: 502, times: Infinity, after: 400 }];
+    const r = await run(['--only', SOURCE, '--data', game], { env: { OUTSIDE_PATIENCE: '300', OUTSIDE_SLOW: '5000' } });
+    expect(Object.keys(r.data().items)).toHaveLength(600);
+    // One try of one part: no second try, no other part, and no other way.
+    expect(parts('?within ?in')).toEqual(['Q1001']);
+    const undone = r.report().sources[0].detail?.undone ?? [];
+    expect(undone[0]).toBe('las entidades que no parecen su división (HTTP 502 Bad Gateway)');
+    expect(undone.slice(1).every((what) => what.endsWith('(no quedaba tiempo)'))).toBe(true);
+  });
+
   it('leaves the source unread, and the run in red, when the first question has no answer', async () => {
     refusals = [{ when: (q) => q.includes('p:P1082'), status: 503, times: Infinity }];
     const r = await run(['--only', SOURCE, '--data', GAME()]);
     expect(r.code).toBe(0);
     expect(r.file).toBeNull();
     expect(r.report().sources).toMatchObject([{ id: SOURCE, ok: false, error: 'HTTP 503 Service Unavailable' }]);
-    // The question that everything else hangs from is asked four times.
-    expect(asked).toHaveLength(4);
+    // The question that everything else hangs from is asked four times, and four more when there is
+    // nothing else left to ask.
+    expect(asked).toHaveLength(8);
+    expect(new Set(asked).size).toBe(1);
     const verdict = await run(['--verdict'], { out: r.dir });
     expect(verdict.code).toBe(1);
     expect(verdict.out).toContain('Sin leer: 1 de 1');

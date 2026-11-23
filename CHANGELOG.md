@@ -3,6 +3,11 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.39.1 — 23 de noviembre de 2026
+
+- Apuntes: si empiezas uno justo después de acertar a la primera, la partida ya no pasa sola a la siguiente pregunta mientras lo escribes.
+- Mientras escribes un apunte el reloj de la partida se para. Al guardarlo o dejarlo, la partida sigue sola un momento después, como siempre.
+
 ## 1.39.0 — 23 de noviembre de 2026
 
 - Población de las regiones: en los juegos de cifras de un mapa de regiones se elige entre superficie, población y densidad. Antes solo había superficie.

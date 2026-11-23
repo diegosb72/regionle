@@ -379,12 +379,14 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   useEffect(() => (voiced ? hush : undefined), [voiced]);
 
   // A first-time right answer moves on by itself; against the clock, so does a miss, after a look at the answer.
+  // Not while the clock is stopped: with a note half written, or the rules open, the moment starts over
+  // when they are put away.
   useEffect(() => {
-    if (s.phase !== 'done' || spent) return;
+    if (s.phase !== 'done' || spent || waiting) return;
     if (s.last !== 'ok' && format !== 'timed') return;
     const t = setTimeout(() => dispatch({ type: 'next' }), s.last !== 'ok' ? 1400 : format === 'timed' ? 420 : mode === 'pin' ? 650 : 1100);
     return () => clearTimeout(t);
-  }, [s.phase, s.last, s.n, mode, format, spent]);
+  }, [s.phase, s.last, s.n, mode, format, spent, waiting]);
 
   // An exam says nothing about an answer but that it has been taken: the question changes at once, and
   // without a word it could pass unnoticed.
