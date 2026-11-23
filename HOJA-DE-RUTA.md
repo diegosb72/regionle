@@ -22,8 +22,8 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 - **Depende de conseguir datos**, lleve lo que lleve: 30–32, 37–39, 41–43, 95, y lo que falta del 29 y del 35
 
 De dónde saldrían esos datos, mirado el 22 de noviembre de 2026. Donde se hace el juego solo se alcanzan
-GitHub, npm y PyPI; lo demás lo trae el flujo «Traer datos» (véase «Datos de fuera» en el README), que tiene
-que poner el dueño del repositorio:
+GitHub, npm y PyPI; lo demás lo trae el flujo «Traer datos» (véase «Datos de fuera» en el README), que está
+puesto desde el 23 de noviembre y deja lo que trae en la rama `datos`:
 
 - **Con fuentes que ya se alcanzan**: 30 y 32 (The World Factbook, que ya es fuente del juego: esperanza de vida, costa, punto más alto, PIB por habitante… y el año de independencia), 31 (GeoNames, en el paquete `geonamescache`: moneda, prefijo, dominio e idiomas), 42 (Natural Earth trae husos horarios, aeropuertos y puertos; las placas, el modelo de Bird de 2003, con atribución) y 95 (el nombre local de los países está en The World Factbook, y el de muchas regiones, en Natural Earth)
 - **Con una decisión de licencia**: 41 (los mapas históricos que hay en GitHub son GPL-3.0)

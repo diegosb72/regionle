@@ -1,8 +1,15 @@
 # Brings into the repository the source data that are kept outside GitHub, npm and PyPI, which is all that
 # the place where the game is written can reach: Wikidata, Wikimedia Commons, geoBoundaries…
 #
-# It runs only when somebody presses its button (Actions → Traer datos → Run workflow), on the branch that
-# is chosen there:
+# It runs in three cases, each on its own branch:
+#
+#   · when somebody presses its button (Actions → Traer datos → Run workflow), on the branch chosen there;
+#   · when a branch changes the list of what it asks for (scripts/data/pedido.txt). That is how the data are
+#     asked for from where no button can be pressed: the list is changed, the branch is pushed, and what the
+#     list names is brought. Only who can write in the repository can push a branch to it;
+#   · when this file itself changes, so that a new copy of it is tried as soon as it is put in its place.
+#
+# What it does:
 #
 #   · "Descargar" runs `npm run data:outside` (scripts/data/outside.mjs), which downloads what its list
 #     says. This job can read the repository and nothing else.
@@ -27,6 +34,13 @@ on:
         description: Vaciar antes la rama datos
         type: boolean
         default: false
+  push:
+    # Never the branch this workflow writes, whatever it came to hold.
+    branches-ignore:
+      - datos
+    paths:
+      - scripts/data/pedido.txt
+      - .github/workflows/datos.yml
 
 permissions:
   contents: read
@@ -56,7 +70,14 @@ jobs:
       - name: Descargar lo de fuera
         env:
           OUTSIDE_ONLY: ${{ inputs.solo }}
-        run: npm run data:outside --if-present
+          PEDIDO: ${{ github.event_name == 'push' && 'scripts/data/pedido.txt' || '' }}
+        run: |
+          # With the button, what was written in it. Without it, what the list of the branch names; and a
+          # branch that has no list yet brings everything.
+          if [ -n "$PEDIDO" ] && [ -f "$PEDIDO" ]; then
+            export OUTSIDE_ASKED="$PEDIDO"
+          fi
+          npm run data:outside --if-present
       - name: ¿Ha traído algo?
         id: mira
         run: |
