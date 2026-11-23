@@ -43,6 +43,8 @@ interface Refusal {
   status: number;
   times: number;
   header?: Record<string, string>;
+  /** How long it takes to say no, in ms: a service that was working on the answer and gave up. */
+  after?: number;
 }
 
 let world: World;
@@ -86,7 +88,7 @@ beforeAll(async () => {
       const refusal = refusals.find((r) => r.times > 0 && r.when(query));
       if (refusal) {
         refusal.times--;
-        res.writeHead(refusal.status, refusal.header).end('no');
+        setTimeout(() => res.writeHead(refusal.status, refusal.header).end('no'), refusal.after ?? 0);
         return;
       }
       try {
@@ -145,7 +147,7 @@ interface Result {
   report: () => {
     from: string | null;
     workflow: 'same' | 'behind' | 'absent';
-    sources: { id: string; ok: boolean; note?: string; error?: string; blob?: string; bytes?: number; detail?: { divisions: number; found: number; by: Record<string, number>; abroad: number; proposed: Record<string, number>; refused: Record<string, number>; undone: string[] } }[];
+    sources: { id: string; ok: boolean; note?: string; error?: string; blob?: string; bytes?: number; detail?: { divisions: number; found: number; by: Record<string, number>; abroad: number; proposed: Record<string, number>; refused: Record<string, number>; undone: string[]; unnamed: string[] } }[];
     reach: unknown[];
   };
 }
@@ -321,6 +323,7 @@ describe('the population of the divisions', () => {
       proposed: { redirect: 1, successor: 2, code: 4, name: 8 },
       refused: { redirect: 0, successor: 1, code: 2, name: 4 },
       undone: [],
+      unnamed: [],
     });
     expect(r.out).toContain('11 de 24 divisiones tienen cifra');
     expect(fs.readFileSync(path.join(r.dir, 'LEEME.md'), 'utf8')).toContain('| `wikidata/region-population.json` | Población de las divisiones de los mapas |');
@@ -354,13 +357,14 @@ describe('the population of the divisions', () => {
   it('looks for a name alone and with each kind of division after it, in English, and alone in Spanish', async () => {
     await run(['--only', SOURCE, '--data', GAME()]);
     const names = asked.filter((q) => q.includes('?called'));
-    // Twelve divisions to look for, ten to a group, and two questions to a group: who names the country or
+    // Twelve divisions to look for, four to a group, and two questions to a group: who names the country or
     // is in it, and who is in something that is in it.
-    expect(names).toHaveLength(4);
-    expect(names.map((q) => q.includes('?mid'))).toEqual([false, true, false, true]);
-    expect(names.map((q) => new Set([...q.matchAll(/\("([^"]+)" wd:/g)].map((m) => m[1])).size)).toEqual([10, 10, 2, 2]);
-    for (const q of names.slice(2)) expect(q).toContain('("CC-x1" wd:Q300 "Alpha"@en)');
-    for (const q of names.slice(0, 2)) {
+    expect(names).toHaveLength(6);
+    expect(names.map((q) => q.includes('?mid'))).toEqual([false, true, false, true, false, true]);
+    expect(names.map((q) => new Set([...q.matchAll(/\("([^"]+)" wd:/g)].map((m) => m[1])).size)).toEqual([4, 4, 4, 4, 4, 4]);
+    for (const q of names.slice(4)) expect(q).toContain('("CC-x1" wd:Q300 "Alpha"@en)');
+    // Each of the two questions, over its three groups, names every division with every name.
+    for (const q of [names.filter((x) => !x.includes('?mid')).join(' '), names.filter((x) => x.includes('?mid')).join(' ')]) {
       expect(q).toContain('("AA-x12" wd:Q100 "Doce"@en)');
       expect(q).toContain('("AA-x12" wd:Q100 "Doce District"@en)');
       expect(q).toContain('("AA-x12" wd:Q100 "Doce Municipality"@en)');
@@ -452,31 +456,78 @@ describe('when Wikidata does not answer', () => {
     expect((await run(['--verdict'], { out: r.dir })).code).toBe(0);
   });
 
-  it('keeps the names it could ask about when a group of them has no answer, and says how many it could not', async () => {
-    // The second question of the first group fails: what its first question found does not count.
+  it('keeps the names it could ask about when a group of them is refused, and says how many it could not', async () => {
+    // The second question of the second group is refused: what its first question found does not count.
     refusals = [{ when: (q) => q.includes('?mid') && q.includes('"AA-x12"'), status: 500, times: Infinity }];
     const r = await run(['--only', SOURCE, '--data', GAME()]);
     const items = r.data().items;
-    for (const id of ['AA-08', 'AA-x12', 'AA-x16']) expect(items).not.toHaveProperty(id);
-    expect(items['CC-x1']).toEqual(FOUND['CC-x1']);
+    expect(items).not.toHaveProperty('AA-x12');
+    for (const id of ['AA-08', 'AA-x16', 'CC-x1'] as const) expect(items[id]).toEqual(FOUND[id]);
     const [source] = r.report().sources;
-    expect(source.detail).toMatchObject({ found: 8, by: { name: 1 }, undone: ['los nombres de 10 de 12 divisiones (HTTP 500 Internal Server Error)'] });
-    // The first group: one question answered and the other asked twice. The second group: its two questions.
-    expect(asked.filter((q) => q.includes('?called'))).toHaveLength(5);
+    expect(source.detail).toMatchObject({
+      found: 10,
+      by: { name: 3 },
+      undone: ['los nombres de 4 de 12 divisiones (HTTP 500 Internal Server Error)'],
+      unnamed: ['AA-x12', 'AA-x13', 'AA-x14', 'AA-15'],
+    });
+    // The second group: one question answered and the other asked twice. The other two: their two questions.
+    expect(asked.filter((q) => q.includes('?called'))).toHaveLength(2 + 3 + 2);
   });
 
-  it('stops asking about names at the second group that has no answer', async () => {
+  /** A service that works for a while on what is asked and then gives up, as the real one does at a minute. */
+  const chokes = (when: (q: string) => boolean): Refusal => ({ when, status: 504, times: Infinity, after: 300 });
+  const HASTY = { OUTSIDE_SLOW: '150' };
+
+  it('asks again, a division at a time, about a group of names that the service does not finish', async () => {
+    // It chokes on two of the names together and on neither of them alone.
+    refusals = [chokes((q) => q.includes('"AA-x12"') && q.includes('"AA-x13"'))];
+    const r = await run(['--only', SOURCE, '--data', GAME()], { env: HASTY });
+    expect(r.data().items).toEqual(FOUND);
+    expect(r.report().sources[0].detail).toMatchObject({ undone: [], unnamed: [] });
+    const names = asked.filter((q) => q.includes('?called'));
+    // What it did not finish is not asked again as it was: the group once, and then its four divisions.
+    expect(names).toHaveLength(2 + (1 + 4 * 2) + 2);
+    expect(names.filter((q) => q.includes('"AA-x12"') && q.includes('"AA-x13"'))).toHaveLength(1);
+  });
+
+  it('leaves out only the division whose name is too much for the service', async () => {
+    refusals = [chokes((q) => q.includes('"AA-x12"'))];
+    const r = await run(['--only', SOURCE, '--data', GAME()], { env: HASTY });
+    const { 'AA-x12': left, ...rest } = FOUND;
+    expect(left.by).toBe('name');
+    expect(r.data().items).toEqual(rest);
+    expect(r.report().sources[0].detail).toMatchObject({ undone: ['los nombres de 1 de 12 divisiones (HTTP 504 Gateway Timeout)'], unnamed: ['AA-x12'] });
+    // The group once, the division alone once, and the other three with their two questions.
+    expect(asked.filter((q) => q.includes('?called'))).toHaveLength(2 + (1 + 1 + 3 * 2) + 2);
+  });
+
+  it('leaves the names when too many of them are too much for the service', async () => {
+    const units = Array.from({ length: 35 }, (_, i) => ({ id: `GG-x${i + 1}`, es: `Lugar ${i + 1}` }));
+    const game = maps({ GG: { wd: 'Q700', units: [{ id: 'GG-x0', es: 'Capital', wd: 'Q701' }, ...units] } });
+    world.figures = { Q701: [[1, null]] };
+    refusals = [chokes((q) => q.includes('?called'))];
+    const r = await run(['--only', SOURCE, '--data', game], { env: HASTY });
+    expect(Object.keys(r.data().items)).toEqual(['GG-x0']);
+    const detail = r.report().sources[0].detail;
+    expect(detail?.undone).toEqual(['los nombres (HTTP 504 Gateway Timeout)']);
+    expect(detail?.unnamed).toHaveLength(35);
+    // The first group and its four divisions, the second group and two of its divisions: six too heavy.
+    expect(asked.filter((q) => q.includes('?called'))).toHaveLength(1 + 4 + 1 + 2);
+  });
+
+  it('stops asking about names at the second group that is refused', async () => {
     const units = Array.from({ length: 35 }, (_, i) => ({ id: `GG-x${i + 1}`, es: `Lugar ${i + 1}` }));
     const game = maps({ GG: { wd: 'Q700', units: [{ id: 'GG-x0', es: 'Capital', wd: 'Q701' }, ...units] } });
     world.figures = { Q701: [[1, null]], Q711: [[11, '2020-01-01']] };
     world.names = { 'Q700 Lugar 1@es': ['Q711'], 'Q700 Lugar 31@es': ['Q711'] };
     world.areas = { Q711: [100] };
-    // Four groups. With the second and the third unanswered, the fourth is not asked about.
+    // Nine groups. With the third and the sixth refused, the last three are not asked about.
     refusals = [{ when: (q) => q.includes('"GG-x11"') || q.includes('"GG-x21"'), status: 503, times: Infinity }];
     const r = await run(['--only', SOURCE, '--data', game]);
     expect(Object.keys(r.data().items)).toEqual(['GG-x0', 'GG-x1']);
-    expect(r.report().sources[0].detail?.undone).toEqual(['los nombres de 25 de 35 divisiones (HTTP 503 Service Unavailable)']);
-    expect(asked.filter((q) => q.includes('?called'))).toHaveLength(2 + 2 + 2);
+    expect(r.report().sources[0].detail?.undone).toEqual(['los nombres de 19 de 35 divisiones (HTTP 503 Service Unavailable)']);
+    // A question that is refused at once is asked twice, and its group is not taken apart: it would be refused again.
+    expect(asked.filter((q) => q.includes('?called'))).toHaveLength(4 * 2 + 2 * 2);
     expect(asked.join('\n')).not.toContain('"GG-x31"');
   });
 
