@@ -11,7 +11,7 @@ import { COUNTRY_FIGS } from './metricNames';
 import { isPalette } from './palette';
 import { isTextSize } from './reading';
 import { isPace, isReviewSize } from './review';
-import { CLOCKS, LIVES, PAIR_OFS, PAIR_SIZES, REGION_FIGS, ROUTE_RULES, TRIES } from './rules';
+import { CLOCKS, FACT_KINDS, LIVES, PAIR_OFS, PAIR_SIZES, PIN_BYS, REGION_FIGS, ROUTE_RULES, TRIES } from './rules';
 import { isLearnt, type BackupMark, type Opts, type State, type Stat, type Theme } from './store';
 
 /** 4: the preferences travel too. A copy of an earlier version is read all the same. */
@@ -108,7 +108,8 @@ const THEMES: readonly Theme[] = ['auto', 'light', 'dark'];
 const OPT_CHOICES: { [K in keyof Opts]?: readonly Opts[K][] } = {
   answer: ['choice', 'type'],
   length: ['all', 10, 20, 50, 'endless'],
-  pinBy: ['name', 'capital', 'flag'],
+  pinBy: PIN_BYS,
+  fact: FACT_KINDS,
   metric: COUNTRY_FIGS,
   regionFig: REGION_FIGS,
   axis: ['ns', 'we'],

@@ -160,6 +160,48 @@ export interface Outline {
   geo: MultiLineString;
 }
 
+/**
+ * What is said of a country besides its figures (lib/facts.ts): what it pays with, the language that is
+ * official in it, its internet domain and its dialling code.
+ */
+export type FactKind = 'currency' | 'language' | 'domain' | 'dial';
+
+/** How a typed fact was judged: right or not, what it was taken for, and what there is to say about it. */
+export interface FactVerdict {
+  right: boolean;
+  /** What was typed, as the thing it names: "dólar" for "dolar". */
+  meant?: string;
+  /** What to tell whoever typed it: «.at» is the domain of Austria. */
+  note?: string;
+}
+
+/**
+ * Those four things, as the games ask about them. They come in a file and a piece of code of their own,
+ * fetched only by the games that need them, and a map carries them when its game does (`Deck.facts`).
+ */
+export interface Facts {
+  /** The fact as a question gives it for an answer: "euro", "español", ".es", "+34". Nothing where the country has none. */
+  said(kind: FactKind, id: string): string;
+  /** All a country has of it, in a row, as it is said once the question is settled: "balboa y dólar". */
+  all(kind: FactKind, id: string): string;
+  /** Whether what is said of another country is true of this one too: here it cannot be a wrong option. */
+  holds(kind: FactKind, id: string, said: string): boolean;
+  /**
+   * Of these countries, the ones that can be asked: those that have the fact and, where the country is named
+   * and the fact is asked for, do not give it away with their name (the French of France); where the fact is
+   * `shown` and the country is to be found, those that do not share it with another of them.
+   */
+  asked(kind: FactKind, ids: readonly string[], shown?: boolean): string[];
+  /** Judges what was typed for a country. `among`: the countries of the map, to say whose something else is. */
+  check(kind: FactKind, id: string, text: string, among: readonly string[]): FactVerdict;
+  /** What the text so far may be on its way to, for the list under the field. */
+  suggest(kind: FactKind, text: string): string[];
+  /** The words of the question: over the name of a country or, where the fact is `shown`, over the fact. */
+  ask(kind: FactKind, shown?: boolean): string;
+  /** The lines of the card of a country: what each thing is called, and what it is. */
+  card(id: string): [name: string, value: string][];
+}
+
 export interface Deck {
   key: string;
   scope: 'regions' | 'countries' | 'cities' | 'physical';
@@ -178,6 +220,8 @@ export interface Deck {
   countries: Country[];
   title: string;
   noun: { one: string; many: string; fem: boolean };
+  /** What is said of the countries besides their figures, on the map of a game that asks or shows it (lib/decks.ts). */
+  facts?: Facts;
 }
 
 export type Section = 'regions' | 'countries' | 'pops' | 'cities' | 'physical';
@@ -219,6 +263,8 @@ export type Mode =
   | 'chain'
   | 'capital'
   | 'flag'
+  /** One thing said of each country is asked for: its currency, its official language, its internet domain or its dialling code. */
+  | 'fact'
   /** A piece tells about itself, a clue at a time, until its name is given. */
   | 'whoami'
   | 'exact'

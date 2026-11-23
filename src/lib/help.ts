@@ -74,10 +74,15 @@ export function helpOf(mode: Mode, section: Section): ModeHelp | null {
       return {
         steps: [
           L('Toca cualquier pieza del mapa, o búscala por su nombre en la lista, para abrir su ficha.', 'Tap any piece of the map, or look it up by name in the list, to open its card.'),
-          L(
-            'La ficha reúne lo que el juego sabe de ella —sus nombres, su capital, su tamaño, con qué limita— y enlaces para aprender más. También puedes dejarle un apunte tuyo.',
-            'The card gathers what the game knows of it — its names, its capital, its size, what it borders — and links to learn more. You can leave a note of your own on it too.',
-          ),
+          countries
+            ? L(
+                'La ficha reúne lo que el juego sabe de él —sus nombres, su capital, su tamaño, su moneda, su idioma oficial, su dominio de internet, su prefijo, con qué limita— y enlaces para aprender más. También puedes dejarle un apunte tuyo.',
+                'The card gathers what the game knows of it — its names, its capital, its size, its currency, its official language, its internet domain, its dialling code, what it borders — and links to learn more. You can leave a note of your own on it too.',
+              )
+            : L(
+                'La ficha reúne lo que el juego sabe de ella —sus nombres, su capital, su tamaño, con qué limita— y enlaces para aprender más. También puedes dejarle un apunte tuyo.',
+                'The card gathers what the game knows of it — its names, its capital, its size, what it borders — and links to learn more. You can leave a note of your own on it too.',
+              ),
           // A map of countries or of regions can be painted too: its two tools to measure are told in one step, to leave room.
           ...(section === 'countries' || section === 'regions'
             ? [
@@ -286,8 +291,8 @@ export function helpOf(mode: Mode, section: Section): ModeHelp | null {
         steps: [
           countries
             ? L(
-                'Aparece un nombre —o una capital, o una bandera, si lo eliges así antes de empezar—: busca el país en el mapa y haz clic encima.',
-                'A name comes up — or a capital, or a flag, if you choose so before starting: find the country on the map and click it.',
+                'Aparece un nombre —o una capital, una bandera, un dominio de internet o un prefijo telefónico, si lo eliges así antes de empezar—: busca el país en el mapa y haz clic encima. Con el dominio y el prefijo no salen los países que lo comparten con otro del mapa.',
+                'A name comes up — or a capital, a flag, an internet domain or a dialling code, if you choose so before starting: find the country on the map and click it. With the domain and the dialling code, the countries that share theirs with another on the map do not come up.',
               )
             : L('Aparece un nombre: búscalo en el mapa y haz clic encima.', 'A name comes up: find it on the map and click it.'),
           L('Tienes tres intentos. Tras el tercer fallo, la respuesta parpadea en el mapa: haz clic en ella para seguir.', 'You have three tries. After the third miss, the answer blinks on the map: click it to go on.'),
@@ -377,6 +382,30 @@ export function helpOf(mode: Mode, section: Section): ModeHelp | null {
           'When typing, “A letter” shows the next one and “How many letters” says how many it has. Among options, “Remove two options” leaves just two. All of them count as help.',
         ),
         tip: `${typing()} ${formats()}`,
+      };
+    case 'fact':
+      return {
+        steps: [
+          L('Aparece el nombre de un país, que además se ilumina en el mapa.', 'The name of a country comes up, and the country lights up on the map.'),
+          L(
+            'Di el dato que se pide de él —su moneda, su idioma oficial, su dominio de internet o su prefijo telefónico, según lo que elijas antes de empezar—: escribiéndolo o eligiendo entre cuatro.',
+            'Give the fact asked of it — its currency, its official language, its internet domain or its dialling code, as you choose before starting — by typing it or by choosing among four.',
+          ),
+          L(
+            'La moneda se pide por su nombre a secas: dólar, franco, peso. Donde hay varios idiomas oficiales o dos monedas, escribiendo vale cualquiera, y entre las cuatro opciones nunca sale otro de los suyos.',
+            'A currency is asked for by its plain name: dollar, franc, peso. Where there are several official languages or two currencies, any of them is right when typed, and none of the others ever comes up among the four options.',
+          ),
+          L(
+            'Lo que ya dice el nombre del país no se pregunta: el francés de Francia o el boliviano de Bolivia se contestarían solos.',
+            'What the name of the country already says is not asked: the French of France or the boliviano of Bolivia would answer themselves.',
+          ),
+        ],
+        score: `${grades()} ${again()}`,
+        aid: L(
+          'Al escribir, «Una letra» enseña la siguiente y «Cuántas letras» dice cuántas tiene; en un prefijo son «Una cifra» y «Cuántas cifras». Entre opciones, «Quitar dos opciones» deja solo dos. Todas cuentan como ayuda.',
+          'When typing, “A letter” shows the next one and “How many letters” says how many it has; for a dialling code they are “A digit” and “How many digits”. Among options, “Remove two options” leaves just two. All of them count as help.',
+        ),
+        tip: `${L('Al escribir no importan las mayúsculas ni las tildes, y vale también el nombre en inglés.', 'When typing, capitals and accents do not matter, and the name in Spanish is taken too.')} ${formats()}`,
       };
     case 'flag':
       return {

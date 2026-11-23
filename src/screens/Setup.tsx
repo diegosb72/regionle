@@ -22,9 +22,9 @@ import { encodeList, listConfig, listPlayable, listUrl } from '../lib/lists';
 import { mapLinkRest, type MapLink } from '../lib/maplink';
 import { COUNTRY_FIGS, isBookFig, type BookFig, type CountryFig } from '../lib/metricNames';
 import { opensWithWorld, worldOf } from '../lib/opening';
-import { GROUP_NAME, MODES, MODE_GROUPS, SECTIONS, cardAskName, formatName } from '../lib/modes';
+import { GROUP_NAME, MODES, MODE_GROUPS, SECTIONS, cardAskName, factName, formatName } from '../lib/modes';
 import { estimateOf, minutesOf, paceOf, percentOf, questionsOf } from '../lib/pace';
-import { BINGO_MIN, CLOCKS, CONNECT_MIN, CONNECT_WIDE, FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, LIVES, MADE_UP_MODES, ODD_MIN, PAIRS_MIN, PAIR_SIZES, PAIR_SIZE_DEFAULT, REGION_FIGS, ROUND_MODES, TOP_MIN, TRIES, USUAL_RULES, asksByFlag, embeddable, isRouteRule, peopled, turnsOutlines, type PairSize, type RegionFig, type RouteRule } from '../lib/rules';
+import { BINGO_MIN, CLOCKS, CONNECT_MIN, CONNECT_WIDE, FACT_KINDS, FIGURE_MODES, FORMAT_MODES, LENGTH_MODES, LIVES, MADE_UP_MODES, ODD_MIN, PAIRS_MIN, PAIR_SIZES, PAIR_SIZE_DEFAULT, REGION_FIGS, ROUND_MODES, TOP_MIN, TRIES, USUAL_RULES, asksByFlag, embeddable, factOf, isRouteRule, peopled, turnsOutlines, type PairSize, type RegionFig, type RouteRule } from '../lib/rules';
 import { clockShort, clockText, customRules, livesText, rulesIn, rulesOf, rulesOfGame, rulesText, triesText } from '../lib/ruleset';
 import { go, settle } from '../lib/router';
 import { PATHS, mapAt, mapLinkUrl } from '../lib/routes';
@@ -35,19 +35,19 @@ import { cx, initialOf, mulberry32, nf, plural } from '../lib/text';
 import { areaUnit, distWord } from '../lib/units';
 import { SAMPLES, settingsLink } from '../lib/typeinList';
 import { SHIPPED_AUTO, inForce } from '../lib/typeins';
-import type { Country, Mode, Section } from '../lib/types';
+import type { Country, FactKind, Facts, Mode, Section } from '../lib/types';
 
 /** Seconds to fill a map in, for those who want a countdown; 0 is none. */
 const COUNTDOWNS = [0, 120, 300, 600, 900];
 
 const levelName = (n: number): string => [L('Fácil', 'Easy'), L('Medio', 'Medium'), L('Difícil', 'Hard')][n - 1];
-const ANSWER_MODES: Mode[] = ['learn', 'identify', 'outline', 'capital', 'flag', 'parent', 'mix', 'border'];
+const ANSWER_MODES: Mode[] = ['learn', 'identify', 'outline', 'capital', 'flag', 'fact', 'parent', 'mix', 'border'];
 /** Games that are one round of everything: they cannot go on for ever. */
 const FINITE_MODES: Mode[] = ['neighbours', 'blind', 'hotcold', 'bearing', 'coords', 'group', 'whoami', 'border', 'cards', 'hangman', 'wordsearch', 'crossword'];
 /** Games where names are typed and a list of suggestions can help. */
 const SUGGEST_MODES: Mode[] = ['travel', 'neighbours', 'chain', 'whoami', 'regionle', 'which', 'topten', 'alphabet'];
 /** Games that stop on a missed answer long enough to read about it. */
-const WIKI_MODES: Mode[] = ['explore', 'pin', 'identify', 'outline', 'regionle', 'puzzle', 'neighbours', 'capital', 'flag', 'whoami', 'blind', 'hotcold', 'bearing', 'mix', 'listen', 'alphabet', 'hangman'];
+const WIKI_MODES: Mode[] = ['explore', 'pin', 'identify', 'outline', 'regionle', 'puzzle', 'neighbours', 'capital', 'flag', 'fact', 'whoami', 'blind', 'hotcold', 'bearing', 'mix', 'listen', 'alphabet', 'hangman'];
 
 type Cities = Awaited<ReturnType<typeof loadCities>>;
 type Physical = Awaited<ReturnType<typeof loadPhysical>>;
@@ -472,6 +472,31 @@ export function Setup({ section, world, link }: { section: Section; world: World
   /** The custom list in use: the game is played on its map and asks only about its pieces. */
   const active = mine.find((l) => l.id === listOnId) ?? null;
   /**
+   * What is said of the countries besides their figures (lib/facts.ts), where the game chosen is about one of
+   * those things: the one it asks for, or the one "pin it" shows. The file they come in is fetched then, to say
+   * how many of the countries chosen it can be asked of; until it has come, nothing is said.
+   */
+  const fact = factOf(section, def.id, opts);
+  const [facts, setFacts] = useState<Facts | null>(null);
+  useEffect(() => {
+    if (!fact || facts) return undefined;
+    let alive = true;
+    import('../lib/facts')
+      .then((m) => m.loadFacts())
+      .then(
+        (f) => alive && setFacts(f),
+        () => undefined,
+      );
+    return () => {
+      alive = false;
+    };
+  }, [fact, facts]);
+  const factAsked = useMemo(() => {
+    if (!fact || !facts) return null;
+    const ids = active ? active.ids : chosen.map((c) => c.id);
+    return { of: ids.length, n: facts.asked(fact, ids, def.id === 'pin').length };
+  }, [fact, facts, active, chosen, def.id]);
+  /**
    * While the map of that page is the one chosen, the screen is headed as the page is: it is what whoever
    * came by it was looking for, and what a search engine reads of it once the game is there.
    */
@@ -499,6 +524,8 @@ export function Setup({ section, world, link }: { section: Section; world: World
   );
   /** Number of things the game will ask about. */
   const units = useMemo(() => {
+    // A game about something said of the countries asks the ones it can be asked of.
+    if (factAsked) return factAsked.n;
     if (active) return active.ids.length;
     if (section === 'regions') return chosen.reduce((n, c) => n + levelOf(c, levels).n, 0);
     if (section === 'cities') {
@@ -510,7 +537,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
     }
     if (isPhys) return physical ? physical.f.filter((f) => physMatches(f, spec)).length : 0;
     return byFigure ? figured : chosen.length;
-  }, [active, section, chosen, levels, cities, physical, opts.cityPick, opts.cityCount, spec, isPhys, byFigure, figured]);
+  }, [active, section, chosen, levels, cities, physical, opts.cityPick, opts.cityCount, spec, isPhys, byFigure, figured, factAsked]);
 
   /** The choices that bring something where they are asked: those name the map. One kept from another place does not. */
   const named = useMemo(() => {
@@ -610,6 +637,11 @@ export function Setup({ section, world, link }: { section: Section; world: World
             `De los países elegidos, ${figured === 0 ? 'ninguno tiene' : figured === 1 ? 'solo uno tiene' : `solo ${nf(figured)} tienen`} esa cifra, y este juego pide ${need === 2 ? 'dos' : need}: elige más países u otra cifra.`,
             `${figured === 0 ? 'None' : `Only ${nf(figured)}`} of the countries chosen ${figured === 1 ? 'has' : 'have'} that figure, and this game takes ${need === 2 ? 'two' : need}: choose more countries or another figure.`,
           )
+      : factAsked && factAsked.n < 1
+        ? L(
+            'Con estos países no queda nada que preguntar de ese dato: lo dice ya el nombre de cada uno, lo comparten o no lo tienen. Elige más países u otro dato.',
+            'With these countries there is nothing left to ask about that fact: the name of each gives it away, they share it or they do not have it. Choose more countries or another fact.',
+          )
       : noGroups
         ? L('Pon un país con varios niveles en el más fino: provincias, departamentos.', 'Set a country with several levels to its finest one: provinces, departments.')
       : def.id === 'connect' && boards === 'none'
@@ -690,6 +722,7 @@ export function Setup({ section, world, link }: { section: Section; world: World
     // An exam writes nothing on its map.
     labels: (def.id === 'pin' || def.id === 'identify' || def.id === 'puzzle' || def.id === 'blind' || def.id === 'hotcold' || def.id === 'mix' || def.id === 'listen') && !exam,
     pinBy: def.id === 'pin' && section === 'countries',
+    fact: def.id === 'fact',
     blind: def.id === 'travel',
     routeRule: def.id === 'travel',
     metric: section === 'pops' && FIGURE_MODES.includes(def.id),
@@ -1107,8 +1140,50 @@ export function Setup({ section, world, link }: { section: Section; world: World
                       { value: 'name', label: L('El nombre', 'The name') },
                       { value: 'capital', label: L('La capital', 'The capital') },
                       { value: 'flag', label: L('La bandera', 'The flag') },
+                      { value: 'domain', label: L('El dominio', 'The domain'), title: L('Su dominio de internet: «.de»', 'Its internet domain: “.de”') },
+                      { value: 'dial', label: L('El prefijo', 'The dialling code'), title: L('Su prefijo telefónico: «+49»', 'Its dialling code: “+49”') },
                     ]}
                   />
+                  {fact && (
+                    <p className="opt-hint">
+                      {fact === 'domain'
+                        ? L('Te damos un dominio de internet («.de») y señalas de qué país es.', 'You get an internet domain (“.de”) and pin the country it belongs to.')
+                        : L('Te damos un prefijo telefónico («+49») y señalas de qué país es.', 'You get a dialling code (“+49”) and pin the country it belongs to.')}
+                      {factAsked &&
+                        factAsked.n > 0 &&
+                        factAsked.n < factAsked.of &&
+                        ` ${L(
+                          `Se pregunta por ${nf(factAsked.n)} de los ${nf(factAsked.of)} países: los demás lo comparten con otro del mapa, o no lo tienen.`,
+                          `${nf(factAsked.n)} of the ${nf(factAsked.of)} countries are asked: the others share theirs with another on the map, or have none.`,
+                        )}`}
+                    </p>
+                  )}
+                </div>
+              )}
+              {show.fact && fact && (
+                <div className="opt">
+                  <span className="opt-label">{L('Dato', 'Fact')}</span>
+                  <Seg label={L('Qué dato se pregunta', 'Which fact is asked')} value={fact} onChange={(next: FactKind) => set({ fact: next })} options={FACT_KINDS.map((kind) => ({ value: kind, label: factName(kind) }))} />
+                  <p className="opt-hint">
+                    {fact === 'currency'
+                      ? L('La moneda de cada país, por su nombre a secas: «dólar», «franco», «peso».', 'The currency of each country, by its plain name: “dollar”, “franc”, “peso”.')
+                      : fact === 'language'
+                        ? L('El idioma oficial de cada país. Donde hay varios, escribiendo vale cualquiera.', 'The official language of each country. Where there are several, any of them is right when typed.')
+                        : fact === 'domain'
+                          ? L('El dominio de internet de cada país: «.es», «.fr».', 'The internet domain of each country: “.es”, “.fr”.')
+                          : L('El prefijo telefónico de cada país: «+34», «+33».', 'The dialling code of each country: “+34”, “+33”.')}
+                    {factAsked &&
+                      factAsked.n > 0 &&
+                      factAsked.n < factAsked.of &&
+                      ` ${
+                        fact === 'currency' || fact === 'language'
+                          ? L(
+                              `Se pregunta de ${nf(factAsked.n)} de los ${nf(factAsked.of)} países: de los demás lo dice ya su nombre, o no lo tenemos.`,
+                              `${nf(factAsked.n)} of the ${nf(factAsked.of)} countries are asked: the name of the others gives it away, or we do not have it.`,
+                            )
+                          : L(`Lo tienen ${nf(factAsked.n)} de los ${nf(factAsked.of)} países: se juega con esos.`, `${nf(factAsked.n)} of the ${nf(factAsked.of)} countries have one: the game is played with those.`)
+                      }`}
+                  </p>
                 </div>
               )}
               {show.bearingAsk && (
@@ -1345,7 +1420,16 @@ export function Setup({ section, world, link }: { section: Section; world: World
                       { value: 'type', label: L('Escribir', 'Type it'), title: L('Más difícil: recordar', 'Harder: recall') },
                     ]}
                   />
-                  {typed && (
+                  {typed && def.id === 'fact' && (
+                    <p className="opt-hint">
+                      {fact === 'domain'
+                        ? L('Con su punto o sin él: «.es» y «es» valen lo mismo.', 'With its dot or without it: “.es” and “es” are the same.')
+                        : fact === 'dial'
+                          ? L('Con el signo más o sin él: «+34» y «34» valen lo mismo.', 'With the plus sign or without it: “+34” and “34” are the same.')
+                          : L('No importan tildes ni mayúsculas, y vale también el nombre en inglés.', 'Accents and capitals do not matter, and the name in Spanish is taken too.')}
+                    </p>
+                  )}
+                  {typed && def.id !== 'fact' && (
                     <p className="opt-hint">
                       {listed
                         ? L(

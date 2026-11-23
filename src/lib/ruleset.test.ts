@@ -79,7 +79,7 @@ describe('where each rule counts', () => {
       expect(rulesIn('normal', mode, 'choice'), mode).toEqual(['tries', 'hints']);
       expect(rulesIn('normal', mode, undefined), mode).toEqual(['tries', 'hints']);
     }
-    for (const mode of ['identify', 'outline', 'capital', 'flag', 'parent'] as Mode[]) {
+    for (const mode of ['identify', 'outline', 'capital', 'flag', 'fact', 'parent'] as Mode[]) {
       expect(rulesIn('normal', mode, 'choice'), mode).toEqual(['hints']);
       expect(rulesIn('normal', mode, undefined), mode).toEqual(['hints']);
       expect(rulesIn('normal', mode, 'type'), mode).toEqual(['tries', 'hints']);
@@ -88,7 +88,7 @@ describe('where each rule counts', () => {
   });
 
   it('covers every game that has formats', () => {
-    expect([...FORMAT_MODES].sort()).toEqual(['capital', 'flag', 'identify', 'listen', 'mix', 'outline', 'parent', 'pin', 'puzzle']);
+    expect([...FORMAT_MODES].sort()).toEqual(['capital', 'fact', 'flag', 'identify', 'listen', 'mix', 'outline', 'parent', 'pin', 'puzzle']);
   });
 });
 

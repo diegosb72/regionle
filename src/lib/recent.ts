@@ -3,7 +3,7 @@
  * game was called; this keeps what it takes to start it: which countries, at which level, in which game.
  */
 import { PATHS } from './routes';
-import { FIGURE_MODES, FORMAT_MODES, NOT_GAMES, isRouteRule } from './rules';
+import { FIGURE_MODES, FORMAT_MODES, NOT_GAMES, factOf, isRouteRule } from './rules';
 import type { GameConfig, Opts, SessionRec } from './store';
 import type { Mode, Section } from './types';
 
@@ -11,7 +11,7 @@ import type { Mode, Section } from './types';
  * The options that say which game it was, as against how one likes to play: which cities, which figure,
  * what countries are pinned by, what the cards ask, against the clock or with lives.
  */
-export type RecentOpts = Partial<Pick<Opts, 'cityPick' | 'cityCount' | 'metric' | 'regionFig' | 'pinBy' | 'format' | 'axis' | 'countdown' | 'cardAsk' | 'bearingAsk' | 'coordsAsk' | 'pairOf' | 'routeRule'>>;
+export type RecentOpts = Partial<Pick<Opts, 'cityPick' | 'cityCount' | 'metric' | 'regionFig' | 'pinBy' | 'fact' | 'format' | 'axis' | 'countdown' | 'cardAsk' | 'bearingAsk' | 'coordsAsk' | 'pairOf' | 'routeRule'>>;
 
 export interface Recent {
   /** When it was last played. */
@@ -56,6 +56,8 @@ function optsOf(game: GameConfig): RecentOpts {
   if (game.mode === 'travel') o.routeRule = isRouteRule(game.opts.routeRule) ? game.opts.routeRule : 'none';
   if (game.mode === 'nameall' && game.opts.countdown > 0) o.countdown = game.opts.countdown;
   if (game.section === 'countries' && game.mode === 'pin') o.pinBy = game.opts.pinBy;
+  // The currencies and the languages of the countries are two games.
+  if (game.mode === 'fact') o.fact = factOf(game.section, game.mode, game.opts) ?? 'currency';
   // Cards that ask where a thing is are another pack than the ones that ask its name.
   if (game.mode === 'cards') o.cardAsk = game.opts.cardAsk ?? 'name';
   if (FORMAT_MODES.includes(game.mode)) o.format = game.opts.format ?? 'normal';

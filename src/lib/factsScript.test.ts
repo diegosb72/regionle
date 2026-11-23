@@ -258,6 +258,17 @@ describe('the languages of a country', () => {
     expect(ran.out!.c.CH).toMatchObject({ l: ['de', 'fr'], r: ['it', 'sq'], s: ['en'] });
   });
 
+  it('keeps as spoken only what a tenth of the people speak: CLDR lists languages of a handful', () => {
+    const ran = run({
+      BR: plain('BR', { speaks: [['pt', 91, 'official'], ['es', 0.04], ['en', 10], ['fr', 9.9]] }),
+      ES: plain('ES'),
+      GB: plain('GB', { speaks: [['en', 98, 'official']] }),
+      FR: plain('FR', { speaks: [['fr', 97, 'official']] }),
+    });
+    expect(ran.error).toBe('');
+    expect(ran.out!.c.BR).toMatchObject({ l: ['pt'], s: ['en'] });
+  });
+
   it('puts two that are spoken by as many in the order of their codes', () => {
     const ran = run({ CH: plain('CH', { speaks: [['fr', 50, 'official'], ['de', 50, 'official']] }) });
     expect(ran.out!.c.CH.l).toEqual(['de', 'fr']);

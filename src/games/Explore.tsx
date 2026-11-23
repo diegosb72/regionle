@@ -231,6 +231,14 @@ export function ExploreGame({ deck, cfg, onExit, onAgain }: GameProps) {
                     <dd>{nf(item.elev)} m</dd>
                   </div>
                 )}
+                {/* What is said of a country besides its figures (lib/facts.ts), where it has come with the map. */}
+                {item.kind === 'country' &&
+                  deck.facts?.card(item.id).map(([name, value]) => (
+                    <div key={name}>
+                      <dt>{name}</dt>
+                      <dd>{value}</dd>
+                    </div>
+                  ))}
               </dl>
               {(item.nb.length > 0 || item.sl.length > 0) && (
                 <>

@@ -26,7 +26,7 @@ import { L } from '../lib/i18n';
 import { MODE_NAME, PATHS } from '../lib/modes';
 import { pauseClock } from '../lib/pause';
 import { goneFrom } from '../lib/review';
-import { CONNECT_MIN, FIGURE_MODES, ODD_MIN, PAIRS_MIN } from '../lib/rules';
+import { CONNECT_MIN, FIGURE_MODES, ODD_MIN, PAIRS_MIN, factOf } from '../lib/rules';
 import { rulesOfGame, rulesText } from '../lib/ruleset';
 import { go } from '../lib/router';
 import { isDated, useStore, type GameConfig } from '../lib/store';
@@ -366,6 +366,21 @@ export function Session({ cfg, world, host }: { cfg: GameConfig; world: World; h
   if (deck.items.length < 2 && cfg.mode !== 'explore') {
     return <Message title={L('Este mapa tiene una sola pieza', 'This map has a single piece')} text={L('Elige más países o un nivel con más divisiones para poder jugar.', 'Choose more countries or a level with more divisions to play.')} onExit={onExit} />;
   }
+  // A game about something said of the countries (lib/facts.ts) asks what their names do not give away, and "pin it" by
+  // such a thing takes one that a country alone has: where nothing is left, there is no game.
+  const fact = factOf(cfg.section, cfg.mode, cfg.opts);
+  if (fact && !deck.facts?.asked(fact, deck.items.map((it) => it.id), cfg.mode === 'pin').length) {
+    return (
+      <Message
+        title={L('Aquí no hay nada que preguntar', 'There is nothing to ask here')}
+        text={L(
+          'Con estos países no queda nada que preguntar de ese dato: lo dice ya el nombre de cada uno, lo comparten o no lo tienen. Prueba con más países o con otro dato.',
+          'With these countries there is nothing left to ask about that fact: the name of each gives it away, they share it or they do not have it. Try more countries or another fact.',
+        )}
+        onExit={onExit}
+      />
+    );
+  }
   if (cfg.mode === 'capital' && !deck.items.some((it) => it.capital?.length)) {
     return <Message title={L('No tenemos esas capitales', 'We do not have those capitals')} text={L('Los datos no traen la capital de estas regiones. Prueba con otro país o con otro nivel.', 'The data has no capital for these regions. Try another country or another level.')} onExit={onExit} />;
   }
@@ -477,6 +492,9 @@ export function Session({ cfg, world, host }: { cfg: GameConfig; world: World; h
       case 'puzzle':
       case 'identify':
       case 'outline':
+      case 'fact':
+        // Only the countries have what this game asks about.
+        return fact ? <QuizGame {...props} places={world.index} /> : null;
       case 'capital':
       case 'flag':
       case 'parent':

@@ -19,9 +19,9 @@ import { gradeOf, scoreOf } from '../games/quiz';
 import { fromBase64Url, toBase64Url } from './challenge';
 import { embedPath, parseEmbed, type EmbedSource, type EmbedWhat } from './embed';
 import { L, fmtDay } from './i18n';
-import { formatName, modeNameIn } from './modes';
+import { factName, formatName, modeNameIn } from './modes';
 import { EMBED_PATH, RECEIPT_PATH, TASK_PATH, linkTo } from './routes';
-import { FORMAT_MODES, asksByFlag, formatOfGame, turnsOutlines } from './rules';
+import { FORMAT_MODES, asksByFlag, factOf, formatOfGame, turnsOutlines } from './rules';
 import { CLICKED, clockText, livesText, rulesOfGame, rulesText } from './ruleset';
 import type { Format, GameConfig, Opts } from './store';
 import { fmtTime, hashStr, nf, today } from './text';
@@ -99,8 +99,11 @@ export function gameLine(cfg: Pick<GameConfig, 'section' | 'mode' | 'opts' | 'on
   const format = formatOfGame(cfg);
   const rules = rulesOfGame(cfg);
   const { length, answer, turned, flagLook, pinBy } = cfg.opts;
+  /** What is asked of each country, where the game is about one thing said of them. */
+  const fact = cfg.mode === 'fact' ? factOf(cfg.section, cfg.mode, cfg.opts) : null;
   return [
     modeNameIn(cfg.section, cfg.mode),
+    fact ? factName(fact).toLowerCase() : '',
     format === 'normal' ? '' : formatName(format),
     format === 'timed' ? clockText(rules.clock) : format === 'lives' ? livesText(rules.lives) : length === 'endless' ? L('sin fin', 'endless') : length === 'all' ? L('todas las preguntas', 'every question') : L(`${length} preguntas`, `${length} questions`),
     answer === 'type' && !CLICKED.includes(cfg.mode) ? L('escribiendo', 'typing') : '',

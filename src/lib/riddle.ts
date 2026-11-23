@@ -128,7 +128,35 @@ function countryClues(item: Item, deck: Deck, places: Places | undefined, rand: 
   const cap = c.cap ? capName(c.cap) : '';
   const capital: Clue | null = cap && norm(cap) !== norm(item.name) ? { id: 'capital', kind: 'text', text: L(`Mi capital empieza por «${letters(cap)[0]?.toUpperCase()}».`, `My capital starts with “${letters(cap)[0]?.toUpperCase()}”.`) } : null;
   const flag: Clue | null = c.fl ? { id: 'flag', kind: 'flag', text: L('Esta es mi bandera.', 'This is my flag.'), code: c.fl } : null;
-  return [size, partClue(item, deck, places), sea, neighbourClue(item, deck, rand), capital, flag, initialClue(item)];
+  return [size, partClue(item, deck, places), sea, ...factClues(item, deck), neighbourClue(item, deck, rand), capital, flag, initialClue(item)];
+}
+
+/**
+ * What a country speaks and what it pays with, where that has come with the map (lib/facts.ts): many share
+ * a language or a currency, so they come before the neighbour. Not the one its own name gives away: "mi
+ * idioma oficial es el francés" would be the answer.
+ */
+function factClues(item: Item, deck: Deck): (Clue | null)[] {
+  const facts = deck.facts;
+  if (!facts) return [];
+  const one = (kind: 'language' | 'currency') => {
+    const said = facts.asked(kind, [item.id]).length ? facts.said(kind, item.id) : '';
+    return said ? { said, alone: facts.all(kind, item.id) === said } : null;
+  };
+  const language = one('language');
+  const currency = one('currency');
+  return [
+    language && {
+      id: 'language',
+      kind: 'text',
+      text: language.alone ? L(`Mi idioma oficial es el ${language.said}.`, `My official language is ${language.said}.`) : L(`Uno de mis idiomas oficiales es el ${language.said}.`, `One of my official languages is ${language.said}.`),
+    },
+    currency && {
+      id: 'currency',
+      kind: 'text',
+      text: currency.alone ? L(`Mi moneda se llama ${currency.said}.`, `My currency is called the ${currency.said}.`) : L(`Una de mis monedas se llama ${currency.said}.`, `One of my currencies is called the ${currency.said}.`),
+    },
+  ];
 }
 
 function regionClues(item: Item, deck: Deck, rand: Rng): (Clue | null)[] {

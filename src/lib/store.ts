@@ -18,8 +18,8 @@ import { RECENT_MAX, isRecent, recentConfig, recentOf, withLeft, withRecent, typ
 import { PACE_DEFAULT, REVIEW_MAX, isPace, isReviewSize, setReviewPrefs, type Pace } from './review';
 import { today } from './text';
 import { cleanTypeins, setTypeins as applyTypeins, type Typeins } from './typeinPrefs';
-import { USUAL_RULES, type PairOf, type PairSize, type RegionFig, type RouteRule } from './rules';
-import type { Mode, Res, Section } from './types';
+import { USUAL_RULES, type PairOf, type PairSize, type PinBy, type RegionFig, type RouteRule } from './rules';
+import type { FactKind, Mode, Res, Section } from './types';
 import { setUnits } from './units';
 
 /**
@@ -82,7 +82,9 @@ export interface Opts {
   /** Autocomplete while typing. */
   suggest: boolean;
   /** What "pin it" shows for countries. */
-  pinBy: 'name' | 'capital' | 'flag';
+  pinBy: PinBy;
+  /** What the game of the facts of the countries asks for: the currency, the language, the domain or the dialling code. */
+  fact: FactKind;
   /** The figure the number games of the countries are about: their people, their size, or one of those The World Factbook gives. */
   metric: CountryFig;
   /**
@@ -247,6 +249,7 @@ export const DEFAULT_OPTS: Opts = {
   length: 'all',
   suggest: false,
   pinBy: 'name',
+  fact: 'currency',
   metric: 'pop',
   regionFig: 'area',
   axis: 'ns',

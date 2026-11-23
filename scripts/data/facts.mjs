@@ -21,8 +21,8 @@
 //
 //   · `c`: by country, what it has of the four. `m`: the codes of its currencies, its own first; `l`: the
 //     languages that are official in the whole of it, the most spoken first; `r`: those that are official
-//     in part of it, or for some of its people; `s`: others that are spoken in it and are the first
-//     language of some country; `d`: its domain; `p`: its dialling codes, nearly always one. The game shows
+//     in part of it, or for some of its people; `s`: others that a tenth of its people or more speak and
+//     are the first language of some country; `d`: its domain; `p`: its dialling codes, nearly always one. The game shows
 //     `l` and nothing else as the languages of a country: `r` and `s` are only there so that none of them
 //     is held against whoever types it, nor offered as a wrong answer;
 //   · `l`: what each of those languages is called, in Spanish and in English, and after the two names the
@@ -189,6 +189,12 @@ const FIRST = { KZ: 'kk' };
  */
 const SAME_LANGUAGE = { nb: 'no', nn: 'no', gsw: 'de', wni: 'zdj' };
 
+/**
+ * The share of its people, in hundredths, that have to speak a language for it to count as spoken in a
+ * country without being official there: CLDR lists the Kazakh of seven in a million people of Turkey.
+ */
+const SPOKEN_MIN = 10;
+
 const read = (file) => {
   if (!fs.existsSync(file)) throw new Error(`Falta ${path.relative(ROOT, file)}: ejecuta antes «npm run data:fetch»`);
   return JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -300,7 +306,7 @@ function languages(id) {
   const regional = sorted(1);
   const nameless = regional.filter((lang) => !named(lang));
   if (nameless.length) notes.push(`${id} language: ${nameless.join(' ')} left out · official in part of it, and without a name in Spanish or in English`);
-  return { l, r: regional.filter(named), spoken: sorted(0) };
+  return { l, r: regional.filter(named), spoken: sorted(0).filter((lang) => found.get(lang).share >= SPOKEN_MIN) };
 }
 
 /** The dialling codes GeoNames gives: "34", "+1-268", "+1-809 and 1-829". Each as its digits, in groups. */
