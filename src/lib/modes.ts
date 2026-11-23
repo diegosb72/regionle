@@ -496,7 +496,10 @@ function modesOf(section: Section): ModeDef[] {
       ];
     default:
       return [
-        ...figures(L('Con la población, la superficie o la densidad de los países.', 'With the population, the area or the density of the countries.'), L('¿Qué país?', 'Which country?')),
+        ...figures(
+          L('Con diez cifras de los países: de la población y la superficie a la esperanza de vida, el PIB por habitante o el punto más alto.', 'With ten figures of the countries: from population and area to life expectancy, GDP per head or the highest point.'),
+          L('¿Qué país?', 'Which country?'),
+        ),
         {
           id: 'truefalse',
           name: L('Verdadero o falso', 'True or false'),

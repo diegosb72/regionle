@@ -201,7 +201,12 @@ export const TOP_STRIKES = 5;
 export function TopTenGame({ figs, what, cfg, onExit, onAgain }: { figs: Fig[]; what: string; cfg: GameConfig; onExit(): void; onAgain(patch?: Partial<GameConfig>): void }) {
   const m = metricOf(figs[0].metric);
   const size = topSize(figs.length);
-  const top = useMemo(() => topOf(figs, size), [figs, size]);
+  /**
+   * The list to be named. Where several are level at its end (twelve countries have all their people in
+   * towns), which of them it holds is as the data came, so any of them is as good: one that is named takes
+   * the place of one of its figure that has not been.
+   */
+  const [top, setTop] = useState(() => topOf(figs, size));
   /** Where each thing of the list stands, the first one at 1. */
   const rank = useMemo(() => new Map([...figs].sort((a, b) => b.value - a.value).map((f, i) => [f.id, i + 1])), [figs]);
   const matcher = useMemo(() => new Matcher(figs.map((f) => f.answers)), [figs]);
@@ -241,10 +246,23 @@ export function TopTenGame({ figs, what, cfg, onExit, onAgain }: { figs: Fig[]; 
     }
     setClear((n) => n + 1);
     const at = rank.get(f.id) ?? 0;
-    if (at <= size) {
+    const last = top[top.length - 1];
+    if (top.some((t) => t.id === f.id)) {
       setFound((l) => [...l, f.id]);
       setNote(null);
       answered('ok');
+    } else if (last && f.value === last.value) {
+      // Level with the last of the list: it has as good a claim to a place as those of its figure that are on it.
+      const open = top.findIndex((t) => t.value === f.value && !foundSet.has(t.id));
+      if (open >= 0) {
+        setTop((l) => l.map((t, i) => (i === open ? f : t)));
+        setFound((l) => [...l, f.id]);
+        setNote(null);
+        answered('ok');
+      } else {
+        // Every place of that figure is taken: one more of them is no miss.
+        setNote(L(`${f.name} empata con los últimos de la lista, que ya has dicho: no cuenta como fallo.`, `${f.name} ties with the last ones on the list, which you have named: it does not count as a miss.`));
+      }
     } else {
       setWrong((l) => [...l, f]);
       setShake((n) => n + 1);

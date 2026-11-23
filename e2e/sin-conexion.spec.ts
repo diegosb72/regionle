@@ -46,8 +46,8 @@ test.describe('without a connection', () => {
     expect(new URL(page.url()).pathname.endsWith('/regions.html')).toBe(true);
     await page.goto('./cifras.html');
     await expect(page.locator('html')).toHaveAttribute('lang', 'es');
-    await expect(page).toHaveTitle('Población y superficie — Regionle ∞');
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Población y superficie');
+    await expect(page).toHaveTitle('Los países en cifras — Regionle ∞');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Los países en cifras');
     await expect(page.locator('.crash')).toHaveCount(0);
 
     // Nor is the page of the map of a country, and there are hundreds: the game in its language answers for

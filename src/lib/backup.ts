@@ -7,6 +7,7 @@ import { LESSON_ORDERS, LESSON_SIZES } from '../games/lesson';
 import { DAY_GOAL_DEFAULT, isDayGoal } from './days';
 import { CITY_COUNTS } from './extra';
 import type { Kept as Ghosts } from './ghost';
+import { COUNTRY_FIGS } from './metricNames';
 import { isPalette } from './palette';
 import { isTextSize } from './reading';
 import { isPace, isReviewSize } from './review';
@@ -108,7 +109,7 @@ const OPT_CHOICES: { [K in keyof Opts]?: readonly Opts[K][] } = {
   answer: ['choice', 'type'],
   length: ['all', 10, 20, 50, 'endless'],
   pinBy: ['name', 'capital', 'flag'],
-  metric: ['pop', 'area', 'density'],
+  metric: COUNTRY_FIGS,
   regionFig: REGION_FIGS,
   axis: ['ns', 'we'],
   cityPick: ['top', 'caps', 'regcaps'],

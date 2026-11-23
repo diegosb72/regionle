@@ -9,6 +9,7 @@ import { HelpButton } from '../components/Help';
 import { Picker } from '../components/Picker';
 import { QrButton } from '../components/QrButton';
 import { canSpeak } from '../components/Speak';
+import { bookCount, loadBook, type BookFile } from '../lib/book';
 import { Flag, Seg, Toggle, capitalise } from '../components/ui';
 import { eligible, levelOf, loadFile, type World } from '../lib/data';
 import { countriesOf, describeMap } from '../lib/describe';
@@ -19,6 +20,7 @@ import { CITY_COUNTS, PHYS_KINDS, PHYS_PLACES, kindNoun, kindsIn, loadCities, lo
 import { L, getLang, levelNoun, nm } from '../lib/i18n';
 import { encodeList, listConfig, listPlayable, listUrl } from '../lib/lists';
 import { mapLinkRest, type MapLink } from '../lib/maplink';
+import { COUNTRY_FIGS, isBookFig, type BookFig, type CountryFig } from '../lib/metricNames';
 import { opensWithWorld, worldOf } from '../lib/opening';
 import { GROUP_NAME, MODES, MODE_GROUPS, SECTIONS, cardAskName, formatName } from '../lib/modes';
 import { estimateOf, minutesOf, paceOf, percentOf, questionsOf } from '../lib/pace';
@@ -314,6 +316,52 @@ function CopyLink({ url, what, more, task }: { url: string; what: string; more?:
   );
 }
 
+/** The figures the games of the countries can be about, as the menu calls them. */
+const figLabel = (id: CountryFig): string => {
+  switch (id) {
+    case 'pop':
+      return L('Población', 'Population');
+    case 'area':
+      return L('Superficie', 'Area');
+    case 'density':
+      return L('Densidad', 'Density');
+    case 'life':
+      return L('Esperanza de vida', 'Life expectancy');
+    case 'gdp':
+      return L('PIB por habitante', 'GDP per head');
+    case 'age':
+      return L('Edad mediana', 'Median age');
+    case 'urban':
+      return L('Población urbana', 'Urban population');
+    case 'fert':
+      return L('Hijos por mujer', 'Children per woman');
+    case 'coast':
+      return L('Costa', 'Coast');
+    case 'high':
+      return L('Punto más alto', 'Highest point');
+  }
+};
+
+/** What each figure of The World Factbook is, in a line: not everybody knows what a median age is. */
+const figAbout = (id: BookFig): string => {
+  switch (id) {
+    case 'life':
+      return L('Los años que se espera que viva quien nace ahora.', 'The years someone born now is expected to live.');
+    case 'gdp':
+      return L('Lo que produce el país en un año, repartido entre sus habitantes: en dólares de 2021, a igual poder de compra.', 'What the country makes in a year, shared among its people: in 2021 dollars, at equal buying power.');
+    case 'age':
+      return L('La edad que parte a la población en dos: la mitad es más joven y la otra mitad, mayor.', 'The age that splits the people in two: half are younger and half are older.');
+    case 'urban':
+      return L('La parte de la población que vive en ciudades.', 'The share of the people who live in towns and cities.');
+    case 'fert':
+      return L('Los hijos que tiene una mujer a lo largo de su vida, de media.', 'The children a woman has in her life, on average.');
+    case 'coast':
+      return L('Lo que mide la costa. Cuanto más de cerca se mide, más larga sale, y no todos los países la miden igual.', 'How long the coast is. The closer it is measured the longer it comes out, and not every country measures it alike.');
+    case 'high':
+      return L('La altitud del punto más alto del país.', 'The height of the highest point of the country.');
+  }
+};
+
 export function Setup({ section, world, link }: { section: Section; world: World; link?: MapLink }) {
   /** What is kept as chosen in this section. */
   const kept = useStore((s) => s.sel[section]);
@@ -342,10 +390,13 @@ export function Setup({ section, world, link }: { section: Section; world: World
   const [cities, setCities] = useState<Cities | null>(null);
   const [physical, setPhysical] = useState<Physical | null>(null);
   const [capitals, setCapitals] = useState<Capitals | null>(null);
+  /** What The World Factbook says of the countries: which of them have each of its figures. */
+  const [book, setBook] = useState<BookFile | null>(null);
 
   // Each section fetches only the file that says what there is to play.
   useEffect(() => {
     let alive = true;
+    if (section === 'pops') loadBook().then((f) => alive && setBook(f), () => undefined);
     if (section === 'cities') loadCities().then((f) => alive && setCities(f), () => undefined);
     if (section === 'physical') loadPhysical().then((f) => alive && setPhysical(f), () => undefined);
     if (section === 'regions') loadFile<{ rc: Capitals }>('capitals.json').then((f) => alive && setCapitals(f.rc ?? {}), () => alive && setCapitals({}));
@@ -427,6 +478,25 @@ export function Setup({ section, world, link }: { section: Section; world: World
   const landed = mapPage && !active && selected.length === 1 && selected[0] === mapPage.map ? mapPage : null;
   const multi = active ? [] : chosen.filter((c) => c.lv.length > 1);
 
+  /**
+   * The figure the number games of the countries are played by, and how many of the countries chosen have it:
+   * The World Factbook does not give every figure of every country, and a country without a coast has no
+   * coast to be asked about. The game is played with the ones that do. Until the file of those figures has
+   * come, nothing is said.
+   */
+  const metric: CountryFig = COUNTRY_FIGS.includes(opts.metric) ? opts.metric : 'pop';
+  const byFigure = section === 'pops' && FIGURE_MODES.includes(def.id);
+  const figured = useMemo(
+    () =>
+      isBookFig(metric) && book
+        ? bookCount(
+            book,
+            chosen.map((c) => c.id),
+            metric,
+          )
+        : chosen.length,
+    [metric, chosen, book],
+  );
   /** Number of things the game will ask about. */
   const units = useMemo(() => {
     if (active) return active.ids.length;
@@ -439,8 +509,8 @@ export function Setup({ section, world, link }: { section: Section; world: World
       return Math.min(opts.cityCount, all.length);
     }
     if (isPhys) return physical ? physical.f.filter((f) => physMatches(f, spec)).length : 0;
-    return chosen.length;
-  }, [active, section, chosen, levels, cities, physical, opts.cityPick, opts.cityCount, spec, isPhys]);
+    return byFigure ? figured : chosen.length;
+  }, [active, section, chosen, levels, cities, physical, opts.cityPick, opts.cityCount, spec, isPhys, byFigure, figured]);
 
   /** The choices that bring something where they are asked: those name the map. One kept from another place does not. */
   const named = useMemo(() => {
@@ -535,6 +605,11 @@ export function Setup({ section, world, link }: { section: Section; world: World
         : need === 2
           ? L('Elige al menos dos países.', 'Choose at least two countries.')
           : L(`Elige al menos ${need} países.`, `Choose at least ${need} countries.`)
+      : byFigure && figured < need
+        ? L(
+            `De los países elegidos, ${figured === 0 ? 'ninguno tiene' : figured === 1 ? 'solo uno tiene' : `solo ${nf(figured)} tienen`} esa cifra, y este juego pide ${need === 2 ? 'dos' : need}: elige más países u otra cifra.`,
+            `${figured === 0 ? 'None' : `Only ${nf(figured)}`} of the countries chosen ${figured === 1 ? 'has' : 'have'} that figure, and this game takes ${need === 2 ? 'two' : need}: choose more countries or another figure.`,
+          )
       : noGroups
         ? L('Pon un país con varios niveles en el más fino: provincias, departamentos.', 'Set a country with several levels to its finest one: provinces, departments.')
       : def.id === 'connect' && boards === 'none'
@@ -951,14 +1026,21 @@ export function Setup({ section, world, link }: { section: Section; world: World
                   <span className="opt-label">{L('Cifra', 'Figure')}</span>
                   <Seg
                     label={L('Cifra', 'Figure')}
-                    value={opts.metric}
+                    value={metric}
                     onChange={(metric) => set({ metric })}
-                    options={[
-                      { value: 'pop', label: L('Población', 'Population') },
-                      { value: 'area', label: L('Superficie', 'Area') },
-                      { value: 'density', label: L('Densidad', 'Density'), title: L(`Habitantes por ${areaUnit()}`, `People per ${areaUnit()}`) },
-                    ]}
+                    options={COUNTRY_FIGS.map((id) => ({ value: id, label: figLabel(id), title: id === 'density' ? L(`Habitantes por ${areaUnit()}`, `People per ${areaUnit()}`) : isBookFig(id) ? figAbout(id) : undefined }))}
                   />
+                  {isBookFig(metric) && (
+                    <p className="opt-hint">
+                      {figAbout(metric)}{' '}
+                      {book?.y[metric]
+                        ? L(`Cifras de The World Factbook, de ${book.y[metric]}: cada una dice su año.`, `Figures from The World Factbook, of ${book.y[metric]}: each says its year.`)
+                        : L('Cifras de The World Factbook.', 'Figures from The World Factbook.')}
+                      {figured < chosen.length &&
+                        figured >= need &&
+                        ` ${L(`La tienen ${nf(figured)} de los ${nf(chosen.length)} países elegidos: se juega con esos.`, `${nf(figured)} of the ${nf(chosen.length)} countries chosen have it: the game is played with those.`)}`}
+                    </p>
+                  )}
                 </div>
               )}
               {show.regionFig && (

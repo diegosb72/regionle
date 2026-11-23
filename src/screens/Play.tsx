@@ -17,10 +17,11 @@ import { RegionleGame } from '../games/Regionle';
 import { TravelGame } from '../games/Travel';
 import { GameShell, HelpContext, type GameProps } from '../games/common';
 import { answersItself, belongsItself, capitalsNeedTyping } from '../games/quiz';
+import { loadBook, type BookFile } from '../lib/book';
 import { countryAnswers, countryItem, eligible, levelOf, type World } from '../lib/data';
 import { editionNow } from '../lib/dated';
 import { deckFor } from '../lib/decks';
-import { TOP_MIN, countryFigs, deckFigs, figPlayable, metricsIn, positionFigs, regionFigOf, type Fig } from '../lib/figures';
+import { TOP_MIN, countryFigs, deckFigs, figPlayable, isBookFig, metricsIn, positionFigs, regionFigOf, type Fig } from '../lib/figures';
 import { L } from '../lib/i18n';
 import { MODE_NAME, PATHS } from '../lib/modes';
 import { pauseClock } from '../lib/pause';
@@ -127,6 +128,9 @@ export function Session({ cfg, world, host }: { cfg: GameConfig; world: World; h
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState<[number, number] | null>(null);
   const [attempt, setAttempt] = useState(0);
+  /** What The World Factbook says of the countries, which a game about one of its figures waits for. */
+  const [book, setBook] = useState<BookFile | null>(null);
+  const needsBook = cfg.section === 'pops' && FIGURE_MODES.includes(cfg.mode) && isBookFig(cfg.opts.metric);
   // A review and a challenge with a date are started from the first page, and that is where leaving them goes.
   const onExit = host ? host.onExit : () => go(cfg.review || isDated(cfg) ? '' : PATHS[cfg.section]);
   // Starting again drops the limit to some pieces unless the game asks to keep it.
@@ -148,7 +152,18 @@ export function Session({ cfg, world, host }: { cfg: GameConfig; world: World; h
 
   useEffect(() => {
     APART[cfg.mode]?.warm();
-    if (cfg.section === 'pops') return;
+    if (cfg.section === 'pops') {
+      if (!needsBook) return;
+      let waiting = true;
+      setError(null);
+      loadBook().then(
+        (b) => waiting && setBook(b),
+        (e: unknown) => waiting && setError(e instanceof Error ? e.message : String(e)),
+      );
+      return () => {
+        waiting = false;
+      };
+    }
     let alive = true;
     setError(null);
     deckFor(cfg, (done, total) => alive && setLoaded([done, total]))
@@ -162,7 +177,7 @@ export function Session({ cfg, world, host }: { cfg: GameConfig; world: World; h
     return () => {
       alive = false;
     };
-  }, [cfg, attempt]);
+  }, [cfg, attempt, needsBook]);
 
   // A review can be about things the data no longer has. They cannot come up again, so what was known
   // about them is dropped, or they would be due for ever.
@@ -195,16 +210,35 @@ export function Session({ cfg, world, host }: { cfg: GameConfig; world: World; h
   const figured = FIGURE_MODES.includes(cfg.mode) || cfg.mode === 'compass';
   const figs = useMemo((): Fig[] | null => {
     if (!figured) return null;
-    if (cfg.section === 'pops') return countryFigs(chosen, cfg.opts.metric, countryItem, countryAnswers);
+    if (cfg.section === 'pops') return needsBook && !book ? null : countryFigs(chosen, cfg.opts.metric, countryItem, countryAnswers, book);
     if (!deck) return null;
     const all = cfg.mode === 'compass' ? positionFigs(deck, cfg.opts.axis === 'we' ? 'lon' : 'lat') : deckFigs(deck, regionFigOf(deck, cfg.opts.regionFig));
     // A custom list is asked about its pieces alone.
     const only = cfg.only ? new Set(cfg.only) : null;
     return only ? all.filter((f) => only.has(f.id)) : all;
-  }, [figured, cfg, chosen, deck]);
+  }, [figured, cfg, chosen, deck, needsBook, book]);
 
   if (cfg.section === 'pops') {
-    const what = `${nf(chosen.length)} ${L('países', 'countries')}`;
+    // A game about a figure of The World Factbook waits for the file they come in.
+    if (needsBook && !book) {
+      if (error) {
+        return (
+          <Message
+            title={L('No se han podido cargar las cifras', 'The figures could not be loaded')}
+            text={L(`${error}. Comprueba la conexión y vuelve a intentarlo.`, `${error}. Check your connection and try again.`)}
+            onExit={onExit}
+            action={{ label: L('Reintentar', 'Retry'), run: () => setAttempt((n) => n + 1) }}
+          />
+        );
+      }
+      return (
+        <div className="play play-loading">
+          <Spinner label={L('Cargando las cifras…', 'Loading the figures…')} />
+        </div>
+      );
+    }
+    /** How many countries a game of figures is played with: the ones chosen that have the figure. */
+    const what = `${nf(figs?.length ?? 0)} ${L('países', 'countries')}`;
     if (cfg.mode === 'truefalse') {
       if (chosen.length < 2) return <Message title={L('Faltan países', 'Not enough countries')} text={L('Este juego necesita al menos dos países.', 'This game needs at least two countries.')} onExit={onExit} />;
       return (
@@ -276,7 +310,7 @@ export function Session({ cfg, world, host }: { cfg: GameConfig; world: World; h
     if (!figs || !figPlayable(figs)) return <Message title={L('Faltan países', 'Not enough countries')} text={L('Este juego necesita al menos dos países con datos.', 'This game needs at least two countries with data.')} onExit={onExit} />;
     return (
       <WithHelp cfg={cfg}>
-        <FigGame figs={figs} cfg={cfg} what={`${nf(figs.length)} ${L('países', 'countries')}`} onExit={onExit} onAgain={onAgain} />
+        <FigGame figs={figs} cfg={cfg} what={what} onExit={onExit} onAgain={onAgain} />
       </WithHelp>
     );
   }

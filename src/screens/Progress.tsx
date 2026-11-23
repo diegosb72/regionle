@@ -13,7 +13,7 @@ import { namesOf, type Named } from '../lib/answerNames';
 import { toCsv } from '../lib/csv';
 import { buildDeck, eligible, type World } from '../lib/data';
 import { kindNoun, parsePhys } from '../lib/extra';
-import { metricNoun, type MetricId } from '../lib/metricNames';
+import { BOOK_FIGS, metricNoun, type MetricId } from '../lib/metricNames';
 import { L, fmtDay, getLang, levelNoun, nm } from '../lib/i18n';
 import { KNOW_GRADES, knowCardBlob, type KnowCardInfo } from '../lib/knowCard';
 import { MODE_NAME, SECTIONS, formatName, modeNameIn } from '../lib/modes';
@@ -661,7 +661,7 @@ export function Progress({ world }: { world: World }) {
 
   /** A record in words: which game, on which map. */
   /** The figures "higher or lower" keeps a record of. */
-  const HILO_METRICS: MetricId[] = ['pop', 'area', 'density', 'elev'];
+  const HILO_METRICS: MetricId[] = ['pop', 'area', 'density', 'elev', ...BOOK_FIGS];
   const recordLine = (k: string, v: number) => {
     const [kind, ...rest] = k.split(':');
     const what = rest.join(':');
