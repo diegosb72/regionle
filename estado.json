@@ -1,26 +1,194 @@
 {
-  "when": "2026-11-23T21:00:53.778Z",
-  "from": "main@47a2232",
+  "when": "2026-11-23T21:52:32.472Z",
+  "from": "arena/baec5cdd-regionle@2f2162b",
   "workflow": "same",
   "sources": [
+    {
+      "id": "flags-candidates",
+      "file": "flags/candidates.json",
+      "from": "Wikidata (https://www.wikidata.org)",
+      "licence": "CC0 1.0",
+      "what": "Everything in Wikidata that has a flag (P41) and that at least 40 pages of Wikimedia sites tell of, by its Wikidata id: what the lists of scripts/data/flags-lists.json are made from. items: its names in Spanish and in English (es, en), how many pages tell of it (links), what it is (is: P31), the country it is in (in: P17), the years it began and ended (from, to: P571 and P576), and its flags, each with its file, its rank when it is not the usual one and the days it flew between; what the game already has says only as what (game: country, piece or city). classes: the English name of each class",
+      "es": "Todo lo que tiene bandera y es conocido, para hacer las listas",
+      "needs": "112",
+      "ok": true,
+      "bytes": 1851986,
+      "blob": "98ced62b11cda5aecdc02dcfe4cd23b4d78c5db2",
+      "note": "13427 cosas con bandera de las que hablan 40 páginas o más; 2975 ya están en el juego",
+      "detail": {
+        "found": 13427,
+        "game": {
+          "piece": 1552,
+          "city": 1178,
+          "country": 245
+        },
+        "undone": []
+      },
+      "ms": 114326
+    },
+    {
+      "id": "flags-signals",
+      "file": "flags/signals.json",
+      "from": "Wikimedia Commons (https://commons.wikimedia.org)",
+      "licence": "La de cada archivo, que su entrada dice: dominio público o una licencia libre",
+      "flags": true,
+      "what": "The flags that are signals, each a file of Commons that scripts/data/flags-signals.json names, by the id the list gives it. items: that file (file; by: hand, as every one is). files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; where the file is kept in this branch (kept); the 960 px picture that Wikimedia draws of it (picture), which stands for an original of more than 2 MB and goes with a drawing that has words in it (words); for a photograph, the drawing of the same flag that is kept in its place (drawn); and the categories of Commons it is in that speak of other times, of a proposal or of an invention, which may mean that it is not a flag that flies (marks). The files themselves are under flags/files, each named after its SHA-1.",
+      "es": "Banderas que son señales",
+      "needs": "112",
+      "ok": true,
+      "bytes": 23848,
+      "blob": "b8c02e90c152a905e9ed49714489560936409710",
+      "note": "59 señales; 59 archivos: 59 descargados (187 kB)",
+      "detail": {
+        "asked": 59,
+        "found": 59,
+        "files": {
+          "all": 59,
+          "missing": 0,
+          "drawn": 0,
+          "words": 0,
+          "wanted": 59,
+          "brought": 59,
+          "there": 0,
+          "left": 0,
+          "pictures": 0,
+          "bytes": 186894
+        },
+        "kinds": {
+          "svg": 59
+        },
+        "licences": {
+          "Public domain": 47,
+          "GPL": 10,
+          "CC BY-SA 4.0": 1,
+          "Copyrighted free use": 1
+        },
+        "undone": []
+      },
+      "ms": 81412
+    },
+    {
+      "id": "flags-countries",
+      "file": "flags/countries.json",
+      "from": "Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org)",
+      "licence": "La de cada archivo, que su entrada dice: dominio público o una licencia libre",
+      "flags": true,
+      "what": "The flags that each country of the game flew before the one it flies, by the id of the country. items: its Wikidata entity (wd) and those flags (past), the last to stop flying first: the Commons file of each, its rank when it is the preferred one, and the days Wikidata says it flew between (from, to; ? for a day that is not known). files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; where the file is kept in this branch (kept); the 960 px picture that Wikimedia draws of it (picture), which stands for an original of more than 2 MB and goes with a drawing that has words in it (words); for a photograph, the drawing of the same flag that is kept in its place (drawn); and the categories of Commons it is in that speak of other times, of a proposal or of an invention, which may mean that it is not a flag that flies (marks). The files themselves are under flags/files, each named after its SHA-1.",
+      "es": "Banderas anteriores de los países",
+      "needs": "112",
+      "ok": true,
+      "bytes": 201790,
+      "blob": "7c75f72a658ed028cd02884fc06558eeb0c8c51f",
+      "note": "345 banderas anteriores de 92 de 251 países; 337 archivos: 337 descargados (39.949 kB, con 8 imágenes)",
+      "detail": {
+        "asked": 251,
+        "found": 92,
+        "flags": 345,
+        "files": {
+          "all": 337,
+          "missing": 0,
+          "drawn": 0,
+          "words": 7,
+          "wanted": 337,
+          "brought": 337,
+          "there": 0,
+          "left": 0,
+          "pictures": 8,
+          "bytes": 39949495
+        },
+        "kinds": {
+          "svg": 337
+        },
+        "licences": {
+          "Public domain": 278,
+          "CC BY-SA 3.0": 27,
+          "CC BY-SA 4.0": 22,
+          "CC0": 6,
+          "CC BY-SA 2.5": 3,
+          "CC BY 3.0": 1
+        },
+        "undone": []
+      },
+      "ms": 299331
+    },
+    {
+      "id": "flags-capitals",
+      "file": "flags/capitals.json",
+      "from": "Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org)",
+      "licence": "La de cada archivo, que su entrada dice: dominio público o una licencia libre",
+      "flags": true,
+      "what": "The flag of the capital, or capitals, of each country, by the id the city has in the game. items: the Wikidata entity whose flag it is (wd), how it was found when it is not the one the game names (by: redirect or code; wikipedia when Wikidata gives no flag and the box of facts of its page of Wikipedia shows one, with the page under page; hand when the flag is one given in scripts/data/flags-hand.json, with the one the others gave under instead), the Commons file of the flag it flies today (file) and since when (from), other flags the entity gives as of today (also) and those it gives as past or less fit (old), the flag of the entity that carries its ISO 3166-2 code when that is another (other), and whether the entity is far smaller than the division (tiny). files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; where the file is kept in this branch (kept); the 960 px picture that Wikimedia draws of it (picture), which stands for an original of more than 2 MB and goes with a drawing that has words in it (words); for a photograph, the drawing of the same flag that is kept in its place (drawn); and the categories of Commons it is in that speak of other times, of a proposal or of an invention, which may mean that it is not a flag that flies (marks). The files themselves are under flags/files, each named after its SHA-1.",
+      "es": "Banderas de las capitales de los países",
+      "needs": "112",
+      "ok": true,
+      "bytes": 88384,
+      "blob": "345b1d2d01e8ede4bb9345b2e489cac5fefc72c1",
+      "note": "168 de 243 tienen bandera; 165 archivos: 20 descargados (5630 kB, con 2 imágenes), 145 que ya estaban",
+      "detail": {
+        "asked": 243,
+        "found": 168,
+        "by": {
+          "id": 142,
+          "wikipedia": 24,
+          "hand": 2
+        },
+        "doubted": {
+          "other": 0,
+          "tiny": 0
+        },
+        "files": {
+          "all": 166,
+          "missing": 3,
+          "drawn": 1,
+          "words": 0,
+          "wanted": 165,
+          "brought": 20,
+          "there": 145,
+          "left": 0,
+          "pictures": 2,
+          "bytes": 5629579
+        },
+        "kinds": {
+          "svg": 147,
+          "png": 12,
+          "gif": 4,
+          "jpg": 3
+        },
+        "licences": {
+          "Public domain": 105,
+          "CC BY-SA 4.0": 22,
+          "CC0": 18,
+          "CC BY-SA 3.0": 13,
+          "CC BY 3.0": 3,
+          "Attribution": 1,
+          "CC BY 2.5 ar": 1,
+          "CC BY-SA 2.5": 1,
+          "CC BY-SA 3.0 lu": 1,
+          "Copyrighted free use": 1
+        },
+        "undone": []
+      },
+      "ms": 32314
+    },
     {
       "id": "flags-regions",
       "file": "flags/regions.json",
       "from": "Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org)",
       "licence": "La de cada archivo, que su entrada dice: dominio público o una licencia libre",
       "flags": true,
-      "what": "The flag of each division of the maps, at every level they have, by its id in the game. items: the Wikidata entity whose flag it is (wd), how it was found when it is not the one the game names (by: redirect or code; hand when the flag is one given in scripts/data/flags-hand.json, with the one Wikidata gave under instead), the Commons file of the flag it flies today (file) and since when (from), other flags the entity gives as of today (also) and those it gives as past or less fit (old), the flag of the entity that carries its ISO 3166-2 code when that is another (other), and whether the entity is far smaller than the division (tiny). files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; where the file is kept in this branch (kept); the 960 px picture that Wikimedia draws of it (picture), which stands for an original of more than 2 MB and goes with a drawing that has words in it (words); for a photograph, the drawing of the same flag that is kept in its place (drawn); and the categories of Commons it is in that speak of other times, of a proposal or of an invention, which may mean that it is not a flag that flies (marks). The files themselves are under flags/files, each named after its SHA-1.",
+      "what": "The flag of each division of the maps, at every level they have, by its id in the game. items: the Wikidata entity whose flag it is (wd), how it was found when it is not the one the game names (by: redirect or code; wikipedia when Wikidata gives no flag and the box of facts of its page of Wikipedia shows one, with the page under page; hand when the flag is one given in scripts/data/flags-hand.json, with the one the others gave under instead), the Commons file of the flag it flies today (file) and since when (from), other flags the entity gives as of today (also) and those it gives as past or less fit (old), the flag of the entity that carries its ISO 3166-2 code when that is another (other), and whether the entity is far smaller than the division (tiny). files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; where the file is kept in this branch (kept); the 960 px picture that Wikimedia draws of it (picture), which stands for an original of more than 2 MB and goes with a drawing that has words in it (words); for a photograph, the drawing of the same flag that is kept in its place (drawn); and the categories of Commons it is in that speak of other times, of a proposal or of an invention, which may mean that it is not a flag that flies (marks). The files themselves are under flags/files, each named after its SHA-1.",
       "es": "Banderas de las divisiones de los mapas",
       "needs": "37",
       "ok": true,
-      "bytes": 1068267,
-      "blob": "491e2ea3c337b137938156578cb8a9bc231782c1",
-      "note": "2017 de 4647 tienen bandera; 2022 archivos: 0 descargados (0 kB), 2022 que ya estaban",
+      "bytes": 1229302,
+      "blob": "8b670cf066b49f411c346324c130ac2e582fe4fa",
+      "note": "2308 de 4647 tienen bandera; 2297 archivos: 269 descargados (38.198 kB, con 11 imágenes), 2028 que ya estaban",
       "detail": {
         "asked": 4647,
-        "found": 2017,
+        "found": 2308,
         "by": {
           "id": 1904,
+          "wikipedia": 291,
           "code": 108,
           "hand": 3,
           "redirect": 2
@@ -30,101 +198,46 @@
           "tiny": 12
         },
         "files": {
-          "all": 2068,
-          "missing": 1,
-          "drawn": 46,
-          "words": 37,
-          "wanted": 2022,
-          "brought": 0,
-          "there": 2022,
+          "all": 2361,
+          "missing": 8,
+          "drawn": 64,
+          "words": 44,
+          "wanted": 2297,
+          "brought": 269,
+          "there": 2028,
           "left": 0,
-          "pictures": 0,
-          "bytes": 0
+          "pictures": 11,
+          "bytes": 38198443
         },
         "kinds": {
-          "svg": 1755,
-          "png": 237,
-          "gif": 60,
-          "jpg": 16
+          "svg": 1919,
+          "png": 324,
+          "gif": 78,
+          "jpg": 31,
+          "webp": 9
         },
         "licences": {
-          "Public domain": 1230,
-          "CC BY-SA 4.0": 360,
-          "CC BY-SA 3.0": 332,
-          "CC0": 82,
-          "CC BY-SA 2.5": 30,
-          "CC BY 4.0": 13,
-          "CC BY 3.0": 9,
-          "CC BY 2.5": 3,
-          "FAL": 2,
+          "Public domain": 1360,
+          "CC BY-SA 4.0": 421,
+          "CC BY-SA 3.0": 360,
+          "CC0": 147,
+          "CC BY-SA 2.5": 31,
+          "CC BY 4.0": 16,
+          "CC BY 3.0": 10,
+          "CC BY 2.5": 4,
+          "FAL": 3,
+          "Copyrighted free use": 2,
           "?": 1,
           "Attribution": 1,
+          "CC BY 2.0": 1,
           "CC BY 2.5 ar": 1,
           "CC BY-SA 1.0": 1,
           "CC BY-SA 3.0 gr": 1,
-          "Copyrighted free use": 1,
           "GFDL": 1
         },
         "undone": []
       },
-      "ms": 188227
-    },
-    {
-      "id": "flags-capitals",
-      "file": "flags/capitals.json",
-      "from": "Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org)",
-      "licence": "La de cada archivo, que su entrada dice: dominio público o una licencia libre",
-      "flags": true,
-      "what": "The flag of the capital, or capitals, of each country, by the id the city has in the game. items: the Wikidata entity whose flag it is (wd), how it was found when it is not the one the game names (by: redirect or code; hand when the flag is one given in scripts/data/flags-hand.json, with the one Wikidata gave under instead), the Commons file of the flag it flies today (file) and since when (from), other flags the entity gives as of today (also) and those it gives as past or less fit (old), the flag of the entity that carries its ISO 3166-2 code when that is another (other), and whether the entity is far smaller than the division (tiny). files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; where the file is kept in this branch (kept); the 960 px picture that Wikimedia draws of it (picture), which stands for an original of more than 2 MB and goes with a drawing that has words in it (words); for a photograph, the drawing of the same flag that is kept in its place (drawn); and the categories of Commons it is in that speak of other times, of a proposal or of an invention, which may mean that it is not a flag that flies (marks). The files themselves are under flags/files, each named after its SHA-1.",
-      "es": "Banderas de las capitales de los países",
-      "needs": "112",
-      "ok": true,
-      "bytes": 76284,
-      "blob": "eb7267afb4792234714c963a2d58cdf8f14e99b1",
-      "note": "144 de 243 tienen bandera; 144 archivos: 0 descargados (0 kB), 144 que ya estaban",
-      "detail": {
-        "asked": 243,
-        "found": 144,
-        "by": {
-          "id": 142,
-          "hand": 2
-        },
-        "doubted": {
-          "other": 0,
-          "tiny": 0
-        },
-        "files": {
-          "all": 145,
-          "missing": 0,
-          "drawn": 1,
-          "words": 0,
-          "wanted": 144,
-          "brought": 0,
-          "there": 144,
-          "left": 0,
-          "pictures": 0,
-          "bytes": 0
-        },
-        "kinds": {
-          "svg": 133,
-          "png": 7,
-          "jpg": 3,
-          "gif": 2
-        },
-        "licences": {
-          "Public domain": 98,
-          "CC BY-SA 4.0": 18,
-          "CC BY-SA 3.0": 11,
-          "CC0": 11,
-          "CC BY 3.0": 3,
-          "CC BY 2.5 ar": 1,
-          "CC BY-SA 2.5": 1,
-          "CC BY-SA 3.0 lu": 1,
-          "Copyrighted free use": 1
-        },
-        "undone": []
-      },
-      "ms": 14749
+      "ms": 549605
     }
   ],
   "reach": []

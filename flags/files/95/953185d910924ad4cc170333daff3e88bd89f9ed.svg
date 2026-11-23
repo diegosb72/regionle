@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   id="svg8"
+   version="1.1"
+   viewBox="0 0 338.66667 225.77777"
+   height="853.33331"
+   width="1280">
+  <defs
+     id="defs2" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect
+     style="fill:#448aff;fill-opacity:1;stroke-width:0;paint-order:stroke fill markers;stop-color:#000000"
+     id="rect860-9"
+     width="338.66666"
+     height="225.77777"
+     x="2.8421709e-14"
+     y="1.2212453e-14" />
+  <rect
+     y="0"
+     x="0"
+     height="225.77777"
+     width="113.03333"
+     id="rect860"
+     style="fill:#c80000;stroke-width:0;paint-order:stroke fill markers;stop-color:#000000;fill-opacity:1" />
+  <path
+     d="m 270.80331,61.795596 -2.63677,-2.595839 c -0.87465,-0.828976 -1.72219,-0.878783 -2.61962,-0.01134 l -4.22007,4.079071 C 250.64744,48.003391 224.45563,35.403293 198.35726,26.754855 c -1.51664,-0.502569 -1.79162,6.598865 -0.49623,7.044327 28.23334,9.70915 42.48959,22.219782 48.73294,37.951225 l -3.20572,3.205723 c -1.12947,1.12947 -0.97396,2.1393 3.8e-4,3.11365 l 1.28988,1.28988 -90.17601,87.16138 c -1.13134,1.09344 -0.41459,2.56203 0.49586,3.47248 l 3.80351,3.80351 3.80318,3.80317 c 0.91043,0.91044 2.37934,1.62751 3.47283,0.49622 l 87.16138,-90.17601 1.2899,1.2899 c 0.97434,0.97434 1.9838,1.12948 3.11327,0 l 3.20573,-3.20572 c 19.16609,8.05096 26.5624,24.5592 42.10262,49.55401 -3.45672,-27.0806 -18.35561,-53.60748 -33.61969,-64.286877 l 4.07907,-4.220067 c 0.86744,-0.897424 0.81799,-1.74461 -0.011,-2.619245 z"
+     style="fill:#ffffff;fill-opacity:1;stroke-width:0;paint-order:stroke fill markers;stop-color:#000000"
+     id="path909" />
+</svg>
