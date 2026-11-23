@@ -187,10 +187,16 @@ export interface Facts {
   /** Whether what is said of another country is true of this one too: here it cannot be a wrong option. */
   holds(kind: FactKind, id: string, said: string): boolean;
   /**
+   * How many of these countries could say of themselves what a question gives for this one, itself among
+   * them when it is: the dollar is the currency of many, the yen of one. Nothing where the country has none.
+   */
+  sharedBy(kind: FactKind, id: string, among: readonly string[]): number;
+  /**
    * Whether these countries can be asked among four options: each one that is asked needs three different
    * answers of the others that are not true of it as well. Where they are not there, the answer is typed.
+   * `only`: the ones a list asks about, on a map that has more; the rest still lend their answers.
    */
-  choosable(kind: FactKind, ids: readonly string[]): boolean;
+  choosable(kind: FactKind, ids: readonly string[], only?: readonly string[]): boolean;
   /**
    * Of these countries, the ones that can be asked: those that have the fact and, where the country is named
    * and the fact is asked for, do not give it away with their name (the French of France); where the fact is

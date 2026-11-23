@@ -5,7 +5,7 @@ import { buildDeck, loadIndex, setLoader } from './data';
 import { buildCityDeck, buildPhysicalDeck } from './extra';
 import { loadFacts } from './facts';
 import { setLang } from './i18n';
-import { CLUES_OK, cluesFor, judgeRiddle, riddlePoints, type Clue } from './riddle';
+import { CLUES_OK, FACT_WIDE, cluesFor, judgeRiddle, riddlePoints, type Clue } from './riddle';
 import type { Places } from './sets';
 import { mulberry32 } from './text';
 
@@ -59,7 +59,7 @@ describe('the clues of a country', () => {
     const map = await buildDeck({ scope: 'countries', countries: world, levels: {} });
     const deck = { ...map, facts: await loadFacts() };
     const of = (id: string) => cluesFor(deck.byId.get(id)!, deck, places, mulberry32(1));
-    // After its borders and before a neighbour: many countries share a language or a currency.
+    // German is of six countries of the world and the euro of twenty-five: both are told before a neighbour is named.
     const at = of('AT');
     expect(ids(at)).toEqual(['size', 'part', 'borders', 'language', 'currency', 'neighbour', 'capital', 'flag', 'initial']);
     expect(text(at, 'language')).toBe('Mi idioma oficial es el alemán.');
@@ -88,6 +88,35 @@ describe('the clues of a country', () => {
     expect(text(swiss, 'language')).toBe('One of my official languages is German.');
     // What gives a country away is judged by its name in the language of the game: German says Germany, not Alemania... nor Austria.
     expect(ids(germany)).not.toContain('language');
+  });
+
+  it('tell what many countries of the map have before a neighbour is named, and what few have just before the flag', async () => {
+    const facts = await loadFacts();
+    const map = await buildDeck({ scope: 'countries', countries: world, levels: {} });
+    const deck = { ...map, facts };
+    const of = (id: string) => ids(cluesFor(deck.byId.get(id)!, deck, places, mulberry32(1)));
+    expect(FACT_WIDE).toBe(5);
+    // The krone is of five countries of the world, which is many; Danish is of Denmark alone.
+    expect(facts.sharedBy('currency', 'DK', world)).toBe(5);
+    expect(facts.sharedBy('language', 'DK', world)).toBe(1);
+    expect(of('DK')).toEqual(['size', 'part', 'borders', 'currency', 'neighbour', 'capital', 'language', 'flag', 'initial']);
+    // Spanish is of twenty; the balboa, of Panama alone.
+    expect(of('PA')).toEqual(['size', 'part', 'borders', 'language', 'neighbour', 'capital', 'currency', 'flag', 'initial']);
+    // English and the dollar are of dozens: both early, in the order they are always told in.
+    expect(of('US')).toEqual(['size', 'part', 'borders', 'language', 'currency', 'neighbour', 'capital', 'flag', 'initial']);
+    // Swahili and the shilling are of four countries each, one short of many: both late.
+    expect(facts.sharedBy('language', 'TZ', world)).toBe(4);
+    expect(facts.sharedBy('currency', 'TZ', world)).toBe(4);
+    expect(of('TZ')).toEqual(['size', 'part', 'borders', 'neighbour', 'capital', 'language', 'currency', 'flag', 'initial']);
+    // Japan has no neighbour to name, and Japanese would be the answer: the yen, which is its alone, comes after the capital.
+    expect(of('JP')).toEqual(['size', 'part', 'borders', 'capital', 'currency', 'flag', 'initial']);
+
+    // How many have it is counted on the map that is played. In the whole of Europe the euro is of many and
+    // English of three; among four countries nothing is of many, and all of it waits for the capital.
+    const eu = { ...(await buildDeck({ scope: 'countries', countries: europe, levels: {} })), facts };
+    expect(ids(cluesFor(eu.byId.get('IE')!, eu, places, mulberry32(1)))).toEqual(['size', 'part', 'borders', 'currency', 'neighbour', 'capital', 'language', 'flag', 'initial']);
+    const few = { ...(await buildDeck({ scope: 'countries', countries: ['AT', 'DE', 'CH', 'IT'], levels: {} })), facts };
+    expect(ids(cluesFor(few.byId.get('AT')!, few, places, mulberry32(1)))).toEqual(['size', 'part', 'borders', 'neighbour', 'capital', 'language', 'currency', 'flag', 'initial']);
   });
 
   it('name the part of the world only where the map has several', async () => {

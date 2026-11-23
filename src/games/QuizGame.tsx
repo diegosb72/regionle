@@ -113,9 +113,9 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   }, [deck, pinBy, fact]);
   /** Whether the map gives every question about something said of its countries four answers to choose from. */
   const factPicks = useMemo(
-    () => game !== 'fact' || !fact || facts!.choosable(fact, usableFor('fact').map((it) => it.id)),
+    () => game !== 'fact' || !fact || facts!.choosable(fact, usableFor('fact').map((it) => it.id), cfg.only),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [usableFor, game, fact],
+    [usableFor, game, fact, cfg.only],
   );
   /** How a question asked in a given way is answered, and among what. */
   const waysOf = (m: QuizMode) => {

@@ -422,6 +422,22 @@ test.describe('"pin it" by a domain or a dialling code', () => {
     expect((await kept(page)).opts.pinBy).toBe('dial');
   });
 
+  test('offers the name of the country among its hints, since the question does not write it', async ({ page }) => {
+    const map = ['ES', 'PT', 'FR', 'IT'];
+    await start(page, { section: 'countries', mode: 'pin', countries: map, opts: { pinBy: 'dial', length: 'all' } });
+    await expect(kicker(page)).toHaveText('Señala el país de este prefijo telefónico');
+    const code = ((await page.locator('.q-name').textContent()) ?? '').trim();
+    const id = map.find((c) => dial(c) === code)!;
+    await page.getByRole('button', { name: 'Otra pista' }).click();
+    const menu = page.locator('.q-more');
+    // Its capital and its name are there to be asked for: the question shows neither.
+    await expect(menu.getByRole('button', { name: 'Su capital' })).toBeVisible();
+    await menu.getByRole('button', { name: 'Su nombre' }).click();
+    await expect(page.locator('.q-hints li')).toHaveText([`Se llama ${nameOf(id)}.`]);
+    await piece(page, id).dispatchEvent('click');
+    await expect(verdict(page)).toContainText('Bien, con ayuda:');
+  });
+
   test('shows the domain and takes the country it is of', async ({ page }) => {
     await start(page, { section: 'countries', mode: 'pin', countries: ['ES', 'PT', 'FR', 'IT'], opts: { pinBy: 'domain', length: 'all' } });
     await expect(kicker(page)).toHaveText('Señala el país de este dominio de internet');
@@ -472,16 +488,138 @@ test.describe('the facts of a country where they are only shown', () => {
     const capital: Record<string, string> = { P: 'FR', B: 'CH', C: 'PA' };
     for (let n = 1; n <= 4; n++) {
       await expect(page.locator('.q')).toContainText('Pista 1 de');
-      // Every clue but the last, which is the name itself.
-      for (let i = 0; i < 12 && !/Mi capital empieza por/.test(await clues.innerText()); i++) await page.getByRole('button', { name: 'Otra pista' }).click();
+      // Every clue up to the flag: after it there is only how the name begins.
+      for (let i = 0; i < 12 && !/Esta es mi bandera/.test(await clues.innerText()); i++) await page.getByRole('button', { name: 'Otra pista' }).click();
       const text = await clues.innerText();
       const letter = /Mi capital empieza por «(.)»/.exec(text)![1];
       // Bern and Brasilia begin alike: the franc tells them apart.
       const id = letter === 'B' ? (text.includes('franco') ? 'CH' : 'BR') : capital[letter];
       for (const line of said[id]) expect(text, id).toContain(line);
       if (id === 'FR') expect(text).not.toContain('idioma');
+      // On a map of four countries none of this is of many: it is told late, between the capital and the flag.
+      const at = (line: string) => text.indexOf(line);
+      for (const line of said[id]) {
+        expect(at(line), `${id}: ${line}`).toBeGreaterThan(at('Mi capital empieza por'));
+        expect(at(line), `${id}: ${line}`).toBeLessThan(at('Esta es mi bandera'));
+      }
       await type(page, nameOf(id));
       await page.getByRole('button', { name: /^(Siguiente|Ver resultado)$/ }).click();
     }
+  });
+});
+
+test.describe('the game of the facts of the countries: against the clock, with lives and for two', () => {
+  const FIVE = ['ES', 'FR', 'DE', 'IT', 'PT'];
+  const title = (page: Page) => page.locator('.results-title');
+  /** Types the right answer; the next question, or the result, is there when it comes back. */
+  const hit = async (page: Page, answer: (id: string) => string): Promise<void> => {
+    const name = page.locator('.q-name');
+    const now = ((await name.textContent()) ?? '').trim();
+    await type(page, answer(await asked(page)));
+    await expect(title(page).or(name.filter({ hasNotText: now }))).toBeVisible();
+  };
+
+  test('is played against the clock, with a record for each fact', async ({ page }) => {
+    await page.clock.install();
+    await start(page, { ...GAME, countries: FIVE, opts: { fact: 'domain', answer: 'type', format: 'timed' } });
+    await expect(page.locator('.hud-clock')).toHaveText('1:00');
+    await expect(kicker(page)).toHaveText('¿Cuál es el dominio de internet de…?');
+    await hit(page, domain);
+    await hit(page, domain);
+    await page.clock.fastForward(61_000);
+    await expect(title(page)).toHaveText('2 aciertos en un minuto');
+    await expect(page.locator('.results-note')).toHaveText('Nuevo récord de contrarreloj en este mapa.');
+    // The record is that of the domains of this map: the dialling codes have theirs.
+    const timed = Object.keys((await kept(page)).best).filter((k) => k.startsWith('timed'));
+    expect(timed).toHaveLength(1);
+    expect(timed[0]).toMatch(/^timed:fact-domain:/);
+  });
+
+  test('is a survival too: a wrong answer costs a life', async ({ page }) => {
+    await start(page, { ...GAME, countries: FIVE, opts: { fact: 'dial', answer: 'type', format: 'lives', lives: 1 } });
+    await expect(page.locator('.hud-lives')).toHaveAccessibleName('Vidas: 1 de 1');
+    await hit(page, dial);
+    await type(page, '+999');
+    await expect(page.locator('.verdict')).toContainText('Te has quedado sin vidas.');
+    await page.getByRole('button', { name: 'Ver resultado' }).click();
+    await expect(title(page)).toHaveText('1 acierto');
+    const lives = Object.keys((await kept(page)).best).filter((k) => k.startsWith('lives'));
+    expect(lives).toHaveLength(1);
+    expect(lives[0]).toMatch(/^lives1:fact-dial:/);
+  });
+
+  test('is played by two, a question each', async ({ page }) => {
+    await start(page, { ...GAME, countries: FIVE, opts: { fact: 'domain', answer: 'type', format: 'duo', length: 'all' } });
+    // Five countries: four questions, two for each.
+    await expect(hud(page)).toHaveText('1 / 4', { timeout: 30_000 });
+    await expect(page.locator('.q .duo-turn')).toHaveText('Turno de Jugador 1');
+    await type(page, domain(await asked(page)));
+    // Right at once: two points, and the turn passes by itself.
+    await expect(hud(page)).toHaveText('2 / 4');
+    await expect(page.locator('.q .duo-turn')).toHaveText('Turno de Jugador 2');
+    const points = (await page.locator('.play-under .duo-board .duo-pts').allTextContents()).map((t) => Number.parseInt(t, 10));
+    expect(points).toEqual([2, 0]);
+  });
+});
+
+test.describe('the facts of the countries with a list of the player', () => {
+  /** The map the list was made on, and the countries of it that the list asks about. */
+  const NORTH = ['US', 'CA', 'MX', 'GT', 'BZ'];
+  const list = (ids: string[], countries = NORTH) => ({ id: 'l1', name: 'Las del martes', section: 'countries', countries, levels: {}, ids });
+  const begin = (page: Page) => page.locator('.startbar').getByRole('button', { name: 'Empezar' });
+
+  test('"pin it" asks the countries of the list that share their code with no other of its map', async ({ page }) => {
+    // Canada is not in the list, but it is on its map: the +1 of the United States could be either.
+    await seed(page, { lists: [list(['US', 'MX', 'GT'])], listOn: { countries: 'l1' }, mode: { countries: 'pin' }, opts: { ...OPTS, pinBy: 'dial', length: 'all' } });
+    await open(page, '/paises');
+    await expect(hintOf(page, shown(page))).toHaveText(
+      'Te damos un prefijo telefónico («+49») y señalas de qué país es. Se pregunta por 2 de los 3 países: los demás lo comparten con otro del mapa, o no lo tienen.',
+    );
+    await expect(page.locator('.mode-facts')).toContainText('2 preguntas');
+    await begin(page).click();
+    await expect(kicker(page)).toHaveText('Señala el país de este prefijo telefónico', { timeout: 30_000 });
+    const seen: string[] = [];
+    for (let n = 1; n <= 2; n++) {
+      await expect(hud(page)).toHaveText(`${n} / 2`);
+      const code = ((await page.locator('.q-name').textContent()) ?? '').trim();
+      seen.push(code);
+      await piece(page, ['MX', 'GT'].find((c) => dial(c) === code)!).dispatchEvent('click');
+      await expect(verdict(page)).toHaveText('¡Correcto!');
+      await next(page);
+    }
+    expect(seen.sort()).toEqual([dial('GT'), dial('MX')].sort());
+  });
+
+  test('does not start a list that leaves nothing to ask, and says why', async ({ page }) => {
+    await seed(page, { lists: [list(['US', 'CA'])], listOn: { countries: 'l1' }, mode: { countries: 'pin' }, opts: { ...OPTS, pinBy: 'dial', length: 'all' } });
+    await open(page, '/paises');
+    await expect(page.locator('.startbar .problem')).toHaveText(
+      'Con esta lista no queda nada que preguntar de ese dato: lo dice ya el nombre de cada país, lo comparten o no lo tienen. Elige otro dato o deja la lista.',
+    );
+    await expect(begin(page)).toBeDisabled();
+    // Each has a domain of its own.
+    await shown(page).getByRole('radio', { name: 'El dominio' }).click();
+    await expect(page.locator('.startbar .problem')).toHaveCount(0);
+    await expect(page.locator('.mode-facts')).toContainText('2 preguntas');
+    await expect(begin(page)).toBeEnabled();
+  });
+
+  test('says so too when such a list comes as a game in course', async ({ page }) => {
+    await start(page, { section: 'countries', mode: 'pin', countries: NORTH, only: ['US', 'CA'], list: 'Las del martes', opts: { pinBy: 'dial', length: 'all' } });
+    await expect(page.locator('main')).toContainText('Aquí no hay nada que preguntar');
+  });
+
+  test('is asked among four options when its own questions have three wrong answers each, whatever the rest of its map', async ({ page }) => {
+    // The dollar is the other currency of Panama, which leaves it two wrong answers on this map: a list
+    // without Panama is still played among four.
+    const map = ['PA', 'US', 'MX', 'CR'];
+    await start(page, { ...GAME, countries: map, only: ['US', 'MX', 'CR'], list: 'Sin Panamá', opts: { fact: 'currency', answer: 'choice', length: 'all' } });
+    await expect(hud(page)).toHaveText('1 / 3');
+    await expect(page.locator('.choice')).toHaveCount(4);
+    // With Panama in the list the answer is typed.
+    await restart(page, { ...GAME, countries: map, only: ['PA', 'MX'], list: 'Con Panamá', opts: { fact: 'currency', answer: 'choice', length: 'all' } });
+    await expect(hud(page)).toHaveText('1 / 2');
+    await expect(page.locator('.choice')).toHaveCount(0);
+    await expect(note(page)).toContainText('Aquí la respuesta se escribe');
   });
 });

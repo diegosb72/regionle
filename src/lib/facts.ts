@@ -137,11 +137,18 @@ class Book implements Facts {
     return this.names(kind, id).has(norm(said));
   }
 
-  choosable(kind: FactKind, ids: readonly string[]): boolean {
+  sharedBy(kind: FactKind, id: string, among: readonly string[]): number {
+    const said = this.said(kind, id);
+    return said ? among.filter((o) => this.shown(kind, o).includes(said)).length : 0;
+  }
+
+  choosable(kind: FactKind, ids: readonly string[], only?: readonly string[]): boolean {
     const answers = [...new Set(ids.map((id) => this.said(kind, id)).filter(Boolean))];
     if (answers.length < 4) return false;
+    const mine = only ? new Set(only) : null;
     // Three of them have to be wrong of each country that is asked: what is true of it too is no option.
     return this.asked(kind, ids).every((id) => {
+      if (mine && !mine.has(id)) return true;
       let wrong = 0;
       for (const said of answers) if (!this.holds(kind, id, said) && ++wrong >= 3) return true;
       return false;

@@ -317,6 +317,40 @@ describe('what cannot be a wrong option', () => {
   });
 });
 
+describe('how many countries share what is said of one', () => {
+  it('counts those that could say the same of themselves, the country among them', () => {
+    // The yen is of Japan alone; the krone, of Denmark, Norway, Sweden, Iceland and Czechia; the euro, of twenty-five.
+    expect(facts.sharedBy('currency', 'JP', un)).toBe(1);
+    expect(facts.sharedBy('currency', 'DK', un)).toBe(5);
+    expect(facts.sharedBy('currency', 'ES', un)).toBe(25);
+    // By the name a question gives: the dollars of the world are one answer.
+    expect(facts.sharedBy('currency', 'US', un)).toBeGreaterThan(30);
+    expect(facts.sharedBy('language', 'DK', un)).toBe(1);
+    expect(facts.sharedBy('language', 'ES', un)).toBe(20);
+    // Dutch: the Netherlands, Belgium and Suriname.
+    expect(facts.sharedBy('language', 'NL', un)).toBe(3);
+    expect(facts.sharedBy('domain', 'ES', un)).toBe(1);
+    // Canada has the code of the United States.
+    expect(facts.sharedBy('dial', 'US', un)).toBe(2);
+  });
+
+  it('counts among the countries given, and only what is official in the whole of each', () => {
+    expect(facts.sharedBy('currency', 'ES', ['ES', 'FR', 'CH'])).toBe(2);
+    // On a map the country is not on, it is not counted.
+    expect(facts.sharedBy('currency', 'JP', ['ES', 'FR'])).toBe(0);
+    expect(facts.sharedBy('currency', 'ES', [])).toBe(0);
+    // English is spoken by many in Spain, and French is so in Algeria: neither is official there.
+    expect(facts.holds('language', 'ES', 'inglés')).toBe(true);
+    expect(facts.sharedBy('language', 'GB', ['GB', 'ES'])).toBe(1);
+    expect(facts.sharedBy('language', 'FR', ['FR', 'DZ'])).toBe(1);
+    // It is the first of a country that is counted: German for Switzerland, whatever else is official in it.
+    expect(facts.sharedBy('language', 'CH', ['CH', 'DE', 'AT', 'FR', 'IT'])).toBe(3);
+    // A country that has none shares it with nobody.
+    expect(facts.said('domain', 'XK')).toBe('');
+    expect(facts.sharedBy('domain', 'XK', ['XK', 'ES'])).toBe(0);
+  });
+});
+
 describe('a map that gives four options to choose from', () => {
   it('is the world, for each of the four things and in both languages', () => {
     for (const lang of ['es', 'en'] as const) {
@@ -350,6 +384,21 @@ describe('a map that gives four options to choose from', () => {
     // The dollar is the other currency of Panama: against it there are only the peso and the colón.
     expect(facts.choosable('currency', ['PA', 'US', 'MX', 'CR'])).toBe(false);
     expect(facts.choosable('currency', ['PA', 'US', 'MX', 'CR', 'GT'])).toBe(true);
+  });
+
+  it('is judged by the countries a list asks about, with the answers of the whole map to choose from', () => {
+    const map = ['PA', 'US', 'MX', 'CR'];
+    // Panama is the one that is short of wrong answers: a list that leaves it out is played among four.
+    expect(facts.choosable('currency', map, ['US', 'MX', 'CR'])).toBe(true);
+    expect(facts.choosable('currency', map, ['MX'])).toBe(true);
+    expect(facts.choosable('currency', map, ['PA'])).toBe(false);
+    expect(facts.choosable('currency', map, ['PA', 'MX'])).toBe(false);
+    // The answers are those of the map, not of the list: one country alone is asked among the four of its map…
+    expect(facts.choosable('domain', ['ES', 'FR', 'DE', 'IT'], ['ES'])).toBe(true);
+    // …and a map of three answers gives no four, however short the list.
+    expect(facts.choosable('domain', ['ES', 'FR', 'DE'], ['ES'])).toBe(false);
+    // No list is the whole map.
+    expect(facts.choosable('currency', map, undefined)).toBe(false);
   });
 });
 
@@ -456,16 +505,21 @@ describe('what is typed for a fact', () => {
   });
 
   it('never takes for right, in a map of the world, what a question would offer as a wrong option', () => {
+    // Every answer of the map against every country it is not true of: some hundred thousand in each language.
+    const taken: string[] = [];
     for (const lang of ['es', 'en'] as const) {
       setLang(lang);
       for (const kind of FACT_KINDS) {
+        // A domain and a dialling code are written the same in both languages: once is enough.
+        if (lang === 'en' && (kind === 'domain' || kind === 'dial')) continue;
         const said = [...new Set(un.map((id) => facts.said(kind, id)))];
         for (const id of facts.asked(kind, un)) {
-          for (const wrong of said.filter((s) => !facts.holds(kind, id, s))) expect(facts.check(kind, id, wrong, un).right, `${lang} ${kind} ${id}: ${wrong}`).toBe(false);
+          for (const wrong of said) if (!facts.holds(kind, id, wrong) && facts.check(kind, id, wrong, un).right) taken.push(`${lang} ${kind} ${id}: ${wrong}`);
         }
       }
     }
-  });
+    expect(taken).toEqual([]);
+  }, 30_000);
 });
 
 describe('what is offered while a fact is typed', () => {

@@ -493,8 +493,12 @@ export function Setup({ section, world, link }: { section: Section; world: World
   }, [fact, facts]);
   const factAsked = useMemo(() => {
     if (!fact || !facts) return null;
-    const ids = active ? active.ids : chosen.map((c) => c.id);
-    return { of: ids.length, n: facts.asked(fact, ids, def.id === 'pin').length };
+    // A list is asked on its own map, which may have more countries than the list: what a country shares
+    // with another is judged among all of them, as the game does.
+    const map = active ? active.countries : chosen.map((c) => c.id);
+    const can = facts.asked(fact, map, def.id === 'pin');
+    const mine = active ? new Set(active.ids) : null;
+    return { of: mine ? mine.size : map.length, n: mine ? can.filter((id) => mine.has(id)).length : can.length };
   }, [fact, facts, active, chosen, def.id]);
   /**
    * While the map of that page is the one chosen, the screen is headed as the page is: it is what whoever
@@ -616,7 +620,12 @@ export function Setup({ section, world, link }: { section: Section; world: World
   const noMap = isPhys ? !physical || units < 2 : chosen.length < 1 || (section === 'cities' && (!cities || units < 2));
   const unplayable = active
     ? listPlayable(def.id)
-      ? null
+      ? factAsked && factAsked.n < 1
+        ? L(
+            'Con esta lista no queda nada que preguntar de ese dato: lo dice ya el nombre de cada país, lo comparten o no lo tienen. Elige otro dato o deja la lista.',
+            'With this list there is nothing left to ask about that fact: the name of each country gives it away, they share it or they do not have it. Choose another fact or stop using the list.',
+          )
+        : null
       : L(`«${def.name}» no se juega con una lista: elige otro modo o deja la lista.`, `“${def.name}” is not played with a list: choose another mode or stop using the list.`)
     : isPhys
     ? physical && units < 2

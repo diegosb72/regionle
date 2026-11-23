@@ -125,23 +125,27 @@ test.describe('who am I?', () => {
     await expect(clues(page)).toHaveCount(1);
   });
 
-  test('tells a country by its size, its part of the world, its borders, a neighbour, its capital and its flag', async ({ page }) => {
+  test('tells a country by its size, its part of the world, its borders, its currency, a neighbour, its capital, its language and its flag', async ({ page }) => {
     await start(page, WEST);
     await expect(page.locator('.kicker')).toHaveText('¿Qué país soy?');
-    await expect(page.locator('.whoami-count')).toHaveText('Pista 1 de 7 · vale 6');
-    for (let i = 0; i < 5; i++) await another(page).click();
+    await expect(page.locator('.whoami-count')).toHaveText('Pista 1 de 9 · vale 6');
+    for (let i = 0; i < 7; i++) await another(page).click();
     await expect(clues(page)).toHaveText([
       /^1Tengo 1\d,\d millones de habitantes y mido 41\.\d{3} km²\.$/,
       '2Estoy en Europa Occidental.',
       '3Tengo costa y limito con 2 países.',
-      '4Uno de mis vecinos es Alemania.',
-      '5Mi capital empieza por «Á».',
-      '6Esta es mi bandera.',
+      // Ten of the eleven countries of this map pay in euros: a wide clue, told before a neighbour is named.
+      '4Mi moneda se llama euro.',
+      '5Uno de mis vecinos es Alemania.',
+      '6Mi capital empieza por «Á».',
+      // Dutch is of two of them alone: it waits until the flag is next.
+      '7Mi idioma oficial es el neerlandés.',
+      '8Esta es mi bandera.',
     ]);
     await expect(piece(page, 'DE')).toHaveClass(/st-near/);
-    await expect(clues(page).nth(5).locator('img.clue-flag')).toHaveAttribute('src', /flags\/nl\.svg$/);
+    await expect(clues(page).nth(7).locator('img.clue-flag')).toHaveAttribute('src', /flags\/nl\.svg$/);
     // From the sixth clue on, a clue is worth one point.
-    await expect(page.locator('.whoami-count')).toHaveText('Pista 6 de 7 · vale 1');
+    await expect(page.locator('.whoami-count')).toHaveText('Pista 8 de 9 · vale 1');
     await type(page, 'holanda');
     await expect(page.locator('.verdict-head')).toContainText('¡Eso es! Países Bajos');
     await expect(page.locator('.verdict')).toContainText('Capital: Ámsterdam');
@@ -192,7 +196,7 @@ test.describe('who am I?', () => {
     await expect(page.locator('.play-loading')).toHaveCount(0, { timeout: 30_000 });
     await expect(page.locator('.play-title strong')).toHaveText('Who am I?');
     await expect(page.locator('.kicker')).toHaveText('Which country am I?');
-    await expect(page.locator('.whoami-count')).toHaveText('Clue 1 of 7 · worth 6');
+    await expect(page.locator('.whoami-count')).toHaveText('Clue 1 of 9 · worth 6');
     await expect(clues(page)).toHaveText([/^1I have 1\d\.\d million people and cover 41,\d{3} km²\.$/]);
     await type(page, 'belgium');
     await expect(page.locator('.q-note')).toHaveText('I am not Belgium. Here is another clue.');

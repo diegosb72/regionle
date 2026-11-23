@@ -367,9 +367,11 @@ export function Session({ cfg, world, host }: { cfg: GameConfig; world: World; h
     return <Message title={L('Este mapa tiene una sola pieza', 'This map has a single piece')} text={L('Elige más países o un nivel con más divisiones para poder jugar.', 'Choose more countries or a level with more divisions to play.')} onExit={onExit} />;
   }
   // A game about something said of the countries (lib/facts.ts) asks what their names do not give away, and "pin it" by
-  // such a thing takes one that a country alone has: where nothing is left, there is no game.
+  // such a thing takes one that a country alone has on the map: where nothing is left, there is no game. A list
+  // asks about its own pieces, on a map that may have more.
   const fact = factOf(cfg.section, cfg.mode, cfg.opts);
-  if (fact && !deck.facts?.asked(fact, deck.items.map((it) => it.id), cfg.mode === 'pin').length) {
+  const factLeft = fact ? (deck.facts?.asked(fact, deck.items.map((it) => it.id), cfg.mode === 'pin') ?? []).filter((id) => !cfg.only || cfg.only.includes(id)) : [];
+  if (fact && !factLeft.length) {
     return (
       <Message
         title={L('Aquí no hay nada que preguntar', 'There is nothing to ask here')}

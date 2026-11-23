@@ -128,35 +128,40 @@ function countryClues(item: Item, deck: Deck, places: Places | undefined, rand: 
   const cap = c.cap ? capName(c.cap) : '';
   const capital: Clue | null = cap && norm(cap) !== norm(item.name) ? { id: 'capital', kind: 'text', text: L(`Mi capital empieza por «${letters(cap)[0]?.toUpperCase()}».`, `My capital starts with “${letters(cap)[0]?.toUpperCase()}”.`) } : null;
   const flag: Clue | null = c.fl ? { id: 'flag', kind: 'flag', text: L('Esta es mi bandera.', 'This is my flag.'), code: c.fl } : null;
-  return [size, partClue(item, deck, places), sea, ...factClues(item, deck), neighbourClue(item, deck, rand), capital, flag, initialClue(item)];
+  const facts = factClues(item, deck);
+  return [size, partClue(item, deck, places), sea, ...facts.wide, neighbourClue(item, deck, rand), capital, ...facts.narrow, flag, initialClue(item)];
 }
 
+/** A language or a currency that this many countries of the map have is a wide clue; one of fewer comes close to naming the country. */
+export const FACT_WIDE = 5;
+
 /**
- * What a country speaks and what it pays with, where that has come with the map (lib/facts.ts): many share
- * a language or a currency, so they come before the neighbour. Not the one its own name gives away: "mi
- * idioma oficial es el francés" would be the answer.
+ * What a country speaks and what it pays with, where that has come with the map (lib/facts.ts). Each goes
+ * where it belongs between the widest clue and the narrowest: Spanish or the dollar, which many countries of
+ * the map have, come before a neighbour is named; Danish or the yen, which are of one country or of a
+ * handful, wait until the capital has been hinted at, just before the flag. Not the one its own name gives
+ * away: "mi idioma oficial es el francés" would be the answer.
  */
-function factClues(item: Item, deck: Deck): (Clue | null)[] {
+function factClues(item: Item, deck: Deck): { wide: Clue[]; narrow: Clue[] } {
+  const out = { wide: [] as Clue[], narrow: [] as Clue[] };
   const facts = deck.facts;
-  if (!facts) return [];
-  const one = (kind: 'language' | 'currency') => {
+  if (!facts) return out;
+  const map = deck.items.map((it) => it.id);
+  for (const kind of ['language', 'currency'] as const) {
     const said = facts.asked(kind, [item.id]).length ? facts.said(kind, item.id) : '';
-    return said ? { said, alone: facts.all(kind, item.id) === said } : null;
-  };
-  const language = one('language');
-  const currency = one('currency');
-  return [
-    language && {
-      id: 'language',
-      kind: 'text',
-      text: language.alone ? L(`Mi idioma oficial es el ${language.said}.`, `My official language is ${language.said}.`) : L(`Uno de mis idiomas oficiales es el ${language.said}.`, `One of my official languages is ${language.said}.`),
-    },
-    currency && {
-      id: 'currency',
-      kind: 'text',
-      text: currency.alone ? L(`Mi moneda se llama ${currency.said}.`, `My currency is called the ${currency.said}.`) : L(`Una de mis monedas se llama ${currency.said}.`, `One of my currencies is called the ${currency.said}.`),
-    },
-  ];
+    if (!said) continue;
+    const alone = facts.all(kind, item.id) === said;
+    const text =
+      kind === 'language'
+        ? alone
+          ? L(`Mi idioma oficial es el ${said}.`, `My official language is ${said}.`)
+          : L(`Uno de mis idiomas oficiales es el ${said}.`, `One of my official languages is ${said}.`)
+        : alone
+          ? L(`Mi moneda se llama ${said}.`, `My currency is called the ${said}.`)
+          : L(`Una de mis monedas se llama ${said}.`, `One of my currencies is called the ${said}.`);
+    (facts.sharedBy(kind, item.id, map) >= FACT_WIDE ? out.wide : out.narrow).push({ id: kind, kind: 'text', text });
+  }
+  return out;
 }
 
 function regionClues(item: Item, deck: Deck, rand: Rng): (Clue | null)[] {
