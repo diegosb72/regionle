@@ -1,6 +1,6 @@
 {
-  "when": "2026-11-23T09:18:04.407Z",
-  "from": "main@f337bb6",
+  "when": "2026-11-23T09:33:47.591Z",
+  "from": "arena/415ab419-regionle@bd3b9d2",
   "workflow": "same",
   "sources": [
     {
@@ -12,37 +12,43 @@
       "es": "Población de las divisiones de los mapas",
       "needs": "29",
       "ok": true,
-      "bytes": 283585,
-      "blob": "f7e529145836551ab1308893555075babe0f0da0",
-      "note": "3858 de 4477 divisiones tienen cifra (3762 por su identificador, 3 por uno que cambió, 3 por la entidad que la sustituyó, 52 por su código ISO, 38 por su nombre); 1 cuya entidad dice estar en otro país; sin mirar: los nombres de 84 de 204 divisiones (HTTP 504 Gateway Timeout)",
+      "bytes": 285915,
+      "blob": "87d89e8f6cf81d2f02e0d3141b3a27549c702a56",
+      "note": "3881 de 4477 divisiones tienen cifra (3762 por su identificador, 3 por uno que cambió, 3 por la entidad que la sustituyó, 52 por su código ISO, 61 por su nombre); 1 cuya entidad dice estar en otro país; sin mirar: los nombres de 4 de 204 divisiones (HTTP 502 Bad Gateway)",
       "detail": {
         "divisions": 4477,
-        "found": 3858,
+        "found": 3881,
         "by": {
           "id": 3762,
           "redirect": 3,
           "successor": 3,
           "code": 52,
-          "name": 38
+          "name": 61
         },
         "abroad": 1,
         "proposed": {
           "redirect": 3,
           "successor": 7,
           "code": 67,
-          "name": 111
+          "name": 181
         },
         "refused": {
           "redirect": 0,
           "successor": 0,
           "code": 6,
-          "name": 34
+          "name": 63
         },
         "undone": [
-          "los nombres de 84 de 204 divisiones (HTTP 504 Gateway Timeout)"
+          "los nombres de 4 de 204 divisiones (HTTP 502 Bad Gateway)"
+        ],
+        "unnamed": [
+          "AX-x4817",
+          "AX-x4818",
+          "AX-x4819",
+          "AX-x4820"
         ]
       },
-      "ms": 340421
+      "ms": 323478
     }
   ],
   "reach": [
@@ -52,7 +58,7 @@
       "ok": true,
       "status": 200,
       "bytes": 235,
-      "ms": 656
+      "ms": 160
     },
     {
       "name": "Wikidata, fichas",
@@ -60,7 +66,7 @@
       "ok": true,
       "status": 200,
       "bytes": 3462,
-      "ms": 114
+      "ms": 320
     },
     {
       "name": "Wikimedia Commons, fichas de los archivos",
@@ -68,7 +74,7 @@
       "ok": true,
       "status": 200,
       "bytes": 620,
-      "ms": 149
+      "ms": 69
     },
     {
       "name": "Wikimedia Commons, archivos",
@@ -76,7 +82,7 @@
       "ok": true,
       "status": 200,
       "bytes": 594,
-      "ms": 179
+      "ms": 31
     },
     {
       "name": "geoBoundaries, fichas de los mapas",
@@ -84,7 +90,7 @@
       "ok": true,
       "status": 200,
       "bytes": 1710,
-      "ms": 188
+      "ms": 225
     },
     {
       "name": "geoBoundaries, archivos",
@@ -92,7 +98,7 @@
       "ok": true,
       "status": 200,
       "bytes": 1007,
-      "ms": 498
+      "ms": 426
     },
     {
       "name": "GeoNames, descargas",
@@ -100,7 +106,7 @@
       "ok": true,
       "status": 200,
       "bytes": 32112,
-      "ms": 855
+      "ms": 828
     }
   ]
 }

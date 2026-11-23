@@ -7,11 +7,11 @@ Qué se trae y de dónde lo dice `scripts/data/outside.mjs`, en la rama del jueg
 
 ## Última descarga: 2026-11-23
 
-Hecha con `main@f337bb6`. Lo que no se pidió esta vez sigue en la rama `datos` como estaba.
+Hecha con `arena/415ab419-regionle@bd3b9d2`. Lo que no se pidió esta vez sigue en la rama `datos` como estaba.
 
 | Archivo | Qué es | De dónde | Licencia | Resultado |
 | --- | --- | --- | --- | --- |
-| `wikidata/region-population.json` | Población de las divisiones de los mapas | Wikidata (https://www.wikidata.org) | CC0 1.0 | 284 kB · 3858 de 4477 divisiones tienen cifra (3762 por su identificador, 3 por uno que cambió, 3 por la entidad que la sustituyó, 52 por su código ISO, 38 por su nombre); 1 cuya entidad dice estar en otro país; sin mirar: los nombres de 84 de 204 divisiones (HTTP 504 Gateway Timeout) |
+| `wikidata/region-population.json` | Población de las divisiones de los mapas | Wikidata (https://www.wikidata.org) | CC0 1.0 | 286 kB · 3881 de 4477 divisiones tienen cifra (3762 por su identificador, 3 por uno que cambió, 3 por la entidad que la sustituyó, 52 por su código ISO, 61 por su nombre); 1 cuya entidad dice estar en otro país; sin mirar: los nombres de 4 de 204 divisiones (HTTP 502 Bad Gateway) |
 
 ## Sitios que contestan
 
@@ -19,10 +19,10 @@ Una petición pequeña a cada sitio del que saldrían los puntos pendientes de l
 
 | Sitio | Servidor | Contesta |
 | --- | --- | --- |
-| Wikidata, consultas | `query.wikidata.org` | sí (656 ms) |
-| Wikidata, fichas | `www.wikidata.org` | sí (114 ms) |
-| Wikimedia Commons, fichas de los archivos | `commons.wikimedia.org` | sí (149 ms) |
-| Wikimedia Commons, archivos | `upload.wikimedia.org` | sí (179 ms) |
-| geoBoundaries, fichas de los mapas | `www.geoboundaries.org` | sí (188 ms) |
-| geoBoundaries, archivos | `github.com` | sí (498 ms) |
-| GeoNames, descargas | `download.geonames.org` | sí (855 ms) |
+| Wikidata, consultas | `query.wikidata.org` | sí (160 ms) |
+| Wikidata, fichas | `www.wikidata.org` | sí (320 ms) |
+| Wikimedia Commons, fichas de los archivos | `commons.wikimedia.org` | sí (69 ms) |
+| Wikimedia Commons, archivos | `upload.wikimedia.org` | sí (31 ms) |
+| geoBoundaries, fichas de los mapas | `www.geoboundaries.org` | sí (225 ms) |
+| geoBoundaries, archivos | `github.com` | sí (426 ms) |
+| GeoNames, descargas | `download.geonames.org` | sí (828 ms) |
