@@ -683,6 +683,25 @@ const FLAG_PICTURES = path.resolve(ROOT, process.env.OUTSIDE_FLAG_PICTURES ?? 's
 const FLAG_HAND = path.resolve(ROOT, process.env.OUTSIDE_FLAG_HAND ?? 'scripts/data/flags-hand.json');
 /** Words in a drawing: text that is set, and not shapes that are drawn. */
 const WORDS = /<(text|tspan|textPath|tref)\b/i;
+/**
+ * A category of Commons that says of the file in it that it is not a flag that flies: one of other times,
+ * one that somebody proposed, one that nobody ever flew. A flag that is only unofficial is not among them:
+ * many of the flags that regions are known by have no law behind them.
+ */
+const NOT_FLOWN = new RegExp(
+  [
+    // «Historical flags of provinces of Spain», «SVG proposed flags of provinces of Spain», «Special or fictional flags».
+    String.raw`^(svg\s+)?(historical|historic|former|obsolete|defunct|proposed|fictitious|fictional|hypothetical|fantasy|special or fictional)\s+flags?\b`,
+    // «Proposals for municipality flags of East Timor 2009», «Flag proposals of Spain».
+    String.raw`^proposals\s+for\b.*\bflags?\b`,
+    String.raw`\bflag\s+proposals\b`,
+    // «Flags of former municipalities of Latvia».
+    String.raw`\bflags\s+of\s+(the\s+)?(former|defunct|abolished|dissolved|historical)\b`,
+    // «Flags of Luanda (before 1975)».
+    String.raw`\bflags?\b.*\b(before|until)\s+\d{4}\b`,
+  ].join('|'),
+  'i',
+);
 /** Where the files are kept in the branch, whatever source named them: each under the SHA-1 of what it holds. */
 const FLAG_FILES = 'flags/files';
 const SVG = /\.svg$/i;
@@ -812,7 +831,11 @@ async function commonsOf(titles, asking, until = Infinity) {
     for (let piece = 0; piece < 20; piece++) {
       const json = await commonsSays(new URLSearchParams({ action: 'query', format: 'json', formatversion: '2', redirects: '1', maxlag: '5', ...asking, titles: part.map((t) => `File:${t}`).join('|'), ...more }), until);
       for (const { from, to } of [...(json.query?.normalized ?? []), ...(json.query?.redirects ?? [])]) leads.set(bare(from), bare(to));
-      for (const page of json.query?.pages ?? []) pages.set(bare(page.title), { ...(pages.get(bare(page.title)) ?? {}), ...page });
+      for (const page of json.query?.pages ?? []) {
+        const was = pages.get(bare(page.title)) ?? {};
+        // The categories of a page may come in more than one piece: each piece adds to those before.
+        pages.set(bare(page.title), { ...was, ...page, ...(was.categories || page.categories ? { categories: [...(was.categories ?? []), ...(page.categories ?? [])] } : {}) });
+      }
       if (!json.continue) break;
       more = json.continue;
     }
@@ -1032,10 +1055,12 @@ async function flagsFor(source, subjects, keep) {
     }
     return titles;
   };
-  const asked = [...new Set(Object.values(items).flatMap((item) => [item.file, ...(item.other ? [item.other.file] : [])]))].sort();
+  // Every flag that some thing flies today: its own, the others its entity gives, and that of the entity with its code.
+  const asked = [...new Set(Object.values(items).flatMap((item) => [item.file, ...(item.also ?? []), ...(item.other ? [item.other.file] : [])]))].sort();
   const titles = await learn(asked);
   for (const item of Object.values(items)) {
     item.file = titles.get(item.file) ?? item.file;
+    if (item.also) item.also = item.also.map((name) => titles.get(name) ?? name);
     if (item.other) item.other.file = titles.get(item.other.file) ?? item.other.file;
   }
 
@@ -1052,6 +1077,15 @@ async function flagsFor(source, subjects, keep) {
     for (const [title, name] of drawn) {
       const drawing = found.get(name) ?? name;
       if (files[drawing] && !files[drawing].missing && files[drawing].mime === 'image/svg+xml') files[title].drawn = drawing;
+    }
+  });
+
+  await attempt('lo que las categorías de Commons dicen de cada bandera', async () => {
+    const named = Object.keys(files).filter((title) => !files[title].missing).sort();
+    const { pages } = await commonsOf(named, { prop: 'categories', cllimit: 'max', clshow: '!hidden' }, until);
+    for (const title of named) {
+      const said = (pages.get(title)?.categories ?? []).map((c) => String(c.title).replace(/^Category:/, '')).filter((name) => NOT_FLOWN.test(name));
+      if (said.length) files[title].marks = [...new Set(said)].sort();
     }
   });
 
@@ -1157,7 +1191,7 @@ const FLAGS = {
 const FLAGS_WHAT =
   'items: the Wikidata entity whose flag it is (wd), how it was found when it is not the one the game names (by: redirect or code; hand when the flag is one given in scripts/data/flags-hand.json, with the one Wikidata gave under instead), the Commons file of the flag it flies today (file) and since when (from), ' +
   'other flags the entity gives as of today (also) and those it gives as past or less fit (old), the flag of the entity that carries its ISO 3166-2 code when that is another (other), and whether the entity is far smaller than the division (tiny). ' +
-  `files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; where the file is kept in this branch (kept); the ${FLAG_PICTURE} px picture that Wikimedia draws of it (picture), which stands for an original of more than ${FLAG_MAX / 1e6} MB and goes with a drawing that has words in it (words); and, for a photograph, the drawing of the same flag that is kept in its place (drawn). ` +
+  `files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; where the file is kept in this branch (kept); the ${FLAG_PICTURE} px picture that Wikimedia draws of it (picture), which stands for an original of more than ${FLAG_MAX / 1e6} MB and goes with a drawing that has words in it (words); for a photograph, the drawing of the same flag that is kept in its place (drawn); and the categories of Commons that say the file is not a flag that flies, when it is in any: historical, proposed or made up (marks). ` +
   `The files themselves are under ${FLAG_FILES}, each named after its SHA-1.`;
 
 /**

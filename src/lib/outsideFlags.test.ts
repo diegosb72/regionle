@@ -42,6 +42,8 @@ interface Kept {
   bytes?: number;
   /** What its page says its SHA-1 is, when that is not what it is. */
   sha1?: string;
+  /** The categories it is in. */
+  categories?: string[];
 }
 interface World {
   flags: Record<string, Statement[]>;
@@ -54,6 +56,8 @@ interface World {
   leads: Record<string, string>;
   /** What the branch keeps: the text of each of its data files, by its path. */
   branch: Record<string, string>;
+  /** How many categories Commons gives in one answer, when it gives them in pieces. */
+  atOnce?: number;
 }
 /** A way of not answering: this status for what matches, the first `times` of it. */
 interface Refusal {
@@ -113,6 +117,7 @@ function commons(form: URLSearchParams): Record<string, unknown> {
     const file = world.files[title.replace(/^File:/, '')];
     if (!file) pages.set(title, { title, missing: true });
     else if (form.get('prop') === 'revisions') pages.set(title, { title, revisions: [{ slots: { main: { content: file.text ?? '' } } }] });
+    else if (form.get('prop') === 'categories') pages.set(title, { title, categories: (file.categories ?? []).map((name) => ({ ns: 14, title: `Category:${name}` })) });
     else {
       const said = (value: string | undefined) => (value === undefined ? undefined : { value, source: 'commons-desc-page' });
       const at = encodeURIComponent(title.replace(/^File:/, ''));
@@ -144,7 +149,20 @@ function commons(form: URLSearchParams): Record<string, unknown> {
       });
     }
   }
-  return { batchcomplete: true, query: { ...(normalized.length ? { normalized } : {}), ...(redirects.length ? { redirects } : {}), pages: [...pages.values()] } };
+  const query = { ...(normalized.length ? { normalized } : {}), ...(redirects.length ? { redirects } : {}) };
+  if (form.get('prop') === 'categories' && world.atOnce) {
+    // In pieces, as Commons answers when there is much to say: so many categories, and where to go on from.
+    const all = [...pages.values()].flatMap((page) => (page.categories as { title: string }[]).map((category) => ({ page: String(page.title), category })));
+    const from = Number(form.get('clcontinue') ?? 0);
+    const part = all.slice(from, from + world.atOnce);
+    const list = [...pages.values()].map((page) => {
+      const mine = part.filter((one) => one.page === page.title).map((one) => one.category);
+      return mine.length ? { title: page.title, categories: mine } : { title: page.title };
+    });
+    const next = from + world.atOnce;
+    return next < all.length ? { continue: { clcontinue: String(next), continue: '||' }, query: { ...query, pages: list } } : { batchcomplete: true, query: { ...query, pages: list } };
+  }
+  return { batchcomplete: true, query: { ...query, pages: [...pages.values()] } };
 }
 
 beforeAll(async () => {
@@ -237,6 +255,7 @@ interface FileSaid {
   picture?: string;
   drawn?: string;
   words?: true;
+  marks?: string[];
   missing?: true;
 }
 interface Detail {
@@ -599,6 +618,54 @@ describe('the file of each flag', () => {
     expect(files['Photo.png'].drawn ?? null).toBe(drawing);
   });
 
+  it('describes and brings the other flags that the entity flies today', async () => {
+    const data = PLAIN();
+    world.flags.Q1 = [{ file: 'Flag of Uno (Variant).svg', from: '2020-01-01' }, { file: 'Flag_of_Uno.svg' }, { file: 'Flag of Uno (1976-1997).svg', to: '1997-01-01' }];
+    world.files['Flag of Uno (Variant).svg'] = { body: svg('Uno, another way') };
+    const r = await run('flags-regions', data);
+    const { items, files } = r.data();
+    // By the title Commons gives it, like the first.
+    expect(items['AA-01']).toEqual({ wd: 'Q1', file: 'Flag of Uno (Variant).svg', from: '2020-01-01', also: ['Flag of Uno.svg'], old: ['Flag of Uno (1976-1997).svg'] });
+    expect(files['Flag of Uno (Variant).svg'].kept).toBe(at(svg('Uno, another way')));
+    expect(files['Flag of Uno.svg'].kept).toBe(at(svg('Uno')));
+    // One of the past is named, and nothing is asked about it.
+    expect(Object.keys(files)).not.toContain('Flag of Uno (1976-1997).svg');
+    expect(r.kept()).toHaveLength(5);
+  });
+
+  it('tells which categories of Commons say that a file is not a flag that flies', async () => {
+    const data = PLAIN();
+    world.files['Flag of Uno.svg'].categories = ['Flags of the province of Uno', 'Historical flags of provinces of Spain', 'SVG flags with an aspect ratio of 3:2'];
+    world.files['Flag of Dos.svg'].categories = ['SVG proposed flags of provinces of Spain', 'Proposals for municipality flags of East Timor 2009', 'Special or fictional flags'];
+    world.files['Flag of Tres.svg'].categories = ['Flags of former municipalities of Latvia', 'Flags of Luanda (before 1975)', 'Luanda in the 20th century'];
+    // Old and still flown, of what was once another country, unofficial: none of that says it does not fly.
+    world.files['Flag of Cuatro.svg'].categories = ['Flags introduced in 1964', 'Flags of states of the German Confederation', 'SVG flags of states of the Confederate States', 'Unofficial flags of regions of France', 'Flags with historical themes'];
+    const r = await run('flags-regions', data);
+    const { files } = r.data();
+    expect(files['Flag of Uno.svg'].marks).toEqual(['Historical flags of provinces of Spain']);
+    expect(files['Flag of Dos.svg'].marks).toEqual(['Proposals for municipality flags of East Timor 2009', 'SVG proposed flags of provinces of Spain', 'Special or fictional flags']);
+    expect(files['Flag of Tres.svg'].marks).toEqual(['Flags of Luanda (before 1975)', 'Flags of former municipalities of Latvia']);
+    expect(files['Flag of Cuatro.svg'].marks).toBeUndefined();
+    // What a file is, is told; whether it goes in the game, is decided where the flags are made. It is brought all the same.
+    expect(r.kept()).toHaveLength(4);
+    expect(asked.filter((q) => q.startsWith('api ') && q.includes('prop=categories')).every((q) => q.includes('clshow=%21hidden'))).toBe(true);
+  });
+
+  it('reads the categories that Commons gives in more than one piece', async () => {
+    const data = PLAIN();
+    world.atOnce = 2;
+    world.files['Flag of Cuatro.svg'].categories = ['Flags of Cuatro', 'SVG flags', 'Red flags', 'Historical flags of Cuatro'];
+    world.files['Flag of Dos.svg'].categories = ['Flags of Dos', 'Proposed flags of Dos'];
+    world.files['Flag of Uno.svg'].categories = ['Flags of Uno'];
+    const r = await run('flags-regions', data);
+    const { files } = r.data();
+    expect(files['Flag of Cuatro.svg'].marks).toEqual(['Historical flags of Cuatro']);
+    expect(files['Flag of Dos.svg'].marks).toEqual(['Proposed flags of Dos']);
+    expect(files['Flag of Uno.svg'].marks).toBeUndefined();
+    expect(asked.filter((q) => q.startsWith('api ') && q.includes('prop=categories'))).toHaveLength(4);
+    expect(r.source().detail?.undone).toEqual([]);
+  });
+
   it('brings the picture Wikimedia draws of an original that is too heavy', async () => {
     const data = PLAIN();
     world.files['Flag of Uno.svg'] = { body: svg('Uno'), bytes: 3_000_000 };
@@ -729,6 +796,17 @@ describe('when a place does not answer', () => {
     const r = await run('flags-regions', data);
     expect(r.data().files['Flag of Uno.png'].kept).toBe(at('a photograph of Uno', 'png'));
     expect(r.source().detail?.undone).toEqual(['los dibujos de las banderas que son fotografías (HTTP 500 Internal Server Error)']);
+  });
+
+  it('keeps the flags when it cannot read their categories, and says so', async () => {
+    const data = PLAIN();
+    world.files['Flag of Uno.svg'].categories = ['Historical flags of Uno'];
+    refusals = [{ when: (q) => q.startsWith('api ') && q.includes('prop=categories'), status: 500, times: 99 }];
+    const r = await run('flags-regions', data);
+    expect(r.code).toBe(0);
+    expect(r.data().files['Flag of Uno.svg'].marks).toBeUndefined();
+    expect(r.kept()).toHaveLength(4);
+    expect(r.source().detail?.undone).toEqual(['lo que las categorías de Commons dicen de cada bandera (HTTP 500 Internal Server Error)']);
   });
 
   it('leaves a file that cannot be downloaded with no place in the branch, says how many, and brings the others', async () => {
