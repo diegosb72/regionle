@@ -3,6 +3,13 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.40.0 — 23 de noviembre de 2026
+
+- Siete cifras más de los países: esperanza de vida, PIB por habitante, edad mediana, población urbana, hijos por mujer, costa y punto más alto.
+- Se eligen en «Cifra», en los juegos de cifras. Son de The World Factbook y cada una dice su año. El país que no tiene una cifra no entra en su partida.
+- Las cifras que se parecen mucho de un país a otro se miden por la diferencia: en la esperanza de vida, acertar es quedarse a menos de 2 años.
+- «¿Qué país?» da por bueno cualquier país con esa misma cifra, y «Los diez primeros», cualquiera de los que empatan al final de la lista.
+
 ## 1.39.1 — 23 de noviembre de 2026
 
 - Apuntes: si empiezas uno justo después de acertar a la primera, la partida ya no pasa sola a la siguiente pregunta mientras lo escribes.

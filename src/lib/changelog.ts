@@ -15,6 +15,22 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.40.0',
+    date: '2026-11-23',
+    es: [
+      'Siete cifras más de los países: esperanza de vida, PIB por habitante, edad mediana, población urbana, hijos por mujer, costa y punto más alto.',
+      'Se eligen en «Cifra», en los juegos de cifras. Son de The World Factbook y cada una dice su año. El país que no tiene una cifra no entra en su partida.',
+      'Las cifras que se parecen mucho de un país a otro se miden por la diferencia: en la esperanza de vida, acertar es quedarse a menos de 2 años.',
+      '«¿Qué país?» da por bueno cualquier país con esa misma cifra, y «Los diez primeros», cualquiera de los que empatan al final de la lista.',
+    ],
+    en: [
+      'Seven more figures of the countries: life expectancy, GDP per head, median age, urban population, children per woman, coast and highest point.',
+      'Choose them under “Figure”, in the number games. They come from The World Factbook and each says its year. A country without a figure sits that game out.',
+      'The figures that are much alike from one country to the next are judged by the difference: for life expectancy, right is within 2 years.',
+      '“Which country?” takes any country with that very figure, and “The top ten”, any of those that tie at the end of the list.',
+    ],
+  },
+  {
     version: '1.39.1',
     date: '2026-11-23',
     es: [
