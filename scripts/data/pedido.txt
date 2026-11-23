@@ -1,0 +1,11 @@
+# What GitHub is asked to bring from outside: names of the sources of scripts/data/outside.mjs, one to a
+# line (`npm run data:outside -- --list` says which there are). `reach` is the look at whether the places
+# that other data would come from answer.
+#
+# Changing this file in a branch and pushing it starts the workflow "Traer datos" on that branch, which
+# brings what is named here and keeps it in the branch `datos`. A line that starts with # is a note, so
+# changing the number of the request is enough to ask for the same again.
+#
+# Request 1
+wikidata-region-population
+reach
