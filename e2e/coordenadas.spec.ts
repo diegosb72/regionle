@@ -20,19 +20,27 @@ async function clickBy(page: Page, id: string): Promise<void> {
 /** The kilometres a verdict or a row speaks of. */
 const kmOf = (text: string | null): number => Number(/(\d[\d.]*) km/.exec(text ?? '')?.[1].replace('.', '') ?? NaN);
 
-/** Every degree written on the map lies inside it, and reads as a latitude or a longitude. */
+/**
+ * Every degree written on the map lies inside it, and reads as a latitude or a longitude. The names are
+ * written again a moment after the map has stopped moving, and until then they go wherever the map takes
+ * them: what is looked at is where they come to rest.
+ */
 async function expectGridNamed(page: Page): Promise<string[]> {
   await expect(gridNames(page).first()).toBeVisible();
-  const map = (await page.locator('.map-svg').boundingBox())!;
-  const names = await gridNames(page).evaluateAll((els) => els.map((el) => ({ text: el.textContent ?? '', box: el.getBoundingClientRect().toJSON() as { left: number; right: number; top: number; bottom: number } })));
-  for (const n of names) {
-    expect(n.text).toMatch(/^(0°|180°|\d+(,\d)?° [NSEO])$/);
-    expect(n.box.left, n.text).toBeGreaterThanOrEqual(map.x);
-    expect(n.box.right, n.text).toBeLessThanOrEqual(map.x + map.width);
-    expect(n.box.top, n.text).toBeGreaterThanOrEqual(map.y);
-    expect(n.box.bottom, n.text).toBeLessThanOrEqual(map.y + map.height);
-  }
-  return names.map((n) => n.text);
+  let texts: string[] = [];
+  await expect(async () => {
+    const map = (await page.locator('.map-svg').boundingBox())!;
+    const names = await gridNames(page).evaluateAll((els) => els.map((el) => ({ text: el.textContent ?? '', box: el.getBoundingClientRect().toJSON() as { left: number; right: number; top: number; bottom: number } })));
+    for (const n of names) {
+      expect(n.text).toMatch(/^(0°|180°|\d+(,\d)?° [NSEO])$/);
+      expect(n.box.left, n.text).toBeGreaterThanOrEqual(map.x);
+      expect(n.box.right, n.text).toBeLessThanOrEqual(map.x + map.width);
+      expect(n.box.top, n.text).toBeGreaterThanOrEqual(map.y);
+      expect(n.box.bottom, n.text).toBeLessThanOrEqual(map.y + map.height);
+    }
+    texts = names.map((n) => n.text);
+  }).toPass({ timeout: 10_000 });
+  return texts;
 }
 
 test.describe('the coordinates game', () => {
