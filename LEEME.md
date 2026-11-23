@@ -7,9 +7,9 @@ Qué se trae y de dónde lo dice `scripts/data/outside.mjs`, en la rama del jueg
 
 ## Última descarga: 2026-11-23
 
-Hecha con `arena/baec5cdd-regionle@36a3297`. Lo que no se pidió esta vez sigue en la rama `datos` como estaba.
+Hecha con `arena/baec5cdd-regionle@1c91f1f`. Lo que no se pidió esta vez sigue en la rama `datos` como estaba.
 
 | Archivo | Qué es | De dónde | Licencia | Resultado |
 | --- | --- | --- | --- | --- |
-| `flags/regions.json` | Banderas de las divisiones de los mapas | Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org) | La de cada archivo, que su entrada dice: dominio público o una licencia libre | 1023 kB · 2014 de 4647 tienen bandera; 2010 archivos: 687 descargados (62.634 kB, con 64 imágenes), 851 que ya estaban, 472 sin traer; sin mirar: 472 de 2010 archivos (HTTP 429 Your bot is making too many requests. Please reduce your request rate or contact bot-traffic@wikimedia.org (f263c81)) |
-| `flags/capitals.json` | Banderas de las capitales de los países | Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org) | La de cada archivo, que su entrada dice: dominio público o una licencia libre | 76 kB · 144 de 243 tienen bandera; 144 archivos: 8 descargados (494 kB, con 5 imágenes), 136 que ya estaban |
+| `flags/regions.json` | Banderas de las divisiones de los mapas | Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org) | La de cada archivo, que su entrada dice: dominio público o una licencia libre | 1057 kB · 2014 de 4647 tienen bandera; 2010 archivos: 469 descargados (60.811 kB, con 32 imágenes), 1541 que ya estaban |
+| `flags/capitals.json` | Banderas de las capitales de los países | Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org) | La de cada archivo, que su entrada dice: dominio público o una licencia libre | 76 kB · 144 de 243 tienen bandera; 144 archivos: 1 descargados (0,2 kB), 143 que ya estaban |
