@@ -6,10 +6,10 @@ import type { World } from '../lib/data';
 import { CHALLENGE_MODES, CHALLENGE_SECTIONS, decodeChallenge } from '../lib/challenge';
 import { describeMap } from '../lib/describe';
 import { L } from '../lib/i18n';
-import { MODES, MODE_NAME, SECTIONS } from '../lib/modes';
+import { MODES, MODE_NAME, SECTIONS, factName } from '../lib/modes';
 import { go } from '../lib/router';
 import { PATHS } from '../lib/routes';
-import { asksByFlag, turnsOutlines } from '../lib/rules';
+import { asksByFlag, factOf, turnsOutlines } from '../lib/rules';
 import { rulesOfGame, rulesText } from '../lib/ruleset';
 import { DEFAULT_OPTS, useStore } from '../lib/store';
 import { fmtTime, listed } from '../lib/text';
@@ -98,6 +98,8 @@ export function Duel({ code, world }: { code: string; world: World }) {
     asksByFlag(challenge.section, challenge.mode, { pinBy: challenge.opts.pinBy }) ? { plain: '', grey: L('banderas en gris', 'flags in grey'), blur: L('banderas desenfocadas', 'blurred flags') }[challenge.opts.flagLook ?? 'plain'] : '',
     rulesText(rulesOfGame({ mode: challenge.mode, opts: challenge.opts, challenge: { seed: challenge.seed } })),
   ].filter(Boolean);
+  /** What the game of the facts asks for in this challenge: its currencies, its languages… */
+  const fact = challenge.mode === 'fact' ? factOf(challenge.section, challenge.mode, challenge.opts) : null;
   const accept = () => {
     start({
       section: challenge.section,
@@ -127,7 +129,8 @@ export function Duel({ code, world }: { code: string; world: World }) {
         )}
         <strong>{describeMap({ section: challenge.section, countries: challenge.countries, levels: challenge.levels, cityPick: challenge.opts.cityPick, cityCount: challenge.opts.cityCount }, world)}</strong>
         <span>
-          {SECTIONS[challenge.section].name} · {MODE_NAME[challenge.mode]} · {length === 'all' ? L('todas las preguntas', 'every question') : L(`${length} preguntas`, `${length} questions`)}
+          {SECTIONS[challenge.section].name} · {MODE_NAME[challenge.mode]}
+          {fact ? ` · ${factName(fact).toLowerCase()}` : ''} · {length === 'all' ? L('todas las preguntas', 'every question') : L(`${length} preguntas`, `${length} questions`)}
           {challenge.opts.answer === 'type' ? ` · ${L('escribiendo', 'typing')}` : ''}
           {looks.map((look) => ` · ${look}`).join('')}
         </span>

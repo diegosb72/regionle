@@ -21,7 +21,7 @@ import { anyGhost, ghostable, useGhostCode } from '../lib/ghostLazy';
 import { halve, hintKinds, hintLabel, hintOf, isDigits, type Hint, type HintAsk, type HintKind } from '../lib/hints';
 import { L, nm } from '../lib/i18n';
 import { timesMixed } from '../lib/mix';
-import { MODE_NAME, formatName } from '../lib/modes';
+import { MODE_NAME, factName, formatName } from '../lib/modes';
 import { clockPaused, usePaused } from '../lib/pause';
 import { evenOf, factOf, formatOfGame } from '../lib/rules';
 import { clockText, customRules, recordName, rulesOfGame, rulesText } from '../lib/ruleset';
@@ -111,6 +111,12 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deck, pinBy, fact]);
+  /** Whether the map gives every question about something said of its countries four answers to choose from. */
+  const factPicks = useMemo(
+    () => game !== 'fact' || !fact || facts!.choosable(fact, usableFor('fact').map((it) => it.id)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [usableFor, game, fact],
+  );
   /** How a question asked in a given way is answered, and among what. */
   const waysOf = (m: QuizMode) => {
     /** Answered by clicking on the map. */
@@ -120,8 +126,9 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
      * Four options are no good where the wrong ones would be capitals named after their own region: there
      * the answer is typed, whatever the settings say.
      */
-    // Nor where the map has fewer than four different answers to something said of its countries.
-    const mustType = opts.answer !== 'type' && (m === 'capital' ? !cfg.challenge?.legacy && capitalsNeedTyping(usable) : m === 'fact' && new Set(usable.map(saidOf)).size < 4);
+    // Nor where the map does not give four different answers to something said of its countries: three that
+    // are wrong of each one asked.
+    const mustType = opts.answer !== 'type' && (m === 'capital' ? !cfg.challenge?.legacy && capitalsNeedTyping(usable) : m === 'fact' && !factPicks);
     return { clicky, usable, mustType, typed: !clicky && (opts.answer === 'type' || mustType) };
   };
 
@@ -207,6 +214,8 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   const spent = format === 'lives' && lives === 0;
   /** The name the marks of a map are kept under: that of the game, and what it asks where it is about one thing said of the countries. */
   const gameKey = game === 'fact' ? `fact-${fact}` : game;
+  /** …and what is said of it beside the name of its map, on the screen and in the list of the games played: "Europa · moneda". */
+  const about = game === 'fact' && fact ? ` · ${factName(fact).toLowerCase()}` : '';
   /** Best mark of this map in the paced formats: 'new' when just beaten, the old one otherwise. */
   const [mark, setMark] = useState<'new' | number | null>(null);
   /** A challenge with a date (lib/dated.ts): how its result has gone on record, once the game is over. */
@@ -427,7 +436,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   useEffect(() => {
     // A game of two is not one of the games of whoever keeps their progress here.
     if (!ended || !s.asked || duo) return;
-    const what = cfg.list ? `${deck.title} · ${cfg.list}` : deck.title;
+    const what = `${deck.title}${about}${cfg.list ? ` · ${cfg.list}` : ''}`;
     addSession({
       t: Date.now(),
       section: cfg.section,
@@ -563,7 +572,9 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
       setNote(L(`${other.name} está ${fem ? 'descartada' : 'descartado'}: busca entre ${fem ? 'las iluminadas' : 'los iluminados'}.`, `${other.name} is ruled out: look among the lit ones.`));
       return;
     }
-    wrong(`${L(`Eso es ${other.name}.`, `That is ${other.name}.`)}${mixed(id)}`, id);
+    // Where a domain or a dialling code is what is shown, that of the piece clicked is said with its name.
+    const its = fact && saidOf(other) ? ` (${saidOf(other)})` : '';
+    wrong(`${L(`Eso es ${other.name}${its}.`, `That is ${other.name}${its}.`)}${mixed(id)}`, id);
   };
 
   const onSubmit = (text: string) => {
@@ -732,7 +743,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
 
   const title = MODE_NAME[game];
   /** Under the name of the game, its map; or the challenge with a date that it is. */
-  const subtitle = datedName(cfg, deck, places) ?? deck.title;
+  const subtitle = datedName(cfg, deck, places) ?? `${deck.title}${about}`;
   const stage = (
     <>
       <MapView
@@ -900,7 +911,7 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
                 onPlain={() => onAgain({ only: cfg.only, list: cfg.list, ...NO_GHOST })}
               />
             )}
-            {rows.length > 0 && format === 'normal' && s.asked >= s.total && <ChallengeBox cfg={cfg} score={score} ms={ms} what={`${deck.title} · ${title}`} />}
+            {rows.length > 0 && format === 'normal' && s.asked >= s.total && <ChallengeBox cfg={cfg} score={score} ms={ms} what={`${deck.title} · ${title}${about}`} />}
           </Results>
         }
       />

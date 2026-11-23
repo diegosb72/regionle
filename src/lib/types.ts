@@ -187,6 +187,11 @@ export interface Facts {
   /** Whether what is said of another country is true of this one too: here it cannot be a wrong option. */
   holds(kind: FactKind, id: string, said: string): boolean;
   /**
+   * Whether these countries can be asked among four options: each one that is asked needs three different
+   * answers of the others that are not true of it as well. Where they are not there, the answer is typed.
+   */
+  choosable(kind: FactKind, ids: readonly string[]): boolean;
+  /**
    * Of these countries, the ones that can be asked: those that have the fact and, where the country is named
    * and the fact is asked for, do not give it away with their name (the French of France); where the fact is
    * `shown` and the country is to be found, those that do not share it with another of them.

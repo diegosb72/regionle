@@ -317,6 +317,42 @@ describe('what cannot be a wrong option', () => {
   });
 });
 
+describe('a map that gives four options to choose from', () => {
+  it('is the world, for each of the four things and in both languages', () => {
+    for (const lang of ['es', 'en'] as const) {
+      setLang(lang);
+      for (const kind of FACT_KINDS) expect(facts.choosable(kind, un), `${lang} ${kind}`).toBe(true);
+    }
+    expect(facts.choosable('language', europe)).toBe(true);
+    expect(facts.choosable('currency', europe)).toBe(true);
+  });
+
+  it('is not one with fewer than four different answers', () => {
+    // English, English and Spanish; the euro five times over.
+    expect(facts.choosable('language', ['US', 'CA', 'MX'])).toBe(false);
+    expect(facts.choosable('currency', ['ES', 'FR', 'DE', 'IT', 'PT'])).toBe(false);
+    expect(facts.choosable('domain', ['ES', 'FR', 'DE'])).toBe(false);
+    expect(facts.choosable('domain', ['ES', 'FR', 'DE', 'IT'])).toBe(true);
+    expect(facts.choosable('dial', ['ES', 'FR', 'DE', 'IT'])).toBe(true);
+    // Canada and the United States share their code: three different ones among four countries.
+    expect(facts.choosable('dial', ['US', 'CA', 'MX', 'DE'])).toBe(false);
+    expect(facts.choosable('language', [])).toBe(false);
+  });
+
+  it('is not one whose four answers leave fewer than three that are wrong of a country asked', () => {
+    // Arabic, French, Spanish and Portuguese: but French is spoken in Algeria, and cannot be offered as wrong of it.
+    const maghreb = ['DZ', 'MA', 'TN', 'FR', 'ES', 'PT'];
+    expect(new Set(maghreb.map((id) => facts.said('language', id))).size).toBe(4);
+    expect(facts.asked('language', maghreb)).toEqual(['DZ', 'MA', 'TN']);
+    expect(facts.choosable('language', maghreb)).toBe(false);
+    // With Italian there are three again.
+    expect(facts.choosable('language', [...maghreb, 'IT'])).toBe(true);
+    // The dollar is the other currency of Panama: against it there are only the peso and the colón.
+    expect(facts.choosable('currency', ['PA', 'US', 'MX', 'CR'])).toBe(false);
+    expect(facts.choosable('currency', ['PA', 'US', 'MX', 'CR', 'GT'])).toBe(true);
+  });
+});
+
 describe('what is typed for a fact', () => {
   const all = () => countries.filter((c) => c.cl !== 'other').map((c) => c.id);
   const right = (kind: (typeof FACT_KINDS)[number], id: string, text: string) => facts.check(kind, id, text, all()).right;

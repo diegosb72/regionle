@@ -73,6 +73,7 @@ const typedAs = (kind: FactKind, text: string): string => (kind === 'domain' ? t
 
 class Book implements Facts {
   private matchers: Partial<Record<FactKind, Matcher>> = {};
+  private held = new Map<string, Set<string>>();
 
   constructor(
     private file: FactsFile,
@@ -112,14 +113,39 @@ class Book implements Facts {
     return listed(this.shown(kind, id), L('y', 'and'));
   }
 
+  /**
+   * Every name by which a currency or a language is true of a country, as names are compared: in either
+   * language, since whoever types "som" for the "sum" of Uzbekistan is right, and so the "som" of Kyrgyzstan
+   * cannot stand beside it as a wrong answer. The languages include those that are official in part of the
+   * country and those many of its people speak.
+   */
+  private names(kind: 'currency' | 'language', id: string): Set<string> {
+    const key = `${kind}:${id}`;
+    let set = this.held.get(key);
+    if (!set) {
+      const rec = this.file.c[id];
+      const codes = kind === 'currency' ? (rec?.m ?? []) : [...(rec?.l ?? []), ...(rec?.r ?? []), ...(rec?.s ?? [])];
+      const all = kind === 'currency' ? this.file.m : this.file.l;
+      set = new Set(codes.flatMap((code) => (all[code] ?? []).map(norm)));
+      this.held.set(key, set);
+    }
+    return set;
+  }
+
   holds(kind: FactKind, id: string, said: string): boolean {
     if (kind === 'domain' || kind === 'dial') return this.shown(kind, id).includes(said);
-    const rec = this.file.c[id];
-    const codes = kind === 'currency' ? (rec?.m ?? []) : [...(rec?.l ?? []), ...(rec?.r ?? []), ...(rec?.s ?? [])];
-    // By any of its names, in either language: whoever types "som" for the "sum" of Uzbekistan is right, so the
-    // "som" of Kyrgyzstan cannot stand beside it as a wrong answer.
-    const text = norm(said);
-    return codes.some((code) => (kind === 'currency' ? this.file.m : this.file.l)[code]?.some((name) => norm(name) === text));
+    return this.names(kind, id).has(norm(said));
+  }
+
+  choosable(kind: FactKind, ids: readonly string[]): boolean {
+    const answers = [...new Set(ids.map((id) => this.said(kind, id)).filter(Boolean))];
+    if (answers.length < 4) return false;
+    // Three of them have to be wrong of each country that is asked: what is true of it too is no option.
+    return this.asked(kind, ids).every((id) => {
+      let wrong = 0;
+      for (const said of answers) if (!this.holds(kind, id, said) && ++wrong >= 3) return true;
+      return false;
+    });
   }
 
   asked(kind: FactKind, ids: readonly string[], shown = false): string[] {
