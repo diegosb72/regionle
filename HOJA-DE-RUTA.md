@@ -18,8 +18,8 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 
 - **Corto**: nada pendiente
 - **Medio**: nada pendiente
-- **Largo**: 44 (francés), 68, 83, 90
-- **Depende de conseguir datos**, lleve lo que lleve: 32, 37–39, 41–43, 95, y lo que falta del 29 y del 35
+- **Largo**: 44 (francés), 68, 83, 90, y los juegos del apartado Banderas (112c)
+- **Depende de conseguir datos**, lleve lo que lleve: 32, 38, 39, 41–43, 95, la segunda tanda de banderas (112b), y lo que falta del 29, del 35 y del 37
 
 De dónde saldrían esos datos, mirado el 22 de noviembre de 2026. Donde se hace el juego solo se alcanzan
 GitHub, npm y PyPI; lo demás lo trae el flujo «Traer datos» (véase «Datos de fuera» en el README), que está
@@ -27,7 +27,8 @@ puesto desde el 23 de noviembre y deja lo que trae en la rama `datos`:
 
 - **Con fuentes que ya se alcanzan**: 32 (The World Factbook, del que el juego saca desde la 1.40.0 siete cifras de cada país: en esas mismas páginas está el año de independencia), 42 (Natural Earth trae husos horarios, aeropuertos y puertos; las placas, el modelo de Bird de 2003, con atribución) y 95 (el nombre local de los países está en The World Factbook, y el de muchas regiones, en Natural Earth)
 - **Con una decisión de licencia**: 41 (los mapas históricos que hay en GitHub son GPL-3.0)
-- **Con el flujo «Traer datos»**: el 43 (Wikidata, CC0), lo que falta del 35 (Wikidata), 37 (Wikidata y Wikimedia Commons: cada bandera tiene su autor y su licencia; la de Texas es de dominio público y la de Andalucía pide atribución y compartir igual), 38 y 39 (geoBoundaries: Kenia es de dominio público y Sudán del Sur pide atribución; Ghana y Marruecos vienen de OpenStreetMap y piden además compartir igual). Para las comarcas del 39 no hay fuente todavía. Lo que falta del 29 ya no puede salir de Wikidata, que es de donde viene lo que hay desde la 1.39.0: hace falta otra fuente de población por región para los 106 países que quedan (GeoNames, cuyas descargas contestan desde el flujo, tiene cifras de las divisiones de primer nivel; sin comprobar)
+- **Con el flujo «Traer datos»**: el 43 (Wikidata, CC0), lo que falta del 35 (Wikidata), 38 y 39 (geoBoundaries: Kenia es de dominio público y Sudán del Sur pide atribución; Ghana y Marruecos vienen de OpenStreetMap y piden además compartir igual). Para las comarcas del 39 no hay fuente todavía. Lo que falta del 29 ya no puede salir de Wikidata, que es de donde viene lo que hay desde la 1.39.0: hace falta otra fuente de población por región para los 106 países que quedan (GeoNames, cuyas descargas contestan desde el flujo, tiene cifras de las divisiones de primer nivel; sin comprobar)
+- **Ya traído con ese flujo**: el 37 y la primera tanda del 112 (Wikidata y Wikimedia Commons), en la 1.42.0: 1995 banderas de divisiones y 138 de capitales, cada una con su autor y su licencia (la de Texas es de dominio público; la de Andalucía pide atribución y compartir igual). Lo que falta del 37 ya no sale de Wikidata: son las divisiones de las que no tiene bandera (China, Turquía, Irlanda, 18 estados de México, casi todo Portugal y la India), y habría que buscarlas una a una en Commons y darlas a mano en `scripts/data/flags-hand.json`
 
 ## Modos de juego en el mapa
 
@@ -72,7 +73,7 @@ puesto desde el 23 de noviembre y deja lo que trae en la rama `datos`:
 - [x] 34. Física de cualquier país: el mapa de un país con lo que le toca de los mapas de los continentes (57 países; 63 desde la 1.11.0) — **1.10.0**
 - [~] 35. Más accidentes: picos que faltan, cabos, penínsulas, cataratas, longitud de los ríos (**datos**) — los cabos y las mesetas y llanuras de España, en **1.10.0**; los cabos, las mesetas y llanuras y las penínsulas del mundo, y las cuatro cataratas que trae la fuente, en **1.11.0**; faltan los picos y las cataratas que la fuente no trae y la longitud de los ríos
 - [x] 36. Continentes y océanos: los seis continentes y los cinco océanos en el mapa del mundo, con su superficie; donde no se preguntan mares, cada mar responde por su océano — **1.11.0**
-- [ ] 37. Banderas de regiones (**datos**)
+- [~] 37. Banderas de regiones (**datos**) — en **1.42.0**, las de 1995 divisiones de 120 países, que están completas en 48 (Estados Unidos, Japón, Alemania, Rusia, Brasil, Argentina, Canadá, Suiza…) y a medias en el resto (España: las 19 comunidades y 43 de 52 provincias): se ven en la galería del apartado Banderas (112). Faltan las que Wikidata no tiene y los juegos con ellas (112c)
 - [ ] 38. Mapas al día: Kenia, Ghana, Marruecos, Sudán del Sur (**datos**)
 - [ ] 39. Más países a varios niveles y comarcas (**datos**)
 - [x] 40. Más atajos de selección — **1.7.0** (catorce más, en «Más atajos»)
@@ -83,6 +84,10 @@ puesto desde el 23 de noviembre y deja lo que trae en la rama `datos`:
   - [ ] 44a. Que el juego admita un tercer idioma: el selector de la cabecera, fechas y cifras, y unos textos que solo se descargan al elegirlo (hoy van los dos idiomas juntos en cada frase, unas 2.000)
   - [ ] 44b. Los textos del juego en francés
   - [ ] 44c. Los nombres en francés de países, regiones, ciudades y accidentes, y que se acepten al escribir (**datos**: Natural Earth y GeoNames)
+- [~] 112. Apartado «Banderas» (pedido el 23 de noviembre de 2026): una sexta sección con las banderas del mundo y sus juegos. Las banderas se instalan primero, por tandas, y cada tanda sale con su galería; los juegos, después. Por expreso deseo del dueño, todas las que se pueda van como dibujo (SVG): lo son 1686 de los 2059 archivos de la primera tanda, y el resto son fotografías, dibujos con letras o dibujos que aun limpios pesan más de 750 kB
+  - [x] 112a. La galería (`#/banderas`: países, regiones y capitales, con buscador y con el autor y la licencia de cada archivo) y la primera tanda: las banderas de las regiones (37) y las de 138 capitales — **1.42.0**
+  - [ ] 112b. Segunda tanda: países que ya no existen y banderas antiguas, organizaciones, pueblos y señales (unas 500, casi todas a mano) (**datos**)
+  - [ ] 112c. Los juegos, en cinco niveles: ¿De dónde es?, Elige la bandera, Parecidas, Poco a poco, Parejas, Escalada, Banderle, La falsa, Familias, El intruso, Antes y ahora, ¿De qué país es esta región?, Señalar por bandera y Colorea (La falsa y Colorea, solo con las que son dibujo)
 
 ## Reto del día y retos
 
