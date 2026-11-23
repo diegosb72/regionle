@@ -1,6 +1,7 @@
 // Downloads the pinned source datasets into .cache/src (git-ignored).
 //
 //   npm run data:fetch
+//   npm run data:fetch -- factbook     only the files with that in their name
 //
 // Sources
 //   · Natural Earth cultural and physical vectors, 1:10m and 1:50m (public domain)
@@ -12,7 +13,8 @@
 //       https://github.com/rOpenSpain/mapSpain/tree/sianedata @ 3652863
 //   · The World Factbook (CIA, public domain) as factbook.json keeps it (CC0): the surface of each ocean
 //     and of each continent, which are figures that no outline on a map gives, and the seas that each
-//     ocean's figure counts as its own
+//     ocean's figure counts as its own; and the page of each country (scripts/data/factbook-pages.mjs is
+//     the list), for the figures it gives of it
 //       https://github.com/factbook/factbook.json @ 144d697
 //   · Wikidata (CC0): how many people live in each division of the maps. Wikidata is not on GitHub: the
 //     workflow "Traer datos" of this repository asks it (scripts/data/outside.mjs) and keeps the answer in
@@ -29,6 +31,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { PAGES } from './factbook-pages.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const OUT = path.join(ROOT, '.cache/src');
@@ -72,6 +75,8 @@ const FILES = [
   { ...WFB, file: 'world/xx.json', as: 'factbook-world.json', sha: 'b39e033c35e78768f1e09e26d9c7394c52238535' },
   // The people of each division (scripts/data/population.mjs).
   { ...OUTSIDE, file: 'wikidata/region-population.json', as: 'wikidata-region-population.json', sha: 'ffc738167dd3f24413fd636391709a5889b15602' },
+  // What The World Factbook says of each country (scripts/data/figures.mjs), each page under the code the book has for it.
+  ...Object.values(PAGES).flatMap((pages) => pages.map(([file, sha]) => ({ ...WFB, file, as: `factbook/${path.basename(file)}`, sha }))),
 ];
 
 function token() {
@@ -108,7 +113,11 @@ async function download(f, tok) {
 
 fs.mkdirSync(OUT, { recursive: true });
 const tok = token();
-for (const f of FILES) {
+/** What to fetch, when it is not everything: the files that have this in their name. */
+const only = process.argv[2];
+const wanted = only ? FILES.filter((f) => (f.as ?? f.file).includes(only)) : FILES;
+if (!wanted.length) throw new Error(`No source is called anything like "${only}"`);
+for (const f of wanted) {
   const name = f.as ?? f.file;
   const dest = path.join(OUT, name);
   if (fs.existsSync(dest) && blobSha(fs.readFileSync(dest)) === f.sha) {
@@ -119,7 +128,8 @@ for (const f of FILES) {
   const buf = await download(f, tok);
   const got = blobSha(buf);
   if (got !== f.sha) throw new Error(`Checksum mismatch for ${name}: expected ${f.sha}, got ${got}`);
+  fs.mkdirSync(path.dirname(dest), { recursive: true });
   fs.writeFileSync(dest, buf);
   console.log(`${(buf.length / 1e6).toFixed(1)} MB`);
 }
-console.log('Sources ready in .cache/src');
+console.log(only ? `${wanted.length} of the ${FILES.length} sources ready in .cache/src` : 'Sources ready in .cache/src');

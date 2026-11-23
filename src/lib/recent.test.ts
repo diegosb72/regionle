@@ -112,6 +112,29 @@ describe('what is kept of a game to play it again', () => {
     expect(odd?.o).toEqual({});
   });
 
+  it('keeps which figure of The World Factbook a game was about, and starts it again about that one', () => {
+    const of = (metric: typeof DEFAULT_OPTS.metric, mode: GameConfig['mode'] = 'hilo') => recentOf(game({ section: 'pops', mode, countries: ['ES', 'FR'], opts: { ...DEFAULT_OPTS, metric } }), session({ section: 'pops', mode }))!;
+    expect(of('life').o).toEqual({ metric: 'life' });
+    expect(of('coast', 'topten').o).toEqual({ metric: 'coast' });
+    expect(of('gdp', 'exact').o).toEqual({ metric: 'gdp' });
+    // Each figure is another game: ten of them, on the same countries.
+    const figures = ['pop', 'area', 'density', 'life', 'gdp', 'age', 'urban', 'fert', 'coast', 'high'] as const;
+    expect(new Set(figures.map((f) => recentKey(of(f)))).size).toBe(figures.length);
+    expect(recentKey(of('life'))).toBe(recentKey(of('life')));
+    expect(recentKey(of('life'))).not.toBe(recentKey(of('life', 'topten')));
+    // Started again, it is about the same figure, whatever is chosen now.
+    for (const f of figures) expect(recentConfig(of(f), { ...DEFAULT_OPTS, metric: 'area' }).opts.metric, f).toBe(f);
+    // The games with no figure of their own take the one that is chosen.
+    const tf = recentOf(game({ section: 'pops', mode: 'truefalse', countries: ['ES', 'FR'], opts: { ...DEFAULT_OPTS, metric: 'life' } }), session({ section: 'pops', mode: 'truefalse' }))!;
+    expect(tf.o).toEqual({});
+    expect(recentConfig(tf, { ...DEFAULT_OPTS, metric: 'fert' }).opts.metric).toBe('fert');
+    // And they are kept in a list of their own with the rest.
+    let list: Recent[] = [];
+    for (const [i, f] of figures.entries()) list = withRecent(list, { ...of(f), t: i });
+    expect(list.map((r) => r.o.metric)).toEqual(['high', 'coast', 'fert', 'urban', 'age', 'gdp']);
+    expect(list.every(isRecent)).toBe(true);
+  });
+
   it('keeps that a map of regions was played by its people, and says nothing when it was by its area', () => {
     const hilo = (regionFig: typeof DEFAULT_OPTS.regionFig) => recentOf(game({ mode: 'hilo', opts: { ...DEFAULT_OPTS, regionFig } }), session({ mode: 'hilo' }))!;
     expect(hilo('pop').o).toEqual({ regionFig: 'pop' });

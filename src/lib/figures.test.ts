@@ -1,10 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { TOP_MIN, challenger, comparable, countryFigs, countryValue, dealFive, deckFigs, figPlayable, figureOf, fullOf, metricOf, metricsIn, peopled, positionFigs, regionFigOf, tooClose, topOf, topSize, type Fig, type MetricId } from './figures';
+import type { BookFile } from './book';
+import { BOOK_FIGS, TOP_MIN, challenger, comparable, countryFigs, countryValue, dealFive, deckFigs, figPlayable, figureOf, fullOf, hintRange, judgeFigure, metricOf, metricsIn, peopled, positionFigs, regionFigOf, tooClose, topOf, topSize, type Fig, type MetricId } from './figures';
 import { setLang } from './i18n';
 import { mulberry32 } from './text';
 import type { Country, Deck, Index, Item } from './types';
+import { KM_PER_MILE, setUnits } from './units';
 
 const index = JSON.parse(fs.readFileSync(path.join(__dirname, '../../public/data/index.json'), 'utf8')) as Index;
 const byId = new Map(index.countries.map((c) => [c.id, c]));
@@ -17,7 +19,12 @@ const fig = (id: string, value: number, metric: MetricId = 'pop'): Fig => ({ id,
 const asItem = (c: Country): Item => item({ id: c.id, kind: 'country' });
 const asAnswers = (c: Country) => ({ name: c.n.es, answers: [c.n.es], proper: [] }) as unknown as Fig['answers'];
 
-beforeEach(() => setLang('es'));
+const book = JSON.parse(fs.readFileSync(path.join(__dirname, '../../public/data/figures.json'), 'utf8')) as BookFile;
+
+beforeEach(() => {
+  setLang('es');
+  setUnits('km');
+});
 
 describe('the figures and how they are said', () => {
   it('names each one in the language of the interface', () => {
@@ -88,6 +95,366 @@ describe('the figures of the countries', () => {
   it('carry the flag and the name of each country', () => {
     const [f] = countryFigs([country('PT')], 'area', asItem, asAnswers);
     expect(f).toMatchObject({ id: 'PT', name: 'Portugal', fl: country('PT').fl, type: 'país', metric: 'area', value: country('PT').ar });
+  });
+});
+
+describe('the figures of The World Factbook and how they are said', () => {
+  it('writes each one in its unit', () => {
+    expect(metricOf('life').full(83.4)).toBe('83,4 años');
+    expect(metricOf('life').short(83)).toBe('83 años');
+    expect(metricOf('life').full(1)).toBe('1 año');
+    expect(metricOf('age').full(47.2)).toBe('47,2 años');
+    expect(metricOf('gdp').full(48_400)).toBe('48.400 $');
+    expect(metricOf('gdp').short(800)).toBe('800 $');
+    expect(metricOf('urban').full(81.6)).toBe('81,6 %');
+    expect(metricOf('urban').short(100)).toBe('100 %');
+    expect(metricOf('fert').full(1.32)).toBe('1,32 hijos por mujer');
+    expect(metricOf('fert').short(1.32)).toBe('1,32');
+    expect(metricOf('coast').full(54_716)).toBe('54.716 km de costa');
+    expect(metricOf('coast').short(54_716)).toBe('54.716 km');
+    // A short coast has its decimal; a long one would only pretend to.
+    expect(metricOf('coast').full(4.1)).toBe('4,1 km de costa');
+    expect(metricOf('coast').full(99.94)).toBe('99,9 km de costa');
+    expect(metricOf('coast').full(100.4)).toBe('100 km de costa');
+    expect(metricOf('high').full(3718)).toBe('3718 m');
+    expect(metricOf('high').short(12_345)).toBe('12.345 m');
+    setLang('en');
+    expect(metricOf('life').full(83.4)).toBe('83.4 years');
+    expect(metricOf('life').full(1)).toBe('1 year');
+    expect(metricOf('gdp').full(48_400)).toBe('$48,400');
+    expect(metricOf('urban').full(81.6)).toBe('81.6%');
+    expect(metricOf('fert').full(1.32)).toBe('1.32 children per woman');
+    expect(metricOf('coast').full(54_716)).toBe('54,716 km of coast');
+    expect(metricOf('high').full(3718)).toBe('3,718 m');
+  });
+
+  it('says a coast in miles to whoever counts in miles, and keeps it in kilometres', () => {
+    setUnits('mi');
+    const coast = metricOf('coast');
+    expect(coast.full(4964)).toBe('3084 mi de costa');
+    expect(coast.short(100 * KM_PER_MILE)).toBe('100 mi');
+    // Under a hundred miles, with its decimal.
+    expect(coast.full(160)).toBe('99,4 mi de costa');
+    expect(coast.units).toEqual([
+      { label: 'mi', factor: KM_PER_MILE },
+      { label: 'miles de mi', factor: 1000 * KM_PER_MILE },
+    ]);
+    expect(coast.defaultUnit).toBe(KM_PER_MILE);
+    expect(coast.per).toBe(KM_PER_MILE);
+    // A summit is in metres whatever the distances are told in.
+    expect(metricOf('high').full(3718)).toBe('3718 m');
+    setUnits('km');
+    expect(metricOf('coast').units.map((u) => u.label)).toEqual(['km', 'miles de km']);
+    expect(metricOf('coast').per).toBe(1);
+  });
+
+  it('asks about each in its own words', () => {
+    const said = (id: MetricId) => {
+      const m = metricOf(id);
+      return [m.ask, m.more, m.less, m.exactAsk, m.up, m.down, m.order];
+    };
+    expect(said('life')).toEqual(['¿Más o menos esperanza de vida?', 'Más esperanza de vida', 'Menos esperanza de vida', '¿Cuál es su esperanza de vida?', 'busca más esperanza de vida', 'busca menos esperanza de vida', 'de mayor a menor esperanza de vida']);
+    expect(said('gdp')).toEqual(['¿Más o menos PIB por habitante?', 'Más PIB por habitante', 'Menos PIB por habitante', '¿Cuál es su PIB por habitante?', 'busca más PIB por habitante', 'busca menos PIB por habitante', 'de mayor a menor PIB por habitante']);
+    expect(said('age')).toEqual(['¿Mayor o menor edad mediana?', 'Mayor edad mediana', 'Menor edad mediana', '¿Cuál es su edad mediana?', 'busca una edad mediana mayor', 'busca una edad mediana menor', 'de mayor a menor edad mediana']);
+    expect(said('urban')).toEqual(['¿Más o menos población urbana?', 'Más población urbana', 'Menos población urbana', '¿Qué parte de su población vive en ciudades?', 'busca más población urbana', 'busca menos población urbana', 'de más a menos población urbana']);
+    expect(said('fert')).toEqual(['¿Más o menos hijos por mujer?', 'Más hijos por mujer', 'Menos hijos por mujer', '¿Cuántos hijos tiene una mujer, de media?', 'busca más hijos por mujer', 'busca menos hijos por mujer', 'de más a menos hijos por mujer']);
+    expect(said('coast')).toEqual(['¿Más o menos costa?', 'Más costa', 'Menos costa', '¿Cuánto mide su costa?', 'busca más costa', 'busca menos costa', 'de más a menos costa']);
+    expect(said('high')).toEqual(['¿Llega más alto o más bajo?', 'Más alto', 'Más bajo', '¿A qué altitud está su punto más alto?', 'busca uno que llegue más alto', 'busca uno que llegue más bajo', 'de mayor a menor altitud máxima']);
+    expect(metricOf('urban').compare('Mónaco', 'Singapur')).toBe('¿En Mónaco vive en ciudades una parte mayor o menor de la población que en Singapur?');
+    expect(metricOf('age').compare('Japón', 'Níger')).toBe('¿La edad mediana de Japón es mayor o menor que la de Níger?');
+    expect(metricOf('high').compare('Nepal', 'Suiza')).toBe('¿Nepal llega más alto o más bajo que Suiza?');
+    setLang('en');
+    expect(said('life')).toEqual(['A longer or a shorter life expectancy?', 'Longer life expectancy', 'Shorter life expectancy', 'What is its life expectancy?', 'look for a longer life expectancy', 'look for a shorter life expectancy', 'from longest to shortest life expectancy']);
+    expect(said('age')).toEqual(['A higher or a lower median age?', 'Higher median age', 'Lower median age', 'What is its median age?', 'look for a higher median age', 'look for a lower median age', 'from highest to lowest median age']);
+    expect(metricOf('fert').compare('Niger', 'Japan')).toBe('Do women have more or fewer children in Niger than in Japan?');
+    // No question of the seven is the question of another.
+    for (const lang of ['es', 'en'] as const) {
+      setLang(lang);
+      for (const at of [0, 1, 2, 3, 4, 5, 6]) expect(new Set(BOOK_FIGS.map((id) => said(id)[at])).size, `${lang} ${at}`).toBe(BOOK_FIGS.length);
+    }
+  });
+
+  it('says which of them take «este»: only what each person makes', () => {
+    expect(BOOK_FIGS.filter((id) => metricOf(id).masc)).toEqual(['gdp']);
+    expect((['pop', 'area', 'density', 'elev'] as const).filter((id) => metricOf(id).masc)).toEqual([]);
+  });
+
+  it('is typed in the unit of each: what each person makes, in thousands of dollars or one by one', () => {
+    expect(metricOf('gdp').units).toEqual([
+      { label: '$', factor: 1 },
+      { label: 'miles de $', factor: 1000 },
+    ]);
+    expect(metricOf('gdp').defaultUnit).toBe(1000);
+    expect(metricOf('life').units).toEqual([{ label: 'años', factor: 1 }]);
+    expect(metricOf('urban').units).toEqual([{ label: '%', factor: 1 }]);
+    expect(metricOf('fert').units).toEqual([{ label: 'hijos por mujer', factor: 1 }]);
+    expect(metricOf('high').units).toEqual([{ label: 'm', factor: 1 }]);
+    // The unit a game starts with is one of those it offers.
+    for (const id of BOOK_FIGS) expect(metricOf(id).units.map((u) => u.factor), id).toContain(metricOf(id).defaultUnit);
+  });
+
+  it('judges by how much, and not by what share, the four that lie close together from one country to the next', () => {
+    const near = (id: MetricId) => {
+      const n = metricOf(id).near;
+      return n ? [n.ok, n.close, n.band] : null;
+    };
+    expect(near('life')).toEqual([2, 5, 10]);
+    expect(near('age')).toEqual([2, 5, 10]);
+    expect(near('urban')).toEqual([5, 15, 20]);
+    expect(near('fert')).toEqual([0.2, 0.5, 1]);
+    for (const id of ['gdp', 'coast', 'high', 'pop', 'area', 'density', 'elev'] as const) expect(near(id), id).toBeNull();
+    for (const id of ['life', 'age', 'urban', 'fert'] as const) {
+      const n = metricOf(id).near!;
+      expect(n.ok, id).toBeLessThan(n.close);
+      expect(n.close, id).toBeLessThanOrEqual(n.band);
+    }
+    // A tenth of the years people live, or of their age, would be far wider: nearly any guess would be right.
+    for (const id of ['life', 'age'] as const) {
+      const values = Object.values(book.c).map((rec) => rec[id]).filter((v): v is number => v != null);
+      const middle = [...values].sort((a, b) => a - b)[values.length >> 1];
+      expect(metricOf(id).near!.ok * 1.5, id).toBeLessThan(middle * 0.1);
+    }
+    // And a tenth of a small share, or of few children, would be next to nothing: under a point of the people
+    // of the least urban country, and under a tenth of a child where women have fewest.
+    const least = (id: 'urban' | 'fert') => Math.min(...Object.values(book.c).map((rec) => rec[id]).filter((v): v is number => v != null));
+    expect(least('urban') * 0.1).toBeLessThan(1);
+    expect(least('fert') * 0.1).toBeLessThan(0.1);
+  });
+
+  it('says a range and a difference of those four', () => {
+    expect(metricOf('life').near!.span(80, 90)).toBe('80 y 90 años');
+    expect(metricOf('age').near!.span(40, 50)).toBe('40 y 50 años');
+    expect(metricOf('urban').near!.span(80, 100)).toBe('el 80 y el 100 %');
+    expect(metricOf('fert').near!.span(1, 2)).toBe('1 y 2 hijos por mujer');
+    expect(metricOf('life').near!.gap(2)).toBe('2 años');
+    expect(metricOf('life').near!.gap(1)).toBe('1 año');
+    expect(metricOf('life').near!.gap(15.2)).toBe('15,2 años');
+    expect(metricOf('urban').near!.gap(5)).toBe('5 puntos');
+    expect(metricOf('urban').near!.gap(1)).toBe('1 punto');
+    expect(metricOf('urban').near!.gap(12.4)).toBe('12,4 puntos');
+    expect(metricOf('fert').near!.gap(0.2)).toBe('0,2 hijos');
+    expect(metricOf('fert').near!.gap(1)).toBe('1 hijo');
+    setLang('en');
+    expect(metricOf('life').near!.span(80, 90)).toBe('80 and 90 years');
+    expect(metricOf('urban').near!.span(80, 100)).toBe('80 and 100%');
+    expect(metricOf('fert').near!.span(1, 2)).toBe('1 and 2 children per woman');
+    expect(metricOf('life').near!.gap(1)).toBe('1 year');
+    expect(metricOf('urban').near!.gap(5)).toBe('5 points');
+    expect(metricOf('urban').near!.gap(1)).toBe('1 point');
+    expect(metricOf('fert').near!.gap(0.5)).toBe('0.5 children');
+    expect(metricOf('fert').near!.gap(1)).toBe('1 child');
+  });
+});
+
+describe('the figures of the countries that come from The World Factbook', () => {
+  const made: BookFile = { y: { life: 2024, gdp: 2024 }, c: { ES: { life: 83, gdp: 48400, coast: 4964 }, KR: { life: 83.4, gdp: 50000, y: { gdp: 2023 } }, CH: { life: 83.9, gdp: 82000 } } };
+  const three = [country('ES'), country('KR'), country('CH')];
+
+  it('are read from the book, each with the year it is of', () => {
+    expect(countryFigs(three, 'life', asItem, asAnswers, made).map((f) => [f.id, f.value, f.year])).toEqual([
+      ['ES', 83, 2024],
+      ['KR', 83.4, 2024],
+      ['CH', 83.9, 2024],
+    ]);
+    // The year of a country that has the figure of another one is its own.
+    expect(countryFigs(three, 'gdp', asItem, asAnswers, made).map((f) => [f.id, f.value, f.year])).toEqual([
+      ['ES', 48400, 2024],
+      ['KR', 50000, 2023],
+      ['CH', 82000, 2024],
+    ]);
+    const [es] = countryFigs(three, 'gdp', asItem, asAnswers, made);
+    expect(es).toMatchObject({ id: 'ES', name: 'España', fl: country('ES').fl, type: 'país', metric: 'gdp' });
+    expect(fullOf(es)).toBe('48.400 $ (2024)');
+  });
+
+  it('leave out the countries the book does not give the figure of', () => {
+    // Only one of the three has a sea.
+    const coast = countryFigs(three, 'coast', asItem, asAnswers, made);
+    expect(coast.map((f) => f.id)).toEqual(['ES']);
+    // A coast is of no year, and says none.
+    expect(coast[0]).not.toHaveProperty('year');
+    expect(fullOf(coast[0])).toBe('4964 km de costa');
+    expect(countryFigs(three, 'high', asItem, asAnswers, made)).toEqual([]);
+    expect(countryFigs([country('FR')], 'life', asItem, asAnswers, made)).toEqual([]);
+  });
+
+  it('are none until the book has come', () => {
+    expect(countryFigs(three, 'life', asItem, asAnswers)).toEqual([]);
+    expect(countryFigs(three, 'life', asItem, asAnswers, null)).toEqual([]);
+  });
+
+  it('are not looked for in the book when the figure is one the countries carry', () => {
+    const none: BookFile = { y: {}, c: {} };
+    expect(countryFigs(three, 'pop', asItem, asAnswers, none).map((f) => f.value)).toEqual(three.map((c) => c.pop));
+    expect(countryFigs(three, 'pop', asItem, asAnswers, made)[0]).not.toHaveProperty('year');
+    expect(countryFigs(three, 'area', asItem, asAnswers).map((f) => f.value)).toEqual(three.map((c) => c.ar));
+  });
+
+  it('put the well known ones where they belong, with the figures the game has', () => {
+    const members = index.countries.filter((c) => c.cl === 'un');
+    const first = (id: MetricId, n: number) => topOf(countryFigs(members, id, asItem, asAnswers, book), n).map((f) => f.id);
+    expect(first('life', 3)).toEqual(['MC', 'SG', 'JP']);
+    expect(first('gdp', 3)).toEqual(['SG', 'LU', 'IE']);
+    expect(first('age', 3)).toEqual(['MC', 'JP', 'AD']);
+    expect(first('fert', 3)).toEqual(['NE', 'SO', 'AO']);
+    expect(first('coast', 4)).toEqual(['CA', 'ID', 'RU', 'PH']);
+    expect(first('high', 4)).toEqual(['CN', 'NP', 'PK', 'IN']);
+    // No member has a figure of nothing, and the ones without a sea are not in the list of coasts.
+    expect(countryFigs(members, 'coast', asItem, asAnswers, book)).toHaveLength(150);
+    expect(countryFigs(members, 'high', asItem, asAnswers, book)).toHaveLength(193);
+  });
+});
+
+describe('judging a guess at a figure', () => {
+  it('goes by the share the guess is off, for most figures: a tenth is right and three tenths is close', () => {
+    const gdp = metricOf('gdp');
+    expect(judgeFigure(53_000, 48_400, gdp)).toMatchObject({ res: 'ok', off: 4600 });
+    expect(judgeFigure(53_240, 48_400, gdp).res).toBe('ok');
+    expect(judgeFigure(53_300, 48_400, gdp).res).toBe('warn');
+    expect(judgeFigure(60_000, 48_400, gdp).res).toBe('warn');
+    expect(judgeFigure(70_000, 48_400, gdp).res).toBe('bad');
+    expect(judgeFigure(30_000, 48_400, gdp)).toMatchObject({ res: 'bad', off: -18_400 });
+    expect(judgeFigure(30_000, 48_400, gdp).error).toBeCloseTo(-0.38, 2);
+    // A figure with no rule of its own is judged the same way.
+    expect(judgeFigure(105, 100, {}).res).toBe('ok');
+    expect(judgeFigure(125, 100, {}).res).toBe('warn');
+    expect(judgeFigure(131, 100, {}).res).toBe('bad');
+  });
+
+  it('goes by how much the guess is off, for the figures that lie close together', () => {
+    const life = metricOf('life');
+    // Seventy years for Japan is a miss, though it is less than a fifth off.
+    expect(judgeFigure(70, 85.2, life).res).toBe('bad');
+    expect(judgeFigure(70, 85.2, life).off).toBeCloseTo(-15.2);
+    expect(judgeFigure(70, 85.2, life).error).toBeCloseTo(-0.178, 3);
+    expect([81, 83, 85].map((g) => judgeFigure(g, 83, life).res)).toEqual(['ok', 'ok', 'ok']);
+    expect([78, 80.9, 85.1, 88].map((g) => judgeFigure(g, 83, life).res)).toEqual(['warn', 'warn', 'warn', 'warn']);
+    expect([77.9, 88.1, 40, 120].map((g) => judgeFigure(g, 83, life).res)).toEqual(['bad', 'bad', 'bad', 'bad']);
+    const urban = metricOf('urban');
+    expect([55, 60, 65].map((g) => judgeFigure(g, 60, urban).res)).toEqual(['ok', 'ok', 'ok']);
+    expect([45, 54, 66, 75].map((g) => judgeFigure(g, 60, urban).res)).toEqual(['warn', 'warn', 'warn', 'warn']);
+    expect([44, 76].map((g) => judgeFigure(g, 60, urban).res)).toEqual(['bad', 'bad']);
+    // A small share is not judged any more kindly: nine in a hundred for six is half as much again, and close.
+    expect(judgeFigure(9, 6, urban).res).toBe('ok');
+    expect(judgeFigure(20, 6, urban).res).toBe('warn');
+  });
+
+  it('takes a guess on the very edge, however the numbers are kept', () => {
+    const fert = metricOf('fert');
+    // As numbers are kept, 1,6 − 1,4 is a hair more than 0,2, and 2,22 − 1,72 a hair more than 0,5.
+    expect(1.6 - 1.4).toBeGreaterThan(0.2);
+    expect(judgeFigure(1.4, 1.6, fert).res).toBe('ok');
+    expect(judgeFigure(1.8, 1.6, fert).res).toBe('ok');
+    expect(2.22 - 1.72).toBeGreaterThan(0.5);
+    expect(judgeFigure(2.22, 1.72, fert).res).toBe('warn');
+    expect(judgeFigure(1.22, 1.72, fert).res).toBe('warn');
+    // One hundredth further is further.
+    expect(judgeFigure(1.39, 1.6, fert).res).toBe('warn');
+    expect(judgeFigure(1.81, 1.6, fert).res).toBe('warn');
+    expect(judgeFigure(2.23, 1.72, fert).res).toBe('bad');
+    expect(judgeFigure(1.21, 1.72, fert).res).toBe('bad');
+    // The years of Angola, too: 64,9 − 62,9 is a hair more than 2.
+    expect(64.9 - 62.9).toBeGreaterThan(2);
+    expect(judgeFigure(64.9, 62.9, metricOf('life')).res).toBe('ok');
+    expect(judgeFigure(67.9, 62.9, metricOf('life')).res).toBe('warn');
+    expect(judgeFigure(68, 62.9, metricOf('life')).res).toBe('bad');
+  });
+
+  it('calls right whatever is as far as it says is right, and close whatever is as far as it says is close, of every figure the game has', () => {
+    /** The decimals each figure is given with, and so the ones a guess on the edge is typed with. */
+    const DECIMALS = { life: 1, age: 1, urban: 1, fert: 2 } as const;
+    for (const id of ['life', 'age', 'urban', 'fert'] as const) {
+      const m = metricOf(id);
+      const typed = (v: number) => Number(v.toFixed(DECIMALS[id]));
+      for (const rec of Object.values(book.c)) {
+        const real = rec[id];
+        if (real == null) continue;
+        for (const way of [1, -1]) {
+          const right = typed(real + way * m.near!.ok);
+          const close = typed(real + way * m.near!.close);
+          if (right > 0) expect(judgeFigure(right, real, m).res, `${id}: ${right} for ${real}`).toBe('ok');
+          if (close > 0) expect(judgeFigure(close, real, m).res, `${id}: ${close} for ${real}`).toBe('warn');
+        }
+      }
+    }
+  });
+
+  it('takes no guess of nothing, nor one below it', () => {
+    for (const m of [metricOf('life'), metricOf('gdp')]) {
+      expect(judgeFigure(0, 83, m)).toEqual({ res: 'bad', error: -1, off: -83 });
+      expect(judgeFigure(-5, 83, m)).toEqual({ res: 'bad', error: -1, off: -83 });
+      expect(judgeFigure(Number.NaN, 83, m).res).toBe('bad');
+      expect(judgeFigure(5, 0, m)).toEqual({ res: 'bad', error: 0, off: 0 });
+    }
+  });
+});
+
+describe('the range a hint gives for a figure', () => {
+  it('is one, two or five times a round figure, for most figures', () => {
+    const gdp = metricOf('gdp');
+    expect(hintRange(48_400, gdp)).toEqual([20_000, 50_000]);
+    expect(hintRange(132_600, gdp)).toEqual([100_000, 200_000]);
+    expect(hintRange(800, gdp)).toEqual([500, 1000]);
+    expect(hintRange(13_900, gdp)).toEqual([10_000, 20_000]);
+    expect(hintRange(4964, metricOf('coast'))).toEqual([2000, 5000]);
+    expect(hintRange(4.1, metricOf('coast'))).toEqual([2, 5]);
+    expect(hintRange(8849, metricOf('high'))).toEqual([5000, 10_000]);
+    // The figure is always inside its range.
+    for (const id of ['gdp', 'coast', 'high'] as const) {
+      for (const rec of Object.values(book.c)) {
+        const v = rec[id];
+        if (v == null) continue;
+        const [lo, hi] = hintRange(v, metricOf(id));
+        expect(lo <= v && v <= hi, `${id} ${v}: ${lo}–${hi}`).toBe(true);
+      }
+    }
+  });
+
+  it('is round in miles for a coast told in miles', () => {
+    setUnits('mi');
+    // 4964 km are 3084 miles: between two and five thousand of them.
+    const [lo, hi] = hintRange(4964, metricOf('coast'));
+    expect(lo / KM_PER_MILE).toBeCloseTo(2000);
+    expect(hi / KM_PER_MILE).toBeCloseTo(5000);
+    expect(metricOf('coast').short(lo)).toBe('2000 mi');
+  });
+
+  it('is a band of a fixed width for the figures that lie close together', () => {
+    const life = metricOf('life');
+    expect(hintRange(85.2, life)).toEqual([80, 90]);
+    expect(hintRange(54.4, life)).toEqual([50, 60]);
+    expect(hintRange(89.8, life)).toEqual([80, 90]);
+    expect(hintRange(47.2, metricOf('age'))).toEqual([40, 50]);
+    expect(hintRange(81.6, metricOf('urban'))).toEqual([80, 100]);
+    expect(hintRange(9.3, metricOf('urban'))).toEqual([0, 20]);
+    expect(hintRange(1.32, metricOf('fert'))).toEqual([1, 2]);
+    expect(hintRange(0.68, metricOf('fert'))).toEqual([0, 1]);
+    expect(hintRange(6.55, metricOf('fert'))).toEqual([6, 7]);
+  });
+
+  it('puts a figure on the edge of two bands in the lower one: all the people in towns is between 80 and 100 %', () => {
+    expect(hintRange(100, metricOf('urban'))).toEqual([80, 100]);
+    expect(hintRange(80, metricOf('urban'))).toEqual([60, 80]);
+    expect(hintRange(20, metricOf('urban'))).toEqual([0, 20]);
+    expect(hintRange(80, metricOf('life'))).toEqual([70, 80]);
+    expect(hintRange(2, metricOf('fert'))).toEqual([1, 2]);
+    expect(hintRange(1, metricOf('fert'))).toEqual([0, 1]);
+    // However the numbers are kept: 0,3 is three tenths, and no more.
+    expect(hintRange(0.1 + 0.2, { near: { ok: 0.01, close: 0.05, band: 0.1, span: () => '', gap: () => '' } })[1]).toBeCloseTo(0.3);
+  });
+
+  it('holds every figure the game has of those four', () => {
+    for (const id of ['life', 'age', 'urban', 'fert'] as const) {
+      const m = metricOf(id);
+      for (const rec of Object.values(book.c)) {
+        const v = rec[id];
+        if (v == null) continue;
+        const [lo, hi] = hintRange(v, m);
+        expect(lo < v && v <= hi, `${id} ${v}: ${lo}–${hi}`).toBe(true);
+        expect(hi - lo, id).toBeCloseTo(m.near!.band);
+        expect(lo, id).toBeGreaterThanOrEqual(0);
+      }
+    }
   });
 });
 
@@ -353,6 +720,65 @@ describe('higher or lower: who comes next', () => {
     const seen: Fig[][] = [];
     challenger([now, of('old', 1120, 2010), of('huge', 90_000, 2024)], now, 8, [], all(seen));
     expect(seen[0].map((f) => f.id)).toEqual(['huge']);
+  });
+
+  it('takes for far apart, in a list that lies close together, what is far in that list', () => {
+    // How long people live: nobody lives twice as long as anybody, nor 40 % longer than most.
+    const lives = [54.4, 60, 66, 72, 78, 83, 85.2, 89.8].map((v) => fig(`v${v}`, v, 'life'));
+    const far = Math.cbrt(89.8 / 54.4);
+    expect(far).toBeLessThan(1.4);
+    const offered = (current: Fig, streak: number, of: Fig[] = lives) => {
+      const seen: Fig[][] = [];
+      challenger(of, current, streak, [], all(seen));
+      return seen[0];
+    };
+    // From the middle, the two ends: what is 15 % away is not far there.
+    expect(offered(lives[3], 0).map((f) => f.value)).toEqual([54.4, 60, 85.2, 89.8]);
+    // Whatever is on show has something far from it, and something that is not.
+    for (const current of lives) {
+      const list = offered(current, 0);
+      expect(list.length, current.id).toBeGreaterThan(0);
+      expect(list.length, current.id).toBeLessThan(lives.length - 1);
+      for (const f of list) expect(Math.max(f.value / current.value, current.value / f.value), `${current.id} ${f.id}`).toBeGreaterThanOrEqual(far);
+    }
+    // With the figures the game has, too: every member of the United Nations by how long its people live.
+    const real = countryFigs(index.countries.filter((c) => c.cl === 'un'), 'life', asItem, asAnswers, { ...book, y: {} });
+    const least = Math.min(...real.map((f) => f.value));
+    const most = Math.max(...real.map((f) => f.value));
+    for (const current of real) {
+      const list = offered(current, 0, real);
+      expect(list.length, current.id).toBeGreaterThan(0);
+      expect(list.length, current.id).toBeLessThan(real.length - 1);
+      for (const f of list) expect(Math.max(f.value / current.value, current.value / f.value), `${current.id} ${f.id}`).toBeGreaterThanOrEqual(Math.cbrt(most / least));
+    }
+  });
+
+  it('never asks for more than 40 % of difference, however wide the list', () => {
+    const wide = [1, 10, 100, 1000, 1300, 1500].map((v) => fig(`v${v}`, v));
+    const seen: Fig[][] = [];
+    challenger(wide, wide[3], 0, [], all(seen));
+    // 1500 is half as much again, and far; 1300 is not.
+    expect(seen[0].map((f) => f.value)).toEqual([1, 10, 100, 1500]);
+  });
+
+  it('comes as close as the list allows when the streak is long', () => {
+    // Three that are within 2 % of each other: what is 1 % away is as near as it gets, and is offered.
+    const close = [100, 101, 102].map((v) => fig(`v${v}`, v));
+    const seen: Fig[][] = [];
+    challenger(close, close[0], 8, [], all(seen));
+    expect(seen[0].map((f) => f.value)).toEqual([101, 102]);
+    challenger(close, close[0], 0, [], all(seen));
+    expect(seen[1].map((f) => f.value)).toEqual([101, 102]);
+    challenger(close, close[0], 4, [], all(seen));
+    expect(seen[2].map((f) => f.value)).toEqual([101, 102]);
+  });
+
+  it('keeps to the 40 % where a figure can be nothing or less, as a position on the map', () => {
+    const lats = [-30, 10, 13, 20].map((v) => fig(`v${v}`, v, 'lat'));
+    const seen: Fig[][] = [];
+    challenger(lats, lats[1], 0, [], all(seen));
+    // 13 is 30 % more than 10 and not far; 20 is twice as much.
+    expect(seen[0].map((f) => f.value)).toEqual([20]);
   });
 });
 

@@ -179,7 +179,8 @@ test.describe('figures of more than countries', () => {
     await seed(page, { mode: { pops: 'hilo' } });
     await open(page, '/poblaciones');
     const figure = page.getByRole('radiogroup', { name: 'Cifra' });
-    await expect(figure.getByRole('radio')).toHaveText(['Población', 'Superficie', 'Densidad']);
+    // The three the countries carry themselves come first; the rest are in e2e/cifras-paises.spec.ts.
+    for (const [i, name] of ['Población', 'Superficie', 'Densidad'].entries()) await expect(figure.getByRole('radio').nth(i)).toHaveText(name);
     await figure.getByRole('radio', { name: 'Densidad' }).click();
     await page.getByRole('button', { name: 'Empezar' }).click();
     await expect(page.locator('.kicker').first()).toHaveText('¿Más o menos densidad de población?');

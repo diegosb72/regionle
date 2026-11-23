@@ -8,6 +8,7 @@ import { DAY_GOAL_DEFAULT, cleanDays, dailyWork, daysFrom, isDayGoal, studyStrea
 import type { CityPick } from './extra';
 import { GOALS_MAX, cleanGoals, goalWithout, sameGoal, withMark, type Goal } from './goals';
 import type { Lang } from './i18n';
+import type { CountryFig } from './metricNames';
 import { cleanMix, dropMix, withMix, type Mix } from './mix';
 import { cleanHand, dropHand, withHand, type Hand, type HandMap } from './handKept';
 import { cleanNotes, dropNotes, withNote, type Notes } from './notes';
@@ -82,8 +83,8 @@ export interface Opts {
   suggest: boolean;
   /** What "pin it" shows for countries. */
   pinBy: 'name' | 'capital' | 'flag';
-  /** The figure the number games of the countries are about. */
-  metric: 'pop' | 'area' | 'density';
+  /** The figure the number games of the countries are about: their people, their size, or one of those The World Factbook gives. */
+  metric: CountryFig;
   /**
    * The figure the number games of a map of regions are about: their area, as it always was, or their
    * people, where the data have them (lib/figures.ts). Kept apart from that of the countries, which are

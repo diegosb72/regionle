@@ -109,8 +109,15 @@ describe('the preferences of a backup', () => {
     // Every format a game can be played in is one a copy can bring, and nothing else is.
     for (const format of ['normal', 'timed', 'lives', 'exam', 'duo'] as const) expect(cleanPrefs({ opts: { format } }, here)!.opts.format).toBe(format);
     expect(cleanPrefs({ opts: { format: 'trio' } }, here)!.opts.format).toBe(DEFAULT_OPTS.format);
+    // The figure a game about countries is played by: the three the countries carry and the seven of the book.
+    for (const metric of ['pop', 'area', 'density', 'life', 'gdp', 'age', 'urban', 'fert', 'coast', 'high'] as const) expect(cleanPrefs({ opts: { metric } }, here)!.opts.metric).toBe(metric);
+    // A figure of something else, or of no kind, is not one: the game would have nothing to ask.
+    for (const metric of ['elev', 'lat', 'lon', 'wealth', '', 'LIFE', 7, null, ['life']]) expect(cleanPrefs({ opts: { metric } }, here)!.opts.metric, String(metric)).toBe(DEFAULT_OPTS.metric);
+    expect(cleanPrefs({ opts: {} }, here)!.opts.metric).toBe('pop');
     // The figure a map of regions is played by: its area, its people or how thickly they live.
     for (const regionFig of ['area', 'pop', 'density'] as const) expect(cleanPrefs({ opts: { regionFig } }, here)!.opts.regionFig).toBe(regionFig);
+    // The book has nothing about regions.
+    expect(cleanPrefs({ opts: { regionFig: 'life' } }, here)!.opts.regionFig).toBe('area');
     expect(cleanPrefs({ opts: { regionFig: 'elev' } }, here)!.opts.regionFig).toBe('area');
     expect(cleanPrefs({ opts: {} }, here)!.opts.regionFig).toBe('area');
     // What the pairs are made of and how many are dealt: only what the game knows how to deal.

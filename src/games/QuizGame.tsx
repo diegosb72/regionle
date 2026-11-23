@@ -257,7 +257,6 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
   const [note, setNote] = useState<string | null>(null);
   const [picked, setPicked] = useState<string | null>(null);
   const [shake, setShake] = useState(0);
-  const [clear, setClear] = useState(0);
   const [showMap, setShowMap] = useState(false);
   /** Pin hint: the only items still in play; the rest are dimmed. */
   const [narrow, setNarrow] = useState<Set<string> | null>(null);
@@ -355,7 +354,6 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
     setNote(null);
     setPicked(null);
     setShowMap(false);
-    setClear((n) => n + 1);
     setNarrow(null);
     setHelp(NO_HELP);
     // Naming what the map shows needs a close look; for a capital, knowing where the country is will do.
@@ -1117,7 +1115,9 @@ export function QuizGame({ deck, cfg, onExit, onAgain, places }: GameProps & { p
             onSubmit={onSubmit}
             suggest={suggest}
             shake={shake}
-            clear={clear}
+            // Emptied with the question itself, not by what tidies up after it: in an exam the field stays where it
+            // is from one question to the next, and what is typed at once is the answer to the new one.
+            clear={s.n}
           />
           {mustType && s.asked === 0 && s.tries === 0 && s.hints === 0 && (
             <p className="q-note">

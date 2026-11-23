@@ -3,15 +3,16 @@
  * country, a region, a lake or an island is, how high a peak stands, how far north or west a place lies.
  * Kept apart from the screens so that every game says them the same way.
  */
+import { bookValue, bookYear, type BookFile } from './book';
 import { L, getLang, nm } from './i18n';
-import { metricNoun, metricOrder, type MetricId } from './metricNames';
+import { BOOK_FIGS, isBookFig, metricNoun, metricOrder, type BookFig, type CountryFig, type MetricId } from './metricNames';
 import { REGION_FIGS, TOP_MIN, peopled, type RegionFig } from './rules';
-import { fmtArea, fmtPop, fmtShort, nf, pick, sample, type Answerable, type Rng } from './text';
-import { area, areaScale, areaUnit, getUnits } from './units';
+import { fmtArea, fmtDist, fmtPop, fmtShort, judgeAmount, nf, pick, sample, type Answerable, type Rng } from './text';
+import { KM_PER_MILE, area, areaScale, areaUnit, distUnit, getUnits } from './units';
 import type { Country, Deck, Item } from './types';
 
-export type { MetricId, RegionFig };
-export { REGION_FIGS, TOP_MIN, peopled };
+export type { BookFig, CountryFig, MetricId, RegionFig };
+export { BOOK_FIGS, REGION_FIGS, TOP_MIN, isBookFig, peopled };
 
 export interface Metric {
   id: MetricId;
@@ -41,6 +42,24 @@ export interface Metric {
    * square mile. A round figure is round in what is shown.
    */
   per?: number;
+  /** Its name takes "este" and not "esta": "este PIB por habitante". */
+  masc?: boolean;
+  /**
+   * For the figures that all lie close together (how long people live: from 54 to 90 years): a guess is not
+   * judged by the share it is off, which would make nearly any guess a good one, but by how much.
+   */
+  near?: Near;
+}
+
+export interface Near {
+  /** How far off a guess is still right, and how far it is still close. */
+  ok: number;
+  close: number;
+  /** The width of the range a hint gives, and how the range is said: "80 y 90 años", for "entre 80 y 90 años". */
+  band: number;
+  span(lo: number, hi: number): string;
+  /** How a difference is said: "2 años", "5 puntos". */
+  gap(d: number): string;
 }
 
 const one = (v: number) => nf(v, v < 10 ? 1 : 0);
@@ -168,6 +187,148 @@ function makeMetric(id: MetricId): Metric {
         defaultUnit: 1,
       };
     }
+    case 'life': {
+      return {
+        id,
+        noun: metricNoun(id),
+        full: yearsOld,
+        short: yearsOld,
+        more: L('Más esperanza de vida', 'Longer life expectancy'),
+        less: L('Menos esperanza de vida', 'Shorter life expectancy'),
+        ask: L('¿Más o menos esperanza de vida?', 'A longer or a shorter life expectancy?'),
+        compare: (b, a) => L(`¿${b} tiene más o menos esperanza de vida que ${a}?`, `Does ${b} have a longer or a shorter life expectancy than ${a}?`),
+        exactAsk: L('¿Cuál es su esperanza de vida?', 'What is its life expectancy?'),
+        up: L('busca más esperanza de vida', 'look for a longer life expectancy'),
+        down: L('busca menos esperanza de vida', 'look for a shorter life expectancy'),
+        order: metricOrder(id),
+        units: [{ label: L('años', 'years'), factor: 1 }],
+        defaultUnit: 1,
+        near: { ok: 2, close: 5, band: 10, span: (lo, hi) => `${nf(lo)} ${L('y', 'and')} ${yearsOld(hi)}`, gap: yearsOld },
+      };
+    }
+    case 'age': {
+      return {
+        id,
+        noun: metricNoun(id),
+        full: yearsOld,
+        short: yearsOld,
+        more: L('Mayor edad mediana', 'Higher median age'),
+        less: L('Menor edad mediana', 'Lower median age'),
+        ask: L('¿Mayor o menor edad mediana?', 'A higher or a lower median age?'),
+        compare: (b, a) => L(`¿La edad mediana de ${b} es mayor o menor que la de ${a}?`, `Is the median age of ${b} higher or lower than that of ${a}?`),
+        exactAsk: L('¿Cuál es su edad mediana?', 'What is its median age?'),
+        up: L('busca una edad mediana mayor', 'look for a higher median age'),
+        down: L('busca una edad mediana menor', 'look for a lower median age'),
+        order: metricOrder(id),
+        units: [{ label: L('años', 'years'), factor: 1 }],
+        defaultUnit: 1,
+        near: { ok: 2, close: 5, band: 10, span: (lo, hi) => `${nf(lo)} ${L('y', 'and')} ${yearsOld(hi)}`, gap: yearsOld },
+      };
+    }
+    case 'gdp': {
+      const money = (v: number) => L(`${nf(v)} $`, `$${nf(v)}`);
+      return {
+        id,
+        noun: metricNoun(id),
+        masc: true,
+        full: money,
+        short: money,
+        more: L('Más PIB por habitante', 'Higher GDP per head'),
+        less: L('Menos PIB por habitante', 'Lower GDP per head'),
+        ask: L('¿Más o menos PIB por habitante?', 'Higher or lower GDP per head?'),
+        compare: (b, a) => L(`¿${b} tiene más o menos PIB por habitante que ${a}?`, `Does ${b} have a higher or lower GDP per head than ${a}?`),
+        exactAsk: L('¿Cuál es su PIB por habitante?', 'What is its GDP per head?'),
+        up: L('busca más PIB por habitante', 'look for a higher GDP per head'),
+        down: L('busca menos PIB por habitante', 'look for a lower GDP per head'),
+        order: metricOrder(id),
+        units: [
+          { label: '$', factor: 1 },
+          { label: L('miles de $', 'thousand $'), factor: 1e3 },
+        ],
+        defaultUnit: 1e3,
+      };
+    }
+    case 'urban': {
+      const share = (v: number) => L(`${nf(v, 1)} %`, `${nf(v, 1)}%`);
+      return {
+        id,
+        noun: metricNoun(id),
+        full: share,
+        short: share,
+        more: L('Más población urbana', 'More urban'),
+        less: L('Menos población urbana', 'Less urban'),
+        ask: L('¿Más o menos población urbana?', 'More or less urban?'),
+        compare: (b, a) => L(`¿En ${b} vive en ciudades una parte mayor o menor de la población que en ${a}?`, `Does a larger or a smaller share of the people live in towns in ${b} than in ${a}?`),
+        exactAsk: L('¿Qué parte de su población vive en ciudades?', 'What share of its people live in towns?'),
+        up: L('busca más población urbana', 'look for a more urban one'),
+        down: L('busca menos población urbana', 'look for a less urban one'),
+        order: metricOrder(id),
+        units: [{ label: '%', factor: 1 }],
+        defaultUnit: 1,
+        near: { ok: 5, close: 15, band: 20, span: (lo, hi) => `${L(`el ${nf(lo)}`, nf(lo))} ${L('y el', 'and')} ${share(hi)}`, gap: (d) => `${nf(d, 1)} ${L(d === 1 ? 'punto' : 'puntos', d === 1 ? 'point' : 'points')}` },
+      };
+    }
+    case 'fert': {
+      const kids = (v: number) => `${nf(v, 2)} ${L('hijos por mujer', 'children per woman')}`;
+      return {
+        id,
+        noun: metricNoun(id),
+        full: kids,
+        short: (v) => nf(v, 2),
+        more: L('Más hijos por mujer', 'More children per woman'),
+        less: L('Menos hijos por mujer', 'Fewer children per woman'),
+        ask: L('¿Más o menos hijos por mujer?', 'More or fewer children per woman?'),
+        compare: (b, a) => L(`¿En ${b} las mujeres tienen más o menos hijos que en ${a}?`, `Do women have more or fewer children in ${b} than in ${a}?`),
+        exactAsk: L('¿Cuántos hijos tiene una mujer, de media?', 'How many children does a woman have, on average?'),
+        up: L('busca más hijos por mujer', 'look for more children per woman'),
+        down: L('busca menos hijos por mujer', 'look for fewer children per woman'),
+        order: metricOrder(id),
+        units: [{ label: L('hijos por mujer', 'children per woman'), factor: 1 }],
+        defaultUnit: 1,
+        near: { ok: 0.2, close: 0.5, band: 1, span: (lo, hi) => `${nf(lo)} ${L('y', 'and')} ${kids(hi)}`, gap: (d) => `${nf(d, 2)} ${L(d === 1 ? 'hijo' : 'hijos', d === 1 ? 'child' : 'children')}` },
+      };
+    }
+    case 'coast': {
+      // Kept in kilometres whatever it is typed in, like the surfaces.
+      const mile = getUnits() === 'mi' ? KM_PER_MILE : 1;
+      return {
+        id,
+        noun: metricNoun(id),
+        full: (v) => `${fmtDist(v, v < 100 * mile ? 1 : 0)} ${L('de costa', 'of coast')}`,
+        short: (v) => fmtDist(v, v < 100 * mile ? 1 : 0),
+        more: L('Más costa', 'Longer coast'),
+        less: L('Menos costa', 'Shorter coast'),
+        ask: L('¿Más o menos costa?', 'A longer or a shorter coast?'),
+        compare: (b, a) => L(`¿${b} tiene más o menos costa que ${a}?`, `Does ${b} have a longer or a shorter coast than ${a}?`),
+        exactAsk: L('¿Cuánto mide su costa?', 'How long is its coast?'),
+        up: L('busca más costa', 'look for a longer coast'),
+        down: L('busca menos costa', 'look for a shorter coast'),
+        order: metricOrder(id),
+        units: [
+          { label: distUnit(), factor: mile },
+          { label: L(`miles de ${distUnit()}`, `thousand ${distUnit()}`), factor: 1e3 * mile },
+        ],
+        defaultUnit: mile,
+        per: mile,
+      };
+    }
+    case 'high':
+      return {
+        id,
+        noun: metricNoun(id),
+        full: (v) => `${nf(v)} m`,
+        short: (v) => `${nf(v)} m`,
+        more: L('Más alto', 'Higher'),
+        less: L('Más bajo', 'Lower'),
+        ask: L('¿Llega más alto o más bajo?', 'Does it reach higher or lower?'),
+        compare: (b, a) => L(`¿${b} llega más alto o más bajo que ${a}?`, `Does ${b} reach higher or lower than ${a}?`),
+        exactAsk: L('¿A qué altitud está su punto más alto?', 'How high is its highest point?'),
+        up: L('busca uno que llegue más alto', 'look for one that reaches higher'),
+        down: L('busca uno que llegue más bajo', 'look for one that reaches lower'),
+        order: metricOrder(id),
+        units: [{ label: 'm', factor: 1 }],
+        defaultUnit: 1,
+      };
   }
 }
 
@@ -185,6 +346,45 @@ export function metricOf(id: MetricId): Metric {
 
 /** A figure in full, with the year it is of where that is told: "1,99 millones de habitantes (2024)". */
 export const fullOf = (f: Fig, m: Metric = metricOf(f.metric)): string => (f.year ? `${m.full(f.value)} (${f.year})` : m.full(f.value));
+
+/** "83,4 años" */
+function yearsOld(v: number): string {
+  return `${nf(v, 1)} ${L(v === 1 ? 'año' : 'años', v === 1 ? 'year' : 'years')}`;
+}
+
+/** How far off a guess that falls on the very edge may be, for the sake of how numbers are kept: 1,52 − 1,32 is not quite 0,2. */
+const EDGE = 1e-9;
+
+/**
+ * How a guess at a figure is judged. By the share it is off: within a tenth is right, within three tenths is
+ * close. Or, for the figures that all lie close together, by how much it is off (`near`): two years, five
+ * points. `error` is the share, `off` the difference, both with their sign.
+ */
+export function judgeFigure(guess: number, real: number, m: Pick<Metric, 'near'>): { res: 'ok' | 'warn' | 'bad'; error: number; off: number } {
+  const told = judgeAmount(guess, real);
+  if (!(real > 0) || !(guess > 0)) return { ...told, off: real > 0 ? -real : 0 };
+  const off = guess - real;
+  if (!m.near) return { ...told, off };
+  const by = Math.abs(off);
+  return { res: by <= m.near.ok + EDGE ? 'ok' : by <= m.near.close + EDGE ? 'warn' : 'bad', error: told.error, off };
+}
+
+/**
+ * The range a hint gives for a figure: round figures of what is shown (in square miles when that is how
+ * surfaces are told), one, two or five times a power of ten; or, for the figures that lie close together, a
+ * band of a fixed width: from 80 to 90 years. A figure on the edge of two bands goes with the lower one.
+ */
+export function hintRange(v: number, m: Pick<Metric, 'near' | 'per'>): [number, number] {
+  if (m.near) {
+    const lo = Math.max(0, Math.ceil(v / m.near.band - 1 - EDGE)) * m.near.band;
+    return [lo, lo + m.near.band];
+  }
+  const per = m.per ?? 1;
+  const n = v / per;
+  const lo = Math.pow(10, Math.floor(Math.log10(n)));
+  const step = n / lo < 2 ? [1, 2] : n / lo < 5 ? [2, 5] : [5, 10];
+  return [lo * step[0] * per, lo * step[1] * per];
+}
 
 /** One thing with a figure: a country and its population, a peak and its height. */
 export interface Fig {
@@ -224,13 +424,18 @@ export function countryValue(c: Country, metric: MetricId): number {
   }
 }
 
-/** The figures of a list of countries; the ones the data has no figure for are left out. */
-export function countryFigs(countries: readonly Country[], metric: MetricId, itemOf: (c: Country) => Item, answersOf: (c: Country) => Answerable): Fig[] {
+/**
+ * The figures of a list of countries; the ones the data has no figure for are left out. `book`: what The
+ * World Factbook says of the countries (lib/book.ts), for the figures that come from it: each of those says
+ * the year it is of, and without the book there is none of them.
+ */
+export function countryFigs(countries: readonly Country[], metric: MetricId, itemOf: (c: Country) => Item, answersOf: (c: Country) => Answerable, book?: BookFile | null): Fig[] {
   const type = L('país', 'country');
+  const fromBook = isBookFig(metric) ? metric : null;
   return countries
-    .map((c) => ({ c, value: countryValue(c, metric) }))
+    .map((c) => ({ c, value: fromBook ? bookValue(book, c.id, fromBook) : countryValue(c, metric), year: fromBook && book ? bookYear(book, c.id, fromBook) : undefined }))
     .filter(({ value }) => metric === 'lat' || metric === 'lon' || value > 0)
-    .map(({ c, value }) => ({ id: c.id, name: nm(c.n), fl: c.fl, type, value, metric, item: itemOf(c), answers: answersOf(c) }));
+    .map(({ c, value, year }) => ({ id: c.id, name: nm(c.n), fl: c.fl, type, value, metric, ...(year ? { year } : {}), item: itemOf(c), answers: answersOf(c) }));
 }
 
 /** The figure each kind of thing on a map is known by: people for a city, metres for a peak, km² for the rest. */
@@ -345,14 +550,22 @@ export const FIG_MIN = 2;
 /** Can a game be played with these? It takes two things that share their figure. */
 export const figPlayable = (figs: readonly Fig[]): boolean => comparable(figs).length >= FIG_MIN;
 
+/** How many times larger than the other one of two has to be to count as far apart, at the start of a streak. */
+const FAR = 1.4;
+
 /**
  * "Higher or lower": the next one to compare. Of the same figure, not seen lately, and closer in size the
- * longer the streak: far apart at first, nearly alike after eight in a row.
+ * longer the streak: far apart at first, nearly alike after eight in a row. Where the whole list lies close
+ * together (no country has twice the life expectancy of another), far apart is what is far for that list: a
+ * third of the way from its smallest to its largest, so that whatever is on show has something far from it.
  */
 export function challenger(list: readonly Fig[], current: Fig, streak: number, recent: readonly string[], choose: (l: readonly Fig[]) => Fig = pick): Fig {
   const same = list.filter((f) => f.metric === current.metric && f.id !== current.id);
   const base = current.value;
-  const [lo, hi] = streak < 3 ? [1.4, Infinity] : streak < 8 ? [1.12, 15] : [1.03, 4];
+  const sizes = [base, ...same.map((f) => f.value)];
+  const least = Math.min(...sizes);
+  const far = least > 0 ? Math.min(FAR, Math.cbrt(Math.max(...sizes) / least)) : FAR;
+  const [lo, hi] = streak < 3 ? [far, Infinity] : streak < 8 ? [Math.min(1.12, far), 15] : [Math.min(1.03, far), 4];
   // Counts of different years are not set against each other when the years alone could tell them apart.
   const apart = (f: Fig): boolean => (current.year == null && f.year == null) || !tooClose(current, f);
   const free = same.filter((f) => !recent.includes(f.id));

@@ -147,13 +147,13 @@ export const SCREENS: Record<ScreenId, Record<SeoLang, ScreenText>> = {
   poblaciones: {
     es: {
       file: 'cifras',
-      name: 'Población y superficie',
-      description: 'Juega con la población, la superficie y la densidad de los países: mayor o menor, ordena cinco, cifra exacta, los diez primeros y verdadero o falso.',
+      name: 'Los países en cifras',
+      description: 'Juega con diez cifras de los países, de la población y la superficie a la esperanza de vida o el PIB por habitante: mayor o menor, ordena cinco, cifra exacta…',
     },
     en: {
       file: 'figures',
-      name: 'Population and area',
-      description: 'Play with the population, area and density of countries: higher or lower, sort five, the exact figure, the top ten and true or false.',
+      name: 'Countries in figures',
+      description: 'Play with ten figures of the countries, from population and area to life expectancy or GDP per head: higher or lower, sort five, the exact figure, the top ten…',
     },
   },
   reto: {

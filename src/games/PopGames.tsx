@@ -8,12 +8,12 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AnswerInput, type Suggestion } from '../components/AnswerInput';
 import { MapView, type MapHandle, type Paint } from '../components/MapView';
 import { Flag, Seg } from '../components/ui';
-import { challenger, comparable, dealFive, fullOf, metricOf, metricsIn, type Fig, type Metric, type MetricId } from '../lib/figures';
+import { challenger, comparable, dealFive, fullOf, hintRange, judgeFigure, metricOf, metricsIn, type Fig, type Metric, type MetricId } from '../lib/figures';
 import { L } from '../lib/i18n';
 import { modeNameIn } from '../lib/modes';
 import { useStore, type GameConfig } from '../lib/store';
 import { Matcher, shortNote } from '../lib/matcher';
-import { cx, judgeAmount, listed, nf, parseNumber, pick, shuffle } from '../lib/text';
+import { cx, listed, nf, parseNumber, pick, shuffle } from '../lib/text';
 import type { Deck, Res } from '../lib/types';
 import { GameShell, Hud, Results, Verdict, useElapsed, type ResultRow } from './common';
 
@@ -357,18 +357,24 @@ function RankFive({ figs, cfg, what, deck, onExit }: FigProps) {
   );
 }
 
+/** Do two things have the very same figure? Then one is as good an answer as the other to "which one has it?". */
+const sameFig = (a: Fig, b: Fig): boolean => a.id === b.id || (a.metric === b.metric && a.value === b.value);
+
 // ---------------------------------------------------------------------------
 // Exact figure
 // ---------------------------------------------------------------------------
 
 function magnitudeHint(v: number, m: Metric): string {
-  // Round figures of what is shown: in square miles when that is how surfaces are told.
-  const per = m.per ?? 1;
-  const n = v / per;
-  const lo = Math.pow(10, Math.floor(Math.log10(n)));
-  const step = n / lo < 2 ? [1, 2] : n / lo < 5 ? [2, 5] : [5, 10];
-  return L(`Entre ${m.short(lo * step[0] * per)} y ${m.short(lo * step[1] * per)}.`, `Between ${m.short(lo * step[0] * per)} and ${m.short(lo * step[1] * per)}.`);
+  const [lo, hi] = hintRange(v, m);
+  if (m.near) return L(`Entre ${m.near.span(lo, hi)}.`, `Between ${m.near.span(lo, hi)}.`);
+  return L(`Entre ${m.short(lo)} y ${m.short(hi)}.`, `Between ${m.short(lo)} and ${m.short(hi)}.`);
 }
+
+/** How a guess is judged, said at the end of the game: by the share it is off, or by how much. */
+const judgedBy = (m: Metric): string =>
+  m.near
+    ? L(`Acierto: a menos de ${m.near.gap(m.near.ok)} de la cifra real. Cerca: a menos de ${m.near.gap(m.near.close)}.`, `Right: within ${m.near.gap(m.near.ok)} of the real figure. Close: within ${m.near.gap(m.near.close)}.`)
+    : L('Acierto: a menos de un 10 % de la cifra real. Cerca: a menos de un 30 %.', 'Right: within 10% of the real figure. Close: within 30%.');
 
 function Exact({ figs, cfg, what, onExit }: FigProps) {
   const title = modeNameIn(cfg.section, 'exact');
@@ -379,7 +385,7 @@ function Exact({ figs, cfg, what, onExit }: FigProps) {
   /** The unit chosen for each figure: a map of peaks and lakes asks in metres and in km². */
   const [units, setUnits] = useState<Partial<Record<MetricId, number>>>({});
   const [hinted, setHinted] = useState(false);
-  const [shown, setShown] = useState<{ res: Res; guess: number; error: number } | null>(null);
+  const [shown, setShown] = useState<{ res: Res; guess: number; error: number; off: number } | null>(null);
   const [rows, setRows] = useState<ResultRow[]>([]);
   const [ended, setEnded] = useState(false);
   const ms = useElapsed(!ended);
@@ -400,9 +406,9 @@ function Exact({ figs, cfg, what, onExit }: FigProps) {
 
   const submit = () => {
     if (guess == null || guess <= 0 || shown) return;
-    const j = judgeAmount(guess, real);
+    const j = judgeFigure(guess, real, m);
     const res: Res = j.res === 'ok' && hinted ? 'warn' : j.res;
-    setShown({ res, guess, error: j.error });
+    setShown({ res, guess, error: j.error, off: j.off });
     setRows((r) => [...r, { item: c.item, res, note: `${m.short(real)} · ${L('dijiste', 'you said')} ${m.short(guess)}` }]);
   };
 
@@ -420,7 +426,8 @@ function Exact({ figs, cfg, what, onExit }: FigProps) {
       <Frame title={title} figs={figs} what={what} onExit={onExit} hud={<Hud ms={ms} />}>
         <Results
           title={L('Partida terminada', 'Game over')}
-          note={L('Acierto: a menos de un 10 % de la cifra real. Cerca: a menos de un 30 %.', 'Right: within 10% of the real figure. Close: within 30%.')}
+          // The figures judged by how much a guess is off are of countries, and a game of countries has one figure.
+          note={judgedBy(metricOf(metricsIn(figs)[0]))}
           rows={rows}
           ms={ms}
           onAgain={() => {
@@ -438,7 +445,9 @@ function Exact({ figs, cfg, what, onExit }: FigProps) {
     );
   }
 
+  /** How far off the guess was: the share of the figure, or how much where that is how it is judged. */
   const pct = shown ? Math.round(Math.abs(shown.error) * 100) : 0;
+  const by = shown ? (m.near ? m.near.gap(Math.abs(shown.off)) : `${nf(pct)} %`) : '';
   return (
     <Frame
       title={title}
@@ -502,9 +511,13 @@ function Exact({ figs, cfg, what, onExit }: FigProps) {
             item={c.item}
             title={
               shown.res === 'bad' ? (
-                L(`Dijiste ${m.short(shown.guess)}: te has quedado ${shown.error < 0 ? 'corto' : 'largo'} un ${nf(pct)} %`, `You said ${m.short(shown.guess)}: ${nf(pct)}% too ${shown.error < 0 ? 'low' : 'high'}`)
+                m.near ? (
+                  L(`Dijiste ${m.short(shown.guess)}: te has quedado ${shown.error < 0 ? 'corto' : 'largo'} por ${by}`, `You said ${m.short(shown.guess)}: ${by} too ${shown.error < 0 ? 'low' : 'high'}`)
+                ) : (
+                  L(`Dijiste ${m.short(shown.guess)}: te has quedado ${shown.error < 0 ? 'corto' : 'largo'} un ${nf(pct)} %`, `You said ${m.short(shown.guess)}: ${nf(pct)}% too ${shown.error < 0 ? 'low' : 'high'}`)
+                )
               ) : (
-                `${shown.res === 'ok' ? L('¡Muy cerca!', 'Very close!') : L('Cerca.', 'Close.')} ${L('Dijiste', 'You said')} ${m.short(shown.guess)} (${shown.error < 0 ? '-' : '+'}${nf(pct)} %)`
+                `${shown.res === 'ok' ? L('¡Muy cerca!', 'Very close!') : L('Cerca.', 'Close.')} ${L('Dijiste', 'You said')} ${m.short(shown.guess)} (${shown.error < 0 ? '-' : '+'}${by})`
               )
             }
           />
@@ -579,9 +592,11 @@ function Which({ figs, cfg, what, onExit }: FigProps) {
     setGuesses(tried);
     setClear((n) => n + 1);
     setNote(null);
-    if (g.id === c.id) settle(tried.length === 1 ? 'ok' : 'warn', tried.length);
+    if (sameFig(g, c)) settle(tried.length === 1 ? 'ok' : 'warn', tried.length);
     else if (tried.length >= MAX_GUESSES) settle('bad', tried.length);
   };
+  /** What was typed that has the very figure asked about without being the one thought of: it is as right an answer. */
+  const twin = done && done !== 'bad' ? guesses.find((g) => g.id !== c.id && sameFig(g, c)) : undefined;
 
   const finish = (all = rows) => {
     const count = { ok: 0, warn: 0, bad: 0 };
@@ -635,7 +650,7 @@ function Which({ figs, cfg, what, onExit }: FigProps) {
       progress={Number.isFinite(total) ? rows.length / total : undefined}
       hud={<Hud ms={ms} progress={Number.isFinite(total) ? `${Math.min(rows.length + (done ? 0 : 1), total)} / ${total}` : `${rows.length + (done ? 0 : 1)}`} />}
     >
-      <p className="kicker center">{L(`¿Qué ${c.type} tiene esta ${m.noun}?`, `Which ${c.type} has this ${m.noun}?`)}</p>
+      <p className="kicker center">{L(`¿Qué ${c.type} tiene ${m.masc ? 'este' : 'esta'} ${m.noun}?`, `Which ${c.type} has this ${m.noun}?`)}</p>
       <p className="bigfig">{fullOf(c, m)}</p>
       {!done && (
         <>
@@ -656,7 +671,7 @@ function Which({ figs, cfg, what, onExit }: FigProps) {
         <ul className="which-log">
           {guesses.map((g) => {
             const v = g.value;
-            const hit = g.id === c.id;
+            const hit = sameFig(g, c);
             return (
               <li key={g.id} className={hit ? 'hit' : undefined}>
                 <Mark f={g} />
@@ -678,7 +693,18 @@ function Which({ figs, cfg, what, onExit }: FigProps) {
           })}
         </ul>
       )}
-      {done && <Verdict res={done} item={c.item} title={<>{done === 'bad' ? L('Era', 'It was') : done === 'ok' ? L('¡A la primera!', 'First time!') : L('Correcto:', 'Correct:')} <b>{c.name}</b></>} />}
+      {done && (
+        <Verdict
+          res={done}
+          item={(twin ?? c).item}
+          title={
+            <>
+              {done === 'bad' ? L('Era', 'It was') : done === 'ok' ? L('¡A la primera!', 'First time!') : L('Correcto:', 'Correct:')} <b>{(twin ?? c).name}</b>
+              {twin && L(`, que tiene la misma cifra que ${c.name}`, `, which has the same figure as ${c.name}`)}
+            </>
+          }
+        />
+      )}
       <div className="q-actions center">
         {done ? (
           <button type="button" className="btn btn-primary" onClick={next} autoFocus>

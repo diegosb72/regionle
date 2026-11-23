@@ -718,7 +718,12 @@ export function helpOf(mode: Mode, section: Section): ModeHelp | null {
             'Once you answer, you see the real figure and by what per cent you fell short or went over.',
           ),
         ],
-        score: L('Acierto, a menos de un 10 % de la cifra real; cerca, a menos de un 30 %.', 'Right, within 10% of the real figure; near, within 30%.'),
+        score: noMap
+          ? L(
+              'Acierto, a menos de un 10 % de la cifra real; cerca, a menos de un 30 %. Las cifras que se parecen mucho de un país a otro se miden por la diferencia: 2 y 5 años en la esperanza de vida y la edad mediana, 5 y 15 puntos en la población urbana, 0,2 y 0,5 hijos por mujer.',
+              'Right, within 10% of the real figure; near, within 30%. The figures that are much alike from one country to the next are judged by the difference: 2 and 5 years for life expectancy and median age, 5 and 15 points for urban population, 0.2 and 0.5 children per woman.',
+            )
+          : L('Acierto, a menos de un 10 % de la cifra real; cerca, a menos de un 30 %.', 'Right, within 10% of the real figure; near, within 30%.'),
         aid: L('«Pista» te da un intervalo en el que cae la cifra; con ella, un acierto cuenta como con ayuda.', '“Hint” gives you a range the figure falls in; with it, a right answer counts as with help.'),
         tip: L('No hace falta saberla de memoria: compara con otra que conozcas y ajusta a ojo.', 'You need not know it by heart: compare with one you do know and adjust by eye.'),
       };
@@ -730,8 +735,8 @@ export function helpOf(mode: Mode, section: Section): ModeHelp | null {
           L('Tienes seis intentos para dar con el dueño de la cifra.', 'You have six tries to find whose figure it is.'),
         ],
         score: L(
-          'Adivinarlo al primer intento cuenta como a la primera; con más intentos, como con ayuda; si se acaban los seis, queda para repasar.',
-          'Guessing it at the first try counts as first time; with more tries, as with help; if the six run out, it is left to review.',
+          'Adivinarlo al primer intento cuenta como a la primera; con más intentos, como con ayuda; si se acaban los seis, queda para repasar. Si das con otro que tiene justo esa cifra, también vale.',
+          'Guessing it at the first try counts as first time; with more tries, as with help; if the six run out, it is left to review. Another one that has that very figure is right too.',
         ),
         tip: L('Cada intento parte lo que queda en dos: prueba con uno que caiga por el medio.', 'Each try splits what is left in two: try one that falls about the middle.'),
       };
@@ -751,7 +756,10 @@ export function helpOf(mode: Mode, section: Section): ModeHelp | null {
             'A name that is not on the list is a miss, and the game tells you where it stands.',
           ),
         ],
-        score: L('Cuenta cuántos puestos rellenas. Con cinco fallos se acaba la partida.', 'What counts is how many places you fill. Five misses end the game.'),
+        score: L(
+          'Cuenta cuántos puestos rellenas. Con cinco fallos se acaba la partida. Si varios empatan al final de la lista, vale cualquiera de ellos.',
+          'What counts is how many places you fill. Five misses end the game. Where several tie at the end of the list, any of them will do.',
+        ),
         aid: L('«Me rindo» enseña los que faltaban.', '“I give up” shows the ones that were missing.'),
         tip: L(
           'Empieza por los seguros y deja los dudosos para cuando te queden fallos de sobra.',
