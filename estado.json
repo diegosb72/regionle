@@ -1,6 +1,6 @@
 {
-  "when": "2026-11-23T09:47:29.353Z",
-  "from": "arena/415ab419-regionle@abb824e",
+  "when": "2026-11-23T10:59:32.679Z",
+  "from": "main@f13f078",
   "workflow": "same",
   "sources": [
     {
@@ -12,26 +12,26 @@
       "es": "Población de las divisiones de los mapas",
       "needs": "29",
       "ok": true,
-      "bytes": 286813,
-      "blob": "ffc738167dd3f24413fd636391709a5889b15602",
-      "note": "3884 de 4477 divisiones tienen cifra (3747 por su identificador, 3 por uno que cambió, 3 por la entidad que la sustituyó, 64 por su código ISO, 67 por su nombre)",
+      "bytes": 286212,
+      "blob": "200d76168ee4832e4078ee1fcfca9f9f387aed9b",
+      "note": "3884 de 4477 divisiones tienen cifra (3762 por su identificador, 3 por uno que cambió, 3 por la entidad que la sustituyó, 52 por su código ISO, 64 por su nombre); 1 cuya entidad dice estar en otro país; sin mirar: las entidades que no parecen su división (HTTP 502 Bad Gateway)",
       "detail": {
         "divisions": 4477,
         "found": 3884,
         "by": {
-          "id": 3747,
+          "id": 3762,
           "redirect": 3,
           "successor": 3,
-          "code": 64,
-          "name": 67
+          "code": 52,
+          "name": 64
         },
-        "abroad": 0,
-        "doubted": 32,
+        "abroad": 1,
+        "doubted": 0,
         "proposed": {
           "redirect": 3,
           "successor": 7,
-          "code": 82,
-          "name": 203
+          "code": 67,
+          "name": 185
         },
         "refused": {
           "redirect": 0,
@@ -39,10 +39,12 @@
           "code": 6,
           "name": 64
         },
-        "undone": [],
+        "undone": [
+          "las entidades que no parecen su división (HTTP 502 Bad Gateway)"
+        ],
         "unnamed": []
       },
-      "ms": 343102
+      "ms": 474092
     }
   ],
   "reach": [
@@ -52,7 +54,7 @@
       "ok": true,
       "status": 200,
       "bytes": 235,
-      "ms": 73
+      "ms": 161
     },
     {
       "name": "Wikidata, fichas",
@@ -60,7 +62,7 @@
       "ok": true,
       "status": 200,
       "bytes": 3462,
-      "ms": 249
+      "ms": 97
     },
     {
       "name": "Wikimedia Commons, fichas de los archivos",
@@ -68,7 +70,7 @@
       "ok": true,
       "status": 200,
       "bytes": 620,
-      "ms": 15
+      "ms": 64
     },
     {
       "name": "Wikimedia Commons, archivos",
@@ -76,7 +78,7 @@
       "ok": true,
       "status": 200,
       "bytes": 594,
-      "ms": 16
+      "ms": 18
     },
     {
       "name": "geoBoundaries, fichas de los mapas",
@@ -84,7 +86,7 @@
       "ok": true,
       "status": 200,
       "bytes": 1710,
-      "ms": 211
+      "ms": 218
     },
     {
       "name": "geoBoundaries, archivos",
@@ -92,7 +94,7 @@
       "ok": true,
       "status": 200,
       "bytes": 1007,
-      "ms": 382
+      "ms": 275
     },
     {
       "name": "GeoNames, descargas",
@@ -100,7 +102,7 @@
       "ok": true,
       "status": 200,
       "bytes": 32112,
-      "ms": 496
+      "ms": 861
     }
   ]
 }
