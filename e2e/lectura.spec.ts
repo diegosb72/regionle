@@ -221,7 +221,7 @@ test.describe('the typeface for dyslexia', () => {
 test.describe('a larger letter on a phone', () => {
   test('fits the screen on every page, with everything turned on @movil', async ({ page }) => {
     await seed(page, { ...EVERYTHING, sel: { regions: ['ES'] } });
-    for (const route of ['/', '/regiones', '/fisica', '/cifras', '/reto', '/progreso', '/configuracion', '/acerca']) {
+    for (const route of ['/', '/regiones', '/fisica', '/cifras', '/banderas', '/banderas/regiones/ES', '/reto', '/progreso', '/configuracion', '/acerca']) {
       await open(page, route);
       await page.waitForFunction(() => document.fonts.check('16px "Lexend Variable"'));
       const wide = await page.evaluate(() => ({ page: document.documentElement.scrollWidth, screen: window.innerWidth }));
@@ -229,12 +229,12 @@ test.describe('a larger letter on a phone', () => {
     }
   });
 
-  test('shows the six links of the header, on as many rows as they need @movil', async ({ page }) => {
+  test('shows the seven links of the header, on as many rows as they need @movil', async ({ page }) => {
     await seed(page, EVERYTHING);
     await open(page);
     const links = page.locator('.nav a');
-    await expect(links).toHaveCount(6);
-    for (let i = 0; i < 6; i++) await expect(links.nth(i)).toBeInViewport({ ratio: 1 });
+    await expect(links).toHaveCount(7);
+    for (let i = 0; i < 7; i++) await expect(links.nth(i)).toBeInViewport({ ratio: 1 });
     const rows = new Set(await links.evaluateAll((all) => all.map((a) => Math.round(a.getBoundingClientRect().top))));
     expect(rows.size).toBeGreaterThan(1);
     // Several rows tall, the header goes away with the page instead of staying on top of it.
