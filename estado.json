@@ -1,6 +1,6 @@
 {
-  "when": "2026-11-23T19:30:26.097Z",
-  "from": "arena/baec5cdd-regionle@14653d2",
+  "when": "2026-11-23T19:44:26.231Z",
+  "from": "arena/baec5cdd-regionle@459f0ee",
   "workflow": "same",
   "sources": [
     {
@@ -13,15 +13,16 @@
       "es": "Banderas de las divisiones de los mapas",
       "needs": "37",
       "ok": true,
-      "bytes": 1057059,
-      "blob": "3f57eb20206e7036cd45b3484c97a3064f462123",
-      "note": "2014 de 4647 tienen bandera; 2010 archivos: 34 descargados (49.863 kB), 1976 que ya estaban",
+      "bytes": 1059611,
+      "blob": "8dfa3239fb446b93a13618e1d87c6645d58b9c9c",
+      "note": "2019 de 4647 tienen bandera; 2015 archivos: 5 descargados (1571 kB), 2010 que ya estaban",
       "detail": {
         "asked": 4647,
-        "found": 2014,
+        "found": 2019,
         "by": {
           "id": 1904,
           "code": 108,
+          "hand": 5,
           "redirect": 2
         },
         "doubted": {
@@ -29,28 +30,28 @@
           "tiny": 12
         },
         "files": {
-          "all": 2056,
+          "all": 2061,
           "missing": 1,
           "drawn": 46,
           "words": 37,
-          "wanted": 2010,
-          "brought": 34,
-          "there": 1976,
+          "wanted": 2015,
+          "brought": 5,
+          "there": 2010,
           "left": 0,
           "pictures": 0,
-          "bytes": 49862813
+          "bytes": 1570548
         },
         "kinds": {
-          "svg": 1743,
+          "svg": 1748,
           "png": 237,
           "gif": 60,
           "jpg": 16
         },
         "licences": {
-          "Public domain": 1226,
+          "Public domain": 1228,
           "CC BY-SA 4.0": 353,
-          "CC BY-SA 3.0": 332,
-          "CC0": 81,
+          "CC BY-SA 3.0": 334,
+          "CC0": 82,
           "CC BY-SA 2.5": 30,
           "CC BY 4.0": 13,
           "CC BY 3.0": 9,
@@ -66,7 +67,7 @@
         },
         "undone": []
       },
-      "ms": 117876
+      "ms": 87840
     },
     {
       "id": "flags-capitals",
@@ -124,7 +125,7 @@
         },
         "undone": []
       },
-      "ms": 4801
+      "ms": 5777
     }
   ],
   "reach": []
