@@ -17,7 +17,7 @@ import { RECENT_MAX, isRecent, recentConfig, recentOf, withLeft, withRecent, typ
 import { PACE_DEFAULT, REVIEW_MAX, isPace, isReviewSize, setReviewPrefs, type Pace } from './review';
 import { today } from './text';
 import { cleanTypeins, setTypeins as applyTypeins, type Typeins } from './typeinPrefs';
-import { USUAL_RULES, type PairOf, type PairSize, type RouteRule } from './rules';
+import { USUAL_RULES, type PairOf, type PairSize, type RegionFig, type RouteRule } from './rules';
 import type { Mode, Res, Section } from './types';
 import { setUnits } from './units';
 
@@ -84,6 +84,12 @@ export interface Opts {
   pinBy: 'name' | 'capital' | 'flag';
   /** The figure the number games of the countries are about. */
   metric: 'pop' | 'area' | 'density';
+  /**
+   * The figure the number games of a map of regions are about: their area, as it always was, or their
+   * people, where the data have them (lib/figures.ts). Kept apart from that of the countries, which are
+   * played by their people unless one says otherwise.
+   */
+  regionFig: RegionFig;
   /** Which way five places are put in order: from north to south, or from west to east. */
   axis: 'ns' | 'we';
   /** Seconds to fill the map in; 0 for no limit. */
@@ -241,6 +247,7 @@ export const DEFAULT_OPTS: Opts = {
   suggest: false,
   pinBy: 'name',
   metric: 'pop',
+  regionFig: 'area',
   axis: 'ns',
   countdown: 0,
   blind: false,

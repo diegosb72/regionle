@@ -27,7 +27,7 @@ puesto desde el 23 de noviembre y deja lo que trae en la rama `datos`:
 
 - **Con fuentes que ya se alcanzan**: 30 y 32 (The World Factbook, que ya es fuente del juego: esperanza de vida, costa, punto más alto, PIB por habitante… y el año de independencia), 31 (GeoNames, en el paquete `geonamescache`: moneda, prefijo, dominio e idiomas), 42 (Natural Earth trae husos horarios, aeropuertos y puertos; las placas, el modelo de Bird de 2003, con atribución) y 95 (el nombre local de los países está en The World Factbook, y el de muchas regiones, en Natural Earth)
 - **Con una decisión de licencia**: 41 (los mapas históricos que hay en GitHub son GPL-3.0)
-- **Con el flujo «Traer datos»**: lo que falta del 29 y el 43 (Wikidata, CC0), lo que falta del 35 (Wikidata), 37 (Wikidata y Wikimedia Commons: cada bandera tiene su autor y su licencia; la de Texas es de dominio público y la de Andalucía pide atribución y compartir igual), 38 y 39 (geoBoundaries: Kenia es de dominio público y Sudán del Sur pide atribución; Ghana y Marruecos vienen de OpenStreetMap y piden además compartir igual). Para las comarcas del 39 no hay fuente todavía
+- **Con el flujo «Traer datos»**: el 43 (Wikidata, CC0), lo que falta del 35 (Wikidata), 37 (Wikidata y Wikimedia Commons: cada bandera tiene su autor y su licencia; la de Texas es de dominio público y la de Andalucía pide atribución y compartir igual), 38 y 39 (geoBoundaries: Kenia es de dominio público y Sudán del Sur pide atribución; Ghana y Marruecos vienen de OpenStreetMap y piden además compartir igual). Para las comarcas del 39 no hay fuente todavía. Lo que falta del 29 ya no puede salir de Wikidata, que es de donde viene lo que hay desde la 1.39.0: hace falta otra fuente de población por región para los 106 países que quedan (GeoNames, cuyas descargas contestan desde el flujo, tiene cifras de las divisiones de primer nivel; sin comprobar)
 
 ## Modos de juego en el mapa
 
@@ -61,7 +61,7 @@ puesto desde el 23 de noviembre y deja lo que trae en la rama `datos`:
 - [x] 26. Conexiones: dieciséis países que van de cuatro en cuatro por algo que no se dice (una región, el mar, un vecino, una organización, una lengua, el tamaño, la letra de la capital o algo del nombre); cada tablero tiene una sola solución, al cuarto fallo se acaba y cuatro países que comparten otra cosa no cuentan como fallo; en Cifras, con dieciséis países o más — **1.26.0**
 - [x] 27. Densidad de población — **1.7.0**
 - [x] 28. Cifras de ciudades, picos, lagos e islas — **1.7.0**
-- [~] 29. Cifras de regiones: superficie y población (la población, **datos**) — la superficie, en **1.7.0**; falta la población, que no está en los datos
+- [~] 29. Cifras de regiones: superficie y población (la población, **datos**) — la superficie, en **1.7.0**; la población y la densidad, en **1.39.0**, en 105 de los 211 países con divisiones (**decidido**: solo donde todas las regiones tienen cifra en Wikidata y entre todas suman lo que el país, con un margen de una décima; cada cifra dice su año, y dos de años distintos no se enfrentan si los años bastan para explicar la diferencia); falta en los otros 106 (Italia, Reino Unido, Portugal, Irlanda, Grecia, Perú…), donde Wikidata no la tiene entera o no cuadra: hace falta otra fuente
 - [ ] 30. Más cifras de países (**datos**)
 - [ ] 31. Datos de países: moneda, idioma, dominio, prefijo (**datos**)
 - [ ] 32. Línea del tiempo (**datos**)

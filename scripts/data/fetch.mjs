@@ -14,6 +14,10 @@
 //     and of each continent, which are figures that no outline on a map gives, and the seas that each
 //     ocean's figure counts as its own
 //       https://github.com/factbook/factbook.json @ 144d697
+//   · Wikidata (CC0): how many people live in each division of the maps. Wikidata is not on GitHub: the
+//     workflow "Traer datos" of this repository asks it (scripts/data/outside.mjs) and keeps the answer in
+//     the branch `datos`, from which it is taken like any other source
+//       https://github.com/diegosb72/regionle/tree/datos @ 9747b70
 //
 // Files are fetched by Git blob SHA, so the build is reproducible and the
 // download is verified for free. With a GitHub token available (GH_TOKEN,
@@ -33,6 +37,7 @@ const NE = { repo: 'nvkelso/natural-earth-vector', commit: 'ca96624a56bd078437bc
 const POP = { repo: 'datasets/population', commit: 'd4b1a4a9a17e2123baf0ef119de05bceced1ab1b', dir: 'data/' };
 const ANE = { repo: 'rOpenSpain/mapSpain', commit: '365286363cab2266d81f981093525edd50e2ce15', dir: 'data-raw/2020/SIANE_CARTO_BASE_S_3M/todo/' };
 const WFB = { repo: 'factbook/factbook.json', commit: '144d6977b2b01ac1cbd220de754c0a005616760b', dir: '' };
+const OUTSIDE = { repo: 'diegosb72/regionle', commit: '9747b70461386b6bc38d89fd6eea5dc78c438aef', dir: '' };
 
 const FILES = [
   { ...NE, file: 'ne_10m_admin_1_states_provinces_lakes.geojson', sha: 'c4a7366cd343d5e3df150c048e0a4e0f3bf02b1b' },
@@ -65,6 +70,8 @@ const FILES = [
   { ...WFB, file: 'oceans/oo.json', as: 'factbook-southern.json', sha: 'cbc9c84cdd6d43db33ccd56bf9d48812a401108e' },
   { ...WFB, file: 'oceans/xq.json', as: 'factbook-arctic.json', sha: '234d9150c79292c1820cbcdb6178b9938d4f537a' },
   { ...WFB, file: 'world/xx.json', as: 'factbook-world.json', sha: 'b39e033c35e78768f1e09e26d9c7394c52238535' },
+  // The people of each division (scripts/data/population.mjs).
+  { ...OUTSIDE, file: 'wikidata/region-population.json', as: 'wikidata-region-population.json', sha: 'ffc738167dd3f24413fd636391709a5889b15602' },
 ];
 
 function token() {

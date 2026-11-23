@@ -3,6 +3,13 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.39.0 — 23 de noviembre de 2026
+
+- Población de las regiones: en los juegos de cifras de un mapa de regiones se elige entre superficie, población y densidad. Antes solo había superficie.
+- Está en 105 países, entre ellos España, Francia, Alemania, Estados Unidos y México: donde las cifras de todas sus regiones suman lo que el país.
+- Cada cifra dice de qué año es. Dos cifras de años distintos no se enfrentan cuando la diferencia entre ellas podría deberse solo a los años que las separan.
+- La población de cada región sale también en su ficha, en Explorar y junto a la respuesta. Las cifras son de Wikidata.
+
 ## 1.38.0 — 22 de noviembre de 2026
 
 - Crucigrama: los nombres de hasta diez piezas se cruzan en una cuadrícula, y las pistas están en el mapa: cada pieza lleva escrito el número de su palabra.

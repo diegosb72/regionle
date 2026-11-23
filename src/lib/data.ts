@@ -19,6 +19,9 @@ interface UnitProps {
   lp: LL;
   fp: LL[];
   ar: number;
+  /** People and the year they were counted, where the figures of the country hold together. */
+  pop?: number;
+  py?: number;
   nb?: string[];
   sl?: string[];
   g?: string[];
@@ -338,6 +341,7 @@ export async function buildDeck(spec: DeckSpec, onProgress?: (done: number, tota
         lp: p.lp,
         fp: p.fp,
         area: p.ar,
+        ...(p.pop ? { people: p.pop, ...(p.py ? { peopleYear: p.py } : {}) } : {}),
         nb: [],
         sl: [],
         wd: p.wd,

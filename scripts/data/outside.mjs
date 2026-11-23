@@ -52,6 +52,12 @@ const PAUSE = Number(process.env.OUTSIDE_PAUSE ?? 500);
  * run on GitHub is stopped at half an hour with nothing saved: better to keep less than to lose it all.
  */
 const PATIENCE = Number(process.env.OUTSIDE_PATIENCE ?? 12 * 60_000);
+/**
+ * A place that takes this long to say no, in ms, was working on the answer and did not finish (the query
+ * service gives up at a minute). That is not the same as being refused: the same question would take as
+ * long again, and a smaller one may well be answered.
+ */
+const SLOW = Number(process.env.OUTSIDE_SLOW ?? 20_000);
 const ON_GITHUB = !!process.env.GITHUB_ACTIONS;
 
 const sleep = (ms) => new Promise((done) => setTimeout(done, ms));
@@ -73,12 +79,14 @@ function retryAfter(res) {
 
 /**
  * The body of an answer. A place that is busy (429) or broken for a moment (5xx), or that does not answer,
- * is asked again a few times, each time after a longer wait; any other refusal is final.
+ * is asked again a few times, each time after a longer wait; any other refusal is final. The error of a
+ * place that was slow to fail says so (`slow`), and whoever is `impatient` is not made to wait for it twice.
  */
-async function request(url, { method = 'GET', headers = {}, body, timeout = 60_000, tries = 4 } = {}) {
+async function request(url, { method = 'GET', headers = {}, body, timeout = 60_000, tries = 4, impatient = false } = {}) {
   let last;
   for (let n = 0; n < tries; n++) {
     let wait = PAUSE * 4 ** n;
+    const started = Date.now();
     try {
       const res = await fetch(url, { method, headers: { 'User-Agent': AGENT, ...headers }, body, redirect: 'follow', signal: AbortSignal.timeout(timeout) });
       if (res.ok) return { status: res.status, body: Buffer.from(await res.arrayBuffer()) };
@@ -91,19 +99,22 @@ async function request(url, { method = 'GET', headers = {}, body, timeout = 60_0
       if (err.final) throw err;
       last = err;
     }
+    last.slow = Date.now() - started >= SLOW;
+    if (impatient && last.slow) break;
     if (n < tries - 1) await sleep(wait);
   }
   throw last;
 }
 
 /** The rows that Wikidata answers a question with. */
-async function sparql(query, { tries } = {}) {
+async function sparql(query, { tries, impatient } = {}) {
   const { body } = await request(WDQS, {
     method: 'POST',
     headers: { Accept: 'application/sparql-results+json', 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8' },
     body: `query=${encodeURIComponent(query)}`,
     timeout: 90_000,
     tries,
+    impatient,
   });
   const rows = JSON.parse(body.toString('utf8'))?.results?.bindings;
   if (!Array.isArray(rows)) throw new Error('Wikidata answered something that is not a table');
@@ -224,8 +235,11 @@ async function codedOf(codes, opts) {
   return coded;
 }
 
-/** How many divisions a question about names is about: a dozen names each. */
-const NAMED_AT_ONCE = 10;
+/** How many divisions a question about names is about, a dozen names each. */
+const NAMED_AT_ONCE = 4;
+/** How many divisions may turn out to be more than the service can take, and how many questions it may refuse, before the names are left. */
+const NAMED_HEAVY = 6;
+const NAMED_REFUSED = 2;
 
 /**
  * The entities that go by a name of a division, or by another name of theirs, in its country: those that
@@ -235,34 +249,79 @@ const NAMED_AT_ONCE = 10;
  * up before the minute.
  *
  * Each group of divisions takes two questions, and what they find counts only when both are answered: with
- * one missing, a division could seem to have one entity of its name when it has two. At the second group
- * left without an answer it stops asking, because a place that is failing is not worth the minutes. Gives
- * what it found, how many divisions it got to know about, and the last refusal.
+ * one missing, a division could seem to have one entity of its name when it has two. The service chokes on
+ * some groups of names that it answers at once when they are fewer (ten divisions at a time cost the first
+ * run on GitHub two groups, a minute each), so the groups are small, and one that it does not finish is
+ * asked again a division at a time: only the division it cannot take is left out. Asking stops when the
+ * service refuses outright, when too many divisions are too much for it, and when the time is up. A group
+ * that was refused is asked about once more at the end: a bad moment of the service passes.
+ *
+ * Gives what it found, the divisions it could not ask about, and the last thing that went wrong.
  */
-async function namedOf(units, opts) {
+async function namedOf(units, until = Infinity) {
   const named = new Map();
-  let known = 0;
-  let refused = 0;
-  let last = null;
-  for (const part of chunks(units, NAMED_AT_ONCE)) {
-    if (refused > 1) break;
+  const unasked = [];
+  const again = [];
+  let [heavy, refused, last] = [0, 0, null];
+  const over = () => Date.now() >= until || heavy >= NAMED_HEAVY || refused >= NAMED_REFUSED;
+  const ask = async (part) => {
     const rows = part.flatMap((u) => u.names.map(([name, lang]) => `(${literal(u.id)} wd:${u.country} ${literal(name, lang)})`));
     const list = `VALUES (?key ?country ?name) { ${rows.join(' ')} } VALUES ?called { rdfs:label skos:altLabel }`;
     const found = new Map();
-    try {
-      for (const where of ['VALUES ?within { wdt:P17 wdt:P131 } ?item ?called ?name . ?item ?within ?country', '?item ?called ?name . ?item wdt:P131 ?mid . ?mid wdt:P131 ?country']) {
-        for (const row of await sparql(`SELECT DISTINCT ?key ?item WHERE { ${list} ${where} }`, opts)) if (entity(row.item)) group(found, String(row.key?.value ?? ''), entity(row.item));
-        await sleep(PAUSE);
-      }
-    } catch (err) {
-      refused++;
-      last = err;
-      continue;
+    for (const where of ['VALUES ?within { wdt:P17 wdt:P131 } ?item ?called ?name . ?item ?within ?country', '?item ?called ?name . ?item wdt:P131 ?mid . ?mid wdt:P131 ?country']) {
+      for (const row of await sparql(`SELECT DISTINCT ?key ?item WHERE { ${list} ${where} }`, { tries: 2, impatient: true })) if (entity(row.item)) group(found, String(row.key?.value ?? ''), entity(row.item));
+      await sleep(PAUSE);
     }
     for (const [key, ids] of found) named.set(key, ids);
-    known += part.length;
+  };
+  for (const part of chunks(units, NAMED_AT_ONCE)) {
+    const ids = part.map((u) => u.id);
+    if (over()) {
+      unasked.push(...ids);
+      continue;
+    }
+    try {
+      await ask(part);
+      continue;
+    } catch (err) {
+      last = err;
+      // Refused, or a division that is already alone: nothing smaller to ask.
+      if (!err.slow) {
+        refused++;
+        again.push(part);
+        continue;
+      }
+      if (part.length === 1) {
+        heavy++;
+        unasked.push(...ids);
+        continue;
+      }
+    }
+    for (const u of part) {
+      if (over()) {
+        unasked.push(u.id);
+        continue;
+      }
+      try {
+        await ask([u]);
+      } catch (err) {
+        last = err;
+        if (err.slow) heavy++;
+        else refused++;
+        unasked.push(u.id);
+      }
+    }
   }
-  return { named, known, last };
+  for (const part of again) {
+    try {
+      if (Date.now() >= until) throw last;
+      await ask(part);
+    } catch (err) {
+      last = err;
+      unasked.push(...part.map((u) => u.id));
+    }
+  }
+  return { named, unasked, last };
 }
 
 /** What each of these entities says it is in: its country (P17) and what it is a part of (P131). */
@@ -304,6 +363,10 @@ function lined(head, items) {
 
 /** How far the area that Wikidata gives may be from that of the division for both to be the same land. */
 const SAME_SIZE = [2 / 3, 3 / 2];
+/** An entity with less than this share of the area of a division is something else: the city a province is called after. */
+const TINY = 0.3;
+/** Unless it is a thousandth of it: 1.234 written where 1234 was meant, which Wikidata has here and there. */
+const SLIP = [0.0008, 0.00125];
 /** What Wikidata adds in English to the name of a place to name the division that is called after it. */
 const KINDS = ['Region', 'District', 'Province', 'Municipality', 'Parish', 'County', 'Department', 'Governorate', 'Prefecture', 'State'];
 /** The ways a figure is found, as the file names them (`by`) and as the report tells them. */
@@ -332,10 +395,13 @@ const WAYS = [
  * has to be answered: a way that Wikidata does not answer, or that there is no time left for, is left out,
  * and the note says so.
  *
- * The id that the maps name is taken as it comes, and it can be wrong (the source gives a Belgian province
- * the id of a district of Luxembourg). So that it can be seen, each entity comes with the area Wikidata gives
- * it (`km2`) and, when it says it is somewhere that is not where its map is, with `abroad`. What to do with
- * those is for the build to decide, with the figures in hand.
+ * The id that the maps name can be wrong: the source gives a Belgian province the id of a district of
+ * Luxembourg, and more than one region the id of the city it is called after. An entity that says it is
+ * somewhere else than its map, or that is far smaller than its division, is doubted: the division is looked
+ * for by its code and by its name too, like those with no entity, and what that finds takes its place. With
+ * nothing better found it keeps the entity of the maps. So that it can be seen, each entity comes with the
+ * area Wikidata gives it (`km2`) and, when it says it is not where its map is, with `abroad`: what to do
+ * with those is for the build to decide, with the figures in hand.
  *
  * Where a map is: its country, the state that country depends on and whatever most of its divisions say they
  * are in. The last is needed because the id the maps give a country is not always the one its divisions
@@ -362,6 +428,8 @@ async function regionPopulation(source) {
 
   const lax = { tries: 2 };
   const undone = [];
+  /** The divisions whose name could not be asked about: which they are says what the service chokes on. */
+  const unnamed = [];
   const until = Date.now() + PATIENCE;
   /** One of the things that can be done without: what it finds is kept, and what stops it is told. */
   const attempt = async (what, find) => {
@@ -441,6 +509,21 @@ async function regionPopulation(source) {
     refused[by] = [...free].filter(([u, ids]) => !matched.has(u.id) && ids.some((id) => figures.has(id))).length;
   };
 
+  const doubted = new Set();
+  const tiny = (u, id) => {
+    const known = areas.get(id) ?? [];
+    return !!u.area && known.length > 0 && known.every((km2) => km2 / u.area < TINY && !(km2 / u.area >= SLIP[0] && km2 / u.area <= SLIP[1]));
+  };
+  await attempt('las entidades que no parecen su división', async () => {
+    await calibrate();
+    const ids = [...own].filter((u) => matched.has(u.id)).map((u) => u.wd).sort(byNumber);
+    for (const [id, list] of await areasOf(ids, lax)) areas.set(id, list);
+    for (const id of ids) measured.add(id);
+    for (const u of own) if (matched.has(u.id) && ((places.has(u.wd) && !within(u, u.wd)) || tiny(u, u.wd))) doubted.add(u);
+  });
+  /** Whether a division is still to be found: it has no entity of its own, or the one it has is doubted and nothing has taken its place. */
+  const wanting = (u) => (own.has(u) ? doubted.has(u) && !matched.get(u.id)?.by : !matched.has(u.id));
+
   await attempt('los identificadores que han cambiado', async () => {
     const lacking = [...own].filter((u) => !matched.has(u.id));
     const moved = await movedOf(lacking.map((u) => u.wd).sort(byNumber), lax);
@@ -461,7 +544,7 @@ async function regionPopulation(source) {
   });
 
   await attempt('los códigos ISO 3166-2', async () => {
-    const lacking = units.filter((u) => !own.has(u) && ISO.test(u.id));
+    const lacking = units.filter((u) => wanting(u) && ISO.test(u.id));
     const coded = await codedOf(lacking.map((u) => u.id), lax);
     await calibrate();
     await locate([...coded.values()].flatMap((ids) => [...ids]).filter((id) => !taken.has(id)));
@@ -474,12 +557,15 @@ async function regionPopulation(source) {
   });
 
   await attempt('los nombres', async () => {
-    const lacking = units.filter((u) => !own.has(u) && !matched.has(u.id) && u.country && (u.en || u.es));
+    const lacking = units.filter((u) => wanting(u) && u.country && (u.en || u.es));
     const called = (u) => [...(u.en ? [u.en, ...KINDS.map((kind) => `${u.en} ${kind}`)].map((name) => [name, 'en']) : []), ...(u.es ? [[u.es, 'es']] : [])];
-    const { named, known, last } = await namedOf(lacking.map((u) => ({ id: u.id, country: u.country, names: called(u) })), lax);
+    const { named, unasked, last } = await namedOf(lacking.map((u) => ({ id: u.id, country: u.country, names: called(u) })), until);
+    unnamed.push(...unasked);
     await settle(new Map(lacking.filter((u) => named.has(u.id)).map((u) => [u, named.get(u.id)])), 'name', 'maybe');
     // What was found is kept; what could not be asked about is told, with how much of it there was.
-    if (last) throw known ? Object.assign(last, { what: `los nombres de ${lacking.length - known} de ${lacking.length} divisiones` }) : last;
+    if (!unasked.length) return;
+    const why = last ?? new Error('no quedaba tiempo');
+    throw unasked.length < lacking.length ? Object.assign(why, { what: `los nombres de ${unasked.length} de ${lacking.length} divisiones` }) : why;
   });
 
   await attempt('los nombres de lo encontrado', async () => {
@@ -522,7 +608,7 @@ async function regionPopulation(source) {
       ...(abroad ? [`${abroad} cuya entidad dice estar en otro país`] : []),
       ...(undone.length ? [`sin mirar: ${undone.join('; ')}`] : []),
     ].join('; '),
-    detail: { divisions: units.length, found: matched.size, by, abroad, proposed, refused, undone },
+    detail: { divisions: units.length, found: matched.size, by, abroad, doubted: doubted.size, proposed, refused, undone, unnamed },
   };
 }
 

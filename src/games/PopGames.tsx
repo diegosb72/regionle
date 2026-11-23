@@ -8,7 +8,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AnswerInput, type Suggestion } from '../components/AnswerInput';
 import { MapView, type MapHandle, type Paint } from '../components/MapView';
 import { Flag, Seg } from '../components/ui';
-import { challenger, comparable, dealFive, metricOf, metricsIn, type Fig, type Metric, type MetricId } from '../lib/figures';
+import { challenger, comparable, dealFive, fullOf, metricOf, metricsIn, type Fig, type Metric, type MetricId } from '../lib/figures';
 import { L } from '../lib/i18n';
 import { modeNameIn } from '../lib/modes';
 import { useStore, type GameConfig } from '../lib/store';
@@ -44,14 +44,20 @@ function Frame({ title, figs, what, onExit, hud, progress, stage, children }: { 
 /** What a thing is, under its name, where its flag does not say it: "ciudad · Francia", "pico". */
 const kindLine = (f: Fig): string | null => (f.item.kind === 'country' ? null : f.sub ? `${f.type} · ${f.sub}` : f.type);
 
-function FigCard({ f, value, state, children }: { f: Fig; value?: string; state?: 'right' | 'wrong'; children?: ReactNode }) {
+/** `dated`: the figure on show is that of the thing, and is said with the year it is of where there is one. */
+function FigCard({ f, value, dated, state, children }: { f: Fig; value?: string; dated?: boolean; state?: 'right' | 'wrong'; children?: ReactNode }) {
   const kind = kindLine(f);
   return (
     <div className={cx('pcard', state)}>
       {f.fl ? <Flag code={f.fl} size="xl" /> : f.item.cat ? <i className={`kdot kdot-${f.item.cat} pcard-kind`} aria-hidden="true" /> : null}
       <h3>{f.name}</h3>
       {kind && <p className="pcard-sub">{kind}</p>}
-      {value != null && <p className="pcard-value">{value}</p>}
+      {value != null && (
+        <p className="pcard-value">
+          {value}
+          {dated && f.year ? <small className="pcard-year"> ({f.year})</small> : null}
+        </p>
+      )}
       {children}
     </div>
   );
@@ -156,7 +162,7 @@ function HiLo({ figs, cfg, what, onExit }: FigProps) {
           </h2>
           <p className="results-note">
             {record?.isNew ? L('¡Nuevo récord! ', 'New record! ') : record ? L(`Tu récord: ${record.best}. `, `Your record: ${record.best}. `) : ''}
-            {miss && `${miss.b.name}: ${m.full(miss.b.value)}. ${miss.a.name}: ${m.full(miss.a.value)}.`}
+            {miss && `${miss.b.name}: ${fullOf(miss.b, m)}. ${miss.a.name}: ${fullOf(miss.a, m)}.`}
           </p>
           <div className="results-actions">
             <button type="button" className="btn btn-primary" onClick={again} autoFocus>
@@ -184,11 +190,11 @@ function HiLo({ figs, cfg, what, onExit }: FigProps) {
     <Frame title={title} figs={figs} what={what} onExit={onExit} hud={<Hud ms={ms} streak={streak} progress={`${L('Racha', 'Streak')} ${streak}`} />}>
       <p className="kicker center">{m.ask}</p>
       <div className="hl">
-        <FigCard f={a} value={m.full(a.value)} />
+        <FigCard f={a} value={m.full(a.value)} dated />
         <div className="hl-vs" aria-hidden="true">
           vs
         </div>
-        <FigCard f={b} value={phase === 'show' ? m.full(b.value) : L('¿ ?', '?')} state={phase === 'show' ? (right ? 'right' : 'wrong') : undefined}>
+        <FigCard f={b} value={phase === 'show' ? m.full(b.value) : L('¿ ?', '?')} dated={phase === 'show'} state={phase === 'show' ? (right ? 'right' : 'wrong') : undefined}>
           <div className="hl-buttons">
             <button type="button" className={cx('btn', guess === 'more' && 'picked')} disabled={phase !== 'ask'} onClick={() => answer('more')}>
               <ArrowUp size={16} aria-hidden="true" />
@@ -442,8 +448,9 @@ function Exact({ figs, cfg, what, onExit }: FigProps) {
       progress={Number.isFinite(total) ? rows.length / total : undefined}
       hud={<Hud ms={ms} progress={Number.isFinite(total) ? `${Math.min(rows.length + (shown ? 0 : 1), total)} / ${total}` : `${rows.length + (shown ? 0 : 1)}`} />}
     >
-      <p className="kicker center">{m.exactAsk}</p>
-      <FigCard f={c} value={shown ? m.full(real) : undefined} state={shown ? (shown.res === 'bad' ? 'wrong' : 'right') : undefined} />
+      {/* A count of people is of a year: what is asked for is the figure of that year. */}
+      <p className="kicker center">{c.year ? `${m.exactAsk} ${L(`(en ${c.year})`, `(in ${c.year})`)}` : m.exactAsk}</p>
+      <FigCard f={c} value={shown ? m.full(real) : undefined} dated state={shown ? (shown.res === 'bad' ? 'wrong' : 'right') : undefined} />
       {!shown ? (
         <form
           className="amount"
@@ -629,7 +636,7 @@ function Which({ figs, cfg, what, onExit }: FigProps) {
       hud={<Hud ms={ms} progress={Number.isFinite(total) ? `${Math.min(rows.length + (done ? 0 : 1), total)} / ${total}` : `${rows.length + (done ? 0 : 1)}`} />}
     >
       <p className="kicker center">{L(`¿Qué ${c.type} tiene esta ${m.noun}?`, `Which ${c.type} has this ${m.noun}?`)}</p>
-      <p className="bigfig">{m.full(real)}</p>
+      <p className="bigfig">{fullOf(c, m)}</p>
       {!done && (
         <>
           <AnswerInput

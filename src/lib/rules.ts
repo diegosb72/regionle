@@ -54,6 +54,17 @@ export const MADE_UP_MODES: readonly Mode[] = ['truefalse', 'oddone'];
 /** Games played with the figure of each thing: how many people, how large, how high. */
 export const FIGURE_MODES: readonly Mode[] = ['hilo', 'rank', 'exact', 'which', 'topten'];
 
+/** The figure those games can be about on a map of regions: how large each is, how many live there, or how thickly. */
+export type RegionFig = 'area' | 'pop' | 'density';
+export const REGION_FIGS: readonly RegionFig[] = ['area', 'pop', 'density'];
+
+/**
+ * Whether the regions of these countries can be played by their people. The data give the divisions of a
+ * country their figures only when all of them hold together (`rp`, see scripts/data/population.mjs), so it
+ * is all of a map or none: a game of figures cannot name the ten largest of a list with holes in it.
+ */
+export const peopled = (countries: readonly { rp?: number }[]): boolean => countries.length > 0 && countries.every((c) => c.rp != null);
+
 /** Games that deal rounds of five instead of asking one thing after another. */
 export const ROUND_MODES: readonly Mode[] = ['rank', 'compass'];
 

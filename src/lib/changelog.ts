@@ -15,6 +15,22 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.39.0',
+    date: '2026-11-23',
+    es: [
+      'Población de las regiones: en los juegos de cifras de un mapa de regiones se elige entre superficie, población y densidad. Antes solo había superficie.',
+      'Está en 105 países, entre ellos España, Francia, Alemania, Estados Unidos y México: donde las cifras de todas sus regiones suman lo que el país.',
+      'Cada cifra dice de qué año es. Dos cifras de años distintos no se enfrentan cuando la diferencia entre ellas podría deberse solo a los años que las separan.',
+      'La población de cada región sale también en su ficha, en Explorar y junto a la respuesta. Las cifras son de Wikidata.',
+    ],
+    en: [
+      'Population of the regions: in the number games of a map of regions you choose between area, population and density. There used to be area alone.',
+      'It is in 105 countries, among them Spain, France, Germany, the United States and Mexico: where the figures of all their regions add up to the country.',
+      'Each figure says which year it is of. Two figures of different years are not set against each other when the years between them could explain the gap.',
+      'The population of each region is also on its card, in Explore and next to the answer. The figures are from Wikidata.',
+    ],
+  },
+  {
     version: '1.38.0',
     date: '2026-11-22',
     es: [

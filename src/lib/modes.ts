@@ -369,7 +369,7 @@ function modesOf(section: Section): ModeDef[] {
             'A piece tells about itself, clue by clue: its size, where it lies, how many it borders, a neighbour, its outline. Guess it with as few clues as you can.',
           ),
         ),
-        ...figures(L('Aquí, por la superficie de cada región.', 'Here, by the area of each region.'), L('¿Qué región?', 'Which region?')),
+        ...figures(L('Aquí, por la superficie de cada región o, donde hay cifras, por su población.', 'Here, by the area of each region or, where there are figures, by its people.'), L('¿Qué región?', 'Which region?')),
         hangman,
         wordsearch,
         crossword,

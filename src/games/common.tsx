@@ -233,6 +233,7 @@ export function ItemFacts({ item }: { item: Item }) {
           {L('Capital', 'Capital')}: <b>{item.capital[0]}</b> ·{' '}
         </>
       ) : null}
+      {item.people ? `${fmtPop(item.people)}${item.peopleYear ? ` (${item.peopleYear})` : ''} · ` : ''}
       {fmtArea(item.area)}
     </p>
   );

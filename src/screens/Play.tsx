@@ -20,7 +20,7 @@ import { answersItself, belongsItself, capitalsNeedTyping } from '../games/quiz'
 import { countryAnswers, countryItem, eligible, levelOf, type World } from '../lib/data';
 import { editionNow } from '../lib/dated';
 import { deckFor } from '../lib/decks';
-import { TOP_MIN, countryFigs, deckFigs, figPlayable, metricsIn, positionFigs, type Fig } from '../lib/figures';
+import { TOP_MIN, countryFigs, deckFigs, figPlayable, metricsIn, positionFigs, regionFigOf, type Fig } from '../lib/figures';
 import { L } from '../lib/i18n';
 import { MODE_NAME, PATHS } from '../lib/modes';
 import { pauseClock } from '../lib/pause';
@@ -197,7 +197,7 @@ export function Session({ cfg, world, host }: { cfg: GameConfig; world: World; h
     if (!figured) return null;
     if (cfg.section === 'pops') return countryFigs(chosen, cfg.opts.metric, countryItem, countryAnswers);
     if (!deck) return null;
-    const all = cfg.mode === 'compass' ? positionFigs(deck, cfg.opts.axis === 'we' ? 'lon' : 'lat') : deckFigs(deck);
+    const all = cfg.mode === 'compass' ? positionFigs(deck, cfg.opts.axis === 'we' ? 'lon' : 'lat') : deckFigs(deck, regionFigOf(deck, cfg.opts.regionFig));
     // A custom list is asked about its pieces alone.
     const only = cfg.only ? new Set(cfg.only) : null;
     return only ? all.filter((f) => only.has(f.id)) : all;

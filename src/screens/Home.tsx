@@ -113,7 +113,15 @@ function recentMap(r: Recent, world: World): string {
   if (r.section === 'physical') return text;
   const chosen = countriesOf(specOf(r), world);
   const place = chosen.length > 3 ? commonPlace(chosen, world.index, r.section) : null;
-  const what = r.section === 'pops' && r.o.metric ? ` · ${metricNoun(r.o.metric)}` : r.mode === 'compass' ? ` · ${metricOrder(r.o.axis === 'we' ? 'lon' : 'lat')}` : '';
+  // The regions are played by their area unless the game says otherwise: only then is it told.
+  const what =
+    r.section === 'pops' && r.o.metric
+      ? ` · ${metricNoun(r.o.metric)}`
+      : r.section === 'regions' && (r.o.regionFig === 'pop' || r.o.regionFig === 'density')
+        ? ` · ${metricNoun(r.o.regionFig)}`
+        : r.mode === 'compass'
+          ? ` · ${metricOrder(r.o.axis === 'we' ? 'lon' : 'lat')}`
+          : '';
   return `${place ? `${place} · ` : ''}${text}${what}`;
 }
 
