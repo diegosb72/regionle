@@ -1,71 +1,42 @@
 {
-  "when": "2026-11-24T07:22:08.534Z",
-  "from": "main@db3fa88",
+  "when": "2026-11-24T17:45:22.163Z",
+  "from": "arena/baec5cdd-regionle@356a4b0",
   "workflow": "same",
   "sources": [
     {
-      "id": "flags-cities",
-      "file": "flags/cities.json",
-      "from": "Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org)",
+      "id": "photos",
+      "file": "photos/photos.json",
+      "from": "Wikimedia Commons (https://commons.wikimedia.org)",
       "licence": "La de cada archivo, que su entrada dice: dominio público o una licencia libre",
-      "flags": true,
-      "what": "The flag of each city of the game that is the capital of no country, by the id the city has in the game. items: the Wikidata entity whose flag it is (wd), how it was found when it is not the one the game names (by: redirect or code; wikipedia when Wikidata gives no flag and the box of facts of its page of Wikipedia shows one, with the page under page; hand when the flag is one given in scripts/data/flags-hand.json, with the one the others gave under instead), the Commons file of the flag it flies today (file) and since when (from), other flags the entity gives as of today (also) and those it gives as past or less fit (old), the flag of the entity that carries its ISO 3166-2 code when that is another (other), and whether the entity is far smaller than the division (tiny). files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; where the file is kept in this branch (kept); the 960 px picture that Wikimedia draws of it (picture), which stands for an original of more than 2 MB and goes with a drawing that has words in it (words); for a photograph, the drawing of the same flag that is kept in its place (drawn); and the categories of Commons it is in that speak of other times, of a proposal or of an invention, which may mean that it is not a flag that flies (marks). The files themselves are under flags/files, each named after its SHA-1.",
-      "es": "Banderas de las ciudades que no son capital de un país",
-      "needs": "112",
+      "what": "The photographs that the sheets of the countries show, each a file of Commons that a sheet names (scripts/data/profiles/<country>.json). items: the titles of those of each sheet, by the id of its country (photos). files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height of the original, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; and where the picture of it that Wikimedia draws, 1920 px wide, is kept in this branch (picture): the original is not brought. The pictures are under photos/files, each named after the SHA-1 of its original.",
+      "es": "Fotografías de las fichas de los países",
+      "needs": "113",
       "ok": true,
-      "bytes": 833622,
-      "blob": "a803cf997c6c57a27b64a4f93da2ca407dc2082b",
-      "note": "1642 de 4295 tienen bandera; 1618 archivos: 0 descargados (0 kB), 1618 que ya estaban",
+      "bytes": 13255,
+      "blob": "3962c9224be550f40177f3edf9eabaef32e556ff",
+      "note": "21 fotografías de 1 fichas: 21 traídas (14.858 kB)",
       "detail": {
-        "asked": 4295,
-        "found": 1642,
-        "by": {
-          "id": 1320,
-          "wikipedia": 322
-        },
-        "doubted": {
-          "other": 0,
-          "tiny": 0
-        },
+        "asked": 21,
+        "found": 21,
         "files": {
-          "all": 1633,
-          "missing": 30,
-          "drawn": 15,
-          "words": 29,
-          "wanted": 1618,
-          "brought": 0,
-          "there": 1618,
+          "all": 21,
+          "missing": 0,
+          "brought": 21,
           "left": 0,
-          "pictures": 0,
-          "bytes": 0
-        },
-        "kinds": {
-          "svg": 1159,
-          "png": 340,
-          "gif": 68,
-          "jpg": 59,
-          "webp": 7
+          "bytes": 14858423
         },
         "licences": {
-          "Public domain": 1041,
-          "CC BY-SA 4.0": 278,
-          "CC BY-SA 3.0": 161,
-          "CC0": 114,
-          "CC BY 4.0": 11,
-          "CC BY 3.0": 7,
-          "CC BY-SA 2.5": 7,
-          "CC BY 2.5": 5,
-          "Copyrighted free use": 2,
-          "GFDL": 2,
-          "Attribution": 1,
-          "CC BY 2.0": 1,
-          "CC BY 2.5 ar": 1,
-          "CC BY-SA 2.5 es": 1,
-          "FAL": 1
+          "CC BY-SA 4.0": 13,
+          "CC0": 2,
+          "Public domain": 2,
+          "CC BY 4.0": 1,
+          "CC BY-SA 2.5": 1,
+          "CC BY-SA 3.0": 1,
+          "CC BY-SA 3.0 de": 1
         },
         "undone": []
       },
-      "ms": 300288
+      "ms": 12732
     }
   ],
   "reach": []
