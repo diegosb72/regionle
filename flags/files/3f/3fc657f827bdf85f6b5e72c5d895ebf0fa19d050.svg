@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://inkscape.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   height="200.00000px"
+   id="svg1290"
+   inkscape:version="0.43"
+   sodipodi:docbase="D:\Mis documentos\Comptabilitat\Tercer Examen\Wikipedia anglesa\Bèlgica"
+   sodipodi:docname="Bandera Província Chimborazo.svg"
+   sodipodi:version="0.32"
+   width="340.00000px">
+  <metadata
+     id="metadata3">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Ukrainian flag</dc:title>
+        <dc:description>Ukrainian flag</dc:description>
+        <dc:subject>
+          <rdf:Bag>
+            <rdf:li>flags</rdf:li>
+            <rdf:li>ukraine map</rdf:li>
+            <rdf:li>europe</rdf:li>
+          </rdf:Bag>
+        </dc:subject>
+        <dc:publisher>
+          <cc:Agent
+             rdf:about="http://www.openclipart.org/">
+            <dc:title />
+          </cc:Agent>
+        </dc:publisher>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Stepan Klimov</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:rights>
+          <cc:Agent>
+            <dc:title>Stepan Klimov</dc:title>
+          </cc:Agent>
+        </dc:rights>
+        <dc:date>2005-09-17</dc:date>
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <cc:license
+           rdf:resource="http://web.resource.org/cc/PublicDomain" />
+        <dc:language>en</dc:language>
+      </cc:Work>
+      <cc:License
+         rdf:about="http://web.resource.org/cc/PublicDomain">
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/Reproduction" />
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/Distribution" />
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/DerivativeWorks" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs3" />
+  <sodipodi:namedview
+     bordercolor="#666666"
+     borderopacity="1.0"
+     id="base"
+     inkscape:current-layer="layer1"
+     inkscape:cx="181.7992"
+     inkscape:cy="90.998963"
+     inkscape:document-units="mm"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:window-height="721"
+     inkscape:window-width="1024"
+     inkscape:window-x="-16"
+     inkscape:window-y="159"
+     inkscape:zoom="1.7366334"
+     pagecolor="#ffffff" />
+  <g
+     id="layer1"
+     inkscape:groupmode="layer"
+     inkscape:label="Layer 1">
+    <rect
+       style="opacity:1;fill:#b70004;fill-opacity:1;stroke:none;stroke-width:5.20699978;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect1315"
+       width="339.16196"
+       height="99.618034"
+       x="0.57582676"
+       y="0.18811105" />
+    <rect
+       style="opacity:1;fill:#0c1f99;fill-opacity:0.94148952;stroke:none;stroke-width:5.20699978;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect2192"
+       width="339.16199"
+       height="100.19386"
+       x="0.57582676"
+       y="99.806145" />
+  </g>
+</svg>

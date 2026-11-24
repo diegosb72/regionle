@@ -5,14 +5,12 @@ La escribe el flujo «Traer datos» (pestaña *Actions*), cuando alguien pulsa s
 juego cambia la lista de lo que pide (`scripts/data/pedido.txt`); nadie más escribe aquí.
 Qué se trae y de dónde lo dice `scripts/data/outside.mjs`, en la rama del juego.
 
-## Última descarga: 2026-11-23
+## Última descarga: 2026-11-24
 
-Hecha con `arena/baec5cdd-regionle@2f2162b`. Lo que no se pidió esta vez sigue en la rama `datos` como estaba.
+Hecha con `arena/baec5cdd-regionle@805fd07`. Lo que no se pidió esta vez sigue en la rama `datos` como estaba.
 
 | Archivo | Qué es | De dónde | Licencia | Resultado |
 | --- | --- | --- | --- | --- |
-| `flags/candidates.json` | Todo lo que tiene bandera y es conocido, para hacer las listas | Wikidata (https://www.wikidata.org) | CC0 1.0 | 1852 kB · 13427 cosas con bandera de las que hablan 40 páginas o más; 2975 ya están en el juego |
-| `flags/signals.json` | Banderas que son señales | Wikimedia Commons (https://commons.wikimedia.org) | La de cada archivo, que su entrada dice: dominio público o una licencia libre | 24 kB · 59 señales; 59 archivos: 59 descargados (187 kB) |
-| `flags/countries.json` | Banderas anteriores de los países | Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org) | La de cada archivo, que su entrada dice: dominio público o una licencia libre | 202 kB · 345 banderas anteriores de 92 de 251 países; 337 archivos: 337 descargados (39.949 kB, con 8 imágenes) |
-| `flags/capitals.json` | Banderas de las capitales de los países | Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org) | La de cada archivo, que su entrada dice: dominio público o una licencia libre | 88 kB · 168 de 243 tienen bandera; 165 archivos: 20 descargados (5630 kB, con 2 imágenes), 145 que ya estaban |
-| `flags/regions.json` | Banderas de las divisiones de los mapas | Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org) | La de cada archivo, que su entrada dice: dominio público o una licencia libre | 1229 kB · 2308 de 4647 tienen bandera; 2297 archivos: 269 descargados (38.198 kB, con 11 imágenes), 2028 que ya estaban |
+| `flags/listed.json` | Banderas de países que ya no existen, de organizaciones y de pueblos | Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org) | La de cada archivo, que su entrada dice: dominio público o una licencia libre | 220 kB · 290 de 290 tienen bandera; 380 archivos: 308 descargados (26.058 kB, con 14 imágenes), 72 que ya estaban |
+| `flags/signals.json` | Banderas que son señales | Wikimedia Commons (https://commons.wikimedia.org) | La de cada archivo, que su entrada dice: dominio público o una licencia libre | 27 kB · 65 señales; 65 archivos: 6 descargados (6,9 kB), 59 que ya estaban |
+| `flags/cities.json` | Banderas de las ciudades que no son capital de un país | Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org) | La de cada archivo, que su entrada dice: dominio público o una licencia libre | 745 kB · 1642 de 4295 tienen bandera; 1618 archivos: 346 descargados (68.552 kB, con 26 imágenes), 22 que ya estaban, 1250 sin traer; sin mirar: 1250 de 1618 archivos (HTTP 429 Your bot is making too many requests. Please reduce your request rate or contact bot-traffic@wikimedia.org (f263c81)) |

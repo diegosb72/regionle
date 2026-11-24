@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="1200"
+   height="600"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.47 r22583"
+   sodipodi:docname="Flag_of_the_Soviet_Union.svg">
+  <metadata
+     id="metadata16">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs14">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 300 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="1200 : 300 : 1"
+       inkscape:persp3d-origin="600 : 200 : 1"
+       id="perspective18" />
+    <inkscape:perspective
+       id="perspective2860"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+  </defs>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1152"
+     inkscape:window-height="814"
+     id="namedview12"
+     showgrid="false"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     inkscape:zoom="0.70710678"
+     inkscape:cx="655.13259"
+     inkscape:cy="260.64973"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2" />
+  <rect
+     fill="#c00"
+     width="1200"
+     height="600"
+     id="rect4" />
+  <path
+     d="m 109.39485,94.359619 -51.483043,0 41.567786,30.508481 -15.635585,48.81356 41.567792,-30.12711 41.5678,30.12711 -15.63559,-49.19493 41.56779,-30.127111 -51.48304,0 -16.01696,-49.191867 0,-0.0032 -16.01695,49.194925 z m 16.01695,-18.686441 9.15254,28.220342 29.36441,0 -23.64406,17.16102 9.00438,28.0501 -23.87735,-17.36535 -23.87734,17.5356 9.00454,-28.22035 -23.644061,-17.27543 29.440671,0 9.07627,-28.105932 0,0 z"
+     id="path8"
+     style="fill:#ffd700" />
+  <path
+     d="m 109.39485,222.8775 -51.483043,0 41.567786,30.50847 -15.635585,48.81357 41.567792,-30.12712 41.5678,30.12712 -15.63559,-49.19492 41.56779,-30.12712 -51.48304,0 -16.01696,-49.19187 0,-0.003 -16.01695,49.19492 z m 16.01695,-18.68644 9.15254,28.22034 29.36441,0 -23.64406,17.16102 9.00438,28.0501 -23.87735,-17.36535 -23.87734,17.5356 9.00454,-28.22035 -23.644061,-17.27543 29.440671,0 9.07627,-28.10593 0,0 z"
+     id="path8-1"
+     style="fill:#ffd700" />
+</svg>
