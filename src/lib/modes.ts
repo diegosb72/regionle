@@ -750,9 +750,26 @@ export const SECTIONS: Record<Section, SectionInfo> = lazy(SECTION_IDS, sectionI
  * here, for what tells of a game played (the first page, the progress): what each is and how it is played
  * comes with the section itself (lib/flagGames.ts).
  */
-export const FLAG_GAME_IDS: readonly FlagGame[] = ['flag-whose', 'flag-pick', 'flag-alike', 'flag-reveal'];
-export const flagGameName = (game: FlagGame): string =>
-  game === 'flag-whose' ? L('¿De dónde es?', 'Whose flag?') : game === 'flag-pick' ? L('¿Cuál es su bandera?', 'Which flag?') : game === 'flag-alike' ? L('Casi iguales', 'Look-alikes') : L('Poco a poco', 'Bit by bit');
+/** In the order they are offered: the easy ones first. */
+export const FLAG_GAME_IDS: readonly FlagGame[] = ['flag-whose', 'flag-pick', 'flag-pairs', 'flag-reveal', 'flag-odd', 'flag-alike', 'flag-past'];
+export function flagGameName(game: FlagGame): string {
+  switch (game) {
+    case 'flag-whose':
+      return L('¿De dónde es?', 'Whose flag?');
+    case 'flag-pick':
+      return L('¿Cuál es su bandera?', 'Which flag?');
+    case 'flag-pairs':
+      return L('Parejas', 'Pairs');
+    case 'flag-reveal':
+      return L('Poco a poco', 'Bit by bit');
+    case 'flag-odd':
+      return L('El intruso', 'Odd one out');
+    case 'flag-alike':
+      return L('Casi iguales', 'Look-alikes');
+    default:
+      return L('Antes y ahora', 'Then and now');
+  }
+}
 const isFlagGame = (mode: string): mode is FlagGame => (FLAG_GAME_IDS as readonly string[]).includes(mode);
 
 /** What a game that was played is called, whatever section it is of; a game this version does not know goes by nothing. */

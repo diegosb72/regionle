@@ -1,0 +1,1 @@
+.fp-img{width:min(84%, calc(84% * var(--r,1.5) * .75));height:auto;aspect-ratio:auto var(--r,1.5);background:var(--bg-2);box-shadow:0 0 0 1px var(--line);border-radius:3px;display:block}.fp img.lost{visibility:hidden}.fp-under{color:var(--ink-3);font-size:calc(10.5px * var(--fs));text-align:center;font-weight:600;line-height:1.15}.fp .fq-lost{width:min(100%,760px)}

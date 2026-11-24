@@ -114,6 +114,27 @@ export interface DeckCard extends FlagCard {
 /** Whether two cards cannot be told apart by what a question shows: they are the same picture, or go by the same name. */
 export const twins = (a: DeckCard, b: DeckCard): boolean => a.look === b.look || a.said === b.said;
 
+/** Some cards to set beside one, taken in the order given: none that cannot share a question with it or with another of them. `had` are taken already. */
+export function beside(card: DeckCard, from: readonly DeckCard[], n: number, had: readonly DeckCard[] = []): DeckCard[] {
+  const out: DeckCard[] = [...had];
+  for (const other of from) {
+    if (out.length >= n) break;
+    if (other.key === card.key || twins(card, other) || out.some((o) => o.key === other.key || twins(o, other))) continue;
+    out.push(other);
+  }
+  return out;
+}
+
+/** Some cards of which no two are the same picture or go by the same name, taken in the order given: as many as asked for, where there are. */
+export function apart(cards: readonly DeckCard[], n = Infinity): DeckCard[] {
+  const out: DeckCard[] = [];
+  for (const card of cards) {
+    if (out.length >= n) break;
+    if (!out.some((o) => o.key === card.key || twins(o, card))) out.push(card);
+  }
+  return out;
+}
+
 /** What a country is for these games: a State, whatever its recognition. */
 const STATES: readonly Cls[] = ['un', 'obs', 'partial'];
 

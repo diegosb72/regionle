@@ -12,6 +12,7 @@ import {
   FLAG_GAMES,
   FLAG_LENGTHS,
   FLAG_OPTIONS,
+  PAIR_SIZES,
   REVEAL,
   REVEAL_PIECES,
   REVEAL_START,
@@ -27,6 +28,9 @@ import {
   flagPlayText,
   flagScore,
   judgeTyped,
+  lengthOf,
+  lengthsOf,
+  pairCards,
   questionCount,
   revealPoints,
   revealRes,
@@ -54,6 +58,8 @@ const nearOf = (set: FlagSet) => {
   return nearCards(groupAt(ALIKE[place.file], place), deck(set));
 };
 const play = (game: FlagGame, set: FlagSet, more: Partial<FlagPlay> = {}): FlagPlay => ({ game, set, length: 10, answer: 'choice', ...more });
+/** The games that ask the cards of a set, one after another, with nothing but those cards (and, «Casi iguales», what looks like each). */
+const ASKED: readonly FlagGame[] = ['flag-whose', 'flag-pick', 'flag-alike', 'flag-reveal'];
 const WORLD: FlagSet = { kind: 'countries' };
 const EUROPE: FlagSet = { kind: 'countries', continent: 'EU' };
 const SPAIN: FlagSet = { kind: 'regions', country: 'ES' };
@@ -61,20 +67,21 @@ const SPAIN: FlagSet = { kind: 'regions', country: 'ES' };
 afterEach(() => setLang('es'));
 
 describe('the games of the flags', () => {
-  it('are four, each with its name, what it is and how hard, in both languages', () => {
-    expect(FLAG_GAMES).toEqual(['flag-whose', 'flag-pick', 'flag-alike', 'flag-reveal']);
+  it('are seven, each with its name, what it is and how hard, in both languages, the easy ones first', () => {
+    expect(FLAG_GAMES).toEqual(['flag-whose', 'flag-pick', 'flag-pairs', 'flag-reveal', 'flag-odd', 'flag-alike', 'flag-past']);
     expect(FLAG_GAMES).toBe(FLAG_GAME_IDS);
-    expect(FLAG_GAMES.map((id) => flagGameDef(id).name)).toEqual(['¿De dónde es?', '¿Cuál es su bandera?', 'Casi iguales', 'Poco a poco']);
-    expect(FLAG_GAMES.map((id) => flagGameDef(id).level)).toEqual([1, 1, 3, 2]);
-    // The games whose answer is a name can be typed.
+    expect(FLAG_GAMES.map((id) => flagGameDef(id).name)).toEqual(['¿De dónde es?', '¿Cuál es su bandera?', 'Parejas', 'Poco a poco', 'El intruso', 'Casi iguales', 'Antes y ahora']);
+    expect(FLAG_GAMES.map((id) => flagGameDef(id).level)).toEqual([1, 1, 1, 2, 2, 3, 3]);
+    // The games whose answer is the name of the flag on screen can be typed.
     expect(FLAG_GAMES.filter((id) => flagGameDef(id).typed)).toEqual(['flag-whose', 'flag-reveal']);
     const es = FLAG_GAMES.map((id) => flagGameDef(id).desc);
     setLang('en');
-    expect(FLAG_GAMES.map((id) => flagGameDef(id).name)).toEqual(['Whose flag?', 'Which flag?', 'Look-alikes', 'Bit by bit']);
+    expect(FLAG_GAMES.map((id) => flagGameDef(id).name)).toEqual(['Whose flag?', 'Which flag?', 'Pairs', 'Bit by bit', 'Odd one out', 'Look-alikes', 'Then and now']);
     const en = FLAG_GAMES.map((id) => flagGameDef(id).desc);
     for (const text of [...es, ...en]) expect(text.length).toBeGreaterThan(30);
-    expect(new Set([...es, ...en]).size).toBe(8);
-    for (const id of FLAG_GAMES) expect(flagGameDef(id).icon).toBeTruthy();
+    expect(new Set([...es, ...en]).size).toBe(14);
+    // Each with an icon of its own.
+    expect(new Set(FLAG_GAMES.map((id) => flagGameDef(id).icon)).size).toBe(FLAG_GAMES.length);
   });
 
   it('are named where a game played is listed, like the modes of a map', () => {
@@ -125,13 +132,35 @@ describe('a game in an address', () => {
     expect(flagGamesPath()).toBe('banderas');
     expect(flagGamesPath(SPAIN)).toBe('banderas/juegos/regiones-ES');
     expect(flagBestKey(play('flag-whose', SPAIN, { answer: 'type' }))).toBe('flag:de-donde/regiones-ES/10/escrita');
+    // The three that came later, each with its word; «Parejas» says how many pairs.
+    expect(flagPlayText(play('flag-past', EUROPE, { length: 'all' }))).toBe('antes-y-ahora/paises-EU/todas');
+    expect(flagPlayText(play('flag-odd', SPAIN, { length: 20 }))).toBe('el-intruso/regiones-ES/20');
+    expect(flagPlayText(play('flag-pairs', WORLD, { length: 12 }))).toBe('parejas/paises/12');
+    expect(flagBestKey(play('flag-pairs', WORLD, { length: 8 }))).toBe('flag:parejas/paises/8');
+  });
+
+  it('is as long as its game can be: ten, twenty or all the questions, or six to twelve pairs', () => {
+    for (const game of FLAG_GAMES) {
+      expect(lengthsOf(game), game).toEqual(game === 'flag-pairs' ? [6, 8, 10, 12] : [10, 20, 'all']);
+      expect(lengthOf(game), game).toBe(game === 'flag-pairs' ? 8 : 10);
+      expect(lengthsOf(game)).toContain(lengthOf(game));
+    }
+    expect(PAIR_SIZES).toEqual([6, 8, 10, 12]);
+    // What an address says that its game has not is as nothing said.
+    expect(flagPlayOf('parejas/paises')).toEqual(play('flag-pairs', WORLD, { length: 8 }));
+    expect(flagPlayOf('parejas/paises/10')).toEqual(play('flag-pairs', WORLD, { length: 10 }));
+    expect(flagPlayOf('parejas/paises/6')).toEqual(play('flag-pairs', WORLD, { length: 6 }));
+    for (const count of ['20', 'todas', '7', '0', 'x']) expect(flagPlayOf(`parejas/paises/${count}`), count).toEqual(play('flag-pairs', WORLD, { length: 8 }));
+    for (const count of ['8', '12', '6', '010', '1e1']) expect(flagPlayOf(`de-donde/paises/${count}`), count).toEqual(play('flag-whose', WORLD));
+    // None of the three is answered by typing.
+    expect(flagPlayOf('antes-y-ahora/paises/20/escrita')).toEqual(play('flag-past', WORLD, { length: 20 }));
   });
 
   it('reads back as the same game, whichever it is', () => {
     const sets: FlagSet[] = [WORLD, EUROPE, { kind: 'territories' }, SPAIN, { kind: 'regions', country: 'ES', level: 0 }, { kind: 'capitals' }, { kind: 'cities', country: 'JP' }, { kind: 'gone' }, { kind: 'organisations' }, { kind: 'peoples' }, { kind: 'signals' }];
     for (const game of FLAG_GAMES) {
       for (const set of sets) {
-        for (const length of FLAG_LENGTHS) {
+        for (const length of lengthsOf(game)) {
           for (const answer of flagGameDef(game).typed ? (['choice', 'type'] as const) : (['choice'] as const)) {
             const one = play(game, set, { length, answer });
             expect(flagPlayOf(flagPlayText(one)), flagPlayText(one)).toEqual(one);
@@ -186,7 +215,7 @@ describe('the questions of a game', () => {
   const world = deck(WORLD);
 
   it('are as many as asked for, each of another flag, with four answers and the right one among them', () => {
-    for (const game of FLAG_GAMES) {
+    for (const game of ASKED) {
       for (const [set, length] of [[WORLD, 10], [EUROPE, 20], [SPAIN, 10], [{ kind: 'capitals' }, 20], [{ kind: 'signals' }, 10]] as [FlagSet, 10 | 20][]) {
         const cards = deck(set);
         const round = roundOf(play(game, set, { length }), cards, mulberry32(7), nearOf(set));
@@ -197,6 +226,9 @@ describe('the questions of a game', () => {
           expect(cards).toContain(q.card);
           expect(q.options, where).toHaveLength(FLAG_OPTIONS);
           expect(q.options.filter((o) => o.key === q.card.key), where).toHaveLength(1);
+          // The right answer is the card itself.
+          expect(q.right, where).toBe(q.card.key);
+          expect(q.odd, where).toBeUndefined();
           expect(new Set(q.options.map((o) => o.key)).size, where).toBe(FLAG_OPTIONS);
           // The pieces of «Poco a poco» come off in an order of their own; the other games have none.
           if (game === 'flag-reveal') expect([...q.order].sort((a, b) => a - b)).toEqual(Array.from({ length: REVEAL_PIECES }, (_, i) => i));
@@ -240,7 +272,7 @@ describe('the questions of a game', () => {
     for (const set of sets) {
       const cards = deck(set);
       const near = nearOf(set);
-      for (const game of FLAG_GAMES) {
+      for (const game of ASKED) {
         for (let seed = 1; seed <= 12; seed++) {
           for (const q of roundOf(play(game, set, { length: 'all' }), cards, mulberry32(seed), near)) {
             questions++;
@@ -341,6 +373,56 @@ describe('«Casi iguales»', () => {
     for (const set of [WORLD, EUROPE, { kind: 'countries', continent: 'AF' }, { kind: 'territories' }, SPAIN, { kind: 'regions', country: 'ES', level: 1 }, { kind: 'capitals' }, { kind: 'gone' }] as FlagSet[]) {
       expect(questionCount(play('flag-alike', set), deck(set), nearOf(set)), flagSetText(set)).toBe(10);
     }
+  });
+});
+
+describe('«Parejas»', () => {
+  it('deals so many flags of the set, by lot, no two of them the same picture or of the same name', () => {
+    const world = deck(WORLD);
+    for (const pairs of PAIR_SIZES) {
+      const dealt = pairCards(world, pairs, mulberry32(pairs));
+      expect(dealt).toHaveLength(pairs);
+      expect(new Set(dealt.map((c) => c.key)).size).toBe(pairs);
+      for (const card of dealt) expect(world).toContain(card);
+    }
+    // Another table for another luck, the same for the same.
+    const keys = (seed: number) => pairCards(world, 8, mulberry32(seed)).map((c) => c.id);
+    expect(keys(1)).toEqual(keys(1));
+    expect(keys(1)).not.toEqual(keys(2));
+    // Chad and Romania, Indonesia and Monaco; Ajman and Dubai; the two Kievs: never both on a table.
+    for (const set of [WORLD, EUROPE, { kind: 'regions', country: 'AE' }, { kind: 'regions', country: 'UA' }, { kind: 'regions', country: 'CO' }, { kind: 'gone' }] as FlagSet[]) {
+      const cards = deck(set);
+      for (let seed = 1; seed <= 40; seed++) {
+        const dealt = pairCards(cards, 12, mulberry32(seed));
+        for (let i = 0; i < dealt.length; i++) for (let j = i + 1; j < dealt.length; j++) expect(twins(dealt[i], dealt[j]), `${flagSetText(set)}: ${dealt[i].name} / ${dealt[j].name}`).toBe(false);
+      }
+    }
+  });
+
+  it('has as many pairs as asked for where the set has them, and is no game with fewer than three', () => {
+    const world = deck(WORLD);
+    for (const pairs of PAIR_SIZES) expect(questionCount(play('flag-pairs', WORLD, { length: pairs }), world)).toBe(pairs);
+    // Six emirates that are four pictures: four pairs, however many are asked for.
+    const emirates: FlagSet = { kind: 'regions', country: 'AE' };
+    for (const pairs of PAIR_SIZES) {
+      expect(questionCount(play('flag-pairs', emirates, { length: pairs }), deck(emirates))).toBe(4);
+      expect(pairCards(deck(emirates), pairs, mulberry32(pairs))).toHaveLength(4);
+    }
+    expect(questionCount(play('flag-pairs', emirates, { length: 8 }), deck(emirates).slice(0, 2))).toBe(0);
+    // Every set there is to choose has a table.
+    const menu = setMenu(INDEX, FLAGS, SAME);
+    const sets = [...menu.countries, menu.territories, ...menu.regions, ...menu.regions.flatMap((c) => c.levels), menu.capitals, ...menu.cities, menu.gone, menu.organisations, menu.peoples, menu.signals].filter((c) => !!c).map((c) => c!.set);
+    for (const set of sets) {
+      const cards = deck(set);
+      const said = questionCount(play('flag-pairs', set, { length: 12 }), cards);
+      expect(said, flagSetText(set)).toBeGreaterThanOrEqual(3);
+      expect(said, flagSetText(set)).toBeLessThanOrEqual(12);
+      // What is dealt is never more than what is said; fewer only where names and pictures are tangled.
+      expect(pairCards(cards, 12, mulberry32(3)).length, flagSetText(set)).toBeLessThanOrEqual(said);
+      expect(pairCards(cards, 12, mulberry32(3)).length, flagSetText(set)).toBeGreaterThanOrEqual(Math.min(3, said));
+    }
+    // It has no questions: its cards are dealt, not asked.
+    expect(roundOf(play('flag-pairs', WORLD, { length: 8 }), world, mulberry32(1))).toEqual([]);
   });
 });
 

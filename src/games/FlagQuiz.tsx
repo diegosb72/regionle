@@ -1,8 +1,9 @@
 /**
- * The games of the section «Banderas» (lib/flagGames.ts), which are one game of questions asked four ways:
+ * The games of questions of the section «Banderas» (lib/flagGames.ts), which are one game asked six ways:
  * a flag and its name among four or typed, a name and its flag among four (any four, or the three that
- * look most like it), and a flag that is uncovered piece by piece. There is no map: the whole window is
- * the question.
+ * look most like it), a flag that is uncovered piece by piece, a flag of another time and the country that
+ * flew it, and four flags of which one is from somewhere else. There is no map: the whole window is the
+ * question. («Parejas» is no game of questions: games/FlagPairs.tsx.)
  *
  * One try for each flag, marked at once; what is missed is shown beside what it was taken for, and at the
  * end the misses can be played alone.
@@ -29,6 +30,7 @@ import {
   revealRes,
   roundOf,
   type FlagAnswered,
+  type FlagExtra,
   type FlagPlay,
   type FlagQuestion,
 } from '../lib/flagGames';
@@ -45,8 +47,16 @@ import './flagQuiz.css';
 /** The shape of a flag, for the box it is drawn in. */
 const shape = (ratio: number): CSSProperties => ({ '--r': String(ratio) }) as CSSProperties;
 
-/** The pictures a question shows: the flag it asks, large, or the four it offers, as small as the gallery shows them. */
-const picturesOf = (q: FlagQuestion, named: boolean): string[] => (named ? [q.card.src] : q.options.map((card) => card.small));
+/** The pictures a question shows: the flag it asks, large, and the four it offers, as small as the gallery shows them. */
+const picturesOf = (q: FlagQuestion, staged: boolean, flagged: boolean): string[] => [...(staged ? [q.card.src] : []), ...(flagged ? q.options.map((card) => card.small) : [])];
+
+/** When a flag of another time flew, as a sentence says it: «de 1931 a 1939», «hasta 1785», «en 1929»; nothing when it is not known. */
+function flewText(years: readonly [number, number] | undefined): string {
+  const [from, to] = years ?? [0, 0];
+  if (from && to) return from === to ? L(`en ${from}`, `in ${from}`) : L(`de ${from} a ${to}`, `from ${from} to ${to}`);
+  if (to) return L(`hasta ${to}`, `until ${to}`);
+  return from ? L(`desde ${from}`, `from ${from}`) : '';
+}
 
 const resLabel = (res: Res): string => (res === 'bad' ? L('Para repasar', 'To review') : res === 'warn' ? L('Con ayuda', 'With help') : L('A la primera', 'First time'));
 
@@ -69,8 +79,13 @@ interface RoundProps {
 function Round({ play, deck, questions, name, world, review, onExit, onSee, onAgain }: RoundProps) {
   const def = flagGameDef(play.game);
   const reveal = play.game === 'flag-reveal';
-  const named = play.game === 'flag-whose' || reveal;
-  const typed = named && play.answer === 'type';
+  /** «Antes y ahora»: a flag of another time, and four countries with their flags of today. */
+  const past = play.game === 'flag-past';
+  /** «El intruso»: four flags, one of them from outside the group. */
+  const odd = play.game === 'flag-odd';
+  /** What is asked is a flag, shown large, and what answers it is a name. */
+  const named = play.game === 'flag-whose' || reveal || past;
+  const typed = named && def.typed && play.answer === 'type';
   const total = questions.length;
 
   const [at, setAt] = useState(0);
@@ -101,8 +116,8 @@ function Round({ play, deck, questions, name, world, review, onExit, onSee, onAg
     const c = world.byId.get(card.country);
     return c ? nm(c.n) : '';
   };
-  /** What tells a flag from another of the same name: the country of a capital, the years of a country that is no more. */
-  const under = (card: DeckCard): string => (card.kind === 'capital' ? land(card) : card.kind === 'gone' ? yearsText(card.years) : '');
+  /** What tells a flag from another of the same name: the country of a capital, the years of a country that is no more or of a flag of another time. */
+  const under = (card: DeckCard): string => (card.kind === 'capital' ? land(card) : card.kind === 'gone' || card.kind === 'past' ? yearsText(card.years) : '');
 
   const finish = (answers: readonly FlagAnswered[]) => {
     if (ended) return;
@@ -121,18 +136,25 @@ function Round({ play, deck, questions, name, world, review, onExit, onSee, onAg
 
   const answer = (res: Res, taken?: DeckCard) => {
     if (!q || given || ended) return;
-    const rec: FlagAnswered = { card: q.card, res, ...(taken ? { given: taken } : {}), points: reveal && res !== 'bad' ? revealPoints(shown) : 0 };
+    const rec: FlagAnswered = {
+      card: q.card,
+      res,
+      ...(taken ? { given: taken } : {}),
+      ...(q.odd ? { note: L(`${q.odd.tag} · la intrusa entre «${q.odd.group}»`, `${q.odd.tag} · the odd one out among “${q.odd.group}”`) } : {}),
+      points: reveal && res !== 'bad' ? revealPoints(shown) : 0,
+    };
     setGiven(rec);
     setLog((l) => [...l, rec]);
     setStray(0);
     // The flags of the countries are the ones the rest of the game knows: what is learnt here counts there too.
-    if (q.card.kind === 'country') {
+    // (Not where what is asked is something else: where a flag is from, or whose it was.)
+    if (q.card.kind === 'country' && !odd) {
       const st = useStore.getState();
       st.record('flag', q.card.id, res, 'c');
       if (taken && taken.kind === 'country' && taken.id !== q.card.id) st.mixUp('flag', q.card.id, taken.id);
     }
   };
-  const choose = (card: DeckCard) => answer(card.key === q?.card.key ? (reveal ? revealRes(shown) : 'ok') : 'bad', card.key === q?.card.key ? undefined : card);
+  const choose = (card: DeckCard) => answer(card.key === q?.right ? (reveal ? revealRes(shown) : 'ok') : 'bad', card.key === q?.right ? undefined : card);
   const submit = (text: string) => {
     if (!q || !matcher || given || !text.trim()) return;
     const verdict = judgeTyped(matcher, deck, q.card, text);
@@ -203,13 +225,13 @@ function Round({ play, deck, questions, name, world, review, onExit, onSee, onAg
   useEffect(() => {
     const coming = questions[at + 1];
     if (!coming || typeof Image === 'undefined') return;
-    ahead.current = picturesOf(coming, named).map((src) => {
+    ahead.current = picturesOf(coming, named, !named || past).map((src) => {
       const img = new Image();
       img.decoding = 'async';
       img.src = src;
       return img;
     });
-  }, [questions, at, named]);
+  }, [questions, at, named, past]);
 
   /** A flag as it is shown small. `asked`: it is one of those the question is answered by, and is missed if it does not come. */
   const picture = (card: DeckCard, asked = false) => (
@@ -298,6 +320,7 @@ function Round({ play, deck, questions, name, world, review, onExit, onSee, onAg
                           <span className="fq-row">
                             <b>{a.card.name}</b>
                             {under(a.card) && <small>{under(a.card)}</small>}
+                            {a.note && <small>{a.note}</small>}
                             {a.given && (
                               <small className="fq-took">
                                 {named ? L(`Dijiste ${a.given.name}`, `You said ${a.given.name}`) : L(`Elegiste la de ${a.given.name}`, `You chose that of ${a.given.name}`)}
@@ -323,8 +346,14 @@ function Round({ play, deck, questions, name, world, review, onExit, onSee, onAg
   const last = at + 1 >= total;
   const off = new Set(given ? q.order : q.order.slice(0, shown));
   const worth = revealPoints(shown);
-  const kicker = named ? L('¿De dónde es esta bandera?', 'Whose flag is this?') : L('¿Cuál es la bandera de…?', 'Which is the flag of…?');
-  const place = q.options.findIndex((card) => card.key === q.card.key) + 1;
+  const kicker = past
+    ? L('¿Qué país tuvo esta bandera?', 'Which country flew this flag?')
+    : odd
+      ? L('¿Cuál no es de este grupo?', 'Which one is not of this group?')
+      : named
+        ? L('¿De dónde es esta bandera?', 'Whose flag is this?')
+        : L('¿Cuál es la bandera de…?', 'Which is the flag of…?');
+  const place = q.options.findIndex((card) => card.key === q.right) + 1;
 
   return (
     <GameShell
@@ -348,6 +377,7 @@ function Round({ play, deck, questions, name, world, review, onExit, onSee, onAg
                   </span>
                 )}
               </div>
+              {past && under(q.card) && <p className="fq-when">{under(q.card)}</p>}
               {reveal && (
                 <div className="fq-uncover">
                   <button ref={uncoverRef} type="button" className="btn" onClick={uncover} disabled={!!given || shown >= REVEAL_PIECES}>
@@ -364,16 +394,17 @@ function Round({ play, deck, questions, name, world, review, onExit, onSee, onAg
             </div>
           ) : (
             <h2 className="q-ask center fq-name">
-              {q.card.name}
-              {under(q.card) && <small>{under(q.card)}</small>}
+              {q.odd ? q.odd.group : q.card.name}
+              {!q.odd && under(q.card) && <small>{under(q.card)}</small>}
             </h2>
           )}
 
           {named && !typed && (
             <div className="choices fq-choices" role="group" aria-label={L('Las cuatro respuestas', 'The four answers')}>
               {q.options.map((card, i) => (
-                <button key={card.key} type="button" className={cx('choice', given && card.key === q.card.key && 'right', given?.given?.key === card.key && 'wrong')} disabled={!!given} onClick={() => choose(card)}>
+                <button key={card.key} type="button" className={cx('choice', given && card.key === q.right && 'right', given?.given?.key === card.key && 'wrong')} disabled={!!given} onClick={() => choose(card)}>
                   <kbd aria-hidden="true">{i + 1}</kbd>
+                  {past && <span className="fq-thumb fq-thumb-sm">{picture(card, true)}</span>}
                   <span>{card.name}</span>
                 </button>
               ))}
@@ -398,7 +429,7 @@ function Round({ play, deck, questions, name, world, review, onExit, onSee, onAg
                 <button
                   key={card.key}
                   type="button"
-                  className={cx('fq-opt', given && card.key === q.card.key && 'right', given?.given?.key === card.key && 'wrong')}
+                  className={cx('fq-opt', given && card.key === q.right && 'right', given?.given?.key === card.key && 'wrong')}
                   disabled={!!given}
                   onClick={() => choose(card)}
                   aria-label={given ? card.name : L(`Bandera ${i + 1}`, `Flag ${i + 1}`)}
@@ -407,7 +438,7 @@ function Round({ play, deck, questions, name, world, review, onExit, onSee, onAg
                   <span className="fq-cap">
                     <kbd aria-hidden="true">{i + 1}</kbd>
                     {/* Once the question is settled every flag says whose it is: the three that were not asked are learnt too. */}
-                    <span>{given ? card.name : ''}</span>
+                    <span>{given ? (q.odd && card.key === q.right ? `${card.name} · ${q.odd.tag}` : card.name) : ''}</span>
                   </span>
                 </button>
               ))}
@@ -431,21 +462,27 @@ function Round({ play, deck, questions, name, world, review, onExit, onSee, onAg
                   ? reveal
                     ? L(`¡Correcto! ${given.points === 1 ? '1 punto' : `${given.points} puntos`}.`, `Correct! ${given.points === 1 ? '1 point' : `${given.points} points`}.`)
                     : L('¡Correcto!', 'Correct!')
-                  : named
-                    ? L(`Era ${q.card.name}.`, `It was ${q.card.name}.`)
-                    : given.given
-                      ? L(`Esa es la de ${given.given.name}.`, `That one is the flag of ${given.given.name}.`)
-                      : L('No era esa.', 'Not that one.')
+                  : past
+                    ? L(`Fue la bandera de ${q.card.name}.`, `It was the flag of ${q.card.name}.`)
+                    : named
+                      ? L(`Era ${q.card.name}.`, `It was ${q.card.name}.`)
+                      : given.given
+                        ? L(`Esa es la de ${given.given.name}.`, `That one is the flag of ${given.given.name}.`)
+                        : L('No era esa.', 'Not that one.')
               }
             >
-              {named && under(q.card) && <p className="fq-why">{`${q.card.name} · ${under(q.card)}`}</p>}
-              {named && given.given && (
+              {named && !past && under(q.card) && <p className="fq-why">{`${q.card.name} · ${under(q.card)}`}</p>}
+              {past && flewText(q.card.years) && <p className="fq-why">{right ? L(`${q.card.name} la tuvo ${flewText(q.card.years)}.`, `${q.card.name} flew it ${flewText(q.card.years)}.`) : L(`La tuvo ${flewText(q.card.years)}.`, `It flew ${flewText(q.card.years)}.`)}</p>}
+              {/* The flag of what was said, to tell the two apart; in «Antes y ahora» it is there already, beside its name. */}
+              {named && !past && given.given && (
                 <p className="fq-why fq-mix">
                   <span>{L(`La de ${given.given.name} es esta:`, `That of ${given.given.name} is this one:`)}</span>
                   <span className="fq-thumb">{picture(given.given)}</span>
                 </p>
               )}
-              {!named && !right && place > 0 && <p className="fq-why">{L(`La de ${q.card.name} es la número ${place}.`, `That of ${q.card.name} is number ${place}.`)}</p>}
+              {q.odd && right && <p className="fq-why">{L(`La de ${q.card.name}: ${q.odd.tag}.`, `That of ${q.card.name}: ${q.odd.tag}.`)}</p>}
+              {q.odd && !right && place > 0 && <p className="fq-why">{L(`La intrusa era la número ${place}: la de ${q.card.name} (${q.odd.tag}).`, `The odd one out was number ${place}: that of ${q.card.name} (${q.odd.tag}).`)}</p>}
+              {!named && !q.odd && !right && place > 0 && <p className="fq-why">{L(`La de ${q.card.name} es la número ${place}.`, `That of ${q.card.name} is number ${place}.`)}</p>}
             </Verdict>
           )}
           <div className="q-actions center">
@@ -470,10 +507,29 @@ function Round({ play, deck, questions, name, world, review, onExit, onSee, onAg
  * A game of flags: its questions are drawn here, and drawn again for each new game. `near` is what
  * «Casi iguales» sets beside each flag (lib/flagAlike.ts); the other games need none.
  */
-export function FlagQuiz({ play, deck, near, name, world, onExit, onSee }: { play: FlagPlay; deck: readonly DeckCard[]; near: ReadonlyMap<string, readonly Near[]>; name: string; world: World; onExit(): void; onSee(): void }) {
+export function FlagQuiz({
+  play,
+  deck,
+  near,
+  extra,
+  name,
+  world,
+  onExit,
+  onSee,
+}: {
+  play: FlagPlay;
+  deck: readonly DeckCard[];
+  near: ReadonlyMap<string, readonly Near[]>;
+  /** What «Antes y ahora» and «El intruso» are asked with (lib/flagGames.ts). */
+  extra?: FlagExtra;
+  name: string;
+  world: World;
+  onExit(): void;
+  onSee(): void;
+}) {
   const [game, setGame] = useState<{ n: number; only: ReadonlySet<string> | null }>({ n: 0, only: null });
   // Drawn once for each game: `n` is what tells one from the next.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const questions = useMemo(() => roundOf(play, deck, Math.random, near, game.only ?? undefined), [play, deck, near, game]);
+  const questions = useMemo(() => roundOf(play, deck, Math.random, near, game.only ?? undefined, extra), [play, deck, near, extra, game]);
   return <Round key={game.n} play={play} deck={deck} questions={questions} name={name} world={world} review={!!game.only} onExit={onExit} onSee={onSee} onAgain={(only) => setGame((g) => ({ n: g.n + 1, only: only ?? null }))} />;
 }

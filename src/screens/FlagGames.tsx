@@ -11,12 +11,31 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { HelpButton } from '../components/Help';
 import { Seg, Spinner } from '../components/ui';
 import { groupAt, loadAlike, nearCards, type AlikeFile } from '../lib/flagAlike';
-import { FLAG_GAMES, FLAG_LENGTHS, flagBestKey, flagGameDef, flagGameHelp, flagPlayOf, flagPlayPath, flagPlayText, questionCount, type FlagAnswer, type FlagLength, type FlagPlay } from '../lib/flagGames';
+import {
+  FLAG_GAMES,
+  FLAG_LENGTHS,
+  PAIR_SIZES,
+  flagBestKey,
+  flagGameDef,
+  flagGameHelp,
+  flagPlayOf,
+  flagPlayPath,
+  flagPlayText,
+  questionCount,
+  type FlagAnswer,
+  type FlagExtra,
+  type FlagLength,
+  type FlagPlay,
+  type PairSize,
+} from '../lib/flagGames';
+import { oddGroups } from '../lib/flagOdd';
+import { PAST_MIN, pastCards, pastPlace } from '../lib/flagPast';
 import { FLAG_SET_MIN, alikePlace, deckOf, flagSetName, flagSetOf, galleryPage, loadSame, sameMap, sameSet, setMenu, type FlagSet, type SetChoice, type SetMenu } from '../lib/flagSets';
 import { flagsRest, loadFlags, type FlagsFile } from '../lib/flags';
 import { L, getLang } from '../lib/i18n';
 import { go } from '../lib/router';
 import { FLAGS_PATH } from '../lib/routes';
+import { PAIR_SIZE_DEFAULT } from '../lib/rules';
 import { SCREENS } from '../lib/seo';
 import { useStore } from '../lib/store';
 import { cx, nf } from '../lib/text';
@@ -51,7 +70,9 @@ function Chooser({ world, file, same, asked }: { world: World; file: FlagsFile; 
   const [left] = useState(() => flagPlayOf(useStore.getState().flagLast));
   const [set, setSet] = useState<FlagSet>(() => enough(asked) ?? enough(left?.set) ?? firstOf('countries', menu) ?? { kind: 'countries' });
   const [game, setGame] = useState<FlagGame>(left?.game ?? 'flag-whose');
-  const [length, setLength] = useState<FlagLength>(left?.length ?? 10);
+  // How long a game of questions is, and how many pairs «Parejas» deals: each is kept while the other game is chosen.
+  const [length, setLength] = useState<FlagLength>(left && left.game !== 'flag-pairs' ? (left.length as FlagLength) : 10);
+  const [pairs, setPairs] = useState<PairSize>(left?.game === 'flag-pairs' ? (left.length as PairSize) : PAIR_SIZE_DEFAULT);
   const [answer, setAnswer] = useState<FlagAnswer>(left?.answer ?? 'choice');
   const modeRef = useRef<HTMLElement>(null);
 
@@ -64,7 +85,8 @@ function Chooser({ world, file, same, asked }: { world: World; file: FlagsFile; 
   }, [askedText]);
 
   const def = flagGameDef(game);
-  const play: FlagPlay = useMemo(() => ({ game, set, length, answer: def.typed ? answer : 'choice' }), [game, set, length, answer, def.typed]);
+  const paired = game === 'flag-pairs';
+  const play: FlagPlay = useMemo(() => ({ game, set, length: paired ? pairs : length, answer: def.typed ? answer : 'choice' }), [game, set, paired, pairs, length, answer, def.typed]);
   const text = flagPlayText(play);
   const setFlagLast = useStore((s) => s.setFlagLast);
   useEffect(() => setFlagLast(text), [text, setFlagLast]);
@@ -91,13 +113,27 @@ function Chooser({ world, file, same, asked }: { world: World; file: FlagsFile; 
     };
   }, [needsAlike, place.file, alike?.kind]);
   const near = useMemo(() => (needsAlike && alike?.kind === place.file ? nearCards(groupAt(alike.file, place), deck) : null), [needsAlike, alike, place.file, place.group, place.wider, deck]);
-  const questions = needsAlike ? (near ? questionCount(play, deck, near) : null) : questionCount(play, deck);
+  // What «Antes y ahora» and «El intruso» are counted with: the countries of the set that flew another flag, and its groups of three.
+  const extra = useMemo<FlagExtra>(() => {
+    if (game === 'flag-past') {
+      const at = pastPlace(set);
+      return at ? { past: { cards: pastCards(deck, file), data: null, place: at } } : {};
+    }
+    return game === 'flag-odd' ? { odd: { groups: oddGroups(set, deck, world.index) } } : {};
+  }, [game, set, deck, file, world]);
+  const questions = needsAlike ? (near ? questionCount(play, deck, near) : null) : questionCount(play, deck, undefined, extra);
   const problem =
     needsAlike && alikeFailed
       ? L('No se han podido cargar las banderas parecidas: elige otro juego.', 'The look-alikes could not be loaded: choose another game.')
-      : questions === 0
-        ? L('Estas banderas no se parecen lo bastante entre sí: elige otras, u otro juego.', 'These flags are not enough alike: choose others, or another game.')
-        : null;
+      : questions !== 0
+        ? null
+        : needsAlike
+          ? L('Estas banderas no se parecen lo bastante entre sí: elige otras, u otro juego.', 'These flags are not enough alike: choose others, or another game.')
+          : game === 'flag-past' && !extra.past
+            ? L('«Antes y ahora» se juega con países: elige los del mundo, los de un continente o los territorios.', '“Then and now” is played with countries: choose those of the world, of a continent, or the territories.')
+            : game === 'flag-past'
+              ? L(`De estos países, menos de ${PAST_MIN} han tenido otra bandera: elige otros, u otro juego.`, `Of these countries, fewer than ${PAST_MIN} have flown another flag: choose others, or another game.`)
+              : L('Con estas banderas no hay bastante para este juego: elige otras, u otro juego.', 'There is not enough for this game with these flags: choose others, or another game.');
 
   const best = useStore((s) => s.best[flagBestKey(play)]);
   const begin = () => {
@@ -252,14 +288,18 @@ function Chooser({ world, file, same, asked }: { world: World; file: FlagsFile; 
               {questions != null && questions > 0 && (
                 <li>
                   <ListOrdered size={14} aria-hidden="true" />
-                  <span>{L(questions === 1 ? '1 pregunta' : `${nf(questions)} preguntas`, questions === 1 ? '1 question' : `${nf(questions)} questions`)}</span>
+                  <span>
+                    {paired
+                      ? L(`${nf(questions)} parejas, ${nf(questions * 2)} cartas`, `${nf(questions)} pairs, ${nf(questions * 2)} cards`)
+                      : L(questions === 1 ? '1 pregunta' : `${nf(questions)} preguntas`, questions === 1 ? '1 question' : `${nf(questions)} questions`)}
+                  </span>
                 </li>
               )}
               {best != null && (
                 <li title={L('Tu mejor resultado en este juego con estas banderas y estos ajustes.', 'Your best result in this game with these flags and these settings.')}>
                   <Trophy size={14} aria-hidden="true" />
                   <span>
-                    {L('Tu marca', 'Your record')}: {nf(best)} %
+                    {L('Tu marca', 'Your record')}: {paired ? L(`${nf(best)} intentos`, `${nf(best)} turns`) : `${nf(best)} %`}
                   </span>
                 </li>
               )}
@@ -271,11 +311,20 @@ function Chooser({ world, file, same, asked }: { world: World; file: FlagsFile; 
               <span className="step-n">03</span> {L('Ajustes', 'Settings')}
             </h2>
             <div className="options">
-              <div className="opt">
-                <span className="opt-label">{L('Preguntas', 'Questions')}</span>
-                <Seg<FlagLength> label={L('Cuántas preguntas', 'How many questions')} value={length} onChange={setLength} options={FLAG_LENGTHS.map((value) => ({ value, label: lengthName(value) }))} />
-                {game === 'flag-alike' && length === 'all' && <span className="opt-hint">{L('Todas las que tienen con quién confundirse, no todas las del grupo.', 'All that have something to be mixed up with, not every flag of the group.')}</span>}
-              </div>
+              {paired ? (
+                <div className="opt">
+                  <span className="opt-label">{L('Parejas', 'Pairs')}</span>
+                  <Seg<PairSize> label={L('Cuántas parejas', 'How many pairs')} value={pairs} onChange={setPairs} options={PAIR_SIZES.map((value) => ({ value, label: String(value) }))} />
+                  {questions != null && questions > 0 && questions < pairs && <span className="opt-hint">{L(`De estas banderas solo salen ${nf(questions)} parejas.`, `These flags only make ${nf(questions)} pairs.`)}</span>}
+                </div>
+              ) : (
+                <div className="opt">
+                  <span className="opt-label">{L('Preguntas', 'Questions')}</span>
+                  <Seg<FlagLength> label={L('Cuántas preguntas', 'How many questions')} value={length} onChange={setLength} options={FLAG_LENGTHS.map((value) => ({ value, label: lengthName(value) }))} />
+                  {game === 'flag-alike' && length === 'all' && <span className="opt-hint">{L('Todas las que tienen con quién confundirse, no todas las del grupo.', 'All that have something to be mixed up with, not every flag of the group.')}</span>}
+                  {game === 'flag-past' && <span className="opt-hint">{L('Una bandera por cada país que ha tenido otra: en cada partida puede salir una distinta.', 'One flag for each country that has flown another: each game may bring a different one.')}</span>}
+                </div>
+              )}
               {def.typed && (
                 <div className="opt">
                   <span className="opt-label">{L('Respuesta', 'Answer')}</span>

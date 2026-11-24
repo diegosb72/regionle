@@ -22,6 +22,9 @@
 //   others.json      the countries that are no more, the organisations, the peoples and the signals of the sea
 //   same.json        the pictures that are the same as another, whatever their kind: what every game reads,
 //                    while the files above are only for the games that ask about flags that look alike
+//   past.json        for each flag that a country flew before, the countries whose flag of today is most
+//                    like it, and the other countries that flew it too: what «Antes y ahora» sets beside
+//                    the country that is asked, and what it never does
 //
 // Each group is one of the sets of flags a game is played with (src/lib/flagSets.ts): the neighbours of a
 // flag are looked for among the flags it will be set beside, and nowhere else. A flag is in several groups
@@ -70,6 +73,15 @@ export const FAR = 60;
  * well within; two blue flags that differ in the seal at their centre are not, because of that one cell.
  */
 export const SAME = { mean: 3, peak: 14 };
+/** How many countries are kept beside each flag of another time: a question shows three, and some are not in the set that is played. */
+export const KEEP_PAST = 8;
+/**
+ * A flag of another time that is this close, on the whole, to one that another country flies or flew is as
+ * good as that one: the red, white and black of the Arab republics with two stars or with three, the blue
+ * ensign with the badge of one colony or of the next. That country is never set beside it as a wrong
+ * answer: nobody could be told they were wrong to choose it.
+ */
+export const ALSO = 3;
 
 const lin = (c) => {
   const v = c / 255;
@@ -271,6 +283,16 @@ export function groupsOf(index, flags) {
   };
 }
 
+/**
+ * The flags that are of no country, all together: the countries that are no more, the organisations, the
+ * peoples and every signal. No game is played with them all, but «El intruso» sets a flag of one of these
+ * kinds beside three of another: the pictures that are the same across them have to be known, so that the
+ * one from outside is never the picture of one from inside.
+ */
+export function strayOf(flags) {
+  return [...new Set([...(flags.gone ?? []).map((row) => row[3]), ...[...(flags.organisations ?? []), ...(flags.peoples ?? [])].map((row) => row[3]), ...(flags.signals ?? []).map((row) => row[4])])];
+}
+
 /** The picture to compare a flag by: the light one of a heavy drawing where there is one, which is the same flag. */
 export function lightOf(flags) {
   const light = new Map();
@@ -283,6 +305,56 @@ export function lightOf(flags) {
   for (const row of [...(flags.organisations ?? []), ...(flags.peoples ?? [])]) add(row[3], row[5]);
   for (const row of flags.signals ?? []) add(row[4], row[6]);
   return light;
+}
+
+/**
+ * The flags that the countries flew before, in the groups «Antes y ahora» is played in: those of the
+ * States, those of the States of each continent and those of the territories, each as its country and its
+ * file, in the order of the data. A flag is in every group its country is in.
+ */
+export function pastGroupsOf(index, flags) {
+  const past = flags.past ?? {};
+  const of = (list) => list.flatMap((c) => (past[c.id] ?? []).map((row) => [c.id, row[0]]));
+  const drawn = index.countries.filter((c) => c.fl);
+  const states = drawn.filter((c) => STATES.includes(c.cl));
+  const groups = { states: of(states) };
+  for (const continent of Object.keys(index.continents ?? {})) {
+    const there = of(states.filter((c) => c.ct === continent));
+    if (there.length) groups[continent] = there;
+  }
+  groups.territories = of(drawn.filter((c) => c.cl === 'dep'));
+  return Object.fromEntries(Object.entries(groups).filter(([, list]) => list.length));
+}
+
+/** What a flag of another time goes by in the file: its country and its file, since two countries may have flown the same one. */
+export const pastKey = (country, file) => `${country}:${file}`;
+
+/**
+ * The other countries that flew a flag, or one as good as it: those with a flag, of today or of before,
+ * within `ALSO` of it. `flown` are the looks of every flag of each country, that of today first.
+ */
+export function alsoFlew(country, look, flown) {
+  const out = [];
+  for (const [other, looks] of flown) {
+    if (other === country) continue;
+    if (looks.some((theirs) => apartLooks(look, theirs).drawn <= ALSO)) out.push(other);
+  }
+  return out;
+}
+
+/**
+ * The countries to set beside a flag of another time: those of `members` whose flag of today is most like
+ * it, as pairs of country and score, the nearest first and no more than `keep`. Never its own country, and
+ * never one of `also`, which flew it too. Nothing is too far to be kept: a question needs three, whatever they are.
+ */
+export function besidePast(country, look, members, today, also, keep = KEEP_PAST) {
+  const barred = new Set([country, ...also]);
+  return members
+    .filter((id) => !barred.has(id) && today.has(id))
+    .map((id, i) => ({ id, i, score: apartLooks(look, today.get(id)).score }))
+    .sort((a, b) => a.score - b.score || a.i - b.i)
+    .slice(0, keep)
+    .flatMap(({ id, score }) => [id, Math.round(score)]);
 }
 
 async function main() {
@@ -328,7 +400,11 @@ async function main() {
     kept[key] = pack(look);
     return look;
   };
-  const names = [...new Set(Object.values(groups).flatMap((kind) => Object.values(kind).flat()))];
+  const pastGroups = pastGroupsOf(index, flags);
+  const pastFiles = Object.values(flags.past ?? {}).flatMap((rows) => rows.map((row) => row[0]));
+  // Every flag of a country is looked at, whatever group it is in: one of another time is compared with them all.
+  const stray = strayOf(flags);
+  const names = [...new Set([...Object.values(groups).flatMap((kind) => Object.values(kind).flat()), ...index.countries.filter((c) => c.fl).map((c) => c.id), ...pastFiles, ...stray])];
   const started = Date.now();
   let done = 0;
   let next = 0;
@@ -384,10 +460,38 @@ async function main() {
     fs.writeFileSync(path.join(OUT, `${kind}.json`), text);
     console.log(`  ${kind}.json: ${Object.keys(out.groups).length} grupos, ${(text.length / 1024).toFixed(1)} kB`);
   }
+  // …and those that are the same across the kinds that are of no country, which no group above holds together.
+  for (const list of alikeIn(stray, looks, 0).same) {
+    const head = list.map((i) => first.get(stray[i])).find(Boolean) ?? stray[list[0]];
+    for (const i of list) if (!first.has(stray[i])) first.set(stray[i], head);
+  }
   const same = [...new Set(first.values())].sort().map((head) => [head, ...[...first.keys()].filter((pic) => pic !== head && first.get(pic) === head).sort()]);
   fs.writeFileSync(path.join(OUT, 'same.json'), JSON.stringify({ v: 1, same }));
   console.log(`  same.json: ${same.length} dibujos que son de más de una bandera`);
   console.log(`Banderas parecidas: ${total} banderas en sus grupos; ${twins} son el mismo dibujo que otra de su grupo.`);
+
+  // The flags of other times: beside each, the countries whose flag of today is most like it.
+  const today = new Map(index.countries.filter((c) => c.fl).map((c) => [c.id, looks.get(c.id)]));
+  const flown = new Map([...today].map(([id, look]) => [id, [look, ...(flags.past?.[id] ?? []).map((row) => looks.get(row[0]))]]));
+  const past = { v: 1, groups: {}, own: {}, also: {} };
+  const alsoOf = new Map();
+  for (const [country, rows] of Object.entries(flags.past ?? {})) {
+    if (!today.has(country)) continue;
+    for (const row of rows) {
+      const key = pastKey(country, row[0]);
+      const also = alsoFlew(country, looks.get(row[0]), flown);
+      alsoOf.set(key, also);
+      if (also.length) past.also[key] = also;
+      past.own[key] = Math.round(apartLooks(looks.get(row[0]), today.get(country)).score);
+    }
+  }
+  for (const [id, list] of Object.entries(pastGroups)) {
+    const members = id === 'territories' ? groups.countries.territories : (groups.countries[id] ?? []);
+    past.groups[id] = Object.fromEntries(list.map(([country, file]) => [pastKey(country, file), besidePast(country, looks.get(file), members, today, alsoOf.get(pastKey(country, file)) ?? [])]));
+  }
+  const pastText = JSON.stringify(past);
+  fs.writeFileSync(path.join(OUT, 'past.json'), pastText);
+  console.log(`  past.json: ${Object.keys(past.own).length} banderas de otros tiempos en ${Object.keys(past.groups).length} grupos; ${Object.keys(past.also).length} las tuvo también otro país; ${(pastText.length / 1024).toFixed(1)} kB`);
 
   if (report) {
     // By name, for a person to look at: who is each picture, what is the same as what, and the neighbours of each.
@@ -410,6 +514,15 @@ async function main() {
         };
       }
     }
+    const land = (id) => index.countries.find((c) => c.id === id)?.n.es ?? id;
+    const years = new Map(Object.entries(flags.past ?? {}).flatMap(([country, rows]) => rows.map((row) => [pastKey(country, row[0]), `${row[2] || '?'}–${row[3] || '?'}`])));
+    const told = (key) => `${land(key.split(':')[0])} ${years.get(key)} [${key.split(':')[1]}]`;
+    said.past = {
+      also: Object.fromEntries(Object.entries(past.also).map(([key, ids]) => [told(key), ids.map(land)])),
+      groups: Object.fromEntries(
+        Object.entries(past.groups).map(([id, list]) => [id, Object.fromEntries(Object.entries(list).map(([key, near]) => [`${told(key)} · ${past.own[key]} de la de hoy`, near.reduce((all, v, k) => (k % 2 ? all : [...all, `${land(v)} ${near[k + 1]}`]), [])]))]),
+      ),
+    };
     fs.writeFileSync(path.resolve(ROOT, report), JSON.stringify(said, null, 1));
     console.log(`  Lo encontrado, por nombre, en ${report}`);
   }

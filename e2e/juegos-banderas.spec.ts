@@ -1,6 +1,6 @@
 /**
- * The games of the section «Banderas»: where they are chosen (`#/banderas`) and each of the four, played
- * through. What comes up in a game is drawn by lot: the tests read on the screen which flag or which name
+ * The games of the section «Banderas»: where they are chosen (`#/banderas`) and each of the first four,
+ * played through (the three that came after them are in mas-juegos-banderas.spec.ts). What comes up in a game is drawn by lot: the tests read on the screen which flag or which name
  * is asked, and know from the lists the site is built with what the answer is.
  */
 import fs from 'node:fs';
@@ -58,8 +58,8 @@ test.describe('where the games of the flags are chosen', () => {
     await expect(page.getByRole('radiogroup', { name: 'Qué banderas' }).getByRole('radio', { name: 'Países' })).toHaveAttribute('aria-checked', 'true');
     await expect(page.locator('.chip.on')).toHaveText(`Todo el mundo ${STATES.length}`);
     await expect(page.locator('.fgm-set-name')).toHaveText(`Países del mundo · ${STATES.length} banderas`);
-    // The four games, the first one chosen; what is typed is offered where the answer is a name.
-    await expect(page.locator('.modes .mode')).toHaveText([/^¿De dónde es\?/, /^¿Cuál es su bandera\?/, /^Casi iguales/, /^Poco a poco/]);
+    // The seven games, the easy ones first and the first one chosen; what is typed is offered where the answer is a name.
+    await expect(page.locator('.modes .mode')).toHaveText([/^¿De dónde es\?/, /^¿Cuál es su bandera\?/, /^Parejas/, /^Poco a poco/, /^El intruso/, /^Casi iguales/, /^Antes y ahora/]);
     await expect(page.getByRole('button', { name: /^¿De dónde es\?/ })).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator('.mode-about')).toContainText('Fácil. Sale una bandera y dices de dónde es');
     await expect(page.locator('.mode-facts')).toHaveText('10 preguntas');
@@ -174,7 +174,7 @@ test.describe('where the games of the flags are chosen', () => {
     await expect(panel).toHaveCount(0);
     await page.getByRole('group', { name: 'Idioma' }).getByRole('button', { name: 'EN' }).click();
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Flags of the world');
-    await expect(page.locator('.modes .mode')).toHaveText([/^Whose flag\?/, /^Which flag\?/, /^Look-alikes/, /^Bit by bit/]);
+    await expect(page.locator('.modes .mode')).toHaveText([/^Whose flag\?/, /^Which flag\?/, /^Pairs/, /^Bit by bit/, /^Odd one out/, /^Look-alikes/, /^Then and now/]);
     await expect(page.locator('.fgm-set-name')).toHaveText(`Countries of the world · ${STATES.length} flags`);
     await expect(page.locator('.mode-about')).toContainText('Hard. A name comes up with four flags that look alike');
     await page.getByRole('button', { name: 'Start' }).click();
@@ -188,7 +188,7 @@ test.describe('where the games of the flags are chosen', () => {
     const card = page.locator('.sections a.scard').nth(5);
     await expect(card.getByRole('heading', { level: 2 })).toHaveText('Banderas');
     await expect(card).toHaveAttribute('href', 'banderas.html');
-    await expect(card.locator('.scard-modes li')).toHaveText(['¿De dónde es?', '¿Cuál es su bandera?', 'Casi iguales', 'Poco a poco', 'Galería']);
+    await expect(card.locator('.scard-modes li')).toHaveText(['¿De dónde es?', '¿Cuál es su bandera?', 'Parejas', 'Poco a poco', 'El intruso', 'Casi iguales', 'Antes y ahora', 'Galería']);
     await expect(card.locator('.scard-go')).toHaveText('Elegir juego');
     await page.evaluate(() => ((window as unknown as { kept: number }).kept = 7));
     await card.click();

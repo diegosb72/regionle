@@ -3,6 +3,15 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.45.0 — 24 de noviembre de 2026
+
+- Tres juegos más de banderas: Antes y ahora, El intruso y Parejas. Con los cuatro de antes, ya son siete.
+- Antes y ahora: sale una bandera que un país tuvo antes, con sus años, y dices qué país fue. Es el juego de las 300 banderas anteriores, que solo se veían.
+- Los otros tres países son los que hoy tienen la bandera más parecida a la antigua, y nunca uno que tuvo esa misma. Se juega con países: 81 han cambiado la suya.
+- El intruso: cuatro banderas, tres de un grupo y una de fuera. Entre países, la intrusa es de otro continente y se parece a alguna de las otras tres.
+- Con regiones o ciudades, la intrusa es de otro país; con organizaciones, pueblos o países que ya no existen, de otra clase.
+- Parejas: cartas boca abajo, la bandera y su nombre, con 6, 8, 10 o 12 parejas de cualquier grupo de banderas. Tu marca es la mesa con menos intentos.
+
 ## 1.44.0 — 24 de noviembre de 2026
 
 - Banderas ya tiene juegos: cuatro para empezar, con las más de cuatro mil banderas de la galería. Eliges con cuáles juegas y a qué.

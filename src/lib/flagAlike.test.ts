@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 // @ts-expect-error a script of the build, written without types
-import { DRAWN, FAR, GRID, KEEP, KEEP_COUNTRIES, LEVEL_MIN, alikeIn, apartLooks, groupsOf, lightOf, lookOf, sameLook } from '../../scripts/data/flags-alike.mjs';
+import { DRAWN, FAR, GRID, KEEP, KEEP_COUNTRIES, LEVEL_MIN, alikeIn, apartLooks, groupsOf, lightOf, lookOf, sameLook, strayOf } from '../../scripts/data/flags-alike.mjs';
 import { ALIKE_CLOSE, ALIKE_OTHERS, closeness, groupAt, nearCards, picOf, rivalsOf, type AlikeFile, type AlikeGroup, type AlikeKind, type Near } from './flagAlike';
 import { FLAG_SET_MIN, alikePlace, deckOf, flagSetText, sameMap, setMenu, twins, type DeckCard, type FlagSet, type SameFile } from './flagSets';
 import type { FlagsFile } from './flags';
@@ -264,8 +264,14 @@ describe('the look-alikes that are published (public/data/alike)', () => {
         }
       }
     }
-    // …and that list names files that are flags, each once.
-    const files = new Set<string>(Object.values(wanted).flatMap((kind) => Object.values(kind).flat()));
+    // …and that list names files that are flags, each once: those of the groups, and those that are of no
+    // country, which are compared all together (a signal of the races with a country that is no more).
+    const stray = (strayOf as (flags: unknown) => string[])(FLAGS);
+    expect(stray).toHaveLength(new Set(stray).size);
+    expect(stray).toEqual(expect.arrayContaining([...wanted.others.gone, ...wanted.others.organisations, ...wanted.others.peoples, ...wanted.others.signals]));
+    // Every signal is among them, those that are not played with too: «El intruso» sets them beside the ones that are.
+    expect(stray.length).toBe(new Set([...wanted.others.gone, ...wanted.others.organisations, ...wanted.others.peoples, ...(FLAGS.signals ?? []).map((row) => row[4])]).size);
+    const files = new Set<string>([...Object.values(wanted).flatMap((kind) => Object.values(kind).flat()), ...stray]);
     const listed = SAME_FILE.same.flat();
     expect(SAME_FILE.v).toBe(1);
     expect(new Set(listed).size).toBe(listed.length);

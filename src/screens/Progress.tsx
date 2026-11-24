@@ -704,8 +704,9 @@ export function Progress({ world }: { world: World }) {
             {flagGameName(play.game)}
             {play.answer === 'type' ? ` · ${L('escrita', 'typed')}` : ''}
           </b>{' '}
-          · {flagSetName(play.set, world.index)} · {play.length === 'all' ? L('todas', 'all of them') : L(`${play.length} preguntas`, `${play.length} questions`)}
-          <span>{nf(v)} %</span>
+          · {flagSetName(play.set, world.index)} · {play.length === 'all' ? L('todas', 'all of them') : play.game === 'flag-pairs' ? L(`${play.length} parejas`, `${play.length} pairs`) : L(`${play.length} preguntas`, `${play.length} questions`)}
+          {/* The mark of «Parejas» is the fewest turns of a table; that of the rest, a share of what there was to get. */}
+          <span>{play.game === 'flag-pairs' ? L(`${nf(v)} ${v === 1 ? 'intento' : 'intentos'}`, `${nf(v)} ${v === 1 ? 'turn' : 'turns'}`) : `${nf(v)} %`}</span>
         </li>
       );
     }
