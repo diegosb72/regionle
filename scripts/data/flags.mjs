@@ -1,19 +1,24 @@
-// Builds the flags of the section «Banderas» that do not come with flag-icons: those of the divisions of
-// the maps and of the capitals, from what the workflow "Traer datos" keeps in the branch `datos`.
+// Builds the flags of the section «Banderas» that do not come with flag-icons, from what the workflow
+// "Traer datos" keeps in the branch `datos`: those of the divisions of the maps, of the capitals and of the
+// other cities, those that the countries flew before, those of what the lists name (countries that are no
+// more, organisations, peoples) and the signals.
 //
-//   npm run data:flags                    from the commit of the branch that is pinned below
+//   npm run data:flags                    from the commit of the branch that flags-datos.mjs pins
 //   npm run data:flags -- --from folder   from a folder that holds a copy of the branch
 //   npm run data:flags -- --report file   and leave in a file what was decided of each flag
 //
-// What it reads: flags/regions.json and flags/capitals.json (which flag each Wikidata entity flies, and what
-// Commons says of its file), the files themselves (flags/files) and the data of the game (the names of
-// the divisions and of the capitals).
+// What it reads: the data file of each source of flags (flags/regions.json, capitals.json, cities.json,
+// countries.json, listed.json and signals.json: which flag each thing flies or flew, and what Commons says
+// of its file), the files themselves (flags/files), the data of the game (the names of the divisions, of
+// the cities and of the countries) and the lists of the repository (scripts/data/flags-lists.json, which
+// scripts/data/flags-lists.mjs writes, and scripts/data/flags-signals.json): the names and the years of
+// what is not in the maps.
 //
 // What it writes:
 //
 //   docs/flags/commons/          each flag, under the first ten digits of the SHA-1 of what it holds: a name
 //                                that changes when the file does, so that a copy kept by a browser is never stale
-//   public/data/flags.json       which flag each division and each capital has, with its name and its shape
+//   public/data/flags.json       which flag each thing has, with its name, its shape and, where it has them, its years
 //   public/data/flag-credits.json  who made each file and on what terms it is given, which is owed to them
 //   scripts/data/flags-pictures.txt  the drawings with words in them, for the workflow to bring as pictures
 //
@@ -23,13 +28,18 @@
 // (vite.config.ts, commonsFlags). `--out folder` writes everything under one folder instead, for a trial.
 //
 // Which flags go in: every one that Wikidata gives as flown today, less those whose file says by its name
-// that it is not that (a proposal, a logo, a flag of other years), those that Commons has in a category that
-// says the same (historical, proposed, made up), those whose licence is not free or is not said, and those
-// that Commons no longer has. The few decisions that no rule makes are in FLAGS_BY_HAND, each with its reason.
+// that it is not that (a proposal, a logo, a seal, a flag of other years), those that Commons has in a
+// category that says the same (proposed, made up), those whose licence is not free or is not said, those
+// that Commons no longer has, the flag of a country given to one of its divisions, and the flag of a
+// department or of a province given to the city it is called after (see `LARGER`). For what Wikidata
+// gives no flag of, the one that the box of facts of its page of Wikipedia shows, where that was looked at
+// and the file is what it should be (see `unseen`). Of a flag of other times only that somebody flew it is
+// asked, in 1700 or later: not a proposal, not an invention, not what it is thought to have been like. The
+// few decisions that no rule makes are in FLAGS_BY_HAND, each with its reason.
 //
 // How each file is made ready is in flag-image.mjs: a drawing stays a drawing wherever it can.
 
-import { execFileSync, spawn } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -37,22 +47,24 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { LIGHT_FROM, PICTURE, SVG_MAX, lighten, picture, traits, unsafe } from './flag-image.mjs';
+import { ROOT, branch } from './flags-datos.mjs';
+import { mentions, plain, todayTitles } from './flags-names.mjs';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const args = process.argv.slice(2);
 const value = (name) => {
   const i = args.indexOf(`--${name}`);
   return i >= 0 ? args[i + 1] : undefined;
 };
 
-/** The commit of the branch `datos` that the flags are built from. */
-const DATOS = { repo: 'diegosb72/regionle', commit: 'efe6d752dee47fd4b18ba5b2ad298b5423e17ec8' };
 const DATA = path.resolve(ROOT, value('data') ?? 'public/data');
 /** Where the flags are written, and where the two files that tell of them are. */
 const OUT_FLAGS = path.resolve(ROOT, value('out') ? path.join(value('out'), 'flags/commons') : 'docs/flags/commons');
 const OUT_DATA = path.resolve(ROOT, value('out') ? path.join(value('out'), 'data') : 'public/data');
 const CACHE = path.resolve(ROOT, value('cache') ?? '.cache/flags-made');
 const PICTURES = path.resolve(ROOT, value('pictures') ?? 'scripts/data/flags-pictures.txt');
+/** The lists of what flies a flag and is not in the maps, with the names and the years of each; and the signals. */
+const LISTS_FILE = path.resolve(ROOT, value('lists') ?? 'scripts/data/flags-lists.json');
+const SIGNALS_FILE = path.resolve(ROOT, value('signals') ?? 'scripts/data/flags-signals.json');
 /** Changes when what is made of a file does: what was made before is then made again. */
 const MADE = `4:${PICTURE}`;
 
@@ -65,7 +77,7 @@ const MADE = `4:${PICTURE}`;
  * coat of arms») is not read.
  */
 const NOT_THE_FLAG =
-  /\b(hypothetical|proposed|proposal|fictional|fictitious|unofficial|logo|logotype|gonfalone|gonfalon)\b|\b(old|former|historical|obsolete|antiga|antigua|antiguo|antic|ancien|ancienne|vecchia|vecchio)\b|\b(until|before|hasta|antes de)\s+(1[5-9]|20)\d{2}\b/i;
+  /\b(hypothetical|proposed|proposal|proposé|proposée|propuesta|proposta|fictional|fictitious|unofficial|logo|logotype|gonfalone|gonfalon|emblem|emblema|seal|sello|coat of arms|escudo|brasão|brasao|blason|armoiries|wappen|stemma)\b|\b(old|former|historical|obsolete|antiga|antigua|antiguo|antic|ancien|ancienne|vecchia|vecchio)\b|\b(until|before|hasta|antes de)\s+(1[5-9]|20)\d{2}\b/i;
 /** Years that ended («(1976-1997)», «2010-2021»), unless the name goes on to years that have not («1994-2008, 2018-»). */
 const ENDED = /\b(1[5-9]|20)\d{2}\s*[-–—]\s*(1[5-9]|20)\d{2}\b/;
 const GOES_ON = /\b(1[5-9]|20)\d{2}\s*[-–—]\s*(\)|present\b|presente\b|actualidad\b)/i;
@@ -73,6 +85,16 @@ const doubtful = (title) => {
   const name = title.replace(/\((with|con|mit|avec)\b[^)]*\)/gi, '');
   return NOT_THE_FLAG.test(name) || (ENDED.test(name) && !GOES_ON.test(name));
 };
+/**
+ * What the name of a file says when the flag is that of something larger than a city: a department, a
+ * province, a state, a governorate. Wikidata and Wikipedia give many a city the flag of the division that
+ * is called after it, or that it is the seat of, and that flag is the division's. What a name says in
+ * brackets or after a comma is where the place is («Flag of Sochi (Krasnodar krai)», «Flag of Villa María,
+ * Córdoba Province») and is not read. A canton and a municipality are not in the list: in Ecuador, in Costa
+ * Rica and in Venezuela they are the town hall of the city.
+ */
+const LARGER = /\b(departments?|departamento|departement|provinces?|provincia|state|estado|governorate|govenorate|governadorat|gobernacion|county|region|emirate|wilaya)\b/;
+const ofSomethingLarger = (title) => LARGER.test(plain(String(title).replace(/\.[a-z]+$/i, '').replace(/\([^)]*\)/g, ' ').replace(/,.*$/, '')));
 /**
  * The categories of Commons that settle it. Of those the fetch tells of (`marks`), only the ones that say
  * of the file that nobody flies it: a proposal, an invention, a flag of before some year. Not «Historical
@@ -83,11 +105,21 @@ const doubtful = (title) => {
  */
 const NOT_FLOWN = /\b(proposed|fictional|fictitious|hypothetical|fantasy)\s+flags?\b|^proposals\s+for\b.*\bflags?\b|\bflag\s+proposals\b|\b(before|until)\s+(1[5-9]|20)\d{2}\b/i;
 const settles = (mark) => NOT_FLOWN.test(mark) && !/\bspecial or fictional\b/i.test(mark);
+/**
+ * What says of a flag of other times that nobody flew it: a proposal, an invention, or what somebody now
+ * thinks it was like. That it is of other times is what it is wanted for.
+ */
+const NEVER_FLOWN = /\b(hypothetical|proposed|proposal|fictional|fictitious|fantasy|reconstruction|reconstructed|attributed|conjectural|conjectured)\b/i;
+const NEVER_FLOWN_MARK = /\b(proposed|fictional|fictitious|hypothetical|fantasy)\s+flags?\b|^proposals\s+for\b.*\bflags?\b|\bflag\s+proposals\b/i;
 /** A name that says the file is one of several ways of drawing the flag: another way is taken when there is one. */
 const VARIANT = /\b(variant|alternate|alternative)\b/i;
 
-/** The licences a file may have: public domain, or one that lets it be shown and changed by saying whose it is. */
-const FREE = /^(public domain|pd\b|cc0|cc by(-sa)? \d|cc-by|copyrighted free use|attribution\b|fal\b|free art|ogl\b|open government)/i;
+/**
+ * The licences a file may have: public domain, or one that lets it be shown and changed by saying whose it
+ * is and on what terms. The GPL and the LGPL are of those: a drawing is its own source, and the list of
+ * credits names the licence of each file and links to it.
+ */
+const FREE = /^(public domain|pd\b|cc0|cc by(-sa)? \d|cc-by|copyrighted free use|attribution\b|fal\b|free art|ogl\b|open government|l?gpl\b|gnu (lesser )?general public)/i;
 
 /** What no rule decides. Every entry says why. */
 const FLAGS_BY_HAND = {
@@ -97,11 +129,76 @@ const FLAGS_BY_HAND = {
     'Flag of Karakalpakstan.svg': 'Karakalpakistán tiene bandera oficial desde 1992, y es esta; Commons la tiene, además, en «Proposed flags of Asia»',
     'Flag of Saulkrastu novads 2010-2021.png': 'el mapa de Letonia del juego es el de los 119 municipios que hubo hasta 2021, y esta es la bandera que tuvo este',
     'Flag of Talsi Municipality 2010-2021.png': 'como la de Saulkrasti',
+    'Flag of the Organization of African Unity (1970–2002); Flag of the African Union (2004–2010).svg': 'la Organización para la Unidad Africana acabó en 2002: su bandera es la de esos años',
+    'Flag of Port Said Governorate.PNG': 'Puerto Saíd es una ciudad que es toda ella una gobernación: la bandera es de las dos',
   },
   /** Files that stay out although nothing in their name says so. */
   out: {
     'Provincia de Las Palmas - Bandera.svg': 'es una propuesta, y Commons lo dice («SVG proposed flags of provinces of Spain»); la provincia no tiene bandera',
     'Provincia de Santa Cruz de Tenerife - Bandera.svg': 'como la de Las Palmas',
+  },
+  /**
+   * What Wikidata gives to a thing and is the flag of another, by the thing (a piece or a city of the maps)
+   * and the file: the flag stays with whose it is. They were found by reading the names of the files that
+   * do not name what they are given to, and each was then looked at; a name alone settles nothing («Bandera
+   * del Municipio de Jalapa» is the flag of the department of Jalapa, as Commons files it and Wikipedia
+   * shows it).
+   */
+  anothers: {
+    'PA-EM': ['Flag of Chocó.svg', 'la comarca Emberá-Wounaan sale con la bandera del departamento colombiano del Chocó; Wikipedia no le enseña ninguna'],
+    ...Object.fromEntries(
+      [
+        ['NI-BO', 'Flag of Boaco.svg'],
+        ['NI-CA', 'Flag of Jinotepe.svg'],
+        ['NI-CI', 'Flag of Chinandega.svg'],
+        ['NI-CO', 'Flag of Juigalpa.svg'],
+        ['NI-ES', 'Flag of Esteli.svg'],
+        ['NI-GR', 'Flag of Granada, Nicaragua.svg'],
+        ['NI-JI', 'Flag of Jinotega.svg'],
+        ['NI-LE', 'Flag of Leon, Nicaragua.svg'],
+        ['NI-MN', 'Flag of Managua.svg'],
+        ['NI-MS', 'Flag of Masaya.svg'],
+        ['NI-MT', 'Flag of Matagalpa.svg'],
+        ['NI-RI', 'Flag of Rivas.svg'],
+      ].map(([id, file]) => [id, [file, 'es la bandera de su cabecera, y así la describe Commons («Flag of Jinotepe, Carazo» es la del departamento de Carazo): los departamentos de Nicaragua no tienen gobierno propio, y Wikipedia y Wikidata les ponen la de la ciudad']]),
+    ),
+    cj646az: ['Claes Gerritszoon Compaen Flag.svg', 'Salinas (Ecuador): la bandera de un corsario holandés del siglo XVII'],
+    cj64e77: ['Flag of La Rivera, Bolivia.svg', 'San Lorenzo (Ecuador): la de un pueblo de Bolivia'],
+    cj64e73: ['Bandera de Aznalcóllar (Sevilla).svg', 'Valdez (Ecuador): la de un pueblo de Sevilla'],
+    cj64clv: ['Flag of El Salvador, Misamis Oriental.png', 'Gingoog: la de otra ciudad de su provincia'],
+    cj64bbl: ['Flag of Rygge.gif', 'Moss: la de Rygge, el municipio que se le unió en 2020'],
+    cj64bh5: ['Flag of Sungei Ujong.svg', 'Seremban: la del antiguo Estado de Sungai Ujong, del que fue capital'],
+    cj64bhf: ['Flag of Kemaman, Terengganu.svg', 'Chukai: la del distrito de Kemaman'],
+    cj64lpz: ['Flag of Mangkunegaran.svg', 'Surakarta: la del principado de Mangkunegaran'],
+    cj647pl: ['Flag of the Welsh colony in Patagonia.svg', 'Puerto Madryn: la de la colonia galesa de la Patagonia'],
+    cj64863: ['Bandera Florida.png', 'Samaipata: la de la provincia Florida'],
+    cj64l5d: ['Flag of Melekeok.svg', 'Ngerulmud es la sede del gobierno de Palaos, sin bandera: esta es la del estado de Melekeok, donde está'],
+    cj64jg5: ['Colours of Cork.svg', 'Cork: los colores deportivos del condado'],
+    cj64j45: ['Befändelt Märei-102.jpg', 'Luxemburgo: una fotografía del ayuntamiento con banderas'],
+    cj64n2z: ['İstanbul Büyükşehir Belediyesi.svg', 'Estambul: el logotipo del ayuntamiento metropolitano'],
+  },
+  /**
+   * What Wikipedia shows of what Wikidata gives no flag of (`by: wikipedia`: the flag in the box of facts of
+   * its page) is taken where it was looked at, and there it is what it says: `maps` are the countries whose
+   * divisions were seen flag by flag. In the rest, what the box shows is something else: the flag of the
+   * city a province is called after (Bulgaria, Portugal), the colours of a sports team (Ireland), the seal of
+   * a government on a white cloth (India, South Africa), a logo (France, Kazakhstan, Turkey) or a flag that
+   * nobody can tell where it comes from (Nigeria, Guyana, Zambia). The capitals and the cities are taken
+   * unless they are named in `out`: the box of a city shows the flag of the city.
+   */
+  wikipedia: {
+    maps: ['AG', 'AL', 'CV', 'DO', 'EC', 'EG', 'FI', 'GB', 'GH', 'GT', 'HN', 'IT', 'LK', 'LV', 'MD', 'ME', 'MK', 'MU', 'MX', 'NC', 'PH', 'PW', 'RO', 'SE', 'SI', 'SV', 'TH', 'TL', 'TN', 'TW', 'VE'],
+    /** Those whose file does not name them, and is theirs all the same. */
+    named: {
+      'GB-GLS': 'la bandera de Gloucestershire es la cruz del Severn, que es como se llama el archivo',
+    },
+    out: {
+      'DO-01': 'el escudo del Ayuntamiento del Distrito Nacional con su nombre: un membrete, no una bandera',
+      cj64my1: 'Santo Domingo: lo mismo que su Distrito Nacional',
+      cj64mkf: 'Cayena: el logotipo del ayuntamiento',
+      cj64m03: 'Saint-Denis: el logotipo del ayuntamiento',
+      cj64n1x: 'Nueva Delhi: el logotipo de su ayuntamiento (NDMC)',
+    },
   },
   /** The licence of a file whose page does not say it, and how it is known. */
   licence: {
@@ -119,28 +216,6 @@ const who = (text) =>
     .trim();
 /** The licence a file is given on: what its page says or, where it says nothing, what is known by hand. */
 const licenceOf = (title, file) => file.licence || FLAGS_BY_HAND.licence[title]?.[0] || '';
-
-/* ------------------------------------------------------------------ the branch */
-
-/** The folder that holds the branch at the pinned commit: downloaded once, and kept. */
-async function branch() {
-  const from = value('from');
-  if (from) return path.resolve(ROOT, from);
-  const dir = path.join(ROOT, '.cache', `datos-${DATOS.commit.slice(0, 12)}`);
-  if (fs.existsSync(path.join(dir, 'flags'))) return dir;
-  const url = `https://codeload.github.com/${DATOS.repo}/tar.gz/${DATOS.commit}`;
-  console.log(`↓ ${url}`);
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`No se ha podido bajar la rama datos: HTTP ${res.status}`);
-  const packed = path.join(ROOT, '.cache', `datos-${DATOS.commit.slice(0, 12)}.tgz`);
-  fs.mkdirSync(path.dirname(packed), { recursive: true });
-  fs.writeFileSync(packed, Buffer.from(await res.arrayBuffer()));
-  fs.mkdirSync(`${dir}.part`, { recursive: true });
-  execFileSync('tar', ['-xzf', packed, '-C', `${dir}.part`, '--strip-components=1']);
-  fs.renameSync(`${dir}.part`, dir);
-  fs.rmSync(packed);
-  return dir;
-}
 
 /* ------------------------------------------------------------------ what the game has */
 
@@ -161,13 +236,16 @@ function pieces() {
   return list;
 }
 
-/** The capitals: the id of the city, its country and its names. */
-function capitals() {
+/** The cities that `which` takes: the id of the city, its country and its names. */
+function citiesThat(which) {
   const cities = json(path.join(DATA, 'cities.json')).c ?? {};
   return Object.keys(cities)
     .sort()
-    .flatMap((map) => cities[map].filter((c) => c.k >= 2).map((c) => ({ id: String(c.i), map, es: c.n?.es ?? '', en: c.n?.en ?? '' })));
+    .flatMap((map) => cities[map].filter(which).map((c) => ({ id: String(c.i), map, es: c.n?.es ?? '', en: c.n?.en ?? '' })));
 }
+/** The capitals of the countries (3 is the capital, 2 a second one), and the other cities. */
+const capitals = () => citiesThat((c) => c.k >= 2);
+const towns = () => citiesThat((c) => !(c.k >= 2));
 
 /* ------------------------------------------------------------------ which flag */
 
@@ -180,10 +258,12 @@ const standing = (title, files) => (files[title]?.drawn && files[files[title].dr
  * there is none or it is a photograph, that of the entity with its code where that one is better.
  *
  * What speaks against a file: that Commons no longer has it, its name, the categories Commons has it in
- * (`marks`: historical, proposed, made up) and its licence. It is asked of the file and of the drawing
- * that stands for it, which is the one that would be shown.
+ * (`marks`: historical, proposed, made up), its licence, that it is the flag of something larger when it is
+ * asked for a city (`city`), and that it was seen to be another's (`another`: FLAGS_BY_HAND.anothers). It is asked of the file and of the drawing
+ * that stands for it, which is the one that would be shown. Of the flag of something that is no more
+ * (`old`), a name or a category that says it is of other times is no objection.
  */
-function flagOf(item, files) {
+function flagOf(item, files, { old = false, city = false, another = null } = {}) {
   if (!item) return { why: 'none' };
   // A flag that was given by hand (scripts/data/flags-hand.json) was looked at: neither its name nor its categories are doubted.
   const trusted = (title) => !!FLAGS_BY_HAND.keep[title] || (item.by === 'hand' && title === item.file);
@@ -192,10 +272,13 @@ function flagOf(item, files) {
     if (!file || file.missing) return 'gone';
     const shown = standing(title, files);
     for (const name of new Set([title, shown])) {
-      if (FLAGS_BY_HAND.out[name]) return 'hand';
+      if (FLAGS_BY_HAND.out[name] || name === another) return 'hand';
       if (trusted(name)) continue;
-      if (doubtful(name)) return 'name';
-      if ((files[name].marks ?? []).some(settles)) return 'mark';
+      // The flag of a department or of a province is not that of the city it is called after.
+      if (city && ofSomethingLarger(name)) return 'larger';
+      // Of the flag of something that is no more, only that it was flown is asked.
+      if (old ? NEVER_FLOWN.test(name) : doubtful(name)) return 'name';
+      if ((files[name].marks ?? []).some(old ? (mark) => NEVER_FLOWN_MARK.test(mark) && !/\bspecial or fictional\b/i.test(mark) : settles)) return 'mark';
     }
     if (!FREE.test(licenceOf(shown, files[shown]))) return 'licence';
     return null;
@@ -209,6 +292,9 @@ function flagOf(item, files) {
   if (!mine) return { why: fit(item.file), title: item.file };
   return mine === item.file ? { title: mine } : { title: mine, by: 'also' };
 }
+
+/** Why a flag of other times is not fit to be shown, or nothing when it is: as `flagOf` asks of the flag of what is no more. */
+const unfitOld = (title, files) => flagOf({ file: title }, files, { old: true }).why ?? null;
 
 /* ------------------------------------------------------------------ the files */
 
@@ -271,24 +357,167 @@ async function ready(file, dir) {
 
 /* ------------------------------------------------------------------ the run */
 
-const FROM = await branch();
-const SOURCES = ['regions', 'capitals'].map((name) => ({ name, ...json(path.join(FROM, 'flags', `${name}.json`)) }));
-/** What Commons says of every file, whichever source named it. */
-const FILES = Object.assign({}, ...SOURCES.map((s) => s.files));
-const SUBJECTS = { regions: pieces(), capitals: capitals() };
+/** The copy of the branch `datos` that is read: the commit that flags-datos.mjs pins, or the folder that `--from` names. */
+const FROM = await branch(value('from'));
+/** What a source of the branch brought: nothing, for one that was never asked for. */
+const brought = (name) => {
+  const file = path.join(FROM, 'flags', `${name}.json`);
+  return { name, items: {}, files: {}, ...(fs.existsSync(file) ? json(file) : {}) };
+};
+const SOURCES = ['regions', 'capitals', 'cities', 'countries', 'listed', 'signals'].map(brought);
+const ITEMS = Object.fromEntries(SOURCES.map((s) => [s.name, s.items]));
+/** What Commons says of every file, whichever source named it: of two that tell of the same one, the later, unless only the earlier brought it. */
+const FILES = {};
+for (const source of SOURCES) for (const [title, file] of Object.entries(source.files)) if (!FILES[title] || file.kept || file.picture || !(FILES[title].kept || FILES[title].picture)) FILES[title] = file;
 /** What the categories of Commons say of a file and of the drawing that stands for it, each once. */
 const marksOf = (title) => [...new Set([title, standing(title, FILES)].flatMap((name) => FILES[name]?.marks ?? []))];
 
+/** The lists of the repository: what is no more, the organisations and the peoples, each by its Wikidata id with its names and its years; and the signals. */
+const LISTS = fs.existsSync(LISTS_FILE) ? json(LISTS_FILE) : {};
+const SIGNALS = fs.existsSync(SIGNALS_FILE) ? (json(SIGNALS_FILE).signals ?? {}) : {};
+/** The year of a day («1931-04-14»), or 0 when it is not known. */
+const yearOf = (day) => (/^\d{4}-/.test(String(day ?? '')) ? Number(String(day).slice(0, 4)) : 0);
+
+/**
+ * Every flag there is to show, with whose it is (`subject`), the file that was asked for and the one that
+ * is shown (the drawing of a photograph), or why it is left out.
+ */
 const chosen = [];
 const leftOut = [];
-for (const source of SOURCES) {
-  for (const subject of SUBJECTS[source.name]) {
-    const pick = flagOf(source.items[subject.id], FILES);
-    if (pick.why === 'none') continue;
-    if (pick.why) leftOut.push({ group: source.name, id: subject.id, name: subject.es, title: pick.title, why: pick.why, ...(pick.why === 'mark' ? { marks: marksOf(pick.title) } : {}) });
-    else chosen.push({ group: source.name, subject, asked: pick.title, title: standing(pick.title, FILES), by: pick.by });
+const take = (group, subject, pick) => {
+  if (pick.why === 'none') return;
+  if (pick.why) leftOut.push({ group, id: subject.id, name: subject.es, title: pick.title, why: pick.why, ...(pick.why === 'mark' ? { marks: marksOf(pick.title) } : {}) });
+  else chosen.push({ group, subject, asked: pick.title, title: standing(pick.title, FILES), by: pick.by });
+};
+
+const INDEX = json(path.join(DATA, 'index.json'));
+/** The names that the flag of a country of today goes by in Commons. */
+const TODAY = todayTitles(INDEX);
+const ofToday = (title) => TODAY.has(String(title).toLowerCase());
+/** The first year that a flag of other times may have stopped flying in: before it, what is drawn today is what somebody thinks the flag was like. */
+const SINCE = 1700;
+
+/** «Flag» in the languages the files are named in: a file that Wikipedia shows as a flag and does not call one is often a photograph, a seal or a map. */
+const FLAG_WORD = /flag|fahne|vlag|bander|bandeir|bandier|drapeau|drapel|steag|zastav|banner|pabellon|lippu|zaszlo|bayra|bendera|vexill/;
+
+/**
+ * Why the flag that Wikipedia shows of something is not taken, or nothing when it is. It is taken where it
+ * was looked at (FLAGS_BY_HAND.wikipedia) and, there, when its file says it is a flag and names the thing
+ * (the box of a place sometimes shows the flag of another: of its country, of the State it is in, of a
+ * city) and is no flag of a country.
+ */
+function unseen(group, subject, item, title) {
+  if (FLAGS_BY_HAND.wikipedia.out[subject.id]) return 'hand';
+  if (group === 'regions' && !FLAGS_BY_HAND.wikipedia.maps.includes(subject.map)) return 'unseen';
+  if (ofToday(title)) return 'country';
+  if (!FLAG_WORD.test(plain(title))) return 'unsaid';
+  const page = String(item.page ?? '').replace(/^[a-z-]+:/, '');
+  if (!FLAGS_BY_HAND.wikipedia.named[subject.id] && !mentions(title, [subject.es, subject.en, page])) return 'unnamed';
+  return null;
+}
+
+// Those of the maps: the divisions, the capitals and the other cities. Those that Wikipedia shows come
+// after the rest: a flag that something else already flies is not taken from it (the two departments of
+// Corsica are shown the flag of the island, which is that of the region).
+const shownByWikipedia = [];
+const ofTheMaps = (group, subjects) => {
+  for (const subject of subjects) {
+    const item = ITEMS[group][subject.id];
+    const pick = flagOf(item, FILES, { city: group !== 'regions', another: FLAGS_BY_HAND.anothers[subject.id]?.[0] ?? null });
+    // A division, or a city that is no capital, that is given the flag of a country has none of its own (Brčko flies that of Bosnia and Herzegovina): a capital may be its whole country (Singapore).
+    if (!pick.why && group !== 'capitals' && ofToday(pick.title)) take(group, subject, { why: 'country', title: pick.title });
+    else if (item?.by === 'wikipedia' && !pick.why) shownByWikipedia.push({ group, subject, item, pick });
+    else take(group, subject, pick);
+  }
+};
+ofTheMaps('regions', pieces());
+ofTheMaps('capitals', capitals());
+ofTheMaps('cities', towns());
+{
+  const flown = new Set(chosen.map((c) => c.title));
+  for (const { group, subject, item, pick } of shownByWikipedia) {
+    const why = unseen(group, subject, item, pick.title) ?? (flown.has(standing(pick.title, FILES)) ? 'same' : null);
+    take(group, subject, why ? { why, title: pick.title } : pick);
   }
 }
+
+// Those that the countries of today flew before: each with the years it flew between, the oldest first.
+for (const country of INDEX.countries ?? []) {
+  const seen = new Set();
+  const past = [...(ITEMS.countries[country.id]?.past ?? [])].sort((a, b) => (yearOf(a.from) || yearOf(a.to)) - (yearOf(b.from) || yearOf(b.to)) || yearOf(a.to) - yearOf(b.to) || a.file.localeCompare(b.file));
+  for (const flag of past) {
+    const subject = { id: `${country.id}:${flag.file}`, map: country.id, es: country.n?.es ?? country.id, en: country.n?.en ?? '', from: yearOf(flag.from), to: yearOf(flag.to) };
+    // One that is the flag of today under the years of another time it flew in is not a flag of other times; nor is one of before 1700.
+    const tooOld = subject.to ? subject.to < SINCE : subject.from > 0 && subject.from < SINCE;
+    const why = ofToday(flag.file) ? 'today' : tooOld ? 'early' : unfitOld(flag.file, FILES);
+    // The same drawing twice, under two names or in two statements, is one flag.
+    const shown = why ? null : standing(flag.file, FILES);
+    if (shown && seen.has(FILES[shown].sha1)) continue;
+    if (shown) seen.add(FILES[shown].sha1);
+    take('past', subject, why ? { why, title: flag.file } : { title: flag.file });
+  }
+}
+
+/**
+ * The flags of something that is no more, in the order they are tried in: the one given by hand; the one
+ * that Wikidata prefers to the others; the one it flew until it ended (the year it ended in, or the one
+ * before: a flag that is not said to have stopped flying is often one that nobody dated); one that is not
+ * said to have stopped flying; and the rest, the last first. scripts/data/flags-lists.mjs foresees the same.
+ */
+function lastFlags(item, ended) {
+  const past = item.past ?? [];
+  const live = item.file ? [item.file, ...(item.also ?? [])] : [];
+  return [
+    ...new Set([
+      ...(item.by === 'hand' || item.rank === 'preferred' ? live.slice(0, 1) : []),
+      ...past.filter((flag) => flag.rank === 'preferred').map((flag) => flag.file),
+      ...past.filter((flag) => ended && yearOf(flag.to) >= ended - 1).map((flag) => flag.file),
+      ...live,
+      ...past.map((flag) => flag.file),
+    ]),
+  ];
+}
+
+// Those of what the lists name. What is no more has the last flag it flew; the rest, the one they fly. Of
+// two things that are no more and would be shown by the same flag, the one the list names first.
+const lastFlown = new Set();
+for (const [group, old] of [['gone', true], ['organisations', false], ['peoples', false]]) {
+  for (const [id, said] of Object.entries(LISTS[group === 'gone' ? 'historical' : group] ?? {})) {
+    const item = ITEMS.listed[id];
+    const subject = { id, es: said.es || said.en || id, en: said.en ?? '', from: Number(said.from) || 0, to: Number(said.to) || 0 };
+    if (!item) continue;
+    if (old) {
+      const tried = lastFlags(item, subject.to);
+      const title = tried.find((name) => !flagOf({ file: name, by: item.by === 'hand' && name === item.file ? 'hand' : undefined }, FILES, { old }).why);
+      if (!title) {
+        if (tried.length) take(group, subject, { why: flagOf({ file: tried[0] }, FILES, { old }).why, title: tried[0] });
+        continue;
+      }
+      const shown = FILES[standing(title, FILES)].sha1;
+      if (lastFlown.has(shown)) leftOut.push({ group, id, name: subject.es, title, why: 'same' });
+      else take(group, subject, { title, ...(title === item.file ? {} : { by: 'past' }) });
+      lastFlown.add(shown);
+      continue;
+    }
+    const today = flagOf(item.file ? item : null, FILES);
+    if (!today.why) {
+      take(group, subject, today);
+      continue;
+    }
+    // None that it flies today, or none of those is fit: the last it flew that is.
+    const last = (item.past ?? []).find((flag) => !unfitOld(flag.file, FILES));
+    if (last) take(group, subject, { title: last.file, by: 'past' });
+    else if (today.why !== 'none') take(group, subject, today);
+    else if (item.past?.length) take(group, subject, { why: unfitOld(item.past[0].file, FILES), title: item.past[0].file });
+  }
+}
+
+// The signals, which the list names file by file.
+for (const [id, said] of Object.entries(SIGNALS)) {
+  const item = ITEMS.signals[id];
+  if (item) take('signals', { id, es: said.es, en: said.en ?? '', code: said.group ?? 'other', means: said.means }, flagOf(item, FILES));
+}
+
 /** The files to make ready, each once: those that some thing flies and that the branch has. */
 const titles = [...new Set(chosen.map((c) => c.title))].filter((title) => FILES[title].kept || FILES[title].picture).sort();
 
@@ -323,21 +552,61 @@ for (const title of titles) {
 
 /* What the game reads. */
 const ratio = (image) => Number((image.w / image.h).toFixed(2));
-const byName = (a, b) => a.subject.map.localeCompare(b.subject.map) || (b.subject.level ?? 0) - (a.subject.level ?? 0) || a.subject.es.localeCompare(b.subject.es, 'es') || a.subject.id.localeCompare(b.subject.id);
-const shown = chosen.filter((c) => images.has(c.title)).sort(byName);
+const shown = chosen.filter((c) => images.has(c.title));
 for (const c of chosen) if (!images.has(c.title)) leftOut.push({ group: c.group, id: c.subject.id, name: c.subject.es, title: c.title, why: FILES[c.title].kept || FILES[c.title].picture ? 'unmade' : 'unbrought' });
+const of = (group) => shown.filter((c) => c.group === group);
+const byName = (a, b) => a.subject.es.localeCompare(b.subject.es, 'es') || a.subject.id.localeCompare(b.subject.id);
 
-/** What the list says of a flag after whose it is: its file, its shape and, for a heavy drawing, the picture that stands for it where it is small. */
-const told = (c) => {
+/** What the list says of a flag: its file, its shape and, for a heavy drawing, the picture that stands for it where it is small. */
+const drawn = (c) => {
   const image = images.get(c.title);
-  return [c.subject.es, c.subject.en === c.subject.es ? '' : c.subject.en, image.name, ratio(image), ...(image.smallName ? [image.smallName] : [])];
+  return { file: image.name, ratio: ratio(image), small: image.smallName ? [image.smallName] : [] };
 };
+/** Its names: the English one only when it is another. */
+const names = (c) => [c.subject.es, c.subject.en === c.subject.es ? '' : c.subject.en];
 const regions = {};
-for (const c of shown.filter((c) => c.group === 'regions')) (regions[c.subject.map] ??= []).push([c.subject.id, c.subject.level, ...told(c)]);
-const cities = shown.filter((c) => c.group === 'capitals').map((c) => [c.subject.id, c.subject.map, ...told(c)]);
+for (const c of of('regions').sort((a, b) => a.subject.map.localeCompare(b.subject.map) || b.subject.level - a.subject.level || byName(a, b))) {
+  const { file, ratio: r, small } = drawn(c);
+  (regions[c.subject.map] ??= []).push([c.subject.id, c.subject.level, ...names(c), file, r, ...small]);
+}
+const row = (c, ...before) => {
+  const { file, ratio: r, small } = drawn(c);
+  return [...before, ...names(c), file, r];
+};
+const capitalRows = of('capitals')
+  .sort((a, b) => a.subject.map.localeCompare(b.subject.map) || byName(a, b))
+  .map((c) => [...row(c, c.subject.id, c.subject.map), ...drawn(c).small]);
+/** The other cities, by country and by name. */
+const cityRows = {};
+for (const c of of('cities').sort(byName)) (cityRows[c.subject.map] ??= []).push([...row(c, c.subject.id), ...drawn(c).small]);
+const past = {};
+for (const c of of('past')) {
+  const { file, ratio: r, small } = drawn(c);
+  (past[c.subject.map] ??= []).push([file, r, c.subject.from, c.subject.to, ...small]);
+}
+const gone = of('gone').sort(byName).map((c) => [...row(c, c.subject.id), c.subject.from, c.subject.to, ...drawn(c).small]);
+const listedRows = (group) => of(group).sort(byName).map((c) => [...row(c, c.subject.id), ...drawn(c).small]);
+const signals = of('signals').map((c) => [...row(c, c.subject.id, c.subject.code), ...drawn(c).small]);
+const means = Object.fromEntries(of('signals').filter((c) => c.subject.means?.es).map((c) => [c.subject.id, [c.subject.means.es, c.subject.means.en ?? '']]));
+
 /** A list written with one entry to a line: a flag that changes is a line that changes. */
 const lines = (items) => `[\n${items.map((item) => JSON.stringify(item)).join(',\n')}\n]`;
-const catalogue = `{\n"v": 1,\n"regions": {\n${Object.keys(regions).sort().map((map) => `${JSON.stringify(map)}: ${lines(regions[map])}`).join(',\n')}\n},\n"capitals": ${lines(cities)}\n}\n`;
+const byKey = (lists) => `{\n${Object.keys(lists).sort().map((key) => `${JSON.stringify(key)}: ${lines(lists[key])}`).join(',\n')}\n}`;
+const catalogue = [
+  '{',
+  '"v": 2,',
+  `"regions": ${byKey(regions)},`,
+  `"capitals": ${lines(capitalRows)},`,
+  `"cities": ${byKey(cityRows)},`,
+  `"past": ${byKey(past)},`,
+  `"gone": ${lines(gone)},`,
+  `"organisations": ${lines(listedRows('organisations'))},`,
+  `"peoples": ${lines(listedRows('peoples'))},`,
+  `"signals": ${lines(signals)},`,
+  `"means": {\n${Object.keys(means).map((id) => `${JSON.stringify(id)}: ${JSON.stringify(means[id])}`).join(',\n')}\n}`,
+  '}',
+  '',
+].join('\n');
 
 const licences = [];
 const credits = {};
@@ -381,10 +650,11 @@ const mb = (n) => `${(n / 1e6).toFixed(1)} MB`;
 const drawings = all.filter((image) => image.kind === 'svg');
 const pictures = all.filter((image) => image.kind === 'webp');
 const small = drawings.filter((image) => image.small);
-console.log(`Banderas: ${shown.length} (${shown.filter((c) => c.group === 'regions').length} de divisiones, en ${Object.keys(regions).length} mapas; ${cities.length} de capitales), en ${wanted.size} archivos, ${mb([...wanted.values()].reduce((sum, body) => sum + body.length, 0))}.`);
+console.log(`Banderas: ${shown.length}, en ${wanted.size} archivos, ${mb([...wanted.values()].reduce((sum, body) => sum + body.length, 0))}.`);
+console.log(`  De divisiones ${of('regions').length}, en ${Object.keys(regions).length} mapas; de capitales ${capitalRows.length}; de otras ciudades ${of('cities').length}, de ${Object.keys(cityRows).length} países; anteriores de los países ${of('past').length}, de ${Object.keys(past).length}; de lo que ya no existe ${gone.length}; de organizaciones ${of('organisations').length}; de pueblos ${of('peoples').length}; señales ${signals.length}.`);
 console.log(`  Dibujos (SVG): ${drawings.length}, ${mb(bytes(drawings))}; ${small.length} de ellos, los de más de ${Math.round(LIGHT_FROM / 1000)} kB, con una imagen para las listas (${mb(small.reduce((sum, image) => sum + image.small.length, 0))}).`);
 console.log(`  Imágenes (WebP): ${pictures.length}, ${mb(bytes(pictures))}: ${JSON.stringify(count(pictures, (image) => image.how))}.`);
-console.log(`  Fuera: ${leftOut.length}: ${JSON.stringify(count(leftOut, (one) => one.why))}.`);
+console.log(`  Fuera: ${leftOut.length}: ${JSON.stringify(count(leftOut, (one) => `${one.group} ${one.why}`))}.`);
 const pending = all.filter((image) => image.pending).length;
 if (pending) console.log(`  ${pending} dibujos con texto esperan su imagen: están en ${path.relative(ROOT, PICTURES)}, y el flujo «Traer datos» la trae.`);
 const report = value('report');
@@ -393,7 +663,25 @@ if (report) {
     path.resolve(ROOT, report),
     JSON.stringify(
       {
-        shown: shown.map((c) => ({ group: c.group, id: c.subject.id, map: c.subject.map, name: c.subject.es, title: c.title, asked: c.asked, by: c.by, file: images.get(c.title).name, how: images.get(c.title).how, bytes: images.get(c.title).body.length, small: images.get(c.title).small?.length, cleaned: images.get(c.title).cleaned, w: images.get(c.title).w, h: images.get(c.title).h, raw: FILES[c.title].bytes })),
+        shown: shown.map((c) => ({
+          group: c.group,
+          id: c.subject.id,
+          map: c.subject.map,
+          name: c.subject.es,
+          ...(c.subject.from || c.subject.to ? { years: [c.subject.from, c.subject.to] } : {}),
+          title: c.title,
+          asked: c.asked,
+          by: c.by ?? ITEMS[c.group]?.[c.subject.id]?.by,
+          page: ITEMS[c.group]?.[c.subject.id]?.page,
+          file: images.get(c.title).name,
+          how: images.get(c.title).how,
+          bytes: images.get(c.title).body.length,
+          small: images.get(c.title).small?.length,
+          cleaned: images.get(c.title).cleaned,
+          w: images.get(c.title).w,
+          h: images.get(c.title).h,
+          raw: FILES[c.title].bytes,
+        })),
         leftOut,
         // Shown, and in a category that speaks of other times or of a proposal without settling it: to be looked at.
         doubted: shown.filter((c) => marksOf(c.asked).length).map((c) => ({ group: c.group, id: c.subject.id, name: c.subject.es, title: c.title, marks: marksOf(c.asked) })),

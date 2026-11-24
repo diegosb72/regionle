@@ -456,11 +456,13 @@ export function Home({ world }: { world: World }) {
         <a className="scard" href={screenPage(FLAGS_PATH, getLang())} onClick={inGame(FLAGS_PATH)}>
           <span className="scard-n">{String(SECTION_IDS.length + 1).padStart(2, '0')}</span>
           <h2>{L('Banderas', 'Flags')}</h2>
-          <p>{L('Las banderas de los países, de sus regiones y de sus capitales, para verlas y repasarlas. Sus juegos están en camino.', 'The flags of the countries, of their regions and of their capitals, to look at and go over. Their games are on the way.')}</p>
+          <p>{L('Las banderas de los países, de sus regiones y de sus ciudades, las de otros tiempos y las que son señales, para verlas y repasarlas. Sus juegos están en camino.', 'The flags of the countries, of their regions and of their cities, those of other times and those that are signals, to look at and go over. Their games are on the way.')}</p>
           <ul className="scard-modes">
             <li>{L('Países', 'Countries')}</li>
             <li>{L('Regiones', 'Regions')}</li>
-            <li>{L('Capitales', 'Capitals')}</li>
+            <li>{L('Ciudades', 'Cities')}</li>
+            <li>{L('Históricas', 'Historical')}</li>
+            <li>{L('Señales', 'Signals')}</li>
           </ul>
           <span className="scard-flags" aria-hidden="true">
             {FLAG_SAMPLE.map((c) => (

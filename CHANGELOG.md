@@ -3,6 +3,15 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.43.0 — 24 de noviembre de 2026
+
+- Banderas: la galería pasa de 2400 banderas a más de 4600, con las de otros tiempos, las de organizaciones y pueblos, las señales y las de 1500 ciudades.
+- Cinco pestañas: Países, Regiones, Ciudades (las capitales o, si eliges un país, sus ciudades), Históricas y Otras. El buscador mira en toda la pestaña.
+- Históricas: 210 países que ya no existen (la URSS, Yugoslavia, el Imperio otomano…) con sus años, y 300 banderas que tuvieron antes los países de hoy.
+- Otras: 48 organizaciones (la ONU, la UE, la OTAN…), 31 pueblos (gitano, kurdo, sami, maorí…) y 65 señales: el código marítimo, con lo que dice cada una.
+- Más regiones, 2090: las de Rumanía, Eslovenia, Honduras o Guatemala, que faltaban, salen de la ficha de Wikipedia de cada una, donde se ha podido comprobar.
+- Fuera las que eran de otra cosa: los departamentos de Nicaragua salían con la bandera de su capital, y Luxemburgo, con una foto de su ayuntamiento.
+
 ## 1.42.0 — 23 de noviembre de 2026
 
 - Banderas, un apartado nuevo: una galería con las banderas de los países y, por primera vez, las de sus regiones (1995, de 120 países) y las de 138 capitales.

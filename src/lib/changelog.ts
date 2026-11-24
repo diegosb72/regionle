@@ -15,6 +15,26 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.43.0',
+    date: '2026-11-24',
+    es: [
+      'Banderas: la galería pasa de 2400 banderas a más de 4600, con las de otros tiempos, las de organizaciones y pueblos, las señales y las de 1500 ciudades.',
+      'Cinco pestañas: Países, Regiones, Ciudades (las capitales o, si eliges un país, sus ciudades), Históricas y Otras. El buscador mira en toda la pestaña.',
+      'Históricas: 210 países que ya no existen (la URSS, Yugoslavia, el Imperio otomano…) con sus años, y 300 banderas que tuvieron antes los países de hoy.',
+      'Otras: 48 organizaciones (la ONU, la UE, la OTAN…), 31 pueblos (gitano, kurdo, sami, maorí…) y 65 señales: el código marítimo, con lo que dice cada una.',
+      'Más regiones, 2090: las de Rumanía, Eslovenia, Honduras o Guatemala, que faltaban, salen de la ficha de Wikipedia de cada una, donde se ha podido comprobar.',
+      'Fuera las que eran de otra cosa: los departamentos de Nicaragua salían con la bandera de su capital, y Luxemburgo, con una foto de su ayuntamiento.',
+    ],
+    en: [
+      'Flags: the gallery grows from 2400 flags to over 4600, with those of other times, of organisations and peoples, the signals and those of 1500 cities.',
+      'Five tabs: Countries, Regions, Cities (the capitals or, if you choose a country, its cities), Historical and Others. The search looks through the whole tab.',
+      'Historical: 210 countries that are no more (the USSR, Yugoslavia, the Ottoman Empire…) with their years, and 300 earlier flags of the countries of today.',
+      'Others: 48 organisations (the UN, the EU, NATO…), 31 peoples (Romani, Kurdish, Sámi, Māori…) and 65 signals: the maritime code, with what each one says.',
+      'More regions, 2090: those of Romania, Slovenia, Honduras or Guatemala, which were missing, come from the Wikipedia box of each, where it could be checked.',
+      'Out go those that belonged to something else: the departments of Nicaragua flew the flag of their capital, and Luxembourg a photo of its town hall.',
+    ],
+  },
+  {
     version: '1.42.0',
     date: '2026-11-23',
     es: [

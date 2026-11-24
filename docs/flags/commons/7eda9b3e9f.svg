@@ -1,0 +1,1 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="450" height="300"><path d="M0 0h450v300H0z" style="fill:red"/><path id="a" d="M225 200h225v100H225z" style="fill:#ff0"/><use xlink:href="#a" transform="translate(-225 -100)"/><use xlink:href="#a" transform="translate(0 -200)"/></svg>

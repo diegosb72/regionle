@@ -2,41 +2,72 @@
 # one Commons title to a line. They are the drawings with words in them, which each device would set in a
 # typeface of its own, so the game shows the picture. `npm run data:flags` writes this list from the files
 # it has looked inside; a drawing that is brought after the list was written is looked at as it comes.
+Bandeira de Cuiabá.svg
+Bandeira de Novo Hamburgo.svg
+Bandeira de Porto Alegre.svg
+Bandeira de Vila Velha (Espírito Santo).svg
 Bandera de Arequipa.svg
+Bandera de Iquitos.svg
+Bandera de Mérida.svg
 Bandera de la Provincia de Alajuela.svg
 Bandera de la Provincia de Puntarenas.svg
 Bandera de la provincia de Palencia1.svg
 Bandera de la provincia de Ávila.svg
+Bandera del Municipio de Chimaltenango.svg
+Bandera del Municipio de Chiquimula.svg
+Bandera del cantón de Heredia.svg
+Catanzaro-Gonfalone.svg
+Civil Ensign of the Principality of Moldavia (1834-1861).svg
 Drapèu de la Contèa de Niça.svg
+Electoral Standard of Bavaria (1623-1806).svg
+Flag of Annapolis, Maryland.svg
 Flag of Antioquia Department.svg
 Flag of Ayeyarwady Region.svg
 Flag of Behira Govenorate.svg
 Flag of Chalatenango.svg
+Flag of East Kazakhstan Province.svg
 Flag of Extremadura, Spain (with coat of arms).svg
+Flag of Funchal.svg
 Flag of Granada, Nicaragua.svg
 Flag of Guadalcanal.svg
 Flag of Guanajuato.svg
 Flag of Hargeisa.svg
+Flag of Huehuetenango Department.svg
+Flag of ILO.svg
+Flag of Iksan.svg
 Flag of Ilinden Municipality, North Macedonia.svg
+Flag of Konče Municipality, North Macedonia.svg
 Flag of Kratovo Municipality, North Macedonia.svg
 Flag of Krivogaštani Municipality, North Macedonia.svg
+Flag of Las Palmas de Gran Canaria.svg
 Flag of Leon, Nicaragua.svg
+Flag of Lozovo Municipality, North Macedonia.svg
 Flag of Masaya.svg
 Flag of Maule, Chile.svg
 Flag of Misamis Occidental.svg
 Flag of Mogila Municipality, North Macedonia.svg
 Flag of Morazán Department.svg
 Flag of Moselle.svg
+Flag of Municipio Bermudez.svg
+Flag of Mwanza, Tanzania.svg
 Flag of NCD.svg
 Flag of Ngaraard State.svg
 Flag of North Dakota.svg
 Flag of Novaci Municipality, North Macedonia.svg
 Flag of Pehčevo Municipality, North Macedonia.svg
+Flag of Portugal (1495).svg
+Flag of Portugal (1521).svg
+Flag of Raleigh, North Carolina (reverse).svg
 Flag of Resen Municipality.svg
 Flag of Rivas.svg
+Flag of Romania (1965–1989).svg
 Flag of Salto Department.svg
+Flag of San Carlos, Nicaragua.svg
 Flag of San Juan, Puerto Rico.svg
+Flag of Santa Clara.svg
 Flag of Sopište Municipality, North Macedonia.svg
+Flag of South Lanarkshire.svg
+Flag of Springfield, Illinois.svg
 Flag of Struga Municipality.svg
 Flag of Strumica Municipality.svg
 Flag of Sulu.svg
@@ -44,14 +75,29 @@ Flag of Usti nad Labem Region.svg
 Flag of Veles Municipality, North Macedonia.svg
 Flag of Veneto.svg
 Flag of West Sumatra.svg
+Flag of Zacatecas.svg
+Flag of Zelenikovo Municipality, North Macedonia.svg
+Flag of the Bahamas (1964–1973).svg
+Flag of the Eurasian Economic Union.svg
+Flag of the Falkland Islands (1925–1948).svg
+Flag of the Grand Duchy of Tuscany with Great Coat of arms.svg
+Flag of the Kingdom of the Two Sicilies (1816).svg
 Flag of the London Borough of Havering.svg
+Flag of the Municipality of Concepción (Paraguay).svg
+Flag of the Russian Soviet Federative Socialist Republic (1937–1954).svg
 Flag of the province of Livorno.svg
 Flag of the province of Perugia.svg
 Flag of Álava.svg
 Flag of Čučer Sandevo Municipality, North Macedonia.svg
 Flag of Štip Municipality, North Macedonia.svg
 Flag of Želino Municipality, North Macedonia.svg
+Flagge Großherzogtum Hessen mit Wappen.svg
+Flagge Herzogtum Sachsen-Coburg-Gotha (1911-1920).svg
+Maritime Ensign of Kuwait 1956-1961.svg
 Montegiardino (RSM)-Bandiera.svg
 Provincia de Badajoz - Bandera.svg
 Provincia di Benevento-Gonfalone.svg
 Provincia di Savona-Bandiera.svg
+Taranto-Gonfalone.svg
+Знаме на Варна, България.svg
+Флаг города Байконур.svg

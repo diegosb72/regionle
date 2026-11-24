@@ -160,12 +160,12 @@ export const SCREENS: Record<ScreenId, Record<SeoLang, ScreenText>> = {
     es: {
       file: 'banderas',
       name: 'Banderas del mundo',
-      description: 'Las banderas de los países, de sus regiones y de sus capitales, más de dos mil, para verlas y repasarlas: España, Estados Unidos, Japón, Alemania, Rusia…',
+      description: 'Más de cuatro mil banderas: las de los países, sus regiones y sus ciudades, las de países que ya no existen, las de organizaciones y pueblos y las señales.',
     },
     en: {
       file: 'flags',
       name: 'Flags of the world',
-      description: 'The flags of the countries, of their regions and of their capitals, more than two thousand of them, to look at and go over: Spain, the United States, Japan…',
+      description: 'More than four thousand flags: those of the countries, their regions and their cities, of countries that are no more, of organisations and peoples, and signals.',
     },
   },
   reto: {

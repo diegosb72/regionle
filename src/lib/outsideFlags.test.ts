@@ -58,6 +58,14 @@ interface World {
   branch: Record<string, string>;
   /** How many categories Commons gives in one answer, when it gives them in pieces. */
   atOnce?: number;
+  /** The page each entity has in each Wikipedia: its title by language. */
+  pages: Record<string, Record<string, string>>;
+  /** What each page of a Wikipedia says before its first heading, by `language:title`. */
+  leadsOf: Record<string, string>;
+  /** The title that a name of a page of a Wikipedia leads to, by `language:name`. */
+  wikiLeads: Record<string, string>;
+  /** What Wikidata says of what has a flag and many pages: how many, its names, what it is, where, and when it began and ended. */
+  known: Record<string, { links: number; es?: string; en?: string; is?: string[]; in?: string[]; born?: string[]; died?: string[] }>;
 }
 /** A way of not answering: this status for what matches, the first `times` of it. */
 interface Refusal {
@@ -68,7 +76,7 @@ interface Refusal {
 
 let world: World;
 let refusals: Refusal[] = [];
-/** What was asked, in order: `sparql <query>`, `api <form>`, `file <title>`, `picture <title>`, `branch <path>`. */
+/** What was asked, in order: `sparql <query>`, `api <form>`, `wiki <language> <titles>`, `file <title>`, `picture <title>`, `branch <path>`. */
 let asked: string[] = [];
 /** When each of those was asked, in ms. */
 let times: number[] = [];
@@ -97,7 +105,35 @@ function answer(query: string): Record<string, unknown>[] {
   if (query.includes('p:P41')) return ids(query).flatMap((id) => rows(id));
   if (query.includes('owl:sameAs')) return ids(query).flatMap((id) => (world.moved[id] ? [{ item: uri(id), to: uri(world.moved[id]) }] : []));
   if (query.includes('p:P2046')) return ids(query).flatMap((id) => (world.areas[id] ?? []).map((km2) => ({ item: uri(id), m2: text(km2 * 1e6) })));
+  if (query.includes('schema:about'))
+    return ids(query).flatMap((id) => Object.entries(world.pages[id] ?? {}).filter(([lang]) => query.includes(`<https://${lang}.wikipedia.org/>`)).map(([lang, name]) => ({ item: uri(id), site: { type: 'uri', value: `https://${lang}.wikipedia.org/` }, name: text(name) })));
+  // What has a flag and at least so many pages: the question the candidates start from.
+  if (query.includes('wikibase:sitelinks')) {
+    const least = Number(/\?links >= (\d+)/.exec(query)?.[1] ?? 0);
+    return Object.entries(world.known).filter(([id, one]) => one.links >= least && world.flags[id]?.length).flatMap(([id, one]) => world.flags[id].map(() => ({ item: uri(id), links: text(one.links) })));
+  }
+  if (query.includes('rdfs:label') && query.includes('"es"'))
+    return ids(query).flatMap((id) => (['es', 'en'] as const).flatMap((lang) => (world.known[id]?.[lang] ? [{ item: uri(id), label: { type: 'literal', 'xml:lang': lang, value: world.known[id][lang] } }] : [])));
+  if (query.includes('rdfs:label')) return ids(query).flatMap((id) => (world.known[id]?.en ? [{ item: uri(id), label: { type: 'literal', 'xml:lang': 'en', value: world.known[id].en } }] : []));
+  if (query.includes('wdt:P31 ')) return ids(query).flatMap((id) => (world.known[id]?.is ?? []).map((to) => ({ item: uri(id), class: uri(to) })));
+  if (query.includes('wdt:P17 ')) return ids(query).flatMap((id) => (world.known[id]?.in ?? []).map((to) => ({ item: uri(id), country: uri(to) })));
+  if (query.includes('wdt:P571'))
+    return ids(query).flatMap((id) => [...(world.known[id]?.born ?? []).map((day) => ({ item: uri(id), born: text(`${day}T00:00:00Z`) })), ...(world.known[id]?.died ?? []).map((day) => ({ item: uri(id), died: text(`${day}T00:00:00Z`) }))]);
   throw new Error(`A question the stand-in does not know: ${query}`);
+}
+
+/** What a Wikipedia says of the pages it is asked about: how each starts, as it is written. */
+function wikipedia(lang: string, form: URLSearchParams): Record<string, unknown> {
+  const redirects: { from: string; to: string }[] = [];
+  const pages = new Map<string, Record<string, unknown>>();
+  for (const name of (form.get('titles') ?? '').split('|').filter(Boolean)) {
+    const to = world.wikiLeads[`${lang}:${name}`];
+    if (to) redirects.push({ from: name, to });
+    const title = to ?? name;
+    const lead = world.leadsOf[`${lang}:${title}`];
+    pages.set(title, lead === undefined ? { title, missing: true } : { title, revisions: [{ slots: { main: { content: lead } } }] });
+  }
+  return { batchcomplete: true, query: { ...(redirects.length ? { redirects } : {}), pages: [...pages.values()] } };
 }
 
 /** What Commons says of the files it is asked about. */
@@ -174,7 +210,7 @@ beforeAll(async () => {
       const [, place, ...rest] = url.pathname.split('/');
       const what = decodeURIComponent(rest.join('/'));
       const form = new URLSearchParams(body);
-      const said = place === 'sparql' ? `sparql ${form.get('query') ?? ''}` : place === 'api' ? `api ${body}` : `${place} ${what}`;
+      const said = place === 'sparql' ? `sparql ${form.get('query') ?? ''}` : place === 'api' ? `api ${body}` : place === 'wiki' ? `wiki ${what} ${form.get('titles') ?? ''}` : `${place} ${what}`;
       asked.push(said);
       times.push(Date.now());
       agents.push(String(req.headers['user-agent']));
@@ -186,12 +222,13 @@ beforeAll(async () => {
       try {
         if (place === 'sparql') return void res.writeHead(200, { 'Content-Type': 'application/sparql-results+json' }).end(JSON.stringify({ results: { bindings: answer(form.get('query') ?? '') } }));
         if (place === 'api') return void res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify(commons(form)));
+        if (place === 'wiki') return void res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify(wikipedia(what, form)));
         if (place === 'file' && world.files[what]) return void res.writeHead(200).end(world.files[what].body);
         if (place === 'picture' && world.files[what]) return void res.writeHead(200).end(`a picture of ${what}`);
         if (place === 'branch' && world.branch[what] !== undefined) return void res.writeHead(200).end(world.branch[what]);
         res.writeHead(404).end('not here');
       } catch (err) {
-        res.writeHead(400).end(String(err));
+        if (!res.headersSent) res.writeHead(400).end(String(err));
       }
     });
   });
@@ -217,20 +254,31 @@ const fresh = (name: string) => {
 };
 
 /** Maps like those of the game: for each country, its divisions and, when it has them, the groups they make up; and the list of cities. */
-function game(countries: Record<string, { units: Unit[]; groups?: Unit[] }>, cities: Record<string, { i: string; k?: number; wd?: string }[]> = {}) {
+function game(countries: Record<string, { units: Unit[]; groups?: Unit[]; wd?: string }>, cities: Record<string, { i: string; k?: number; wd?: string }[]> = {}) {
   const dir = fresh('maps');
   fs.mkdirSync(path.join(dir, 'r'));
-  fs.writeFileSync(path.join(dir, 'index.json'), JSON.stringify({ countries: Object.keys(countries).map((id) => ({ id })) }));
+  fs.writeFileSync(path.join(dir, 'index.json'), JSON.stringify({ countries: Object.entries(countries).map(([id, c]) => ({ id, ...(c.wd ? { wd: c.wd } : {}) })) }));
   const pieces = (list: Unit[]) => ({ geometries: list.map((u) => ({ type: 'Polygon', id: u.id, properties: { n: { es: u.id }, ...(u.wd ? { wd: u.wd } : {}), ar: u.ar ?? 100 } })) });
   for (const [id, c] of Object.entries(countries)) fs.writeFileSync(path.join(dir, 'r', `${id}.json`), JSON.stringify({ type: 'Topology', objects: { ...(c.groups ? { g1: pieces(c.groups) } : {}), f: pieces(c.units) } }));
   fs.writeFileSync(path.join(dir, 'cities.json'), JSON.stringify({ v: 1, c: cities }));
   return dir;
 }
 
+interface Past {
+  file: string;
+  rank?: string;
+  from?: string;
+  to?: string;
+}
 interface Item {
   wd?: string;
   by?: string;
+  /** The page of Wikipedia whose box of facts shows the flag. */
+  page?: string;
+  past?: Past[];
   file: string;
+  /** What is listed: whether Wikidata prefers the flag it flies to the others. */
+  rank?: string;
   instead?: string;
   from?: string;
   also?: string[];
@@ -281,14 +329,35 @@ interface Result {
   read: (name: string) => string;
 }
 
-const FILE: Record<string, string> = { 'flags-regions': 'flags/regions.json', 'flags-capitals': 'flags/capitals.json' };
+const FILE: Record<string, string> = {
+  'flags-regions': 'flags/regions.json',
+  'flags-capitals': 'flags/capitals.json',
+  'flags-cities': 'flags/cities.json',
+  'flags-countries': 'flags/countries.json',
+  'flags-candidates': 'flags/candidates.json',
+  'flags-listed': 'flags/listed.json',
+  'flags-signals': 'flags/signals.json',
+};
 
 /** Runs the script. It gets no variable of the machine but the ones named here. */
 function run(source: string, data: string, env: Record<string, string> = {}, out = fresh('out')): Promise<Result> {
   return new Promise((done) => {
     // No wait between downloads, and no list of pictures or of flags given by hand but the one a test writes.
     const none = path.join(TMP, 'no-list');
-    const vars = { PATH: process.env.PATH ?? '', OUTSIDE_WDQS: `${base}/sparql`, OUTSIDE_COMMONS: `${base}/api`, OUTSIDE_KEPT: `${base}/branch`, OUTSIDE_PAUSE: '0', OUTSIDE_FLAG_GAP: '0', OUTSIDE_FLAG_PICTURES: none, OUTSIDE_FLAG_HAND: none, ...env };
+    const vars = {
+      PATH: process.env.PATH ?? '',
+      OUTSIDE_WDQS: `${base}/sparql`,
+      OUTSIDE_COMMONS: `${base}/api`,
+      OUTSIDE_WIKIPEDIA: `${base}/wiki/{lang}`,
+      OUTSIDE_KEPT: `${base}/branch`,
+      OUTSIDE_PAUSE: '0',
+      OUTSIDE_FLAG_GAP: '0',
+      OUTSIDE_FLAG_PICTURES: none,
+      OUTSIDE_FLAG_HAND: none,
+      OUTSIDE_FLAG_LISTS: none,
+      OUTSIDE_FLAG_SIGNALS: none,
+      ...env,
+    };
     execFile('node', ['scripts/data/outside.mjs', '--out', out, '--only', source, '--data', data], { cwd: ROOT, env: vars }, (error, stdout) => {
       const walk = (dir: string, at = ''): string[] => fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(dir, e.name), `${at}${e.name}/`) : [`${at}${e.name}`]));
       const report = () => JSON.parse(fs.readFileSync(path.join(out, 'estado.json'), 'utf8')) as { sources: ReturnType<Result['source']>[] };
@@ -315,7 +384,7 @@ beforeEach(() => {
   asked = [];
   times = [];
   agents = [];
-  world = { flags: {}, moved: {}, codes: {}, areas: {}, files: {}, leads: {}, branch: {} };
+  world = { flags: {}, moved: {}, codes: {}, areas: {}, files: {}, leads: {}, branch: {}, pages: {}, leadsOf: {}, wikiLeads: {}, known: {} };
 });
 
 /** A country of four provinces, each with a flag of its own drawn as it should be. */
@@ -511,6 +580,21 @@ describe('the flag of each capital', () => {
     // A city has no code and no area to be judged by.
     expect(asked.some((q) => q.includes('wdt:P300') || q.includes('p:P2046'))).toBe(false);
     expect(r.kept()).toEqual([at(svg('Capital.svg')), at(svg('Second.svg'))].sort());
+  });
+});
+
+describe('the flag of each city that is no capital', () => {
+  it('is asked of the other cities of the list, by the id of each city', async () => {
+    world.flags = { Q1: [{ file: 'Capital.svg' }], Q3: [{ file: 'Just a city.svg' }], Q4: [{ file: 'Capital of a region.svg' }] };
+    for (const name of ['Just a city.svg', 'Capital of a region.svg']) world.files[name] = { body: svg(name) };
+    const cities = { AA: [{ i: 'c1', k: 3, wd: 'Q1' }, { i: 'c2', k: 2, wd: 'Q2' }, { i: 'c3', wd: 'Q3' }, { i: 'c4', k: 1, wd: 'Q4' }], BB: [{ i: 'c5', k: 3, wd: 'Q5' }, { i: 'c6', k: 0, wd: 'Q6' }, { i: 'c7' }] };
+    const r = await run('flags-cities', game({ AA: { units: [{ id: 'AA-01' }, { id: 'AA-02' }] } }, cities));
+    expect(r.code).toBe(0);
+    expect(r.data().asked).toBe(4);
+    expect(r.data().items).toEqual({ c3: { wd: 'Q3', file: 'Just a city.svg' }, c4: { wd: 'Q4', file: 'Capital of a region.svg' } });
+    expect(asked.filter((q) => q.includes('p:P41')).flatMap(ids)).toEqual(['Q3', 'Q4', 'Q6']);
+    expect(asked.some((q) => q.includes('wdt:P300') || q.includes('p:P2046'))).toBe(false);
+    expect(r.kept()).toEqual([at(svg('Just a city.svg')), at(svg('Capital of a region.svg'))].sort());
   });
 });
 
@@ -739,7 +823,8 @@ describe('the file of each flag', () => {
     asked = [];
     const r = await run('flags-regions', data);
     expect(asked.filter((q) => q.startsWith('file '))).toEqual(['file New flag of Cuatro.svg']);
-    expect(asked.filter((q) => q.startsWith('branch '))).toEqual(['branch flags/regions.json', 'branch flags/capitals.json']);
+    // Every source that brings files is asked what it keeps.
+    expect(asked.filter((q) => q.startsWith('branch '))).toEqual(['branch flags/regions.json', 'branch flags/capitals.json', 'branch flags/cities.json', 'branch flags/countries.json', 'branch flags/listed.json', 'branch flags/signals.json']);
     expect(r.kept()).toEqual([at(svg('Cuatro, new'))]);
     // The entry of a file that was there says where it is all the same.
     expect(r.data().files['Flag of Uno.svg'].kept).toBe(at(svg('Uno')));
@@ -881,6 +966,320 @@ describe('when a place does not answer', () => {
   });
 });
 
+/* ------------------------------------------------------------------ the flag that Wikipedia shows */
+
+describe('the flag that the page of Wikipedia shows', () => {
+  /** PLAIN, with the second province and the third left with no flag in Wikidata. */
+  const BARE = () => {
+    const data = PLAIN();
+    delete world.flags.Q2;
+    delete world.flags.Q3;
+    for (const name of ['Dos county flag.svg', 'Bandera de Tres.png']) world.files[name] = { body: svg(name), ...(name.endsWith('.png') ? { mime: 'image/png' } : {}) };
+    return data;
+  };
+  const box = (param: string) => `{{Short description|A county}}\n{{Infobox settlement\n| name = X\n${param}\n| image_shield = Arms of X.svg\n}}\n'''X''' is a county.`;
+
+  it('is taken for what Wikidata gives no flag of, the English page before the Spanish one', async () => {
+    const data = BARE();
+    world.pages = { Q2: { en: 'Dos County', es: 'Provincia de Dos' }, Q3: { es: 'Tres (provincia)' }, Q1: { en: 'Uno' } };
+    world.leadsOf = {
+      'en:Dos County': box('| image_flag = Dos county flag.svg'),
+      'es:Provincia de Dos': box('| bandera = Otra.svg'),
+      'es:Tres (provincia)': box('|bandera=Bandera_de_Tres.png'),
+    };
+    const r = await run('flags-regions', data);
+    expect(r.code).toBe(0);
+    expect(r.data().items['AA-02']).toEqual({ wd: 'Q2', by: 'wikipedia', page: 'en:Dos County', file: 'Dos county flag.svg' });
+    expect(r.data().items['AA-03']).toEqual({ wd: 'Q3', by: 'wikipedia', page: 'es:Tres (provincia)', file: 'Bandera de Tres.png' });
+    // Only what has no flag is asked about, and the Spanish page only of what the English one left with none.
+    expect(asked.filter((q) => q.includes('schema:about')).flatMap(ids)).toEqual(['Q2', 'Q3']);
+    expect(asked.filter((q) => q.startsWith('wiki '))).toEqual(['wiki en Dos County', 'wiki es Tres (provincia)']);
+    expect(r.kept()).toContain(at(svg('Dos county flag.svg')));
+    expect(r.kept()).toContain(at(svg('Bandera de Tres.png'), 'png'));
+    expect(r.source().detail?.by).toEqual({ id: 2, wikipedia: 2 });
+    expect(r.source().note).toContain('4 de 4 tienen bandera');
+  });
+
+  it.each([
+    ['| image_flag = [[File:Dos county flag.svg|125px|border]]', 'Dos county flag.svg'],
+    ['| image_flag   =   Dos_county_flag.svg', 'Dos county flag.svg'],
+    ['| flag = Image:Dos county flag.svg', 'Dos county flag.svg'],
+    ['| image_flag = Dos county flag.svg{{!}}border', 'Dos county flag.svg'],
+    ['| image_flag = <!-- none yet -->Dos county flag.svg', 'Dos county flag.svg'],
+    ['| image_flag = <!-- Dos county flag.svg -->', null],
+    ['| image_flag = ', null],
+    ['| image_flag = {{flag|Spain}}', null],
+    ['| bandera = no', null],
+    ['| flag_size = 120px\n| flag_link = Flag of Dos\n| flag_alt = Dos county flag.svg', null],
+  ])('reads «%s» as the flag %s', async (param, file) => {
+    const data = BARE();
+    world.pages = { Q2: { en: 'Dos County' } };
+    world.leadsOf = { 'en:Dos County': box(param) };
+    const r = await run('flags-regions', data);
+    expect(r.data().items['AA-02']?.file ?? null).toBe(file);
+  });
+
+  it('follows a page to the one its title leads to', async () => {
+    const data = BARE();
+    world.pages = { Q2: { en: 'Dos county' } };
+    world.wikiLeads = { 'en:Dos county': 'Dos County' };
+    world.leadsOf = { 'en:Dos County': box('| image_flag = Dos county flag.svg') };
+    const r = await run('flags-regions', data);
+    expect(r.data().items['AA-02']).toMatchObject({ by: 'wikipedia', page: 'en:Dos county', file: 'Dos county flag.svg' });
+  });
+
+  it('gives way to a flag given by hand, which tells what Wikipedia showed', async () => {
+    const data = BARE();
+    world.pages = { Q2: { en: 'Dos County' } };
+    world.leadsOf = { 'en:Dos County': box('| image_flag = Dos county flag.svg') };
+    world.files['By hand.svg'] = { body: svg('hand') };
+    const hand = path.join(fresh('hand'), 'hand.json');
+    fs.writeFileSync(hand, JSON.stringify({ 'flags-regions': { 'AA-02': { file: 'By hand.svg', why: 'seen' } } }));
+    const r = await run('flags-regions', data, { OUTSIDE_FLAG_HAND: hand });
+    expect(r.data().items['AA-02']).toEqual({ wd: 'Q2', by: 'hand', file: 'By hand.svg', instead: 'Dos county flag.svg' });
+  });
+
+  it('asks Wikipedia nothing when everything has its flag in Wikidata', async () => {
+    await run('flags-regions', PLAIN());
+    expect(asked.some((q) => q.includes('schema:about') || q.startsWith('wiki '))).toBe(false);
+  });
+
+  it('keeps what Wikidata gave when Wikipedia does not answer, and says so', async () => {
+    const data = BARE();
+    world.pages = { Q2: { en: 'Dos County' } };
+    refusals = [{ when: (q) => q.startsWith('wiki '), status: 403, times: 99 }];
+    const r = await run('flags-regions', data);
+    expect(r.code).toBe(0);
+    expect(Object.keys(r.data().items)).toEqual(['AA-01', 'AA-04']);
+    expect(r.source().detail?.undone).toEqual(['las fichas de Wikipedia (HTTP 403 Forbidden)']);
+  });
+});
+
+/* ------------------------------------------------------------------ the flags that are not of the maps */
+
+describe('the flags a country flew before', () => {
+  const OLD = () => {
+    world.flags = {
+      Q10: [
+        { file: 'Flag of Aa.svg' },
+        { file: 'Flag of Aa (1900-1950).svg', from: '1900-01-01', to: '1950-06-30' },
+        { file: 'Flag of Aa (1950-1990).svg', from: '1950-07-01', to: '1990-01-01', rank: 'Preferred' },
+        { file: 'Flag of Aa, once.svg', to: '?' },
+        { file: 'Flag of Aa, wrong.svg', to: '1960-01-01', rank: 'Deprecated' },
+      ],
+      Q20: [{ file: 'Flag of Bb.svg' }],
+    };
+    for (const name of ['Flag of Aa (1900-1950).svg', 'Flag of Aa (1950-1990).svg', 'Flag of Aa, once.svg']) world.files[name] = { body: svg(name) };
+    return game({ AA: { units: [{ id: 'AA-01' }, { id: 'AA-02' }], wd: 'Q10' }, BB: { units: [{ id: 'BB-01' }, { id: 'BB-02' }], wd: 'Q20' }, CC: { units: [{ id: 'CC-01' }, { id: 'CC-02' }] } });
+  };
+
+  it('are those that say when they stopped flying, the last first, each with its days and its file', async () => {
+    const r = await run('flags-countries', OLD());
+    expect(r.code).toBe(0);
+    expect(r.data().asked).toBe(2);
+    expect(r.data().items).toEqual({
+      AA: {
+        wd: 'Q10',
+        past: [
+          { file: 'Flag of Aa (1950-1990).svg', rank: 'preferred', from: '1950-07-01', to: '1990-01-01' },
+          { file: 'Flag of Aa (1900-1950).svg', from: '1900-01-01', to: '1950-06-30' },
+          { file: 'Flag of Aa, once.svg', to: '?' },
+        ],
+      },
+    });
+    // The flag of today is the game's own, and is not brought; nor is one that was withdrawn.
+    expect(Object.keys(r.data().files)).toEqual(['Flag of Aa (1900-1950).svg', 'Flag of Aa (1950-1990).svg', 'Flag of Aa, once.svg']);
+    expect(r.kept()).toHaveLength(3);
+    expect(r.source().note).toContain('3 banderas anteriores de 1 de 2 países');
+    expect(asked.filter((q) => q.includes('p:P41')).flatMap(ids)).toEqual(['Q10', 'Q20']);
+  });
+
+  it('is left unread when no country has a Wikidata id', async () => {
+    const r = await run('flags-countries', game({ AA: { units: [{ id: 'AA-01' }, { id: 'AA-02' }] } }));
+    expect(r.code).toBe(0);
+    expect(r.source().ok).toBe(false);
+  });
+});
+
+describe('the flags of what the lists name', () => {
+  const lists = (said: unknown) => {
+    const file = path.join(fresh('lists'), 'lists.json');
+    fs.writeFileSync(file, JSON.stringify(said));
+    return file;
+  };
+  const LISTED = () => {
+    world.flags = {
+      // A country that is no more: every flag it had says when it ended.
+      Q100: [
+        { file: 'Flag of Gone (1920-1950).svg', from: '1920-01-01', to: '1950-01-01' },
+        { file: 'Flag of Gone (1950-1990).svg', from: '1950-01-01', to: '1990-12-26' },
+      ],
+      // An organisation, with the flag it flies and one it flew.
+      Q200: [{ file: 'Flag of the Union.svg' }, { file: 'Other flag of the Union.svg' }, { file: 'Flag of the Union (1950).svg', to: '1960-01-01' }],
+      Q300: [{ file: 'Flag of a People.svg' }],
+    };
+    for (const name of Object.values(world.flags).flat().map((st) => st.file)) world.files[name] = { body: svg(name) };
+    return lists({ historical: { Q100: { es: 'Ido' }, Q999: { es: 'Sin bandera' } }, organisations: { Q200: { es: 'La Unión' } }, peoples: { Q300: { es: 'Un pueblo' } }, other: { 'not-an-id': {} } });
+  };
+
+  it('are the one each flies today and those it stopped flying, the last first', async () => {
+    const r = await run('flags-listed', PLAIN(), { OUTSIDE_FLAG_LISTS: LISTED() });
+    expect(r.code).toBe(0);
+    expect(r.data().asked).toBe(4);
+    expect(r.data().items).toEqual({
+      Q100: {
+        past: [
+          { file: 'Flag of Gone (1950-1990).svg', from: '1950-01-01', to: '1990-12-26' },
+          { file: 'Flag of Gone (1920-1950).svg', from: '1920-01-01', to: '1950-01-01' },
+        ],
+      },
+      Q200: { file: 'Flag of the Union.svg', also: ['Other flag of the Union.svg'], past: [{ file: 'Flag of the Union (1950).svg', to: '1960-01-01' }] },
+      Q300: { file: 'Flag of a People.svg' },
+    });
+    expect(asked.filter((q) => q.includes('p:P41')).flatMap(ids)).toEqual(['Q100', 'Q200', 'Q300', 'Q999']);
+    expect(r.kept()).toHaveLength(6);
+    expect(r.source().note).toContain('3 de 4 tienen bandera');
+  });
+
+  it('say when the flag that is flown is the one Wikidata prefers to the others', async () => {
+    const said = LISTED();
+    world.flags.Q300 = [{ file: 'Flag of a People.svg' }, { file: 'The flag of a People.svg', rank: 'Preferred' }];
+    world.files['The flag of a People.svg'] = { body: svg('the people') };
+    const r = await run('flags-listed', PLAIN(), { OUTSIDE_FLAG_LISTS: said });
+    expect(r.data().items.Q300).toEqual({ file: 'The flag of a People.svg', rank: 'preferred' });
+    expect(r.data().items.Q200.rank).toBeUndefined();
+  });
+
+  it('take the one that is given by hand before the one Wikidata gives', async () => {
+    const said = LISTED();
+    world.files['The flag of Gone.svg'] = { body: svg('gone') };
+    world.files['The flag of Nothing.svg'] = { body: svg('nothing') };
+    const hand = path.join(fresh('hand'), 'hand.json');
+    fs.writeFileSync(hand, JSON.stringify({ 'flags-listed': { Q100: { file: 'The flag of Gone.svg', why: 'seen' }, Q999: { file: 'The flag of Nothing.svg', why: 'seen' }, Q200: { file: 'Flag of the Union.svg', why: 'the same' }, Q5: { file: 'Not listed.svg', why: 'seen' } } }));
+    const r = await run('flags-listed', PLAIN(), { OUTSIDE_FLAG_LISTS: said, OUTSIDE_FLAG_HAND: hand });
+    expect(r.data().items.Q100).toMatchObject({ by: 'hand', file: 'The flag of Gone.svg' });
+    expect(r.data().items.Q100.past).toHaveLength(2);
+    expect(r.data().items.Q999).toEqual({ by: 'hand', file: 'The flag of Nothing.svg' });
+    expect(r.data().items.Q200).toMatchObject({ by: 'hand', file: 'Flag of the Union.svg' });
+    expect(r.data().items.Q200.instead).toBeUndefined();
+    expect(r.data().items.Q5).toBeUndefined();
+  });
+
+  it('is left unread where the lists name nothing', async () => {
+    const r = await run('flags-listed', PLAIN());
+    expect(r.source().ok).toBe(false);
+    expect(asked).toEqual([]);
+  });
+});
+
+describe('the flags that are signals', () => {
+  it('are the files that the list names, by the id it gives each', async () => {
+    for (const name of ['ICS Alfa.svg', 'ICS Bravo.svg']) world.files[name] = { body: svg(name) };
+    world.leads = { 'ICS Alpha.svg': 'ICS Alfa.svg' };
+    const file = path.join(fresh('signals'), 'signals.json');
+    fs.writeFileSync(file, JSON.stringify({ signals: { 'ics-a': { file: 'ICS Alpha.svg', es: 'A' }, 'ics-b': { file: 'ICS Bravo.svg', es: 'B' }, 'ics-c': { file: 'ICS Charlie.svg', es: 'C' }, 'ics-d': { es: 'D' } } }));
+    const r = await run('flags-signals', PLAIN(), { OUTSIDE_FLAG_SIGNALS: file });
+    expect(r.code).toBe(0);
+    expect(r.data().items).toEqual({ 'ics-a': { by: 'hand', file: 'ICS Alfa.svg' }, 'ics-b': { by: 'hand', file: 'ICS Bravo.svg' }, 'ics-c': { by: 'hand', file: 'ICS Charlie.svg' } });
+    expect(r.data().files['ICS Charlie.svg']).toEqual({ missing: true });
+    expect(r.kept()).toEqual([at(svg('ICS Alfa.svg')), at(svg('ICS Bravo.svg'))].sort());
+    // Wikidata is asked nothing: the list says it all.
+    expect(asked.some((q) => q.startsWith('sparql '))).toBe(false);
+  });
+
+  it('is left unread where there is no list', async () => {
+    const r = await run('flags-signals', PLAIN());
+    expect(r.source().ok).toBe(false);
+  });
+});
+
+describe('what has a flag and is well known', () => {
+  const KNOWN = () => {
+    world.flags = {
+      Q10: [{ file: 'Flag of Aa.svg' }],
+      Q100: [{ file: 'Flag of Gone.svg', from: '1950-01-01', to: '1990-12-26' }, { file: 'Flag of Gone, older.svg', to: '?', rank: 'Deprecated' }],
+      Q200: [{ file: 'Flag of the Union.svg', rank: 'Preferred' }],
+      Q300: [{ file: 'Flag of Few.svg' }],
+      Q1: [{ file: 'Flag of Uno.svg' }],
+      Q7: [{ file: 'Flag of a City.svg' }],
+    };
+    world.known = {
+      Q10: { links: 300, es: 'Aa', en: 'Aa', is: ['Q6256'] },
+      Q100: { links: 120, es: 'Ido', en: 'Gone', is: ['Q3024240', 'Q6256'], born: ['1920-05-01', '1918-01-01'], died: ['1990-12-26', '1991-01-01'], in: ['Q10'] },
+      Q200: { links: 80, en: 'The Union', is: ['Q484652'], born: ['-0026-01-01'] },
+      Q300: { links: 12, en: 'Few write about it' },
+      Q1: { links: 50, en: 'Uno', in: ['Q10'] },
+      Q7: { links: 45, en: 'A city' },
+      // A class is known by its English name.
+      Q6256: { links: 0, en: 'country' },
+      Q3024240: { links: 0, en: 'historical country' },
+      Q484652: { links: 0, en: 'international organization' },
+    };
+    return game({ AA: { units: [{ id: 'AA-01', wd: 'Q1' }, { id: 'AA-02', wd: 'Q2' }], wd: 'Q10' } }, { AA: [{ i: 'c1', wd: 'Q7' }] });
+  };
+
+  it('is told with its names, what it is, where, when, its flags and whether the game has it', async () => {
+    const r = await run('flags-candidates', KNOWN(), { OUTSIDE_CANDIDATE_LINKS: '40' });
+    expect(r.code).toBe(0);
+    const data = r.data() as unknown as { links: number; items: Record<string, unknown>; classes: Record<string, string> };
+    expect(data.links).toBe(40);
+    expect(data.items).toEqual({
+      // What the game has is told as what it has it as, and nothing more is asked of it.
+      Q1: { links: 50, game: 'piece' },
+      Q7: { links: 45, game: 'city' },
+      Q10: { links: 300, game: 'country' },
+      // The first year it says it began, and the last it says it ended.
+      Q100: { links: 120, es: 'Ido', en: 'Gone', is: ['Q6256', 'Q3024240'], in: ['Q10'], from: 1918, to: 1991, flags: [{ file: 'Flag of Gone, older.svg', rank: 'deprecated', to: '?' }, { file: 'Flag of Gone.svg', from: '1950-01-01', to: '1990-12-26' }] },
+      Q200: { links: 80, en: 'The Union', is: ['Q484652'], from: -26, flags: [{ file: 'Flag of the Union.svg', rank: 'preferred' }] },
+    });
+    expect(data.classes).toEqual({ Q6256: 'country', Q3024240: 'historical country', Q484652: 'international organization' });
+    expect(asked.filter((q) => q.includes('wdt:P31 ')).flatMap(ids)).toEqual(['Q100', 'Q200']);
+    // No file is asked about, and none is brought.
+    expect(asked.some((q) => q.startsWith('api ') || q.startsWith('file '))).toBe(false);
+    expect(r.kept()).toEqual([]);
+    expect(r.source().note).toContain('5 cosas con bandera');
+    expect(r.source().note).toContain('3 ya están en el juego');
+  });
+
+  it('keeps what it learnt when a question about them has no answer, and says which', async () => {
+    refusals = [{ when: (q) => q.includes('wdt:P17 '), status: 403, times: 99 }];
+    const r = await run('flags-candidates', KNOWN());
+    expect(r.code).toBe(0);
+    expect((r.data().items.Q100 as unknown as { in?: string[] }).in).toBeUndefined();
+    expect((r.data().items.Q100 as unknown as { to?: number }).to).toBe(1991);
+    expect(r.source().detail?.undone).toEqual(['en qué país está cada cosa (HTTP 403 Forbidden)']);
+  });
+
+  it('is left unread when the question it starts from has no answer', async () => {
+    refusals = [{ when: (q) => q.includes('wikibase:sitelinks'), status: 500, times: 99 }];
+    const r = await run('flags-candidates', KNOWN());
+    expect(r.source().ok).toBe(false);
+  });
+});
+
+describe('the time there is for a whole run', () => {
+  it('brings the sources in the order they are asked for', async () => {
+    world.files['ICS Alfa.svg'] = { body: svg('a') };
+    const file = path.join(fresh('signals'), 'signals.json');
+    fs.writeFileSync(file, JSON.stringify({ signals: { a: { file: 'ICS Alfa.svg' } } }));
+    const r = await run('flags-signals,flags-regions', PLAIN(), { OUTSIDE_FLAG_SIGNALS: file });
+    expect((JSON.parse(r.read('estado.json')) as { sources: { id: string }[] }).sources.map((one) => one.id)).toEqual(['flags-signals', 'flags-regions']);
+  });
+
+  it('leaves what a source can do without for another run once it is over', async () => {
+    const data = PLAIN();
+    delete world.flags.Q2;
+    const r = await run('flags-regions', data, { OUTSIDE_TOTAL: '0' });
+    expect(r.code).toBe(0);
+    // What it cannot do without is there: which flag each thing flies, and what Commons says of its file.
+    expect(Object.keys(r.data().items)).toEqual(['AA-01', 'AA-03', 'AA-04']);
+    expect(r.data().files['Flag of Uno.svg'].sha1).toBe(sha1(svg('Uno')));
+    expect(r.kept()).toEqual([]);
+    expect(r.source().detail?.files).toMatchObject({ wanted: 3, brought: 0, left: 3 });
+    expect(r.source().detail?.undone).toContain('las fichas de Wikipedia (no quedaba tiempo)');
+  });
+});
+
 describe('the lists of the repository', () => {
   it('names the sources of flags, which say what their files hold', () => {
     const script = fs.readFileSync(path.join(ROOT, 'scripts/data/outside.mjs'), 'utf8');
@@ -889,7 +1288,11 @@ describe('the lists of the repository', () => {
 
   it('gives flags by hand to sources that exist, each to a thing of the game, by a file with a name and with its reason', () => {
     const hand = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/data/flags-hand.json'), 'utf8')) as Record<string, Record<string, { file: string; why: string }>>;
-    expect(Object.keys(hand).sort()).toEqual(Object.keys(FILE).sort());
+    // The sources that take a flag by hand: those of the maps, and that of the lists.
+    expect(Object.keys(hand).sort()).toEqual(['flags-capitals', 'flags-listed', 'flags-regions']);
+    const lists = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/data/flags-lists.json'), 'utf8')) as Record<string, Record<string, unknown>>;
+    const listed = new Set(Object.values(lists).flatMap((list) => Object.keys(list)));
+    for (const id of Object.keys(hand['flags-listed'])) expect(listed, id).toContain(id);
     const cities = (JSON.parse(fs.readFileSync(path.join(ROOT, 'public/data/cities.json'), 'utf8')) as { c: Record<string, { i: string; k?: number }[]> }).c;
     const capitals = new Set(Object.values(cities).flat().filter((c) => (c.k ?? 0) >= 2).map((c) => c.i));
     for (const id of Object.keys(hand['flags-capitals'])) expect(capitals, id).toContain(id);

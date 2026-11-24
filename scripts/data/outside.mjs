@@ -1,7 +1,7 @@
 // Brings the source data that are kept outside GitHub, npm and PyPI.
 //
 //   npm run data:outside                    every source, and whether each place they come from answers
-//   npm run data:outside -- --only a,b      some of them (`reach` is the look at the places)
+//   npm run data:outside -- --only a,b      some of them, in that order (`reach` is the look at the places)
 //   npm run data:outside -- --asked file    those that a file names, one to a line (`--only` comes first)
 //   npm run data:outside -- --list          what there is to bring
 //   npm run data:outside -- --verdict       exit 1 when the last run left something unread
@@ -52,6 +52,11 @@ const PAUSE = Number(process.env.OUTSIDE_PAUSE ?? 500);
  * run on GitHub is stopped at half an hour with nothing saved: better to keep less than to lose it all.
  */
 const PATIENCE = Number(process.env.OUTSIDE_PATIENCE ?? 12 * 60_000);
+/**
+ * When everything has to be over, whatever is left to do: no source goes on past it with what it can do
+ * without. Several sources of twelve minutes each would otherwise outlast the half hour.
+ */
+const DEADLINE = Date.now() + Number(process.env.OUTSIDE_TOTAL ?? 24 * 60_000);
 /**
  * A place that takes this long to say no, in ms, was working on the answer and did not finish (the query
  * service gives up at a minute). That is not the same as being refused: the same question would take as
@@ -681,6 +686,22 @@ const FLAG_PICTURES = path.resolve(ROOT, process.env.OUTSIDE_FLAG_PICTURES ?? 's
  * is not the flag (the banner of the city of Rome).
  */
 const FLAG_HAND = path.resolve(ROOT, process.env.OUTSIDE_FLAG_HAND ?? 'scripts/data/flags-hand.json');
+/** Where each Wikipedia answers what is asked about its pages: `{lang}` stands for its language. */
+const WIKIPEDIA = process.env.OUTSIDE_WIKIPEDIA ?? 'https://{lang}.wikipedia.org/w/api.php';
+/** The Wikipedias that are looked at, in this order: those of the languages of the game. */
+const WIKIS = ['en', 'es'];
+/**
+ * The lists of what flies a flag and is not in the maps: the countries that are no more, the organisations
+ * and the peoples, each by its Wikidata id. scripts/data/flags-lists.mjs writes them from what
+ * `flags-candidates` brings.
+ */
+const FLAG_LISTS = path.resolve(ROOT, process.env.OUTSIDE_FLAG_LISTS ?? 'scripts/data/flags-lists.json');
+/** The signals: flags that are nobody's, each a file of Commons named by hand. */
+const FLAG_SIGNALS = path.resolve(ROOT, process.env.OUTSIDE_FLAG_SIGNALS ?? 'scripts/data/flags-signals.json');
+/** How many pages of Wikimedia sites have to tell of something that has a flag for it to be a candidate for those lists. */
+const CANDIDATE_LINKS = Number(process.env.OUTSIDE_CANDIDATE_LINKS ?? 40);
+/** How many of them Wikidata is asked about in one question: they are thousands, and each question has its wait. */
+const CANDIDATES_AT_ONCE = 400;
 /** Words in a drawing: text that is set, and not shapes that are drawn. */
 const WORDS = /<(text|tspan|textPath|tref)\b/i;
 /**
@@ -731,13 +752,17 @@ function pieces() {
   return [...found.values()];
 }
 
-/** The capitals of the countries, as the list of cities has them (3 is the capital, 2 a second one), by the id each city has in the game. */
-function capitals() {
+/** The cities of the game that `which` takes, by the id each has in it: a city has no code and no area to be judged by. */
+function citiesThat(which) {
   const cities = JSON.parse(fs.readFileSync(path.join(DATA, 'cities.json'), 'utf8')).c ?? {};
   return Object.keys(cities)
     .sort()
-    .flatMap((map) => cities[map].filter((c) => c.k >= 2).map((c) => ({ id: String(c.i), map, wd: QID.test(c.wd ?? '') ? c.wd : null, area: null })));
+    .flatMap((map) => cities[map].filter(which).map((c) => ({ id: String(c.i), map, wd: QID.test(c.wd ?? '') ? c.wd : null, area: null })));
 }
+/** The capitals of the countries, as the list of cities has them (3 is the capital, 2 a second one). */
+const capitals = () => citiesThat((c) => c.k >= 2);
+/** The other cities of the game: those that are the capital of no country. */
+const towns = () => citiesThat((c) => !(c.k >= 2));
 
 /** The file that a statement names, as Commons titles it: the query service gives the address that leads to it. */
 function fileOf(cell) {
@@ -805,16 +830,17 @@ function flown(list) {
   return { now: best, old: all.filter((f) => !best.includes(f)).sort((a, b) => a.file.localeCompare(b.file)) };
 }
 
-/** What Commons answers a question with. A place that is busy with its own copies says so with a 200, and is asked again after a wait. */
-async function commonsSays(form, until) {
+/** What a site of Wikimedia answers a question with. A place that is busy with its own copies says so with a 200, and is asked again after a wait. */
+async function wikiSays(url, form, until, name = new URL(url).host) {
   for (let n = 0; ; n++) {
-    const { body } = await request(COMMONS, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8' }, body: form.toString(), until });
+    const { body } = await request(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8' }, body: form.toString(), until });
     const json = JSON.parse(body.toString('utf8'));
     if (!json?.error) return json ?? {};
-    if (n >= 3 || !['maxlag', 'ratelimited'].includes(json.error.code) || Date.now() >= until) throw new Error(`Commons: ${json.error.code ?? 'error'}`);
+    if (n >= 3 || !['maxlag', 'ratelimited'].includes(json.error.code) || Date.now() >= until) throw new Error(`${name}: ${json.error.code ?? 'error'}`);
     await sleep(PAUSE * 4 ** (n + 1));
   }
 }
+const commonsSays = (form, until) => wikiSays(COMMONS, form, until, 'Commons');
 
 const bare = (title) => String(title).replace(/^File:/, '');
 
@@ -944,126 +970,112 @@ function listed(head, lists) {
   return `{\n${top.join('\n')}\n${parts.join(',\n')}\n}\n`;
 }
 
+/** The titles of the pages that a Wikipedia answers about, by the name each was asked under: a name written another way, or one that leads to another page, is followed. */
+function followed(json) {
+  const leads = new Map();
+  for (const { from, to } of [...(json.query?.normalized ?? []), ...(json.query?.redirects ?? [])]) leads.set(String(from), String(to));
+  return (name) => {
+    let title = name;
+    for (let hop = 0; hop < 4 && leads.has(title); hop++) title = leads.get(title);
+    return title;
+  };
+}
+
+/** The page each of these entities has in each of the Wikipedias that are looked at: for each entity, its title by language. */
+async function pagesOf(ids, opts) {
+  const sites = WIKIS.map((lang) => `<https://${lang}.wikipedia.org/>`).join(' ');
+  const rows = await inParts(ids, 200, (part) => `SELECT ?item ?site ?name WHERE { VALUES ?item { ${wd(part)} } VALUES ?site { ${sites} } ?page schema:about ?item ; schema:isPartOf ?site ; schema:name ?name }`, opts);
+  const pages = new Map();
+  for (const row of rows) {
+    const [id, lang] = [entity(row.item), /^https:\/\/([a-z-]+)\.wikipedia\.org\/$/.exec(String(row.site?.value ?? ''))?.[1]];
+    if (id && lang && row.name?.value) pages.set(id, { ...(pages.get(id) ?? {}), [lang]: String(row.name.value) });
+  }
+  return pages;
+}
+
 /**
- * The flag of each of the things a source asks about (`subjects`: the divisions of the maps, the capitals),
- * and the file of each flag.
- *
- * Which flag: the one its Wikidata entity flies today (see `flown`). The entity of a thing is the one the
- * maps name; when that one has no flag, the one its id was merged into, and then the one entity that
- * carries its ISO 3166-2 code and has a flag. Where the entity of the maps and the one with the code are
- * not the same and fly different flags, the first is believed and the other is told (`other`), unless the
- * first is far smaller than the division (the city a province is called after): then it is the other way
- * round. An entity that small with nothing to take its place keeps its flag, and says so (`tiny`). A flag
- * given by hand (`by: hand`) comes before any of them, and what Wikidata gave is told (`instead`).
- *
- * Which file: what Commons keeps under that name, with who made it and on what terms it is given, which a
- * game that shows it has to say. A photograph whose page says that somebody has drawn the flag again is
- * brought as that drawing (`drawn`), with the photograph left out. An original too heavy to be of use
- * is brought as the picture Wikimedia draws of it (`picture`); a drawing with words in it (`words`), and
- * any other that the list of pictures names, is brought both ways. The flag that is only told (`other`)
- * is brought too: which of the two it is, is for whoever builds the game to say.
- *
- * Only the first question has to be answered. What Wikidata does not answer after it is left out and told;
- * a file that cannot be downloaded, or that there was no time for, has its entry with no file, and the
- * next run brings it: what the branch already keeps is not downloaded again.
+ * The start of each of these pages of a Wikipedia as it is written (what comes before its first heading:
+ * the box of facts is there), fifty at a time and by the title that was asked. An answer that does not fit
+ * comes in pieces.
  */
-async function flagsFor(source, subjects, keep) {
-  if (!subjects.length) throw new Error('Nothing to ask the flag of');
-  const own = [...new Set(subjects.filter((u) => u.wd).map((u) => u.wd))].sort(byNumber);
-  if (!own.length) throw new Error('Nothing to ask the flag of has a Wikidata id');
-  const until = Date.now() + PATIENCE;
-  const lax = { tries: 4, impatient: true, until };
-  const undone = [];
-  const attempt = async (what, find) => {
-    if (Date.now() >= until) return void undone.push(`${what} (no quedaba tiempo)`);
-    try {
-      await find();
-    } catch (err) {
-      undone.push(`${what} (${short(err)})`);
+async function leadsOf(lang, titles, until = Infinity) {
+  const url = WIKIPEDIA.replace('{lang}', lang);
+  const found = new Map();
+  for (const part of chunks(titles, 50)) {
+    if (Date.now() >= until) throw new Error('no quedaba tiempo');
+    let more = {};
+    const texts = new Map();
+    let titled = (name) => name;
+    for (let piece = 0; piece < 20; piece++) {
+      const json = await wikiSays(url, new URLSearchParams({ action: 'query', format: 'json', formatversion: '2', redirects: '1', maxlag: '5', prop: 'revisions', rvprop: 'content', rvslots: 'main', rvsection: '0', titles: part.join('|'), ...more }), until);
+      titled = followed(json);
+      for (const page of json.query?.pages ?? []) {
+        const text = page.revisions?.[0]?.slots?.main?.content;
+        if (typeof text === 'string') texts.set(String(page.title), text);
+      }
+      if (!json.continue) break;
+      more = json.continue;
     }
-  };
-
-  // The one question everything else hangs from.
-  const flags = await flagsOf(own, { until: Date.now() + PATIENCE / 2 });
-  const moved = new Map();
-  await attempt('los identificadores que han cambiado', async () => {
-    for (const [from, to] of await movedOf(own.filter((id) => !flags.has(id)), lax)) moved.set(from, to);
-    await flagsOf([...new Set(moved.values())].filter((id) => !flags.has(id)).sort(byNumber), lax, flags);
-  });
-  let coded = new Map();
-  await attempt('los códigos ISO 3166-2', async () => {
-    coded = await flagsCoded(subjects.filter((u) => ISO.test(u.id)).map((u) => u.id), lax);
-  });
-
-  /** What each thing may fly: the flag of its entity (or of the one it became) and that of the entity with its code. */
-  const picks = new Map();
-  for (const u of subjects) {
-    const mine = u.wd && (flags.has(u.wd) ? { wd: u.wd } : moved.has(u.wd) && flags.has(moved.get(u.wd)) ? { wd: moved.get(u.wd), by: 'redirect' } : null);
-    const first = mine && { ...mine, ...flown(flags.get(mine.wd)) };
-    // A code that two entities with a flag carry says what one of them is, not which.
-    const carriers = [...(coded.get(u.id) ?? [])].filter(([, list]) => flown(list).now.length);
-    const second = carriers.length === 1 && carriers[0][0] !== first?.wd ? { wd: carriers[0][0], by: 'code', ...flown(carriers[0][1]) } : null;
-    picks.set(u.id, { first: first?.now.length ? first : null, second, old: first?.old ?? [] });
+    for (const title of part) if (texts.has(titled(title))) found.set(title, texts.get(titled(title)));
+    await sleep(PAUSE);
   }
+  return found;
+}
 
-  const areas = new Map();
-  await attempt('la superficie de cada entidad', async () => {
-    const ids = subjects.filter((u) => u.area && picks.get(u.id).first).map((u) => picks.get(u.id).first.wd);
-    for (const [id, list] of await areasOf([...new Set(ids)].sort(byNumber), lax)) areas.set(id, list);
-  });
-  const tiny = (u, id) => {
-    const known = areas.get(id) ?? [];
-    return !!u.area && known.length > 0 && known.every((km2) => km2 / u.area < TINY && !(km2 / u.area >= SLIP[0] && km2 / u.area <= SLIP[1]));
-  };
+/** The parameter of a box of facts that names the flag: `image_flag` in the English Wikipedia, `bandera` in the Spanish one. */
+const FLAG_PARAM = /^[ \t]*\|[ \t]*(?:image[_ ]flag|flag[_ ]image|imagen[_ ]bandera|bandera|flag)[ \t]*=[ \t]*(.*)$/gim;
+const PICTURE_NAME = /^[^{}<>[\]#|]+\.(?:svg|png|gif|jpe?g|webp)$/i;
 
-  const items = {};
-  for (const u of subjects) {
-    const { first, second, old } = picks.get(u.id);
-    const small = !!first && tiny(u, first.wd);
-    const [pick, other] = first && !(small && second) ? [first, second] : [second, first];
-    if (!pick) continue;
-    const [flag, ...also] = pick.now;
-    items[u.id] = {
-      wd: pick.wd,
-      ...(pick.by ? { by: pick.by } : {}),
-      file: flag.file,
-      ...(flag.from && flag.from !== '?' ? { from: flag.from } : {}),
-      ...(also.length ? { also: also.map((f) => f.file) } : {}),
-      ...(pick === first && old.length ? { old: old.map((f) => f.file) } : {}),
-      ...(other && other.now[0].file !== flag.file ? { other: { wd: other.wd, file: other.now[0].file } } : {}),
-      ...(pick === first && small ? { tiny: true } : {}),
-    };
+/**
+ * The flag that the box of facts of a page of Wikipedia shows: the file that its parameter for the flag
+ * names, or none. Only a file is one: a template that draws the flag of something else (`{{flag|…}}`), a
+ * «no» and a size are not.
+ */
+function flagIn(text) {
+  const lead = String(text ?? '').replace(/<!--[\s\S]*?-->/g, '');
+  for (const [, said] of lead.matchAll(FLAG_PARAM)) {
+    const name = said
+      .replace(/\{\{\s*!\s*\}\}/g, '|')
+      .replace(/^\[\[/, '')
+      .split(/[|\]]/)[0]
+      .replace(/^\s*(?:file|image|archivo|imagen|fichier)\s*:\s*/i, '')
+      .replace(/_/g, ' ')
+      .trim();
+    if (PICTURE_NAME.test(name)) return name;
   }
+  return null;
+}
 
-  for (const [id, title] of byHand(source)) {
-    if (!subjects.some((u) => u.id === id)) continue;
-    const was = items[id];
-    items[id] = { ...(was ? { wd: was.wd } : {}), by: 'hand', file: title, ...(was && was.file !== title ? { instead: was.file } : {}) };
-  }
-
-  /* The files: what Commons says of each, and the drawing that stands for a photograph. */
+/**
+ * What Commons says of each of the files that are named, and the files themselves, kept as they come.
+ *
+ * What it says: what the file holds, who made it and on what terms it is given, which a game that shows it
+ * has to say. A photograph whose page says that somebody has drawn the flag again is brought as that
+ * drawing (`drawn`), with the photograph left out. What the categories it is in say of it is told (`marks`).
+ *
+ * The files: one at a time, and unhurried. An original too heavy to be of use is brought as the picture
+ * Wikimedia draws of it (`picture`); a drawing with words in it (`words`), and any other that the list of
+ * pictures names, is brought both ways. A file that cannot be downloaded, or that there was no time for,
+ * has its entry with no file, and the next run brings it: what the branch already keeps is not downloaded
+ * again.
+ *
+ * Gives what was learnt of each file by its title, the title each name leads to, and how the download went.
+ */
+async function filesOf(names, { until, keep, attempt, undone }) {
   const files = {};
   const sources = new Map();
-  const learn = async (names) => {
-    const { pages, titled } = await commonsOf(names, { prop: 'imageinfo', iiprop: 'url|size|mime|sha1|extmetadata', iiextmetadatafilter: 'LicenseShortName|UsageTerms|LicenseUrl|Artist|Credit|AttributionRequired|Restrictions', iiurlwidth: String(FLAG_PICTURE) }, until);
-    const titles = new Map();
-    for (const name of names) {
+  const titles = new Map();
+  const learn = async (list) => {
+    const { pages, titled } = await commonsOf(list, { prop: 'imageinfo', iiprop: 'url|size|mime|sha1|extmetadata', iiextmetadatafilter: 'LicenseShortName|UsageTerms|LicenseUrl|Artist|Credit|AttributionRequired|Restrictions', iiurlwidth: String(FLAG_PICTURE) }, until);
+    for (const name of list) {
       const title = titled(name);
       titles.set(name, title);
       const info = about(pages.get(title));
       files[title] = info ?? { missing: true };
       if (info) sources.set(title, pages.get(title).imageinfo[0]);
     }
-    return titles;
   };
-  // Every flag that some thing flies today: its own, the others its entity gives, and that of the entity with its code.
-  const asked = [...new Set(Object.values(items).flatMap((item) => [item.file, ...(item.also ?? []), ...(item.other ? [item.other.file] : [])]))].sort();
-  const titles = await learn(asked);
-  for (const item of Object.values(items)) {
-    item.file = titles.get(item.file) ?? item.file;
-    if (item.also) item.also = item.also.map((name) => titles.get(name) ?? name);
-    if (item.other) item.other.file = titles.get(item.other.file) ?? item.other.file;
-  }
+  await learn([...new Set(names)].sort());
 
   await attempt('los dibujos de las banderas que son fotografías', async () => {
     const photos = Object.keys(files).filter((title) => !files[title].missing && files[title].mime !== 'image/svg+xml').sort();
@@ -1074,9 +1086,9 @@ async function flagsFor(source, subjects, keep) {
       if (name) drawn.set(title, name);
     }
     const fresh = [...new Set(drawn.values())].filter((name) => !files[name]).sort();
-    const found = fresh.length ? await learn(fresh) : new Map();
+    if (fresh.length) await learn(fresh);
     for (const [title, name] of drawn) {
-      const drawing = found.get(name) ?? name;
+      const drawing = titles.get(name) ?? name;
       if (files[drawing] && !files[drawing].missing && files[drawing].mime === 'image/svg+xml') files[title].drawn = drawing;
     }
   });
@@ -1090,7 +1102,7 @@ async function flagsFor(source, subjects, keep) {
     }
   });
 
-  /* The download: every file that some thing flies, less the photographs that have a drawing; one at a time, and unhurried. */
+  /* The download: every file that was named, less the photographs that have a drawing; one at a time, and unhurried. */
   const { kept, words } = await keptFiles();
   const pictured = picturesWanted();
   const wanted = Object.keys(files)
@@ -1155,31 +1167,341 @@ async function flagsFor(source, subjects, keep) {
   }
   if (left.length) undone.push(`${left.length} de ${wanted.length} archivos (${last ? short(last) : 'no quedaba tiempo'})`);
 
-  const count = (list, of) => {
-    const n = {};
-    for (const one of list) n[of(one)] = (n[of(one)] ?? 0) + 1;
-    return Object.fromEntries(Object.entries(n).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])));
-  };
-  const flying = Object.values(items);
   const real = Object.values(files).filter((f) => !f.missing);
-  const by = count(flying, (item) => item.by ?? 'id');
   return {
-    text: listed({ source: source.from, licence: source.licence, what: source.what, asked: subjects.length }, { items, files }),
-    note: [
-      `${flying.length} de ${subjects.length} tienen bandera`,
-      `${wanted.length} archivos: ${brought.length} descargados (${kB(bytes)}${pictures ? `, con ${pictures} imágenes` : ''})${there.length ? `, ${there.length} que ya estaban` : ''}${left.length ? `, ${left.length} sin traer` : ''}`,
-      ...(undone.length ? [`sin mirar: ${undone.join('; ')}`] : []),
-    ].join('; '),
+    files,
+    titled: (name) => titles.get(name) ?? name,
+    note: `${wanted.length} archivos: ${brought.length} descargados (${kB(bytes)}${pictures ? `, con ${pictures} imágenes` : ''})${there.length ? `, ${there.length} que ya estaban` : ''}${left.length ? `, ${left.length} sin traer` : ''}`,
+    detail: {
+      files: { all: real.length, missing: Object.values(files).length - real.length, drawn: real.filter((f) => f.drawn).length, words: real.filter((f) => f.words).length, wanted: wanted.length, brought: brought.length, there: there.length, left: left.length, pictures, bytes },
+      kinds: tally(real, (f) => KIND[f.mime] ?? f.mime),
+      licences: tally(real, (f) => f.licence || '?'),
+    },
+  };
+}
+
+/** How many of a list there are of each kind, the most first. */
+function tally(list, of) {
+  const n = {};
+  for (const one of list) n[of(one)] = (n[of(one)] ?? 0) + 1;
+  return Object.fromEntries(Object.entries(n).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])));
+}
+
+/** What a source of flags may go on doing without, once it has what it cannot: each thing is tried, and what fails or finds no time is told. */
+function patient() {
+  const until = Math.min(Date.now() + PATIENCE, DEADLINE);
+  const undone = [];
+  const attempt = async (what, find) => {
+    if (Date.now() >= until) return void undone.push(`${what} (no quedaba tiempo)`);
+    try {
+      await find();
+    } catch (err) {
+      undone.push(`${what} (${short(err)})`);
+    }
+  };
+  return { until, undone, attempt, lax: { tries: 4, impatient: true, until } };
+}
+
+/**
+ * The flag of each of the things a source asks about (`subjects`: the divisions of the maps, the capitals),
+ * and the file of each flag.
+ *
+ * Which flag: the one its Wikidata entity flies today (see `flown`). The entity of a thing is the one the
+ * maps name; when that one has no flag, the one its id was merged into, and then the one entity that
+ * carries its ISO 3166-2 code and has a flag. Where the entity of the maps and the one with the code are
+ * not the same and fly different flags, the first is believed and the other is told (`other`), unless the
+ * first is far smaller than the division (the city a province is called after): then it is the other way
+ * round. An entity that small with nothing to take its place keeps its flag, and says so (`tiny`).
+ *
+ * What Wikidata gives no flag of may still have one that it was never told: the flag that the box of facts
+ * of its page of Wikipedia shows is taken then (`by: wikipedia`, with the page under `page`), the English
+ * Wikipedia before the Spanish one. A flag given by hand (`by: hand`) comes before any of them, and what
+ * the others gave is told (`instead`).
+ *
+ * Which file, and how it is brought: see `filesOf`. The flag that is only told (`other`) is brought too:
+ * which of the two it is, is for whoever builds the game to say.
+ *
+ * Only the first question has to be answered. What Wikidata does not answer after it is left out and told.
+ */
+async function flagsFor(source, subjects, keep) {
+  if (!subjects.length) throw new Error('Nothing to ask the flag of');
+  const own = [...new Set(subjects.filter((u) => u.wd).map((u) => u.wd))].sort(byNumber);
+  if (!own.length) throw new Error('Nothing to ask the flag of has a Wikidata id');
+  const { until, undone, attempt, lax } = patient();
+
+  // The one question everything else hangs from.
+  const flags = await flagsOf(own, { until: Date.now() + PATIENCE / 2 });
+  const moved = new Map();
+  await attempt('los identificadores que han cambiado', async () => {
+    for (const [from, to] of await movedOf(own.filter((id) => !flags.has(id)), lax)) moved.set(from, to);
+    await flagsOf([...new Set(moved.values())].filter((id) => !flags.has(id)).sort(byNumber), lax, flags);
+  });
+  let coded = new Map();
+  await attempt('los códigos ISO 3166-2', async () => {
+    coded = await flagsCoded(subjects.filter((u) => ISO.test(u.id)).map((u) => u.id), lax);
+  });
+
+  /** What each thing may fly: the flag of its entity (or of the one it became) and that of the entity with its code. */
+  const picks = new Map();
+  for (const u of subjects) {
+    const mine = u.wd && (flags.has(u.wd) ? { wd: u.wd } : moved.has(u.wd) && flags.has(moved.get(u.wd)) ? { wd: moved.get(u.wd), by: 'redirect' } : null);
+    const first = mine && { ...mine, ...flown(flags.get(mine.wd)) };
+    // A code that two entities with a flag carry says what one of them is, not which.
+    const carriers = [...(coded.get(u.id) ?? [])].filter(([, list]) => flown(list).now.length);
+    const second = carriers.length === 1 && carriers[0][0] !== first?.wd ? { wd: carriers[0][0], by: 'code', ...flown(carriers[0][1]) } : null;
+    picks.set(u.id, { first: first?.now.length ? first : null, second, old: first?.old ?? [] });
+  }
+
+  const areas = new Map();
+  await attempt('la superficie de cada entidad', async () => {
+    const ids = subjects.filter((u) => u.area && picks.get(u.id).first).map((u) => picks.get(u.id).first.wd);
+    for (const [id, list] of await areasOf([...new Set(ids)].sort(byNumber), lax)) areas.set(id, list);
+  });
+  const tiny = (u, id) => {
+    const known = areas.get(id) ?? [];
+    return !!u.area && known.length > 0 && known.every((km2) => km2 / u.area < TINY && !(km2 / u.area >= SLIP[0] && km2 / u.area <= SLIP[1]));
+  };
+
+  const items = {};
+  for (const u of subjects) {
+    const { first, second, old } = picks.get(u.id);
+    const small = !!first && tiny(u, first.wd);
+    const [pick, other] = first && !(small && second) ? [first, second] : [second, first];
+    if (!pick) continue;
+    const [flag, ...also] = pick.now;
+    items[u.id] = {
+      wd: pick.wd,
+      ...(pick.by ? { by: pick.by } : {}),
+      file: flag.file,
+      ...(flag.from && flag.from !== '?' ? { from: flag.from } : {}),
+      ...(also.length ? { also: also.map((f) => f.file) } : {}),
+      ...(pick === first && old.length ? { old: old.map((f) => f.file) } : {}),
+      ...(other && other.now[0].file !== flag.file ? { other: { wd: other.wd, file: other.now[0].file } } : {}),
+      ...(pick === first && small ? { tiny: true } : {}),
+    };
+  }
+
+  // What Wikidata gives no flag of: the one that the box of facts of its page of Wikipedia shows.
+  await attempt('las fichas de Wikipedia', async () => {
+    const now = (u) => moved.get(u.wd) ?? u.wd;
+    const bare = subjects.filter((u) => u.wd && !items[u.id]);
+    if (!bare.length) return;
+    const pages = await pagesOf([...new Set(bare.map(now))].sort(byNumber), lax);
+    for (const lang of WIKIS) {
+      const left = bare.filter((u) => !items[u.id] && pages.get(now(u))?.[lang]);
+      if (!left.length) continue;
+      const texts = await leadsOf(lang, [...new Set(left.map((u) => pages.get(now(u))[lang]))].sort(), until);
+      for (const u of left) {
+        const title = pages.get(now(u))[lang];
+        const file = flagIn(texts.get(title));
+        if (file) items[u.id] = { wd: now(u), by: 'wikipedia', page: `${lang}:${title}`, file };
+      }
+    }
+  });
+
+  for (const [id, title] of byHand(source)) {
+    if (!subjects.some((u) => u.id === id)) continue;
+    const was = items[id];
+    items[id] = { ...(was ? { wd: was.wd } : {}), by: 'hand', file: title, ...(was && was.file !== title ? { instead: was.file } : {}) };
+  }
+
+  // Every flag that some thing flies today: its own, the others its entity gives, and that of the entity with its code.
+  const asked = Object.values(items).flatMap((item) => [item.file, ...(item.also ?? []), ...(item.other ? [item.other.file] : [])]);
+  const got = await filesOf(asked, { until, keep, attempt, undone });
+  for (const item of Object.values(items)) {
+    item.file = got.titled(item.file);
+    if (item.also) item.also = item.also.map(got.titled);
+    if (item.other) item.other.file = got.titled(item.other.file);
+  }
+
+  const flying = Object.values(items);
+  return {
+    text: listed({ source: source.from, licence: source.licence, what: source.what, asked: subjects.length }, { items, files: got.files }),
+    note: [`${flying.length} de ${subjects.length} tienen bandera`, got.note, ...(undone.length ? [`sin mirar: ${undone.join('; ')}`] : [])].join('; '),
     detail: {
       asked: subjects.length,
       found: flying.length,
-      by,
+      by: tally(flying, (item) => item.by ?? 'id'),
       doubted: { other: flying.filter((item) => item.other).length, tiny: flying.filter((item) => item.tiny).length },
-      files: { all: real.length, missing: Object.values(files).length - real.length, drawn: real.filter((f) => f.drawn).length, words: real.filter((f) => f.words).length, wanted: wanted.length, brought: brought.length, there: there.length, left: left.length, pictures, bytes },
-      kinds: count(real, (f) => KIND[f.mime] ?? f.mime),
-      licences: count(real, (f) => f.licence || '?'),
+      ...got.detail,
       undone,
     },
+  };
+}
+
+/** A statement of a flag as a data file tells it: its file, its rank when it is not the usual one, and the days it says it flew between. */
+const told = (st) => ({ file: st.file, ...(st.rank !== 'normal' ? { rank: st.rank } : {}), ...(st.from ? { from: st.from } : {}), ...(st.to ? { to: st.to } : {}) });
+/** The flags that are said to have stopped flying, the last to do so first; one that does not say when comes after those that do. */
+const ended = (list) =>
+  [...(list?.values() ?? [])]
+    .filter((f) => f.rank !== 'deprecated' && f.to)
+    .sort((a, b) => (b.to === '?' ? '' : b.to).localeCompare(a.to === '?' ? '' : a.to) || a.file.localeCompare(b.file));
+
+/** The countries of the game, each with its Wikidata entity. */
+function countries() {
+  const index = JSON.parse(fs.readFileSync(path.join(DATA, 'index.json'), 'utf8'));
+  return (index.countries ?? []).filter((c) => QID.test(c.wd ?? '')).map((c) => ({ id: String(c.id), wd: c.wd }));
+}
+
+/**
+ * The flags that the countries of the game flew before the one they fly: those that Wikidata gives each
+ * with the day it stopped being flown (`past`, the last first, each with the days it flew between), and
+ * their files. A country none of whose flags has such a day is left out.
+ */
+async function pastFlags(source, keep) {
+  const subjects = countries();
+  if (!subjects.length) throw new Error('No country to ask the flags of has a Wikidata id');
+  const { until, undone, attempt } = patient();
+  const flags = await flagsOf([...new Set(subjects.map((u) => u.wd))].sort(byNumber), { until: Date.now() + PATIENCE / 2 });
+  const items = {};
+  for (const u of subjects) {
+    const past = ended(flags.get(u.wd));
+    if (past.length) items[u.id] = { wd: u.wd, past: past.map(told) };
+  }
+  const got = await filesOf(Object.values(items).flatMap((item) => item.past.map((f) => f.file)), { until, keep, attempt, undone });
+  for (const item of Object.values(items)) for (const f of item.past) f.file = got.titled(f.file);
+  const n = Object.values(items).reduce((sum, item) => sum + item.past.length, 0);
+  return {
+    text: listed({ source: source.from, licence: source.licence, what: source.what, asked: subjects.length }, { items, files: got.files }),
+    note: [`${n} banderas anteriores de ${Object.keys(items).length} de ${subjects.length} países`, got.note, ...(undone.length ? [`sin mirar: ${undone.join('; ')}`] : [])].join('; '),
+    detail: { asked: subjects.length, found: Object.keys(items).length, flags: n, ...got.detail, undone },
+  };
+}
+
+/** A list of the repository, or nothing where it is not there or cannot be read. */
+function listOf(file) {
+  try {
+    const said = JSON.parse(fs.readFileSync(file, 'utf8'));
+    return said && typeof said === 'object' ? said : {};
+  } catch {
+    return {};
+  }
+}
+/** How many flags of other times are brought of one thing at most: the last ones it flew. */
+const PAST_AT_MOST = 6;
+
+/**
+ * The flags of what the lists name (scripts/data/flags-lists.json: the countries that are no more, the
+ * organisations and the peoples, each by its Wikidata id): for each, the flag it flies today (`file`, with
+ * `rank` when Wikidata prefers it to the others, and the others it gives as of today under `also`) and
+ * those it stopped flying (`past`, the last first), which is all that something that is no more should
+ * have. One given by hand comes before them, as for the maps.
+ */
+async function listedFlags(source, keep) {
+  const lists = listOf(FLAG_LISTS);
+  const ids = [...new Set(Object.values(lists).flatMap((list) => Object.keys(list ?? {})))].filter((id) => QID.test(id)).sort(byNumber);
+  if (!ids.length) throw new Error('The lists name nothing to ask the flag of');
+  const { until, undone, attempt } = patient();
+  const flags = await flagsOf(ids, { until: Date.now() + PATIENCE / 2 });
+  const items = {};
+  for (const id of ids) {
+    const { now } = flown(flags.get(id));
+    const past = ended(flags.get(id)).slice(0, PAST_AT_MOST);
+    if (!now.length && !past.length) continue;
+    const [flag, ...also] = now;
+    items[id] = { ...(flag ? { file: flag.file, ...(flag.rank !== 'normal' ? { rank: flag.rank } : {}), ...(flag.from && flag.from !== '?' ? { from: flag.from } : {}) } : {}), ...(also.length ? { also: also.slice(0, 3).map((f) => f.file) } : {}), ...(past.length ? { past: past.map(told) } : {}) };
+  }
+  for (const [id, title] of byHand(source)) {
+    if (!ids.includes(id)) continue;
+    const was = items[id];
+    items[id] = { ...(was ?? {}), by: 'hand', file: title, ...(was?.file && was.file !== title ? { instead: was.file } : {}) };
+  }
+  const got = await filesOf(Object.values(items).flatMap((item) => [...(item.file ? [item.file] : []), ...(item.also ?? []), ...(item.past ?? []).map((f) => f.file)]), { until, keep, attempt, undone });
+  for (const item of Object.values(items)) {
+    if (item.file) item.file = got.titled(item.file);
+    if (item.also) item.also = item.also.map(got.titled);
+    for (const f of item.past ?? []) f.file = got.titled(f.file);
+  }
+  return {
+    text: listed({ source: source.from, licence: source.licence, what: source.what, asked: ids.length }, { items, files: got.files }),
+    note: [`${Object.keys(items).length} de ${ids.length} tienen bandera`, got.note, ...(undone.length ? [`sin mirar: ${undone.join('; ')}`] : [])].join('; '),
+    detail: { asked: ids.length, found: Object.keys(items).length, ...got.detail, undone },
+  };
+}
+
+/** The flags that are no place's and no people's: the signals, which the list names file by file (scripts/data/flags-signals.json). */
+async function signalFlags(source, keep) {
+  const named = Object.entries(listOf(FLAG_SIGNALS).signals ?? {}).filter(([, one]) => typeof one?.file === 'string' && one.file.trim());
+  if (!named.length) throw new Error('The list of signals names no file');
+  const { until, undone, attempt } = patient();
+  const items = Object.fromEntries(named.map(([id, one]) => [id, { by: 'hand', file: one.file.trim() }]));
+  const got = await filesOf(Object.values(items).map((item) => item.file), { until, keep, attempt, undone });
+  for (const item of Object.values(items)) item.file = got.titled(item.file);
+  return {
+    text: listed({ source: source.from, licence: source.licence, what: source.what, asked: named.length }, { items, files: got.files }),
+    note: [`${named.length} señales`, got.note, ...(undone.length ? [`sin mirar: ${undone.join('; ')}`] : [])].join('; '),
+    detail: { asked: named.length, found: named.length, ...got.detail, undone },
+  };
+}
+
+/** The year a day of Wikidata is of: «-0026-01-01T00:00:00Z» is 27 BC, and is told as -26. */
+const yearOf = (cell) => {
+  const m = /^(-?)(\d{1,6})-\d{2}-\d{2}/.exec(String(cell?.value ?? ''));
+  return m ? Number(`${m[1]}${m[2]}`) : null;
+};
+
+/**
+ * Everything in Wikidata that has a flag (P41) and that many Wikipedias write about, whatever it is: what
+ * the lists of the flags that are not of the maps are made from (scripts/data/flags-lists.mjs). Of each:
+ * its names in Spanish and in English, how many pages of Wikimedia sites tell of it (`links`), what it is
+ * (`is`, P31, with the English name of each class under `classes`), the country it is in (`in`, P17), the
+ * years it began and ended (P571 and P576: the first it gives and the last) and its flags, each with its
+ * rank and the days it flew between. What the game already has (a country, a division, a city) is told as
+ * that (`game`) and nothing more is asked of it. No file is brought: that is for the sources that the
+ * lists feed.
+ *
+ * Only the first question has to be answered: what Wikidata does not say of them after it is told.
+ */
+async function candidates(source) {
+  const { undone, attempt, lax } = patient();
+  const rows = await sparql(`SELECT ?item ?links WHERE { ?item wdt:P41 ?flag ; wikibase:sitelinks ?links . FILTER(?links >= ${CANDIDATE_LINKS}) }`, { until: Date.now() + PATIENCE / 2 });
+  const items = {};
+  for (const row of rows) if (entity(row.item)) items[entity(row.item)] = { links: Number(row.links?.value) || 0 };
+  if (!Object.keys(items).length) throw new Error('Wikidata names nothing with a flag');
+
+  // What the game already has, by its Wikidata entity: a country, a division of a map or a city. Nothing more is asked of it.
+  const mine = new Map();
+  for (const c of Object.values(JSON.parse(fs.readFileSync(path.join(DATA, 'cities.json'), 'utf8')).c ?? {}).flat()) if (QID.test(c.wd ?? '')) mine.set(c.wd, 'city');
+  for (const piece of pieces()) if (piece.wd) mine.set(piece.wd, 'piece');
+  for (const country of countries()) mine.set(country.wd, 'country');
+  for (const id of Object.keys(items)) if (mine.has(id)) items[id].game = mine.get(id);
+  const ids = Object.keys(items).filter((id) => !items[id].game).sort(byNumber);
+
+  await attempt('los nombres', async () => {
+    const said = await inParts(ids, CANDIDATES_AT_ONCE, (part) => `SELECT ?item ?label WHERE { VALUES ?item { ${wd(part)} } ?item rdfs:label ?label . FILTER(LANG(?label) IN ("es", "en")) }`, lax);
+    for (const row of said) if (entity(row.item) && row.label?.value) items[entity(row.item)][row.label['xml:lang'] === 'es' ? 'es' : 'en'] = String(row.label.value);
+  });
+  const classes = {};
+  await attempt('qué es cada cosa', async () => {
+    const said = await inParts(ids, CANDIDATES_AT_ONCE, (part) => `SELECT ?item ?class WHERE { VALUES ?item { ${wd(part)} } ?item wdt:P31 ?class }`, lax);
+    for (const row of said) if (entity(row.item) && entity(row.class)) (items[entity(row.item)].is ??= []).push(entity(row.class));
+    for (const item of Object.values(items)) if (item.is) item.is = [...new Set(item.is)].sort(byNumber);
+    for (const [id, label] of await labelsOf([...new Set(Object.values(items).flatMap((item) => item.is ?? []))].sort(byNumber), lax)) classes[id] = label;
+  });
+  await attempt('en qué país está cada cosa', async () => {
+    const said = await inParts(ids, CANDIDATES_AT_ONCE, (part) => `SELECT ?item ?country WHERE { VALUES ?item { ${wd(part)} } ?item wdt:P17 ?country }`, lax);
+    for (const row of said) if (entity(row.item) && entity(row.country)) (items[entity(row.item)].in ??= []).push(entity(row.country));
+    for (const item of Object.values(items)) if (item.in) item.in = [...new Set(item.in)].sort(byNumber);
+  });
+  await attempt('cuándo empezó y cuándo acabó cada cosa', async () => {
+    const said = await inParts(ids, CANDIDATES_AT_ONCE, (part) => `SELECT ?item ?born ?died WHERE { VALUES ?item { ${wd(part)} } { ?item wdt:P571 ?born } UNION { ?item wdt:P576 ?died } }`, lax);
+    for (const row of said) {
+      const item = items[entity(row.item)];
+      const [born, died] = [yearOf(row.born), yearOf(row.died)];
+      if (!item) continue;
+      if (born !== null && (item.from === undefined || born < item.from)) item.from = born;
+      if (died !== null && (item.to === undefined || died > item.to)) item.to = died;
+    }
+  });
+  await attempt('las banderas de cada cosa', async () => {
+    for (const [id, list] of await flagsOf(ids, lax)) items[id].flags = [...list.values()].sort((a, b) => a.file.localeCompare(b.file)).map(told);
+  });
+
+  const all = Object.keys(items);
+  return {
+    text: listed({ source: source.from, licence: source.licence, what: source.what, links: CANDIDATE_LINKS }, { items, classes }),
+    note: [`${all.length} cosas con bandera de las que hablan ${CANDIDATE_LINKS} páginas o más`, `${all.length - ids.length} ya están en el juego`, ...(undone.length ? [`sin mirar: ${undone.join('; ')}`] : [])].join('; '),
+    detail: { found: all.length, game: tally(all.filter((id) => items[id].game), (id) => items[id].game), undone },
   };
 }
 
@@ -1190,10 +1512,12 @@ const FLAGS = {
   flags: true,
 };
 const FLAGS_WHAT =
-  'items: the Wikidata entity whose flag it is (wd), how it was found when it is not the one the game names (by: redirect or code; hand when the flag is one given in scripts/data/flags-hand.json, with the one Wikidata gave under instead), the Commons file of the flag it flies today (file) and since when (from), ' +
+  'items: the Wikidata entity whose flag it is (wd), how it was found when it is not the one the game names (by: redirect or code; wikipedia when Wikidata gives no flag and the box of facts of its page of Wikipedia shows one, with the page under page; hand when the flag is one given in scripts/data/flags-hand.json, with the one the others gave under instead), the Commons file of the flag it flies today (file) and since when (from), ' +
   'other flags the entity gives as of today (also) and those it gives as past or less fit (old), the flag of the entity that carries its ISO 3166-2 code when that is another (other), and whether the entity is far smaller than the division (tiny). ' +
   `files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; where the file is kept in this branch (kept); the ${FLAG_PICTURE} px picture that Wikimedia draws of it (picture), which stands for an original of more than ${FLAG_MAX / 1e6} MB and goes with a drawing that has words in it (words); for a photograph, the drawing of the same flag that is kept in its place (drawn); and the categories of Commons it is in that speak of other times, of a proposal or of an invention, which may mean that it is not a flag that flies (marks). ` +
   `The files themselves are under ${FLAG_FILES}, each named after its SHA-1.`;
+/** What the data files of the other sources of flags say of the files, which is what those of the maps say. */
+const FILES_WHAT = FLAGS_WHAT.slice(FLAGS_WHAT.indexOf('files: '));
 
 /**
  * What there is to bring. `id` is what `--only` takes, `file` where it is kept in the branch, `needs` the
@@ -1229,6 +1553,53 @@ const SOURCES = [
     es: 'Banderas de las capitales de los países',
     needs: '112',
     run: (source, keep) => flagsFor(source, capitals(), keep),
+  },
+  {
+    id: 'flags-cities',
+    file: 'flags/cities.json',
+    ...FLAGS,
+    what: `The flag of each city of the game that is the capital of no country, by the id the city has in the game. ${FLAGS_WHAT}`,
+    es: 'Banderas de las ciudades que no son capital de un país',
+    needs: '112',
+    run: (source, keep) => flagsFor(source, towns(), keep),
+  },
+  {
+    id: 'flags-countries',
+    file: 'flags/countries.json',
+    ...FLAGS,
+    what: `The flags that each country of the game flew before the one it flies, by the id of the country. items: its Wikidata entity (wd) and those flags (past), the last to stop flying first: the Commons file of each, its rank when it is the preferred one, and the days Wikidata says it flew between (from, to; ? for a day that is not known). ${FILES_WHAT}`,
+    es: 'Banderas anteriores de los países',
+    needs: '112',
+    run: pastFlags,
+  },
+  {
+    id: 'flags-candidates',
+    file: 'flags/candidates.json',
+    from: 'Wikidata (https://www.wikidata.org)',
+    licence: 'CC0 1.0',
+    what: `Everything in Wikidata that has a flag (P41) and that at least ${CANDIDATE_LINKS} pages of Wikimedia sites tell of, by its Wikidata id: what the lists of scripts/data/flags-lists.json are made from. items: its names in Spanish and in English (es, en), how many pages tell of it (links), what it is (is: P31), the country it is in (in: P17), the years it began and ended (from, to: P571 and P576), and its flags, each with its file, its rank when it is not the usual one and the days it flew between; what the game already has says only as what (game: country, piece or city). classes: the English name of each class`,
+    es: 'Todo lo que tiene bandera y es conocido, para hacer las listas',
+    needs: '112',
+    run: candidates,
+  },
+  {
+    id: 'flags-listed',
+    file: 'flags/listed.json',
+    ...FLAGS,
+    what: `The flags of what the lists of scripts/data/flags-lists.json name (countries that are no more, organisations, peoples), by its Wikidata id. items: the Commons file of the flag it flies today (file), whether Wikidata prefers it to the others (rank), since when (from) and the others it gives as of today (also); those it stopped flying (past), the last first, each with its file and the days it flew between, which is all that something that is no more has; and by: hand when the flag is one given in scripts/data/flags-hand.json, with the one Wikidata gave under instead. ${FILES_WHAT}`,
+    es: 'Banderas de países que ya no existen, de organizaciones y de pueblos',
+    needs: '112',
+    run: listedFlags,
+  },
+  {
+    id: 'flags-signals',
+    file: 'flags/signals.json',
+    ...FLAGS,
+    from: 'Wikimedia Commons (https://commons.wikimedia.org)',
+    what: `The flags that are signals, each a file of Commons that scripts/data/flags-signals.json names, by the id the list gives it. items: that file (file; by: hand, as every one is). ${FILES_WHAT}`,
+    es: 'Banderas que son señales',
+    needs: '112',
+    run: signalFlags,
   },
 ];
 
@@ -1374,7 +1745,9 @@ const report = {
   reach: [],
 };
 
-for (const source of SOURCES.filter((s) => wanted(s.id))) {
+// In the order they were asked for, which is the order they matter in when the time runs out; all of them, in the order of the list above.
+const turn = (id) => (ONLY.length ? ONLY.indexOf(id) : 0);
+for (const source of SOURCES.filter((s) => wanted(s.id)).sort((a, b) => turn(a.id) - turn(b.id))) {
   const { run, ...about } = source;
   const started = Date.now();
   process.stdout.write(`↓ ${source.id} … `);

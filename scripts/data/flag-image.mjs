@@ -24,6 +24,8 @@ export const SVG_MAX = 750_000;
 export const LIGHT_FROM = 100_000;
 /** How wide a picture is, in px: twice what the game shows a flag at, for the screens that draw two dots to one. */
 export const PICTURE = 640;
+/** How heavy a picture may be, in bytes: about what a drawing weighs when it is shown by one. */
+export const PICTURE_MAX = 140_000;
 /** How wide two drawings are compared, in px; and how wide once squinted at, to tell a change from a line that moved a hair. */
 const LOOK = 480;
 const SQUINT = 120;
@@ -191,7 +193,13 @@ export async function picture(source, { svg = false, width = PICTURE } = {}) {
     sharp(sized).webp({ lossless: true, effort: 6 }).toBuffer({ resolveWithObject: true }),
     sharp(sized).webp({ quality: 84, alphaQuality: 90, effort: 6, smartSubsample: true }).toBuffer({ resolveWithObject: true }),
   ]);
-  const best = exact.data.length <= close.data.length * 1.5 ? exact : close;
+  let best = exact.data.length <= close.data.length * 1.5 ? exact : close;
+  // A picture is never heavy: one that is (a photograph full of detail) is kept less closely, and then smaller, until it is not.
+  for (const [quality, scale] of [[72, 1], [60, 1], [60, 0.8], [60, 0.65], [55, 0.5]]) {
+    if (best.data.length <= PICTURE_MAX) break;
+    const smaller = scale === 1 ? sharp(sized) : sharp(sized).resize({ width: Math.round(exact.info.width * scale) });
+    best = await smaller.webp({ quality, alphaQuality: 85, effort: 6, smartSubsample: true }).toBuffer({ resolveWithObject: true });
+  }
   return { body: best.data, w: best.info.width, h: best.info.height, exact: best === exact };
 }
 
