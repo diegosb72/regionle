@@ -56,9 +56,10 @@ export function useRoute(): string {
   return route;
 }
 
-export function go(path: string): void {
+/** Moves to an address. `top` is false for what is opened over the page that is on screen, which stays where it is. */
+export function go(path: string, top = true): void {
   window.location.hash = `#/${path}`;
-  window.scrollTo(0, 0);
+  if (top) window.scrollTo(0, 0);
 }
 
 /**

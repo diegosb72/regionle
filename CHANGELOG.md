@@ -3,6 +3,15 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.47.0 — 24 de noviembre de 2026
+
+- Ficha de país, de prueba: en la galería de banderas, la bandera de Brasil ya no se abre sola, sino con la ficha del país.
+- Arriba, una fotografía, la bandera y el nombre oficial; debajo, qué es el país, sus cifras con su puesto en el mundo, dónde está y con quién limita.
+- La bandera, parte por parte: de dónde vienen el verde y el amarillo, qué cielo es el del globo azul, de quién es cada estrella y qué dice el lema.
+- Sus banderas en el tiempo, de la del Imperio de 1822 a la de hoy, cada una con lo que era el país entonces.
+- Ocho fotografías de Wikimedia Commons, cada una con su autor y su licencia, y el camino a las banderas de sus estados y ciudades y a los juegos con ellas.
+- Por ahora solo la tiene Brasil: es una muestra para decidir si se hace con todos los países. Tiene su dirección, y «atrás» la cierra.
+
 ## 1.46.0 — 24 de noviembre de 2026
 
 - Dos juegos más de banderas: Escalada y ¿De qué país es? Con los siete de antes, ya son nueve.

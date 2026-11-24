@@ -25,6 +25,10 @@
 //     official in it (scripts/data/facts.mjs)
 //       https://github.com/unicode-org/cldr-json @ a4b6724 (49.0.0)
 //
+//   · Wikimedia Commons: the photographs that the sheets of the countries show (scripts/data/profiles.mjs),
+//     each with its author and its licence. Commons is not on GitHub either: the same workflow brings them,
+//     and scripts/data/photos-pinned.mjs says which ones and at which commit of the branch `datos`
+//
 // The flags that are not those of the countries (of regions and cities, of other times, of organisations and
 // peoples, and the signals: Wikidata, Wikipedia and Wikimedia Commons) are in the branch `datos` too, and
 // are not fetched here: they are thousands of files, which only `npm run data:flags` reads, and it takes
@@ -41,6 +45,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PAGES } from './factbook-pages.mjs';
+import { PHOTOS, PHOTOS_AT, PHOTOS_SAID } from './photos-pinned.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const OUT = path.join(ROOT, '.cache/src');
@@ -95,6 +100,8 @@ const FILES = [
   { ...CLDR, file: 'cldr-localenames-full/main/en/languages.json', as: 'cldr/languages-en.json', sha: 'b39472304a74554021eaf73a290d18714d8f7fca' },
   { ...CLDR, file: 'cldr-core/supplemental/territoryInfo.json', as: 'cldr/territoryInfo.json', sha: '4bee3ddc0c987adcf4d66130c74fb1e973a314d6' },
   { ...CLDR, file: 'cldr-core/supplemental/currencyData.json', as: 'cldr/currencyData.json', sha: '3f66e0733c578ddea370fdcd2829263f31b40dfc' },
+  // The photographs of the sheets of the countries (scripts/data/profiles.mjs): what Commons says of each, and the pictures.
+  ...[PHOTOS_SAID, ...PHOTOS].map(([file, sha]) => ({ ...PHOTOS_AT, file, as: `photos/${path.basename(file)}`, sha })),
 ];
 
 function token() {

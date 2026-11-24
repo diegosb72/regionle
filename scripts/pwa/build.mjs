@@ -78,7 +78,13 @@ const forCrawlers = (f) => f === 'robots.txt' || f === 'sitemap.xml' || /^social
  * fetches: the worker keeps each one the first time it is shown, like any flag. Each is named after what it
  * holds, so the version of the site does not have to count them either: their list (data/flags.json) does.
  */
-const onDemand = (f) => f.startsWith('flags/commons/');
+const commonsFlag = (f) => f.startsWith('flags/commons/');
+/**
+ * The photographs of the sheets of the countries (scripts/data/profiles.mjs) are for whoever opens a sheet:
+ * like those flags, each is kept the first time it is shown, and none is stored beforehand.
+ */
+const photograph = (f) => f.startsWith('photos/');
+const onDemand = (f) => commonsFlag(f) || photograph(f);
 const files = walk(out)
   .filter((f) => !GENERATED.has(f) && !f.startsWith('.') && !forCrawlers(f) && !onDemand(f))
   .sort();
@@ -124,5 +130,7 @@ console.log(`pwa · versión ${version}`);
 console.log(`pwa · aplicación: ${shell.length} archivos, ${kb(shellBytes)} comprimidos`);
 console.log(`pwa · páginas: ${langPages.length} de idioma, guardadas; ${screenPages.length} de pantalla y ${mapPages.size} de mapa, que contesta la de su idioma`);
 console.log(`pwa · descarga completa: ${pack.length} archivos, ${kb(offline.bytes)} comprimidos`);
-const later = walk(out).filter(onDemand);
-if (later.length) console.log(`pwa · banderas de Wikimedia Commons, que se guardan al verse: ${later.length} archivos, ${kb(later.reduce((n, f) => n + fs.statSync(path.join(out, f)).size, 0))}`);
+for (const [what, mine] of [['banderas de Wikimedia Commons', commonsFlag], ['fotografías de las fichas', photograph]]) {
+  const later = walk(out).filter(mine);
+  if (later.length) console.log(`pwa · ${what}, que se guardan al verse: ${later.length} archivos, ${kb(later.reduce((n, f) => n + fs.statSync(path.join(out, f)).size, 0))}`);
+}
