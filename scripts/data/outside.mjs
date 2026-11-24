@@ -752,13 +752,17 @@ function pieces() {
   return [...found.values()];
 }
 
-/** The capitals of the countries, as the list of cities has them (3 is the capital, 2 a second one), by the id each city has in the game. */
-function capitals() {
+/** The cities of the game that `which` takes, by the id each has in it: a city has no code and no area to be judged by. */
+function citiesThat(which) {
   const cities = JSON.parse(fs.readFileSync(path.join(DATA, 'cities.json'), 'utf8')).c ?? {};
   return Object.keys(cities)
     .sort()
-    .flatMap((map) => cities[map].filter((c) => c.k >= 2).map((c) => ({ id: String(c.i), map, wd: QID.test(c.wd ?? '') ? c.wd : null, area: null })));
+    .flatMap((map) => cities[map].filter(which).map((c) => ({ id: String(c.i), map, wd: QID.test(c.wd ?? '') ? c.wd : null, area: null })));
 }
+/** The capitals of the countries, as the list of cities has them (3 is the capital, 2 a second one). */
+const capitals = () => citiesThat((c) => c.k >= 2);
+/** The other cities of the game: those that are the capital of no country. */
+const towns = () => citiesThat((c) => !(c.k >= 2));
 
 /** The file that a statement names, as Commons titles it: the query service gives the address that leads to it. */
 function fileOf(cell) {
@@ -1378,9 +1382,10 @@ const PAST_AT_MOST = 6;
 
 /**
  * The flags of what the lists name (scripts/data/flags-lists.json: the countries that are no more, the
- * organisations and the peoples, each by its Wikidata id): for each, the flag it flies today (`file`, and
- * the others it gives as of today under `also`) and those it stopped flying (`past`, the last first), which
- * is all that something that is no more has. One given by hand comes before them, as for the maps.
+ * organisations and the peoples, each by its Wikidata id): for each, the flag it flies today (`file`, with
+ * `rank` when Wikidata prefers it to the others, and the others it gives as of today under `also`) and
+ * those it stopped flying (`past`, the last first), which is all that something that is no more should
+ * have. One given by hand comes before them, as for the maps.
  */
 async function listedFlags(source, keep) {
   const lists = listOf(FLAG_LISTS);
@@ -1394,7 +1399,7 @@ async function listedFlags(source, keep) {
     const past = ended(flags.get(id)).slice(0, PAST_AT_MOST);
     if (!now.length && !past.length) continue;
     const [flag, ...also] = now;
-    items[id] = { ...(flag ? { file: flag.file, ...(flag.from && flag.from !== '?' ? { from: flag.from } : {}) } : {}), ...(also.length ? { also: also.slice(0, 3).map((f) => f.file) } : {}), ...(past.length ? { past: past.map(told) } : {}) };
+    items[id] = { ...(flag ? { file: flag.file, ...(flag.rank !== 'normal' ? { rank: flag.rank } : {}), ...(flag.from && flag.from !== '?' ? { from: flag.from } : {}) } : {}), ...(also.length ? { also: also.slice(0, 3).map((f) => f.file) } : {}), ...(past.length ? { past: past.map(told) } : {}) };
   }
   for (const [id, title] of byHand(source)) {
     if (!ids.includes(id)) continue;
@@ -1550,6 +1555,15 @@ const SOURCES = [
     run: (source, keep) => flagsFor(source, capitals(), keep),
   },
   {
+    id: 'flags-cities',
+    file: 'flags/cities.json',
+    ...FLAGS,
+    what: `The flag of each city of the game that is the capital of no country, by the id the city has in the game. ${FLAGS_WHAT}`,
+    es: 'Banderas de las ciudades que no son capital de un país',
+    needs: '112',
+    run: (source, keep) => flagsFor(source, towns(), keep),
+  },
+  {
     id: 'flags-countries',
     file: 'flags/countries.json',
     ...FLAGS,
@@ -1572,7 +1586,7 @@ const SOURCES = [
     id: 'flags-listed',
     file: 'flags/listed.json',
     ...FLAGS,
-    what: `The flags of what the lists of scripts/data/flags-lists.json name (countries that are no more, organisations, peoples), by its Wikidata id. items: the Commons file of the flag it flies today (file), since when (from) and the others it gives as of today (also); those it stopped flying (past), the last first, each with its file and the days it flew between, which is all that something that is no more has; and by: hand when the flag is one given in scripts/data/flags-hand.json, with the one Wikidata gave under instead. ${FILES_WHAT}`,
+    what: `The flags of what the lists of scripts/data/flags-lists.json name (countries that are no more, organisations, peoples), by its Wikidata id. items: the Commons file of the flag it flies today (file), whether Wikidata prefers it to the others (rank), since when (from) and the others it gives as of today (also); those it stopped flying (past), the last first, each with its file and the days it flew between, which is all that something that is no more has; and by: hand when the flag is one given in scripts/data/flags-hand.json, with the one Wikidata gave under instead. ${FILES_WHAT}`,
     es: 'Banderas de países que ya no existen, de organizaciones y de pueblos',
     needs: '112',
     run: listedFlags,

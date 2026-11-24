@@ -23,5 +23,18 @@
       "why": "Wikidata da un estandarte con las armas de la ciudad. La bandera de París es la bicolor azul y roja, partida en vertical (en.wikipedia, «Flag of Paris»)"
     }
   },
-  "flags-listed": {}
+  "flags-listed": {
+    "Q178484": {
+      "file": "Flag of the Mapuches (1992).svg",
+      "why": "Wikidata da dos sin decir cuál; la que el pueblo mapuche adoptó en 1992 (Wenufoye) es la que se iza hoy"
+    },
+    "Q190028": {
+      "file": "Flag of the Central American Integration System.svg",
+      "why": "Wikidata no dice cuál es la bandera del SICA; Commons la tiene con ese nombre"
+    },
+    "Q166110": {
+      "file": "Flag of the Union State.svg",
+      "why": "Wikidata no dice cuál es la bandera de la Unión de Rusia y Bielorrusia; Commons la tiene con ese nombre"
+    }
+  }
 }

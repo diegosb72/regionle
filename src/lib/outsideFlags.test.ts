@@ -330,6 +330,7 @@ interface Result {
 const FILE: Record<string, string> = {
   'flags-regions': 'flags/regions.json',
   'flags-capitals': 'flags/capitals.json',
+  'flags-cities': 'flags/cities.json',
   'flags-countries': 'flags/countries.json',
   'flags-candidates': 'flags/candidates.json',
   'flags-listed': 'flags/listed.json',
@@ -580,6 +581,21 @@ describe('the flag of each capital', () => {
   });
 });
 
+describe('the flag of each city that is no capital', () => {
+  it('is asked of the other cities of the list, by the id of each city', async () => {
+    world.flags = { Q1: [{ file: 'Capital.svg' }], Q3: [{ file: 'Just a city.svg' }], Q4: [{ file: 'Capital of a region.svg' }] };
+    for (const name of ['Just a city.svg', 'Capital of a region.svg']) world.files[name] = { body: svg(name) };
+    const cities = { AA: [{ i: 'c1', k: 3, wd: 'Q1' }, { i: 'c2', k: 2, wd: 'Q2' }, { i: 'c3', wd: 'Q3' }, { i: 'c4', k: 1, wd: 'Q4' }], BB: [{ i: 'c5', k: 3, wd: 'Q5' }, { i: 'c6', k: 0, wd: 'Q6' }, { i: 'c7' }] };
+    const r = await run('flags-cities', game({ AA: { units: [{ id: 'AA-01' }, { id: 'AA-02' }] } }, cities));
+    expect(r.code).toBe(0);
+    expect(r.data().asked).toBe(4);
+    expect(r.data().items).toEqual({ c3: { wd: 'Q3', file: 'Just a city.svg' }, c4: { wd: 'Q4', file: 'Capital of a region.svg' } });
+    expect(asked.filter((q) => q.includes('p:P41')).flatMap(ids)).toEqual(['Q3', 'Q4', 'Q6']);
+    expect(asked.some((q) => q.includes('wdt:P300') || q.includes('p:P2046'))).toBe(false);
+    expect(r.kept()).toEqual([at(svg('Just a city.svg')), at(svg('Capital of a region.svg'))].sort());
+  });
+});
+
 /* ------------------------------------------------------------------ which file */
 
 describe('the file of each flag', () => {
@@ -806,7 +822,7 @@ describe('the file of each flag', () => {
     const r = await run('flags-regions', data);
     expect(asked.filter((q) => q.startsWith('file '))).toEqual(['file New flag of Cuatro.svg']);
     // Every source that brings files is asked what it keeps.
-    expect(asked.filter((q) => q.startsWith('branch '))).toEqual(['branch flags/regions.json', 'branch flags/capitals.json', 'branch flags/countries.json', 'branch flags/listed.json', 'branch flags/signals.json']);
+    expect(asked.filter((q) => q.startsWith('branch '))).toEqual(['branch flags/regions.json', 'branch flags/capitals.json', 'branch flags/cities.json', 'branch flags/countries.json', 'branch flags/listed.json', 'branch flags/signals.json']);
     expect(r.kept()).toEqual([at(svg('Cuatro, new'))]);
     // The entry of a file that was there says where it is all the same.
     expect(r.data().files['Flag of Uno.svg'].kept).toBe(at(svg('Uno')));
@@ -1121,6 +1137,15 @@ describe('the flags of what the lists name', () => {
     expect(asked.filter((q) => q.includes('p:P41')).flatMap(ids)).toEqual(['Q100', 'Q200', 'Q300', 'Q999']);
     expect(r.kept()).toHaveLength(6);
     expect(r.source().note).toContain('3 de 4 tienen bandera');
+  });
+
+  it('say when the flag that is flown is the one Wikidata prefers to the others', async () => {
+    const said = LISTED();
+    world.flags.Q300 = [{ file: 'Flag of a People.svg' }, { file: 'The flag of a People.svg', rank: 'Preferred' }];
+    world.files['The flag of a People.svg'] = { body: svg('the people') };
+    const r = await run('flags-listed', PLAIN(), { OUTSIDE_FLAG_LISTS: said });
+    expect(r.data().items.Q300).toEqual({ file: 'The flag of a People.svg', rank: 'preferred' });
+    expect(r.data().items.Q200.rank).toBeUndefined();
   });
 
   it('take the one that is given by hand before the one Wikidata gives', async () => {

@@ -1,5 +1,5 @@
 {
-"about": "The flags that are signals and are nobody's: each a file of Wikimedia Commons, named by hand. The workflow \"Traer datos\" brings them (flags-signals) and scripts/data/flags.mjs gives them these names. group: sea (the International Code of Signals), race (motor racing) or other; means: what the flag says when it is flown alone, where it says something.",
+"about": "The flags that are signals and are nobody's: each a file of Wikimedia Commons, named by hand. The workflow \"Traer datos\" brings them (flags-signals) and scripts/data/flags.mjs gives them these names. group: sea (the International Code of Signals), race (motor racing) or other (those of a cause, of a faith or of nobody); means: what the flag says when it is flown alone, where it says something.",
 "signals": {
 "ics-a": {"group":"sea","file":"ICS Alfa.svg","es":"A · Alfa","en":"A · Alfa","means":{"es":"Tengo un buzo sumergido; manténgase bien alejado de mí y a poca velocidad","en":"I have a diver down; keep well clear at slow speed"}},
 "ics-b": {"group":"sea","file":"ICS Bravo.svg","es":"B · Bravo","en":"B · Bravo","means":{"es":"Estoy cargando, descargando o transportando mercancías peligrosas","en":"I am taking in, discharging or carrying dangerous goods"}},
@@ -59,6 +59,12 @@
 "sign-paralympic": {"group":"other","file":"Paralympic flag (2019).svg","es":"Bandera paralímpica","en":"Paralympic flag"},
 "sign-esperanto": {"group":"other","file":"Flag of Esperanto.svg","es":"Bandera del esperanto","en":"Esperanto flag"},
 "sign-rainbow": {"group":"other","file":"Gay Pride Flag.svg","es":"Bandera arcoíris","en":"Rainbow flag"},
+"sign-transgender": {"group":"other","file":"Transgender Pride flag.svg","es":"Bandera trans","en":"Transgender flag"},
+"sign-peace": {"group":"other","file":"PACE-flag.svg","es":"Bandera de la paz","en":"Peace flag"},
+"sign-pan-african": {"group":"other","file":"Flag of the UNIA.svg","es":"Bandera panafricana","en":"Pan-African flag"},
+"sign-hispanidad": {"group":"other","file":"Flag of the Hispanicity.svg","es":"Bandera de la Hispanidad","en":"Flag of the Hispanic world"},
+"sign-buddhist": {"group":"other","file":"Flag of Buddhism.svg","es":"Bandera budista","en":"Buddhist flag"},
+"sign-christian": {"group":"other","file":"Christian flag.svg","es":"Bandera cristiana","en":"Christian Flag"},
 "sign-jolly-roger": {"group":"other","file":"Jolly Roger.svg","es":"Bandera pirata","en":"Jolly Roger"}
 }
 }
