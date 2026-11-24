@@ -1,0 +1,103 @@
+# Correcciones a mano de las fichas de los países
+
+`scripts/data/profiles-said.mjs` lee lo que dicen Wikidata y Wikipedia de cada país y de su bandera, y
+`npm run data:profiles -- --review` enseña lo que ha leído y en qué no coinciden las fuentes. Lo que se
+corrige a mano después de mirarlo va en `profiles-fixes.json`, por país; ningún programa escribe ese
+archivo, así que una nueva pasada de «Traer datos» no deshace nada. Aquí queda por qué está cada cosa.
+
+## Nombres
+
+- **DK, NL**: la ficha de Wikipedia no da el nombre largo. Se pone el del Estado miembro de la ONU («Reino de
+  Dinamarca», «Reino de los Países Bajos»).
+- **HU, IE, TM**: la Wikipedia en español da «República de Hungría», «República de Irlanda» y «República de
+  Turkmenistán»; el nombre oficial es solo «Hungría» (desde 2012), «Irlanda» y «Turkmenistán», como dice la
+  Wikipedia en inglés.
+- **NR**: la Wikipedia en inglés da «Republic of Naoero», que es el nombre en nauruano.
+- **PS, SD, SO**: faltaba el nombre largo en español.
+- **VN**: «Viet Nam» pasa a «Vietnam», que es como lo escribe el juego; y al nombre en vietnamita le faltaba
+  un espacio.
+- **LK**: el nombre en inglés venía cortado («Democratic Socialist Republic of»).
+- **PA**: la ficha en español da solo «Panamá»; el nombre largo es «República de Panamá».
+- **TF**: faltaban el nombre en inglés y el francés.
+- **Nombre en su idioma**: sale del primer idioma oficial que dan las fuentes, y en estos no era el propio
+  del país: **BY** (venía en ruso; se pone en bielorruso), **IE** (en inglés; en irlandés, «Éire»), **SZ** (en
+  inglés; en suazi), **PH** (en inglés; en filipino), **BW** (en inglés; en setsuana), **LU** (en francés; en
+  luxemburgués) y **NO** (no venía ninguno). De **HT** venía el nombre corto en criollo, «Ayiti»; se pone el
+  largo. En los demás países con varios idiomas oficiales se deja el que viene.
+
+## Lemas
+
+Wikidata llama lema a muchos eslóganes de turismo («There's NOTHING like Australia»), así que el lema sale
+de la ficha de la Wikipedia en español, con su traducción; la traducción al inglés, de la ficha en inglés
+cuando cuenta el mismo lema.
+
+- **Se quitan** (no son el lema del país): AU (no tiene lema oficial; «Advance Australia» lo fue del escudo
+  antiguo), AW, AX, PW (eslóganes de turismo), AZ (un apodo: «Tierra de Fuego»), ER (es el nombre del país),
+  ET y MD (son palabras del himno), MV (un nombre antiguo del Estado), UA (un saludo, no un lema oficial).
+- **Se corrigen**: BM y NL (el lema es el latino «Quo Fata Ferunt» y el francés «Je maintiendrai»; la ficha
+  daba su traducción), BI y MG (la ficha en español daba el lema anterior), HT (daba la versión en criollo
+  como traducción), KH (le faltaba la última letra), MY (se pone en alfabeto latino, que es como se usa),
+  NC (daba el lema de Francia), NF y NU (cortados), VN (una letra equivocada), FK y PN (faltaba el idioma),
+  CU (la traducción inglesa decía más que el lema), BR (con sus mayúsculas, «Ordem e Progresso», como va
+  escrito en la bandera y en el resto de su ficha).
+- **Se añade** PA («Pro Mundi Beneficio»), que la ficha no traía.
+- **Se añade la traducción al inglés** donde la ficha en inglés no la da o cuenta otro lema: AF, AL, AM, AO,
+  CD, CG, DE, DJ, DO, DZ, GB, GQ, IN, IO, IQ, LT, MA, ME, MK, MZ, NE, NO, RE, RS, RW, SA, SE, SR, TN, TO, UZ,
+  WS, YE.
+
+## Himnos
+
+- **ES, PT**: Wikidata no daba nombre al himno (ES) o no daba himno (PT).
+- **CN, HK, MO, DZ, TM, MV, ZA**: el nombre venía mal escrito o en broma («national anthem of Mzansi»).
+- **DE**: se dice cuál es («Das Lied der Deutschen», tercera estrofa).
+- **MX**: Wikidata añade el «Toque de Bandera», que no es un himno.
+- **IE**: en español venía «Himno nacional de Irlanda»; se pone su nombre, «Amhrán na bhFiann».
+
+## Banderas
+
+La fecha de adopción solo se da sola cuando Wikidata y una ficha de Wikipedia coinciden. Donde no coinciden
+se toma el primer día que dan las dos fichas, y si tampoco, nada. Estos se han puesto a mano:
+
+- **AD** 1866 · **CU** 20-5-1902 · **CX** 26-1-2002 · **EC** 26-9-1860 (Wikidata da 1830, la bandera de la
+  Gran Colombia) · **HN** 16-2-1866 · **PR** 24-7-1952 · **RS** 17-8-2004, como es hoy desde el 11-11-2010 ·
+  **SV** 27-5-1912 · **TW** 1928.
+- **DK**: se quita; la fecha de las fichas (15-6-1219) es la de la leyenda.
+- **AR**: proporción 9:14, la oficial (Wikidata y la ficha en inglés dan 5:8).
+- **KP**: se quita el diseñador (atribución discutida). La proporción 20:33 es la de las dos fichas, que
+  cuentan el cambio de marzo de 2026; Wikidata aún da 1:2.
+- **NP**: se quita la proporción; la bandera no es un rectángulo.
+- **ID, KR, MM**: se quita el diseñador (un imperio, un rey al que se le atribuye, un gobierno).
+- **DO**: nombres de las diseñadoras mal escritos en inglés.
+- **PE**: se quita el diseñador; Wikidata da a San Martín, que ideó la primera bandera y no la de hoy, y la
+  ficha en español dice «autor anónimo».
+- **TH**: el diseñador es el rey Vajiravudh; se le nombra como se le conoce, Rama VI.
+- Gobernantes como diseñadores: se dejan **PH** (Aguinaldo), **UY** (Joaquín Suárez), **QA** (el emir
+  Abdullah bin Jassim Al Thani) y **KE** (el ministro Tom Mboya), porque los nombran Wikidata y la ficha de la
+  Wikipedia en inglés. Queda apuntado como dudoso en los dos últimos, por si al escribir su ficha se ve que
+  solo mandaban cuando se adoptó.
+- **NC**: Wikidata nombra primero la bandera de Francia, y de ella salían la fecha (1794), los colores y el
+  diseñador. El juego dibuja la bandera canaca, que ondea junto a la tricolor desde julio de 2010: se ponen
+  su año, su proporción (1:2, la de las dos fichas), sus colores y sus páginas de Wikipedia.
+
+### Banderas de las que las fuentes no traían nada
+
+De tres no vino ningún dato de la bandera, y se han puesto a mano leyendo la ficha de su página de Wikipedia:
+
+- **PS**: el elemento de Wikidata que el juego tiene de Palestina es el de la región, que no nombra bandera.
+  De «Bandera de Palestina» y «Flag of Palestine»: adoptada el 28 de mayo de 1964 (por la OLP; el Estado la
+  hizo suya el 15 de noviembre de 1988), proporción 1:2, y sus cuatro colores.
+- **EH**: el juego dibuja la de la República Saharaui. De «Flag of Western Sahara»: adoptada el 27 de febrero
+  de 1976, proporción 1:2. No se nombra diseñador: la página dice que «se cuenta» que fue El Uali.
+- **AQ**: la Antártida no tiene bandera oficial. El juego dibuja la propuesta de Graham Bartram (1996), que es
+  la de flag-icons y la del emoji; se dice de quién es y que no es oficial, y no se da fecha de adopción.
+
+### Territorios que ondean la bandera de su país
+
+El juego dibuja con la bandera de su país a los territorios que no tienen otra oficial (`SAME_FLAG`, en
+`src/lib/pairs.ts`): **BL, GF, GP, MF, PM, RE, WF, YT** con la de Francia, **BV, SJ** con la de Noruega,
+**BQ** con la de los Países Bajos, **HM** con la de Australia y **SH** con la del Reino Unido. Wikidata y
+Wikipedia hablan en cambio de la bandera local, que no es oficial y que la ficha no enseña (la de San Pedro
+y Miquelón «adoptada en 1982», la de Santa Elena en 1984). En cada uno se dice de quién es la bandera
+(`flag.of`) y el programa copia de la ficha de ese país lo que es de la bandera: fecha, proporción, colores,
+diseñador y la página de Wikipedia. Una prueba (`src/lib/profiles.test.ts`) comprueba que son los mismos
+territorios que dice el juego.

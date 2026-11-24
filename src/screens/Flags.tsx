@@ -5,11 +5,11 @@
  * given. A place to look at them all, and to say when one is not right; what is on a page of it can be
  * played with in the games of the section (screens/FlagGames.tsx), which is where each page sends.
  *
- * The flag of a country that has a sheet (lib/profiles.ts: for now, Brazil alone) opens that sheet over
+ * The flag of a country opens the sheet of that country (lib/profiles.ts: every country has one) over
  * the gallery instead of the flag by itself (screens/FlagProfile.tsx), under an address of its own.
  */
 import { ExternalLink, MessageSquareWarning, Play, Search } from 'lucide-react';
-import { Suspense, lazy, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { Suspense, lazy, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { Dialog } from '../components/Dialog';
 import { Flag, Seg, Spinner, capitalise } from '../components/ui';
 import {
@@ -41,7 +41,7 @@ import { flagSetText, setOfPage } from '../lib/flagSets';
 import { L, getLang, nm } from '../lib/i18n';
 import { hasProfile, profileIn, profileRest } from '../lib/profiles';
 import { reportUrl } from '../lib/report';
-import { go, settle } from '../lib/router';
+import { closeOver, go, goOver } from '../lib/router';
 import { FLAGS_PATH, FLAG_GAMES_PATH } from '../lib/routes';
 import { cx, nf } from '../lib/text';
 import type { Country } from '../lib/types';
@@ -256,22 +256,18 @@ export function Flags({ world, rest }: { world: World; rest: string }) {
   const [query, setQuery] = useState('');
   const [shown, setShown] = useState<FlagCard | null>(null);
   /** The country whose sheet is open over the gallery: the address says it, so that it can be sent and going back closes it. */
-  const sheet = profileIn(rest);
-  /** Whether that sheet was opened from the gallery itself: closing it is then going back, and going back again does not open it once more. */
-  const opened = useRef(false);
-  useEffect(() => {
-    if (!sheet) opened.current = false;
-  }, [sheet]);
-  /** A flag is opened: the sheet of its country, where it has one; itself, larger, where it has none. */
+  const sheet = profileIn(rest, (id) => hasProfile(world.byId.get(id)));
+  /** Where the gallery is, under any sheet. */
+  const under = `${FLAGS_PATH}/${flagsRest({ tab: 'countries' })}`;
+  /** The sheet of a country is opened, from the gallery or from another sheet: going back returns to where it was opened from. */
+  const openSheet = (id: string) => goOver(`${FLAGS_PATH}/${profileRest(id)}`, sheet ? under : undefined);
+  /** A flag is opened: the sheet of its country, when it is the flag of one; itself, larger, when it is any other. */
   const open = (card: FlagCard) => {
-    if (card.kind !== 'country' || !hasProfile(card.id)) return setShown(card);
-    opened.current = true;
-    go(`${FLAGS_PATH}/${profileRest(card.id)}`, false);
+    if (card.kind !== 'country' || !hasProfile(world.byId.get(card.id))) return setShown(card);
+    openSheet(card.id);
   };
-  const closeSheet = () => {
-    if (opened.current) window.history.back();
-    else settle(`${FLAGS_PATH}/${flagsRest({ tab: 'countries' })}`);
-  };
+  /** Closing a sheet leaves the gallery as it was, however many sheets were opened one from another. */
+  const closeSheet = () => closeOver(under);
 
   useEffect(() => {
     let alive = true;
@@ -506,7 +502,7 @@ export function Flags({ world, rest }: { world: World; rest: string }) {
       {shown && <Detail card={shown} country={world.byId.get(shown.country)} onClose={() => setShown(null)} />}
       {sheet && (
         <Suspense fallback={null}>
-          <FlagProfile id={sheet} world={world} onClose={closeSheet} />
+          <FlagProfile id={sheet} world={world} onOpen={openSheet} onClose={closeSheet} />
         </Suspense>
       )}
     </div>

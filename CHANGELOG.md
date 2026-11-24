@@ -3,6 +3,16 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.48.0 — 24 de noviembre de 2026
+
+- Ficha de todos los países: en la galería, la bandera de cualquiera de los 198 Estados y los 51 territorios abre ya su ficha.
+- Con lo que el juego sabe de él: sus cifras con su puesto en el mundo, dónde está en el globo, con quién limita y las banderas que tuvo antes.
+- Y lo nuevo, de Wikidata y Wikipedia y repasado a mano: nombre oficial, cómo se llama en su idioma, lema con lo que quiere decir e himno.
+- De la bandera: cuándo se adoptó, su proporción, sus colores y quién la ideó, donde las fuentes lo dicen, con el enlace a su artículo.
+- Las fichas se enlazan: cada vecino lleva a la suya, «atrás» vuelve a la anterior y cerrar deja la galería donde estaba.
+- Un territorio dice de quién depende y, si no tiene bandera propia, de quién es la que ondea. A un país muy pequeño lo señala un aro en el globo.
+- Aún sin texto ni fotografías, salvo la de Brasil, que sigue completa: donde irá la foto hay una franja con los colores de la bandera.
+
 ## 1.47.0 — 24 de noviembre de 2026
 
 - Ficha de país, de prueba: en la galería de banderas, la bandera de Brasil ya no se abre sola, sino con la ficha del país.

@@ -15,6 +15,28 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.48.0',
+    date: '2026-11-24',
+    es: [
+      'Ficha de todos los países: en la galería, la bandera de cualquiera de los 198 Estados y los 51 territorios abre ya su ficha.',
+      'Con lo que el juego sabe de él: sus cifras con su puesto en el mundo, dónde está en el globo, con quién limita y las banderas que tuvo antes.',
+      'Y lo nuevo, de Wikidata y Wikipedia y repasado a mano: nombre oficial, cómo se llama en su idioma, lema con lo que quiere decir e himno.',
+      'De la bandera: cuándo se adoptó, su proporción, sus colores y quién la ideó, donde las fuentes lo dicen, con el enlace a su artículo.',
+      'Las fichas se enlazan: cada vecino lleva a la suya, «atrás» vuelve a la anterior y cerrar deja la galería donde estaba.',
+      'Un territorio dice de quién depende y, si no tiene bandera propia, de quién es la que ondea. A un país muy pequeño lo señala un aro en el globo.',
+      'Aún sin texto ni fotografías, salvo la de Brasil, que sigue completa: donde irá la foto hay una franja con los colores de la bandera.',
+    ],
+    en: [
+      'A sheet for every country: in the gallery, the flag of any of the 198 States and 51 territories now opens its sheet.',
+      'With what the game knows of it: its figures with its place in the world, where it is on the globe, its neighbours and the flags it flew before.',
+      'And what is new, from Wikidata and Wikipedia and checked by hand: official name, what it calls itself, motto with what it means, and anthem.',
+      'Of the flag: when it was adopted, its proportions, its colours and who designed it, where the sources say so, with the link to its article.',
+      'Sheets lead to one another: each neighbour opens its own, “back” returns to the one before, and closing leaves the gallery where it was.',
+      'A territory says whose it is and, with no flag of its own, whose flag it flies. A very small country is marked with a ring on the globe.',
+      'No text or photographs yet, except Brazil’s, still complete: where the photo will be there is a band in the colours of the flag.',
+    ],
+  },
+  {
     version: '1.47.0',
     date: '2026-11-24',
     es: [
