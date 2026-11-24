@@ -35,6 +35,10 @@
     "Q166110": {
       "file": "Flag of the Union State.svg",
       "why": "Wikidata no dice cuál es la bandera de la Unión de Rusia y Bielorrusia; Commons la tiene con ese nombre"
+    },
+    "Q4264": {
+      "file": "Flag of Mercosur.svg",
+      "why": "Wikidata prefiere un archivo con las dos versiones de la bandera, la española y la portuguesa, una junto a otra; esta es la del nombre en español"
     }
   }
 }
