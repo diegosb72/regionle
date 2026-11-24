@@ -1,40 +1,31 @@
 {
-  "when": "2026-11-24T19:17:43.094Z",
-  "from": "main@ee5aed6",
+  "when": "2026-11-24T20:20:19.127Z",
+  "from": "arena/baec5cdd-regionle@6a65473",
   "workflow": "same",
   "sources": [
     {
-      "id": "photos",
-      "file": "photos/photos.json",
-      "from": "Wikimedia Commons (https://commons.wikimedia.org)",
-      "licence": "La de cada archivo, que su entrada dice: dominio público o una licencia libre",
-      "what": "The photographs that the sheets of the countries show, each a file of Commons that a sheet names (scripts/data/profiles/<country>.json). items: the titles of those of each sheet, by the id of its country (photos). files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height of the original, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; and where the picture of it that Wikimedia draws, 1920 px wide, is kept in this branch (picture): the original is not brought. The pictures are under photos/files, each named after the SHA-1 of its original.",
-      "es": "Fotografías de las fichas de los países",
+      "id": "countries",
+      "file": "countries/countries.json",
+      "from": "Wikidata (https://www.wikidata.org) y Wikipedia (https://www.wikipedia.org)",
+      "licence": "CC0 1.0 lo que dice Wikidata; CC BY-SA 4.0 las fichas de Wikipedia, cada una bajo el título de su página",
+      "what": "What Wikidata and Wikipedia say of each country of the game and of its flag. items, by the id of the country: its Wikidata entity (wd); what it is called in full (official, P1448), what it calls itself (native, P1705) and its motto (motto, P1451), each a list of [language, text]; its anthem (anthem, P85), how it is governed (government, P122) and its flag (flag, P163), each a list of entities; the file of its coat of arms in Commons (arms, P94); and its page in each Wikipedia (pages). Only statements of best rank that have not ended are told. flags, by the entity of the flag: the day it began with how exactly it is known (since, P571: [day, precision], 11 a day, 10 a month, 9 a year), its proportions as width to height (ratio, P2061), its colours (colours, P462) and who designed it (by, P287), each a list of entities, and its page in each Wikipedia (pages). names: the name in Spanish and in English of every entity named. boxes, by language:title: the box of facts that the page opens with, as it is written.",
+      "es": "Lo que Wikidata y Wikipedia dicen de cada país y de su bandera",
       "needs": "113",
       "ok": true,
-      "bytes": 6370,
-      "blob": "908dd91e01e729d1671a1956a1b7c503cd722d3d",
-      "note": "10 fotografías de 1 fichas: 10 traídas (6003 kB)",
+      "bytes": 4149323,
+      "blob": "a38639f521d15a923a2c9c5646ab640a70f51327",
+      "note": "nombre oficial de 241 de 251 países, lema de 187, himno de 234, bandera de 243; 235 banderas con fecha; 973 fichas de Wikipedia",
       "detail": {
-        "asked": 10,
-        "found": 10,
-        "files": {
-          "all": 10,
-          "missing": 0,
-          "brought": 10,
-          "left": 0,
-          "bytes": 6002611
-        },
-        "licences": {
-          "CC BY-SA 4.0": 5,
-          "Public domain": 2,
-          "CC BY-SA 2.5": 1,
-          "CC BY-SA 3.0": 1,
-          "CC0": 1
-        },
+        "asked": 251,
+        "official": 241,
+        "motto": 187,
+        "anthem": 234,
+        "flag": 243,
+        "dated": 235,
+        "boxes": 973,
         "undone": []
       },
-      "ms": 6505
+      "ms": 217001
     }
   ],
   "reach": []
