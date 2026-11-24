@@ -4,9 +4,12 @@
  * organisations and of peoples, and the signals — each with who made its file and on what terms it is
  * given. A place to look at them all, and to say when one is not right; what is on a page of it can be
  * played with in the games of the section (screens/FlagGames.tsx), which is where each page sends.
+ *
+ * The flag of a country that has a sheet (lib/profiles.ts: for now, Brazil alone) opens that sheet over
+ * the gallery instead of the flag by itself (screens/FlagProfile.tsx), under an address of its own.
  */
 import { ExternalLink, MessageSquareWarning, Play, Search } from 'lucide-react';
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
+import { Suspense, lazy, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Dialog } from '../components/Dialog';
 import { Flag, Seg, Spinner, capitalise } from '../components/ui';
 import {
@@ -36,8 +39,9 @@ import {
 } from '../lib/flags';
 import { flagSetText, setOfPage } from '../lib/flagSets';
 import { L, getLang, nm } from '../lib/i18n';
+import { hasProfile, profileIn, profileRest } from '../lib/profiles';
 import { reportUrl } from '../lib/report';
-import { go } from '../lib/router';
+import { go, settle } from '../lib/router';
 import { FLAGS_PATH, FLAG_GAMES_PATH } from '../lib/routes';
 import { cx, nf } from '../lib/text';
 import type { Country } from '../lib/types';
@@ -53,6 +57,9 @@ import './flags.css';
 const shape = (ratio: number): CSSProperties => ({ '--r': String(ratio) }) as CSSProperties;
 
 const show = (page: FlagsPage): void => go(`${FLAGS_PATH}/${flagsRest(page)}`);
+
+/** The sheet of a country (lib/profiles.ts): its code, its texts and its photographs are fetched when one is opened. */
+const FlagProfile = lazy(() => import('./FlagProfile').then((m) => ({ default: m.FlagProfile })));
 
 function Tile({ card, name, under, onOpen }: { card: FlagCard; name?: string; under?: string; onOpen(card: FlagCard): void }) {
   return (
@@ -248,6 +255,23 @@ export function Flags({ world, rest }: { world: World; rest: string }) {
   const [attempt, setAttempt] = useState(0);
   const [query, setQuery] = useState('');
   const [shown, setShown] = useState<FlagCard | null>(null);
+  /** The country whose sheet is open over the gallery: the address says it, so that it can be sent and going back closes it. */
+  const sheet = profileIn(rest);
+  /** Whether that sheet was opened from the gallery itself: closing it is then going back, and going back again does not open it once more. */
+  const opened = useRef(false);
+  useEffect(() => {
+    if (!sheet) opened.current = false;
+  }, [sheet]);
+  /** A flag is opened: the sheet of its country, where it has one; itself, larger, where it has none. */
+  const open = (card: FlagCard) => {
+    if (card.kind !== 'country' || !hasProfile(card.id)) return setShown(card);
+    opened.current = true;
+    go(`${FLAGS_PATH}/${profileRest(card.id)}`, false);
+  };
+  const closeSheet = () => {
+    if (opened.current) window.history.back();
+    else settle(`${FLAGS_PATH}/${flagsRest({ tab: 'countries' })}`);
+  };
 
   useEffect(() => {
     let alive = true;
@@ -333,7 +357,7 @@ export function Flags({ world, rest }: { world: World; rest: string }) {
               <h2>
                 {nm(name)} <small>{nf(cards.length)}</small>
               </h2>
-              <Grid cards={cards} onOpen={setShown} />
+              <Grid cards={cards} onOpen={open} />
             </section>
           ) : null;
         });
@@ -480,6 +504,11 @@ export function Flags({ world, rest }: { world: World; rest: string }) {
       <div className={cx('fg-body', page.tab)}>{body}</div>
       {file && <Credits count={files} />}
       {shown && <Detail card={shown} country={world.byId.get(shown.country)} onClose={() => setShown(null)} />}
+      {sheet && (
+        <Suspense fallback={null}>
+          <FlagProfile id={sheet} world={world} onClose={closeSheet} />
+        </Suspense>
+      )}
     </div>
   );
 }

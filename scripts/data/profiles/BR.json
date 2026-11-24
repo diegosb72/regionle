@@ -1,0 +1,169 @@
+{
+  "id": "BR",
+  "official": { "es": "República Federativa de Brasil", "en": "Federative Republic of Brazil" },
+  "local": "República Federativa do Brasil",
+  "localLang": "pt",
+  "about": {
+    "es": [
+      "Brasil ocupa casi la mitad de América del Sur y limita con todos los países del subcontinente menos Chile y Ecuador. Es el único país de América donde se habla portugués: fue colonia de Portugal durante más de tres siglos, hasta que se independizó en 1822. Su nombre viene del palo brasil, un árbol de la costa del que se sacaba un tinte rojo.",
+      "Dentro de sus fronteras está el 60 % de la selva amazónica, la mayor parte del Pantanal, que es el mayor humedal tropical del mundo, y las cataratas del Iguazú, que comparte con Argentina. Es una república federal de 26 estados y un Distrito Federal, el de Brasilia, la capital que se estrenó en 1960; antes lo fueron Salvador y Río de Janeiro. La ciudad más poblada es São Paulo."
+    ],
+    "en": [
+      "Brazil takes up almost half of South America and borders every country of the continent except Chile and Ecuador. It is the only country in the Americas where Portuguese is spoken: it was a colony of Portugal for more than three centuries, until it became independent in 1822. Its name comes from brazilwood, a tree of the coast from which a red dye was made.",
+      "Within its borders are 60% of the Amazon rainforest, most of the Pantanal, which is the largest tropical wetland in the world, and the Iguaçu Falls, which it shares with Argentina. It is a federal republic of 26 states and a Federal District, that of Brasília, the capital that opened in 1960; before it the capitals were Salvador and Rio de Janeiro. Its most populous city is São Paulo."
+    ]
+  },
+  "flag": {
+    "adopted": "1889-11-19",
+    "changed": "1992-05-11",
+    "ratio": "7:10",
+    "called": { "es": "«Auriverde», la de oro y verde", "en": "“Auriverde”, the gold and green one" },
+    "by": {
+      "es": "Raimundo Teixeira Mendes, con Miguel Lemos, Manuel Pereira Reis y Décio Villares",
+      "en": "Raimundo Teixeira Mendes, with Miguel Lemos, Manuel Pereira Reis and Décio Villares"
+    },
+    "text": {
+      "es": [
+        "Se adoptó el 19 de noviembre de 1889, cuatro días después de proclamarse la república, y conserva el verde y el rombo amarillo de la bandera del Imperio. Donde estaba el escudo imperial se puso el cielo: un globo azul con una estrella por cada estado."
+      ],
+      "en": [
+        "It was adopted on 19 November 1889, four days after the republic was proclaimed, and keeps the green and the yellow rhombus of the flag of the Empire. Where the imperial arms had been, the sky was set: a blue globe with a star for each state."
+      ]
+    },
+    "parts": [
+      {
+        "es": ["El verde y el amarillo", "En la bandera imperial eran los colores de dos casas reales: el verde, de los Braganza del emperador Pedro I; el amarillo, de los Habsburgo de la emperatriz María Leopoldina. Hoy se suele decir que son las selvas del país y su riqueza mineral."],
+        "en": ["Green and yellow", "On the imperial flag they were the colours of two royal houses: green for the Braganzas of Emperor Pedro I, yellow for the Habsburgs of Empress Maria Leopoldina. Today they are usually said to stand for the country’s forests and its mineral wealth."]
+      },
+      {
+        "es": ["El cielo de Río", "El globo azul es el cielo de Río de Janeiro la mañana del 15 de noviembre de 1889, el día en que se proclamó la república. Está visto desde fuera, como en un globo celeste: por eso las constelaciones salen al revés de como se ven desde el suelo."],
+        "en": ["The sky over Rio", "The blue globe is the sky over Rio de Janeiro on the morning of 15 November 1889, the day the republic was proclaimed. It is seen from outside, as on a celestial globe: that is why the constellations are the mirror image of how they look from the ground."]
+      },
+      {
+        "es": ["27 estrellas", "Una por cada uno de los 26 estados y otra por el Distrito Federal, de cinco tamaños según el brillo de la estrella de verdad. En el centro está la Cruz del Sur. La única que queda por encima de la banda es Espiga, la del estado de Pará; la del Distrito Federal es la estrella del polo sur, alrededor de la cual giran todas las demás."],
+        "en": ["27 stars", "One for each of the 26 states and one for the Federal District, in five sizes by the brightness of the real star. The Southern Cross is in the middle. The only one above the band is Spica, that of the state of Pará; that of the Federal District is the south pole star, which all the others turn around."]
+      },
+      {
+        "es": ["«Ordem e Progresso»", "«Orden y progreso», en letras verdes: el lema está tomado del positivismo del filósofo francés Auguste Comte."],
+        "en": ["“Ordem e Progresso”", "“Order and Progress”, in green letters: the motto is taken from the positivism of the French philosopher Auguste Comte."]
+      }
+    ]
+  },
+  "times": [
+    {
+      "gone": "Q217230",
+      "from": 1822,
+      "to": 1889,
+      "name": { "es": "Imperio del Brasil", "en": "Empire of Brazil" },
+      "text": {
+        "es": "El 7 de septiembre de 1822 el príncipe Pedro proclamó la independencia de Portugal, y ese mismo año fue aclamado emperador. La bandera, obra del pintor francés Jean-Baptiste Debret, ya era verde con un rombo amarillo, y en el centro llevaba el escudo imperial. La capital era Río de Janeiro. La esclavitud se abolió en 1888, un año antes de que acabara el Imperio.",
+        "en": "On 7 September 1822 Prince Pedro declared independence from Portugal, and that same year he was acclaimed emperor. The flag, the work of the French painter Jean-Baptiste Debret, was already green with a yellow rhombus, with the imperial arms in the middle. The capital was Rio de Janeiro. Slavery was abolished in 1888, a year before the Empire ended."
+      },
+      "picture": {
+        "file": "Pedro Américo - Independência ou Morte - Google Art Project.jpg",
+        "es": "«Independencia o muerte», de Pedro Américo (1888): el príncipe Pedro proclama la independencia a orillas del Ipiranga.",
+        "en": "“Independence or Death”, by Pedro Américo (1888): Prince Pedro declares independence on the banks of the Ipiranga."
+      }
+    },
+    {
+      "past": [1889, 1889],
+      "from": 1889,
+      "to": 1889,
+      "when": { "es": "15–19 de noviembre de 1889", "en": "15–19 November 1889" },
+      "name": { "es": "Bandera provisional de la república", "en": "Provisional flag of the republic" },
+      "text": {
+        "es": "El 15 de noviembre de 1889 un golpe militar puso fin al reinado de Pedro II y proclamó la república. Durante cuatro días ondeó esta bandera, que propuso el jurista Ruy Barbosa a imagen de la de Estados Unidos. El mariscal Deodoro da Fonseca, al frente del gobierno provisional, la rechazó por parecerse demasiado a la de otro país.",
+        "en": "On 15 November 1889 a military coup ended the reign of Pedro II and proclaimed the republic. For four days this flag flew, proposed by the jurist Ruy Barbosa after that of the United States. Marshal Deodoro da Fonseca, at the head of the provisional government, turned it down for looking too much like the flag of another country."
+      },
+      "picture": {
+        "file": "Proclamação da República by Benedito Calixto 1893.jpg",
+        "es": "«Proclamación de la República», de Benedito Calixto (1893): las tropas en Río de Janeiro, el 15 de noviembre de 1889.",
+        "en": "“Proclamation of the Republic”, by Benedito Calixto (1893): the troops in Rio de Janeiro on 15 November 1889."
+      }
+    },
+    {
+      "past": [1889, 1960],
+      "from": 1889,
+      "to": 1960,
+      "name": { "es": "21 estrellas", "en": "21 stars" },
+      "text": {
+        "es": "El 19 de noviembre de 1889 se adoptó la bandera que sigue hoy, entonces con 21 estrellas. Pasó setenta y un años sin un cambio: los de la Primera República, los de Getúlio Vargas, que llegó al poder en 1930, y los de la construcción de Brasilia. La capital seguía siendo Río de Janeiro.",
+        "en": "On 19 November 1889 the flag still flown today was adopted, then with 21 stars. It went seventy-one years without a change: those of the First Republic, those of Getúlio Vargas, who came to power in 1930, and those of the building of Brasília. The capital was still Rio de Janeiro."
+      }
+    },
+    {
+      "past": [1960, 1968],
+      "from": 1960,
+      "to": 1968,
+      "name": { "es": "22 estrellas", "en": "22 stars" },
+      "text": {
+        "es": "El 21 de abril de 1960 la capital pasó a Brasilia, una ciudad nueva en el centro del país, y el antiguo distrito federal de Río de Janeiro se convirtió en el estado de Guanabara, con su estrella. En 1964 un golpe militar derribó al presidente João Goulart y abrió una dictadura de 21 años.",
+        "en": "On 21 April 1960 the capital moved to Brasília, a new city in the middle of the country, and the old federal district of Rio de Janeiro became the state of Guanabara, with a star of its own. In 1964 a military coup overthrew President João Goulart and began a dictatorship of 21 years."
+      }
+    },
+    {
+      "past": [1968, 1992],
+      "from": 1968,
+      "to": 1992,
+      "name": { "es": "23 estrellas", "en": "23 stars" },
+      "text": {
+        "es": "La estrella número 23, añadida en 1968, es la de Acre, que era estado desde 1962. La dictadura militar acabó en 1985, y en 1988 se aprobó la Constitución que rige hoy.",
+        "en": "The 23rd star, added in 1968, is that of Acre, a state since 1962. The military dictatorship ended in 1985, and in 1988 the constitution in force today was passed."
+      }
+    },
+    {
+      "now": true,
+      "from": 1992,
+      "name": { "es": "27 estrellas", "en": "27 stars" },
+      "text": {
+        "es": "El 11 de mayo de 1992 se añadieron cuatro estrellas, las de Amapá, Roraima, Rondonia y Tocantins, y se ajustó el lugar de todas para que el cielo fuera exacto. Es la bandera de hoy.",
+        "en": "On 11 May 1992 four stars were added, those of Amapá, Roraima, Rondônia and Tocantins, and the place of every star was adjusted so that the sky would be accurate. It is the flag of today."
+      }
+    }
+  ],
+  "photos": [
+    {
+      "file": "Rio de Janeiro skyline and Sugarloaf Mountain at sunset, Brazil 3.jpg",
+      "focus": [50, 22],
+      "es": "Río de Janeiro al atardecer: la ensenada de Botafogo y, al fondo, el Corcovado con el Cristo Redentor en la cima.",
+      "en": "Rio de Janeiro at sunset: Botafogo cove and, behind it, Corcovado with the statue of Christ the Redeemer on its summit."
+    },
+    {
+      "file": "Cataratas do Iguaçu - Vista de cima alt.jpg",
+      "by": "Mayra Villas Boas Francisco Zamulko",
+      "es": "Las cataratas del Iguazú, que Brasil comparte con Argentina.",
+      "en": "The Iguaçu Falls, which Brazil shares with Argentina."
+    },
+    {
+      "file": "Aurora amazônica no Lago do Cuniã.jpg",
+      "es": "Un pescador sale al amanecer en el lago Cuniã, en la Amazonia (Rondonia).",
+      "en": "A fisherman sets out at sunrise on Lake Cuniã, in the Amazon (Rondônia)."
+    },
+    {
+      "file": "Lençóis Maranhenses 2018.jpg",
+      "es": "Los Lençóis Maranhenses, en el nordeste: el agua de la estación de lluvias se queda entre las dunas y forma lagunas.",
+      "en": "The Lençóis Maranhenses, in the north-east: the water of the rainy season stays between the dunes and makes lagoons."
+    },
+    {
+      "file": "Brazilian National Congress.jpg",
+      "es": "El Congreso Nacional, en Brasilia, obra del arquitecto Oscar Niemeyer.",
+      "en": "The National Congress, in Brasília, the work of the architect Oscar Niemeyer."
+    },
+    {
+      "file": "Largo do Pelourinho Salvador 2019-9754 (cropped).jpg",
+      "es": "El Largo do Pelourinho, en el centro histórico de Salvador de Bahía, la primera capital.",
+      "en": "Largo do Pelourinho, in the historic centre of Salvador, in Bahia, the first capital."
+    },
+    {
+      "file": "Ponte estaiada Octavio Frias - Sao Paulo.jpg",
+      "es": "El puente Octávio Frias de Oliveira, en São Paulo, la ciudad más poblada del país.",
+      "en": "The Octávio Frias de Oliveira bridge, in São Paulo, the most populous city in the country."
+    },
+    {
+      "file": "011 Jaguar drinking in Encontro das Águas State Park Photo by Giles Laurent.jpg",
+      "es": "Un jaguar bebe en un río del Pantanal, en el parque estatal Encontro das Águas (Mato Grosso).",
+      "en": "A jaguar drinks from a river of the Pantanal, in Encontro das Águas State Park (Mato Grosso)."
+    }
+  ],
+  "read": { "es": "https://es.wikipedia.org/wiki/Brasil", "en": "https://en.wikipedia.org/wiki/Brazil" }
+}

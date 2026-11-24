@@ -337,6 +337,7 @@ const FILE: Record<string, string> = {
   'flags-candidates': 'flags/candidates.json',
   'flags-listed': 'flags/listed.json',
   'flags-signals': 'flags/signals.json',
+  photos: 'photos/photos.json',
 };
 
 /** Runs the script. It gets no variable of the machine but the ones named here. */
@@ -356,6 +357,7 @@ function run(source: string, data: string, env: Record<string, string> = {}, out
       OUTSIDE_FLAG_HAND: none,
       OUTSIDE_FLAG_LISTS: none,
       OUTSIDE_FLAG_SIGNALS: none,
+      OUTSIDE_PROFILES: none,
       ...env,
     };
     execFile('node', ['scripts/data/outside.mjs', '--out', out, '--only', source, '--data', data], { cwd: ROOT, env: vars }, (error, stdout) => {
@@ -1190,6 +1192,97 @@ describe('the flags that are signals', () => {
   it('is left unread where there is no list', async () => {
     const r = await run('flags-signals', PLAIN());
     expect(r.source().ok).toBe(false);
+  });
+});
+
+describe('the photographs of the sheets of the countries', () => {
+  /** A folder of sheets, each a file named after its country. */
+  const sheets = (said: Record<string, unknown>) => {
+    const dir = fresh('profiles');
+    for (const [id, sheet] of Object.entries(said)) fs.writeFileSync(path.join(dir, `${id}.json`), JSON.stringify(sheet));
+    return dir;
+  };
+  const picture = (body: string, kind = 'jpg') => `photos/files/${sha1(body)}.1920.${kind}`;
+  const PHOTOS = () => {
+    world.files['Rio.jpg'] = {
+      body: 'a photograph of Rio',
+      mime: 'image/jpeg',
+      w: 6000,
+      h: 4000,
+      licence: 'CC BY-SA 4.0',
+      licenceUrl: 'https://creativecommons.org/licenses/by-sa/4.0',
+      artist: '<a href="//commons.wikimedia.org/wiki/User:Ana">Ana Pérez</a>',
+      attribution: true,
+    };
+    world.files['Falls.jpg'] = { body: 'a photograph of the falls', mime: 'image/jpeg', licence: 'CC0' };
+    world.files['Dunes.png'] = { body: 'a photograph of the dunes', mime: 'image/png', licence: 'CC BY 4.0', artist: 'Luis' };
+    world.files['Painting.jpg'] = { body: 'a painting', mime: 'image/jpeg' };
+    world.leads = { 'Rio de Janeiro.jpg': 'Rio.jpg' };
+    return sheets({
+      BR: {
+        photos: [{ file: 'Rio de Janeiro.jpg', es: 'Río' }, { file: ' Falls.jpg ' }, { file: 'Gone.jpg' }, { es: 'sin archivo' }, { file: 'Dunes.png' }, { file: 'Falls.jpg' }],
+        times: [{ from: 1822, picture: { file: 'Painting.jpg' } }, { from: 1889 }],
+      },
+      // A sheet that names none is none to bring anything for.
+      XX: { photos: [] },
+    });
+  };
+
+  it('are the files that the sheets name, each as the picture that Wikimedia draws of it and with whose it is', async () => {
+    const r = await run('photos', PLAIN(), { OUTSIDE_PROFILES: PHOTOS() });
+    expect(r.code).toBe(0);
+    expect(r.source().ok).toBe(true);
+    // Each under the title Commons has it by, once, in the order the sheet names them.
+    expect(r.data().items).toEqual({ BR: { photos: ['Rio.jpg', 'Falls.jpg', 'Gone.jpg', 'Dunes.png', 'Painting.jpg'] } });
+    expect(r.data().asked).toBe(5);
+    expect(r.data().files['Rio.jpg']).toEqual({
+      sha1: sha1('a photograph of Rio'),
+      bytes: Buffer.byteLength('a photograph of Rio'),
+      mime: 'image/jpeg',
+      w: 6000,
+      h: 4000,
+      licence: 'CC BY-SA 4.0',
+      licenceUrl: 'https://creativecommons.org/licenses/by-sa/4.0',
+      artist: 'Ana Pérez',
+      attribution: true,
+      page: 'https://commons.wikimedia.org/wiki/File:Rio.jpg',
+      picture: picture('a photograph of Rio'),
+    });
+    expect(r.data().files['Falls.jpg']).toMatchObject({ licence: 'CC0', picture: picture('a photograph of the falls') });
+    // A picture of what was kept as a PNG is one too.
+    expect(r.data().files['Dunes.png']).toMatchObject({ artist: 'Luis', picture: picture('a photograph of the dunes', 'png') });
+    expect(r.data().files['Painting.jpg']).toMatchObject({ licence: 'Public domain', picture: picture('a painting') });
+    expect(r.data().files['Gone.jpg']).toEqual({ missing: true });
+    expect(r.read(picture('a photograph of Rio'))).toBe('a picture of Rio.jpg');
+    expect(r.read(picture('a painting'))).toBe('a picture of Painting.jpg');
+    // What is brought is the picture, at the width it is wanted at: an original may weigh tens of megabytes.
+    expect(asked.filter((q) => q.startsWith('picture ')).sort()).toEqual(['picture Dunes.png', 'picture Falls.jpg', 'picture Painting.jpg', 'picture Rio.jpg']);
+    expect(asked.some((q) => q.startsWith('file '))).toBe(false);
+    expect(asked.find((q) => q.startsWith('api '))).toContain('iiurlwidth=1920');
+    // Wikidata is asked nothing: the sheets say it all.
+    expect(asked.some((q) => q.startsWith('sparql '))).toBe(false);
+    expect(r.source().note).toContain('5 fotografías de 1 fichas: 4 traídas');
+    expect(r.source().note).toContain('1 que Commons no tiene');
+    expect(agents.every((agent) => agent.startsWith('regionle-data/'))).toBe(true);
+  });
+
+  it('keeps what it could bring when a picture does not come, and says which did not', async () => {
+    const dir = PHOTOS();
+    refusals = [{ when: (q) => q === 'picture Falls.jpg', status: 404, times: 99 }];
+    const r = await run('photos', PLAIN(), { OUTSIDE_PROFILES: dir });
+    expect(r.source().ok).toBe(true);
+    expect(r.data().files['Falls.jpg'].picture).toBeUndefined();
+    expect(r.data().files['Falls.jpg'].licence).toBe('CC0');
+    expect(r.data().files['Rio.jpg'].picture).toBe(picture('a photograph of Rio'));
+    expect(r.source().detail?.undone).toEqual(['1 de 4 fotografías (HTTP 404 Not Found)']);
+  });
+
+  it('is left unread where no sheet names a photograph', async () => {
+    const r = await run('photos', PLAIN(), { OUTSIDE_PROFILES: sheets({ XX: { photos: [] } }) });
+    expect(r.source().ok).toBe(false);
+    expect(asked).toEqual([]);
+    // …and where there are no sheets at all.
+    expect((await run('photos', PLAIN())).source().ok).toBe(false);
   });
 });
 

@@ -15,6 +15,26 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.47.0',
+    date: '2026-11-24',
+    es: [
+      'Ficha de país, de prueba: en la galería de banderas, la bandera de Brasil ya no se abre sola, sino con la ficha del país.',
+      'Arriba, una fotografía, la bandera y el nombre oficial; debajo, qué es el país, sus cifras con su puesto en el mundo, dónde está y con quién limita.',
+      'La bandera, parte por parte: de dónde vienen el verde y el amarillo, qué cielo es el del globo azul, de quién es cada estrella y qué dice el lema.',
+      'Sus banderas en el tiempo, de la del Imperio de 1822 a la de hoy, cada una con lo que era el país entonces.',
+      'Ocho fotografías de Wikimedia Commons, cada una con su autor y su licencia, y el camino a las banderas de sus estados y ciudades y a los juegos con ellas.',
+      'Por ahora solo la tiene Brasil: es una muestra para decidir si se hace con todos los países. Tiene su dirección, y «atrás» la cierra.',
+    ],
+    en: [
+      'A country sheet, on trial: in the gallery of flags, the flag of Brazil no longer opens by itself but with the sheet of the country.',
+      'At the top, a photograph, the flag and the official name; below, what the country is, its figures with its place in the world, where it is and its neighbours.',
+      'The flag, part by part: where the green and the yellow come from, which sky the blue globe shows, whose each star is and what the motto says.',
+      'Its flags through time, from that of the Empire of 1822 to the one of today, each with what the country was then.',
+      'Eight photographs from Wikimedia Commons, each with its author and its licence, and the way to the flags of its states and cities and to the games with them.',
+      'For now only Brazil has one: it is a sample, to decide whether to make them for every country. It has its own address, and “back” closes it.',
+    ],
+  },
+  {
     version: '1.46.0',
     date: '2026-11-24',
     es: [

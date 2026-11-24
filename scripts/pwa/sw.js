@@ -13,7 +13,8 @@
  *    where the game opens that screen by the address it was asked for.
  *  · The maps of each country and the other data files are asked to the network first, so that they
  *    are always the current ones, and kept: without a connection, the copy is used.
- *  · Flags never change: the copy is used whenever there is one.
+ *  · Flags never change: the copy is used whenever there is one. The photographs of the sheets of the
+ *    countries, each named after what it holds, are kept the same way once they have been shown.
  *  · The number on the icon (how many reviews are waiting) is kept right with the game closed, where the
  *    browser wakes the worker for it: the page leaves here the count from each moment on (`appBadge.ts`).
  */
@@ -165,6 +166,6 @@ self.addEventListener('fetch', (event) => {
     const page = SHELL.includes(answer) ? answer : 'index.html';
     event.respondWith(fromShell(new URL(page, scope), request));
   } else if (path.startsWith('data/')) event.respondWith(networkFirst(event));
-  else if (path.startsWith('flags/')) event.respondWith(cacheFirst(event));
+  else if (path.startsWith('flags/') || path.startsWith('photos/')) event.respondWith(cacheFirst(event));
   else if (SHELL.includes(path)) event.respondWith(fromShell(url, request));
 });

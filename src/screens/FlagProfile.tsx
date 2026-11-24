@@ -1,0 +1,394 @@
+/**
+ * The sheet of a country, over the gallery of flags: what the country is, the figures the game has of it
+ * and where it is, what its flag means, the flags it flew before with what the country was at the time of
+ * each, photographs of it — each with who took it and on what terms it is given — and the flags of its
+ * regions and of its cities, to go and look at or to play with (lib/profiles.ts).
+ *
+ * What is written by hand and the photographs come in a file of the country; the rest is what the game
+ * already knows of every country, so a sheet says nothing of a figure that a game would say otherwise.
+ * Whatever does not come (the figures, the flags, the map) is left out, and the sheet is shown without it.
+ */
+import { ExternalLink, Images, MessageSquareWarning, Play } from 'lucide-react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { Dialog } from '../components/Dialog';
+import { Flag, Spinner, capitalise } from '../components/ui';
+import { bookValue, bookYear, loadBook, type BookFile } from '../lib/book';
+import { loadFacts } from '../lib/facts';
+import { BOOK_FIGS, metricOf } from '../lib/figures';
+import { capitalFlags, cityFlags, commonsPage, flagsRest, levelOf, loadFlags, regionFlags, yearsText, type FlagCard, type FlagsFile } from '../lib/flags';
+import { flagSetText } from '../lib/flagSets';
+import { L, capName, fmtDay, getLang, nm } from '../lib/i18n';
+import { locator } from '../lib/profileMap';
+import { loadProfile, photoSet, photoSrc, rankOf, timeCards, type ProfileFile, type ProfilePhoto, type Said } from '../lib/profiles';
+import { reportUrl } from '../lib/report';
+import { FLAGS_PATH, FLAG_GAMES_PATH } from '../lib/routes';
+import { cx, fmtArea, fmtPop, nf } from '../lib/text';
+import type { Country, Geo } from '../lib/types';
+import { VERSION } from '../lib/version';
+import { loadWorldGeo, type World } from '../lib/world';
+import './flagProfile.css';
+
+type Facts = Awaited<ReturnType<typeof loadFacts>>;
+
+const say = (text: Said): string => (getLang() === 'en' ? text.en : text.es);
+const paragraphs = (text: { es: string[]; en: string[] }): string[] => (getLang() === 'en' ? text.en : text.es);
+
+/** «5.º» · “5th”. */
+function nth(n: number): string {
+  if (getLang() !== 'en') return `${n}.º`;
+  const two = n % 100;
+  const end = two >= 11 && two <= 13 ? 'th' : (['th', 'st', 'nd', 'rd'][n % 10] ?? 'th');
+  return `${n}${end}`;
+}
+
+/** The terms a photograph is given on, as they are written here: its licence, with where it is written. */
+function Licence({ photo }: { photo: ProfilePhoto }) {
+  const name = photo.licence === 'Public domain' ? L('Dominio público', 'Public domain') : photo.licence;
+  return photo.licenceUrl ? (
+    <a href={photo.licenceUrl} target="_blank" rel="noopener noreferrer license">
+      {name}
+    </a>
+  ) : (
+    <>{name}</>
+  );
+}
+
+/** Whose a photograph is: who made it, on what terms, and its page in Commons. */
+function Credit({ photo }: { photo: ProfilePhoto }) {
+  return (
+    <small className="fp-credit">
+      {photo.by ? `${photo.by} · ` : ''}
+      <Licence photo={photo} /> ·{' '}
+      <a href={commonsPage(photo.title)} target="_blank" rel="noopener noreferrer">
+        Wikimedia Commons
+        <ExternalLink size={11} aria-hidden="true" />
+      </a>
+    </small>
+  );
+}
+
+/** A photograph with what is seen in it and whose it is, under it. `sizes` tells the browser how wide it will be shown. */
+function Photo({ photo, sizes, lazy = true, className }: { photo: ProfilePhoto; sizes: string; lazy?: boolean; className?: string }) {
+  const focus = photo.focus ? ({ objectPosition: `${photo.focus[0]}% ${photo.focus[1]}%` } as CSSProperties) : undefined;
+  return (
+    <figure className={className}>
+      <img
+        src={photoSrc(photo.file, photo.sizes[0])}
+        srcSet={photoSet(photo)}
+        sizes={sizes}
+        width={photo.w}
+        height={photo.h}
+        // What is seen in it is said under it, once.
+        alt=""
+        style={focus}
+        loading={lazy ? 'lazy' : undefined}
+        decoding="async"
+        draggable={false}
+      />
+      <figcaption>
+        {say(photo)} <Credit photo={photo} />
+      </figcaption>
+    </figure>
+  );
+}
+
+/** A flag of the gallery, in the shape it has. */
+function FlagPicture({ card, alt, className, large }: { card: FlagCard; alt: string; className?: string; large?: boolean }) {
+  return <img className={className} style={{ aspectRatio: String(card.ratio) }} src={large ? card.src : card.small} alt={alt} loading="lazy" decoding="async" draggable={false} />;
+}
+
+/** Where the country is: the half of the globe that has it in the middle. */
+function Where({ geo, country, under }: { geo: ReadonlyMap<string, Geo>; country: Country; under: string }) {
+  const size = 220;
+  const drawn = useMemo(() => locator(geo, country.id, country.lp, size), [geo, country]);
+  if (!drawn) return null;
+  return (
+    <figure className="fp-where">
+      <svg viewBox={`0 0 ${size} ${size}`} role="img" aria-label={L(`Dónde está ${nm(country.n)} en el mundo`, `Where ${nm(country.n)} is in the world`)}>
+        <path className="fp-sea" d={drawn.globe} />
+        <path className="fp-land" d={drawn.land} />
+        <path className="fp-own" d={drawn.own} />
+      </svg>
+      <figcaption>{under}</figcaption>
+    </figure>
+  );
+}
+
+export function FlagProfile({ id, world, onClose }: { id: string; world: World; onClose(): void }) {
+  const country = world.byId.get(id);
+  const [attempt, setAttempt] = useState(0);
+  const [profile, setProfile] = useState<ProfileFile | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [flags, setFlags] = useState<FlagsFile | null>(null);
+  const [facts, setFacts] = useState<Facts | null>(null);
+  const [book, setBook] = useState<BookFile | null>(null);
+  const [geo, setGeo] = useState<Map<string, Geo> | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    setFailed(false);
+    loadProfile(id).then(
+      (file) => alive && setProfile(file),
+      () => alive && setFailed(true),
+    );
+    // What the sheet can be shown without: each comes when it comes, and what does not come is left out.
+    const quiet = () => undefined;
+    loadFlags().then((file) => alive && setFlags(file), quiet);
+    loadFacts().then((said) => alive && setFacts(said), quiet);
+    loadBook().then((file) => alive && setBook(file), quiet);
+    loadWorldGeo().then((map) => alive && setGeo(map), quiet);
+    return () => {
+      alive = false;
+    };
+  }, [id, attempt]);
+
+  const times = useMemo(() => (profile && flags ? timeCards(profile, flags, world.index) : null), [profile, flags, world]);
+  const regions = useMemo(() => (flags ? regionFlags(flags, id).filter((card) => card.level === 0) : []), [flags, id]);
+  const towns = useMemo(() => (flags ? [...capitalFlags(flags).filter((card) => card.country === id), ...cityFlags(flags, id)] : []), [flags, id]);
+
+  if (!country) return null;
+  const name = nm(country.n);
+  const where = world.index.subregions?.[country.sr] ?? world.index.continents[country.ct];
+  const rank = { pop: rankOf(world.index, id, (c) => c.pop), area: rankOf(world.index, id, (c) => c.ar) };
+  const placed = (r: { place: number; among: number } | null) => (r ? L(`${nth(r.place)} del mundo`, `${nth(r.place)} in the world`) : '');
+  const level = levelOf(country, 0);
+  const levelName = level ? (getLang() === 'en' ? level.en : level.es) : L('regiones', 'regions');
+
+  /** The figures the game has of the country: each with its name, as it is written, and what is said beside it. */
+  const rows: { name: string; value: string; note?: string }[] = [];
+  if (country.cap) rows.push({ name: L('Capital', 'Capital'), value: capName(country.cap) });
+  if (country.pop != null) rows.push({ name: L('Población', 'Population'), value: fmtPop(country.pop), note: [country.py ? String(country.py) : '', placed(rank.pop)].filter(Boolean).join(' · ') });
+  if (country.ar > 0) rows.push({ name: L('Superficie', 'Area'), value: fmtArea(country.ar), note: placed(rank.area) });
+  for (const [said, value] of facts?.card(id) ?? []) rows.push({ name: said, value });
+  if (book) {
+    for (const fig of BOOK_FIGS) {
+      const value = bookValue(book, id, fig);
+      if (!value) continue;
+      const metric = metricOf(fig);
+      const year = bookYear(book, id, fig);
+      rows.push({ name: capitalise(metric.noun), value: fig === 'fert' ? metric.full(value) : metric.short(value), ...(year ? { note: String(year) } : {}) });
+    }
+  }
+
+  const neighbours = country.nb ?? [];
+  /** A link of the sheet to another page of the section leaves the gallery where it was: that page is read from its top. */
+  const leave = () => window.scrollTo(0, 0);
+  const item = { id, name, kind: 'country' as const, type: L('ficha del país', 'sheet of the country'), country };
+  const head = profile?.photos[0];
+
+  return (
+    <Dialog title={name} className="fp-dlg" onClose={onClose}>
+      {failed ? (
+        <div className="empty-state" role="alert">
+          <p>{L(`No se ha podido cargar la ficha de ${name}.`, `The sheet of ${name} could not be loaded.`)}</p>
+          <button type="button" className="btn btn-primary" onClick={() => setAttempt((n) => n + 1)}>
+            {L('Reintentar', 'Retry')}
+          </button>
+        </div>
+      ) : !profile ? (
+        <Spinner label={L('Cargando la ficha…', 'Loading the sheet…')} />
+      ) : (
+        <article className="fp">
+          <header className="fp-head">
+            {head && <Photo photo={head} sizes="(max-width: 1000px) 100vw, 960px" lazy={false} className="fp-hero" />}
+            <div className="fp-id">
+              <img className="fp-flag" src={`${import.meta.env.BASE_URL}flags/${country.fl}.svg`} alt={L(`Bandera de ${name}`, `Flag of ${name}`)} draggable={false} />
+              <div>
+                <p className="kicker">{nm(where)}</p>
+                <p className="fp-official">{say(profile.official)}</p>
+                {profile.local && profile.local !== say(profile.official) && (
+                  <p className="fp-local" lang={profile.localLang}>
+                    {profile.local}
+                  </p>
+                )}
+              </div>
+            </div>
+          </header>
+
+          <section className="fp-about">
+            {paragraphs(profile.about).map((text) => (
+              <p key={text}>{text}</p>
+            ))}
+          </section>
+
+          <section className="fp-sec fp-glance">
+            <h3>{L('De un vistazo', 'At a glance')}</h3>
+            <div className="fp-glance-in">
+              <dl className="fp-facts">
+                {rows.map((row) => (
+                  <div key={row.name}>
+                    <dt>{row.name}</dt>
+                    <dd>
+                      {row.value}
+                      {row.note && <small> {row.note}</small>}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+              {geo && <Where geo={geo} country={country} under={nm(where)} />}
+            </div>
+            {neighbours.length > 0 && (
+              <>
+                <p className="label">{L(`Limita con ${nf(neighbours.length)} países y territorios`, `Borders ${nf(neighbours.length)} countries and territories`)}</p>
+                <ul className="fp-nb">
+                  {neighbours.map((other) => {
+                    const land = world.byId.get(other);
+                    return land ? (
+                      <li key={other}>
+                        <Flag code={land.fl} size="sm" />
+                        {nm(land.n)}
+                      </li>
+                    ) : null;
+                  })}
+                </ul>
+              </>
+            )}
+          </section>
+
+          <section className="fp-sec fp-flagsec">
+            <h3>{L('La bandera', 'The flag')}</h3>
+            <div className="fp-flag-in">
+              <img className="fp-flag-big" src={`${import.meta.env.BASE_URL}flags/${country.fl}.svg`} alt="" draggable={false} />
+              <div>
+                {paragraphs(profile.flag.text).map((text) => (
+                  <p key={text}>{text}</p>
+                ))}
+                <dl className="fp-facts fp-flag-facts">
+                  <div>
+                    <dt>{L('Adoptada', 'Adopted')}</dt>
+                    <dd>{fmtDay(profile.flag.adopted, true)}</dd>
+                  </div>
+                  {profile.flag.changed && (
+                    <div>
+                      <dt>{L('Como es hoy, desde', 'As it is today, since')}</dt>
+                      <dd>{fmtDay(profile.flag.changed, true)}</dd>
+                    </div>
+                  )}
+                  <div>
+                    <dt>{L('Proporción', 'Proportions')}</dt>
+                    <dd>
+                      {profile.flag.ratio}
+                      <small> {L('de alto por ancho; aquí se dibuja en 3:4, como todas las de los países', 'height to width; here it is drawn in 3:4, like every flag of a country')}</small>
+                    </dd>
+                  </div>
+                  {profile.flag.called && (
+                    <div>
+                      <dt>{L('La llaman', 'It is called')}</dt>
+                      <dd>{say(profile.flag.called)}</dd>
+                    </div>
+                  )}
+                  {profile.flag.by && (
+                    <div>
+                      <dt>{L('La idearon', 'Devised by')}</dt>
+                      <dd>{say(profile.flag.by)}</dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
+            </div>
+            <dl className="fp-parts">
+              {profile.flag.parts.map((part) => {
+                const [what, text] = getLang() === 'en' ? part.en : part.es;
+                return (
+                  <div key={what}>
+                    <dt>{what}</dt>
+                    <dd>{text}</dd>
+                  </div>
+                );
+              })}
+            </dl>
+          </section>
+
+          <section className="fp-sec fp-times">
+            <h3>{L('Sus banderas en el tiempo', 'Its flags through time')}</h3>
+            <ol>
+              {profile.times.map((time, i) => {
+                const card = times?.[i];
+                const when = time.when ? say(time.when) : time.now ? L(`Desde ${time.from}`, `Since ${time.from}`) : yearsText([time.from, time.to ?? 0]);
+                return (
+                  <li key={`${time.from}-${time.to ?? ''}-${i}`} className={cx(time.now && 'fp-now', time.picture && 'fp-with-pic')}>
+                    <div className="fp-time-flag">{card && <FlagPicture card={card} alt={L(`Bandera de ${name}: ${say(time.name)} (${when})`, `Flag of ${name}: ${say(time.name)} (${when})`)} />}</div>
+                    <div className="fp-time-text">
+                      <p className="fp-when">{when}</p>
+                      <h4>{say(time.name)}</h4>
+                      <p>{say(time.text)}</p>
+                    </div>
+                    {time.picture && <Photo photo={time.picture} sizes="(max-width: 760px) 70vw, 340px" className="fp-time-pic" />}
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+
+          {profile.photos.length > 1 && (
+            <section className="fp-sec fp-photos">
+              <h3>{L(`${name} en imágenes`, `${name} in pictures`)}</h3>
+              <div className="fp-masonry">
+                {profile.photos.slice(1).map((photo) => (
+                  <Photo key={photo.file} photo={photo} sizes="(max-width: 700px) 92vw, 460px" />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {(regions.length > 0 || towns.length > 0) && (
+            <section className="fp-sec fp-own">
+              <h3>{L(`Las banderas de ${name}`, `The flags of ${name}`)}</h3>
+              {regions.length > 0 && (
+                <>
+                  <p className="label">{L(`Las de sus ${nf(regions.length)} ${levelName}`, `Those of its ${nf(regions.length)} ${levelName}`)}</p>
+                  <ul className="fp-strip">
+                    {regions.map((card) => (
+                      <li key={card.key} title={card.name}>
+                        <FlagPicture card={card} alt={card.name} />
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              <p className="fp-links">
+                {regions.length > 0 && (
+                  <a className="btn" href={`#/${FLAGS_PATH}/${flagsRest({ tab: 'regions', country: id })}`} onClick={leave}>
+                    <Images size={15} aria-hidden="true" />
+                    {L(`Ver las de sus ${levelName}`, `See those of its ${levelName}`)}
+                  </a>
+                )}
+                {towns.length > 0 && (
+                  <a className="btn" href={`#/${FLAGS_PATH}/${flagsRest({ tab: 'cities', country: id })}`} onClick={leave}>
+                    <Images size={15} aria-hidden="true" />
+                    {L(`Ver las de ${nf(towns.length)} ciudades`, `See those of ${nf(towns.length)} cities`)}
+                  </a>
+                )}
+                {regions.length >= 4 && (
+                  <a className="btn btn-primary" href={`#/${FLAGS_PATH}/${FLAG_GAMES_PATH}/${flagSetText({ kind: 'regions', country: id })}`} onClick={leave}>
+                    <Play size={15} aria-hidden="true" />
+                    {L(`Jugar con las de sus ${levelName}`, `Play with those of its ${levelName}`)}
+                  </a>
+                )}
+              </p>
+            </section>
+          )}
+
+          <footer className="fp-foot">
+            <p>
+              {L(
+                'Las cifras son las que usa todo el juego: Banco Mundial, GeoNames, Unicode CLDR y The World Factbook. El texto está escrito para el juego, con lo que cuentan Wikipedia y The World Factbook. Las fotografías son de Wikimedia Commons, reducidas de tamaño; bajo cada una van su autor y su licencia.',
+                'The figures are those the whole game uses: World Bank, GeoNames, Unicode CLDR and The World Factbook. The text is written for the game, from what Wikipedia and The World Factbook tell. The photographs are from Wikimedia Commons, made smaller; under each are its author and its licence.',
+              )}
+            </p>
+            <p className="fp-foot-links">
+              <a href={say(profile.read)} target="_blank" rel="noopener noreferrer">
+                {L(`Leer más sobre ${name} en Wikipedia`, `Read more about ${name} on Wikipedia`)}
+                <ExternalLink size={13} aria-hidden="true" />
+              </a>
+              <a href={reportUrl({ item, version: VERSION })} target="_blank" rel="noopener noreferrer">
+                <MessageSquareWarning size={15} aria-hidden="true" />
+                {L('Avisar de un error en esta ficha', 'Report a mistake in this sheet')}
+              </a>
+            </p>
+          </footer>
+        </article>
+      )}
+    </Dialog>
+  );
+}
