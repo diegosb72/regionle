@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Creator: CorelDRAW X5 -->
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="247mm" height="164.5mm" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
+viewBox="0 0 24700 16450"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ version="1.1"
+ enable-background="new 0 0 1000 1000">
+ <defs>
+  <style type="text/css">
+   <![CDATA[
+    .str1 {stroke:#2B2A29;stroke-width:50}
+    .str0 {stroke:#2B2A29;stroke-width:50;stroke-linejoin:round}
+    .fil2 {fill:none}
+    .fil0 {fill:#0093DC}
+    .fil3 {fill:#DA251D}
+    .fil1 {fill:#FCDB00}
+   ]]>
+  </style>
+ </defs>
+ <g id="Слой_x0020_1">
+  <metadata id="CorelCorpID_0Corel-Layer"/>
+  <g id="_224356080">
+   <rect class="fil0" x="55" y="3367" width="24571" height="13010"/>
+   <g>
+    <path class="fil1 str0" d="M17579 7424c309,-241 604,-257 691,-187 173,259 -245,478 -433,609l792 1584 12 344 -678 416 -953 -1757c-2996,2008 -6020,3993 -8991,6035 -348,239 -1242,1027 -1699,852 -334,-128 -404,-540 -158,-802l10525 -6599c-918,-1714 -2104,-2625 -3013,-3446 1721,143 3055,1557 3905,2951z"/>
+    <line class="fil2 str1" x1="18629" y1="9431" x2="17965" y2= "9824" />
+    <line class="fil2 str1" x1="17965" y1="9824" x2="17964" y2= "10191" />
+    <path class="fil2 str1" d="M17965 9824c-734,-1679 -1443,-2857 -2248,-3743 -599,-660 -1244,-1207 -2043,-1607"/>
+    <path class="fil2 str1" d="M17011 8434c-36,-310 -146,-446 -324,-514"/>
+    <path class="fil2 str1" d="M17837 7847c-53,-116 -145,-243 -258,-422"/>
+    <path class="fil1 str0" d="M7101 7416c-309,-241 -604,-257 -691,-187 -173,259 245,478 433,609l-792 1584 -12 344 678 416 953 -1757c2996,2008 6020,3993 8991,6035 348,239 1242,1027 1699,852 334,-128 404,-540 158,-802l-10525 -6599c918,-1714 2104,-2625 3013,-3446 -1721,143 -3055,1557 -3905,2951z"/>
+    <line class="fil2 str1" x1="6051" y1="9422" x2="6715" y2= "9815" />
+    <line class="fil2 str1" x1="6715" y1="9815" x2="6716" y2= "10182" />
+    <path class="fil2 str1" d="M6715 9815c332,-759 658,-1415 991,-1989 403,-695 816,-1268 1256,-1754 599,-660 1244,-1207 2043,-1607"/>
+    <path class="fil2 str1" d="M7669 8425c36,-310 146,-446 324,-514"/>
+    <path class="fil2 str1" d="M6843 7838c53,-116 145,-243 258,-422"/>
+   </g>
+   <rect class="fil3" x="55" y="95" width="24571" height="3272"/>
+  </g>
+ </g>
+</svg>

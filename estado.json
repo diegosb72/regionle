@@ -1,8 +1,55 @@
 {
-  "when": "2026-11-24T05:31:57.122Z",
-  "from": "arena/baec5cdd-regionle@cadc219",
+  "when": "2026-11-24T05:45:53.424Z",
+  "from": "arena/baec5cdd-regionle@eccbfa2",
   "workflow": "same",
   "sources": [
+    {
+      "id": "flags-listed",
+      "file": "flags/listed.json",
+      "from": "Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org)",
+      "licence": "La de cada archivo, que su entrada dice: dominio público o una licencia libre",
+      "flags": true,
+      "what": "The flags of what the lists of scripts/data/flags-lists.json name (countries that are no more, organisations, peoples), by its Wikidata id. items: the Commons file of the flag it flies today (file), whether Wikidata prefers it to the others (rank), since when (from) and the others it gives as of today (also); those it stopped flying (past), the last first, each with its file and the days it flew between, which is all that something that is no more has; and by: hand when the flag is one given in scripts/data/flags-hand.json, with the one Wikidata gave under instead. files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; where the file is kept in this branch (kept); the 960 px picture that Wikimedia draws of it (picture), which stands for an original of more than 2 MB and goes with a drawing that has words in it (words); for a photograph, the drawing of the same flag that is kept in its place (drawn); and the categories of Commons it is in that speak of other times, of a proposal or of an invention, which may mean that it is not a flag that flies (marks). The files themselves are under flags/files, each named after its SHA-1.",
+      "es": "Banderas de países que ya no existen, de organizaciones y de pueblos",
+      "needs": "112",
+      "ok": true,
+      "bytes": 219727,
+      "blob": "f23e392b67d0a43407c8afe14a52f455ded77ff4",
+      "note": "290 de 290 tienen bandera; 380 archivos: 1 descargados (3 kB), 379 que ya estaban",
+      "detail": {
+        "asked": 290,
+        "found": 290,
+        "files": {
+          "all": 381,
+          "missing": 0,
+          "drawn": 1,
+          "words": 10,
+          "wanted": 380,
+          "brought": 1,
+          "there": 379,
+          "left": 0,
+          "pictures": 0,
+          "bytes": 3027
+        },
+        "kinds": {
+          "svg": 375,
+          "png": 6
+        },
+        "licences": {
+          "Public domain": 286,
+          "CC BY-SA 3.0": 42,
+          "CC BY-SA 4.0": 30,
+          "CC0": 8,
+          "CC BY-SA 2.5": 6,
+          "Attribution": 5,
+          "CC BY 3.0": 2,
+          "CC BY 4.0": 1,
+          "Copyrighted free use": 1
+        },
+        "undone": []
+      },
+      "ms": 21930
+    },
     {
       "id": "flags-cities",
       "file": "flags/cities.json",
@@ -13,9 +60,9 @@
       "es": "Banderas de las ciudades que no son capital de un país",
       "needs": "112",
       "ok": true,
-      "bytes": 778514,
-      "blob": "6ca251ba75841596a37a7c070158535a1ab7f168",
-      "note": "1642 de 4295 tienen bandera; 1618 archivos: 404 descargados (51.298 kB, con 4 imágenes), 436 que ya estaban, 778 sin traer; sin mirar: 778 de 1618 archivos (HTTP 429 Your bot is making too many requests. Please reduce your request rate or contact bot-traffic@wikimedia.org (f263c81))",
+      "bytes": 809165,
+      "blob": "c8745788226bd9c962f1a57aedf1b5bf63e4811f",
+      "note": "1642 de 4295 tienen bandera; 1618 archivos: 377 descargados (57.599 kB, con 9 imágenes), 894 que ya estaban, 347 sin traer; sin mirar: 347 de 1618 archivos (HTTP 429 Your bot is making too many requests. Please reduce your request rate or contact bot-traffic@wikimedia.org (f263c81))",
       "detail": {
         "asked": 4295,
         "found": 1642,
@@ -31,13 +78,13 @@
           "all": 1633,
           "missing": 30,
           "drawn": 15,
-          "words": 14,
+          "words": 24,
           "wanted": 1618,
-          "brought": 404,
-          "there": 436,
-          "left": 778,
-          "pictures": 4,
-          "bytes": 51297514
+          "brought": 377,
+          "there": 894,
+          "left": 347,
+          "pictures": 9,
+          "bytes": 57599299
         },
         "kinds": {
           "svg": 1159,
@@ -64,10 +111,10 @@
           "FAL": 1
         },
         "undone": [
-          "778 de 1618 archivos (HTTP 429 Your bot is making too many requests. Please reduce your request rate or contact bot-traffic@wikimedia.org (f263c81))"
+          "347 de 1618 archivos (HTTP 429 Your bot is making too many requests. Please reduce your request rate or contact bot-traffic@wikimedia.org (f263c81))"
         ]
       },
-      "ms": 714617
+      "ms": 717603
     }
   ],
   "reach": []
