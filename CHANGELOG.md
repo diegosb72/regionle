@@ -3,6 +3,15 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.46.0 — 24 de noviembre de 2026
+
+- Dos juegos más de banderas: Escalada y ¿De qué país es? Con los siete de antes, ya son nueve.
+- Escalada: sale una bandera y eliges su nombre entre dos. Cada tres aciertos hay un nombre más, hasta ocho, y tienes tres vidas: tu marca es la altura.
+- Desde la décima bandera, los nombres son los de las que más se le parecen. Con países y capitales, las de los países más poblados suelen salir antes.
+- Se juega con cualquier grupo de banderas y no hay nada que ajustar: dura hasta el tercer fallo, o hasta que se acaban las banderas.
+- ¿De qué país es?: sale la bandera de una región, sin su nombre, y eliges de qué país es entre cuatro de su continente, cada uno con su bandera.
+- Pregunta por los 116 países que tienen banderas de regiones, una de cada uno por partida, y nunca pone al lado un país que tenga esa misma bandera.
+
 ## 1.45.0 — 24 de noviembre de 2026
 
 - Tres juegos más de banderas: Antes y ahora, El intruso y Parejas. Con los cuatro de antes, ya son siete.

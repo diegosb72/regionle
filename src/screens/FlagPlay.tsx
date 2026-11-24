@@ -2,8 +2,8 @@
  * A game of the section «Banderas», at `#/banderas/jugar/<game>/<flags>/<how many>[/escrita]`
  * (lib/flagGames.ts, `flagPlayOf`): the address says the whole game, so that it can be kept and sent. This
  * screen fetches what the game needs — the list of flags, the pictures that are the same as another and,
- * for the games that ask for it, which flags look alike or what is written of the flags of other times —
- * and runs it (games/FlagQuiz.tsx; «Parejas», games/FlagPairs.tsx).
+ * for the games that ask for it, which flags look alike or what is written of the flags of other times
+ * and of those of the regions — and runs it (games/FlagQuiz.tsx; «Parejas», games/FlagPairs.tsx).
  */
 import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from 'react';
 import { HelpPanel } from '../components/Help';
@@ -11,7 +11,8 @@ import { Spinner } from '../components/ui';
 import { FlagQuiz } from '../games/FlagQuiz';
 import { HelpContext } from '../games/common';
 import { groupAt, loadAlike, nearCards, type AlikeFile, type AlikeKind, type Near } from '../lib/flagAlike';
-import { flagGameDef, flagGameHelp, flagGamesPath, flagPlayOf, flagPlayText, questionCount, type FlagExtra, type FlagPlay as Game } from '../lib/flagGames';
+import { climbKnown, flagGameDef, flagGameHelp, flagGamesPath, flagPlayOf, flagPlayText, questionCount, type FlagExtra, type FlagPlay as Game } from '../lib/flagGames';
+import { LAND_MIN, landCards, loadLands, playsLand, type LandFile } from '../lib/flagLand';
 import { oddPool } from '../lib/flagOdd';
 import { PAST_MIN, loadPast, pastCards, pastPlace, type PastFile } from '../lib/flagPast';
 import { FLAG_SET_MIN, alikePlace, deckOf, flagSetName, galleryPage, loadSame, sameMap, type FlagSet } from '../lib/flagSets';
@@ -79,14 +80,18 @@ interface Loaded {
   alike: AlikeFile | null;
   /** What is written of the flags of other times: «Antes y ahora». */
   past: PastFile | null;
+  /** What is written of the flags of the regions: «¿De qué país es?». */
+  lands: LandFile | null;
 }
 
 /**
  * The file of look-alikes a game reads, if it reads one. «Casi iguales» cannot be played without that of
- * its flags; «El intruso» can, and with the countries it is better with theirs.
+ * its flags; «El intruso» can, and with the countries it is better with theirs; «Escalada» can too, and
+ * with it the names it offers high up are those of the flags most like the one it shows.
  */
 function alikeFor(play: Game): { kind: AlikeKind; needed: boolean } | null {
   if (play.game === 'flag-alike') return { kind: alikePlace(play.set).file, needed: true };
+  if (play.game === 'flag-climb') return { kind: alikePlace(play.set).file, needed: false };
   if (play.game === 'flag-odd' && (play.set.kind === 'countries' || play.set.kind === 'territories')) return { kind: 'countries', needed: false };
   return null;
 }
@@ -112,8 +117,10 @@ export function FlagPlay({ world, rest }: { world: World; rest: string }) {
       alike ? (alike.needed ? loadAlike(alike.kind) : loadAlike(alike.kind).catch(() => null)) : null,
       // Without what is written of them, a country that flew the flag too could be set beside it: the game waits for it.
       play.game === 'flag-past' && pastPlace(play.set) ? loadPast() : null,
+      // …and so could one that flies the flag of that region as its own.
+      play.game === 'flag-land' && playsLand(play.set) ? loadLands() : null,
     ]).then(
-      ([file, same, alikeFile, past]) => alive && setData({ file, same: sameMap(same), alike: alikeFile, past }),
+      ([file, same, alikeFile, past, lands]) => alive && setData({ file, same: sameMap(same), alike: alikeFile, past, lands }),
       (err: unknown) => alive && setFailed(err instanceof Error ? err.message : String(err)),
     );
     return () => {
@@ -143,6 +150,10 @@ export function FlagPlay({ world, rest }: { world: World; rest: string }) {
       return place ? { past: { cards: pastCards(deck, data.file), data: data.past, place } } : {};
     }
     if (play.game === 'flag-odd') return { odd: oddPool(play.set, deck, world.index, data.file, data.same) };
+    if (play.game === 'flag-land' && playsLand(play.set)) {
+      return { land: { cards: landCards(deck, world.index, data.file, data.same), data: data.lands, where: new Map(world.index.countries.map((c) => [c.id, c.ct])) } };
+    }
+    if (play.game === 'flag-climb') return { climb: { known: climbKnown(deck, world.index) } };
     return {};
   }, [play, data, deck, world]);
 
@@ -157,6 +168,12 @@ export function FlagPlay({ world, rest }: { world: World; rest: string }) {
   }
   if (play.game === 'flag-past' && (extra.past?.cards.size ?? 0) < PAST_MIN) {
     return <Message title={L('Pocas banderas de otros tiempos', 'Few flags of other times')} text={L('De estos países, casi ninguno ha tenido otra bandera que se conozca: elige otros, u otro juego.', 'Of these countries, hardly any has flown another flag that is known: choose others, or another game.')} />;
+  }
+  if (play.game === 'flag-land' && !extra.land) {
+    return <Message title={L('Este juego es de países', 'This game is of countries')} text={L('«¿De qué país es?» pregunta de qué país es la bandera de una región: se juega con los países del mundo o con los de un continente.', '“Which country?” asks which country the flag of a region is from: it is played with the countries of the world or with those of a continent.')} />;
+  }
+  if (play.game === 'flag-land' && (extra.land?.cards.size ?? 0) < LAND_MIN) {
+    return <Message title={L('Pocas banderas de regiones', 'Few flags of regions')} text={L('De estos países, casi ninguno tiene banderas de regiones en el juego: elige otros, u otro juego.', 'Of these countries, hardly any has flags of regions in the game: choose others, or another game.')} />;
   }
   if (questionCount(play, deck, near, extra) === 0) {
     if (play.game === 'flag-alike') {

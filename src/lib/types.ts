@@ -241,7 +241,7 @@ export type Section = 'regions' | 'countries' | 'pops' | 'cities' | 'physical';
  * are played with flags, of which a section with a map has none to give but those of the countries. Each
  * has a name that no mode has, so that what is kept of a game (a session, the rules already seen) tells them apart.
  */
-export type FlagGame = 'flag-whose' | 'flag-pick' | 'flag-pairs' | 'flag-reveal' | 'flag-odd' | 'flag-alike' | 'flag-past';
+export type FlagGame = 'flag-whose' | 'flag-pick' | 'flag-pairs' | 'flag-reveal' | 'flag-odd' | 'flag-climb' | 'flag-alike' | 'flag-past' | 'flag-land';
 export type Mode =
   | 'explore'
   | 'learn'

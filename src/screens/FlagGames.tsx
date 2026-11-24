@@ -12,6 +12,7 @@ import { HelpButton } from '../components/Help';
 import { Seg, Spinner } from '../components/ui';
 import { groupAt, loadAlike, nearCards, type AlikeFile } from '../lib/flagAlike';
 import {
+  CLIMB_LIVES,
   FLAG_GAMES,
   FLAG_LENGTHS,
   PAIR_SIZES,
@@ -28,6 +29,7 @@ import {
   type FlagPlay,
   type PairSize,
 } from '../lib/flagGames';
+import { LAND_MIN, landCards, playsLand } from '../lib/flagLand';
 import { oddGroups } from '../lib/flagOdd';
 import { PAST_MIN, pastCards, pastPlace } from '../lib/flagPast';
 import { FLAG_SET_MIN, alikePlace, deckOf, flagSetName, flagSetOf, galleryPage, loadSame, sameMap, sameSet, setMenu, type FlagSet, type SetChoice, type SetMenu } from '../lib/flagSets';
@@ -71,7 +73,7 @@ function Chooser({ world, file, same, asked }: { world: World; file: FlagsFile; 
   const [set, setSet] = useState<FlagSet>(() => enough(asked) ?? enough(left?.set) ?? firstOf('countries', menu) ?? { kind: 'countries' });
   const [game, setGame] = useState<FlagGame>(left?.game ?? 'flag-whose');
   // How long a game of questions is, and how many pairs «Parejas» deals: each is kept while the other game is chosen.
-  const [length, setLength] = useState<FlagLength>(left && left.game !== 'flag-pairs' ? (left.length as FlagLength) : 10);
+  const [length, setLength] = useState<FlagLength>(left && left.game !== 'flag-pairs' && left.game !== 'flag-climb' ? (left.length as FlagLength) : 10);
   const [pairs, setPairs] = useState<PairSize>(left?.game === 'flag-pairs' ? (left.length as PairSize) : PAIR_SIZE_DEFAULT);
   const [answer, setAnswer] = useState<FlagAnswer>(left?.answer ?? 'choice');
   const modeRef = useRef<HTMLElement>(null);
@@ -86,7 +88,9 @@ function Chooser({ world, file, same, asked }: { world: World; file: FlagsFile; 
 
   const def = flagGameDef(game);
   const paired = game === 'flag-pairs';
-  const play: FlagPlay = useMemo(() => ({ game, set, length: paired ? pairs : length, answer: def.typed ? answer : 'choice' }), [game, set, paired, pairs, length, answer, def.typed]);
+  /** «Escalada» has no length to choose: it lasts as long as its lives. */
+  const climb = game === 'flag-climb';
+  const play: FlagPlay = useMemo(() => ({ game, set, length: paired ? pairs : climb ? 'all' : length, answer: def.typed ? answer : 'choice' }), [game, set, paired, climb, pairs, length, answer, def.typed]);
   const text = flagPlayText(play);
   const setFlagLast = useStore((s) => s.setFlagLast);
   useEffect(() => setFlagLast(text), [text, setFlagLast]);
@@ -113,14 +117,15 @@ function Chooser({ world, file, same, asked }: { world: World; file: FlagsFile; 
     };
   }, [needsAlike, place.file, alike?.kind]);
   const near = useMemo(() => (needsAlike && alike?.kind === place.file ? nearCards(groupAt(alike.file, place), deck) : null), [needsAlike, alike, place.file, place.group, place.wider, deck]);
-  // What «Antes y ahora» and «El intruso» are counted with: the countries of the set that flew another flag, and its groups of three.
+  // What «Antes y ahora», «El intruso» and «¿De qué país es?» are counted with: the countries of the set that flew another flag, its groups of three, and its countries that have flags of regions.
   const extra = useMemo<FlagExtra>(() => {
     if (game === 'flag-past') {
       const at = pastPlace(set);
       return at ? { past: { cards: pastCards(deck, file), data: null, place: at } } : {};
     }
+    if (game === 'flag-land') return playsLand(set) ? { land: { cards: landCards(deck, world.index, file, same), data: null, where: new Map() } } : {};
     return game === 'flag-odd' ? { odd: { groups: oddGroups(set, deck, world.index) } } : {};
-  }, [game, set, deck, file, world]);
+  }, [game, set, deck, file, same, world]);
   const questions = needsAlike ? (near ? questionCount(play, deck, near) : null) : questionCount(play, deck, undefined, extra);
   const problem =
     needsAlike && alikeFailed
@@ -133,7 +138,11 @@ function Chooser({ world, file, same, asked }: { world: World; file: FlagsFile; 
             ? L('«Antes y ahora» se juega con países: elige los del mundo, los de un continente o los territorios.', '“Then and now” is played with countries: choose those of the world, of a continent, or the territories.')
             : game === 'flag-past'
               ? L(`De estos países, menos de ${PAST_MIN} han tenido otra bandera: elige otros, u otro juego.`, `Of these countries, fewer than ${PAST_MIN} have flown another flag: choose others, or another game.`)
-              : L('Con estas banderas no hay bastante para este juego: elige otras, u otro juego.', 'There is not enough for this game with these flags: choose others, or another game.');
+              : game === 'flag-land' && !extra.land
+                ? L('«¿De qué país es?» se juega con países: elige los del mundo o los de un continente.', '“Which country?” is played with countries: choose those of the world or those of a continent.')
+                : game === 'flag-land'
+                  ? L(`De estos países, menos de ${LAND_MIN} tienen banderas de regiones: elige otros, u otro juego.`, `Of these countries, fewer than ${LAND_MIN} have flags of regions: choose others, or another game.`)
+                  : L('Con estas banderas no hay bastante para este juego: elige otras, u otro juego.', 'There is not enough for this game with these flags: choose others, or another game.');
 
   const best = useStore((s) => s.best[flagBestKey(play)]);
   const begin = () => {
@@ -291,7 +300,9 @@ function Chooser({ world, file, same, asked }: { world: World; file: FlagsFile; 
                   <span>
                     {paired
                       ? L(`${nf(questions)} parejas, ${nf(questions * 2)} cartas`, `${nf(questions)} pairs, ${nf(questions * 2)} cards`)
-                      : L(questions === 1 ? '1 pregunta' : `${nf(questions)} preguntas`, questions === 1 ? '1 question' : `${nf(questions)} questions`)}
+                      : climb
+                        ? L(`${CLIMB_LIVES} vidas, hasta ${nf(questions)} banderas`, `${CLIMB_LIVES} lives, up to ${nf(questions)} flags`)
+                        : L(questions === 1 ? '1 pregunta' : `${nf(questions)} preguntas`, questions === 1 ? '1 question' : `${nf(questions)} questions`)}
                   </span>
                 </li>
               )}
@@ -299,7 +310,7 @@ function Chooser({ world, file, same, asked }: { world: World; file: FlagsFile; 
                 <li title={L('Tu mejor resultado en este juego con estas banderas y estos ajustes.', 'Your best result in this game with these flags and these settings.')}>
                   <Trophy size={14} aria-hidden="true" />
                   <span>
-                    {L('Tu marca', 'Your record')}: {paired ? L(`${nf(best)} intentos`, `${nf(best)} turns`) : `${nf(best)} %`}
+                    {L('Tu marca', 'Your record')}: {paired ? L(`${nf(best)} intentos`, `${nf(best)} turns`) : climb ? L(best === 1 ? '1 peldaño' : `${nf(best)} peldaños`, best === 1 ? '1 rung' : `${nf(best)} rungs`) : `${nf(best)} %`}
                   </span>
                 </li>
               )}
@@ -317,11 +328,19 @@ function Chooser({ world, file, same, asked }: { world: World; file: FlagsFile; 
                   <Seg<PairSize> label={L('Cuántas parejas', 'How many pairs')} value={pairs} onChange={setPairs} options={PAIR_SIZES.map((value) => ({ value, label: String(value) }))} />
                   {questions != null && questions > 0 && questions < pairs && <span className="opt-hint">{L(`De estas banderas solo salen ${nf(questions)} parejas.`, `These flags only make ${nf(questions)} pairs.`)}</span>}
                 </div>
+              ) : climb ? (
+                <div className="opt">
+                  <span className="opt-label">{L('Duración', 'Length')}</span>
+                  <span className="opt-hint">
+                    {L('No hay nada que elegir: la escalada dura hasta que te quedas sin vidas, o hasta que se acaban las banderas.', 'There is nothing to choose: the climb lasts until you run out of lives, or until the flags run out.')}
+                  </span>
+                </div>
               ) : (
                 <div className="opt">
                   <span className="opt-label">{L('Preguntas', 'Questions')}</span>
                   <Seg<FlagLength> label={L('Cuántas preguntas', 'How many questions')} value={length} onChange={setLength} options={FLAG_LENGTHS.map((value) => ({ value, label: lengthName(value) }))} />
                   {game === 'flag-alike' && length === 'all' && <span className="opt-hint">{L('Todas las que tienen con quién confundirse, no todas las del grupo.', 'All that have something to be mixed up with, not every flag of the group.')}</span>}
+                  {game === 'flag-land' && !problem && <span className="opt-hint">{L('Una bandera por cada país que tiene banderas de regiones: en cada partida puede salir una distinta.', 'One flag for each country that has flags of regions: each game may bring a different one.')}</span>}
                   {game === 'flag-past' && <span className="opt-hint">{L('Una bandera por cada país que ha tenido otra: en cada partida puede salir una distinta.', 'One flag for each country that has flown another: each game may bring a different one.')}</span>}
                 </div>
               )}

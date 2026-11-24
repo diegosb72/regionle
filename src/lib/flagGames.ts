@@ -8,14 +8,17 @@
  *   Parejas               cards face down, a flag and a name for each: turned two at a time (lib/pairs.ts)
  *   Poco a poco           a flag uncovered piece by piece: the sooner it is named, the more it is worth
  *   El intruso            four flags, three of a group and one from outside it (lib/flagOdd.ts)
+ *   Escalada              a flag and its name among two, then three… up to eight: three misses end the climb
  *   Casi iguales          a name, and its flag among the three that look most like it
  *   Antes y ahora         a flag that a country flew before, and the country among four (lib/flagPast.ts)
+ *   ¿De qué país es?      the flag of a region, and its country among four (lib/flagLand.ts)
  *
  * The texts are long: nothing that comes with the first page may import this file (lib/modes.ts has the
  * names, which the first page says).
  */
-import { Copy, EqualApproximately, Flag, Grid2x2X, Grid3x3, History, LayoutGrid, type LucideIcon } from 'lucide-react';
+import { Copy, EqualApproximately, Flag, Grid2x2X, Grid3x3, History, LayoutGrid, MapPinned, TrendingUp, type LucideIcon } from 'lucide-react';
 import { ALIKE_CLOSE, ALIKE_OTHERS, closeness, rivalsOf, type Near } from './flagAlike';
+import { LAND_MIN, landAsked, landOptions, type LandFile } from './flagLand';
 import { oddCount, oddRound, type OddPool } from './flagOdd';
 import { PAST_MIN, pastAsked, pastOptions, type PastFile } from './flagPast';
 import { apart, beside, flagSetOf, flagSetText, type DeckCard, type FlagSet } from './flagSets';
@@ -26,7 +29,7 @@ import { FLAG_GAME_IDS, flagGameName } from './modes';
 import { FLAGS_PATH, FLAG_GAMES_PATH, FLAG_PLAY_PATH } from './routes';
 import { PAIRS_MIN, PAIR_SIZES, PAIR_SIZE_DEFAULT, type PairSize } from './rules';
 import { shuffle, type Rng } from './text';
-import type { FlagGame, Res } from './types';
+import type { FlagGame, Index, Res } from './types';
 
 export const FLAG_GAMES = FLAG_GAME_IDS;
 
@@ -43,8 +46,18 @@ export interface FlagGameDef {
 }
 
 /** Those that have a namesake among the games of the countries («Parejas», «El intruso») wear its icon. */
-const ICON: Record<FlagGame, LucideIcon> = { 'flag-whose': Flag, 'flag-pick': LayoutGrid, 'flag-pairs': Copy, 'flag-reveal': Grid3x3, 'flag-odd': Grid2x2X, 'flag-alike': EqualApproximately, 'flag-past': History };
-const LEVEL: Record<FlagGame, 1 | 2 | 3> = { 'flag-whose': 1, 'flag-pick': 1, 'flag-pairs': 1, 'flag-reveal': 2, 'flag-odd': 2, 'flag-alike': 3, 'flag-past': 3 };
+const ICON: Record<FlagGame, LucideIcon> = {
+  'flag-whose': Flag,
+  'flag-pick': LayoutGrid,
+  'flag-pairs': Copy,
+  'flag-reveal': Grid3x3,
+  'flag-odd': Grid2x2X,
+  'flag-climb': TrendingUp,
+  'flag-alike': EqualApproximately,
+  'flag-past': History,
+  'flag-land': MapPinned,
+};
+const LEVEL: Record<FlagGame, 1 | 2 | 3> = { 'flag-whose': 1, 'flag-pick': 1, 'flag-pairs': 1, 'flag-reveal': 2, 'flag-odd': 2, 'flag-climb': 2, 'flag-alike': 3, 'flag-past': 3, 'flag-land': 3 };
 /** The games whose answer is a name. */
 const TYPED: readonly FlagGame[] = ['flag-whose', 'flag-reveal'];
 
@@ -62,6 +75,10 @@ function descOf(game: FlagGame): string {
       return L('Cuatro banderas: tres son del grupo que se dice y una no. Encuentra la intrusa.', 'Four flags: three are of the group that is named and one is not. Find the odd one out.');
     case 'flag-past':
       return L('Sale una bandera que un país tuvo antes, con sus años, y eliges qué país la tuvo.', 'A flag that a country flew before comes up, with its years, and you choose which country flew it.');
+    case 'flag-climb':
+      return L('Empiezas eligiendo entre dos nombres y cada tres aciertos hay uno más. Tres fallos y se acaba: ¿hasta dónde subes?', 'You begin by choosing between two names, and every three right answers there is one more. Three misses end it: how high can you climb?');
+    case 'flag-land':
+      return L('Sale la bandera de una región, sin su nombre, y eliges de qué país es.', 'The flag of a region comes up, without its name, and you choose which country it is of.');
     default:
       return L('La bandera se destapa pieza a pieza: cuanto antes digas de dónde es, más puntos.', 'The flag is uncovered piece by piece: the sooner you say whose it is, the more points.');
   }
@@ -75,8 +92,10 @@ export const FLAG_LENGTHS: readonly FlagLength[] = [10, 20, 'all'];
 /** «Parejas» has no questions: what is chosen is how many pairs are dealt (lib/rules.ts, as in the «Parejas» of the countries). */
 export { PAIR_SIZES, type PairSize };
 /** How long a game of each kind can be, and how long it is when nothing says. */
-export const lengthsOf = (game: FlagGame): readonly (FlagLength | PairSize)[] => (game === 'flag-pairs' ? PAIR_SIZES : FLAG_LENGTHS);
-export const lengthOf = (game: FlagGame): FlagLength | PairSize => (game === 'flag-pairs' ? PAIR_SIZE_DEFAULT : 10);
+/** «Escalada» is as long as it lasts: it has every flag of the set to ask, and nothing to choose. */
+const CLIMB_LENGTHS: readonly FlagLength[] = ['all'];
+export const lengthsOf = (game: FlagGame): readonly (FlagLength | PairSize)[] => (game === 'flag-pairs' ? PAIR_SIZES : game === 'flag-climb' ? CLIMB_LENGTHS : FLAG_LENGTHS);
+export const lengthOf = (game: FlagGame): FlagLength | PairSize => (game === 'flag-pairs' ? PAIR_SIZE_DEFAULT : game === 'flag-climb' ? 'all' : 10);
 /** How a name is given: chosen among four, or typed. */
 export type FlagAnswer = 'choice' | 'type';
 
@@ -96,16 +115,19 @@ const GAME_WORD: Record<FlagGame, string> = {
   'flag-pairs': 'parejas',
   'flag-reveal': 'poco-a-poco',
   'flag-odd': 'el-intruso',
+  'flag-climb': 'escalada',
   'flag-alike': 'casi-iguales',
   'flag-past': 'antes-y-ahora',
+  'flag-land': 'de-que-pais',
 };
 const WORD_GAME = Object.fromEntries(Object.entries(GAME_WORD).map(([game, word]) => [word, game])) as Record<string, FlagGame>;
 const ALL_WORD = 'todas';
 const TYPE_WORD = 'escrita';
 
-/** A game as an address says it after `banderas/jugar/`: `de-donde/regiones-ES/10`, `poco-a-poco/paises-EU/todas/escrita`. */
+/** A game as an address says it after `banderas/jugar/`: `de-donde/regiones-ES/10`, `poco-a-poco/paises-EU/todas/escrita`, `escalada/paises` (which has no length to say). */
 export function flagPlayText(play: FlagPlay): string {
-  const parts = [GAME_WORD[play.game], flagSetText(play.set), play.length === 'all' ? ALL_WORD : String(play.length)];
+  const parts = [GAME_WORD[play.game], flagSetText(play.set)];
+  if (lengthsOf(play.game).length > 1) parts.push(play.length === 'all' ? ALL_WORD : String(play.length));
   if (play.answer === 'type' && TYPED.includes(play.game)) parts.push(TYPE_WORD);
   return parts.join('/');
 }
@@ -154,6 +176,8 @@ export interface FlagQuestion {
   order: number[];
   /** «El intruso»: what the other three are of, and what the one from outside is of. */
   odd?: { group: string; tag: string };
+  /** «Escalada»: the keys of the options that are not the right one, the first to be shown first: how many of them are depends on how high the game is (`climbShown`). */
+  rivals?: string[];
 }
 
 /** What a game needs besides the cards of its set, each game its own. */
@@ -162,6 +186,10 @@ export interface FlagExtra {
   past?: { cards: ReadonlyMap<string, readonly DeckCard[]>; data: PastFile | null; place: string };
   /** «El intruso»: the groups of the set and the flags from outside (lib/flagOdd.ts, `oddPool`). */
   odd?: Pick<OddPool, 'groups'> & Partial<OddPool>;
+  /** «¿De qué país es?»: the flags of the regions of the countries of the set (lib/flagLand.ts, `landCards`), what is written of them and the continent of each country. */
+  land?: { cards: ReadonlyMap<string, readonly DeckCard[]>; data: LandFile | null; where: ReadonlyMap<string, string> };
+  /** «Escalada»: how well known each flag is, by the key of its card, where that is known: the better known come first. */
+  climb?: { known: ReadonlyMap<string, number> };
 }
 
 /** How many answers a question offers. */
@@ -192,6 +220,53 @@ export function alikeCount(pool: { cards: readonly DeckCard[]; close: number }):
   return n < ALIKE_MIN ? 0 : n;
 }
 
+/** «Escalada»: the misses that end a climb. */
+export const CLIMB_LIVES = 3;
+/** …the names a flag comes with at the foot, how many right answers add another, and the most there ever are. */
+export const CLIMB_FIRST = 2;
+export const CLIMB_STEP = 3;
+export const CLIMB_MOST = 8;
+/** …and the question from which the names set beside the right one are those of the flags most like it (the tenth), where it is known which they are. */
+export const CLIMB_ALIKE_FROM = 9;
+
+/** How many names a flag comes with when so many have been got right. */
+export const climbChoices = (height: number): number => Math.min(CLIMB_MOST, CLIMB_FIRST + Math.floor(Math.max(0, height) / CLIMB_STEP));
+
+/** What a question of «Escalada» offers at a height: the right one and the first of its rivals, in the order the question has them. */
+export function climbShown(q: FlagQuestion, height: number): DeckCard[] {
+  const keep = new Set((q.rivals ?? []).slice(0, climbChoices(height) - 1));
+  return q.options.filter((option) => option.key === q.right || keep.has(option.key));
+}
+
+/**
+ * The order the flags of a climb come in: by lot, and where it is known how well known each is (`known`,
+ * by the key of the card: the heavier, the sooner), the better known before the rest more often than not.
+ */
+export function climbOrder(deck: readonly DeckCard[], known: ReadonlyMap<string, number> | undefined, rng: Rng = Math.random): DeckCard[] {
+  if (!known?.size) return shuffle(deck, rng);
+  return deck
+    .map((card) => ({ card, at: -Math.log(1 - rng()) / Math.max(known.get(card.key) ?? 1, 1e-9) }))
+    .sort((a, b) => a.at - b.at)
+    .map((one) => one.card);
+}
+
+/** The fewest people a country is taken to have when its flags are weighed: the smallest are not left for the very end every time. */
+const CLIMB_FEW = 10_000;
+
+/**
+ * How well known each flag of a deck is taken to be, for the order of a climb: that of a country and that
+ * of a capital, by the people of the country (the square root of them: India comes before Tuvalu far more
+ * often than not, and not always). The other flags have nothing to be weighed by: a deck that has any of
+ * them is not weighed at all, and comes by lot.
+ */
+export function climbKnown(deck: readonly DeckCard[], index: Index): Map<string, number> {
+  const out = new Map<string, number>();
+  if (deck.some((card) => card.kind !== 'country' && card.kind !== 'capital')) return out;
+  const people = new Map(index.countries.map((c) => [c.id, c.pop ?? 0]));
+  for (const card of deck) out.set(card.key, Math.sqrt(Math.max(people.get(card.country) ?? 0, CLIMB_FEW)));
+  return out;
+}
+
 /** The cards of a game of «Parejas»: so many of the set, by lot, no two of them the same picture or of the same name. */
 export const pairCards = (deck: readonly DeckCard[], pairs: number, rng: Rng = Math.random): DeckCard[] => apart(shuffle(deck, rng), pairs);
 
@@ -208,6 +283,7 @@ export function questionCount(play: FlagPlay, deck: readonly DeckCard[], near?: 
   if (play.game === 'flag-alike') all = alikeCount(alikePool(deck, near ?? new Map()));
   else if (play.game === 'flag-past') all = (extra.past?.cards.size ?? 0) < PAST_MIN ? 0 : extra.past!.cards.size;
   else if (play.game === 'flag-odd') all = extra.odd ? oddCount(extra.odd) : 0;
+  else if (play.game === 'flag-land') all = (extra.land?.cards.size ?? 0) < LAND_MIN ? 0 : extra.land!.cards.size;
   return play.length === 'all' ? all : Math.min(play.length, all);
 }
 
@@ -215,7 +291,8 @@ export function questionCount(play: FlagPlay, deck: readonly DeckCard[], near?: 
  * The questions of a game. `near` is what «Casi iguales» needs (lib/flagAlike.ts, `nearCards`), and what
  * «El intruso» takes its flag from outside by, where it has it; `only`, the keys of the cards to ask when
  * a game is only of some (those that were missed): what is set beside them still comes from the whole set.
- * `extra` is what «Antes y ahora» and «El intruso» are asked with. «Parejas» has no questions: `pairCards`.
+ * `extra` is what «Antes y ahora», «El intruso» and «¿De qué país es?» are asked with, and what «Escalada»
+ * orders its flags by. «Parejas» has no questions: `pairCards`.
  */
 export function roundOf(play: FlagPlay, deck: readonly DeckCard[], rng: Rng = Math.random, near: ReadonlyMap<string, readonly Near[]> = new Map(), only?: ReadonlySet<string>, extra: FlagExtra = {}): FlagQuestion[] {
   if (play.game === 'flag-pairs') return [];
@@ -226,6 +303,24 @@ export function roundOf(play: FlagPlay, deck: readonly DeckCard[], rng: Rng = Ma
       const options = pastOptions(card, deck, past.data, past.place, FLAG_OPTIONS, rng);
       const land = options.find((option) => option.id === card.id);
       return land && options.length > 1 ? [{ card, options, right: land.key, order: [] }] : [];
+    });
+  }
+  if (play.game === 'flag-land') {
+    const land = extra.land;
+    if (!land || (!only && land.cards.size < LAND_MIN)) return [];
+    return landAsked(land.cards, play.length, rng, only).flatMap((card) => {
+      const options = landOptions(card, deck, land.cards, land.data, land.where, FLAG_OPTIONS, rng);
+      const owner = options.find((option) => option.id === card.country);
+      return owner && options.length > 1 ? [{ card, options, right: owner.key, order: [] }] : [];
+    });
+  }
+  if (play.game === 'flag-climb') {
+    // Every flag of the set, the better known first; each with the most names it can come with, of which the game shows as many as its height says.
+    const asked = only ? shuffle(deck.filter((card) => only.has(card.key)), rng) : climbOrder(deck, extra.climb?.known, rng);
+    return asked.map((card, i) => {
+      const alike = i >= CLIMB_ALIKE_FROM ? (near.get(card.key) ?? []).map((one) => one.card) : [];
+      const rivals = beside(card, [...alike, ...shuffle(deck, rng)], CLIMB_MOST - 1);
+      return { card, options: shuffle([card, ...rivals], rng), right: card.key, order: [], rivals: rivals.map((rival) => rival.key) };
     });
   }
   if (play.game === 'flag-odd') {
@@ -412,6 +507,61 @@ export function flagGameHelp(game: FlagGame): ModeHelp {
         tip: L(
           'Con los países del mundo el grupo es un continente distinto en cada pregunta, y la intrusa suele parecerse a una de las otras tres: fíjate en el nombre del grupo antes que en los colores.',
           'With the countries of the world the group is another continent in each question, and the odd one out often looks like one of the other three: mind the name of the group before the colours.',
+        ),
+      };
+    case 'flag-climb':
+      return {
+        steps: [
+          L(
+            `Sale una bandera y dices de dónde es. Empiezas eligiendo entre ${CLIMB_FIRST} nombres, y cada ${CLIMB_STEP} aciertos hay uno más, hasta ${CLIMB_MOST}: pulsa el nombre (o su número).`,
+            `A flag comes up and you say whose it is. You begin by choosing between ${CLIMB_FIRST} names, and every ${CLIMB_STEP} right answers there is one more, up to ${CLIMB_MOST}: press the name (or its number).`,
+          ),
+          L(
+            `Cada acierto es un peldaño. Cada fallo cuesta una vida, y tienes ${CLIMB_LIVES}: con el último se acaba la escalada.`,
+            `Each right answer is a rung. Each miss costs a life, and you have ${CLIMB_LIVES}: the last one ends the climb.`,
+          ),
+          L(
+            'Cuanto más arriba, más difícil: hay más nombres entre los que elegir y, desde la décima bandera, son los de las banderas que más se le parecen. Con los países y las capitales, además, las de los países más poblados suelen salir antes.',
+            'The higher, the harder: there are more names to choose from and, from the tenth flag on, they are those of the flags most like it. With the countries and the capitals, those of the most populous countries tend to come first as well.',
+          ),
+          L(
+            'Se sube hasta que se acaban las vidas o las banderas. Al acabar ves la altura, el tiempo y las banderas que fallaste, cada una con su nombre.',
+            'You climb until the lives or the flags run out. At the end you see how high you got, the time and the flags you missed, each with its name.',
+          ),
+        ],
+        score: L(
+          'Tu marca es la altura: los peldaños subidos, es decir, las banderas acertadas hasta quedarte sin vidas o pulsar «Terminar». Se guarda aparte para cada grupo de banderas.',
+          'Your record is the height: the rungs climbed, that is, the flags you got right until the lives ran out or you pressed “Finish”. It is kept apart for each group of flags.',
+        ),
+        tip: L(
+          'Las vidas no vuelven. Arriba, con ocho nombres de banderas parecidas, descarta primero las que conoces.',
+          'Lives do not come back. Up there, with eight names of flags that look alike, rule out the ones you know first.',
+        ),
+      };
+    case 'flag-land':
+      return {
+        steps: [
+          L(
+            'Sale la bandera de una región (una provincia, un estado, un cantón), sin su nombre. Debajo hay cuatro países, cada uno con su bandera: pulsa el país del que es esa región (o su número, del 1 al 4).',
+            'The flag of a region (a province, a state, a canton) comes up, without its name. Below there are four countries, each with its flag: press the country that region is of (or its number, 1 to 4).',
+          ),
+          L(
+            'Se corrige al momento, y se dice de qué región es la bandera. Pulsa «Siguiente» (o Intro) para seguir.',
+            'It is marked at once, and you are told which region the flag is of. Press “Next” (or Enter) to go on.',
+          ),
+          L(
+            'De cada país sale una sola de las banderas de sus regiones, por sorteo: en otra partida puede salir otra. Solo se pregunta por los países de los que el juego tiene banderas de regiones.',
+            'Of each country only one of the flags of its regions comes up, by lot: another game may bring another. Only the countries the game has flags of regions for are asked.',
+          ),
+          end,
+        ],
+        score: L(
+          'Hay un solo intento por bandera: cuenta como acierto o como fallo. Tu marca es el mejor porcentaje de aciertos, y se guarda aparte para cada grupo de países.',
+          'There is one try for each flag: it counts as right or as a miss. Your record is the best share of right answers, kept apart for each group of countries.',
+        ),
+        tip: L(
+          'Fíjate en el estilo antes que en los colores: las letras, el escudo, los símbolos. Los otros tres países son del mismo continente, donde los hay, y nunca uno que tenga esa misma bandera.',
+          'Mind the style before the colours: the lettering, the arms, the symbols. The other three countries are of the same continent, where there are enough, and never one that flies that same flag.',
         ),
       };
     case 'flag-past':
