@@ -236,6 +236,12 @@ export interface Deck {
 }
 
 export type Section = 'regions' | 'countries' | 'pops' | 'cities' | 'physical';
+/**
+ * The games of the section «Banderas» (lib/flagGames.ts). They are not modes of a section with a map: they
+ * are played with flags, of which a section with a map has none to give but those of the countries. Each
+ * has a name that no mode has, so that what is kept of a game (a session, the rules already seen) tells them apart.
+ */
+export type FlagGame = 'flag-whose' | 'flag-pick' | 'flag-alike' | 'flag-reveal';
 export type Mode =
   | 'explore'
   | 'learn'

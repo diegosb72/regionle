@@ -2,9 +2,9 @@
  * «Cómo se juega»: the rules of a game, in a panel over the page. Fetched when it is first asked for, with
  * the texts of every game (lib/help.ts).
  */
-import { ArrowRight, Lightbulb, LifeBuoy, SlidersHorizontal, Target } from 'lucide-react';
+import { ArrowRight, Lightbulb, LifeBuoy, SlidersHorizontal, Target, type LucideIcon } from 'lucide-react';
 import { useEffect, useRef } from 'react';
-import { helpOf } from '../lib/help';
+import { helpOf, type ModeHelp } from '../lib/help';
 import { L } from '../lib/i18n';
 import { MODES, MODE_NAME } from '../lib/modes';
 import { useStore } from '../lib/store';
@@ -13,9 +13,20 @@ import type { Mode, Section } from '../lib/types';
 import { Dialog } from './Dialog';
 import './help.css';
 
+/** A game that is not a mode of a section (those of «Banderas»): what it is and how it is played, as whoever shows it says. */
+export interface OwnHelp {
+  name: string;
+  desc: string;
+  icon?: LucideIcon;
+  help: ModeHelp;
+}
+
 export interface HelpProps {
-  mode: Mode;
-  section: Section;
+  /** A game of a section with a map: its rules are those of that mode in that section (lib/help.ts). */
+  mode?: Mode;
+  section?: Section;
+  /** …or a game that is told as it is given. */
+  own?: OwnHelp;
   /** Shown by itself, the first time the game is opened: it says so, and how not to be shown the next ones. */
   first?: boolean;
   /** Over a game in course, whose clock is stopped meanwhile. */
@@ -25,12 +36,12 @@ export interface HelpProps {
   onClose(): void;
 }
 
-export function HelpDialog({ mode, section, first, playing, rules, onClose }: HelpProps) {
+export function HelpDialog({ mode, section, own, first, playing, rules, onClose }: HelpProps) {
   const auto = useStore((s) => s.helpAuto);
   const setAuto = useStore((s) => s.setHelpAuto);
   const go = useRef<HTMLButtonElement>(null);
-  const help = helpOf(mode, section);
-  const def = MODES[section].find((m) => m.id === mode);
+  const help = own ? own.help : mode && section ? helpOf(mode, section) : null;
+  const def = own ?? (mode && section ? MODES[section].find((m) => m.id === mode) : undefined);
 
   // The panel leaves the keyboard on its first button, the one that closes it at the top: here it is left on
   // the one that goes on, so that Intro starts the game.
@@ -54,7 +65,7 @@ export function HelpDialog({ mode, section, first, playing, rules, onClose }: He
               <Icon size={18} aria-hidden="true" />
             </span>
           )}
-          {MODE_NAME[mode]}
+          {own ? own.name : mode ? MODE_NAME[mode] : ''}
         </h3>
         {def && <p className="help-lead">{def.desc}</p>}
         {rules && (

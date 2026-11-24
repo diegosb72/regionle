@@ -22,9 +22,9 @@ const drawn = (img: Locator): Promise<boolean> => img.evaluate((el) => (el as HT
 test.describe('the gallery of flags', () => {
   test('shows the flags of the countries by continent, and finds one by its name', async ({ page }) => {
     await seed(page);
-    await open(page, '/banderas');
+    await open(page, '/banderas/paises');
     await expect(page).toHaveTitle('Banderas del mundo — Regionle ∞');
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Banderas del mundo');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Galería de banderas');
     await expect(page.locator('nav.nav a[href="#/banderas"]')).toHaveAttribute('aria-current', 'page');
     await expect(page.getByRole('radio', { name: /^Países/ })).toHaveAttribute('aria-checked', 'true');
     await expect(page.locator('.fg-tile')).toHaveCount(249);
@@ -104,7 +104,7 @@ test.describe('the gallery of flags', () => {
     await expect(dialog).toHaveCount(0);
 
     // The flag of a country comes with the game: it says so, and names no file of Commons.
-    await open(page, '/banderas');
+    await open(page, '/banderas/paises');
     await page.locator('.fg-tile').filter({ hasText: /^España$/ }).click();
     await expect(dialog.locator('.fg-what')).toHaveText('País o territorio');
     await expect(dialog.locator('.fg-note')).toContainText('flag-icons');
@@ -298,7 +298,7 @@ test.describe('the gallery of flags', () => {
 
   test('moves between its five pages, each with its own address', async ({ page }) => {
     await seed(page);
-    await open(page, '/banderas');
+    await open(page, '/banderas/paises');
     await page.getByRole('radio', { name: /^Regiones/ }).click();
     // The regions with no country named are those of the country of the language; a country that is chosen is in the address.
     await expect(page).toHaveURL(/#\/banderas\/regiones$/);
@@ -311,8 +311,9 @@ test.describe('the gallery of flags', () => {
     await expect(page).toHaveURL(/#\/banderas\/historicas$/);
     await page.getByRole('radio', { name: /^Otras/ }).click();
     await expect(page).toHaveURL(/#\/banderas\/otras$/);
+    // The first page has its word too: `banderas` alone is where the games of the section are chosen.
     await page.getByRole('radio', { name: /^Países/ }).click();
-    await expect(page).toHaveURL(/#\/banderas$/);
+    await expect(page).toHaveURL(/#\/banderas\/paises$/);
     // Each tab says how many flags it has.
     await expect(page.getByRole('radio', { name: /^Ciudades/ })).toContainText(String(FLAGS.capitals.length + count(FLAGS.cities)));
     await expect(page.getByRole('radio', { name: /^Históricas/ })).toContainText(String(FLAGS.gone.length + count(FLAGS.past)));
@@ -356,12 +357,17 @@ test.describe('the gallery of flags', () => {
     await expect(page.locator('.fg-pick select')).toHaveValue('ES');
   });
 
-  test('opens in English from its own page, on the country of that language', async ({ page }) => {
+  test('opens in English from the page of the section in that language, on the country of that language', async ({ page }) => {
     await seed(page);
+    // The page of the section is where its games are chosen: the gallery is a link away.
     await page.goto('./flags.html');
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
     await expect(page).toHaveTitle('Flags of the world — Regionle ∞');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Flags of the world');
+    await page.getByRole('link', { name: 'See the gallery of flags' }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Gallery of flags');
+    await expect(page).toHaveTitle('Flags of the world — Regionle ∞');
+    await expect(page.getByRole('link', { name: 'Play with these' })).toBeVisible();
     await page.getByRole('radio', { name: /^Regions/ }).click();
     await expect(page.locator('.fg-pick select')).toHaveValue('US');
     await expect(page.locator('.fg-group h2')).toHaveText(/^States\s*51$/);
@@ -371,17 +377,24 @@ test.describe('the gallery of flags', () => {
     await expect(dialog.getByRole('link', { name: 'Report a mistake in this flag' })).toBeVisible();
   });
 
-  test('is one of the cards of the first page, which opens it without loading the game again', async ({ page }) => {
+  test('is reached from the games of the section and sends back to them, with what is on the page chosen', async ({ page }) => {
     await seed(page);
-    await open(page);
-    const card = page.locator('.sections a.scard').nth(5);
-    await expect(card.getByRole('heading', { level: 2 })).toHaveText('Banderas');
-    await expect(card).toHaveAttribute('href', 'banderas.html');
-    await page.evaluate(() => ((window as unknown as { kept: number }).kept = 7));
-    await card.click();
+    await open(page, '/banderas');
+    await page.getByRole('link', { name: 'Ver la galería de banderas' }).click();
+    await expect(page).toHaveURL(/#\/banderas\/paises$/);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Galería de banderas');
+    await expect(page.locator('.fg-tile')).toHaveCount(249);
+    await expect(page.getByRole('link', { name: 'Jugar con estas' })).toHaveAttribute('href', '#/banderas/juegos/paises');
+    // The regions of the country on show, the cities of the one chosen, the capitals where none is.
+    await open(page, '/banderas/regiones/JP');
+    await expect(page.getByRole('link', { name: 'Jugar con estas' })).toHaveAttribute('href', '#/banderas/juegos/regiones-JP');
+    await open(page, '/banderas/ciudades');
+    await expect(page.getByRole('link', { name: 'Jugar con estas' })).toHaveAttribute('href', '#/banderas/juegos/capitales');
+    await open(page, '/banderas/ciudades/ES');
+    await page.getByRole('link', { name: 'Jugar con estas' }).click();
+    await expect(page).toHaveURL(/#\/banderas\/juegos\/ciudades-ES$/);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Banderas del mundo');
-    expect(new URL(page.url()).hash).toBe('#/banderas');
-    expect(await page.evaluate(() => (window as unknown as { kept?: number }).kept)).toBe(7);
+    await expect(page.locator('.fgm-set-name')).toContainText('Ciudades de España');
   });
 
   test('fits a phone: five tabs on two lines at most and nothing wider than the screen @movil', async ({ page }) => {

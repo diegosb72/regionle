@@ -13,10 +13,12 @@ import { namesOf, type Named } from '../lib/answerNames';
 import { toCsv } from '../lib/csv';
 import { buildDeck, eligible, type World } from '../lib/data';
 import { kindNoun, parsePhys } from '../lib/extra';
+import { flagPlayOf } from '../lib/flagGames';
+import { flagSetName } from '../lib/flagSets';
 import { BOOK_FIGS, metricNoun, type MetricId } from '../lib/metricNames';
 import { L, fmtDay, getLang, levelNoun, nm } from '../lib/i18n';
 import { KNOW_GRADES, knowCardBlob, type KnowCardInfo } from '../lib/knowCard';
-import { MODE_NAME, SECTIONS, formatName, modeNameIn } from '../lib/modes';
+import { MODE_NAME, SECTIONS, flagGameName, formatName, playedName } from '../lib/modes';
 import { mixGroups } from '../lib/mix';
 import { PACES, REVIEW_SIZES, allGroups, dueCount, dueGroups, forecast, gradeOf, missGroups, missesOf, parseOrigin, reviewConfig, reviewMax, type Grade, type Pace, type ReviewGroup } from '../lib/review';
 import { reviewTable } from '../lib/reviewTable';
@@ -691,6 +693,22 @@ export function Progress({ world }: { world: World }) {
         </li>
       );
     }
+    if (kind === 'flag') {
+      // "flag:de-donde/paises-EU/10": the best mark of a game of «Banderas» with those flags, that many questions and that way of answering.
+      const play = flagPlayOf(what);
+      // A game or some flags this version does not know: nothing to say of them.
+      if (!play) return null;
+      return (
+        <li key={k}>
+          <b>
+            {flagGameName(play.game)}
+            {play.answer === 'type' ? ` · ${L('escrita', 'typed')}` : ''}
+          </b>{' '}
+          · {flagSetName(play.set, world.index)} · {play.length === 'all' ? L('todas', 'all of them') : L(`${play.length} preguntas`, `${play.length} questions`)}
+          <span>{nf(v)} %</span>
+        </li>
+      );
+    }
     if (kind === 'pairs') {
       // "pairs:flag:8": the fewest turns of a table of that kind of pair and that many of them.
       const cards = Number(rest[1]) * 2;
@@ -904,7 +922,7 @@ export function Progress({ world }: { world: World }) {
                           {when(s.t)}
                         </td>
                         <td role="cell" className="g-game">
-                          {Object.hasOwn(SECTIONS, s.section) ? modeNameIn(s.section, s.mode) : MODE_NAME[s.mode]}
+                          {playedName(s.section, s.mode)}
                         </td>
                         <td role="cell" className="g-map">
                           {s.note === 'timed' || s.note === 'lives' || s.note === 'exam' ? `${s.label} · ${formatName(s.note).toLowerCase()}` : s.note ? `${s.label} · ${s.note}` : s.label}

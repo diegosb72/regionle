@@ -3,6 +3,16 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.44.0 — 24 de noviembre de 2026
+
+- Banderas ya tiene juegos: cuatro para empezar, con las más de cuatro mil banderas de la galería. Eliges con cuáles juegas y a qué.
+- ¿De dónde es?: sale una bandera y dices de dónde es, entre cuatro nombres o escribiéndolo. ¿Cuál es su bandera?: sale un nombre y eliges entre cuatro banderas.
+- Casi iguales, el difícil: cada bandera sale con las tres que más se le parecen de su grupo. Irlanda, con Costa de Marfil, Italia y México.
+- Poco a poco: la bandera sale tapada y la destapas pieza a pieza. Cuanto antes digas de dónde es, más vale: de 12 puntos con una pieza a 1 con la bandera entera.
+- Con los países (todos o un continente), los territorios, las regiones o las ciudades de un país, las capitales, los países que ya no existen y las señales.
+- Al acabar ves cada bandera con lo que dijiste de ella y puedes repasar solo las falladas. Cada juego guarda su marca, y las partidas salen en Progreso.
+- La galería sigue ahí, en «Ver la galería de banderas», y desde cada página suya «Jugar con estas» lleva a los juegos con esas banderas ya elegidas.
+
 ## 1.43.0 — 24 de noviembre de 2026
 
 - Banderas: la galería pasa de 2400 banderas a más de 4600, con las de otros tiempos, las de organizaciones y pueblos, las señales y las de 1500 ciudades.

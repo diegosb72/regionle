@@ -22,8 +22,25 @@ export const RECEIPT_PATH = 'justificante';
 export const BINGO_PATH = 'bingo';
 /** The game alone, to be put inside another page (lib/embed.ts). */
 export const EMBED_PATH = 'incrustar';
-/** The flags there are, to look at (screens/Flags.tsx): `#/banderas`, and `#/banderas/regiones/ES` for those of the regions of a country. */
+/**
+ * The section «Banderas»: `#/banderas` is where its games are chosen (screens/FlagGames.tsx),
+ * `#/banderas/jugar/de-donde/regiones-ES` is a game with some flags (screens/FlagPlay.tsx) and
+ * `#/banderas/paises` or `#/banderas/regiones/ES`, a page of the gallery (screens/Flags.tsx).
+ */
 export const FLAGS_PATH = 'banderas' satisfies ScreenId;
+/** What follows `banderas/` where the games are chosen, when something else follows: the flags to play with. */
+export const FLAG_GAMES_PATH = 'juegos';
+/** What follows `banderas/` in the address of a game. */
+export const FLAG_PLAY_PATH = 'jugar';
+/** The first page of the gallery (lib/flags.ts, `flagsRest`), for what links to it without the rest of the section. */
+export const FLAGS_GALLERY_PATH = `${FLAGS_PATH}/paises`;
+
+/** Which of the screens of the section an address is of, by the first word of what follows `banderas/`. */
+export function flagsScreen(rest: string): 'games' | 'play' | 'gallery' {
+  const head = rest.split('/')[0].toLowerCase();
+  if (!head || head === FLAG_GAMES_PATH || head === 'games') return 'games';
+  return head === FLAG_PLAY_PATH || head === 'play' ? 'play' : 'gallery';
+}
 export const PROGRESS_PATH = 'progreso';
 export const SETTINGS_PATH = 'configuracion';
 export const ABOUT_PATH = 'acerca' satisfies ScreenId;
@@ -54,7 +71,7 @@ export type Route =
    * page. What follows is read where it is played (lib/embed.ts): this file is in the first load.
    */
   | { kind: 'embed'; rest: string }
-  /** `#/banderas`, or `#/banderas/regiones/ES`: the gallery of flags, on one of its pages. What follows is read where it is shown. */
+  /** `#/banderas`, `#/banderas/jugar/…` or `#/banderas/regiones/ES`: the section of the flags, on one of its screens (`flagsScreen`). What follows is read where it is shown. */
   | { kind: 'flags'; rest: string }
   | { kind: 'progress' }
   /** `#/configuracion`, or `#/configuracion/regiones/US` to open the settings on a list. */

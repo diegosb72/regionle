@@ -2,10 +2,10 @@
  * The gallery of flags: those of the countries, which the game has always had, and those that come from
  * Wikimedia Commons (lib/flags.ts) — of the divisions of the maps and of the capitals, of other times, of
  * organisations and of peoples, and the signals — each with who made its file and on what terms it is
- * given. It is what there is of the section «Banderas» until its games are written: a place to look at
- * them all, and to say when one is not right.
+ * given. A place to look at them all, and to say when one is not right; what is on a page of it can be
+ * played with in the games of the section (screens/FlagGames.tsx), which is where each page sends.
  */
-import { ExternalLink, MessageSquareWarning, Search } from 'lucide-react';
+import { ExternalLink, MessageSquareWarning, Play, Search } from 'lucide-react';
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { Dialog } from '../components/Dialog';
 import { Flag, Seg, Spinner, capitalise } from '../components/ui';
@@ -34,10 +34,11 @@ import {
   type FlagsFile,
   type FlagsPage,
 } from '../lib/flags';
+import { flagSetText, setOfPage } from '../lib/flagSets';
 import { L, getLang, nm } from '../lib/i18n';
 import { reportUrl } from '../lib/report';
 import { go } from '../lib/router';
-import { FLAGS_PATH } from '../lib/routes';
+import { FLAGS_PATH, FLAG_GAMES_PATH } from '../lib/routes';
 import { cx, nf } from '../lib/text';
 import type { Country } from '../lib/types';
 import { VERSION } from '../lib/version';
@@ -51,7 +52,7 @@ import './flags.css';
  */
 const shape = (ratio: number): CSSProperties => ({ '--r': String(ratio) }) as CSSProperties;
 
-const show = (page: FlagsPage): void => go(flagsRest(page) ? `${FLAGS_PATH}/${flagsRest(page)}` : FLAGS_PATH);
+const show = (page: FlagsPage): void => go(`${FLAGS_PATH}/${flagsRest(page)}`);
 
 function Tile({ card, name, under, onOpen }: { card: FlagCard; name?: string; under?: string; onOpen(card: FlagCard): void }) {
   return (
@@ -418,15 +419,18 @@ export function Flags({ world, rest }: { world: World; rest: string }) {
     });
   }
 
+  // What a game takes from this page: the countries, the regions or the cities of the country on show, the capitals…
+  const playWith = flagSetText(setOfPage(page.tab === 'regions' ? { tab: 'regions', country: country || undefined } : page.tab === 'cities' ? { tab: 'cities', country: town || undefined } : page));
+
   return (
     <div className="fg">
       <header className="setup-head">
         <p className="kicker">{L('Banderas', 'Flags')}</p>
-        <h1>{L('Banderas del mundo', 'Flags of the world')}</h1>
+        <h1>{L('Galería de banderas', 'Gallery of flags')}</h1>
         <p className="lead">
           {L(
-            'Las de los países, las de sus regiones y sus ciudades, las de otros tiempos, las de organizaciones y pueblos y las que son señales, para verlas todas. Toca una para verla grande y saber de quién es el dibujo. Los juegos de este apartado están en camino.',
-            'Those of the countries, of their regions and their cities, those of other times, those of organisations and peoples and those that are signals, all to look at. Touch one to see it large and learn whose drawing it is. The games of this section are on the way.',
+            'Las de los países, las de sus regiones y sus ciudades, las de otros tiempos, las de organizaciones y pueblos y las que son señales, para verlas todas. Toca una para verla grande y saber de quién es el dibujo.',
+            'Those of the countries, of their regions and their cities, those of other times, those of organisations and peoples and those that are signals, all to look at. Touch one to see it large and learn whose drawing it is.',
           )}
         </p>
       </header>
@@ -436,6 +440,11 @@ export function Flags({ world, rest }: { world: World; rest: string }) {
           <Search size={16} aria-hidden="true" />
           <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={L('Buscar una bandera…', 'Search for a flag…')} aria-label={L('Buscar una bandera por su nombre', 'Search for a flag by its name')} />
         </label>
+        {/* The games of the section, with what is on this page already chosen. */}
+        <a className="btn btn-primary fg-play" href={`#/${FLAGS_PATH}/${FLAG_GAMES_PATH}/${playWith}`}>
+          <Play size={16} aria-hidden="true" />
+          {L('Jugar con estas', 'Play with these')}
+        </a>
       </div>
       {page.tab === 'regions' && file && !everywhere && (
         <div className="fg-pick">

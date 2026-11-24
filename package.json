@@ -1,7 +1,7 @@
 {
   "name": "regionle",
   "private": true,
-  "version": "1.43.0",
+  "version": "1.44.0",
   "homepage": "https://diegosb72.github.io/regionle/",
   "description": "Regionle ∞ — juego de geografía ilimitado para aprender países y regiones del mundo",
   "license": "MIT",
@@ -25,6 +25,7 @@
     "data:outside": "node scripts/data/outside.mjs",
     "data:flags": "node scripts/data/flags.mjs",
     "data:flag-lists": "node scripts/data/flags-lists.mjs",
+    "data:flag-alike": "node scripts/data/flags-alike.mjs",
     "data": "npm run data:fetch && npm run data:build && npm run data:population && npm run data:physical && npm run data:figures && npm run data:facts",
     "typeins": "node scripts/typeins/build.mjs",
     "social": "node scripts/social/build.mjs"

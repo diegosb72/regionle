@@ -19,7 +19,7 @@ import { PACE_DEFAULT, REVIEW_MAX, isPace, isReviewSize, setReviewPrefs, type Pa
 import { today } from './text';
 import { cleanTypeins, setTypeins as applyTypeins, type Typeins } from './typeinPrefs';
 import { USUAL_RULES, type PairOf, type PairSize, type PinBy, type RegionFig, type RouteRule } from './rules';
-import type { FactKind, Mode, Res, Section } from './types';
+import type { FactKind, FlagGame, Mode, Res, Section } from './types';
 import { setUnits } from './units';
 
 /**
@@ -219,8 +219,9 @@ export interface CustomList {
 
 export interface SessionRec {
   t: number;
-  section: Section;
-  mode: Mode;
+  /** `flags` for a game of the section «Banderas», which is no section with a map: then `mode` is one of its games. */
+  section: Section | 'flags';
+  mode: Mode | FlagGame;
   label: string;
   total: number;
   ok: number;
@@ -304,6 +305,8 @@ export function cleanBackupMark(raw: unknown): BackupMark {
 
 /** More games than there are: what is kept of the ones whose rules have been shown cannot grow past it. */
 const HELP_SEEN_MAX = 64;
+/** The longest address of a game of «Banderas» that is kept: any true one is well under. */
+const FLAG_LAST_MAX = 80;
 
 export interface State {
   theme: Theme;
@@ -375,6 +378,8 @@ export interface State {
   helpAuto: boolean;
   /** The games that have been shown that way: each one is, once. */
   helpSeen: string[];
+  /** The game of «Banderas» that was last chosen, as its address says it after `banderas/jugar/`: what the section opens with. Empty until one is. */
+  flagLast: string;
   /** A sound for each answer, right or wrong. Off until asked for. */
   sound: boolean;
   /** A short buzz of the phone for each answer. Off until asked for. */
@@ -409,6 +414,7 @@ export interface State {
   setHelpAuto(on: boolean): void;
   /** Writes down that how a game is played has been shown. */
   seeHelp(mode: string): void;
+  setFlagLast(text: string): void;
   setSound(on: boolean): void;
   setHaptic(on: boolean): void;
   setIconBadge(on: boolean): void;
@@ -529,6 +535,7 @@ export const useStore = create<State>()(
       hotkeys: true,
       helpAuto: true,
       helpSeen: [],
+      flagLast: '',
       sound: false,
       haptic: false,
       iconBadge: true,
@@ -565,6 +572,7 @@ export const useStore = create<State>()(
       setHotkeys: (hotkeys) => set({ hotkeys }),
       setHelpAuto: (helpAuto) => set({ helpAuto }),
       seeHelp: (mode) => set((s) => (s.helpSeen.includes(mode) ? s : { helpSeen: [...s.helpSeen, mode].slice(-HELP_SEEN_MAX) })),
+      setFlagLast: (flagLast) => set((s) => (s.flagLast === flagLast ? s : { flagLast: flagLast.slice(0, FLAG_LAST_MAX) })),
       setSound: (sound) => set({ sound }),
       setHaptic: (haptic) => set({ haptic }),
       setIconBadge: (iconBadge) => set({ iconBadge }),
@@ -823,6 +831,7 @@ export const useStore = create<State>()(
         hotkeys: s.hotkeys,
         helpAuto: s.helpAuto,
         helpSeen: s.helpSeen,
+        flagLast: s.flagLast,
         sound: s.sound,
         haptic: s.haptic,
         iconBadge: s.iconBadge,
@@ -898,6 +907,7 @@ export function mergeSaved(saved: unknown, current: State): State {
     hotkeys: p.hotkeys !== false,
     helpAuto: p.helpAuto !== false,
     helpSeen: Array.isArray(p.helpSeen) ? p.helpSeen.filter((m): m is string => typeof m === 'string').slice(-HELP_SEEN_MAX) : [],
+    flagLast: typeof p.flagLast === 'string' ? p.flagLast.slice(0, FLAG_LAST_MAX) : '',
     sound: p.sound === true,
     haptic: p.haptic === true,
     iconBadge: p.iconBadge !== false,

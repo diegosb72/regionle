@@ -49,7 +49,7 @@ import { PATHS } from './routes';
 import type { RouteRule } from './rules';
 import { SCREENS } from './seo';
 import type { CardAsk, Format } from './store';
-import type { FactKind, Mode, Section } from './types';
+import type { FactKind, FlagGame, Mode, Section } from './types';
 
 /** What the modes of a section are gathered by in its menu. */
 export type ModeGroup = 'study' | 'map' | 'shape' | 'links' | 'facts' | 'figures' | 'words';
@@ -744,3 +744,19 @@ export function modeNameIn(section: Section, mode: Mode): string {
   return MODES[section].find((m) => m.id === mode)?.name ?? MODE_NAME[mode];
 }
 export const SECTIONS: Record<Section, SectionInfo> = lazy(SECTION_IDS, sectionInfo);
+
+/**
+ * The games of the section «Banderas», which are not modes of a section with a map. Only their names are
+ * here, for what tells of a game played (the first page, the progress): what each is and how it is played
+ * comes with the section itself (lib/flagGames.ts).
+ */
+export const FLAG_GAME_IDS: readonly FlagGame[] = ['flag-whose', 'flag-pick', 'flag-alike', 'flag-reveal'];
+export const flagGameName = (game: FlagGame): string =>
+  game === 'flag-whose' ? L('¿De dónde es?', 'Whose flag?') : game === 'flag-pick' ? L('¿Cuál es su bandera?', 'Which flag?') : game === 'flag-alike' ? L('Casi iguales', 'Look-alikes') : L('Poco a poco', 'Bit by bit');
+const isFlagGame = (mode: string): mode is FlagGame => (FLAG_GAME_IDS as readonly string[]).includes(mode);
+
+/** What a game that was played is called, whatever section it is of; a game this version does not know goes by nothing. */
+export function playedName(section: Section | 'flags', mode: Mode | FlagGame): string {
+  if (isFlagGame(mode)) return flagGameName(mode);
+  return section !== 'flags' && Object.hasOwn(SECTIONS, section) ? modeNameIn(section, mode) : (MODE_NAME[mode] ?? '');
+}

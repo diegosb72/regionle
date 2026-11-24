@@ -93,7 +93,8 @@ describe('the pages of the gallery', () => {
   });
 
   it('writes the address of a page, which reads back as the same page', () => {
-    expect(flagsRest({ tab: 'countries' })).toBe('');
+    // Every page has its word, the first one too: `banderas` alone is where the games are chosen.
+    expect(flagsRest({ tab: 'countries' })).toBe('paises');
     expect(flagsRest({ tab: 'regions' })).toBe('regiones');
     expect(flagsRest({ tab: 'regions', country: 'JP' })).toBe('regiones/JP');
     expect(flagsRest({ tab: 'cities' })).toBe('ciudades');
@@ -131,17 +132,17 @@ describe('the flags as the gallery shows them', () => {
   it('says where each one is, and shows a heavy drawing small by its picture', () => {
     const cards = regionFlags(file, 'ES', '/x/');
     expect(cards.map((c) => c.key)).toEqual(['region:ES-AN', 'region:ES-H', 'region:ES-BA']);
-    expect(cards[0]).toEqual({ key: 'region:ES-AN', kind: 'region', id: 'ES-AN', country: 'ES', name: 'Andalucía', level: 1, src: '/x/flags/commons/0123456789.svg', small: '/x/flags/commons/0123456789.svg', file: '0123456789.svg', ratio: 1.5 });
+    expect(cards[0]).toEqual({ key: 'region:ES-AN', kind: 'region', id: 'ES-AN', country: 'ES', name: 'Andalucía', alt: 'Andalusia', level: 1, src: '/x/flags/commons/0123456789.svg', small: '/x/flags/commons/0123456789.svg', file: '0123456789.svg', ratio: 1.5 });
     expect(cards[1]).toMatchObject({ src: '/x/flags/commons/abcdefabcd.svg', small: '/x/flags/commons/9876543210.webp', file: 'abcdefabcd.svg' });
     expect(cards[2]).toMatchObject({ src: '/x/flags/commons/1111111111.webp', small: '/x/flags/commons/1111111111.webp' });
     expect(regionFlags(file, 'ZZ')).toEqual([]);
-    expect(capitalFlags(file, '/x/')).toEqual([{ key: 'capital:cj64n3d', kind: 'capital', id: 'cj64n3d', country: 'IT', name: 'Roma', src: '/x/flags/commons/3333333333.svg', small: '/x/flags/commons/3333333333.svg', file: '3333333333.svg', ratio: 1.5 }]);
+    expect(capitalFlags(file, '/x/')).toEqual([{ key: 'capital:cj64n3d', kind: 'capital', id: 'cj64n3d', country: 'IT', name: 'Roma', alt: 'Rome', src: '/x/flags/commons/3333333333.svg', small: '/x/flags/commons/3333333333.svg', file: '3333333333.svg', ratio: 1.5 }]);
     expect(flagSrc('0123456789.svg', './')).toBe('./flags/commons/0123456789.svg');
   });
 
   it('shows the cities of a country, or those of them all, and counts them with its capitals', () => {
     expect(cityFlags(file, 'IT', '/x/').map((c) => c.key)).toEqual(['city:c1', 'city:c2']);
-    expect(cityFlags(file, 'IT', '/x/')[1]).toEqual({ key: 'city:c2', kind: 'city', id: 'c2', country: 'IT', name: 'Turín', src: '/x/flags/commons/5555555555.svg', small: '/x/flags/commons/5555555550.webp', file: '5555555555.svg', ratio: 1.5 });
+    expect(cityFlags(file, 'IT', '/x/')[1]).toEqual({ key: 'city:c2', kind: 'city', id: 'c2', country: 'IT', name: 'Turín', alt: 'Turin', src: '/x/flags/commons/5555555555.svg', small: '/x/flags/commons/5555555550.webp', file: '5555555555.svg', ratio: 1.5 });
     expect(cityFlags(file).map((c) => c.id).sort()).toEqual(['c1', 'c2', 'c3']);
     expect(cityFlags(file, 'ZZ')).toEqual([]);
     expect([...cityCounts(file)].sort()).toEqual([['ES', 1], ['IT', 3]]);
@@ -156,7 +157,7 @@ describe('the flags as the gallery shows them', () => {
     expect(past.map((c) => c.key)).toEqual(INDEX.countries.flatMap((c) => (file.past?.[c.id] ?? []).map((row) => `past:${c.id}:${row[0]}`)));
     expect(past.find((c) => c.file === '7777777777.svg')).toEqual({ key: 'past:ES:7777777777.svg', kind: 'past', id: 'ES', country: 'ES', name: 'España', years: [1931, 1939], src: '/x/flags/commons/7777777777.svg', small: '/x/flags/commons/7777777777.svg', file: '7777777777.svg', ratio: 1.5 });
     expect(past.find((c) => c.file === '8888888888.svg')?.small).toBe('/x/flags/commons/8888888880.webp');
-    expect(goneFlags(file, '/x/')).toEqual([{ key: 'gone:Q15180', kind: 'gone', id: 'Q15180', country: '', name: 'Unión Soviética', years: [1922, 1991], src: '/x/flags/commons/aaaaaaaaaa.svg', small: '/x/flags/commons/aaaaaaaaaa.svg', file: 'aaaaaaaaaa.svg', ratio: 2 }]);
+    expect(goneFlags(file, '/x/')).toEqual([{ key: 'gone:Q15180', kind: 'gone', id: 'Q15180', country: '', name: 'Unión Soviética', alt: 'Soviet Union', years: [1922, 1991], src: '/x/flags/commons/aaaaaaaaaa.svg', small: '/x/flags/commons/aaaaaaaaaa.svg', file: 'aaaaaaaaaa.svg', ratio: 2 }]);
     expect(pastFlags({ v: 1, regions: {}, capitals: [] }, INDEX)).toEqual([]);
     expect(goneFlags({ v: 1, regions: {}, capitals: [] })).toEqual([]);
   });
@@ -176,7 +177,7 @@ describe('the flags as the gallery shows them', () => {
   });
 
   it('shows the flags of organisations and of peoples, and the signals with what each says', () => {
-    expect(namedFlags(file, 'organisation', '/x/')).toEqual([{ key: 'organisation:Q458', kind: 'organisation', id: 'Q458', country: '', name: 'Unión Europea', src: '/x/flags/commons/bbbbbbbbbb.svg', small: '/x/flags/commons/bbbbbbbbbb.svg', file: 'bbbbbbbbbb.svg', ratio: 1.5 }]);
+    expect(namedFlags(file, 'organisation', '/x/')).toEqual([{ key: 'organisation:Q458', kind: 'organisation', id: 'Q458', country: '', name: 'Unión Europea', alt: 'European Union', src: '/x/flags/commons/bbbbbbbbbb.svg', small: '/x/flags/commons/bbbbbbbbbb.svg', file: 'bbbbbbbbbb.svg', ratio: 1.5 }]);
     expect(namedFlags(file, 'people')[0]).toMatchObject({ key: 'people:Q48199', kind: 'people', name: 'Samis' });
     const signals = signalFlags(file, '/x/');
     expect(signals[0]).toEqual({ key: 'signal:ics-a', kind: 'signal', id: 'ics-a', country: '', name: 'A · Alfa', group: 'sea', means: 'Tengo un buzo sumergido', src: '/x/flags/commons/dddddddddd.svg', small: '/x/flags/commons/dddddddddd.svg', file: 'dddddddddd.svg', ratio: 1 });
@@ -207,7 +208,7 @@ describe('the flags as the gallery shows them', () => {
     expect(cards.length).toBe(INDEX.countries.filter((c) => c.fl).length);
     expect(cards.length).toBeGreaterThan(240);
     const spain = cards.find((c) => c.id === 'ES')!;
-    expect(spain).toEqual({ key: 'country:ES', kind: 'country', id: 'ES', country: 'ES', name: 'España', src: '/x/flags/es.svg', small: '/x/flags/es.svg', ratio: 4 / 3 });
+    expect(spain).toEqual({ key: 'country:ES', kind: 'country', id: 'ES', country: 'ES', name: 'España', alt: 'Spain', src: '/x/flags/es.svg', small: '/x/flags/es.svg', ratio: 4 / 3 });
     setLang('en');
     expect(countryFlags(INDEX).find((c) => c.id === 'ES')!.name).toBe('Spain');
   });
