@@ -7,7 +7,7 @@ import { Suspense, lazy, useEffect, useState } from 'react';
 import { L } from '../lib/i18n';
 import type { Mode, Section } from '../lib/types';
 import { ErrorBoundary } from './ErrorBoundary';
-import type { HelpProps } from './HelpDialog';
+import type { HelpProps, OwnHelp } from './HelpDialog';
 
 const HelpDialog = lazy(() => import('./HelpDialog').then((m) => ({ default: m.HelpDialog })));
 
@@ -32,7 +32,7 @@ export function HelpPanel(props: HelpProps) {
 }
 
 /** What opens it where a game is chosen: a link at the end of what the game is, in the same line. */
-export function HelpButton({ mode, section, rules }: { mode: Mode; section: Section; rules?: string }) {
+export function HelpButton({ mode, section, rules, own }: { mode?: Mode; section?: Section; rules?: string; own?: OwnHelp }) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -40,7 +40,7 @@ export function HelpButton({ mode, section, rules }: { mode: Mode; section: Sect
         <CircleHelp size={14} aria-hidden="true" />
         {L('Cómo se juega', 'How to play')}
       </button>
-      {open && <HelpPanel mode={mode} section={section} rules={rules} onClose={() => setOpen(false)} />}
+      {open && <HelpPanel mode={mode} section={section} own={own} rules={rules} onClose={() => setOpen(false)} />}
     </>
   );
 }

@@ -10,7 +10,7 @@ import { countriesOf, describeMap, type MapSpec } from '../lib/describe';
 import { commonPlace, type World } from '../lib/world';
 import { metricNoun, metricOrder } from '../lib/metricNames';
 import { L, getLang } from '../lib/i18n';
-import { MODES, SECTIONS, SECTION_IDS, cardAskName, factName, formatName, modeNameIn, routeRuleName } from '../lib/modes';
+import { FLAG_GAME_IDS, MODES, SECTIONS, SECTION_IDS, cardAskName, factName, formatName, flagGameName, modeNameIn, playedName, routeRuleName } from '../lib/modes';
 import { recentKey, type Recent } from '../lib/recent';
 import { NOT_GAMES } from '../lib/rules';
 import { go, inGame } from '../lib/router';
@@ -56,8 +56,8 @@ function Welcome() {
           <h3>{L('Elige un mapa', 'Choose a map')}</h3>
           <p>
             {L(
-              'Arriba tienes las cinco secciones: regiones, países, ciudades, geografía física y cifras. Dentro de cada una eliges los países que quieras, de uno solo al mundo entero.',
-              'The five sections are at the top: regions, countries, cities, physical geography and figures. Inside each one you choose the countries you want, from a single one to the whole world.',
+              'Arriba tienes las secciones: regiones, países, ciudades, geografía física, cifras y banderas. Dentro de cada una eliges con qué juegas, de un solo país al mundo entero.',
+              'The sections are at the top: regions, countries, cities, physical geography, figures and flags. Inside each one you choose what you play with, from a single country to the whole world.',
             )}
           </p>
         </li>
@@ -327,8 +327,8 @@ export function Home({ world }: { world: World }) {
     return {
       countries: cs.length,
       units: cs.reduce((n, c) => n + (c.lv[c.lv.length - 1]?.n ?? 0), 0),
-      // The sheet to print is in the menus and is not a way to play.
-      modes: new Set(SECTION_IDS.flatMap((s) => MODES[s].map((m) => m.id)).filter((id) => !NOT_GAMES.includes(id))).size,
+      // The sheet to print is in the menus and is not a way to play. The games of the flags are no modes of a map, and are games.
+      modes: new Set(SECTION_IDS.flatMap((s) => MODES[s].map((m) => m.id)).filter((id) => !NOT_GAMES.includes(id))).size + FLAG_GAME_IDS.length,
     };
   }, [world]);
 
@@ -452,17 +452,21 @@ export function Home({ world }: { world: World }) {
             </a>
           );
         })}
-        {/* The flags are not played yet: their card opens the gallery. */}
+        {/* The flags are a section with no map: its card opens where its games are chosen. */}
         <a className="scard" href={screenPage(FLAGS_PATH, getLang())} onClick={inGame(FLAGS_PATH)}>
           <span className="scard-n">{String(SECTION_IDS.length + 1).padStart(2, '0')}</span>
           <h2>{L('Banderas', 'Flags')}</h2>
-          <p>{L('Las banderas de los países, de sus regiones y de sus ciudades, las de otros tiempos y las que son señales, para verlas y repasarlas. Sus juegos están en camino.', 'The flags of the countries, of their regions and of their cities, those of other times and those that are signals, to look at and go over. Their games are on the way.')}</p>
+          <p>
+            {L(
+              'Más de cuatro mil banderas para jugar y para verlas: las de los países, las de sus regiones y sus ciudades, las de países que ya no existen y las del código de señales.',
+              'More than four thousand flags to play with and to look at: those of the countries, of their regions and their cities, of countries that are no more and those of the code of signals.',
+            )}
+          </p>
           <ul className="scard-modes">
-            <li>{L('Países', 'Countries')}</li>
-            <li>{L('Regiones', 'Regions')}</li>
-            <li>{L('Ciudades', 'Cities')}</li>
-            <li>{L('Históricas', 'Historical')}</li>
-            <li>{L('Señales', 'Signals')}</li>
+            {FLAG_GAME_IDS.map((id) => (
+              <li key={id}>{flagGameName(id)}</li>
+            ))}
+            <li>{L('Galería', 'Gallery')}</li>
           </ul>
           <span className="scard-flags" aria-hidden="true">
             {FLAG_SAMPLE.map((c) => (
@@ -470,7 +474,7 @@ export function Home({ world }: { world: World }) {
             ))}
           </span>
           <span className="scard-go">
-            {L('Ver las banderas', 'See the flags')}
+            {L('Elegir juego', 'Choose a game')}
             <ArrowRight size={16} aria-hidden="true" />
           </span>
         </a>
@@ -558,7 +562,7 @@ export function Home({ world }: { world: World }) {
       )}
       {last && (
         <p className="home-last">
-          {L('Última partida', 'Last game')}: <b>{modeNameIn(last.section, last.mode)}</b> · {last.label} · {L(`${last.ok} de ${last.total} a la primera`, `${last.ok} of ${last.total} first time`)}. <a href="#/progreso">{L('Ver tu progreso', 'See your progress')}</a>
+          {L('Última partida', 'Last game')}: <b>{playedName(last.section, last.mode)}</b> · {last.label} · {L(`${last.ok} de ${last.total} a la primera`, `${last.ok} of ${last.total} first time`)}. <a href="#/progreso">{L('Ver tu progreso', 'See your progress')}</a>
         </p>
       )}
     </div>

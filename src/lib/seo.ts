@@ -160,12 +160,12 @@ export const SCREENS: Record<ScreenId, Record<SeoLang, ScreenText>> = {
     es: {
       file: 'banderas',
       name: 'Banderas del mundo',
-      description: 'Más de cuatro mil banderas: las de los países, sus regiones y sus ciudades, las de países que ya no existen, las de organizaciones y pueblos y las señales.',
+      description: 'Juega con más de cuatro mil banderas: las de los países, sus regiones y sus ciudades, las de países que ya no existen, organizaciones, pueblos y señales.',
     },
     en: {
       file: 'flags',
       name: 'Flags of the world',
-      description: 'More than four thousand flags: those of the countries, their regions and their cities, of countries that are no more, of organisations and peoples, and signals.',
+      description: 'Play with more than four thousand flags: those of the countries, their regions and cities, of countries that are no more, organisations, peoples and signals.',
     },
   },
   reto: {

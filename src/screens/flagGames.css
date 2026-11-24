@@ -1,0 +1,70 @@
+/* Where the games of «Banderas» are chosen (FlagGames.tsx). The frame is that of the screen of a section (styles.css, `.setup`). */
+
+.fgm-gallery,
+.fgm-see {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.fgm-pick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+
+/* The flags that are chosen, to see what the game is going to be played with. */
+.fgm-set {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  padding: 14px 16px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--card);
+}
+.fgm-set-name {
+  color: var(--ink-2);
+  font-size: calc(15px * var(--fs));
+}
+.fgm-set-name strong {
+  color: var(--ink);
+}
+.fgm-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.fgm-strip li {
+  display: flex;
+}
+.fgm-strip img {
+  display: block;
+  width: auto;
+  height: 34px;
+  max-width: 76px;
+  border-radius: 3px;
+  background: var(--bg-2);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 16%, transparent);
+}
+.fgm-more {
+  align-items: center;
+  padding: 0 4px;
+  color: var(--ink-3);
+  font-size: calc(13.5px * var(--fs));
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.fgm-see {
+  font-size: calc(14px * var(--fs));
+}
+
+@media (max-width: 560px) {
+  .fgm-strip img {
+    height: 28px;
+    max-width: 62px;
+  }
+}

@@ -1,0 +1,285 @@
+/* The games of the section «Banderas» (FlagQuiz.tsx): a flag and its name, a name and four flags. */
+
+.fq {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+}
+.fq .kicker {
+  margin-bottom: -6px;
+}
+
+/* The flag that is asked: as tall as there is room for, as wide as its shape makes it (--r, width over height). */
+.fq-stage {
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+}
+.fq-flag {
+  --fq-h: 250px;
+  position: relative;
+  width: min(100%, calc(var(--fq-h) * var(--r, 1.5)));
+  aspect-ratio: var(--r, 1.5);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-2);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--ink) 16%, transparent),
+    var(--shadow-2);
+}
+.fq-flag img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* «Poco a poco»: the pieces over the flag. Each is a hair wider than its cell, so that no line of the flag shows between two. */
+.fq-cover {
+  position: absolute;
+  inset: 0;
+  display: grid;
+}
+.fq-cover i {
+  background: var(--fq-cover, #23383c);
+  box-shadow:
+    0 0 0 0.6px var(--fq-cover, #23383c),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.09);
+  transition: opacity 0.22s;
+}
+.fq-cover i.off {
+  opacity: 0;
+  box-shadow: none;
+}
+:root[data-theme='dark'] .fq-cover i {
+  --fq-cover: #0f1c1f;
+}
+.fq-uncover {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 12px;
+}
+.fq-worth {
+  color: var(--ink-2);
+  font-size: calc(14px * var(--fs));
+  font-variant-numeric: tabular-nums;
+}
+
+/* The name that is asked, over the four flags. */
+.fq-name {
+  display: grid;
+  gap: 4px;
+  text-wrap: balance;
+}
+.fq-name small {
+  color: var(--ink-3);
+  font: 500 calc(15px * var(--fs)) / 1.3 var(--sans);
+}
+
+.fq-choices {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.fq-choices .choice span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.fq-type {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+.fq-type > :first-child {
+  width: 100%;
+}
+.fq-stray {
+  color: var(--ink-2);
+  font-size: calc(14px * var(--fs));
+}
+
+/* Four flags to choose from, two by two, each in a box of four by three whatever its shape. */
+.fq-opts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.fq-opt {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px 12px 10px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-2);
+  background: var(--card);
+  text-align: left;
+  transition:
+    border-color 0.12s,
+    background-color 0.12s;
+}
+.fq-opt:hover:not(:disabled) {
+  border-color: var(--ink-3);
+}
+.fq-opt:disabled {
+  cursor: default;
+}
+.fq-opt.right {
+  border-color: var(--ok);
+  background: var(--ok-soft);
+  box-shadow: inset 0 0 0 1px var(--ok);
+}
+.fq-opt.wrong {
+  border-color: var(--bad);
+  background: var(--bad-soft);
+  box-shadow: inset 0 0 0 1px var(--bad);
+}
+.fq-opt-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  max-height: 168px;
+  margin: 0 auto;
+}
+.fq-opt-box img,
+.fq-thumb img {
+  display: block;
+  flex: none;
+  /* As the gallery draws them: across the box when the flag is wider than it, from top to bottom when it is narrower. */
+  width: min(100%, calc(100% * var(--r, 1.5) * 0.75));
+  height: auto;
+  aspect-ratio: auto var(--r, 1.5);
+  border-radius: 3px;
+  background: var(--bg-2);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 16%, transparent);
+}
+/* The box is as wide as four thirds of its height: without a width of its own, a short box would let the flag out. */
+.fq-opt-box {
+  max-width: calc(168px * 4 / 3);
+}
+.fq-cap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 26px;
+  font-size: calc(14.5px * var(--fs));
+  font-weight: 600;
+  line-height: 1.2;
+}
+.fq-cap span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.fq-cap kbd {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--line-2);
+  border-radius: 7px;
+  background: var(--bg);
+  color: var(--ink-3);
+  font: 700 calc(12px * var(--fs)) var(--sans);
+}
+
+/* A picture that did not come: out of sight, and said where the answer would be given, with the way to ask for it again. */
+.fq img.lost {
+  visibility: hidden;
+}
+.fq-lost {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--bad);
+  border-radius: var(--r-2);
+  background: var(--bad-soft);
+  font-size: calc(14.5px * var(--fs));
+  line-height: 1.35;
+}
+
+.fq-why {
+  color: var(--ink-2);
+  font-size: calc(14.5px * var(--fs));
+  line-height: 1.4;
+}
+.fq-mix {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+}
+/* A flag beside a line of text. */
+.fq-thumb {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 48px;
+}
+.fq-thumb-sm {
+  width: 36px;
+  height: 27px;
+}
+
+/* The result: each flag that was asked, with what it was taken for. */
+.fq-mark {
+  font-size: calc(15px * var(--fs));
+}
+.fq .results-group .fq-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.fq-row {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.fq-row b {
+  overflow-wrap: anywhere;
+}
+.fq-row small {
+  color: var(--ink-3);
+  font-size: calc(13px * var(--fs));
+}
+.fq-took {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (max-width: 560px) {
+  .fq-flag {
+    --fq-h: 190px;
+  }
+  .fq-choices {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .fq-opts {
+    gap: 8px;
+  }
+  .fq-opt {
+    padding: 8px 8px 6px;
+  }
+}
+@media (max-height: 640px) {
+  .fq-flag {
+    --fq-h: 170px;
+  }
+  .fq-opt-box {
+    max-height: 120px;
+    max-width: 160px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fq-cover i {
+    transition: none;
+  }
+}

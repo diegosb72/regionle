@@ -85,6 +85,8 @@ export interface FlagCard {
   /** The country it is, is in or was of; none for what is no country's. */
   country: string;
   name: string;
+  /** Its name in the other language, where it is another: an answer typed in either is right. */
+  alt?: string;
   /** The years it flew between (a flag of other times) or its country lasted between (one that is no more): 0 for one that is not known. */
   years?: [from: number, to: number];
   /** Signals: the code it is of. */
@@ -104,21 +106,26 @@ export interface FlagCard {
 }
 
 const named = (es: string, en: string): string => (getLang() === 'en' && en ? en : es);
+/** The name in the language that is not on screen, where there is one and it is another. */
+const other = (es: string, en: string): { alt?: string } => {
+  const alt = getLang() === 'en' ? es : en;
+  return alt && alt !== named(es, en) ? { alt } : {};
+};
 
 /** The flags of the divisions of a country, the coarser levels first. */
 export function regionFlags(file: FlagsFile, country: string, base?: string): FlagCard[] {
-  return (file.regions[country] ?? []).map(([id, level, es, en, name, ratio, small]) => ({ key: `region:${id}`, kind: 'region', id, country, name: named(es, en), level, src: flagSrc(name, base), small: flagSrc(small ?? name, base), file: name, ratio }));
+  return (file.regions[country] ?? []).map(([id, level, es, en, name, ratio, small]) => ({ key: `region:${id}`, kind: 'region', id, country, name: named(es, en), ...other(es, en), level, src: flagSrc(name, base), small: flagSrc(small ?? name, base), file: name, ratio }));
 }
 
 /** The flags of the capitals. */
 export function capitalFlags(file: FlagsFile, base?: string): FlagCard[] {
-  return file.capitals.map(([id, country, es, en, name, ratio, small]) => ({ key: `capital:${id}`, kind: 'capital', id, country, name: named(es, en), src: flagSrc(name, base), small: flagSrc(small ?? name, base), file: name, ratio }));
+  return file.capitals.map(([id, country, es, en, name, ratio, small]) => ({ key: `capital:${id}`, kind: 'capital', id, country, name: named(es, en), ...other(es, en), src: flagSrc(name, base), small: flagSrc(small ?? name, base), file: name, ratio }));
 }
 
 /** The flags of the cities of a country that are the capital of none, or of every country with none named. */
 export function cityFlags(file: FlagsFile, country?: string, base?: string): FlagCard[] {
   const of = (id: string): FlagCard[] =>
-    (file.cities?.[id] ?? []).map(([city, es, en, name, ratio, small]) => ({ key: `city:${city}`, kind: 'city' as const, id: city, country: id, name: named(es, en), src: flagSrc(name, base), small: flagSrc(small ?? name, base), file: name, ratio }));
+    (file.cities?.[id] ?? []).map(([city, es, en, name, ratio, small]) => ({ key: `city:${city}`, kind: 'city' as const, id: city, country: id, name: named(es, en), ...other(es, en), src: flagSrc(name, base), small: flagSrc(small ?? name, base), file: name, ratio }));
   return country ? of(country) : Object.keys(file.cities ?? {}).flatMap(of);
 }
 
@@ -150,19 +157,19 @@ export function pastFlags(file: FlagsFile, index: Index, base?: string): FlagCar
 
 /** The flags of the countries that are no more. */
 export function goneFlags(file: FlagsFile, base?: string): FlagCard[] {
-  return (file.gone ?? []).map(([id, es, en, name, ratio, from, to, small]) => ({ key: `gone:${id}`, kind: 'gone', id, country: '', name: named(es, en), years: [from, to], src: flagSrc(name, base), small: flagSrc(small ?? name, base), file: name, ratio }));
+  return (file.gone ?? []).map(([id, es, en, name, ratio, from, to, small]) => ({ key: `gone:${id}`, kind: 'gone', id, country: '', name: named(es, en), ...other(es, en), years: [from, to], src: flagSrc(name, base), small: flagSrc(small ?? name, base), file: name, ratio }));
 }
 
 /** The flags of the organisations, or those of the peoples. */
 export function namedFlags(file: FlagsFile, kind: 'organisation' | 'people', base?: string): FlagCard[] {
-  return ((kind === 'organisation' ? file.organisations : file.peoples) ?? []).map(([id, es, en, name, ratio, small]) => ({ key: `${kind}:${id}`, kind, id, country: '', name: named(es, en), src: flagSrc(name, base), small: flagSrc(small ?? name, base), file: name, ratio }));
+  return ((kind === 'organisation' ? file.organisations : file.peoples) ?? []).map(([id, es, en, name, ratio, small]) => ({ key: `${kind}:${id}`, kind, id, country: '', name: named(es, en), ...other(es, en), src: flagSrc(name, base), small: flagSrc(small ?? name, base), file: name, ratio }));
 }
 
 /** The flags that are signals, with what each says. */
 export function signalFlags(file: FlagsFile, base?: string): FlagCard[] {
   return (file.signals ?? []).map(([id, group, es, en, name, ratio, small]) => {
     const means = file.means?.[id];
-    return { key: `signal:${id}`, kind: 'signal', id, country: '', name: named(es, en), group, ...(means ? { means: named(means[0], means[1]) } : {}), src: flagSrc(name, base), small: flagSrc(small ?? name, base), file: name, ratio };
+    return { key: `signal:${id}`, kind: 'signal', id, country: '', name: named(es, en), ...other(es, en), group, ...(means ? { means: named(means[0], means[1]) } : {}), src: flagSrc(name, base), small: flagSrc(small ?? name, base), file: name, ratio };
   });
 }
 
@@ -196,7 +203,7 @@ export function flagFiles(file: FlagsFile): Set<string> {
 export function countryFlags(index: Index, base: string = import.meta.env.BASE_URL): FlagCard[] {
   return index.countries
     .filter((c) => c.fl)
-    .map((c) => ({ key: `country:${c.id}`, kind: 'country' as const, id: c.id, country: c.id, name: getLang() === 'en' ? (c.n.en ?? c.n.es) : c.n.es, src: `${base}flags/${c.fl}.svg`, small: `${base}flags/${c.fl}.svg`, ratio: 4 / 3 }));
+    .map((c) => ({ key: `country:${c.id}`, kind: 'country' as const, id: c.id, country: c.id, name: getLang() === 'en' ? (c.n.en ?? c.n.es) : c.n.es, ...other(c.n.es, c.n.en ?? ''), src: `${base}flags/${c.fl}.svg`, small: `${base}flags/${c.fl}.svg`, ratio: 4 / 3 }));
 }
 
 /** How many flags of divisions each country has, by level. */
@@ -251,7 +258,7 @@ const WORD_TAB: Record<string, FlagsPage['tab']> = {
   others: 'others',
 };
 
-/** The page that what follows `banderas/` in an address names: `regiones/ES`. With nothing, or nothing known, the countries. */
+/** The page of the gallery that what follows `banderas/` in an address names: `regiones/ES`. With nothing known, the countries. */
 export function flagsPageOf(rest: string): FlagsPage {
   const [word = '', code = ''] = rest.split('/');
   const tab = WORD_TAB[word.toLowerCase()] ?? 'countries';
@@ -259,8 +266,10 @@ export function flagsPageOf(rest: string): FlagsPage {
   return /^[A-Za-z][A-Za-z0-9]$/.test(code) ? { tab, country: code.toUpperCase() } : { tab };
 }
 
-/** What follows `banderas/` in the address of a page; nothing for the first one. */
+/**
+ * What follows `banderas/` in the address of a page of the gallery. Every page has its word, the first
+ * one too: `banderas` alone is where the games of the section are chosen (lib/routes.ts, `flagsScreen`).
+ */
 export function flagsRest(page: FlagsPage): string {
-  if (page.tab === 'countries') return '';
   return (page.tab === 'regions' || page.tab === 'cities') && page.country ? `${TAB_WORD[page.tab]}/${page.country}` : TAB_WORD[page.tab];
 }

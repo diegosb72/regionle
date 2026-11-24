@@ -15,6 +15,28 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.44.0',
+    date: '2026-11-24',
+    es: [
+      'Banderas ya tiene juegos: cuatro para empezar, con las más de cuatro mil banderas de la galería. Eliges con cuáles juegas y a qué.',
+      '¿De dónde es?: sale una bandera y dices de dónde es, entre cuatro nombres o escribiéndolo. ¿Cuál es su bandera?: sale un nombre y eliges entre cuatro banderas.',
+      'Casi iguales, el difícil: cada bandera sale con las tres que más se le parecen de su grupo. Irlanda, con Costa de Marfil, Italia y México.',
+      'Poco a poco: la bandera sale tapada y la destapas pieza a pieza. Cuanto antes digas de dónde es, más vale: de 12 puntos con una pieza a 1 con la bandera entera.',
+      'Con los países (todos o un continente), los territorios, las regiones o las ciudades de un país, las capitales, los países que ya no existen y las señales.',
+      'Al acabar ves cada bandera con lo que dijiste de ella y puedes repasar solo las falladas. Cada juego guarda su marca, y las partidas salen en Progreso.',
+      'La galería sigue ahí, en «Ver la galería de banderas», y desde cada página suya «Jugar con estas» lleva a los juegos con esas banderas ya elegidas.',
+    ],
+    en: [
+      'Flags now has games: four to begin with, with the more than four thousand flags of the gallery. You choose which ones you play with, and what.',
+      'Whose flag?: a flag comes up and you say whose it is, from four names or by typing it. Which flag?: a name comes up and you pick among four flags.',
+      'Look-alikes, the hard one: each flag comes up with the three most like it in its group. Ireland, with Ivory Coast, Italy and Mexico.',
+      'Bit by bit: the flag comes covered and you uncover it piece by piece. The sooner you say whose it is, the more it is worth: from 12 points down to 1.',
+      'With the countries (all or one continent), the territories, the regions or the cities of a country, the capitals, countries that are no more and the signals.',
+      'At the end you see each flag with what you said of it, and can go over the missed ones alone. Each game keeps its best mark, and the games show in Progress.',
+      'The gallery is still there, under “See the gallery of flags”, and from each of its pages “Play with these” takes you to the games with those flags chosen.',
+    ],
+  },
+  {
     version: '1.43.0',
     date: '2026-11-24',
     es: [

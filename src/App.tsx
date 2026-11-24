@@ -13,7 +13,7 @@ import { applyMeta } from './lib/pageMeta';
 import { PALETTES, applyPalette, paletteHint, paletteName } from './lib/palette';
 import { CONTRAST_QUERY, TEXT_SIZES, applyReading, textSizeName } from './lib/reading';
 import { followLang, go, inGame, useRoute } from './lib/router';
-import { ABOUT_PATH, DAILY_PATH, FLAGS_PATH, PATHS, PROGRESS_PATH, SETTINGS_PATH, routeOf, screenPage } from './lib/routes';
+import { ABOUT_PATH, DAILY_PATH, FLAGS_PATH, PATHS, PROGRESS_PATH, SETTINGS_PATH, flagsScreen, routeOf, screenPage } from './lib/routes';
 import { shortcutOf } from './lib/shortcuts';
 import { useStore, type Theme } from './lib/store';
 import { cx, today } from './lib/text';
@@ -33,11 +33,13 @@ const Task = lazyScreen(() => import('./screens/Task').then((m) => m.Task));
 const Receipt = lazyScreen(() => import('./screens/Task').then((m) => m.Receipt));
 const Bingo = lazyScreen(() => import('./screens/Bingo').then((m) => m.Bingo));
 const Flags = lazyScreen(() => import('./screens/Flags').then((m) => m.Flags));
+const FlagGames = lazyScreen(() => import('./screens/FlagGames').then((m) => m.FlagGames));
+const FlagPlay = lazyScreen(() => import('./screens/FlagPlay').then((m) => m.FlagPlay));
 const Progress = lazyScreen(() => import('./screens/Progress').then((m) => m.Progress));
 const Settings = lazyScreen(() => import('./screens/Settings').then((m) => m.Settings));
 const About = lazyScreen(() => import('./screens/About').then((m) => m.About));
 /** In the order they are most likely to be asked for. */
-const SCREENS = [Setup, Play, Daily, Progress, Settings, Duel, ListLink, About, Flags];
+const SCREENS = [Setup, Play, Daily, Progress, Settings, Duel, ListLink, About, FlagGames, Flags];
 /** The panel of keyboard shortcuts: asked for with "?" by few, so it comes when it is asked for. */
 const KeysDialog = lazyScreen(() => import('./components/KeyHelp').then((m) => m.KeysDialog));
 /** The achievements are worked out once the page is drawn: none is earned before something is played. */
@@ -232,7 +234,9 @@ export function App() {
 
   // Keys that work on any screen. They stand aside while something is typed, while a map holds the keyboard
   // and while a panel is open, and they do not take anyone out of a game.
-  const playing = route.kind === 'play' || route.kind === 'daily' || embedded;
+  /** Which screen of the section of the flags is open: where its games are chosen, one of them, or the gallery. */
+  const flagsAt = route.kind === 'flags' ? flagsScreen(route.rest) : null;
+  const playing = route.kind === 'play' || route.kind === 'daily' || flagsAt === 'play' || embedded;
   const [help, setHelp] = useState(false);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -275,7 +279,7 @@ export function App() {
   const ThemeIcon = THEME_ICON[theme];
   // The whole window is the game: no header, no footer.
   // In a box of another page that is so from the first moment, while the atlas is on its way too.
-  const immersive = embedded || ((route.kind === 'play' || route.kind === 'daily') && world != null && !error);
+  const immersive = embedded || ((route.kind === 'play' || route.kind === 'daily' || flagsAt === 'play') && world != null && !error);
 
   let page;
   if (route.kind === 'unknown') page = <NotFound path={route.path} />;
@@ -299,7 +303,8 @@ export function App() {
   else if (route.kind === 'bingo') page = <Bingo key={route.rest} rest={route.rest} world={world} />;
   else if (route.kind === 'embed') page = <Embed key={route.rest} rest={route.rest} world={world} />;
   else if (section) page = <Setup key={section} section={section} world={world} link={route.kind === 'section' ? route.link : undefined} />;
-  else if (route.kind === 'flags') page = <Flags world={world} rest={route.rest} />;
+  else if (route.kind === 'flags')
+    page = flagsAt === 'play' ? <FlagPlay key={route.rest} world={world} rest={route.rest} /> : flagsAt === 'games' ? <FlagGames world={world} rest={route.rest} /> : <Flags world={world} rest={route.rest} />;
   else if (progress) page = <Progress world={world} />;
   else if (route.kind === 'settings') page = <Settings world={world} path={route.path} />;
   // The same wait as for the atlas, a moment longer where the page has cards whose code comes apart.
@@ -309,8 +314,8 @@ export function App() {
   // mounted afresh when the unit of the distances changes: every text that tells one is read again.
   // A link that a screen applies and then swaps for its plain address (a map and a game, somebody's result
   // of a daily challenge) is the same screen before and after: it must not be mounted twice.
-  // (The gallery of flags is one screen whichever of its pages is open.)
-  const screen = route.kind === 'settings' ? SETTINGS_PATH : route.kind === 'flags' ? FLAGS_PATH : route.kind === 'section' ? PATHS[route.section] : route.kind === 'daily' ? `${DAILY_PATH}/${route.date}` : path;
+  // (The gallery of flags is one screen whichever of its pages is open, and so is where its games are chosen.)
+  const screen = route.kind === 'settings' ? SETTINGS_PATH : route.kind === 'flags' ? `${FLAGS_PATH} ${flagsAt}` : route.kind === 'section' ? PATHS[route.section] : route.kind === 'daily' ? `${DAILY_PATH}/${route.date}` : path;
   const guarded = (
     <ErrorBoundary key={`${miles ? 'mi' : 'km'} ${screen}`}>
       <Suspense fallback={<Spinner label={L('Cargando…', 'Loading…')} />}>{page}</Suspense>

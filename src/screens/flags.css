@@ -14,6 +14,10 @@
   flex: 1 1 220px;
   max-width: 360px;
 }
+/* The way to the games, at the end of the bar where there is room for it. */
+.fg-play {
+  margin-left: auto;
+}
 .fg-n {
   margin-left: 7px;
   color: var(--ink-3);
