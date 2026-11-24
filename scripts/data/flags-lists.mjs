@@ -27,6 +27,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { ROOT, branch } from './flags-datos.mjs';
+import { todayTitles } from './flags-names.mjs';
 
 const args = process.argv.slice(2);
 const value = (name) => {
@@ -68,9 +69,10 @@ const GONE = {
     Q215443: 'El Imperio sueco: la bandera de Suecia',
     Q186096: 'El Zarato ruso: de sus banderas solo se sabe la de un barco',
     Q215530: 'El Reino de Irlanda: Wikidata le da el aspa de san Patricio, que no fue su bandera',
-    Q796583: 'El Reino del Congo: una bandera según un viajero del siglo XVII',
+    Q796583: 'El Reino del Congo: una bandera según un misionero del siglo XVII',
     Q729768: 'El Reino zulú: una bandera conjeturada',
     Q627449: 'La dinastía hotaki: una bandera negra lisa',
+    Q696241: 'El Kanato de Kokand: un paño blanco, del que no se sabe más',
     Q838931: 'El Reino de Italia del Sacro Imperio: una cruz, no una bandera suya',
     Q175211: 'El Reino de Germania: un estandarte del siglo XIV',
     Q157070: 'El Condado de Flandes: la bandera que Flandes tiene hoy',
@@ -251,43 +253,8 @@ function lastFlagOf(item) {
   return (preferred ?? untilTheEnd ?? live[0] ?? past[0])?.file ?? null;
 }
 
-/**
- * The names that the flag of a country of today goes by in Commons: «Flag of France.svg», «Flag of the
- * Netherlands.svg». The game takes those flags from elsewhere and does not know their names there: these
- * are the ones that the names of the countries give, and a few that are written another way.
- */
-const TODAY = new Set(
-  [
-    ...INDEX.countries.flatMap((c) => [c.n?.en ?? c.n?.es, ...(c.al ?? [])].filter(Boolean).flatMap((name) => [`Flag of ${name}.svg`, `Flag of the ${name}.svg`])),
-    'Flag of the Czech Republic.svg',
-    "Flag of the People's Republic of China.svg",
-    'Flag of Portugal (official).svg',
-    'Flag of Georgia official.svg',
-    'Flag of Iran (official).svg',
-    'Flag of Belgium (civil).svg',
-    'Flag of the Taliban.svg',
-    'Flag of Switzerland (Pantone).svg',
-    'Flag of Bosnia and Herzegovina.svg',
-    'Flag of the Republic of China.svg',
-    'Flag of Myanmar.svg',
-    'Flag of Cape Verde.svg',
-    'Flag of East Timor.svg',
-    'Flag of Ivory Coast.svg',
-    "Flag of Côte d'Ivoire.svg",
-    'Flag of the Vatican City.svg',
-    'Flag of Macedonia.svg',
-    'Flag of Swaziland.svg',
-    // The same flag under a name that tells its years or its shape.
-    'Flag of Germany (3-2).svg',
-    'Flag of Poland (1928–1980).svg',
-    'Flag of Japan (1870–1999).svg',
-    'Flag of the United Kingdom (1-2).svg',
-    'Flag of the United Kingdom (3-5).svg',
-    'Flag of Austria (1230–1934, 1945–2000).svg',
-    'Flag of Scotland (1542–2003, sky blue).svg',
-    'Flag of Argentina (civil).svg',
-  ].map((title) => title.toLowerCase()),
-);
+/** The names that the flag of a country of today goes by in Commons (flags-names.mjs). */
+const TODAY = todayTitles(INDEX);
 /** The flags that the game already shows of a division or of a capital, by their names in Commons. */
 const SHOWN = new Set(fs.existsSync(path.join(DATA, 'flag-credits.json')) ? Object.values(json(path.join(DATA, 'flag-credits.json')).files ?? {}).map((credit) => String(credit[0]).toLowerCase()) : []);
 const flown = (title) => TODAY.has(String(title).toLowerCase()) || SHOWN.has(String(title).toLowerCase());

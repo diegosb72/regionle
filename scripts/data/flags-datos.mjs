@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
 /** The commit of the branch `datos` that the flags are built from. */
-export const DATOS = { repo: 'diegosb72/regionle', commit: 'c8d5e1a2ea83fa87d93e0b9e37bf6e2648d1e0fa' };
+export const DATOS = { repo: 'diegosb72/regionle', commit: 'c7d83ceb6017b30f78d34fb96e1eb071a5100bc1' };
 
 /** The folder that holds the branch at the pinned commit (downloaded once, and kept), or the one that is given instead. */
 export async function branch(from) {

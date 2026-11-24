@@ -277,6 +277,8 @@ interface Item {
   page?: string;
   past?: Past[];
   file: string;
+  /** What is listed: whether Wikidata prefers the flag it flies to the others. */
+  rank?: string;
   instead?: string;
   from?: string;
   also?: string[];

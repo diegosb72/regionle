@@ -1,14 +1,39 @@
 /**
- * The gallery of flags: those of the countries, which the game has always had, and those of the divisions of
- * the maps and of the capitals (lib/flags.ts), each with who made its file and on what terms it is given.
- * It is what there is of the section «Banderas» until its games are written: a place to look at them all,
- * and to say when one is not right.
+ * The gallery of flags: those of the countries, which the game has always had, and those that come from
+ * Wikimedia Commons (lib/flags.ts) — of the divisions of the maps and of the capitals, of other times, of
+ * organisations and of peoples, and the signals — each with who made its file and on what terms it is
+ * given. It is what there is of the section «Banderas» until its games are written: a place to look at
+ * them all, and to say when one is not right.
  */
 import { ExternalLink, MessageSquareWarning, Search } from 'lucide-react';
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { Dialog } from '../components/Dialog';
-import { Seg, Spinner, capitalise } from '../components/ui';
-import { capitalFlags, commonsPage, countryFlags, flagsPageOf, flagsRest, levelOf, loadFlagCredits, loadFlags, regionCounts, regionFlags, searchFlags, type CreditsFile, type FlagCard, type FlagsFile, type FlagsPage } from '../lib/flags';
+import { Flag, Seg, Spinner, capitalise } from '../components/ui';
+import {
+  capitalFlags,
+  cityCounts,
+  cityFlags,
+  commonsPage,
+  countryFlags,
+  flagFiles,
+  flagsPageOf,
+  flagsRest,
+  goneFlags,
+  levelOf,
+  loadFlagCredits,
+  loadFlags,
+  namedFlags,
+  pastFlags,
+  regionCounts,
+  regionFlags,
+  searchFlags,
+  signalFlags,
+  yearsText,
+  type CreditsFile,
+  type FlagCard,
+  type FlagsFile,
+  type FlagsPage,
+} from '../lib/flags';
 import { L, getLang, nm } from '../lib/i18n';
 import { reportUrl } from '../lib/report';
 import { go } from '../lib/router';
@@ -28,35 +53,56 @@ const shape = (ratio: number): CSSProperties => ({ '--r': String(ratio) }) as CS
 
 const show = (page: FlagsPage): void => go(flagsRest(page) ? `${FLAGS_PATH}/${flagsRest(page)}` : FLAGS_PATH);
 
-function Tile({ card, under, onOpen }: { card: FlagCard; under?: string; onOpen(card: FlagCard): void }) {
+function Tile({ card, name, under, onOpen }: { card: FlagCard; name?: string; under?: string; onOpen(card: FlagCard): void }) {
   return (
     <li>
       <button type="button" className="fg-tile" onClick={() => onOpen(card)}>
         <span className="fg-box">
           <img style={shape(card.ratio)} src={card.small} alt="" loading="lazy" decoding="async" draggable={false} />
         </span>
-        <span className="fg-name">{card.name}</span>
+        <span className="fg-name">{name ?? card.name}</span>
         {under && <small>{under}</small>}
       </button>
     </li>
   );
 }
 
-function Grid({ cards, under, onOpen }: { cards: readonly FlagCard[]; under?: (card: FlagCard) => string | undefined; onOpen(card: FlagCard): void }) {
+/** A grid of flags, each under its name or under what `name` says of it, with what `under` adds. */
+function Grid({ cards, name, under, onOpen }: { cards: readonly FlagCard[]; name?: (card: FlagCard) => string; under?: (card: FlagCard) => string | undefined; onOpen(card: FlagCard): void }) {
   return (
     <ul className="fg-grid">
       {cards.map((card) => (
-        <Tile key={card.key} card={card} under={under?.(card)} onOpen={onOpen} />
+        <Tile key={card.key} card={card} name={name?.(card)} under={under?.(card)} onOpen={onOpen} />
       ))}
     </ul>
   );
 }
 
+/** The codes of signals, in the order they are shown in, with the name of each. */
+const SIGNALS: [group: string, es: string, en: string][] = [
+  ['sea', 'Código internacional de señales', 'International Code of Signals'],
+  ['race', 'Carreras de motor', 'Motor racing'],
+  ['other', 'Otras banderas sin país', 'Other flags of no country'],
+];
+const signalGroup = (group: string | undefined): string => {
+  const found = SIGNALS.find(([id]) => id === group);
+  return found ? L(found[1], found[2]) : '';
+};
+/** When a flag of other times flew, for where its years are its name. */
+const when = (card: FlagCard): string => yearsText(card.years) || L('Fecha desconocida', 'Date unknown');
+
 /** What a flag is of, under its name: «comunidad autónoma · España». */
 function whatOf(card: FlagCard, country: Country | undefined): string {
   const where = country ? nm(country.n) : card.country;
+  const said = (...parts: string[]) => parts.filter(Boolean).join(' · ');
   if (card.kind === 'country') return L('País o territorio', 'Country or territory');
   if (card.kind === 'capital') return `${L('Capital', 'Capital')} · ${where}`;
+  if (card.kind === 'city') return `${L('Ciudad', 'City')} · ${where}`;
+  if (card.kind === 'past') return said(L('Bandera anterior', 'Earlier flag'), where, yearsText(card.years));
+  if (card.kind === 'gone') return said(L('País o territorio que ya no existe', 'Country or territory that is no more'), yearsText(card.years));
+  if (card.kind === 'organisation') return L('Organización', 'Organisation');
+  if (card.kind === 'people') return L('Pueblo, o Estado sin reconocimiento general', 'People, or State without general recognition');
+  if (card.kind === 'signal') return said(L('Señal', 'Signal'), signalGroup(card.group));
   const level = levelOf(country, card.level ?? 0);
   // The name of a level is kept in the singular only in Spanish.
   return `${level ? capitalise(getLang() === 'en' ? level.en : level.sg) : L('División', 'Division')} · ${where}`;
@@ -79,14 +125,21 @@ function Detail({ card, country, onClose }: { card: FlagCard; country: Country |
   }, [card.file]);
   const credit = card.file ? credits?.files[card.file] : undefined;
   const licence = credit ? credits?.licences[credit[2]] : undefined;
-  const item = { id: card.id, name: card.name, kind: card.kind === 'country' ? ('country' as const) : card.kind === 'capital' ? ('city' as const) : ('unit' as const), type: L('bandera', 'flag'), country: country as Country };
+  const item = { id: card.id, name: card.name, kind: card.kind === 'country' ? ('country' as const) : card.kind === 'capital' || card.kind === 'city' ? ('city' as const) : ('unit' as const), type: L('bandera', 'flag'), country: country as Country };
+  const years = card.kind === 'past' && yearsText(card.years) ? ` (${yearsText(card.years)})` : '';
 
   return (
     <Dialog title={card.name} className="fg-dlg" onClose={onClose}>
       <p className="fg-what">{whatOf(card, country)}</p>
       <div className="fg-big">
-        <img style={shape(card.ratio)} src={card.src} alt={L(`Bandera de ${card.name}`, `Flag of ${card.name}`)} draggable={false} />
+        <img style={shape(card.ratio)} src={card.src} alt={card.kind === 'signal' ? card.name : L(`Bandera de ${card.name}${years}`, `Flag of ${card.name}${years}`)} draggable={false} />
       </div>
+      {card.means && (
+        <p className="fg-means">
+          {L('Izada sola, dice: ', 'Flown alone, it says: ')}
+          <q>{card.means}</q>
+        </p>
+      )}
       {card.file ? (
         <dl className="fg-credit">
           {credit ? (
@@ -165,8 +218,8 @@ function Credits({ count }: { count: number }) {
       <summary>{L(`Autores y licencias de los ${nf(count)} archivos de Wikimedia Commons`, `Authors and licences of the ${nf(count)} files from Wikimedia Commons`)}</summary>
       <p>
         {L(
-          'Cada bandera de una región o de una capital es un archivo de Wikimedia Commons, de dominio público o con una licencia libre. Los dibujos se han aligerado y algunos se muestran como imagen, sin cambiar lo que se ve; quien los reutilice debe respetar la licencia de cada uno.',
-          'Each flag of a region or of a capital is a file from Wikimedia Commons, in the public domain or under a free licence. The drawings have been made lighter and some are shown as pictures, without changing what is seen; whoever reuses them must keep to the licence of each.',
+          'Cada bandera que no es la de un país de hoy es un archivo de Wikimedia Commons, de dominio público o con una licencia libre. Los dibujos se han aligerado y algunos se muestran como imagen, sin cambiar lo que se ve; quien los reutilice debe respetar la licencia de cada uno.',
+          'Each flag that is not that of a country of today is a file from Wikimedia Commons, in the public domain or under a free licence. The drawings have been made lighter and some are shown as pictures, without changing what is seen; whoever reuses them must keep to the licence of each.',
         )}
       </p>
       {credits ? (
@@ -219,12 +272,24 @@ export function Flags({ world, rest }: { world: World; rest: string }) {
       .sort(byName);
   }, [file, world]);
   const total = useMemo(() => mapped.reduce((sum, c) => sum + c.n, 0), [mapped]);
-  const files = useMemo(() => (file ? new Set([...Object.values(file.regions).flat(), ...file.capitals].map((row) => row[4])).size : 0), [file]);
+  /** The countries that have flags of their cities, by name, with how many. */
+  const towned = useMemo(() => (file ? [...cityCounts(file)].map(([id, n]) => ({ id, name: world.byId.get(id) ? nm(world.byId.get(id)!.n) : id, n })).sort(byName) : []), [file, world]);
+  const everyCity = useMemo(() => (file ? [...capitalFlags(file), ...cityFlags(file)] : []), [file]);
+  const files = useMemo(() => (file ? flagFiles(file).size : 0), [file]);
+  /** Other times: the countries that are no more, and the flags that those of today flew before, by country. */
+  // What is no more, the last to end first: the alphabet would put one empire beside another of a thousand years before.
+  const gone = useMemo(() => (file ? goneFlags(file).sort((a, b) => (b.years?.[1] ?? 0) - (a.years?.[1] ?? 0) || byName(a, b)) : []), [file]);
+  const past = useMemo(() => (file ? pastFlags(file, world.index).sort((a, b) => byName(a, b)) : []), [file, world]);
+  const organisations = useMemo(() => (file ? namedFlags(file, 'organisation').sort(byName) : []), [file]);
+  const peoples = useMemo(() => (file ? namedFlags(file, 'people').sort(byName) : []), [file]);
+  const signals = useMemo(() => (file ? signalFlags(file) : []), [file]);
 
   // The country whose divisions are shown: the one the address names or, with none, that of the language.
   const home = getLang() === 'en' ? 'US' : 'ES';
   const country = page.tab === 'regions' ? (mapped.some((c) => c.id === page.country) ? page.country! : mapped.some((c) => c.id === home) ? home : (mapped[0]?.id ?? '')) : '';
   const regions = useMemo(() => (file && country ? regionFlags(file, country) : []), [file, country]);
+  // The cities: those of the country that the address names; with none, the capitals of them all.
+  const town = page.tab === 'cities' && towned.some((c) => c.id === page.country) ? page.country! : '';
   /** With something typed, the divisions of every country are looked through. */
   const everywhere = useMemo(() => (file && page.tab === 'regions' && query.trim() ? searchFlags(Object.keys(file.regions).flatMap((id) => regionFlags(file, id)), query).sort(byName) : null), [file, page.tab, query]);
 
@@ -238,8 +303,20 @@ export function Flags({ world, rest }: { world: World; rest: string }) {
   const tabs = [
     { value: 'countries' as const, label: tab(L('Países', 'Countries'), countries.length) },
     { value: 'regions' as const, label: tab(L('Regiones', 'Regions'), file ? total : null) },
-    { value: 'capitals' as const, label: tab(L('Capitales', 'Capitals'), file ? capitals.length : null) },
+    { value: 'cities' as const, label: tab(L('Ciudades', 'Cities'), file ? everyCity.length : null) },
+    { value: 'history' as const, label: tab(L('Históricas', 'Historical'), file ? gone.length + past.length : null) },
+    { value: 'others' as const, label: tab(L('Otras', 'Others'), file ? organisations.length + peoples.length + signals.length : null) },
   ];
+  /** A group of flags under its heading, with how many there are; nothing when there are none. */
+  const group = (key: string, title: string, cards: readonly FlagCard[], inside: ReactNode) =>
+    cards.length ? (
+      <section key={key} className="fg-group">
+        <h2>
+          {title} <small>{nf(cards.length)}</small>
+        </h2>
+        {inside}
+      </section>
+    ) : null;
   const where = (card: FlagCard): string | undefined => (world.byId.get(card.country) ? nm(world.byId.get(card.country)!.n) : undefined);
   const nothing = <p className="fg-none">{L('Ninguna bandera se llama así.', 'No flag goes by that name.')}</p>;
 
@@ -269,9 +346,59 @@ export function Flags({ world, rest }: { world: World; rest: string }) {
       </div>
     );
   } else if (!file) body = <Spinner label={L('Cargando las banderas…', 'Loading the flags…')} />;
-  else if (page.tab === 'capitals') {
-    const found = searchFlags(capitals, query);
-    body = found.length ? <Grid cards={found} under={where} onOpen={setShown} /> : nothing;
+  else if (page.tab === 'cities') {
+    if (query.trim() || !town) {
+      // With something typed, the cities of every country are looked through; with nothing, and no country, the capitals.
+      const found = query.trim() ? searchFlags(everyCity, query).sort(byName) : capitals;
+      body = found.length ? <Grid cards={found} under={where} onOpen={setShown} /> : nothing;
+    } else {
+      const [head, others] = [capitals.filter((card) => card.country === town), cityFlags(file, town).sort(byName)];
+      body = [
+        group('capital', head.length > 1 ? L('Capitales', 'Capitals') : L('Capital', 'Capital'), head, <Grid cards={head} onOpen={setShown} />),
+        group('cities', head.length ? L('Otras ciudades', 'Other cities') : L('Ciudades', 'Cities'), others, <Grid cards={others} onOpen={setShown} />),
+      ];
+    }
+  } else if (page.tab === 'history') {
+    const [were, flew] = [searchFlags(gone, query), searchFlags(past, query)];
+    // The flags a country flew before, under the country: the sort keeps the oldest first within each.
+    const lands = [...new Set(flew.map((card) => card.country))];
+    body =
+      !were.length && !flew.length
+        ? nothing
+        : [
+            group('gone', L('Países y territorios que ya no existen', 'Countries and territories that are no more'), were, <Grid cards={were} under={(card) => yearsText(card.years) || undefined} onOpen={setShown} />),
+            group(
+              'past',
+              L('Banderas anteriores de los países de hoy', 'Earlier flags of the countries of today'),
+              flew,
+              lands.map((id) => {
+                const about = world.byId.get(id);
+                const cards = flew.filter((card) => card.country === id);
+                return (
+                  <div key={id} className="fg-land">
+                    <h3>
+                      <Flag code={about?.fl} size="sm" />
+                      {cards[0].name} <small>{nf(cards.length)}</small>
+                    </h3>
+                    <Grid cards={cards} name={when} onOpen={setShown} />
+                  </div>
+                );
+              }),
+            ),
+          ];
+  } else if (page.tab === 'others') {
+    const found = { organisations: searchFlags(organisations, query), peoples: searchFlags(peoples, query), signals: searchFlags(signals, query) };
+    body =
+      !found.organisations.length && !found.peoples.length && !found.signals.length
+        ? nothing
+        : [
+            group('organisations', L('Organizaciones', 'Organisations'), found.organisations, <Grid cards={found.organisations} onOpen={setShown} />),
+            group('peoples', L('Pueblos y Estados sin reconocimiento general', 'Peoples and States without general recognition'), found.peoples, <Grid cards={found.peoples} onOpen={setShown} />),
+            ...SIGNALS.map(([id, es, en]) => {
+              const cards = found.signals.filter((card) => card.group === id);
+              return group(`signals-${id}`, L(es, en), cards, <Grid cards={cards} onOpen={setShown} />);
+            }),
+          ];
   } else if (everywhere) body = everywhere.length ? <Grid cards={everywhere} under={where} onOpen={setShown} /> : nothing;
   else {
     const about = world.byId.get(country);
@@ -298,8 +425,8 @@ export function Flags({ world, rest }: { world: World; rest: string }) {
         <h1>{L('Banderas del mundo', 'Flags of the world')}</h1>
         <p className="lead">
           {L(
-            'Las de los países y, desde ahora, las de sus regiones y sus capitales, para verlas todas. Toca una para verla grande y saber de quién es el dibujo. Los juegos de este apartado están en camino.',
-            'Those of the countries and, from now on, those of their regions and their capitals, all to look at. Touch one to see it large and learn whose drawing it is. The games of this section are on the way.',
+            'Las de los países, las de sus regiones y sus ciudades, las de otros tiempos, las de organizaciones y pueblos y las que son señales, para verlas todas. Toca una para verla grande y saber de quién es el dibujo. Los juegos de este apartado están en camino.',
+            'Those of the countries, of their regions and their cities, those of other times, those of organisations and peoples and those that are signals, all to look at. Touch one to see it large and learn whose drawing it is. The games of this section are on the way.',
           )}
         </p>
       </header>
@@ -323,6 +450,22 @@ export function Flags({ world, rest }: { world: World; rest: string }) {
             </select>
           </label>
           <span className="fg-count">{L(`${nf(mapped.length)} países con banderas de sus regiones`, `${nf(mapped.length)} countries with flags of their regions`)}</span>
+        </div>
+      )}
+      {page.tab === 'cities' && file && !query.trim() && (
+        <div className="fg-pick">
+          <label className="select">
+            <span>{L('País', 'Country')}</span>
+            <select value={town} onChange={(e) => show(e.target.value ? { tab: 'cities', country: e.target.value } : { tab: 'cities' })}>
+              <option value="">{L(`Las capitales de los países (${nf(capitals.length)})`, `The capitals of the countries (${nf(capitals.length)})`)}</option>
+              {towned.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} ({nf(c.n)})
+                </option>
+              ))}
+            </select>
+          </label>
+          <span className="fg-count">{L(`${nf(towned.length)} países con banderas de sus ciudades`, `${nf(towned.length)} countries with flags of their cities`)}</span>
         </div>
       )}
       <div className={cx('fg-body', page.tab)}>{body}</div>

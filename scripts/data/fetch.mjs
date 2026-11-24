@@ -25,9 +25,10 @@
 //     official in it (scripts/data/facts.mjs)
 //       https://github.com/unicode-org/cldr-json @ a4b6724 (49.0.0)
 //
-// The flags of the regions and of the capitals (Wikidata and Wikimedia Commons) are in the branch `datos`
-// too, and are not fetched here: they are two thousand files, which only `npm run data:flags` reads, and it
-// takes them by itself at the commit it pins (scripts/data/flags.mjs).
+// The flags that are not those of the countries (of regions and cities, of other times, of organisations and
+// peoples, and the signals: Wikidata, Wikipedia and Wikimedia Commons) are in the branch `datos` too, and
+// are not fetched here: they are thousands of files, which only `npm run data:flags` reads, and it takes
+// them by itself at the commit that scripts/data/flags-datos.mjs pins.
 //
 // Files are fetched by Git blob SHA, so the build is reproducible and the
 // download is verified for free. With a GitHub token available (GH_TOKEN,
