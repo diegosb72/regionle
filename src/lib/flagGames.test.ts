@@ -9,6 +9,11 @@ import { groupAt, nearCards, type AlikeFile, type AlikeKind } from './flagAlike'
 import {
   ALIKE_MIN,
   ALIKE_POOL_MIN,
+  CLIMB_ALIKE_FROM,
+  CLIMB_FIRST,
+  CLIMB_LIVES,
+  CLIMB_MOST,
+  CLIMB_STEP,
   FLAG_GAMES,
   FLAG_LENGTHS,
   FLAG_OPTIONS,
@@ -18,6 +23,10 @@ import {
   REVEAL_START,
   alikeCount,
   alikePool,
+  climbChoices,
+  climbKnown,
+  climbOrder,
+  climbShown,
   flagBestKey,
   flagGameDef,
   flagGameHelp,
@@ -38,7 +47,7 @@ import {
   type FlagAnswered,
   type FlagPlay,
 } from './flagGames';
-import { alikePlace, deckOf, flagSetText, sameMap, setMenu, twins, type DeckCard, type FlagSet, type SameFile } from './flagSets';
+import { alikePlace, beside, deckOf, flagSetText, sameMap, setMenu, twins, type DeckCard, type FlagSet, type SameFile } from './flagSets';
 import type { FlagsFile } from './flags';
 import { setLang } from './i18n';
 import { FLAG_GAME_IDS, flagGameName, playedName } from './modes';
@@ -67,19 +76,19 @@ const SPAIN: FlagSet = { kind: 'regions', country: 'ES' };
 afterEach(() => setLang('es'));
 
 describe('the games of the flags', () => {
-  it('are seven, each with its name, what it is and how hard, in both languages, the easy ones first', () => {
-    expect(FLAG_GAMES).toEqual(['flag-whose', 'flag-pick', 'flag-pairs', 'flag-reveal', 'flag-odd', 'flag-alike', 'flag-past']);
+  it('are nine, each with its name, what it is and how hard, in both languages, the easy ones first', () => {
+    expect(FLAG_GAMES).toEqual(['flag-whose', 'flag-pick', 'flag-pairs', 'flag-reveal', 'flag-odd', 'flag-climb', 'flag-alike', 'flag-past', 'flag-land']);
     expect(FLAG_GAMES).toBe(FLAG_GAME_IDS);
-    expect(FLAG_GAMES.map((id) => flagGameDef(id).name)).toEqual(['¿De dónde es?', '¿Cuál es su bandera?', 'Parejas', 'Poco a poco', 'El intruso', 'Casi iguales', 'Antes y ahora']);
-    expect(FLAG_GAMES.map((id) => flagGameDef(id).level)).toEqual([1, 1, 1, 2, 2, 3, 3]);
+    expect(FLAG_GAMES.map((id) => flagGameDef(id).name)).toEqual(['¿De dónde es?', '¿Cuál es su bandera?', 'Parejas', 'Poco a poco', 'El intruso', 'Escalada', 'Casi iguales', 'Antes y ahora', '¿De qué país es?']);
+    expect(FLAG_GAMES.map((id) => flagGameDef(id).level)).toEqual([1, 1, 1, 2, 2, 2, 3, 3, 3]);
     // The games whose answer is the name of the flag on screen can be typed.
     expect(FLAG_GAMES.filter((id) => flagGameDef(id).typed)).toEqual(['flag-whose', 'flag-reveal']);
     const es = FLAG_GAMES.map((id) => flagGameDef(id).desc);
     setLang('en');
-    expect(FLAG_GAMES.map((id) => flagGameDef(id).name)).toEqual(['Whose flag?', 'Which flag?', 'Pairs', 'Bit by bit', 'Odd one out', 'Look-alikes', 'Then and now']);
+    expect(FLAG_GAMES.map((id) => flagGameDef(id).name)).toEqual(['Whose flag?', 'Which flag?', 'Pairs', 'Bit by bit', 'Odd one out', 'Climb', 'Look-alikes', 'Then and now', 'Which country?']);
     const en = FLAG_GAMES.map((id) => flagGameDef(id).desc);
     for (const text of [...es, ...en]) expect(text.length).toBeGreaterThan(30);
-    expect(new Set([...es, ...en]).size).toBe(14);
+    expect(new Set([...es, ...en]).size).toBe(18);
     // Each with an icon of its own.
     expect(new Set(FLAG_GAMES.map((id) => flagGameDef(id).icon)).size).toBe(FLAG_GAMES.length);
   });
@@ -137,15 +146,22 @@ describe('a game in an address', () => {
     expect(flagPlayText(play('flag-odd', SPAIN, { length: 20 }))).toBe('el-intruso/regiones-ES/20');
     expect(flagPlayText(play('flag-pairs', WORLD, { length: 12 }))).toBe('parejas/paises/12');
     expect(flagBestKey(play('flag-pairs', WORLD, { length: 8 }))).toBe('flag:parejas/paises/8');
+    // …and the two after those: the flags of the regions asked by their country, and the climb, which has no length to say.
+    expect(flagPlayText(play('flag-land', EUROPE, { length: 20 }))).toBe('de-que-pais/paises-EU/20');
+    expect(flagPlayText(play('flag-climb', WORLD, { length: 'all' }))).toBe('escalada/paises');
+    expect(flagPlayPath(play('flag-climb', SPAIN, { length: 'all' }))).toBe('banderas/jugar/escalada/regiones-ES');
+    expect(flagBestKey(play('flag-climb', WORLD, { length: 'all' }))).toBe('flag:escalada/paises');
   });
 
-  it('is as long as its game can be: ten, twenty or all the questions, or six to twelve pairs', () => {
+  it('is as long as its game can be: ten, twenty or all the questions, or six to twelve pairs, or as long as a climb lasts', () => {
     for (const game of FLAG_GAMES) {
-      expect(lengthsOf(game), game).toEqual(game === 'flag-pairs' ? [6, 8, 10, 12] : [10, 20, 'all']);
-      expect(lengthOf(game), game).toBe(game === 'flag-pairs' ? 8 : 10);
+      expect(lengthsOf(game), game).toEqual(game === 'flag-pairs' ? [6, 8, 10, 12] : game === 'flag-climb' ? ['all'] : [10, 20, 'all']);
+      expect(lengthOf(game), game).toBe(game === 'flag-pairs' ? 8 : game === 'flag-climb' ? 'all' : 10);
       expect(lengthsOf(game)).toContain(lengthOf(game));
     }
     expect(PAIR_SIZES).toEqual([6, 8, 10, 12]);
+    // A climb is every flag there is, whatever its address says of how many.
+    for (const text of ['escalada/paises', 'escalada/paises/todas', 'escalada/paises/10', 'Escalada/PAISES/x/escrita']) expect(flagPlayOf(text), text).toEqual(play('flag-climb', WORLD, { length: 'all' }));
     // What an address says that its game has not is as nothing said.
     expect(flagPlayOf('parejas/paises')).toEqual(play('flag-pairs', WORLD, { length: 8 }));
     expect(flagPlayOf('parejas/paises/10')).toEqual(play('flag-pairs', WORLD, { length: 10 }));
@@ -373,6 +389,146 @@ describe('«Casi iguales»', () => {
     for (const set of [WORLD, EUROPE, { kind: 'countries', continent: 'AF' }, { kind: 'territories' }, SPAIN, { kind: 'regions', country: 'ES', level: 1 }, { kind: 'capitals' }, { kind: 'gone' }] as FlagSet[]) {
       expect(questionCount(play('flag-alike', set), deck(set), nearOf(set)), flagSetText(set)).toBe(10);
     }
+  });
+});
+
+describe('«Escalada»', () => {
+  const world = deck(WORLD);
+  const near = nearOf(WORLD);
+  const whole = play('flag-climb', WORLD, { length: 'all' });
+  const people = new Map(INDEX.countries.map((c) => [c.id, c.pop ?? 0]));
+
+  it('offers two names at the foot, one more for every three right answers, and never more than eight', () => {
+    expect([CLIMB_FIRST, CLIMB_STEP, CLIMB_MOST, CLIMB_LIVES]).toEqual([2, 3, 8, 3]);
+    expect(Array.from({ length: 22 }, (_, height) => climbChoices(height))).toEqual([2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8, 8, 8]);
+    expect(climbChoices(500)).toBe(8);
+    expect(climbChoices(-1)).toBe(2);
+  });
+
+  it('asks every flag of the set, each with seven others that can share a question with it', () => {
+    const round = roundOf(whole, world, mulberry32(5), near, undefined, { climb: { known: climbKnown(world, INDEX) } });
+    expect(round).toHaveLength(world.length);
+    expect(questionCount(whole, world)).toBe(world.length);
+    expect(new Set(round.map((q) => q.card.key)).size).toBe(world.length);
+    for (const q of round) {
+      expect(q.right).toBe(q.card.key);
+      expect(q.rivals).toHaveLength(CLIMB_MOST - 1);
+      expect(q.options.map((o) => o.key).sort()).toEqual([q.card.key, ...q.rivals!].sort());
+      for (const a of q.options) for (const b of q.options) if (a !== b) expect(twins(a, b), `${a.id} ${b.id}`).toBe(false);
+    }
+    // The right one is not always in the same place.
+    expect(new Set(round.map((q) => q.options.findIndex((o) => o.key === q.right))).size).toBe(CLIMB_MOST);
+  });
+
+  it('shows as many of them as its height says, the right one always among them, and those already shown stay', () => {
+    const round = roundOf(whole, world, mulberry32(6), near);
+    for (const q of round.slice(0, 40)) {
+      let before: string[] = [];
+      for (let height = 0; height <= 24; height++) {
+        const shown = climbShown(q, height).map((o) => o.key);
+        expect(shown).toHaveLength(climbChoices(height));
+        expect(shown).toContain(q.right);
+        // In the order the question has them, and none that was there is taken away as the game gets higher.
+        expect(shown).toEqual(q.options.map((o) => o.key).filter((key) => shown.includes(key)));
+        for (const key of before) expect(shown).toContain(key);
+        before = shown;
+      }
+      expect(climbShown(q, 18)).toEqual(q.options);
+    }
+  });
+
+  it('sets beside a flag those most like it from the tenth on, and any others before', () => {
+    expect(CLIMB_ALIKE_FROM).toBe(9);
+    const round = roundOf(whole, world, mulberry32(7), near);
+    let alike = 0;
+    round.forEach((q, i) => {
+      const nearest = beside(q.card, (near.get(q.card.key) ?? []).map((one) => one.card), CLIMB_MOST - 1).map((c) => c.key);
+      const led = nearest.length > 0 && nearest.every((key, k) => q.rivals![k] === key);
+      if (i >= CLIMB_ALIKE_FROM) expect(led, `${i} ${q.card.id}`).toBe(nearest.length > 0);
+      else if (led) alike++;
+    });
+    // Before that, they are any flags: by luck alone a flag is not set among the seven most like it.
+    expect(alike).toBe(0);
+    // Chad is never beside Romania, however alike: they are the same picture.
+    const chad = round.find((q) => q.card.id === 'TD')!;
+    expect(chad.options.map((o) => o.id)).not.toContain('RO');
+    // Without the look-alikes the game is the same, with any flags all the way up.
+    expect(roundOf(whole, world, mulberry32(7))).toHaveLength(world.length);
+  });
+
+  it('brings the flags of the most populous countries first more often than not', () => {
+    const known = climbKnown(world, INDEX);
+    expect(known.size).toBe(world.length);
+    expect(known.get('country:IN')).toBeCloseTo(Math.sqrt(people.get('IN')!), 6);
+    // The smallest are weighed as if they had ten thousand people: not always the very last.
+    expect(known.get('country:VA')).toBe(100);
+    const place = { IN: 0, CN: 0, ES: 0, TV: 0, NR: 0 };
+    let early = 0;
+    let late = 0;
+    const games = 60;
+    for (let seed = 1; seed <= games; seed++) {
+      const order = climbOrder(world, known, mulberry32(seed));
+      expect(order).toHaveLength(world.length);
+      expect(new Set(order).size).toBe(world.length);
+      for (const id of Object.keys(place) as (keyof typeof place)[]) place[id] += order.findIndex((c) => c.id === id) / games;
+      const mean = (cards: DeckCard[]) => cards.reduce((sum, c) => sum + (people.get(c.id) ?? 0), 0) / cards.length;
+      early += mean(order.slice(0, 20)) / games;
+      late += mean(order.slice(-20)) / games;
+    }
+    expect(place.IN).toBeLessThan(30);
+    expect(place.CN).toBeLessThan(30);
+    expect(place.ES).toBeGreaterThan(place.IN);
+    expect(place.ES).toBeLessThan(place.TV);
+    expect(place.TV).toBeGreaterThan(140);
+    expect(place.NR).toBeGreaterThan(140);
+    expect(early).toBeGreaterThan(late * 20);
+    // …and not always: a game does not begin with the same flags as the one before.
+    expect(climbOrder(world, known, mulberry32(1)).slice(0, 10)).not.toEqual(climbOrder(world, known, mulberry32(2)).slice(0, 10));
+    expect(climbOrder(world, known, mulberry32(1))).toEqual(climbOrder(world, known, mulberry32(1)));
+  });
+
+  it('weighs the capitals by their countries, and brings the other flags by lot', () => {
+    const capitals = deck({ kind: 'capitals' });
+    const known = climbKnown(capitals, INDEX);
+    expect(known.size).toBe(capitals.length);
+    const madrid = capitals.find((c) => c.country === 'ES')!;
+    expect(known.get(madrid.key)).toBeCloseTo(Math.sqrt(people.get('ES')!), 6);
+    for (const set of [SPAIN, { kind: 'cities', country: 'JP' }, { kind: 'gone' }, { kind: 'signals' }] as FlagSet[]) {
+      const cards = deck(set);
+      expect(climbKnown(cards, INDEX).size, flagSetText(set)).toBe(0);
+      const order = climbOrder(cards, climbKnown(cards, INDEX), mulberry32(3));
+      expect(order.map((c) => c.key).sort()).toEqual(cards.map((c) => c.key).sort());
+      expect(order).not.toEqual(cards);
+      expect(climbOrder(cards, undefined, mulberry32(3))).toEqual(order);
+    }
+  });
+
+  it('is played with the flags of any set: with few of them, each among all the others', () => {
+    const menu = setMenu(INDEX, FLAGS, SAME);
+    const sets = [...menu.countries, menu.territories, ...menu.regions, ...menu.regions.flatMap((c) => c.levels), menu.capitals, ...menu.cities, menu.gone, menu.organisations, menu.peoples, menu.signals].filter((c) => !!c).map((c) => c!.set);
+    let small = 0;
+    for (const set of sets) {
+      const cards = deck(set);
+      const round = roundOf(play('flag-climb', set, { length: 'all' }), cards, mulberry32(4), nearOf(set), undefined, { climb: { known: climbKnown(cards, INDEX) } });
+      expect(round, flagSetText(set)).toHaveLength(cards.length);
+      for (const q of round) {
+        expect(q.options.length, flagSetText(set)).toBeGreaterThanOrEqual(2);
+        expect(q.options.length).toBeLessThanOrEqual(CLIMB_MOST);
+        expect(q.options.some((o) => o.key === q.right)).toBe(true);
+        expect(climbShown(q, 0)).toHaveLength(2);
+        expect(climbShown(q, 99)).toEqual(q.options);
+        for (const a of q.options) for (const b of q.options) if (a !== b) expect(twins(a, b), `${flagSetText(set)} ${a.key} ${b.key}`).toBe(false);
+      }
+      if (cards.length < CLIMB_MOST) small++;
+    }
+    expect(small).toBeGreaterThan(0);
+  });
+
+  it('goes over the flags that were missed, and only those', () => {
+    const missed = new Set([world[3].key, world[40].key, world[90].key]);
+    const round = roundOf(whole, world, mulberry32(8), near, missed, { climb: { known: climbKnown(world, INDEX) } });
+    expect(round.map((q) => q.card.key).sort()).toEqual([...missed].sort());
+    for (const q of round) expect(q.options).toHaveLength(CLIMB_MOST);
   });
 });
 

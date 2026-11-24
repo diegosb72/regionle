@@ -751,7 +751,7 @@ export const SECTIONS: Record<Section, SectionInfo> = lazy(SECTION_IDS, sectionI
  * comes with the section itself (lib/flagGames.ts).
  */
 /** In the order they are offered: the easy ones first. */
-export const FLAG_GAME_IDS: readonly FlagGame[] = ['flag-whose', 'flag-pick', 'flag-pairs', 'flag-reveal', 'flag-odd', 'flag-alike', 'flag-past'];
+export const FLAG_GAME_IDS: readonly FlagGame[] = ['flag-whose', 'flag-pick', 'flag-pairs', 'flag-reveal', 'flag-odd', 'flag-climb', 'flag-alike', 'flag-past', 'flag-land'];
 export function flagGameName(game: FlagGame): string {
   switch (game) {
     case 'flag-whose':
@@ -764,8 +764,12 @@ export function flagGameName(game: FlagGame): string {
       return L('Poco a poco', 'Bit by bit');
     case 'flag-odd':
       return L('El intruso', 'Odd one out');
+    case 'flag-climb':
+      return L('Escalada', 'Climb');
     case 'flag-alike':
       return L('Casi iguales', 'Look-alikes');
+    case 'flag-land':
+      return L('¿De qué país es?', 'Which country?');
     default:
       return L('Antes y ahora', 'Then and now');
   }

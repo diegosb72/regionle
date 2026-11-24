@@ -1,9 +1,10 @@
 /**
- * The games of questions of the section «Banderas» (lib/flagGames.ts), which are one game asked six ways:
+ * The games of questions of the section «Banderas» (lib/flagGames.ts), which are one game asked eight ways:
  * a flag and its name among four or typed, a name and its flag among four (any four, or the three that
  * look most like it), a flag that is uncovered piece by piece, a flag of another time and the country that
- * flew it, and four flags of which one is from somewhere else. There is no map: the whole window is the
- * question. («Parejas» is no game of questions: games/FlagPairs.tsx.)
+ * flew it, the flag of a region and the country it is of, four flags of which one is from somewhere else,
+ * and a climb of flags whose names are chosen among more and more, which three misses end. There is no
+ * map: the whole window is the question. («Parejas» is no game of questions: games/FlagPairs.tsx.)
  *
  * One try for each flag, marked at once; what is missed is shown beside what it was taken for, and at the
  * end the misses can be played alone.
@@ -13,14 +14,16 @@
  * next question shows is asked for while this one is on screen. A picture that does not come is said, with
  * the way to ask for it again: a question cannot be answered without it.
  */
-import { ArrowRight, Flag as FlagIcon, Images, RotateCcw, ScanEye, Settings2 } from 'lucide-react';
+import { ArrowRight, Flag as FlagIcon, Heart, Images, RotateCcw, ScanEye, Settings2, TrendingUp } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type SyntheticEvent } from 'react';
 import { AnswerInput } from '../components/AnswerInput';
 import type { Near } from '../lib/flagAlike';
 import {
+  CLIMB_LIVES,
   REVEAL,
   REVEAL_PIECES,
   REVEAL_START,
+  climbShown,
   flagBestKey,
   flagGameDef,
   flagMatcher,
@@ -49,6 +52,10 @@ const shape = (ratio: number): CSSProperties => ({ '--r': String(ratio) }) as CS
 
 /** The pictures a question shows: the flag it asks, large, and the four it offers, as small as the gallery shows them. */
 const picturesOf = (q: FlagQuestion, staged: boolean, flagged: boolean): string[] => [...(staged ? [q.card.src] : []), ...(flagged ? q.options.map((card) => card.small) : [])];
+
+/** How many of some answers were not misses: in «Escalada», the rungs climbed. */
+const rightOf = (answers: readonly FlagAnswered[]): number => answers.filter((a) => a.res !== 'bad').length;
+const rungs = (n: number): string => L(n === 1 ? '1 peldaño' : `${nf(n)} peldaños`, n === 1 ? '1 rung' : `${nf(n)} rungs`);
 
 /** When a flag of another time flew, as a sentence says it: «de 1931 a 1939», «hasta 1785», «en 1929»; nothing when it is not known. */
 function flewText(years: readonly [number, number] | undefined): string {
@@ -83,8 +90,14 @@ function Round({ play, deck, questions, name, world, review, onExit, onSee, onAg
   const past = play.game === 'flag-past';
   /** «El intruso»: four flags, one of them from outside the group. */
   const odd = play.game === 'flag-odd';
+  /** «¿De qué país es?»: the flag of a region, and four countries with their flags. */
+  const region = play.game === 'flag-land';
+  /** «Escalada»: more names to choose from the higher it gets, and three misses end it. */
+  const climb = play.game === 'flag-climb';
   /** What is asked is a flag, shown large, and what answers it is a name. */
-  const named = play.game === 'flag-whose' || reveal || past;
+  const named = play.game === 'flag-whose' || reveal || past || region || climb;
+  /** The names are those of countries, and each comes with its flag. */
+  const flagged = past || region;
   const typed = named && def.typed && play.answer === 'type';
   const total = questions.length;
 
@@ -111,13 +124,19 @@ function Round({ play, deck, questions, name, world, review, onExit, onSee, onAg
   const score = flagScore(play.game, log);
   let streak = 0;
   for (let i = log.length - 1; i >= 0 && log[i].res !== 'bad'; i--) streak++;
+  /** «Escalada»: the rungs climbed, the lives left, and whether the last of them is gone. */
+  const height = rightOf(log);
+  const lives = Math.max(0, CLIMB_LIVES - score.bad);
+  const fallen = climb && lives === 0;
+  /** What the question on screen is answered among: in «Escalada», as many names as the height it was met at says, whatever was answered since. */
+  const options = !q ? [] : climb ? climbShown(q, rightOf(log.slice(0, at))) : q.options;
 
   const land = (card: DeckCard): string => {
     const c = world.byId.get(card.country);
     return c ? nm(c.n) : '';
   };
-  /** What tells a flag from another of the same name: the country of a capital, the years of a country that is no more or of a flag of another time. */
-  const under = (card: DeckCard): string => (card.kind === 'capital' ? land(card) : card.kind === 'gone' || card.kind === 'past' ? yearsText(card.years) : '');
+  /** What tells a flag from another of the same name: the country of a capital (or of a region, where the country is what was asked), the years of a country that is no more or of a flag of another time. */
+  const under = (card: DeckCard): string => (card.kind === 'capital' || (region && card.kind === 'region') ? land(card) : card.kind === 'gone' || card.kind === 'past' ? yearsText(card.years) : '');
 
   const finish = (answers: readonly FlagAnswered[]) => {
     if (ended) return;
@@ -126,11 +145,12 @@ function Round({ play, deck, questions, name, world, review, onExit, onSee, onAg
     const st = useStore.getState();
     const end = flagScore(play.game, answers);
     st.addSession({ t: Date.now(), section: 'flags', mode: play.game, label: name, total: end.total, ok: end.ok, warn: end.warn, bad: end.bad, ms, ...(review ? { note: L('solo los fallos', 'misses only') } : {}) });
-    // A mark is of a whole game: one that was cut short, or of the misses alone, sets none.
-    if (!review && answers.length === total) {
+    // A mark is of a whole game: one that was cut short, or of the misses alone, sets none. A climb is whole
+    // wherever it stops, and its mark is how high it got.
+    if (!review && (climb || answers.length === total)) {
       const key = flagBestKey(play);
       const before = st.best[key];
-      setMark({ best: st.setBest(key, end.pct), before });
+      setMark({ best: st.setBest(key, climb ? rightOf(answers) : end.pct), before });
     }
   };
 
@@ -167,7 +187,7 @@ function Round({ play, deck, questions, name, world, review, onExit, onSee, onAg
   };
   const next = () => {
     if (!given) return;
-    if (at + 1 >= total) return finish(log);
+    if (at + 1 >= total || fallen) return finish(log);
     setAt(at + 1);
     setGiven(null);
     setShown(REVEAL_START);
@@ -202,7 +222,7 @@ function Round({ play, deck, questions, name, world, review, onExit, onSee, onAg
       }
       const onButton = !!el?.closest('button, a');
       if (!given) {
-        if (/^[1-4]$/.test(e.key) && q.options[Number(e.key) - 1]) choose(q.options[Number(e.key) - 1]);
+        if (/^[1-9]$/.test(e.key) && options[Number(e.key) - 1]) choose(options[Number(e.key) - 1]);
         else if (reveal && e.key === ' ' && !onButton) {
           e.preventDefault();
           uncover();
@@ -225,13 +245,13 @@ function Round({ play, deck, questions, name, world, review, onExit, onSee, onAg
   useEffect(() => {
     const coming = questions[at + 1];
     if (!coming || typeof Image === 'undefined') return;
-    ahead.current = picturesOf(coming, named, !named || past).map((src) => {
+    ahead.current = picturesOf(coming, named, !named || flagged).map((src) => {
       const img = new Image();
       img.decoding = 'async';
       img.src = src;
       return img;
     });
-  }, [questions, at, named, past]);
+  }, [questions, at, named, flagged]);
 
   /** A flag as it is shown small. `asked`: it is one of those the question is answered by, and is missed if it does not come. */
   const picture = (card: DeckCard, asked = false) => (
@@ -240,7 +260,17 @@ function Round({ play, deck, questions, name, world, review, onExit, onSee, onAg
 
   if (ended || !q) {
     const misses = log.filter((a) => a.res === 'bad');
-    const title = !log.length ? L('Sin preguntas', 'No questions') : misses.length === 0 ? L('¡Ninguna fallada!', 'None missed!') : L('Partida terminada', 'Game over');
+    const title = !log.length
+      ? L('Sin preguntas', 'No questions')
+      : fallen
+        ? L('Te quedaste sin vidas', 'Out of lives')
+        : climb && !review && log.length === total
+          ? L('¡Has llegado arriba!', 'You reached the top!')
+          : misses.length === 0
+            ? L('¡Ninguna fallada!', 'None missed!')
+            : L('Partida terminada', 'Game over');
+    /** «Escalada»: how many names the last flag came with. */
+    const reached = climb && log.length ? climbShown(questions[log.length - 1], rightOf(log.slice(0, -1))).length : 0;
     return (
       <GameShell
         title={def.name}
@@ -253,12 +283,23 @@ function Round({ play, deck, questions, name, world, review, onExit, onSee, onAg
               <p className="kicker">{L('Resultado', 'Result')}</p>
               <h2 className="results-title">{title}</h2>
               {review && <p className="results-note">{L('Solo las banderas que fallaste en la partida anterior.', 'Only the flags you missed in the game before.')}</p>}
-              {!!log.length && log.length < total && <p className="results-note">{L(`Terminaste antes de acabar: ${nf(log.length)} de ${nf(total)} preguntas.`, `You ended it early: ${nf(log.length)} of ${nf(total)} questions.`)}</p>}
+              {!climb && !!log.length && log.length < total && <p className="results-note">{L(`Terminaste antes de acabar: ${nf(log.length)} de ${nf(total)} preguntas.`, `You ended it early: ${nf(log.length)} of ${nf(total)} questions.`)}</p>}
+              {climb && !!log.length && (
+                <p className="results-note">
+                  {height === 0
+                    ? L('No subiste ningún peldaño.', 'You climbed no rung.')
+                    : L(`Subiste ${rungs(height)}: al final elegías entre ${reached} nombres.`, `You climbed ${rungs(height)}: at the end you were choosing among ${reached} names.`)}
+                </p>
+              )}
               <div className="results-score">
-                <Donut ok={score.ok} warn={score.warn} bad={score.bad} label={`${score.pct} %`} caption={reveal ? `${nf(score.points)} / ${nf(score.max)} ${L('pts', 'pts')}` : `${nf(score.ok)} ${L('de', 'of')} ${nf(score.total)}`} />
+                {climb ? (
+                  <Donut ok={score.ok} warn={0} bad={score.bad} label={nf(height)} caption={L(height === 1 ? 'peldaño' : 'peldaños', height === 1 ? 'rung' : 'rungs')} />
+                ) : (
+                  <Donut ok={score.ok} warn={score.warn} bad={score.bad} label={`${score.pct} %`} caption={reveal ? `${nf(score.points)} / ${nf(score.max)} ${L('pts', 'pts')}` : `${nf(score.ok)} ${L('de', 'of')} ${nf(score.total)}`} />
+                )}
                 <dl className="results-stats">
                   <div>
-                    <dt>{reveal ? L('A la primera', 'First time') : L('Aciertos', 'Right')}</dt>
+                    <dt>{climb ? L('Altura', 'Height') : reveal ? L('A la primera', 'First time') : L('Aciertos', 'Right')}</dt>
                     <dd className="c-ok">{nf(score.ok)}</dd>
                   </div>
                   {reveal && (
@@ -278,7 +319,19 @@ function Round({ play, deck, questions, name, world, review, onExit, onSee, onAg
                   {mark && (
                     <div>
                       <dt>{L('Tu marca', 'Your record')}</dt>
-                      <dd className="fq-mark">{mark.best ? (mark.before != null ? L(`¡Nueva! Antes, ${nf(mark.before)} %`, `New! Before, ${nf(mark.before)}%`) : `${score.pct} %`) : `${nf(mark.before ?? score.pct)} %`}</dd>
+                      <dd className="fq-mark">
+                        {climb
+                          ? mark.best
+                            ? mark.before != null
+                              ? L(`¡Nueva! Antes, ${nf(mark.before)}`, `New! Before, ${nf(mark.before)}`)
+                              : rungs(height)
+                            : rungs(mark.before ?? height)
+                          : mark.best
+                            ? mark.before != null
+                              ? L(`¡Nueva! Antes, ${nf(mark.before)} %`, `New! Before, ${nf(mark.before)}%`)
+                              : `${score.pct} %`
+                            : `${nf(mark.before ?? score.pct)} %`}
+                      </dd>
                     </div>
                   )}
                 </dl>
@@ -343,17 +396,21 @@ function Round({ play, deck, questions, name, world, review, onExit, onSee, onAg
   }
 
   const right = !!given && given.res !== 'bad';
-  const last = at + 1 >= total;
+  const last = at + 1 >= total || fallen;
   const off = new Set(given ? q.order : q.order.slice(0, shown));
   const worth = revealPoints(shown);
   const kicker = past
     ? L('¿Qué país tuvo esta bandera?', 'Which country flew this flag?')
-    : odd
+    : region
+      ? L('¿De qué país es esta bandera regional?', 'Which country is this regional flag from?')
+      : odd
       ? L('¿Cuál no es de este grupo?', 'Which one is not of this group?')
       : named
         ? L('¿De dónde es esta bandera?', 'Whose flag is this?')
         : L('¿Cuál es la bandera de…?', 'Which is the flag of…?');
   const place = q.options.findIndex((card) => card.key === q.right) + 1;
+  /** «¿De qué país es?»: the country the flag is of. */
+  const owner = q.options.find((card) => card.key === q.right);
 
   return (
     <GameShell
@@ -361,7 +418,24 @@ function Round({ play, deck, questions, name, world, review, onExit, onSee, onAg
       subtitle={name}
       onExit={onExit}
       progress={total ? log.length / total : undefined}
-      hud={<Hud ms={ms} streak={streak} progress={reveal ? `${at + 1} / ${total} · ${L(`${nf(score.points)} pts`, `${nf(score.points)} pts`)}` : `${at + 1} / ${total}`} />}
+      hud={
+        climb ? (
+          <>
+            <span className="hud-chip hud-main" title={L('Altura: las banderas acertadas', 'Height: the flags got right')}>
+              <TrendingUp size={14} aria-hidden="true" />
+              {nf(height)}
+            </span>
+            <span className="hud-chip hud-lives" aria-label={L(`Vidas: ${lives} de ${CLIMB_LIVES}`, `Lives: ${lives} of ${CLIMB_LIVES}`)} title={L('Vidas', 'Lives')}>
+              {Array.from({ length: CLIMB_LIVES }, (_, i) => (
+                <Heart key={i} size={14} className={i < lives ? 'on' : undefined} aria-hidden="true" />
+              ))}
+            </span>
+            <Hud ms={ms} />
+          </>
+        ) : (
+          <Hud ms={ms} streak={streak} progress={reveal ? `${at + 1} / ${total} · ${L(`${nf(score.points)} pts`, `${nf(score.points)} pts`)}` : `${at + 1} / ${total}`} />
+        )
+      }
       panel={
         <div className={cx('pop fq', `fq-${play.game}`)}>
           <p className="kicker center">{kicker}</p>
@@ -400,11 +474,11 @@ function Round({ play, deck, questions, name, world, review, onExit, onSee, onAg
           )}
 
           {named && !typed && (
-            <div className="choices fq-choices" role="group" aria-label={L('Las cuatro respuestas', 'The four answers')}>
-              {q.options.map((card, i) => (
+            <div className={cx('choices fq-choices', options.length > 4 && 'fq-many')} role="group" aria-label={climb ? L(`Las ${options.length} respuestas`, `The ${options.length} answers`) : L('Las cuatro respuestas', 'The four answers')}>
+              {options.map((card, i) => (
                 <button key={card.key} type="button" className={cx('choice', given && card.key === q.right && 'right', given?.given?.key === card.key && 'wrong')} disabled={!!given} onClick={() => choose(card)}>
                   <kbd aria-hidden="true">{i + 1}</kbd>
-                  {past && <span className="fq-thumb fq-thumb-sm">{picture(card, true)}</span>}
+                  {flagged && <span className="fq-thumb fq-thumb-sm">{picture(card, true)}</span>}
                   <span>{card.name}</span>
                 </button>
               ))}
@@ -464,17 +538,21 @@ function Round({ play, deck, questions, name, world, review, onExit, onSee, onAg
                     : L('¡Correcto!', 'Correct!')
                   : past
                     ? L(`Fue la bandera de ${q.card.name}.`, `It was the flag of ${q.card.name}.`)
-                    : named
+                    : region
+                      ? L(`Es de ${owner?.name ?? land(q.card)}.`, `It is from ${owner?.name ?? land(q.card)}.`)
+                      : named
                       ? L(`Era ${q.card.name}.`, `It was ${q.card.name}.`)
                       : given.given
                         ? L(`Esa es la de ${given.given.name}.`, `That one is the flag of ${given.given.name}.`)
                         : L('No era esa.', 'Not that one.')
               }
             >
-              {named && !past && under(q.card) && <p className="fq-why">{`${q.card.name} · ${under(q.card)}`}</p>}
+              {named && !flagged && under(q.card) && <p className="fq-why">{`${q.card.name} · ${under(q.card)}`}</p>}
+              {region && <p className="fq-why">{L(`Es la bandera de ${q.card.name}.`, `It is the flag of ${q.card.name}.`)}</p>}
+              {fallen && <p className="fq-why">{L(`Era tu última vida: la escalada acaba en ${rungs(height)}.`, `That was your last life: the climb ends at ${rungs(height)}.`)}</p>}
               {past && flewText(q.card.years) && <p className="fq-why">{right ? L(`${q.card.name} la tuvo ${flewText(q.card.years)}.`, `${q.card.name} flew it ${flewText(q.card.years)}.`) : L(`La tuvo ${flewText(q.card.years)}.`, `It flew ${flewText(q.card.years)}.`)}</p>}
-              {/* The flag of what was said, to tell the two apart; in «Antes y ahora» it is there already, beside its name. */}
-              {named && !past && given.given && (
+              {/* The flag of what was said, to tell the two apart; where the names are those of countries it is there already, beside its name. */}
+              {named && !flagged && given.given && (
                 <p className="fq-why fq-mix">
                   <span>{L(`La de ${given.given.name} es esta:`, `That of ${given.given.name} is this one:`)}</span>
                   <span className="fq-thumb">{picture(given.given)}</span>
@@ -520,7 +598,7 @@ export function FlagQuiz({
   play: FlagPlay;
   deck: readonly DeckCard[];
   near: ReadonlyMap<string, readonly Near[]>;
-  /** What «Antes y ahora» and «El intruso» are asked with (lib/flagGames.ts). */
+  /** What «Antes y ahora», «El intruso» and «¿De qué país es?» are asked with, and what «Escalada» orders its flags by (lib/flagGames.ts). */
   extra?: FlagExtra;
   name: string;
   world: World;

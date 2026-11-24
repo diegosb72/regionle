@@ -25,6 +25,9 @@
 //   past.json        for each flag that a country flew before, the countries whose flag of today is most
 //                    like it, and the other countries that flew it too: what «Antes y ahora» sets beside
 //                    the country that is asked, and what it never does
+//   lands.json       for each flag of a division, the other countries that fly it, or one as good as it, as
+//                    their own flag or as that of one of their divisions: what «¿De qué país es?» never
+//                    sets beside the country that is asked
 //
 // Each group is one of the sets of flags a game is played with (src/lib/flagSets.ts): the neighbours of a
 // flag are looked for among the flags it will be set beside, and nowhere else. A flag is in several groups
@@ -43,6 +46,7 @@
 // flag of its country, a city that flies that of its province. Those are never neighbours of each other:
 // they are listed apart (`same`), and the game never sets them side by side.
 
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -82,6 +86,12 @@ export const KEEP_PAST = 8;
  * answer: nobody could be told they were wrong to choose it.
  */
 export const ALSO = 3;
+/**
+ * Two flags of which no cell differs by more than this are one design in two shades: the white and red of
+ * Thuringia and that of Poland, the blue and yellow of Lower Austria and that of Ukraine. To the eye that
+ * meets one of them alone they are the same flag.
+ */
+export const SHADE = 30;
 
 const lin = (c) => {
   const v = c / 255;
@@ -178,6 +188,29 @@ export function apartLooks(a, b) {
   // As drawn counts in full; in a mirror, a little less; the same colours in another order, less still.
   const score = Math.min(as.mean, flipped + 4, 10 + 60 * palette + 0.25 * as.mean);
   return { drawn: as.mean, peak: as.peak, flipped, palette, score };
+}
+
+/**
+ * Whether two flags are within `max` of each other on the whole, as they are drawn: what
+ * `apartLooks(a, b).drawn <= max` says, given up as soon as the sum is past what it may come to. Thousands
+ * of flags are set against thousands with it, and nearly every pair is told apart by its first cells.
+ */
+export function within(a, b, max) {
+  const cellsIn = GRID.w * GRID.h;
+  // A hair more than the sum may come to: what is this near the line is settled by the division, as it is there.
+  const most = max * cellsIn * 1.000001;
+  let sum = 0;
+  for (let i = 0; i < cellsIn * 3; i += 3) {
+    sum += Math.hypot(a.px[i] - b.px[i], a.px[i + 1] - b.px[i + 1], a.px[i + 2] - b.px[i + 2]);
+    if (sum > most) return false;
+  }
+  return sum / cellsIn <= max;
+}
+
+/** Whether two flags are one design in two shades: no cell of theirs differs by more than `SHADE`. */
+export function shades(a, b) {
+  for (let i = 0; i < GRID.w * GRID.h * 3; i += 3) if (Math.hypot(a.px[i] - b.px[i], a.px[i + 1] - b.px[i + 1], a.px[i + 2] - b.px[i + 2]) > SHADE) return false;
+  return true;
 }
 
 /** Whether two looks are those of the same picture. */
@@ -331,16 +364,42 @@ export const pastKey = (country, file) => `${country}:${file}`;
 
 /**
  * The other countries that flew a flag, or one as good as it: those with a flag, of today or of before,
- * within `ALSO` of it. `flown` are the looks of every flag of each country, that of today first.
+ * within `ALSO` of it. `flown` are the looks of every flag of each country, that of today first. (The same
+ * is asked of the flags of the divisions, with what each country flies today: its own and those of its
+ * divisions.)
  */
-export function alsoFlew(country, look, flown) {
+export function alsoFlew(country, look, flown, close = (a, b) => within(a, b, ALSO)) {
   const out = [];
   for (const [other, looks] of flown) {
     if (other === country) continue;
-    if (looks.some((theirs) => apartLooks(look, theirs).drawn <= ALSO)) out.push(other);
+    if (looks.some((theirs) => close(look, theirs))) out.push(other);
   }
   return out;
 }
+
+/**
+ * Whether a flag of a division is as good as another flag that is flown today: within `ALSO` of it on the
+ * whole, or the same design in another shade. More is let through here than among the flags of other
+ * times, where the year tells two of them apart: what is asked is the country, and a country that has
+ * that flag, near enough, is no wrong answer.
+ */
+export const fliesToo = (a, b) => within(a, b, ALSO) || shades(a, b);
+
+/**
+ * The flags of the divisions of the States, as «¿De qué país es?» asks them (src/lib/flagLand.ts): each as
+ * its country and its file, once, in the order of the data.
+ */
+export function landFlagsOf(index, flags) {
+  return index.countries
+    .filter((c) => c.fl && STATES.includes(c.cl))
+    .flatMap((c) => [...new Set((flags.regions[c.id] ?? []).map((row) => row[4]))].map((file) => [c.id, file]));
+}
+
+/**
+ * What tells one list of those flags from another, in a few letters: what is written of them says which
+ * list it was written for, and a test says so when the flags have changed since.
+ */
+export const landMark = (list) => createHash('sha1').update(list.map(([country, file]) => pastKey(country, file)).join('\n')).digest('hex').slice(0, 10);
 
 /**
  * The countries to set beside a flag of another time: those of `members` whose flag of today is most like
@@ -493,6 +552,21 @@ async function main() {
   fs.writeFileSync(path.join(OUT, 'past.json'), pastText);
   console.log(`  past.json: ${Object.keys(past.own).length} banderas de otros tiempos en ${Object.keys(past.groups).length} grupos; ${Object.keys(past.also).length} las tuvo también otro país; ${(pastText.length / 1024).toFixed(1)} kB`);
 
+  // The flags of the divisions, asked by their country: the other States that fly each, or one as good as
+  // it, as their own flag or as that of one of their divisions. Nobody could be told they were wrong to
+  // choose one of those, so they are never set beside the right one.
+  const states = index.countries.filter((c) => c.fl && STATES.includes(c.cl)).map((c) => c.id);
+  const flying = new Map(states.map((id) => [id, [today.get(id), ...[...new Set((flags.regions[id] ?? []).map((row) => row[4]))].map((file) => looks.get(file))]]));
+  const landFlags = landFlagsOf(index, flags);
+  const lands = { v: 1, n: landFlags.length, of: landMark(landFlags), also: {} };
+  for (const [country, file] of landFlags) {
+    const also = alsoFlew(country, looks.get(file), flying, fliesToo);
+    if (also.length) lands.also[pastKey(country, file)] = also;
+  }
+  const landsText = JSON.stringify(lands);
+  fs.writeFileSync(path.join(OUT, 'lands.json'), landsText);
+  console.log(`  lands.json: ${landFlags.length} banderas de divisiones de ${new Set(landFlags.map(([country]) => country)).size} países; ${Object.keys(lands.also).length} las tiene también otro país; ${(landsText.length / 1024).toFixed(1)} kB`);
+
   if (report) {
     // By name, for a person to look at: who is each picture, what is the same as what, and the neighbours of each.
     const title = new Map(index.countries.map((c) => [c.id, c.n.es]));
@@ -523,6 +597,7 @@ async function main() {
         Object.entries(past.groups).map(([id, list]) => [id, Object.fromEntries(Object.entries(list).map(([key, near]) => [`${told(key)} · ${past.own[key]} de la de hoy`, near.reduce((all, v, k) => (k % 2 ? all : [...all, `${land(v)} ${near[k + 1]}`]), [])]))]),
       ),
     };
+    said.lands = { also: Object.fromEntries(Object.entries(lands.also).map(([key, ids]) => [`${land(key.split(':')[0])} · ${title.get(key.split(':')[1]) ?? '?'} [${key.split(':')[1]}]`, ids.map(land)])) };
     fs.writeFileSync(path.resolve(ROOT, report), JSON.stringify(said, null, 1));
     console.log(`  Lo encontrado, por nombre, en ${report}`);
   }

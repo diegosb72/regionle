@@ -15,6 +15,26 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.46.0',
+    date: '2026-11-24',
+    es: [
+      'Dos juegos más de banderas: Escalada y ¿De qué país es? Con los siete de antes, ya son nueve.',
+      'Escalada: sale una bandera y eliges su nombre entre dos. Cada tres aciertos hay un nombre más, hasta ocho, y tienes tres vidas: tu marca es la altura.',
+      'Desde la décima bandera, los nombres son los de las que más se le parecen. Con países y capitales, las de los países más poblados suelen salir antes.',
+      'Se juega con cualquier grupo de banderas y no hay nada que ajustar: dura hasta el tercer fallo, o hasta que se acaban las banderas.',
+      '¿De qué país es?: sale la bandera de una región, sin su nombre, y eliges de qué país es entre cuatro de su continente, cada uno con su bandera.',
+      'Pregunta por los 116 países que tienen banderas de regiones, una de cada uno por partida, y nunca pone al lado un país que tenga esa misma bandera.',
+    ],
+    en: [
+      'Two more flag games: Climb and Which country? With the seven from before, that makes nine.',
+      'Climb: a flag comes up and you pick its name from two. Every three right answers add a name, up to eight, and you have three lives: your record is the height.',
+      'From the tenth flag on, the names are those of the flags most like it. With countries and capitals, the most populous countries tend to come first.',
+      'It is played with any group of flags and there is nothing to set: it lasts until the third miss, or until the flags run out.',
+      'Which country?: the flag of a region comes up, without its name, and you pick its country among four of its continent, each with its flag.',
+      'It asks the 116 countries that have flags of regions, one flag of each per game, and never sets beside it a country that flies that same flag.',
+    ],
+  },
+  {
     version: '1.45.0',
     date: '2026-11-24',
     es: [

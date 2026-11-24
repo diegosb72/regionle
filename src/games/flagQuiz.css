@@ -262,6 +262,16 @@
   .fq-choices {
     grid-template-columns: minmax(0, 1fr);
   }
+  /* «Escalada», high up: more than four names stay two abreast, each a little smaller, so that the flag and all of them are in sight at once. */
+  .fq-choices.fq-many {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .fq-many .choice {
+    min-height: 46px;
+    padding: 6px 10px;
+    font-size: calc(15px * var(--fs));
+  }
   .fq-opts {
     gap: 8px;
   }
