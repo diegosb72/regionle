@@ -1,6 +1,6 @@
 {
-  "when": "2026-11-24T05:59:45.313Z",
-  "from": "arena/baec5cdd-regionle@60a3d90",
+  "when": "2026-11-24T07:22:08.534Z",
+  "from": "main@db3fa88",
   "workflow": "same",
   "sources": [
     {
@@ -15,7 +15,7 @@
       "ok": true,
       "bytes": 833622,
       "blob": "a803cf997c6c57a27b64a4f93da2ca407dc2082b",
-      "note": "1642 de 4295 tienen bandera; 1618 archivos: 317 descargados (44.064 kB, con 13 imágenes), 1301 que ya estaban",
+      "note": "1642 de 4295 tienen bandera; 1618 archivos: 0 descargados (0 kB), 1618 que ya estaban",
       "detail": {
         "asked": 4295,
         "found": 1642,
@@ -33,11 +33,11 @@
           "drawn": 15,
           "words": 29,
           "wanted": 1618,
-          "brought": 317,
-          "there": 1301,
+          "brought": 0,
+          "there": 1618,
           "left": 0,
-          "pictures": 13,
-          "bytes": 44063634
+          "pictures": 0,
+          "bytes": 0
         },
         "kinds": {
           "svg": 1159,
@@ -65,7 +65,7 @@
         },
         "undone": []
       },
-      "ms": 650221
+      "ms": 300288
     }
   ],
   "reach": []
