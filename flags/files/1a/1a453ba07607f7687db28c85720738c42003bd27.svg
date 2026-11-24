@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   version="1.0"
+   width="492"
+   height="300"
+   id="svg2">
+  <defs
+     id="defs4" />
+  <rect
+     width="492"
+     height="300"
+     x="0"
+     y="0"
+     style="opacity:1;fill:white;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     id="rect1885" />
+  <rect
+     width="492"
+     height="75"
+     x="0"
+     y="225"
+     style="fill:#6060ff;stroke:none"
+     id="rect6" />
+  <rect
+     width="492"
+     height="25"
+     x="0"
+     y="175"
+     style="fill:#6060ff;stroke:none"
+     id="rect8" />
+  <g
+     transform="matrix(0.35,0,0,0.35,160,40)"
+     id="g10">
+    <path
+       d="M 30,70 L 30,190 C 70,210 70,290 30,310 L 30,420 C 30,510 200,540 200,540 C 225.5,544.5 240,560 250,570 C 260,560 274.5,544.5 300,540 C 300,540 470,510 470,420 L 470,310 C 430,290 430,210 470,190 L 470,70 C 400,0 100,0 30,70 z "
+       style="fill:white;stroke:none;stroke-width:2"
+       id="path12" />
+    <path
+       d="M 36,75 L 36,186 C 76,212 76,290 36,314 L 36,417 C 36,505 201,534 201,534 C 225,537 240,552 250,562 C 260,552 274,537 300,534 C 299,534 464,505 464,417 L 464,314 C 424,290 424,212 464,186 L 464,75 C 397,10 103,10 36,75 z "
+       style="fill:#6060ff;stroke-width:0"
+       id="path14" />
+    <path
+       d="M 143,160 C 154,202 154,244 143,286 C 164,265 199,254 227,244 C 217,272 206,307 185,328 C 227,317 269,317 311,328 C 290,307 280,272 269,244 C 297,254 332,265 353,286 C 343,244 343,202 353,160 C 332,181 297,191 269,202 C 280,174 290,139 311,118 C 269,128 227,128 185,118 C 206,139 217,174 227,202 C 199,191 164,181 143,160 z "
+       style="fill:white;stroke-width:0"
+       id="path16" />
+    <path
+       d="M 113,225 C 102,241 99,268 99,292 C 99,378 165,441 249,441 C 327,441 400,376 399,292 C 401,268 392,242 385,225 C 385,420 113,420 113,225 z "
+       style="fill:#ffc000;stroke-width:0"
+       id="path18" />
+  </g>
+</svg>
