@@ -1,0 +1,27 @@
+/* «Parejas» of the section «Banderas» (FlagPairs.tsx): what the table of the countries (pairs.css) does not have. */
+
+/* A flag of any shape on its card: across it when it is wider than four by three, from top to bottom when it is narrower. */
+.fp-img {
+  display: block;
+  width: min(84%, calc(84% * var(--r, 1.5) * 0.75));
+  height: auto;
+  aspect-ratio: auto var(--r, 1.5);
+  border-radius: 3px;
+  background: var(--bg-2);
+  box-shadow: 0 0 0 1px var(--line);
+}
+/* A flag that did not come: out of sight, and said under the table. */
+.fp img.lost {
+  visibility: hidden;
+}
+/* What tells a name from another like it: the country of a capital, the years of a country that is no more. */
+.fp-under {
+  color: var(--ink-3);
+  font-size: calc(10.5px * var(--fs));
+  font-weight: 600;
+  line-height: 1.15;
+  text-align: center;
+}
+.fp .fq-lost {
+  width: min(100%, 760px);
+}

@@ -15,6 +15,26 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.45.0',
+    date: '2026-11-24',
+    es: [
+      'Tres juegos más de banderas: Antes y ahora, El intruso y Parejas. Con los cuatro de antes, ya son siete.',
+      'Antes y ahora: sale una bandera que un país tuvo antes, con sus años, y dices qué país fue. Es el juego de las 300 banderas anteriores, que solo se veían.',
+      'Los otros tres países son los que hoy tienen la bandera más parecida a la antigua, y nunca uno que tuvo esa misma. Se juega con países: 81 han cambiado la suya.',
+      'El intruso: cuatro banderas, tres de un grupo y una de fuera. Entre países, la intrusa es de otro continente y se parece a alguna de las otras tres.',
+      'Con regiones o ciudades, la intrusa es de otro país; con organizaciones, pueblos o países que ya no existen, de otra clase.',
+      'Parejas: cartas boca abajo, la bandera y su nombre, con 6, 8, 10 o 12 parejas de cualquier grupo de banderas. Tu marca es la mesa con menos intentos.',
+    ],
+    en: [
+      'Three more flag games: Then and now, Odd one out and Pairs. With the four from before, that makes seven.',
+      'Then and now: a flag that a country flew before comes up, with its years, and you say which country. It is the game of the 300 earlier flags, so far only seen.',
+      'The other three countries are those whose flag of today is most like the old one, never one that flew it too. Played with countries: 81 have changed flags.',
+      'Odd one out: four flags, three of a group and one from outside. Among countries, the odd one is from another continent and looks like one of the other three.',
+      'With regions or cities, the odd one is from another country; with organisations, peoples or countries that are no more, of another kind.',
+      'Pairs: cards face down, the flag and its name, with 6, 8, 10 or 12 pairs of any group of flags. Your record is the table with the fewest turns.',
+    ],
+  },
+  {
     version: '1.44.0',
     date: '2026-11-24',
     es: [

@@ -5,20 +5,26 @@
  *
  *   ¿De dónde es?         a flag, and its name among four or typed
  *   ¿Cuál es su bandera?  a name, and its flag among four
- *   Casi iguales          a name, and its flag among the three that look most like it
+ *   Parejas               cards face down, a flag and a name for each: turned two at a time (lib/pairs.ts)
  *   Poco a poco           a flag uncovered piece by piece: the sooner it is named, the more it is worth
+ *   El intruso            four flags, three of a group and one from outside it (lib/flagOdd.ts)
+ *   Casi iguales          a name, and its flag among the three that look most like it
+ *   Antes y ahora         a flag that a country flew before, and the country among four (lib/flagPast.ts)
  *
  * The texts are long: nothing that comes with the first page may import this file (lib/modes.ts has the
  * names, which the first page says).
  */
-import { Copy, Flag, Grid3x3, LayoutGrid, type LucideIcon } from 'lucide-react';
+import { Copy, EqualApproximately, Flag, Grid2x2X, Grid3x3, History, LayoutGrid, type LucideIcon } from 'lucide-react';
 import { ALIKE_CLOSE, ALIKE_OTHERS, closeness, rivalsOf, type Near } from './flagAlike';
-import { flagSetOf, flagSetText, twins, type DeckCard, type FlagSet } from './flagSets';
+import { oddCount, oddRound, type OddPool } from './flagOdd';
+import { PAST_MIN, pastAsked, pastOptions, type PastFile } from './flagPast';
+import { apart, beside, flagSetOf, flagSetText, type DeckCard, type FlagSet } from './flagSets';
 import type { ModeHelp } from './help';
 import { L } from './i18n';
 import { Matcher } from './matcher';
 import { FLAG_GAME_IDS, flagGameName } from './modes';
 import { FLAGS_PATH, FLAG_GAMES_PATH, FLAG_PLAY_PATH } from './routes';
+import { PAIRS_MIN, PAIR_SIZES, PAIR_SIZE_DEFAULT, type PairSize } from './rules';
 import { shuffle, type Rng } from './text';
 import type { FlagGame, Res } from './types';
 
@@ -36,8 +42,9 @@ export interface FlagGameDef {
   typed: boolean;
 }
 
-const ICON: Record<FlagGame, LucideIcon> = { 'flag-whose': Flag, 'flag-pick': LayoutGrid, 'flag-alike': Copy, 'flag-reveal': Grid3x3 };
-const LEVEL: Record<FlagGame, 1 | 2 | 3> = { 'flag-whose': 1, 'flag-pick': 1, 'flag-alike': 3, 'flag-reveal': 2 };
+/** Those that have a namesake among the games of the countries («Parejas», «El intruso») wear its icon. */
+const ICON: Record<FlagGame, LucideIcon> = { 'flag-whose': Flag, 'flag-pick': LayoutGrid, 'flag-pairs': Copy, 'flag-reveal': Grid3x3, 'flag-odd': Grid2x2X, 'flag-alike': EqualApproximately, 'flag-past': History };
+const LEVEL: Record<FlagGame, 1 | 2 | 3> = { 'flag-whose': 1, 'flag-pick': 1, 'flag-pairs': 1, 'flag-reveal': 2, 'flag-odd': 2, 'flag-alike': 3, 'flag-past': 3 };
 /** The games whose answer is a name. */
 const TYPED: readonly FlagGame[] = ['flag-whose', 'flag-reveal'];
 
@@ -49,6 +56,12 @@ function descOf(game: FlagGame): string {
       return L('Sale un nombre y eliges su bandera entre cuatro.', 'A name comes up and you choose its flag among four.');
     case 'flag-alike':
       return L('Sale un nombre y cuatro banderas que se parecen entre sí: solo una es la suya.', 'A name comes up with four flags that look alike: only one is its own.');
+    case 'flag-pairs':
+      return L('Cartas boca abajo: levantas una bandera y un nombre, y juntas cada bandera con el suyo.', 'Cards face down: you turn over a flag and a name, and put each flag with its own.');
+    case 'flag-odd':
+      return L('Cuatro banderas: tres son del grupo que se dice y una no. Encuentra la intrusa.', 'Four flags: three are of the group that is named and one is not. Find the odd one out.');
+    case 'flag-past':
+      return L('Sale una bandera que un país tuvo antes, con sus años, y eliges qué país la tuvo.', 'A flag that a country flew before comes up, with its years, and you choose which country flew it.');
     default:
       return L('La bandera se destapa pieza a pieza: cuanto antes digas de dónde es, más puntos.', 'The flag is uncovered piece by piece: the sooner you say whose it is, the more points.');
   }
@@ -59,6 +72,11 @@ export const flagGameDef = (id: FlagGame): FlagGameDef => ({ id, name: flagGameN
 /** How many questions a game has: ten, twenty or one for each flag of the set. */
 export type FlagLength = 10 | 20 | 'all';
 export const FLAG_LENGTHS: readonly FlagLength[] = [10, 20, 'all'];
+/** «Parejas» has no questions: what is chosen is how many pairs are dealt (lib/rules.ts, as in the «Parejas» of the countries). */
+export { PAIR_SIZES, type PairSize };
+/** How long a game of each kind can be, and how long it is when nothing says. */
+export const lengthsOf = (game: FlagGame): readonly (FlagLength | PairSize)[] => (game === 'flag-pairs' ? PAIR_SIZES : FLAG_LENGTHS);
+export const lengthOf = (game: FlagGame): FlagLength | PairSize => (game === 'flag-pairs' ? PAIR_SIZE_DEFAULT : 10);
 /** How a name is given: chosen among four, or typed. */
 export type FlagAnswer = 'choice' | 'type';
 
@@ -66,12 +84,21 @@ export type FlagAnswer = 'choice' | 'type';
 export interface FlagPlay {
   game: FlagGame;
   set: FlagSet;
-  length: FlagLength;
+  /** How many questions or, in «Parejas», how many pairs: one of `lengthsOf` the game. */
+  length: FlagLength | PairSize;
   answer: FlagAnswer;
 }
 
 /** The word each game goes by in an address: the same in every language, so that links keep working. */
-const GAME_WORD: Record<FlagGame, string> = { 'flag-whose': 'de-donde', 'flag-pick': 'cual-es', 'flag-alike': 'casi-iguales', 'flag-reveal': 'poco-a-poco' };
+const GAME_WORD: Record<FlagGame, string> = {
+  'flag-whose': 'de-donde',
+  'flag-pick': 'cual-es',
+  'flag-pairs': 'parejas',
+  'flag-reveal': 'poco-a-poco',
+  'flag-odd': 'el-intruso',
+  'flag-alike': 'casi-iguales',
+  'flag-past': 'antes-y-ahora',
+};
 const WORD_GAME = Object.fromEntries(Object.entries(GAME_WORD).map(([game, word]) => [word, game])) as Record<string, FlagGame>;
 const ALL_WORD = 'todas';
 const TYPE_WORD = 'escrita';
@@ -85,14 +112,15 @@ export function flagPlayText(play: FlagPlay): string {
 
 /**
  * The game that such a text says; null when it names no game or no flags. What it leaves unsaid, or says
- * wrong, is as a game opens: ten questions, chosen among four.
+ * wrong, is as a game opens: ten questions (or eight pairs), chosen among four.
  */
 export function flagPlayOf(text: string): FlagPlay | null {
   const [word = '', flags = '', count = '', how = ''] = text.split('/');
   const game = WORD_GAME[word.toLowerCase()];
   const set = flagSetOf(flags);
   if (!game || !set) return null;
-  const length: FlagLength = count.toLowerCase() === ALL_WORD ? 'all' : count === '20' ? 20 : 10;
+  const said = count.toLowerCase() === ALL_WORD ? 'all' : /^\d+$/.test(count) ? Number(count) : 0;
+  const length = lengthsOf(game).find((one) => one === said) ?? lengthOf(game);
   return { game, set, length, answer: how.toLowerCase() === TYPE_WORD && TYPED.includes(game) ? 'type' : 'choice' };
 }
 
@@ -116,12 +144,24 @@ export const revealRes = (shown: number): Res => (shown <= REVEAL_PIECES / 2 ? '
 
 /** One question of a game. */
 export interface FlagQuestion {
-  /** The flag it is about. */
+  /** The flag it is about: the one that is asked or, in «El intruso», the one from outside. */
   card: DeckCard;
   /** What there is to choose from, the right one among them, in the order it is shown; nothing when the answer is typed. */
   options: DeckCard[];
+  /** The key of the option that is right: the card itself or, in «Antes y ahora», the country that flew it. */
+  right: string;
   /** «Poco a poco»: the order its pieces come off in. */
   order: number[];
+  /** «El intruso»: what the other three are of, and what the one from outside is of. */
+  odd?: { group: string; tag: string };
+}
+
+/** What a game needs besides the cards of its set, each game its own. */
+export interface FlagExtra {
+  /** «Antes y ahora»: the flags of other times of the countries of the set (lib/flagPast.ts, `pastCards`), what is written of them and the group of the set there. */
+  past?: { cards: ReadonlyMap<string, readonly DeckCard[]>; data: PastFile | null; place: string };
+  /** «El intruso»: the groups of the set and the flags from outside (lib/flagOdd.ts, `oddPool`). */
+  odd?: Pick<OddPool, 'groups'> & Partial<OddPool>;
 }
 
 /** How many answers a question offers. */
@@ -130,17 +170,6 @@ export const FLAG_OPTIONS = ALIKE_OTHERS + 1;
 export const ALIKE_POOL_MIN = 20;
 /** …and is no game with fewer than these to ask. */
 export const ALIKE_MIN = 4;
-
-/** Some cards to set beside one, taken in the order given: none that cannot share a question with it or with another of them. */
-function beside(card: DeckCard, from: readonly DeckCard[], n: number, had: readonly DeckCard[] = []): DeckCard[] {
-  const out: DeckCard[] = [...had];
-  for (const other of from) {
-    if (out.length >= n) break;
-    if (other.key === card.key || twins(card, other) || out.some((o) => o.key === other.key || twins(o, other))) continue;
-    out.push(other);
-  }
-  return out;
-}
 
 /**
  * The flags «Casi iguales» asks about: those with enough flags that look like them, the most alike first.
@@ -163,18 +192,47 @@ export function alikeCount(pool: { cards: readonly DeckCard[]; close: number }):
   return n < ALIKE_MIN ? 0 : n;
 }
 
-/** How many questions a game will have, with the flags there are. */
-export function questionCount(play: FlagPlay, deck: readonly DeckCard[], near?: ReadonlyMap<string, readonly Near[]>): number {
-  const all = play.game === 'flag-alike' ? alikeCount(alikePool(deck, near ?? new Map())) : deck.length;
+/** The cards of a game of «Parejas»: so many of the set, by lot, no two of them the same picture or of the same name. */
+export const pairCards = (deck: readonly DeckCard[], pairs: number, rng: Rng = Math.random): DeckCard[] => apart(shuffle(deck, rng), pairs);
+
+/**
+ * How many questions a game will have, with the flags there are; in «Parejas», how many pairs. None when
+ * the game cannot be played with them: flags that are not alike, countries that never changed theirs.
+ */
+export function questionCount(play: FlagPlay, deck: readonly DeckCard[], near?: ReadonlyMap<string, readonly Near[]>, extra: FlagExtra = {}): number {
+  if (play.game === 'flag-pairs') {
+    const pairs = Math.min(typeof play.length === 'number' ? play.length : PAIR_SIZE_DEFAULT, apart(deck).length);
+    return pairs < PAIRS_MIN ? 0 : pairs;
+  }
+  let all = deck.length;
+  if (play.game === 'flag-alike') all = alikeCount(alikePool(deck, near ?? new Map()));
+  else if (play.game === 'flag-past') all = (extra.past?.cards.size ?? 0) < PAST_MIN ? 0 : extra.past!.cards.size;
+  else if (play.game === 'flag-odd') all = extra.odd ? oddCount(extra.odd) : 0;
   return play.length === 'all' ? all : Math.min(play.length, all);
 }
 
 /**
- * The questions of a game. `near` is what «Casi iguales» needs (lib/flagAlike.ts, `nearCards`); `only`,
- * the keys of the cards to ask when a game is only of some (those that were missed): what is set beside
- * them still comes from the whole set.
+ * The questions of a game. `near` is what «Casi iguales» needs (lib/flagAlike.ts, `nearCards`), and what
+ * «El intruso» takes its flag from outside by, where it has it; `only`, the keys of the cards to ask when
+ * a game is only of some (those that were missed): what is set beside them still comes from the whole set.
+ * `extra` is what «Antes y ahora» and «El intruso» are asked with. «Parejas» has no questions: `pairCards`.
  */
-export function roundOf(play: FlagPlay, deck: readonly DeckCard[], rng: Rng = Math.random, near: ReadonlyMap<string, readonly Near[]> = new Map(), only?: ReadonlySet<string>): FlagQuestion[] {
+export function roundOf(play: FlagPlay, deck: readonly DeckCard[], rng: Rng = Math.random, near: ReadonlyMap<string, readonly Near[]> = new Map(), only?: ReadonlySet<string>, extra: FlagExtra = {}): FlagQuestion[] {
+  if (play.game === 'flag-pairs') return [];
+  if (play.game === 'flag-past') {
+    const past = extra.past;
+    if (!past || (!only && past.cards.size < PAST_MIN)) return [];
+    return pastAsked(past.cards, past.data, play.length, rng, only).flatMap((card) => {
+      const options = pastOptions(card, deck, past.data, past.place, FLAG_OPTIONS, rng);
+      const land = options.find((option) => option.id === card.id);
+      return land && options.length > 1 ? [{ card, options, right: land.key, order: [] }] : [];
+    });
+  }
+  if (play.game === 'flag-odd') {
+    const pool = extra.odd;
+    if (!pool?.out) return [];
+    return oddRound({ groups: pool.groups, out: pool.out }, play.length, rng, near.size ? near : undefined, only).map(({ card, trio, group, tag }) => ({ card, options: shuffle([card, ...trio], rng), right: card.key, order: [], odd: { group, tag } }));
+  }
   const alike = play.game === 'flag-alike';
   let asked: DeckCard[];
   if (only) asked = shuffle(deck.filter((card) => only.has(card.key)), rng);
@@ -193,7 +251,7 @@ export function roundOf(play: FlagPlay, deck: readonly DeckCard[], rng: Rng = Ma
       const rivals = alike ? rivalsOf(card, near.get(card.key) ?? []).map((r) => r.card) : [];
       options = shuffle([card, ...beside(card, shuffle(deck, rng), FLAG_OPTIONS - 1, rivals)], rng);
     }
-    return { card, options, order: play.game === 'flag-reveal' ? shuffle(pieces, rng) : [] };
+    return { card, options, right: card.key, order: play.game === 'flag-reveal' ? shuffle(pieces, rng) : [] };
   });
 }
 
@@ -223,6 +281,8 @@ export interface FlagAnswered {
   res: Res;
   /** The flag taken for it, when the answer was wrong. */
   given?: DeckCard;
+  /** «El intruso»: what the flag is of, and the group it was set in. */
+  note?: string;
   /** «Poco a poco»: what it was worth. */
   points: number;
 }
@@ -307,6 +367,74 @@ export function flagGameHelp(game: FlagGame): ModeHelp {
         tip: L(
           'Las que son exactamente el mismo dibujo nunca salen juntas: siempre hay una diferencia, aunque sea el tono, el escudo o el orden de los colores.',
           'Those that are exactly the same picture never come up together: there is always a difference, be it the shade, the arms or the order of the colours.',
+        ),
+      };
+    case 'flag-pairs':
+      return {
+        steps: [
+          L(
+            'Las cartas están boca abajo, dos por bandera: la bandera y su nombre. El dorso dice cuál es cuál. Levanta una bandera y un nombre.',
+            'The cards are face down, two for each flag: the flag and its name. The back says which is which. Turn over a flag and a name.',
+          ),
+          L(
+            'Si el nombre es el de esa bandera, son pareja y se quedan a la vista. Si no, vuelven a su sitio al cabo de un momento, o en cuanto levantas otra.',
+            'If the name is that of the flag, they are a pair and stay in sight. If not, they go back after a moment, or as soon as you turn over another.',
+          ),
+          L('Con el teclado, las flechas van de carta en carta, e Intro o la barra espaciadora la levantan.', 'With the keyboard, the arrows go from card to card, and Enter or the space bar turns it over.'),
+          L('Al acabar ves los intentos, el tiempo y cada pareja.', 'At the end you see the turns, the time and each pair.'),
+        ],
+        score: L(
+          'Solo cuenta como fallo el intento que te podías haber ahorrado: cuando ya habías visto dónde estaba la otra mitad de la primera carta, o cuando la juntas con una que ya conocías. Tu marca es la partida con menos intentos, y se guarda aparte para cada grupo de banderas y cada número de parejas.',
+          'Only a turn you could have spared counts as a miss: when you had already seen where the other half of the first card was, or when you put it with one you already knew. Your record is the game with the fewest turns, kept apart for each group of flags and each number of pairs.',
+        ),
+        tip: L(
+          'Levanta primero las cartas que no hayas visto: cada una que conoces es una pareja que ya no hay que buscar.',
+          'Turn over the cards you have not seen first: each one you know is a pair you no longer have to look for.',
+        ),
+      };
+    case 'flag-odd':
+      return {
+        steps: [
+          L(
+            'Salen cuatro banderas y el nombre de un grupo: tres son de ese grupo y una no. Pulsa la intrusa (o su número, del 1 al 4).',
+            'Four flags come up with the name of a group: three are of that group and one is not. Press the odd one out (or its number, 1 to 4).',
+          ),
+          L(
+            'Se corrige al momento, y cada bandera dice de quién es; la intrusa, además, de dónde viene. Pulsa «Siguiente» (o Intro) para seguir.',
+            'It is marked at once, and each flag says whose it is; the odd one out, where it comes from as well. Press “Next” (or Enter) to go on.',
+          ),
+          end,
+        ],
+        score: L(
+          'Hay un solo intento por pregunta: cuenta como acierto o como fallo. Tu marca es el mejor porcentaje de aciertos, y se guarda aparte para cada grupo de banderas.',
+          'There is one try for each question: it counts as right or as a miss. Your record is the best share of right answers, kept apart for each group of flags.',
+        ),
+        tip: L(
+          'Con los países del mundo el grupo es un continente distinto en cada pregunta, y la intrusa suele parecerse a una de las otras tres: fíjate en el nombre del grupo antes que en los colores.',
+          'With the countries of the world the group is another continent in each question, and the odd one out often looks like one of the other three: mind the name of the group before the colours.',
+        ),
+      };
+    case 'flag-past':
+      return {
+        steps: [
+          L(
+            'Sale una bandera que un país de hoy tuvo antes, con los años en que ondeó. Debajo hay cuatro países, cada uno con su bandera de ahora: pulsa el que la tuvo (o su número, del 1 al 4).',
+            'A flag that a country of today flew before comes up, with the years it flew. Below there are four countries, each with its flag of today: press the one that flew it (or its number, 1 to 4).',
+          ),
+          marked,
+          L(
+            'De cada país sale una sola de sus banderas anteriores, por sorteo: en otra partida puede salir otra. Solo se pregunta por los países que han cambiado de bandera.',
+            'Of each country only one of its earlier flags comes up, by lot: another game may bring another. Only the countries that have changed their flag are asked.',
+          ),
+          end,
+        ],
+        score: L(
+          'Hay un solo intento por bandera: cuenta como acierto o como fallo. Tu marca es el mejor porcentaje de aciertos, y se guarda aparte para cada grupo de países.',
+          'There is one try for each flag: it counts as right or as a miss. Your record is the best share of right answers, kept apart for each group of countries.',
+        ),
+        tip: L(
+          'Los otros tres países no están al azar: son los que hoy tienen la bandera más parecida a la antigua. Nunca sale como opción un país que también tuvo esa misma bandera.',
+          'The other three countries are not there by chance: they are the ones whose flag of today is most like the old one. A country that flew that same flag too is never one of the options.',
         ),
       };
     default:
