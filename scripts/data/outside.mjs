@@ -698,6 +698,18 @@ const WIKIS = ['en', 'es'];
 const FLAG_LISTS = path.resolve(ROOT, process.env.OUTSIDE_FLAG_LISTS ?? 'scripts/data/flags-lists.json');
 /** The signals: flags that are nobody's, each a file of Commons named by hand. */
 const FLAG_SIGNALS = path.resolve(ROOT, process.env.OUTSIDE_FLAG_SIGNALS ?? 'scripts/data/flags-signals.json');
+/**
+ * The sheets of the countries (src/screens/FlagProfile.tsx): what is written of each by hand is a file of
+ * its own in this folder (`BR.json`), and it names the photographs the sheet shows, each a file of Commons.
+ */
+const PROFILES = path.resolve(ROOT, process.env.OUTSIDE_PROFILES ?? 'scripts/data/profiles');
+/**
+ * How wide a photograph is brought, in px: one of the widths that Wikimedia draws its pictures at, and
+ * more than the game shows one at. The original is not brought: a photograph may weigh tens of megabytes.
+ */
+const PHOTO_WIDTH = 1920;
+/** Where the photographs are kept in the branch: each under the SHA-1 of its original and the width it was asked for at. */
+const PHOTO_FILES = 'photos/files';
 /** How many pages of Wikimedia sites have to tell of something that has a flag for it to be a candidate for those lists. */
 const CANDIDATE_LINKS = Number(process.env.OUTSIDE_CANDIDATE_LINKS ?? 40);
 /** How many of them Wikidata is asked about in one question: they are thousands, and each question has its wait. */
@@ -1434,6 +1446,86 @@ async function signalFlags(source, keep) {
   };
 }
 
+/** The photographs that a sheet names: those it shows, and the one of each of its times that has one. */
+function photosIn(sheet) {
+  const named = [...(Array.isArray(sheet?.photos) ? sheet.photos : []), ...(Array.isArray(sheet?.times) ? sheet.times.map((time) => time?.picture) : [])];
+  return [...new Set(named.map((one) => (typeof one?.file === 'string' ? one.file.trim() : '')).filter(Boolean))];
+}
+
+/**
+ * The photographs of the sheets of the countries, each a file of Commons that a sheet names
+ * (scripts/data/profiles). Of each: what Commons says of it (who made it and on what terms it is given,
+ * which the sheet has to say under it) and the picture that Wikimedia draws of it, `PHOTO_WIDTH` px wide.
+ * The original is never asked for. A photograph that could not be brought has its entry with no picture.
+ */
+async function profilePhotos(source, keep) {
+  const sheets = fs.existsSync(PROFILES) ? fs.readdirSync(PROFILES).filter((name) => name.endsWith('.json')).sort() : [];
+  const items = {};
+  for (const name of sheets) {
+    const photos = photosIn(JSON.parse(fs.readFileSync(path.join(PROFILES, name), 'utf8')));
+    if (photos.length) items[name.slice(0, -5)] = { photos };
+  }
+  const names = [...new Set(Object.values(items).flatMap((item) => item.photos))].sort();
+  if (!names.length) throw new Error('The sheets name no photograph');
+  const { until, undone } = patient();
+  const { pages, titled } = await commonsOf(names, {
+    prop: 'imageinfo',
+    iiprop: 'url|size|mime|thumbmime|sha1|extmetadata',
+    iiextmetadatafilter: 'LicenseShortName|UsageTerms|LicenseUrl|Artist|Credit|AttributionRequired|Restrictions',
+    iiurlwidth: String(PHOTO_WIDTH),
+  });
+  const files = {};
+  const sources = new Map();
+  for (const name of names) {
+    const title = titled(name);
+    const info = about(pages.get(title));
+    files[title] = info ?? { missing: true };
+    if (info) sources.set(title, pages.get(title).imageinfo[0]);
+  }
+  for (const item of Object.values(items)) item.photos = [...new Set(item.photos.map(titled))];
+
+  const [brought, left] = [[], []];
+  let [bytes, failed] = [0, 0];
+  let last = null;
+  for (const title of [...sources.keys()].sort()) {
+    if (Date.now() >= until || failed >= FLAGS_FAILED) {
+      left.push(title);
+      continue;
+    }
+    const file = files[title];
+    const from = sources.get(title);
+    // The picture that Wikimedia draws of it: what a photograph is drawn as is a photograph, whatever the original was kept as.
+    const kind = KIND[from.thumbmime] ?? (file.mime === 'image/png' ? 'png' : 'jpg');
+    try {
+      await sleep(FLAG_GAP);
+      const { body } = await request(from.thumburl ?? from.url, { tries: 3, until });
+      const at = `${PHOTO_FILES}/${file.sha1}.${PHOTO_WIDTH}.${kind}`;
+      keep(at, body);
+      file.picture = at;
+      bytes += body.length;
+      brought.push(title);
+      failed = 0;
+    } catch (err) {
+      failed++;
+      last = err;
+      left.push(title);
+    }
+  }
+  if (left.length) undone.push(`${left.length} de ${sources.size} fotografías (${last ? short(last) : 'no quedaba tiempo'})`);
+  const missing = names.length - sources.size;
+  return {
+    text: listed({ source: source.from, licence: source.licence, what: source.what, asked: names.length }, { items, files }),
+    note: [`${names.length} fotografías de ${Object.keys(items).length} fichas: ${brought.length} traídas (${kB(bytes)})`, ...(missing ? [`${missing} que Commons no tiene`] : []), ...(undone.length ? [`sin mirar: ${undone.join('; ')}`] : [])].join('; '),
+    detail: {
+      asked: names.length,
+      found: sources.size,
+      files: { all: sources.size, missing, brought: brought.length, left: left.length, bytes },
+      licences: tally([...sources.keys()].map((title) => files[title]), (f) => f.licence || '?'),
+      undone,
+    },
+  };
+}
+
 /** The year a day of Wikidata is of: «-0026-01-01T00:00:00Z» is 27 BC, and is told as -26. */
 const yearOf = (cell) => {
   const m = /^(-?)(\d{1,6})-\d{2}-\d{2}/.exec(String(cell?.value ?? ''));
@@ -1600,6 +1692,19 @@ const SOURCES = [
     es: 'Banderas que son señales',
     needs: '112',
     run: signalFlags,
+  },
+  {
+    id: 'photos',
+    file: 'photos/photos.json',
+    from: 'Wikimedia Commons (https://commons.wikimedia.org)',
+    licence: 'La de cada archivo, que su entrada dice: dominio público o una licencia libre',
+    what:
+      'The photographs that the sheets of the countries show, each a file of Commons that a sheet names (scripts/data/profiles/<country>.json). items: the titles of those of each sheet, by the id of its country (photos). ' +
+      'files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height of the original, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; ' +
+      `and where the picture of it that Wikimedia draws, ${PHOTO_WIDTH} px wide, is kept in this branch (picture): the original is not brought. The pictures are under ${PHOTO_FILES}, each named after the SHA-1 of its original.`,
+    es: 'Fotografías de las fichas de los países',
+    needs: '113',
+    run: profilePhotos,
   },
 ];
 

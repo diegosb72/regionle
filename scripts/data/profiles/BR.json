@@ -1,0 +1,28 @@
+{
+  "id": "BR",
+  "photos": [
+    { "file": "Rio skyline and Cristo Redentor from Sugarloaf Mountain, Brazil.jpg" },
+    { "file": "Rio de Janeiro skyline and Sugarloaf Mountain at sunset, Brazil 3.jpg" },
+    { "file": "Sugarloaf Sunrise 2.jpg" },
+    { "file": "Christ the Redeemer - Cristo Redentor.jpg" },
+    { "file": "Cataratas do Iguaçu - Vista de cima alt.jpg" },
+    { "file": "Aurora amazônica no Lago do Cuniã.jpg" },
+    { "file": "Noite no Teatro Amazonas (cropped).jpg" },
+    { "file": "Casal de turistas caminha em uma duna, enquanto o dia morre nos Lençóis Maranhenses (edited).jpg" },
+    { "file": "Lençóis Maranhenses 2018.jpg" },
+    { "file": "Brazilian National Congress.jpg" },
+    { "file": "Catedral Metropolitana de Brasília - Brasília - 20150603150521.jpg" },
+    { "file": "Largo do Pelourinho Salvador 2019-9754 (cropped).jpg" },
+    { "file": "Ponte estaiada Octavio Frias - Sao Paulo.jpg" },
+    { "file": "011 Jaguar drinking in Encontro das Águas State Park Photo by Giles Laurent.jpg" },
+    { "file": "007 Hyacinth macaw couple under Pink Ipê tree in Encontro das Águas State Park Photo by Giles Laurent.jpg" },
+    { "file": "006 Toco toucan in Encontro das Águas State Park Photo by Giles Laurent.jpg" },
+    { "file": "Parque Nacional Marinho de Fernando de Noronha - João Paulo Marques DAndretta 1-edited.jpg" },
+    { "file": "Top Down View of Copacabana Mosaic and Palm Trees 3.jpg" },
+    { "file": "Contrasts of Rio de Janeiro - Rocinha, Ipanema, and Mountains at Sunrise.jpg" }
+  ],
+  "times": [
+    { "from": 1822, "picture": { "file": "Pedro Américo - Independência ou Morte - Google Art Project.jpg" } },
+    { "from": 1889, "picture": { "file": "Proclamação da República by Benedito Calixto 1893.jpg" } }
+  ]
+}
