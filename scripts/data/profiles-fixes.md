@@ -121,3 +121,53 @@ decidido a mano (`leads`, o la página de la que sale):
 Lo que es de Wikipedia y se queda como está, porque quitarlo dejaría la ficha sin lo que cuenta: «es el
 bandera» (Japón, en español), «(símbolo Estado)» (Uganda, en español), una coma por una conjunción en la de
 Costa Rica. Se arreglan en Wikipedia, no aquí.
+
+## El escudo
+
+Desde la 1.51.0 cada ficha enseña el escudo del país: el dibujo de Wikimedia Commons que Wikidata da como
+su escudo (propiedad P94), que trae la fuente `arms` de «Traer datos». Wikidata no siempre da el vigente ni
+el oficial, y Commons no siempre dice en pocas palabras de quién es el dibujo, así que se miraron los 238
+uno por uno. Lo que se ha decidido a mano (`arms`):
+
+- **Otro archivo** (`file`):
+  - **ES**: Wikidata da «Escudo de España (variant).svg», que es una copia retocada por otro usuario. Se pone
+    el archivo del que sale, «Escudo de España (mazonado).svg», dibujado según el modelo oficial (Real
+    Decreto 2964/1981); dominio público.
+  - **BF**: Wikidata da el escudo de 1997 a 2025. En 2025 cambió el lema; se pone «Coat of arms of Burkina
+    Faso (2025-present).svg».
+  - **LA**: Wikidata da el emblema de 1991 a 2025. Se modificó en 2025; se pone «Emblem of Laos (2025-).svg».
+  - **PS**: el elemento de Wikidata que el juego tiene es el de la región histórica, que no tiene escudo. La
+    ficha es la del Estado de Palestina: se pone el suyo, «Coat of arms of Palestine.svg».
+- **Qué es** (`kind`): la ficha lo llama «escudo», «emblema» o «sello» según el nombre del archivo («Emblem
+  of…», «Seal of…», «…國徽», «…kamon»). En dos el nombre dice «Arms of…» y no lo es: **AF** (el emblema del
+  Emirato) y **FR** (el emblema de la República: Francia no tiene escudo oficial).
+- **De quién es el dibujo** (`by`): Commons no lo decía en un nombre («See File history», «Own work», una
+  lista de archivos de los que sale…) y la licencia pide nombrarlo. Se leyó la página de cada archivo:
+  **BB** Neville C. Connell; **BF** Gobierno de Burkina Faso, sobre el dibujo de F l a n k e r; **CA**
+  Sodacan; **DK** Galico, con elementos de Sodacan; **GB** Sodacan, retocado por Colohisto; **JE** PaD;
+  **LA** Hlticgh; **LI** Added Ramos; **MC** Denelson83 y Echando una mano; **NI** C records; **SG** Fry1989
+  y Ahk Heraldry; **SL** Yuma, a partir de archivos de Bluebear2, Rinaldum, S@m, Zigeuner y Thommy9. El de
+  **ES** es de dominio público y no hace falta nombrar a nadie, pero su página lo dice y se pone: Gobierno
+  de España, con los gráficos vectoriales de SanchoPanzaXXI.
+- **Ninguno** (`null`):
+  - **CC**: Wikidata da las armas de la familia Clunies-Ross, que fue dueña de las islas; no son las del
+    territorio.
+  - **NU**: lo que da es una fotografía, no un dibujo.
+  - **TG**: el archivo tiene abierta una petición de borrado en Commons. Cuando se resuelva, se quita esta
+    línea o se elige otro.
+
+Lo que no se enseña sin que nadie lo haya decidido a mano, porque lo dice una regla del programa
+(`scripts/data/profiles.mjs`):
+
+- Solo se enseña un dibujo de dominio público, CC0, CC BY, CC BY-SA o «Attribution» (uso libre nombrando al
+  autor). **OM** queda fuera: su emblema está en Commons con la licencia abierta del Gobierno de Omán
+  (OGL-om 1.0), que la ficha no sabe citar.
+- Si la licencia pide nombrar al autor y no hay a quién nombrar, no se enseña. **DM** queda fuera: su página
+  remite al historial del archivo.
+- Los trece territorios que el juego dibuja con la bandera de su país (`flag.of`) no enseñan escudo, y nadie
+  puede elegirles uno. De los ocho franceses Wikidata da armas locales que rara vez son oficiales (las de
+  la Guayana Francesa son las de Cayena); de los otros cinco no da nada.
+- De **AQ**, **CX**, **EH**, **MQ** y **TR** Wikidata no da ninguno. Turquía no tiene escudo oficial.
+
+El dibujo no se toca: se le quita el margen, se reduce a 264 px y se guarda en WebP con su transparencia.
+Bajo él van su autor, cuando se conoce, su licencia y el enlace a su página de Commons.

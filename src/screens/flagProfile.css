@@ -194,9 +194,35 @@
   font-size: calc(12.5px * var(--fs));
   font-weight: 400;
 }
+/* Beside the figures: where the country is, and its coat of arms under that. */
+.fp-side {
+  display: grid;
+  gap: 16px;
+  width: 200px;
+  justify-items: center;
+}
 .fp-where {
   width: 200px;
   text-align: center;
+}
+.fp-arms {
+  width: 100%;
+  text-align: center;
+}
+/* The drawing fits a box, whatever its shape; what is not drawn of it is see-through. */
+.fp .fp-arms img {
+  width: auto;
+  height: auto;
+  max-width: 132px;
+  max-height: 132px;
+  margin: 0 auto;
+}
+/* On a dark sheet a light plate is put behind it: many are drawn in black lines, or with letters in black. */
+:root[data-theme='dark'] .fp .fp-arms img {
+  box-sizing: content-box;
+  padding: 10px;
+  border-radius: 14px;
+  background: #ece9e1;
 }
 .fp-where svg {
   display: block;
@@ -532,9 +558,20 @@
   .fp-glance-in {
     grid-template-columns: minmax(0, 1fr);
   }
+  /* Under the figures, side by side: the globe and the coat of arms. */
+  .fp-side {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 14px 22px;
+    width: auto;
+  }
   .fp-where {
-    width: 170px;
-    justify-self: center;
+    width: 150px;
+  }
+  .fp-arms {
+    width: 150px;
   }
   .fp-facts {
     grid-template-columns: repeat(2, minmax(0, 1fr));

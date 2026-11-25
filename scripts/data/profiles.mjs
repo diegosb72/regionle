@@ -4,10 +4,11 @@
 //   npm run data:fetch -- countries-said   what Wikidata and Wikipedia say of each country, into .cache/src
 //   npm run data:fetch -- countries-texts  how Wikipedia begins to tell of each and of its flag, into .cache/src
 //   npm run data:fetch -- photos           the photographs, into .cache/src/photos (see photos-pinned.mjs)
+//   npm run data:fetch -- arms             the coats of arms, into .cache/src/arms (see arms-pinned.mjs)
 //   npm run data:profiles                  the sheets and their pictures
 //   npm run data:profiles -- --review      the same, and what whoever corrects the sources should look at
 //
-// (`--sheets`, `--brought`, `--said`, `--texts`, `--fixes`, `--heads`, `--data` and `--photos` name other folders and
+// (`--sheets`, `--brought`, `--arms`, `--said`, `--texts`, `--fixes`, `--heads`, `--data` and `--photos` name other folders and
 // files to read from and write to: the tests run it on countries made up for the occasion.)
 //
 // A sheet is made of three things, each laid over the one before:
@@ -32,6 +33,11 @@
 // so. Whoever has read one and knows better where it should end, or that it should not be shown, says it in
 // profiles-fixes.json (`leads`).
 //
+// Each sheet shows the coat of arms of its country too — or its emblem, or its seal —, small: the file
+// Wikidata shows the country with (P94), unless profiles-fixes.json says another or none (`arms`), as the
+// workflow brought it (source `arms`: .cache/src/arms). A territory that the game draws with the flag of its
+// country shows none: the ones such territories are given are seldom official.
+//
 // And two more are read:
 //
 //   · .cache/src/photos: what Commons says of each of those files (who made it and on what terms it is
@@ -46,7 +52,8 @@
 //     of each photograph beside its caption. Nobody types those: they are what Commons says, unless the
 //     sheet names the author because Commons tells it in more words than a caption can carry;
 //   · public/photos/<name>-<width>.webp: each photograph at the widths the sheet shows it at, named after
-//     the first ten figures of the SHA-1 of its original. A photograph no sheet shows any more is removed.
+//     the first ten figures of the SHA-1 of its original, and each coat of arms, made to fit in a small
+//     box. A picture no sheet shows any more is removed.
 //
 // The pictures are not part of what the game stores to work without a connection (scripts/pwa/build.mjs):
 // each is fetched when its sheet is opened, and kept from then on.
@@ -68,6 +75,8 @@ const value = (name) => {
 const SHEETS = path.resolve(ROOT, value('sheets') ?? 'scripts/data/profiles');
 /** What was brought from Commons. */
 const BROUGHT = path.resolve(ROOT, value('brought') ?? '.cache/src/photos');
+/** What was brought of the coats of arms: what Commons says of each (arms.json) and a picture of each. */
+const ARMS = path.resolve(ROOT, value('arms') ?? '.cache/src/arms');
 /** What Wikidata and Wikipedia say of each country, as it was brought, and what was corrected of it by hand. */
 const SAID = path.resolve(ROOT, value('said') ?? '.cache/src/countries-said.json');
 const FIXES = path.resolve(ROOT, value('fixes') ?? 'scripts/data/profiles-fixes.json');
@@ -94,10 +103,29 @@ export const WIDTHS = { head: [640, 1280, 1920], photo: [640, 1280], time: [640]
  * country, which is read first, and of that of its flag, which is read beside the flag.
  */
 export const LEAD_MAX = { about: 640, flag: 480 };
+/** The side of the box a coat of arms is made to fit in, in px: twice that of the box the sheet shows it in. */
+export const ARMS_BOX = 264;
+/**
+ * How its picture is kept. What is not drawn stays see-through, so that the sheet decides what is behind it;
+ * how see-through each point is weighs more than its colours in a drawing this small, and is kept less finely.
+ */
+const ARMS_WEBP = { quality: 82, alphaQuality: 70, effort: 4 };
+/**
+ * The terms a coat of arms may be given on: those of a photograph, and the one Commons calls «Attribution»,
+ * by which whoever holds the rights lets anybody use the drawing for anything as long as they are named.
+ */
+const ARMS_FREE = /^(CC0|CC BY(-SA)? \d|Public domain|Attribution$)/;
+/** The longest name that is taken from Commons for whoever drew one, in characters: it goes under a small picture. */
+const ARMS_BY = 40;
+/** What such a thing is called when it is not a coat of arms, by a word of how its file is called. */
+const ARMS_KINDS = [
+  ['emblem', /embl[eè]m|國徽|badge/i],
+  ['seal', /\b(seal|sello|sceau)\b|kamon/i],
+];
 /** How much of what is seen is kept when a picture is made lighter: past this, a sky starts to show bands. */
 const QUALITY = 78;
 /** The least that is kept of a picture that comes out too heavy; and how heavy a picture may be, in bytes, by its width. */
-const QUALITY_LEAST = 54;
+const QUALITY_LEAST = 48;
 export const HEAVY = (width) => (width > 1280 ? 420_000 : 300_000);
 /** The terms a photograph may be given on to be shown here: none that forbids reusing it or changing its size. */
 const FREE = /^(CC0|CC BY(-SA)? \d|Public domain)/;
@@ -169,6 +197,86 @@ async function photograph(id, one, commons, widths, made) {
     ...(file.licenceUrl ? { licenceUrl: file.licenceUrl.replace(/^http:/, 'https:') } : {}),
     ...text,
     ...(focus ? { focus } : {}),
+  };
+}
+
+/** What tells that Commons says something other than a name where it says who made a file, or more than fits under it. */
+const UNTIDY = /…|^(?:unknown|anonymous|various|see\b|desconocido|unbekannt|inconnu|n\/a)|\b(?:unknown author|file history|see below|e\.g\.|uploader|UTC|own work|based on|derivative|collection)\b|version|Bot\b|\bSVG\b(?!-)|https?:|www\.|\.(?:svg|png|jpe?g)\b|[:[\]]/i;
+
+/**
+ * Who made something, as Commons tells it, in the few words that fit under it: the names, one after
+ * another where it tells which part each had. None where Commons names nobody, tells it at length, or
+ * tells something else in its place (how the file was made, where its history is).
+ */
+export function maker(artist, most = 60) {
+  const text = String(artist ?? '')
+    .replace(/\bi?\s*The source code of this SVG is [^.]*\./gi, ' ')
+    .replace(/\bThis (?:W3C-(?:un)?specified |W3C-invalid )?(?:vector image|file|image) (?:was|is) (?:created|made) with [^.]*\.?/gi, ' ')
+    .replace(/\(\s*(?:talk|talk\s*·\s*contribs|contribs)\s*\)/gi, ' ')
+    .replace(/\b(?:[a-z]{2,3}:)?User:/gi, '')
+    .replace(/\bThe original uploader was\s+/gi, '')
+    .replace(/\s+at (?:the )?[A-Z][a-z]+ Wikipedia\b/g, '')
+    .replace(/\b(?:Original|Vector|Upload|First version|Second version|Autor of SVG image|Author)\s*:/gi, ',')
+    .replace(/,?\s*\b(?:with some elements by|including elements from|modified by|vectori[sz]ed by|vectored by|redrawn to SVG by|extracted by|original(?: design)? by|originally)\s+/gi, ', ')
+    .replace(/\s+([,;.)])/g, '$1')
+    .replace(/\(\s+/g, '(')
+    .replace(/\s+/g, ' ')
+    .replace(/(?:,\s*)+/g, ', ')
+    .replace(/^[\s,;:.·-]+|[\s,;:.·-]+$/g, '')
+    .trim();
+  return !text || text.length > most || UNTIDY.test(text) ? '' : text;
+}
+
+/**
+ * The coat of arms of a country as the sheet shows it — or its emblem, or its seal: its picture, made here
+ * to fit in a small box with what is around it cut off, and whose the drawing is. `must` says that somebody
+ * chose this file by hand: one that cannot be shown then stops the script; otherwise the sheet goes
+ * without, and `why` is told what was wrong with it.
+ */
+async function emblem(id, one, commons, made, must, why) {
+  const refuse = (what) => {
+    if (must) fail(id, what);
+    why(what);
+    return null;
+  };
+  const title = typeof one?.file === 'string' ? one.file.trim() : '';
+  if (!title) fail(id, 'its coat of arms names no file');
+  if (one.kind !== undefined && !['arms', 'emblem', 'seal'].includes(one.kind)) fail(id, `its coat of arms is said to be a «${one.kind}», which is none of arms, emblem and seal`);
+  const file = commons.files?.[title];
+  if (!file || file.missing) return refuse(`Commons was not asked about «${title}», or has no such file: ask for the source «arms» (scripts/data/pedido.txt) and pin what comes (scripts/data/arms-pinned.mjs)`);
+  if (!file.picture) return refuse(`the picture of «${title}» was not brought`);
+  if (!ARMS_FREE.test(file.licence ?? '')) return refuse(`«${title}» is given on terms that are not known to be free: ${file.licence || 'none said'}`);
+  const from = path.join(ARMS, path.basename(file.picture));
+  if (!fs.existsSync(from)) return refuse(`the picture of «${title}» is not among what was brought: pin it (scripts/data/arms-pinned.mjs) and run «npm run data:fetch -- arms»`);
+  const by = (typeof one.by === 'string' && one.by.trim()) || maker(file.artist, ARMS_BY);
+  // A work whose author has to be named has one to name, in words that fit under it.
+  if (!by && (file.attribution || file.licence === 'Attribution')) return refuse(`«${title}» has to be attributed and Commons does not say to whom in a few words (${file.artist || 'nobody'}): say who made it (arms.by)`);
+  // What is around the drawing is cut off, so that every coat of arms fills its box; one that is all of one colour is left as it is.
+  let [drawing, shape] = [sharp(from), null];
+  try {
+    const cut = await sharp(from).trim().toBuffer({ resolveWithObject: true });
+    [drawing, shape] = [sharp(cut.data), cut.info];
+  } catch {
+    shape = await sharp(from).metadata();
+  }
+  const scale = Math.min(1, ARMS_BOX / shape.width, ARMS_BOX / shape.height);
+  const [w, h] = [Math.max(1, Math.round(shape.width * scale)), Math.max(1, Math.round(shape.height * scale))];
+  const name = file.sha1.slice(0, 10);
+  const dest = `${name}-${w}.webp`;
+  if (!made.has(dest)) {
+    if (!fs.existsSync(path.join(PICTURES, dest))) await drawing.resize(w, h, { fit: 'fill' }).webp(ARMS_WEBP).toFile(path.join(PICTURES, dest));
+    made.add(dest);
+  }
+  const kind = one.kind ?? ARMS_KINDS.find(([, words]) => words.test(title))?.[0] ?? 'arms';
+  return {
+    file: name,
+    w,
+    h,
+    title,
+    ...(by ? { by } : {}),
+    licence: file.licence,
+    ...(file.licenceUrl ? { licenceUrl: file.licenceUrl.replace(/^http:/, 'https:') } : {}),
+    ...(kind !== 'arms' ? { kind } : {}),
   };
 }
 
@@ -321,6 +429,11 @@ function checked(id, one) {
   if (flag.by !== undefined && !inSome(flag.by)) fail(id, 'who designed its flag is not a text in a language of the game');
   if (one.lead !== undefined && !isLead(one.lead, one.read)) fail(id, 'what Wikipedia begins to tell of it is not paragraphs in a language of the game, each with its page (read)');
   if (flag.lead !== undefined && !isLead(flag.lead, one.readFlag)) fail(id, 'what Wikipedia begins to tell of its flag is not paragraphs in a language of the game, each with its page (readFlag)');
+  if (one.arms !== undefined) {
+    const { file, w, h, title, licence, kind } = one.arms;
+    if (!/^[0-9a-f]{10}$/.test(file ?? '') || !(w > 0 && h > 0 && w <= ARMS_BOX && h <= ARMS_BOX) || !isText(title) || !ARMS_FREE.test(licence ?? '') || (kind !== undefined && !['emblem', 'seal'].includes(kind)))
+      fail(id, 'its coat of arms is not a picture that fits its box, with its title and the free terms it is given on');
+  }
   for (const key of ['read', 'readFlag']) {
     if (one[key] === undefined) continue;
     if (!inSome(one[key]) || Object.entries(one[key]).some(([lang, url]) => !url.startsWith(`https://${lang}.wikipedia.org/wiki/`))) fail(id, `«${key}» is not a page of the Wikipedia of each language`);
@@ -340,6 +453,8 @@ async function main() {
   const pages = read(TEXTS).pages ?? {};
   const { _: _why, ...fixes } = fs.existsSync(FIXES) ? read(FIXES) : {};
   const { _: _what, ...heads } = fs.existsSync(HEADS) ? read(HEADS) : {};
+  if (!fs.existsSync(path.join(ARMS, 'arms.json'))) throw new Error(`What was brought of the coats of arms is not in ${path.relative(ROOT, ARMS) || ARMS}: run «npm run data:fetch -- arms»`);
+  const emblems = read(path.join(ARMS, 'arms.json'));
   const about = path.join(BROUGHT, 'photos.json');
   const commons = fs.existsSync(about) ? read(about) : null;
   const review = args.includes('--review');
@@ -357,7 +472,7 @@ async function main() {
   /** What each sheet says, by its country; and the sheets as they are written, by the name of the file of each. */
   const sheets = new Map();
   const out = new Map();
-  const count = { official: 0, motto: 0, anthem: 0, adopted: 0, ratio: 0, lead: 0, flagLead: 0, head: 0 };
+  const count = { official: 0, motto: 0, anthem: 0, adopted: 0, ratio: 0, lead: 0, flagLead: 0, head: 0, arms: 0 };
   /** What somebody who read the openings said of them, by country. */
   const cuts = new Map();
   let bytes = 0;
@@ -369,7 +484,9 @@ async function main() {
     // What is said of the openings of Wikipedia is not something the sheet says: it is kept for when they are cut.
     const { leads: cut, ...fix } = fixes[id] ?? {};
     if (cut) cuts.set(id, cut);
-    let one = laid(given, fix) ?? {};
+    // Its coat of arms is the one Wikidata names — the first by name, should it name several —, unless somebody says another, or none.
+    const arms = emblems.items?.[id]?.files?.[0];
+    let one = laid(arms ? { ...given, arms: { file: arms } } : given, fix) ?? {};
     if (written.includes(id)) {
       const mine = await sheet(path.join(SHEETS, `${id}.json`), commons, index, flags, made);
       // Whoever wrote of the flag told its colours in words: the list of them is not said twice.
@@ -397,7 +514,19 @@ async function main() {
     one.flag = { of, ...Object.fromEntries(FLAG_FACTS.filter((key) => theirs.flag?.[key] !== undefined).map((key) => [key, theirs.flag[key]])) };
     if (theirs.readFlag) one.readFlag = theirs.readFlag;
     else delete one.readFlag;
+    // Nor is a coat of arms shown for it: those that such territories are given are seldom official.
+    if (one.arms && fixes[id]?.arms !== undefined) fail(id, 'somebody chose a coat of arms for it, and it is drawn with the flag of another country: it shows none');
+    delete one.arms;
   }
+  /** Why each country that Wikidata names a coat of arms for is left without one. */
+  const without = [];
+  for (const [id, one] of sheets) {
+    if (!one.arms) continue;
+    const shown = await emblem(id, one.arms, emblems, made, typeof fixes[id]?.arms?.file === 'string', (what) => without.push(`${id}: ${what}`));
+    if (shown) one.arms = shown;
+    else delete one.arms;
+  }
+  if (review && without.length) console.log(`  Sin escudo, aunque Wikidata lo nombra:\n${without.map((line) => `    ${line}`).join('\n')}`);
   // Where nobody has written of a country or of its flag, how Wikipedia begins to tell of them. Of a flag
   // that is that of another country, what was said of the openings of that country's flag holds.
   for (const [id, one] of sheets) {
@@ -418,6 +547,7 @@ async function main() {
     if (one.flag?.ratio) count.ratio++;
     if (one.lead) count.lead++;
     if (one.flag?.lead) count.flagLead++;
+    if (one.arms) count.arms++;
   }
   // Every sheet could be made: only now is any written, so that one that could not leaves them all as they were.
   for (const [name, text] of out) fs.writeFileSync(path.join(OUT, name), text);
@@ -426,7 +556,7 @@ async function main() {
   for (const name of fs.readdirSync(PICTURES)) if (!made.has(name)) fs.rmSync(path.join(PICTURES, name));
   console.log(
     `${out.size} fichas en ${path.relative(ROOT, OUT) || OUT} (${kB(bytes)}): ${written.length} escritas a mano; nombre oficial en ${count.official}, lema en ${count.motto}, himno en ${count.anthem}, ` +
-      `fecha de la bandera en ${count.adopted}, proporción en ${count.ratio}; texto de Wikipedia del país en ${count.lead} y de la bandera en ${count.flagLead}; fotografía de cabecera elegida en ${count.head}; ${Object.keys(fixes).length} países con correcciones a mano. ${made.size} imágenes en ${path.relative(ROOT, PICTURES) || PICTURES}`,
+      `fecha de la bandera en ${count.adopted}, proporción en ${count.ratio}; texto de Wikipedia del país en ${count.lead} y de la bandera en ${count.flagLead}; fotografía de cabecera elegida en ${count.head}; escudo en ${count.arms}${without.length ? ` (${without.length} que Wikidata nombra no se pueden enseñar)` : ''}; ${Object.keys(fixes).length} países con correcciones a mano. ${made.size} imágenes en ${path.relative(ROOT, PICTURES) || PICTURES}`,
   );
 }
 

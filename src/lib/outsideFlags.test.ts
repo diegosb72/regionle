@@ -70,6 +70,8 @@ interface World {
   sights?: Record<string, { kind: 'heritage' | 'park' | 'sight' | 'capital' | 'top'; of: string; file: string; links: number; es?: string; en?: string }[]>;
   /** What Commons finds when it is searched: the titles of the files, the best answer first, by what was looked for, as it was written. */
   sought?: Record<string, string[]>;
+  /** The coat of arms Wikidata shows each country with, by the entity of the country: the names of the files. */
+  arms?: Record<string, string[]>;
 }
 /** A way of not answering: this status for what matches, the first `times` of it. */
 interface Refusal {
@@ -122,6 +124,8 @@ function answer(query: string): Record<string, unknown>[] {
         })),
     );
   }
+  if (query.includes('p:P94'))
+    return ids(query).flatMap((id) => (world.arms?.[id] ?? []).map((file) => ({ item: uri(id), value: { type: 'uri', value: `http://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}` } })));
   if (query.includes('p:P41') && query.includes('wdt:P300'))
     return [...query.matchAll(/"([A-Z]{2}-[A-Z0-9]+)"/g)].flatMap(([, code]) => (world.codes[code] ?? []).flatMap((id) => rows(id, { code: text(code) })));
   if (query.includes('p:P41')) return ids(query).flatMap((id) => rows(id));
@@ -367,6 +371,7 @@ const FILE: Record<string, string> = {
   'flags-signals': 'flags/signals.json',
   photos: 'photos/photos.json',
   heads: 'heads/heads.json',
+  arms: 'arms/arms.json',
 };
 
 /** Runs the script. It gets no variable of the machine but the ones named here. */
@@ -389,6 +394,7 @@ function run(source: string, data: string, env: Record<string, string> = {}, out
       OUTSIDE_PROFILES: none,
       OUTSIDE_HEADS: none,
       OUTSIDE_HEADS_ASKED: none,
+      OUTSIDE_PROFILE_FIXES: none,
       ...env,
     };
     execFile('node', ['scripts/data/outside.mjs', '--out', out, '--only', source, '--data', data], { cwd: ROOT, env: vars }, (error, stdout) => {
@@ -1510,6 +1516,111 @@ describe('what could be shown at the head of the sheet of a country', () => {
     expect((await run('heads', lands())).source().ok).toBe(false);
     expect((await run('heads', lands(), { OUTSIDE_HEADS_ASKED: list('# nobody yet\nXX\n') })).source().ok).toBe(false);
     expect(asked).toEqual([]);
+  });
+});
+
+describe('the coat of arms of each country', () => {
+  const lands = () => game({ ES: { units: [], wd: 'Q29' }, FR: { units: [], wd: 'Q142' }, JP: { units: [], wd: 'Q17' }, TR: { units: [], wd: 'Q43' }, ZZ: { units: [] } });
+  const small = (body: string, kind = 'png') => `arms/files/${sha1(body)}.330.${kind}`;
+  const fixes = (said: Record<string, unknown>) => {
+    const file = path.join(fresh('fixes'), 'profiles-fixes.json');
+    fs.writeFileSync(file, JSON.stringify({ _: 'why this file is here', ...said }));
+    return file;
+  };
+  const ARMS = () => {
+    world.files['Escudo de España.svg'] = { body: 'the arms of Spain', w: 600, h: 620, licence: 'CC BY-SA 3.0', licenceUrl: 'https://creativecommons.org/licenses/by-sa/3.0', artist: '<a href="//commons.wikimedia.org/wiki/User:Heralder">Heralder</a>', attribution: true };
+    world.files['Arms A.svg'] = { body: 'arms a' };
+    world.files['Arms B.svg'] = { body: 'arms b', licence: 'CC0' };
+    world.files['Kamon.jpg'] = { body: 'a kamon', mime: 'image/jpeg', licence: 'CC BY 4.0', artist: 'Somebody' };
+    world.files['Emblem FR.svg'] = { body: 'an emblem', licence: 'CC BY-SA 4.0', artist: 'Ana' };
+    world.files['Seal TR.svg'] = { body: 'a seal' };
+    world.leads = { 'Old name of the kamon.jpg': 'Kamon.jpg' };
+    world.arms = { Q29: ['Escudo de España.svg'], Q142: ['Arms B.svg', 'Arms_A.svg'], Q17: ['Old name of the kamon.jpg'] };
+    return lands();
+  };
+
+  it('is the file Wikidata shows each with, with a picture of each as Wikimedia draws it and with whose it is', async () => {
+    const r = await run('arms', ARMS());
+    expect(r.code).toBe(0);
+    expect(r.source().ok).toBe(true);
+    // Each under the title Commons has it by, in order of name; a country with none is not listed, nor one with no entity.
+    expect(r.data().items).toEqual({ ES: { files: ['Escudo de España.svg'] }, FR: { files: ['Arms A.svg', 'Arms B.svg'] }, JP: { files: ['Kamon.jpg'] } });
+    expect(r.data().asked).toBe(4);
+    expect(r.data().files['Escudo de España.svg']).toEqual({
+      sha1: sha1('the arms of Spain'),
+      bytes: Buffer.byteLength('the arms of Spain'),
+      mime: 'image/svg+xml',
+      w: 600,
+      h: 620,
+      licence: 'CC BY-SA 3.0',
+      licenceUrl: 'https://creativecommons.org/licenses/by-sa/3.0',
+      artist: 'Heralder',
+      attribution: true,
+      page: 'https://commons.wikimedia.org/wiki/File:Escudo%20de%20Espa%C3%B1a.svg',
+      picture: small('the arms of Spain'),
+    });
+    expect(Object.keys(r.data().files).sort()).toEqual(['Arms A.svg', 'Arms B.svg', 'Escudo de España.svg', 'Kamon.jpg']);
+    // The picture of a drawing is a PNG; that of a photograph, a photograph.
+    expect(r.data().files['Kamon.jpg']).toMatchObject({ licence: 'CC BY 4.0', artist: 'Somebody', picture: small('a kamon', 'jpg') });
+    expect(r.read(small('the arms of Spain'))).toBe('a picture of Escudo de España.svg');
+    // What is brought is the picture, small: the drawing itself is not.
+    expect(asked.filter((q) => q.startsWith('picture ')).sort()).toEqual(['picture Arms A.svg', 'picture Arms B.svg', 'picture Escudo de España.svg', 'picture Kamon.jpg']);
+    expect(asked.some((q) => q.startsWith('file '))).toBe(false);
+    expect(asked.find((q) => q.startsWith('api '))).toContain('iiurlwidth=330');
+    const queries = asked.filter((q) => q.startsWith('sparql '));
+    expect(queries).toHaveLength(1);
+    expect(queries[0]).toContain('p:P94');
+    expect(r.source().note).toContain('escudo de 3 de 4 países: 4 imágenes traídas');
+    expect(r.source().note).toContain('1 países con más de uno');
+    expect(r.source().detail).toMatchObject({ asked: 4, found: 3, files: { all: 4, missing: 0, brought: 4, left: 0 } });
+    expect(agents.every((agent) => agent.startsWith('regionle-data/'))).toBe(true);
+  });
+
+  it('brings the one that somebody chose by hand for a country too, whatever Wikidata names', async () => {
+    const dir = ARMS();
+    const r = await run('arms', dir, {
+      OUTSIDE_PROFILE_FIXES: fixes({
+        FR: { motto: null, arms: { file: ' Emblem FR.svg ', kind: 'emblem' } },
+        TR: { arms: { file: 'Seal TR.svg' } },
+        // What says nothing of a file names none; and what is no country of the game is not asked about.
+        ES: { arms: { kind: 'emblem' } },
+        JP: { arms: null },
+        XX: { arms: { file: 'Arms of nowhere.svg' } },
+        ZZ: { arms: { file: 'Arms of nowhere.svg' } },
+      }),
+    });
+    expect(r.source().ok).toBe(true);
+    expect(r.data().items).toEqual({
+      ES: { files: ['Escudo de España.svg'] },
+      FR: { files: ['Arms A.svg', 'Arms B.svg'], chosen: 'Emblem FR.svg' },
+      JP: { files: ['Kamon.jpg'] },
+      TR: { chosen: 'Seal TR.svg' },
+    });
+    expect(r.data().files['Emblem FR.svg']).toMatchObject({ licence: 'CC BY-SA 4.0', artist: 'Ana', picture: small('an emblem') });
+    expect(r.data().files['Seal TR.svg'].picture).toBe(small('a seal'));
+    expect(r.data().files['Arms of nowhere.svg']).toBeUndefined();
+    expect(r.source().note).toContain('escudo de 4 de 4 países: 6 imágenes traídas');
+  });
+
+  it('says so of a file Commons does not have, and of a picture that does not come', async () => {
+    const dir = ARMS();
+    world.arms!.Q43 = ['Gone.svg'];
+    refusals = [{ when: (q) => q === 'picture Arms B.svg', status: 404, times: 99 }];
+    const r = await run('arms', dir);
+    expect(r.source().ok).toBe(true);
+    expect(r.data().items.TR).toEqual({ files: ['Gone.svg'] });
+    expect(r.data().files['Gone.svg']).toEqual({ missing: true });
+    expect(r.data().files['Arms B.svg'].picture).toBeUndefined();
+    expect(r.data().files['Arms B.svg'].licence).toBe('CC0');
+    expect(r.data().files['Arms A.svg'].picture).toBe(small('arms a'));
+    expect(r.source().note).toContain('1 que Commons no tiene');
+    expect(r.source().detail?.undone).toEqual(['1 de 4 imágenes (HTTP 404 Not Found)']);
+  });
+
+  it('is left unread when Wikidata names the coat of arms of no country', async () => {
+    const r = await run('arms', lands());
+    expect(r.source().ok).toBe(false);
+    expect(asked.filter((q) => !q.startsWith('sparql '))).toEqual([]);
   });
 });
 

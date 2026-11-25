@@ -7,67 +7,174 @@
 # people have judged best, and among all of them where those are few. What a country is best known by is not
 # always what Wikidata shows it with.
 #
-# The first lot: the countries where Spanish is spoken and the thirty with most people of the rest. The
-# words are the ones that were looked for after seeing what Wikidata showed; not all of them found what
+# A lot that has been chosen is kept here as notes, so that asking for the next does not bring it again.
+#
+# The first lot (1.50.0): the countries where Spanish is spoken and the thirty with most people of the rest.
+# The words are the ones that were looked for after seeing what Wikidata showed; not all of them found what
 # was chosen in the end.
-AR: Iguazu Falls
-AR: Perito Moreno Glacier
-BD
-BO: Salar de Uyuni
-CD
-CL
-CN: Great Wall of China
-CO: Cartagena Colombia walled city
-CO: Cocora Valley
-CR: Arenal Volcano
-CU
-DE: Neuschwanstein
-DE: Brandenburg Gate
-DO
-DZ
-EC
-EG: Giza pyramids
-ES: Alhambra
-ES: Plaza de España Seville
-ET
-FR: Mont Saint-Michel
-FR: Eiffel Tower
-GB
-GQ
-GT
-HN: Copán Maya ruins
-HN: Roatán beach
-ID
-IN
-IQ
-IR: Persepolis
-IT: Colosseum
-IT: Venice Grand Canal
-JP
-KE: Maasai Mara
-KR
-MM
-MX
-NG
-NI
-PA: Panama Canal
-PE: Machu Picchu
-PH
-PK
-PY
-RU: Saint Basil's Cathedral
-RU: Moscow Kremlin
-SD
-SV: Izalco volcano
-SV: Lago de Coatepeque
-TH: Wat Arun
-TH: Ayutthaya
-TR: Hagia Sophia
-TR: Cappadocia
-TZ
-UG
-US
-UY
-VE
-VN: Ha Long Bay
-ZA
+# AR: Iguazu Falls
+# AR: Perito Moreno Glacier
+# BD
+# BO: Salar de Uyuni
+# CD
+# CL
+# CN: Great Wall of China
+# CO: Cartagena Colombia walled city
+# CO: Cocora Valley
+# CR: Arenal Volcano
+# CU
+# DE: Neuschwanstein
+# DE: Brandenburg Gate
+# DO
+# DZ
+# EC
+# EG: Giza pyramids
+# ES: Alhambra
+# ES: Plaza de España Seville
+# ET
+# FR: Mont Saint-Michel
+# FR: Eiffel Tower
+# GB
+# GQ
+# GT
+# HN: Copán Maya ruins
+# HN: Roatán beach
+# ID
+# IN
+# IQ
+# IR: Persepolis
+# IT: Colosseum
+# IT: Venice Grand Canal
+# JP
+# KE: Maasai Mara
+# KR
+# MM
+# MX
+# NG
+# NI
+# PA: Panama Canal
+# PE: Machu Picchu
+# PH
+# PK
+# PY
+# RU: Saint Basil's Cathedral
+# RU: Moscow Kremlin
+# SD
+# SV: Izalco volcano
+# SV: Lago de Coatepeque
+# TH: Wat Arun
+# TH: Ayutthaya
+# TR: Hagia Sophia
+# TR: Cappadocia
+# TZ
+# UG
+# US
+# UY
+# VE
+# VN: Ha Long Bay
+# ZA
+#
+# The second lot (1.51.0): the other States of Europe (with the Vatican and Kosovo) and the ten with most
+# people of those that were left. It was asked for in two halves: a run has twelve minutes for each source.
+# AD: Andorra la Vella
+# AD: Madriu-Perafita-Claror
+# AF: Band-e Amir
+# AF: Bamyan
+# AL: Berat Albania
+# AL: Gjirokastër
+# AO: Kalandula Falls
+# AO: Luanda
+# AT: Hallstatt
+# AT: Schönbrunn Palace
+# BA: Stari Most
+# BE: Grand Place Brussels
+# BE: Bruges
+# BG: Rila Monastery
+# BG: Alexander Nevsky Cathedral Sofia
+# BY: Mir Castle
+# CA: Moraine Lake
+# CA: Banff National Park
+# CH: Matterhorn
+# CH: Lauterbrunnen
+# CY: Petra tou Romiou
+# CY: Kyrenia harbour
+# CZ: Prague Charles Bridge
+# CZ: Český Krumlov
+# DK: Nyhavn
+# DK: Kronborg
+# EE: Tallinn old town
+# FI: Helsinki Cathedral
+# FI: Koli National Park
+# GH: Cape Coast Castle
+# GH: Elmina Castle
+# GR: Acropolis of Athens
+# GR: Santorini Oia
+# GR: Meteora
+# HR: Dubrovnik
+# HR: Plitvice Lakes
+# HU: Hungarian Parliament Building
+# IE: Cliffs of Moher
+# IS: Kirkjufell
+# IS: Skógafoss
+# LI: Vaduz Castle
+# LT: Trakai Island Castle
+# LT: Vilnius old town
+# LU: Luxembourg City Grund
+# LU: Vianden Castle
+# LV: Riga old town
+# LV: House of the Blackheads Riga
+# MA: Aït Benhaddou
+# MA: Chefchaouen
+# MA: Hassan II Mosque
+# MC: Monaco harbour
+# MD: Orheiul Vechi
+# MD: Chișinău
+# ME: Bay of Kotor
+# ME: Sveti Stefan
+# MK: Ohrid
+# MT: Valletta
+# MY: Petronas Towers
+# MY: Mount Kinabalu
+# MZ: Island of Mozambique
+# MZ: Maputo
+# NL: Kinderdijk
+# NL: Amsterdam canal
+# NO: Geirangerfjord
+# NO: Lofoten Reine
+# PL: Wawel
+# PL: Kraków Main Square
+# PT: Belém Tower
+# PT: Porto Ribeira
+# PT: Pena Palace
+# RO: Peleș Castle
+# RO: Bran Castle
+# RS: Belgrade Fortress
+# RS: Church of Saint Sava
+# SA: Mada'in Salih
+# SA: Riyadh skyline
+# SE: Stockholm Gamla stan
+# SE: Riddarholmen
+# SI: Lake Bled
+# SK: Spiš Castle
+# SK: High Tatras
+# SM: Guaita
+# UA: Kyiv Pechersk Lavra
+# UA: Saint Sophia Cathedral Kyiv
+# UZ: Registan
+# UZ: Khiva
+# VA: St. Peter's Basilica
+# VA: St. Peter's Square
+# XK: Prizren
+# YE: Sana'a old city
+# YE: Socotra dragon blood tree
+#
+# Asked again with other words: what came of the first ones was of other places (Neuschwanstein for Peleș)
+# or showed little of the country.
+# FI: Olavinlinna
+# FI: Senate Square Helsinki
+# FI: Koli Pielinen
+# FI: Lake Saimaa
+# RO: Bran Castle Romania
+# RO: Castelul Peleș
+# RO: Sighișoara
+# RO: Palace of the Parliament Bucharest

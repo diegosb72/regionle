@@ -3,6 +3,15 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.51.0 — 25 de noviembre de 2026
+
+- El escudo en la ficha de cada país, bajo el globo: lo enseñan 226, con el nombre de lo que es, porque muchos tienen emblema o sello y no escudo.
+- Es el dibujo que Wikidata da por escudo del país, de Wikimedia Commons, con quién lo hizo y su licencia debajo, y el enlace a su página.
+- Se han mirado uno por uno: se han cambiado los que ya no eran el vigente (España, Burkina Faso, Laos, Palestina) y quitado los que no valían.
+- No lo llevan los países que no tienen, como Turquía, ni los territorios que ondean la bandera de su país.
+- Fotografía en la ficha de otros cincuenta países, y ya son cien: el resto de Europa y los diez que seguían por población.
+- Entre ellas, la Acrópolis, el Cervino, los molinos de Kinderdijk, Dubrovnik, el Registán de Samarcanda y los acantilados de Moher.
+
 ## 1.50.0 — 25 de noviembre de 2026
 
 - Fotografía en la ficha de cincuenta países: España, los demás de habla hispana y los treinta más poblados del resto.

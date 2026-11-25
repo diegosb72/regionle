@@ -15,6 +15,26 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.51.0',
+    date: '2026-11-25',
+    es: [
+      'El escudo en la ficha de cada país, bajo el globo: lo enseñan 226, con el nombre de lo que es, porque muchos tienen emblema o sello y no escudo.',
+      'Es el dibujo que Wikidata da por escudo del país, de Wikimedia Commons, con quién lo hizo y su licencia debajo, y el enlace a su página.',
+      'Se han mirado uno por uno: se han cambiado los que ya no eran el vigente (España, Burkina Faso, Laos, Palestina) y quitado los que no valían.',
+      'No lo llevan los países que no tienen, como Turquía, ni los territorios que ondean la bandera de su país.',
+      'Fotografía en la ficha de otros cincuenta países, y ya son cien: el resto de Europa y los diez que seguían por población.',
+      'Entre ellas, la Acrópolis, el Cervino, los molinos de Kinderdijk, Dubrovnik, el Registán de Samarcanda y los acantilados de Moher.',
+    ],
+    en: [
+      'The coat of arms on the sheet of each country, under the globe: 226 show it, called what it is, since many have an emblem or a seal instead.',
+      'It is the drawing Wikidata names as the arms of the country, from Wikimedia Commons, with who made it and its licence under it, and a link to its page.',
+      'They were looked at one by one: those no longer current were replaced (Spain, Burkina Faso, Laos, Palestine), and those not fit to show, removed.',
+      'Countries that have none, such as Turkey, show none, nor do the territories that fly the flag of their country.',
+      'A photograph on the sheet of fifty more countries, a hundred by now: the rest of Europe and the next ten by population.',
+      'Among them, the Acropolis, the Matterhorn, the windmills of Kinderdijk, Dubrovnik, the Registan of Samarkand and the Cliffs of Moher.',
+    ],
+  },
+  {
     version: '1.50.0',
     date: '2026-11-25',
     es: [
