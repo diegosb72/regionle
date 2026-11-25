@@ -5,8 +5,9 @@ import { open, seed } from './helpers';
 /**
  * The sheet of a country, which the gallery of flags opens when the flag of a country is touched
  * (screens/FlagProfile.tsx). Every country with a flag has one: with what the game knows of it and what
- * Wikidata and Wikipedia say of it and of its flag, and, where somebody has written of it (for now, of
- * Brazil alone), with its texts, its times and its photographs. One sheet leads to another.
+ * Wikidata and Wikipedia say of it and of its flag, and with how Wikipedia begins to tell of both; and, where
+ * somebody has written of it (for now, of Brazil alone), with its texts, its times and its photographs
+ * instead. One sheet leads to another.
  */
 
 interface Photo {
@@ -33,6 +34,9 @@ const FLAGS = JSON.parse(fs.readFileSync('public/data/flags.json', 'utf8')) as {
   past: Record<string, [string, number, number, number, string?][]>;
   gone: [string, string, string, string, number, number, number, string?][];
 };
+/** What a sheet nobody has written of tells in words: how Wikipedia begins to tell of the country and of its flag, by language. */
+type Lead = { es?: string[]; en?: string[] };
+const sheetFile = (id: string) => JSON.parse(fs.readFileSync(`public/data/profiles/${id}.json`, 'utf8')) as { lead?: Lead; flag?: { lead?: Lead }; read?: { es?: string; en?: string }; readFlag?: { es?: string; en?: string } };
 /** The countries as the game has them: what each is called, and how its finest divisions are. */
 const COUNTRIES = (JSON.parse(fs.readFileSync('public/data/index.json', 'utf8')) as { countries: { id: string; n: { es: string; en?: string }; fl?: string; lv: { k: string; n: number }[] }[] }).countries;
 const commons = (title: string): string => `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(title.replace(/ /g, '_'))}`;
@@ -526,9 +530,9 @@ test.describe('the sheet of a country nobody has written of yet', () => {
     expect(flag.y).toBeLessThan(strip.y + strip.height);
     expect(flag.y + flag.height).toBeGreaterThan(strip.y + strip.height);
 
-    // Nothing is said that nobody wrote: no text of the country, no parts of the flag, no photographs.
+    // Nothing is said that nobody wrote: no parts of the flag, no times, no photographs, and no text but Wikipedia's.
     await expect(sheet.getByRole('heading', { level: 3 })).toHaveText(['De un vistazo', 'La bandera', 'Sus banderas en el tiempo', 'Las banderas de España']);
-    for (const none of ['.fp-about', '.fp-parts', '.fp-photos', '.fp-times', '.fp-flag-in > div > p:not(.fp-more)']) await expect(sheet.locator(none), none).toHaveCount(0);
+    for (const none of ['.fp-about:not(.fp-lead)', '.fp-parts', '.fp-photos', '.fp-times', '.fp-flag-in > div > p']) await expect(sheet.locator(none), none).toHaveCount(0);
 
     // Its figures, as in every sheet; after them its motto, in its language and with what it means, and its anthem.
     await expect(fact(sheet, 'Capital')).toHaveText('Madrid');
@@ -543,20 +547,79 @@ test.describe('the sheet of a country nobody has written of yet', () => {
     await expect(flagSec.locator('.fp-flag-big')).toHaveAttribute('src', /flags\/es\.svg$/);
     await expect(flagSec.locator('.fp-flag-facts dt')).toHaveText(['Adoptada', 'Como es hoy, desde', 'Proporción', 'Colores']);
     await expect(flagSec.locator('.fp-flag-facts dd')).toHaveText(['28 de mayo de 1785', '5 de octubre de 1981', /^2:3\s+de alto por ancho/, 'rojo, amarillo']);
-    const more = flagSec.locator('.fp-more a');
-    await expect(more).toHaveText('Leer sobre la bandera de España en Wikipedia');
+    const more = flagSec.locator('.fp-from a').last();
+    await expect(more).toHaveText('Seguir leyendo');
     await expect(more).toHaveAttribute('href', 'https://es.wikipedia.org/wiki/Bandera_de_Espa%C3%B1a');
     await expect(more).toHaveAttribute('target', '_blank');
 
-    // Under it all, whose each thing is: nothing of a text or of photographs that are not there.
+    // Under it all, whose each thing is: nothing of photographs that are not there, nor of a text written for the game.
     const foot = sheet.locator('.fp-foot');
     await expect(foot).toContainText('The World Factbook');
     await expect(foot).toContainText('El nombre oficial, el lema, el himno y los datos de la bandera son los que dan Wikidata y Wikipedia.');
     await expect(foot).toContainText('El dibujo de la bandera es de la colección flag-icons.');
+    await expect(foot).toContainText('El texto es el comienzo de los artículos de Wikipedia, abreviado, con licencia CC BY-SA 4.0.');
     await expect(foot).not.toContainText(/fotografías|escrito para el juego/);
     await expect(foot.getByRole('link', { name: 'Leer más sobre España en Wikipedia' })).toHaveAttribute('href', 'https://es.wikipedia.org/wiki/Espa%C3%B1a');
     const report = (await foot.getByRole('link', { name: 'Avisar de un error en esta ficha' }).getAttribute('href'))!;
     expect(new URL(report).searchParams.get('title')).toBe('Error en los datos: España (ES)');
+    await expect(page.locator('.crash')).toHaveCount(0);
+  });
+
+  test('tells how Wikipedia begins to tell of the country and of its flag, each with whose words they are and where they go on', async ({ page }) => {
+    await seed(page);
+    const sheet = await openSheet(page, '/banderas/paises/ES');
+    const told = sheetFile('ES');
+    expect(told.lead!.es!.length).toBeGreaterThan(0);
+    expect(told.flag!.lead!.es!.length).toBeGreaterThan(0);
+
+    // Of the country, under its name and before its figures: the words of Wikipedia, as the sheet was given them.
+    const about = sheet.locator('section.fp-about.fp-lead');
+    await expect(about.locator('p:not(.fp-from)')).toHaveText(told.lead!.es!);
+    await expect(about.locator('p:not(.fp-from)').first()).toHaveText(/^España, .* es un país /);
+    const [text, glance] = [(await about.boundingBox())!, (await sheet.locator('.fp-glance').boundingBox())!];
+    expect(text.y + text.height).toBeLessThanOrEqual(glance.y + 1);
+    // Under them, whose they are, that they were shortened, on what terms they are given, and where they go on.
+    const from = about.locator('.fp-from');
+    await expect(from).toHaveText(/^De Wikipedia, abreviado · CC BY-SA 4\.0 · Seguir leyendo$/);
+    await expect(from.locator('a')).toHaveCount(2);
+    await expect(from.locator('a').first()).toHaveAttribute('href', 'https://creativecommons.org/licenses/by-sa/4.0/deed.es');
+    await expect(from.locator('a').first()).toHaveAttribute('rel', /license/);
+    await expect(from.locator('a').last()).toHaveAttribute('href', told.read!.es!);
+    await expect(from.locator('a').last()).toHaveAttribute('target', '_blank');
+    await expect(from.locator('a').last()).toHaveAttribute('rel', /noopener/);
+    // Heard apart from the text, as in a list of links, each of the two says where it leads and what of.
+    await expect(about.getByRole('link', { name: 'Seguir leyendo sobre España en Wikipedia', exact: true })).toHaveAttribute('href', told.read!.es!);
+    await expect(sheet.locator('.fp-flagsec').getByRole('link', { name: 'Seguir leyendo sobre la bandera de España en Wikipedia', exact: true })).toHaveAttribute('href', told.readFlag!.es!);
+
+    // Of the flag, beside it and before what is known of it: the same, from its own page.
+    const flagSec = sheet.locator('.fp-flagsec');
+    await expect(flagSec.locator('.fp-lead p:not(.fp-from)')).toHaveText(told.flag!.lead!.es!);
+    await expect(flagSec.locator('.fp-lead p:not(.fp-from)').first()).toHaveText(/^La bandera de España /);
+    await expect(flagSec.locator('.fp-from')).toHaveText(/^De Wikipedia, abreviado · CC BY-SA 4\.0 · Seguir leyendo$/);
+    await expect(flagSec.locator('.fp-from a').last()).toHaveAttribute('href', told.readFlag!.es!);
+    const [words, facts] = [(await flagSec.locator('.fp-lead').boundingBox())!, (await flagSec.locator('.fp-flag-facts').boundingBox())!];
+    expect(words.y + words.height).toBeLessThanOrEqual(facts.y + 1);
+    // Where to read of the flag is said once: by the text that comes from there.
+    await expect(flagSec.locator('.fp-more')).toHaveCount(0);
+    // Nothing of what plain text leaves behind is on screen.
+    await expect(sheet.locator('.fp-lead').first()).not.toContainText(/\[\d+\]|\(\s*\)|\u200b/);
+
+    // A sheet somebody wrote tells what was written, and nothing of Wikipedia's.
+    await openSheet(page, '/banderas/paises/BR');
+    await expect(sheet.getByRole('heading', { level: 2 })).toHaveText('Brasil');
+    await expect(sheet.locator('.fp-about p')).toHaveText(SHEET.about.es);
+    await expect(sheet.locator('.fp-lead, .fp-from')).toHaveCount(0);
+    await expect(sheet.locator('.fp-foot')).toContainText('El texto está escrito para el juego');
+    await expect(sheet.locator('.fp-foot')).not.toContainText('comienzo de los artículos');
+
+    // A flag whose page begins with another flag tells nothing of it, and says where to read of it instead.
+    await openSheet(page, '/banderas/paises/AQ');
+    await expect(sheet.getByRole('heading', { level: 2 })).toHaveText('Antártida');
+    expect(sheetFile('AQ').flag?.lead?.es).toBeUndefined();
+    await expect(sheet.locator('section.fp-about.fp-lead p:not(.fp-from)')).toHaveText(sheetFile('AQ').lead!.es!);
+    await expect(sheet.locator('.fp-flagsec .fp-lead')).toHaveCount(0);
+    await expect(sheet.locator('.fp-flagsec .fp-more a')).toHaveText('Leer sobre la bandera de Antártida en Wikipedia');
+    await expect(sheet.locator('.fp-flagsec .fp-more a')).toHaveAttribute('href', 'https://es.wikipedia.org/wiki/Bandera_de_la_Ant%C3%A1rtida');
     await expect(page.locator('.crash')).toHaveCount(0);
   });
 
@@ -753,9 +816,15 @@ test.describe('the sheet of a country nobody has written of yet', () => {
     const flagFacts = sheet.locator('.fp-flag-facts');
     await expect(flagFacts.locator('dt')).toHaveText(['Es la de', 'Adoptada', 'Proporción', 'Colores', 'Diseño de']);
     await expect(flagFacts.locator('dd')).toHaveText(['Francia', '15 de febrero de 1794', /^2:3\s+de alto por ancho/, 'rojo, azul, blanco', 'Jacques-Louis David']);
-    const more = sheet.locator('.fp-more a');
-    await expect(more).toHaveText('Leer sobre la bandera de Francia en Wikipedia');
+    // What is told of it is how the page of the flag of France begins, and it is there that it goes on.
+    await expect(sheet.locator('.fp-flagsec .fp-lead p:not(.fp-from)')).toHaveText(sheetFile('FR').flag!.lead!.es!);
+    await expect(sheet.locator('.fp-flagsec .fp-lead p:not(.fp-from)').first()).toHaveText(/^La bandera de Francia /);
+    const more = sheet.locator('.fp-flagsec .fp-from a').last();
+    await expect(more).toHaveText('Seguir leyendo');
     await expect(more).toHaveAttribute('href', 'https://es.wikipedia.org/wiki/Bandera_de_Francia');
+    await expect(more).toHaveAccessibleName('Seguir leyendo sobre la bandera de Francia en Wikipedia');
+    // Of the territory, what its own page begins with.
+    await expect(sheet.locator('section.fp-about.fp-lead p:not(.fp-from)').first()).toHaveText(/^Reunión /);
     // Of the territory itself, its own page.
     await expect(sheet.locator('.fp-foot').getByRole('link', { name: 'Leer más sobre Reunión en Wikipedia' })).toHaveAttribute('href', 'https://es.wikipedia.org/wiki/Reuni%C3%B3n_(Francia)');
     // Whose flag it is leads to the sheet of that country, which says the same of it.
@@ -810,8 +879,18 @@ test.describe('the sheet of a country nobody has written of yet', () => {
     await expect(sheet.locator('.fp-nb li a')).toHaveText(['Andorra', 'France', 'Gibraltar', 'Morocco', 'Portugal']);
     await expect(sheet.locator('.fp-flag-facts dt')).toHaveText(['Adopted', 'As it is today, since', 'Proportions', 'Colours']);
     await expect(sheet.locator('.fp-flag-facts dd')).toHaveText(['28 May 1785', '5 October 1981', /^2:3\s+height to width/, 'red, yellow']);
-    await expect(sheet.locator('.fp-more a')).toHaveText('Read about the flag of Spain on Wikipedia');
-    await expect(sheet.locator('.fp-more a')).toHaveAttribute('href', 'https://en.wikipedia.org/wiki/Flag_of_Spain');
+    // The words of Wikipedia are those of its page in English, and so is where they go on.
+    await expect(sheet.locator('section.fp-about.fp-lead p:not(.fp-from)')).toHaveText(sheetFile('ES').lead!.en!);
+    await expect(sheet.locator('section.fp-about.fp-lead p:not(.fp-from)').first()).toHaveText(/^Spain, officially the Kingdom of Spain, is a country /);
+    await expect(sheet.locator('section.fp-about .fp-from')).toHaveText(/^From Wikipedia, abridged · CC BY-SA 4\.0 · Read on$/);
+    await expect(sheet.locator('section.fp-about .fp-from a').first()).toHaveAttribute('href', 'https://creativecommons.org/licenses/by-sa/4.0/');
+    await expect(sheet.locator('section.fp-about .fp-from a').last()).toHaveAttribute('href', 'https://en.wikipedia.org/wiki/Spain');
+    await expect(sheet.locator('.fp-flagsec .fp-lead p:not(.fp-from)')).toHaveText(sheetFile('ES').flag!.lead!.en!);
+    await expect(sheet.locator('.fp-flagsec .fp-from a').last()).toHaveText('Read on');
+    await expect(sheet.locator('.fp-flagsec .fp-from a').last()).toHaveAccessibleName('Read on about the flag of Spain on Wikipedia');
+    await expect(sheet.locator('section.fp-about .fp-from a').last()).toHaveAccessibleName('Read on about Spain on Wikipedia');
+    await expect(sheet.locator('.fp-flagsec .fp-from a').last()).toHaveAttribute('href', 'https://en.wikipedia.org/wiki/Flag_of_Spain');
+    await expect(sheet.locator('.fp-foot')).toContainText('The text is the opening of the articles of Wikipedia, abridged, under the CC BY-SA 4.0 licence.');
     await expect(sheet.locator('.fp-flown .fp-when').last()).toHaveText('Today');
     await expect(sheet.locator('.fp-flown li img').first()).toHaveAttribute('alt', 'Flag of Spain (1701–1760)');
     await expect(sheet.locator('.fp-flown .fp-note')).toHaveText('These are the earlier flags that Wikidata records, with the years each was flown; some may be missing.');
@@ -825,7 +904,8 @@ test.describe('the sheet of a country nobody has written of yet', () => {
     await expect(sheet.locator('.fp-glance .fp-facts dt').first()).toHaveText('Depends on');
     await expect(sheet.locator('.fp-flag-facts dt')).toHaveText(['It is that of', 'Adopted', 'Proportions', 'Colours', 'Designed by']);
     await expect(sheet.locator('.fp-flag-facts .fp-owner a')).toHaveText('France');
-    await expect(sheet.locator('.fp-more a')).toHaveText('Read about the flag of France on Wikipedia');
+    await expect(sheet.locator('.fp-flagsec .fp-lead p:not(.fp-from)').first()).toHaveText(/^The national flag of France /);
+    await expect(sheet.locator('.fp-flagsec .fp-from a').last()).toHaveAttribute('href', 'https://en.wikipedia.org/wiki/Flag_of_France');
     // Nothing of it is left in the other language.
     await expect(sheet.locator('article.fp')).not.toContainText(/Depende de|Adoptada|Es la de|Limita con|habitantes|Francia/);
   });

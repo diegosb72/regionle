@@ -138,6 +138,27 @@
   font-size: calc(16.5px * var(--fs));
 }
 
+/*
+ * What Wikipedia begins to tell, where nobody has written for the game: the same words a little smaller,
+ * and under them, small, whose they are and where they go on.
+ */
+.fp-lead {
+  display: grid;
+  gap: 10px;
+}
+.fp-about.fp-lead {
+  font-size: calc(15.5px * var(--fs));
+}
+.fp-from {
+  color: var(--ink-3);
+  font-size: calc(12.5px * var(--fs));
+}
+.fp-from a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 /* The figures, in as many columns as fit, and the globe beside them. */
 .fp-glance-in {
   display: grid;

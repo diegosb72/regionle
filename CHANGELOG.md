@@ -3,6 +3,15 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.49.0 — 25 de noviembre de 2026
+
+- Las fichas de los países ya cuentan algo: bajo el nombre, cómo empieza el artículo de Wikipedia sobre el país, en unas frases.
+- Y en el apartado de la bandera, cómo empieza el artículo sobre ella: cómo es, desde cuándo y, muchas veces, qué significa.
+- El texto es el de Wikipedia, abreviado y sin retocar: frases enteras, sin las notas ni los paréntesis de nombres en otros idiomas.
+- Debajo de cada uno, de quién es, su licencia (CC BY-SA 4.0) y «Seguir leyendo», que lleva al artículo. En español y en inglés.
+- Lo tienen las 248 fichas que no tenían texto; la de Brasil sigue con el suyo, escrito para el juego.
+- La ficha de Palestina lleva ahora al artículo del Estado, no al de la región. Las fichas pesan más: «Descargar todo» crece unos 200 kB.
+
 ## 1.48.0 — 24 de noviembre de 2026
 
 - Ficha de todos los países: en la galería, la bandera de cualquiera de los 198 Estados y los 51 territorios abre ya su ficha.

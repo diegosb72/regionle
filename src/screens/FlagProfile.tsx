@@ -52,6 +52,36 @@ function nth(n: number): string {
   return `${n}${end}`;
 }
 
+/**
+ * How Wikipedia begins to tell of something, and whose that text is, under it: Wikipedia's, shortened, on
+ * the terms it is given on, with the page it comes from to read on. `more` is what the link to that page
+ * says, and `of` what it is called for whoever hears it apart from the text: where it leads and what of.
+ */
+function Lead({ text, page, more, of }: { text: string[]; page: string | undefined; more: string; of: string }) {
+  return (
+    <>
+      {text.map((paragraph) => (
+        <p key={paragraph}>{paragraph}</p>
+      ))}
+      <p className="fp-from">
+        {L('De Wikipedia, abreviado', 'From Wikipedia, abridged')} ·{' '}
+        <a href={L('https://creativecommons.org/licenses/by-sa/4.0/deed.es', 'https://creativecommons.org/licenses/by-sa/4.0/')} target="_blank" rel="noopener noreferrer license">
+          CC BY-SA 4.0
+        </a>
+        {page && (
+          <>
+            {' · '}
+            <a href={page} target="_blank" rel="noopener noreferrer" aria-label={of}>
+              {more}
+              <ExternalLink size={12} aria-hidden="true" />
+            </a>
+          </>
+        )}
+      </p>
+    </>
+  );
+}
+
 /** The terms a photograph is given on, as they are written here: its licence, with where it is written. */
 function Licence({ photo }: { photo: ProfilePhoto }) {
   const name = photo.licence === 'Public domain' ? L('Dominio público', 'Public domain') : photo.licence;
@@ -282,6 +312,13 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
   if (by) flagRows.push({ name: flag?.text ? L('La idearon', 'Devised by') : L('Diseño de', 'Designed by'), value: by });
   const read = sayAny(profile?.read);
   const readFlag = sayAny(profile?.readFlag);
+  /**
+   * What Wikipedia begins to tell of the country and of its flag, in the language on screen, where nobody
+   * has written of them for the game: each with the page it is from, which is the one in that language.
+   */
+  const lang = getLang() === 'en' ? 'en' : 'es';
+  const lead = profile?.about ? undefined : profile?.lead?.[lang];
+  const flagLead = flag?.text ? undefined : flag?.lead?.[lang];
   /** Whether the sheet says anything that Wikidata and Wikipedia gave, and not somebody who wrote it for the game. */
   const given = !!profile && (!profile.about || !!profile.motto || !!profile.anthem || !!flag?.colours);
 
@@ -324,12 +361,23 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
             </div>
           </header>
 
-          {profile.about && (
+          {profile.about ? (
             <section className="fp-about">
               {paragraphs(profile.about).map((text) => (
                 <p key={text}>{text}</p>
               ))}
             </section>
+          ) : (
+            lead && (
+              <section className="fp-about fp-lead">
+                <Lead
+                  text={lead}
+                  page={profile.read?.[lang]}
+                  more={L('Seguir leyendo', 'Read on')}
+                  of={L(`Seguir leyendo sobre ${name} en Wikipedia`, `Read on about ${name} on Wikipedia`)}
+                />
+              </section>
+            )
           )}
 
           <section className="fp-sec fp-glance">
@@ -356,8 +404,18 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
               <img className="fp-flag-big" src={flagSrc} alt="" draggable={false} />
               <div>
                 {flag?.text && paragraphs(flag.text).map((text) => <p key={text}>{text}</p>)}
+                {flagLead && (
+                  <div className="fp-lead">
+                    <Lead
+                      text={flagLead}
+                      page={profile.readFlag?.[lang]}
+                      more={L('Seguir leyendo', 'Read on')}
+                      of={L(`Seguir leyendo sobre la bandera de ${flies ? nm(flies.n) : name} en Wikipedia`, `Read on about the flag of ${flies ? nm(flies.n) : name} on Wikipedia`)}
+                    />
+                  </div>
+                )}
                 {flagRows.length > 0 && <FactList rows={flagRows} className="fp-flag-facts" />}
-                {!flag?.text && readFlag && (
+                {!flag?.text && !flagLead && readFlag && (
                   <p className="fp-more">
                     <a href={readFlag} target="_blank" rel="noopener noreferrer">
                       {L(`Leer sobre la bandera de ${flies ? nm(flies.n) : name} en Wikipedia`, `Read about the flag of ${flies ? nm(flies.n) : name} on Wikipedia`)}
@@ -494,6 +552,11 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
                   'The official name, the motto, the anthem and the facts of the flag are those that Wikidata and Wikipedia give.',
                 )}`}
               {` ${L('El dibujo de la bandera es de la colección flag-icons.', 'The drawing of the flag is from the flag-icons collection.')}`}
+              {(lead || flagLead) &&
+                ` ${L(
+                  'El texto es el comienzo de los artículos de Wikipedia, abreviado, con licencia CC BY-SA 4.0.',
+                  'The text is the opening of the articles of Wikipedia, abridged, under the CC BY-SA 4.0 licence.',
+                )}`}
               {profile.about && ` ${L('El texto está escrito para el juego, con lo que cuentan Wikipedia y The World Factbook.', 'The text is written for the game, from what Wikipedia and The World Factbook tell.')}`}
               {head &&
                 ` ${L(

@@ -1667,6 +1667,140 @@ async function countryFacts(source) {
   };
 }
 
+/* ------------------------------------------------------------------ how Wikipedia begins to tell of each country */
+
+/** A page of a Wikipedia, as the sheets of the countries name it: «https://es.wikipedia.org/wiki/Bandera_de_Espa%C3%B1a». */
+const WIKI_PAGE = /^https:\/\/([a-z-]+)\.wikipedia\.org\/wiki\/([^?#]+)$/;
+/** The longest opening that is kept, in characters: that of a country is a few thousand. */
+const OPENING_MAX = 12_000;
+/** How many pages a Wikipedia tells the opening of in one answer. */
+const OPENINGS_AT_ONCE = 20;
+
+/** The language and the title of a page of Wikipedia, from its address; nothing when it is not one. */
+function pageIn(address) {
+  const m = WIKI_PAGE.exec(String(address ?? ''));
+  if (!m) return null;
+  try {
+    return { lang: m[1], title: decodeURIComponent(m[2]).replace(/_/g, ' ').trim() };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The pages of Wikipedia that the sheets of the countries lead to (public/data/profiles/<country>.json):
+ * that of each country (`read`) and that of its flag (`readFlag`), in each language. They are the ones the
+ * sheets were left with after being corrected by hand, which is why they are read from there and not asked
+ * again: the titles by language, and which sheets name each page.
+ */
+function pagesRead() {
+  const dir = path.join(DATA, 'profiles');
+  const titles = new Map(WIKIS.map((lang) => [lang, new Set()]));
+  const sheets = new Set();
+  for (const name of fs.existsSync(dir) ? fs.readdirSync(dir).filter((n) => n.endsWith('.json')).sort() : []) {
+    let sheet;
+    try {
+      sheet = JSON.parse(fs.readFileSync(path.join(dir, name), 'utf8'));
+    } catch {
+      continue;
+    }
+    for (const links of [sheet?.read, sheet?.readFlag])
+      for (const address of Object.values(links ?? {})) {
+        const page = pageIn(address);
+        if (!page || !titles.has(page.lang) || !page.title) continue;
+        titles.get(page.lang).add(page.title);
+        sheets.add(name);
+      }
+  }
+  return { titles, sheets: sheets.size };
+}
+
+/**
+ * How each of these pages of a Wikipedia begins, as plain text (what comes before its first heading, with
+ * no boxes, notes or marks), and which revision of the page that is: twenty at a time, by the title that
+ * was asked. An answer that does not fit comes in pieces.
+ */
+async function openingsOf(lang, titles, until = Infinity) {
+  const url = WIKIPEDIA.replace('{lang}', lang);
+  const found = new Map();
+  for (const part of chunks(titles, OPENINGS_AT_ONCE)) {
+    if (Date.now() >= until) throw new Error('no quedaba tiempo');
+    let more = {};
+    const pages = new Map();
+    let titled = (name) => name;
+    for (let piece = 0; piece < 20; piece++) {
+      const form = new URLSearchParams({
+        action: 'query',
+        format: 'json',
+        formatversion: '2',
+        redirects: '1',
+        maxlag: '5',
+        prop: 'extracts|revisions',
+        exintro: '1',
+        explaintext: '1',
+        exsectionformat: 'plain',
+        exlimit: String(OPENINGS_AT_ONCE),
+        rvprop: 'ids',
+        titles: part.join('|'),
+        ...more,
+      });
+      const json = await wikiSays(url, form, until, `Wikipedia (${lang})`);
+      // The names that lead to another page are told in the first piece alone.
+      if (!piece) titled = followed(json);
+      for (const page of json.query?.pages ?? []) {
+        const one = pages.get(String(page.title)) ?? {};
+        if (typeof page.extract === 'string') one.text = page.extract;
+        if (Number.isInteger(page.revisions?.[0]?.revid)) one.rev = page.revisions[0].revid;
+        pages.set(String(page.title), one);
+      }
+      if (!json.continue) break;
+      more = json.continue;
+    }
+    for (const title of part) {
+      const page = pages.get(titled(title));
+      const text = (page?.text ?? '').replace(/\r/g, '').trim();
+      if (text) found.set(title, { ...(titled(title) !== title ? { title: titled(title) } : {}), ...(page.rev ? { rev: page.rev } : {}), text: text.slice(0, OPENING_MAX) });
+    }
+    await sleep(PAUSE);
+  }
+  return found;
+}
+
+/**
+ * How Wikipedia begins to tell of each country of the game and of its flag: the opening of each page that
+ * the sheets of the countries lead to, in Spanish and in English, as plain text. It is what a sheet says of
+ * a country before anybody writes of it (scripts/data/profiles.mjs, which shortens it and says whose it is).
+ *
+ * `pages`, by `language:title`, the title being the one the sheet names: the text, the revision of the page
+ * it was read from (`rev`) and, when that title leads to another page, the title of that one (`title`).
+ * The text is Wikipedia's, under CC BY-SA 4.0: whoever shows it names the page and the licence.
+ *
+ * The openings of one language are enough for the file to be written; what is not read is told.
+ */
+async function countryTexts(source) {
+  const { titles, sheets } = pagesRead();
+  const asked = [...titles.values()].reduce((n, set) => n + set.size, 0);
+  if (!asked) throw new Error('No sheet of a country names a page of Wikipedia');
+  const { until, undone, attempt } = patient();
+  const pages = {};
+  const read = {};
+  for (const lang of WIKIS)
+    await attempt(`the openings of the Wikipedia in «${lang}»`, async () => {
+      const list = [...titles.get(lang)].sort();
+      const found = await openingsOf(lang, list, until);
+      for (const [title, page] of found) pages[`${lang}:${title}`] = page;
+      read[lang] = found.size;
+      const none = list.filter((title) => !found.has(title));
+      if (none.length) undone.push(`sin comienzo en «${lang}»: ${none.slice(0, 12).join(', ')}${none.length > 12 ? ` y ${none.length - 12} más` : ''}`);
+    });
+  if (!Object.keys(pages).length) throw new Error(`Wikipedia gave the opening of no page: ${undone.join('; ')}`);
+  return {
+    text: listed({ source: source.from, licence: source.licence, what: source.what, asked }, { pages }),
+    note: [`el comienzo de ${Object.keys(pages).length} de ${asked} páginas, de ${sheets} fichas (${WIKIS.map((lang) => `${lang}: ${read[lang] ?? 0}`).join(', ')})`, ...(undone.length ? [`sin mirar: ${undone.join('; ')}`] : [])].join('; '),
+    detail: { asked, sheets, read: Object.keys(pages).length, by: Object.fromEntries(WIKIS.map((lang) => [lang, read[lang] ?? 0])), undone },
+  };
+}
+
 /** The year a day of Wikidata is of: «-0026-01-01T00:00:00Z» is 27 BC, and is told as -26. */
 const yearOf = (cell) => {
   const m = /^(-?)(\d{1,6})-\d{2}-\d{2}/.exec(String(cell?.value ?? ''));
@@ -1860,6 +1994,18 @@ const SOURCES = [
     es: 'Lo que Wikidata y Wikipedia dicen de cada país y de su bandera',
     needs: '113',
     run: countryFacts,
+  },
+  {
+    id: 'texts',
+    file: 'countries/texts.json',
+    from: 'Wikipedia (https://www.wikipedia.org)',
+    licence: 'CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/): cada texto es de los autores de su página, que es la que le da nombre',
+    what:
+      'How Wikipedia begins to tell of each country of the game and of its flag: the opening of each page that the sheets of the countries lead to (public/data/profiles/<country>.json: read and readFlag), in Spanish and in English, as plain text. ' +
+      'pages, by language:title, the title being the one the sheet names: the text (text), the revision of the page it was read from (rev) and, when that title leads to another page, the title of that one (title).',
+    es: 'Cómo empieza Wikipedia a hablar de cada país y de su bandera',
+    needs: '113',
+    run: countryTexts,
   },
 ];
 

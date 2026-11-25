@@ -101,3 +101,23 @@ y Miquelón «adoptada en 1982», la de Santa Elena en 1984). En cada uno se dic
 (`flag.of`) y el programa copia de la ficha de ese país lo que es de la bandera: fecha, proporción, colores,
 diseñador y la página de Wikipedia. Una prueba (`src/lib/profiles.test.ts`) comprueba que son los mismos
 territorios que dice el juego.
+
+## El texto de Wikipedia
+
+Desde la 1.49.0 cada ficha cuenta cómo empieza el artículo de Wikipedia del país y el de su bandera
+(`scripts/data/profiles-text.mjs`), abreviado. El texto no se corrige: se corta o no se enseña. Lo que se ha
+decidido a mano (`leads`, o la página de la que sale):
+
+- **PS**: la ficha llevaba al artículo de la región histórica («Palestina (región)»), porque ese es el
+  elemento de Wikidata que el juego tiene. La ficha es la del Estado de Palestina: se cambian sus páginas
+  por las del Estado, «Palestina» y «Palestine», y de ellas sale el texto.
+- **AQ**: el comienzo del artículo en español sobre la bandera habla de la del Tratado Antártico, que no es
+  la que el juego dibuja: no se enseña. El inglés, que habla de las propuestas, sí.
+- **BO**: la segunda frase del artículo en español tiene una errata («ciento doce provincias. trescientos
+  cuarenta municipios»): se deja la primera, que dice lo que es el país.
+- **AM**: en el artículo en español sobre la bandera, la segunda frase sigue tras un punto con minúscula
+  («1990. la Ley de la Bandera…»): se deja la primera. La fecha de adopción está entre los datos.
+
+Lo que es de Wikipedia y se queda como está, porque quitarlo dejaría la ficha sin lo que cuenta: «es el
+bandera» (Japón, en español), «(símbolo Estado)» (Uganda, en español), una coma por una conjunción en la de
+Costa Rica. Se arreglan en Wikipedia, no aquí.

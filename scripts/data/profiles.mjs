@@ -2,12 +2,13 @@
 // every country of the game that has a flag.
 //
 //   npm run data:fetch -- countries-said   what Wikidata and Wikipedia say of each country, into .cache/src
+//   npm run data:fetch -- countries-texts  how Wikipedia begins to tell of each and of its flag, into .cache/src
 //   npm run data:fetch -- photos           the photographs, into .cache/src/photos (see photos-pinned.mjs)
 //   npm run data:profiles                  the sheets and their pictures
 //   npm run data:profiles -- --review      the same, and what whoever corrects the sources should look at
 //
-// (`--sheets`, `--brought`, `--said`, `--fixes`, `--data` and `--photos` name other folders and files to
-// read from and write to: the tests run it on countries made up for the occasion.)
+// (`--sheets`, `--brought`, `--said`, `--texts`, `--fixes`, `--data` and `--photos` name other folders and
+// files to read from and write to: the tests run it on countries made up for the occasion.)
 //
 // A sheet is made of three things, each laid over the one before:
 //
@@ -23,6 +24,13 @@
 //      the two languages of the game — what it is, what its flag means, what it was at the time of each of
 //      the flags it flew — and the photographs it is shown with, each a file of Wikimedia Commons named by
 //      its title, with its caption. What it says is what the sheet says; the rest stays as it was read.
+//
+// Where nobody has written of a country, its sheet tells how Wikipedia begins to tell of it and of its flag:
+// the opening of the page the sheet leads to (`read`, `readFlag`) in each language of the game, cut after as
+// many whole sentences as fit (profiles-text.mjs reads it from .cache/src/countries-texts.json, which the
+// same workflow brought: source `texts`). The words are Wikipedia's, under CC BY-SA 4.0, and the sheet says
+// so. Whoever has read one and knows better where it should end, or that it should not be shown, says it in
+// profiles-fixes.json (`leads`).
 //
 // And two more are read:
 //
@@ -48,6 +56,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { saidOf, tongueCodes } from './profiles-said.mjs';
+import { leadOf } from './profiles-text.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const args = process.argv.slice(2);
@@ -62,6 +71,8 @@ const BROUGHT = path.resolve(ROOT, value('brought') ?? '.cache/src/photos');
 /** What Wikidata and Wikipedia say of each country, as it was brought, and what was corrected of it by hand. */
 const SAID = path.resolve(ROOT, value('said') ?? '.cache/src/countries-said.json');
 const FIXES = path.resolve(ROOT, value('fixes') ?? 'scripts/data/profiles-fixes.json');
+/** How Wikipedia begins to tell of each country and of its flag, as it was brought. */
+const TEXTS = path.resolve(ROOT, value('texts') ?? '.cache/src/countries-texts.json');
 /** The data of the game: read, and where the sheets are written (under `profiles`). */
 const DATA = path.resolve(ROOT, value('data') ?? 'public/data');
 const OUT = path.join(DATA, 'profiles');
@@ -74,6 +85,11 @@ const PICTURES = path.resolve(ROOT, value('photos') ?? 'public/photos');
  * and the one of a time, beside a paragraph. The browser takes the narrowest that fills its box.
  */
 export const WIDTHS = { head: [640, 1280, 1920], photo: [640, 1280], time: [640] };
+/**
+ * How long what a sheet shows of the opening of a page of Wikipedia may be, in characters: of that of the
+ * country, which is read first, and of that of its flag, which is read beside the flag.
+ */
+export const LEAD_MAX = { about: 640, flag: 480 };
 /** How much of what is seen is kept when a picture is made lighter: past this, a sky starts to show bands. */
 const QUALITY = 78;
 /** The terms a photograph may be given on to be shown here: none that forbids reusing it or changing its size. */
@@ -241,6 +257,36 @@ const isText = (text) => typeof text === 'string' && text.trim() === text && tex
 /** A text in one language of the game, or in both: none empty, none in any other. */
 const inSome = (text) => !!text && typeof text === 'object' && Object.keys(text).length > 0 && Object.entries(text).every(([lang, words]) => LANGS.includes(lang) && isText(words));
 
+/** The title of a page of Wikipedia, from its address in the Wikipedia of a language. */
+function titleIn(address, lang) {
+  const start = `https://${lang}.wikipedia.org/wiki/`;
+  if (typeof address !== 'string' || !address.startsWith(start)) return null;
+  try {
+    return decodeURIComponent(address.slice(start.length).split(/[?#]/)[0]).replace(/_/g, ' ').trim();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * How the pages that a sheet leads to begin, shortened: in each language of the game whose page was brought.
+ * `cut` is what somebody who read them said of each language: `false`, that it is not shown; a number, how
+ * many sentences of it are.
+ */
+function leadIn(links, pages, max, cut = {}) {
+  const lead = {};
+  for (const lang of LANGS) {
+    const title = titleIn(links?.[lang], lang);
+    const text = title ? pages[`${lang}:${title}`]?.text : undefined;
+    if (!text || cut[lang] === false) continue;
+    const mine = leadOf(text, { lang, max, ...(Number.isInteger(cut[lang]) ? { keep: cut[lang] } : {}) });
+    if (mine) lead[lang] = mine;
+  }
+  return Object.keys(lead).length ? lead : null;
+}
+/** The paragraphs of a text of Wikipedia, in some language of the game: none empty, and each language with the page it is from. */
+const isLead = (lead, links) => !!lead && typeof lead === 'object' && Object.keys(lead).length > 0 && Object.entries(lead).every(([lang, text]) => LANGS.includes(lang) && Array.isArray(text) && text.length > 0 && text.every(isText) && isText(links?.[lang]));
+
 /** What the sources and the corrections left of a country, looked at before anybody sees it: a sheet says nothing that is not what it is said to be. */
 function checked(id, one) {
   const flag = one.flag ?? {};
@@ -260,6 +306,8 @@ function checked(id, one) {
   if (flag.colours !== undefined && !(LANGS.every((lang) => Array.isArray(flag.colours[lang]) && flag.colours[lang].length >= 2 && flag.colours[lang].every(isText)) && flag.colours.es.length === flag.colours.en.length))
     fail(id, 'the colours of its flag are not named in both languages');
   if (flag.by !== undefined && !inSome(flag.by)) fail(id, 'who designed its flag is not a text in a language of the game');
+  if (one.lead !== undefined && !isLead(one.lead, one.read)) fail(id, 'what Wikipedia begins to tell of it is not paragraphs in a language of the game, each with its page (read)');
+  if (flag.lead !== undefined && !isLead(flag.lead, one.readFlag)) fail(id, 'what Wikipedia begins to tell of its flag is not paragraphs in a language of the game, each with its page (readFlag)');
   for (const key of ['read', 'readFlag']) {
     if (one[key] === undefined) continue;
     if (!inSome(one[key]) || Object.entries(one[key]).some(([lang, url]) => !url.startsWith(`https://${lang}.wikipedia.org/wiki/`))) fail(id, `«${key}» is not a page of the Wikipedia of each language`);
@@ -275,6 +323,8 @@ async function main() {
   const facts = fs.existsSync(path.join(DATA, 'facts.json')) ? read(path.join(DATA, 'facts.json')) : {};
   if (!fs.existsSync(SAID)) throw new Error(`What Wikidata and Wikipedia say of the countries is not in ${path.relative(ROOT, SAID) || SAID}: run «npm run data:fetch -- countries-said»`);
   const told = read(SAID);
+  if (!fs.existsSync(TEXTS)) throw new Error(`How Wikipedia begins to tell of the countries is not in ${path.relative(ROOT, TEXTS) || TEXTS}: run «npm run data:fetch -- countries-texts»`);
+  const pages = read(TEXTS).pages ?? {};
   const { _: _why, ...fixes } = fs.existsSync(FIXES) ? read(FIXES) : {};
   const about = path.join(BROUGHT, 'photos.json');
   const commons = fs.existsSync(about) ? read(about) : null;
@@ -292,14 +342,19 @@ async function main() {
   /** What each sheet says, by its country; and the sheets as they are written, by the name of the file of each. */
   const sheets = new Map();
   const out = new Map();
-  const count = { official: 0, motto: 0, anthem: 0, adopted: 0, ratio: 0 };
+  const count = { official: 0, motto: 0, anthem: 0, adopted: 0, ratio: 0, lead: 0, flagLead: 0 };
+  /** What somebody who read the openings said of them, by country. */
+  const cuts = new Map();
   let bytes = 0;
   for (const country of lands) {
     const { id } = country;
     const flown = (flags.past?.[id] ?? []).map((row) => [row[2], row[3]]);
     const { given, notes } = saidOf({ country, said: told, tongues: facts.c?.[id]?.l ?? [], codes, flown });
     if (review && notes.length) console.log(`  ${id}: ${notes.join(' · ')}${fixes[id] ? `  [corregido a mano: ${Object.keys(fixes[id]).join(', ')}]` : ''}`);
-    let one = laid(given, fixes[id] ?? {}) ?? {};
+    // What is said of the openings of Wikipedia is not something the sheet says: it is kept for when they are cut.
+    const { leads: cut, ...fix } = fixes[id] ?? {};
+    if (cut) cuts.set(id, cut);
+    let one = laid(given, fix) ?? {};
     if (written.includes(id)) {
       const mine = await sheet(path.join(SHEETS, `${id}.json`), commons, index, flags, made);
       // Whoever wrote of the flag told its colours in words: the list of them is not said twice.
@@ -324,6 +379,14 @@ async function main() {
     if (theirs.readFlag) one.readFlag = theirs.readFlag;
     else delete one.readFlag;
   }
+  // Where nobody has written of a country or of its flag, how Wikipedia begins to tell of them. Of a flag
+  // that is that of another country, what was said of the openings of that country's flag holds.
+  for (const [id, one] of sheets) {
+    const lead = one.about ? null : leadIn(one.read, pages, LEAD_MAX.about, cuts.get(id)?.about);
+    if (lead) one.lead = lead;
+    const flagLead = one.flag?.text ? null : leadIn(one.readFlag, pages, LEAD_MAX.flag, cuts.get(one.flag?.of ?? id)?.flag);
+    if (flagLead) one.flag = { ...(one.flag ?? {}), lead: flagLead };
+  }
   for (const [id, one] of sheets) {
     if (one.flag && !Object.keys(one.flag).length) delete one.flag;
     const text = JSON.stringify({ v: 1, id, ...checked(id, one) });
@@ -334,6 +397,8 @@ async function main() {
     if (one.anthem) count.anthem++;
     if (one.flag?.adopted) count.adopted++;
     if (one.flag?.ratio) count.ratio++;
+    if (one.lead) count.lead++;
+    if (one.flag?.lead) count.flagLead++;
   }
   // Every sheet could be made: only now is any written, so that one that could not leaves them all as they were.
   for (const [name, text] of out) fs.writeFileSync(path.join(OUT, name), text);
@@ -342,7 +407,7 @@ async function main() {
   for (const name of fs.readdirSync(PICTURES)) if (!made.has(name)) fs.rmSync(path.join(PICTURES, name));
   console.log(
     `${out.size} fichas en ${path.relative(ROOT, OUT) || OUT} (${kB(bytes)}): ${written.length} escritas a mano; nombre oficial en ${count.official}, lema en ${count.motto}, himno en ${count.anthem}, ` +
-      `fecha de la bandera en ${count.adopted}, proporción en ${count.ratio}; ${Object.keys(fixes).length} países con correcciones a mano. ${made.size} imágenes en ${path.relative(ROOT, PICTURES) || PICTURES}`,
+      `fecha de la bandera en ${count.adopted}, proporción en ${count.ratio}; texto de Wikipedia del país en ${count.lead} y de la bandera en ${count.flagLead}; ${Object.keys(fixes).length} países con correcciones a mano. ${made.size} imágenes en ${path.relative(ROOT, PICTURES) || PICTURES}`,
   );
 }
 

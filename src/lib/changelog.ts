@@ -15,6 +15,26 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.49.0',
+    date: '2026-11-25',
+    es: [
+      'Las fichas de los países ya cuentan algo: bajo el nombre, cómo empieza el artículo de Wikipedia sobre el país, en unas frases.',
+      'Y en el apartado de la bandera, cómo empieza el artículo sobre ella: cómo es, desde cuándo y, muchas veces, qué significa.',
+      'El texto es el de Wikipedia, abreviado y sin retocar: frases enteras, sin las notas ni los paréntesis de nombres en otros idiomas.',
+      'Debajo de cada uno, de quién es, su licencia (CC BY-SA 4.0) y «Seguir leyendo», que lleva al artículo. En español y en inglés.',
+      'Lo tienen las 248 fichas que no tenían texto; la de Brasil sigue con el suyo, escrito para el juego.',
+      'La ficha de Palestina lleva ahora al artículo del Estado, no al de la región. Las fichas pesan más: «Descargar todo» crece unos 200 kB.',
+    ],
+    en: [
+      'The country sheets now tell something: under the name, how the Wikipedia article on the country begins, in a few sentences.',
+      'And in the section of the flag, how the article on it begins: what it looks like, since when and, often, what it means.',
+      'The text is Wikipedia’s, abridged and untouched: whole sentences, without the notes or the brackets of names in other languages.',
+      'Under each, whose it is, its licence (CC BY-SA 4.0) and “Read on”, which leads to the article. In Spanish and in English.',
+      'All 248 sheets that had no text have it; Brazil’s keeps its own, written for the game.',
+      'The sheet of Palestine now leads to the article on the State, not the region. Sheets weigh more: “Download everything” grows by about 200 kB.',
+    ],
+  },
+  {
     version: '1.48.0',
     date: '2026-11-24',
     es: [

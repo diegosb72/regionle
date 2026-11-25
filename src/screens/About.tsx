@@ -205,7 +205,10 @@ export function About() {
             <dd>
               {L('El nombre oficial, el lema, el himno y los datos de la bandera, de', 'The official name, the motto, the anthem and the facts of the flag, from')}{' '}
               <Out href="https://www.wikidata.org/">Wikidata</Out> (CC0) {L('y de las fichas de', 'and from the boxes of facts of')} <Out href="https://www.wikipedia.org/">Wikipedia</Out> (CC BY-SA 4.0),{' '}
-              {L('revisados y corregidos a mano; las fotografías, de', 'reviewed and corrected by hand; the photographs, from')} <Out href="https://commons.wikimedia.org/">Wikimedia Commons</Out>
+              {L('revisados y corregidos a mano; el texto, el comienzo de los artículos de', 'reviewed and corrected by hand; the text, the opening of the articles of')}{' '}
+              <Out href="https://www.wikipedia.org/">Wikipedia</Out>
+              {L(', abreviado', ', abridged')} (<Out href={L('https://creativecommons.org/licenses/by-sa/4.0/deed.es', 'https://creativecommons.org/licenses/by-sa/4.0/')}>CC BY-SA 4.0</Out>
+              {L('); las fotografías, de', '); the photographs, from')} <Out href="https://commons.wikimedia.org/">Wikimedia Commons</Out>
               {L(', cada una con su autor y su licencia al pie.', ', each with its author and its licence under it.')}
             </dd>
           </div>

@@ -12,7 +12,7 @@ import { feature } from 'topojson-client';
 import type { GeometryCollection, Topology } from 'topojson-specification';
 import { beforeEach, describe, expect, it } from 'vitest';
 // @ts-expect-error a script of the build, written without types
-import { WIDTHS as WIDTHS_SAID } from '../../scripts/data/profiles.mjs';
+import { LEAD_MAX as LEAD_MAX_SAID, WIDTHS as WIDTHS_SAID } from '../../scripts/data/profiles.mjs';
 // @ts-expect-error a list of the build, written without types
 import { PHOTOS as PINNED, PHOTOS_AT as PINNED_AT, PHOTOS_SAID as PINNED_SAID } from '../../scripts/data/photos-pinned.mjs';
 import type { FlagsFile } from './flags';
@@ -23,6 +23,7 @@ import { bordersText, flownCards, hasProfile, isDay, neighboursOf, photoSet, pho
 import type { Country, Geo, Index } from './types';
 
 const WIDTHS = WIDTHS_SAID as { head: number[]; photo: number[]; time: number[] };
+const LEAD_MAX = LEAD_MAX_SAID as { about: number; flag: number };
 const PHOTOS = PINNED as [file: string, blob: string][];
 const PHOTOS_SAID = PINNED_SAID as [file: string, blob: string];
 const PHOTOS_AT = PINNED_AT as { repo: string; commit: string; dir: string };
@@ -319,8 +320,8 @@ describe('the sheet of every country', () => {
   const sheets = LANDS.map((id) => sheetOf(id));
 
   it('is of its country, and says only what a sheet says', () => {
-    const known = ['v', 'id', 'official', 'local', 'localLang', 'motto', 'anthem', 'about', 'flag', 'times', 'photos', 'read', 'readFlag'];
-    const ofFlag = ['of', 'adopted', 'changed', 'ratio', 'colours', 'called', 'by', 'text', 'parts'];
+    const known = ['v', 'id', 'official', 'local', 'localLang', 'motto', 'anthem', 'about', 'lead', 'flag', 'times', 'photos', 'read', 'readFlag'];
+    const ofFlag = ['of', 'adopted', 'changed', 'ratio', 'colours', 'called', 'by', 'text', 'lead', 'parts'];
     for (const [i, sheet] of sheets.entries()) {
       expect(sheet.v, LANDS[i]).toBe(1);
       expect(sheet.id).toBe(LANDS[i]);
@@ -452,6 +453,76 @@ describe('the sheet of every country', () => {
       // Every country has a page in both.
       expect(Object.keys(sheet.read ?? {}).sort(), sheet.id).toEqual(['en', 'es']);
     }
+  });
+
+  it('tells how Wikipedia begins to tell of the country and of its flag, where nobody has written of them: shortened, clean, and each with its page', () => {
+    const count = { about: { es: 0, en: 0 }, flag: { es: 0, en: 0 } };
+    /** A text of Wikipedia as a sheet may show it: a few paragraphs of whole sentences, with nothing of what plain text leaves behind. */
+    const told = (lead: ProfileFile['lead'], links: { es?: string; en?: string } | undefined, max: number, what: string, n: { es: number; en: number }) => {
+      if (lead === undefined) return;
+      expect(Object.keys(lead).length, what).toBeGreaterThan(0);
+      for (const [lang, text] of Object.entries(lead) as ['es' | 'en', string[]][]) {
+        const here = `${what} (${lang})`;
+        expect(['es', 'en'], here).toContain(lang);
+        // The page it is from is the one the sheet leads to in that language.
+        expect(links?.[lang], here).toMatch(new RegExp(`^https://${lang}\\.wikipedia\\.org/wiki/`));
+        expect(text.length, here).toBeGreaterThanOrEqual(1);
+        expect(text.length, here).toBeLessThanOrEqual(3);
+        for (const paragraph of text) {
+          expect(paragraph, here).toBe(paragraph.trim());
+          expect(paragraph.length, here).toBeGreaterThanOrEqual(12);
+          // It begins as a sentence does and ends where one ends.
+          expect(paragraph, here).toMatch(/^[\p{Lu}\p{N}«“"¿¡(]/u);
+          expect(paragraph, here).toMatch(/[.!?…][»”"')\]]*$/);
+          // Nothing of what turning a page into plain text leaves: a mark that is not seen, the place of a note, a bracket left empty, a space before a comma.
+          expect(paragraph, here).not.toMatch(/[\u200b-\u200f\u202a-\u202e\u00a0\u2060\ufeff]|\s{2}|\n|\[\d+\]|\[cita|\[citation|\(\s*\)|\(\s*[;,:]|[;,:]\s*\)| [,;:.!?]|[{}<>|]|https?:/);
+          expect(paragraph.split('(').length, here).toBe(paragraph.split(')').length);
+        }
+        // As long as there is room for, and no longer; a first sentence that is longer than that is kept whole, up to a point.
+        const length = text.join(' ').length;
+        expect(length, here).toBeLessThanOrEqual(Math.round(max * 1.6));
+        if (/[.!?…][»”"')\]]* \p{Lu}/u.test(text.join(' '))) expect(length, here).toBeLessThanOrEqual(max);
+        n[lang]++;
+      }
+    };
+    for (const sheet of sheets) {
+      told(sheet.lead, sheet.read, LEAD_MAX.about, `${sheet.id} lead`, count.about);
+      told(sheet.flag?.lead, sheet.readFlag, LEAD_MAX.flag, `${sheet.id} flag lead`, count.flag);
+      // What somebody wrote for the game is told instead of it, never beside it.
+      if (sheet.about) expect(sheet.lead, sheet.id).toBeUndefined();
+      if (sheet.flag?.text) expect(sheet.flag.lead, sheet.id).toBeUndefined();
+    }
+    for (const id of WRITTEN) expect([sheetOf(id).lead, sheetOf(id).flag?.lead], id).toEqual([undefined, undefined]);
+    // Every country nobody has written of has its page in both Wikipedias, and so its text; most flags have theirs.
+    expect(count.about).toEqual({ es: sheets.length - WRITTEN.length, en: sheets.length - WRITTEN.length });
+    expect(count.flag.es).toBeGreaterThanOrEqual(240);
+    expect(count.flag.en).toBeGreaterThanOrEqual(240);
+    expect(LEAD_MAX).toEqual({ about: 640, flag: 480 });
+  });
+
+  it('tells of the flag of a territory that flies that of its country what it tells of that flag, and of Palestine and Antarctica what was decided by hand', () => {
+    for (const sheet of sheets) if (sheet.flag?.of) expect(sheet.flag.lead, sheet.id).toEqual(sheetOf(sheet.flag.of).flag?.lead);
+    expect(sheetOf('RE').flag?.lead?.es?.[0]).toMatch(/^La bandera de Francia /);
+    expect(sheetOf('RE').lead?.es?.[0]).toMatch(/^Reunión /);
+    // The sheet of Palestine is that of the State, and so is the page its text is from: not that of the region.
+    expect(sheetOf('PS').read).toEqual({ es: 'https://es.wikipedia.org/wiki/Palestina', en: 'https://en.wikipedia.org/wiki/Palestine' });
+    expect(sheetOf('PS').lead?.es?.[0]).toMatch(/^Palestina, oficialmente Estado de Palestina, es un país/);
+    expect(sheetOf('PS').lead?.en?.[0]).toMatch(/^Palestine, officially the State of Palestine, is a country/);
+    // The page in Spanish of the flag of Antarctica begins with another flag than the one the game draws.
+    expect(Object.keys(sheetOf('AQ').flag?.lead ?? {})).toEqual(['en']);
+    expect(Object.keys(sheetOf('AQ').lead ?? {}).sort()).toEqual(['en', 'es']);
+  });
+
+  it('tells of a few what their pages are known to begin with, without the brackets of how they are called elsewhere', () => {
+    const first = (id: string, lang: 'es' | 'en') => sheetOf(id).lead?.[lang]?.[0] ?? '';
+    expect(first('ES', 'es')).toMatch(/^España, formalmente Reino de España, es un país soberano /);
+    expect(first('ES', 'en')).toMatch(/^Spain, officially the Kingdom of Spain, is a country /);
+    expect(first('JP', 'es')).toMatch(/^Japón es un país insular /);
+    expect(first('QA', 'es')).toMatch(/^Catar, cuyo nombre oficial es Estado de Catar, es un Estado soberano /);
+    expect(first('GI', 'en')).toMatch(/^Gibraltar is a British Overseas Territory /);
+    expect(first('NR', 'en')).toMatch(/^Nauru, also known by its native name Naoero and officially as the Republic of Naoero, is an island country /);
+    expect(sheetOf('ES').flag?.lead?.es?.[0]).toMatch(/^La bandera de España \(también conocida como la rojigualda\) fue adoptada /);
+    expect(sheetOf('ES').flag?.lead?.en?.[0]).toMatch(/^The national flag of Spain, as it is defined in the Constitution of 1978, /);
   });
 
   it('says what a few are known to be', () => {
