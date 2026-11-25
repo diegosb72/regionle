@@ -92,6 +92,8 @@
   padding-top: 10px;
 }
 .fp-flag {
+  /* Over what is at the head of the sheet, be it a photograph or the band of a country that has none. */
+  position: relative;
   flex: none;
   width: clamp(96px, 18vw, 150px);
   aspect-ratio: 4 / 3;
@@ -100,6 +102,24 @@
   border-radius: 8px;
   box-shadow: var(--shadow-2);
   background: var(--bg);
+}
+/*
+ * A country with no photograph yet: where it would be, a band of its own flag, spread and softened until
+ * only its colours are left; the flag itself stands over it as it does over a photograph.
+ */
+.fp-band {
+  grid-row: 1;
+  height: clamp(84px, 14vw, 128px);
+  overflow: hidden;
+  background: var(--bg-2);
+}
+/* The whole flag, pressed into the band and out of focus: its colours in their places, and nothing to read. */
+.fp-band img {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  filter: blur(14px) saturate(1.05);
+  transform: scale(1.08, 1.3);
 }
 .fp-official {
   font-family: var(--serif);
@@ -179,6 +199,12 @@
   stroke-width: 0.6;
   stroke-linejoin: round;
 }
+/* A country too small to be seen at this size: a ring round where it is. */
+.fp-ring {
+  fill: color-mix(in srgb, var(--accent) 18%, transparent);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
 .fp .label {
   margin: 16px 0 8px;
 }
@@ -191,14 +217,39 @@
   list-style: none;
 }
 .fp-nb li {
+  display: flex;
+}
+/* Another country, by its flag and its name: a link to its sheet, as large as a finger needs. */
+.fp-nb li > a,
+.fp-nb li > span,
+.fp-owner > a,
+.fp-owner > span {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px 4px 6px;
+  min-height: 32px;
+  padding: 4px 11px 4px 7px;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--card);
+  color: var(--ink);
   font-size: calc(13.5px * var(--fs));
+  font-weight: 500;
+  text-decoration: none;
+}
+.fp-nb li > a:hover,
+.fp-owner > a:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 9%, var(--card));
+}
+.fp-nb li > a:focus-visible,
+.fp-owner > a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.fp-owner {
+  display: inline-flex;
+  margin-top: 2px;
 }
 
 /* The flag: large beside what is said of it, and each of its parts under its name. */
@@ -370,6 +421,57 @@
   min-height: 40px;
   padding: 7px 14px;
   font-size: calc(14px * var(--fs));
+}
+
+/* Where to read of the flag, while nothing is written of it here. */
+.fp-more a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: calc(14.5px * var(--fs));
+}
+
+/*
+ * The flags a country flew, where nothing is written of its times: small, one after another in the order
+ * they were flown, each over its years, and the one of today last.
+ */
+.fp-flown ol {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 16px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fp-flown li {
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.fp-flown li img {
+  width: 100%;
+  max-height: 84px;
+  height: auto;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 16%, transparent), var(--shadow-1);
+}
+.fp-flown .fp-when {
+  color: var(--ink-2);
+  font-size: calc(13px * var(--fs));
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.fp-flown .fp-now .fp-when {
+  color: var(--accent-ink);
+  font-weight: 700;
+}
+.fp-note {
+  margin-top: 12px !important;
+  color: var(--ink-3);
+  font-size: calc(13px * var(--fs));
 }
 
 .fp-foot {

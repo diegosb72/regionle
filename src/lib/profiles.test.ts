@@ -1,9 +1,10 @@
 /**
  * The sheets of the countries (lib/profiles.ts): which countries have one and how its address is written,
  * the place of a country among the States, the flags of its times and where it is on the globe; and the
- * sheets themselves, as the game is given them — that each says what was written by hand of its country,
- * that every photograph is there at every width it is said to have, with whose it is, and that the flags of
- * its times are flags the game has.
+ * sheets themselves, as the game is given them — that every country with a flag has one, that none says
+ * anything that is not what it is said to be, that those written by hand say what was written, that every
+ * photograph is there at every width it is said to have, with whose it is, and that the flags of its times
+ * are flags the game has.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -16,8 +17,9 @@ import { WIDTHS as WIDTHS_SAID } from '../../scripts/data/profiles.mjs';
 import { PHOTOS as PINNED, PHOTOS_AT as PINNED_AT, PHOTOS_SAID as PINNED_SAID } from '../../scripts/data/photos-pinned.mjs';
 import type { FlagsFile } from './flags';
 import { setLang } from './i18n';
+import { SAME_FLAG } from './pairs';
 import { locator } from './profileMap';
-import { PROFILE_LANDS, hasProfile, isDay, photoSet, photoSrc, profileIn, profileRest, rankOf, timeCards, type ProfileFile, type ProfilePhoto } from './profiles';
+import { bordersText, flownCards, hasProfile, isDay, neighboursOf, photoSet, photoSrc, profileIn, profileRest, rankOf, regionsText, timeCards, townsText, yearOfDay, type ProfileFile, type ProfilePhoto, type ProfileTime } from './profiles';
 import type { Country, Geo, Index } from './types';
 
 const WIDTHS = WIDTHS_SAID as { head: number[]; photo: number[]; time: number[] };
@@ -34,47 +36,56 @@ const SOURCES = 'scripts/data/profiles';
 const PICTURES = 'public/photos';
 
 const sheetOf = (id: string) => json<ProfileFile>(`${SHEETS}/${id}.json`);
+/** A sheet written by hand, as the game is given it: with everything that such a sheet has. */
+type Written = ProfileFile & Required<Pick<ProfileFile, 'official' | 'about' | 'times' | 'photos' | 'read'>> & { flag: Required<Pick<NonNullable<ProfileFile['flag']>, 'adopted' | 'ratio' | 'text' | 'parts'>> & NonNullable<ProfileFile['flag']> };
 /** What is written of a country by hand: the same, with each photograph named by its title in Commons. */
-interface Source extends Omit<ProfileFile, 'v' | 'photos' | 'times'> {
+interface Source extends Omit<Written, 'v' | 'photos' | 'times'> {
   photos: { file: string; es: string; en: string; by?: string; focus?: [number, number] }[];
-  times: (Omit<ProfileFile['times'][number], 'picture'> & { picture?: { file: string; es: string; en: string } })[];
+  times: (Omit<ProfileTime, 'picture'> & { picture?: { file: string; es: string; en: string } })[];
 }
 const sourceOf = (id: string) => json<Source>(`${SOURCES}/${id}.json`);
-const photosOf = (sheet: ProfileFile): ProfilePhoto[] => [...sheet.photos, ...sheet.times.flatMap((time) => (time.picture ? [time.picture] : []))];
+const photosOf = (sheet: ProfileFile): ProfilePhoto[] => [...(sheet.photos ?? []), ...(sheet.times ?? []).flatMap((time) => (time.picture ? [time.picture] : []))];
+const files = (dir: string) => fs.readdirSync(path.join(ROOT, dir)).filter((name) => name.endsWith('.json')).map((name) => name.slice(0, -5)).sort();
+/** The countries that have a sheet, and those of them that somebody has written of by hand. */
+const LANDS = INDEX.countries.filter((c) => hasProfile(c)).map((c) => c.id);
+const WRITTEN = files(SOURCES);
+const has = (id: string) => LANDS.includes(id);
 
 beforeEach(() => setLang('es'));
 
 describe('which countries have a sheet', () => {
-  it('are those that have a file of their own, and no other', () => {
-    expect(PROFILE_LANDS).toEqual(['BR']);
-    const files = (dir: string) => fs.readdirSync(path.join(ROOT, dir)).filter((name) => name.endsWith('.json')).map((name) => name.slice(0, -5)).sort();
-    expect(files(SHEETS)).toEqual([...PROFILE_LANDS].sort());
-    expect(files(SOURCES)).toEqual([...PROFILE_LANDS].sort());
-    for (const id of PROFILE_LANDS) {
-      // A country of the game, with a flag to open the sheet by.
-      const country = INDEX.countries.find((c) => c.id === id);
-      expect(country?.fl, id).toBeTruthy();
-      expect(hasProfile(id)).toBe(true);
-    }
-    expect(hasProfile('AR')).toBe(false);
-    expect(hasProfile('br')).toBe(false);
+  it('are all that have a flag: every State and every territory, and nothing else', () => {
+    expect(LANDS).toHaveLength(249);
+    expect(files(SHEETS)).toEqual([...LANDS].sort());
+    for (const id of ['BR', 'ES', 'VA', 'XK', 'EH', 'GI', 'AQ']) expect(has(id), id).toBe(true);
+    // The two patches of ice that are nobody's have no flag to open a sheet by.
+    const none = INDEX.countries.filter((c) => !hasProfile(c)).map((c) => c.id);
+    expect(none.sort()).toEqual(['X1', 'X2']);
+    expect(hasProfile(undefined)).toBe(false);
+    // Those written by hand are countries of the game.
+    expect(WRITTEN).toEqual(['BR']);
+    for (const id of WRITTEN) expect(has(id), id).toBe(true);
   });
 
   it('are named in the address of the gallery after the page of the countries', () => {
     expect(profileRest('BR')).toBe('paises/BR');
-    expect(profileIn(profileRest('BR'))).toBe('BR');
-    expect(profileIn('paises/br')).toBe('BR');
-    expect(profileIn('countries/BR')).toBe('BR');
-    expect(profileIn('Countries/Br')).toBe('BR');
-    // The gallery alone, a country with no sheet, another page of it, and what says more than a country.
-    expect(profileIn('paises')).toBeNull();
-    expect(profileIn('')).toBeNull();
-    expect(profileIn('paises/AR')).toBeNull();
-    expect(profileIn('paises/Brasil')).toBeNull();
-    expect(profileIn('regiones/BR')).toBeNull();
-    expect(profileIn('ciudades/BR')).toBeNull();
-    expect(profileIn('paises/BR/mas')).toBeNull();
-    expect(profileIn('juegos/BR')).toBeNull();
+    expect(profileIn(profileRest('BR'), has)).toBe('BR');
+    expect(profileIn('paises/br', has)).toBe('BR');
+    expect(profileIn('countries/BR', has)).toBe('BR');
+    expect(profileIn('Countries/Br', has)).toBe('BR');
+    expect(profileIn('paises/AR', has)).toBe('AR');
+    // The gallery alone, what is no country with a flag, another page of it, and what says more than a country.
+    expect(profileIn('paises', has)).toBeNull();
+    expect(profileIn('', has)).toBeNull();
+    expect(profileIn('paises/X1', has)).toBeNull();
+    expect(profileIn('paises/ZZ', has)).toBeNull();
+    expect(profileIn('paises/Brasil', has)).toBeNull();
+    expect(profileIn('regiones/BR', has)).toBeNull();
+    expect(profileIn('ciudades/BR', has)).toBeNull();
+    expect(profileIn('paises/BR/mas', has)).toBeNull();
+    expect(profileIn('juegos/BR', has)).toBeNull();
+    // Whoever is asked decides: with nobody that has a sheet, no address names one.
+    expect(profileIn('paises/BR', () => false)).toBeNull();
   });
 });
 
@@ -103,6 +114,78 @@ describe('the place of a country among the States', () => {
   });
 });
 
+describe('what a sheet says in words of how many there are', () => {
+  it('counts the ones a country borders by what they are, and names one alone', () => {
+    expect(bordersText(4, 1)).toBe('Limita con 5 países y territorios');
+    expect(bordersText(8, 0)).toBe('Limita con 8 países');
+    expect(bordersText(0, 2)).toBe('Limita con 2 territorios');
+    expect(bordersText(1, 0)).toBe('Limita con un país');
+    expect(bordersText(0, 1)).toBe('Limita con un territorio');
+    setLang('en');
+    expect(bordersText(4, 1)).toBe('Borders 5 countries and territories');
+    expect(bordersText(8, 0)).toBe('Borders 8 countries');
+    expect(bordersText(1, 0)).toBe('Borders one country');
+    expect(bordersText(0, 1)).toBe('Borders one territory');
+  });
+
+  it('says of how many of its divisions the flags are, so that the ones shown are not taken for all', () => {
+    const provinces = { n: 52, es: 'provincias', en: 'provinces' };
+    expect(regionsText(52, provinces)).toBe('Las de sus 52 provincias');
+    expect(regionsText(43, provinces)).toBe('Las de 43 de sus 52 provincias');
+    expect(regionsText(1, { n: 75, es: 'distritos', en: 'districts' })).toBe('La de 1 de sus 75 distritos');
+    // With no word for its divisions, they are regions; and all the flags there are, are of them.
+    expect(regionsText(7, undefined)).toBe('Las de sus 7 regiones');
+    setLang('en');
+    expect(regionsText(27, { n: 27, es: 'estados', en: 'states' })).toBe('Those of its 27 states');
+    expect(regionsText(43, provinces)).toBe('Those of 43 of its 52 provinces');
+    expect(regionsText(1, { n: 75, es: 'distritos', en: 'districts' })).toBe('That of 1 of its 75 districts');
+    expect(regionsText(7, undefined)).toBe('Those of its 7 regions');
+  });
+
+  it('leads to the flags of its towns: of how many, or of its capital alone', () => {
+    expect(townsText([{ kind: 'capital' }, { kind: 'city' }, { kind: 'city' }])).toBe('Ver las de 3 ciudades');
+    expect(townsText([{ kind: 'capital' }])).toBe('Ver la de su capital');
+    expect(townsText([{ kind: 'city' }])).toBe('Ver la de una ciudad');
+    setLang('en');
+    expect(townsText([{ kind: 'capital' }, { kind: 'city' }])).toBe('See those of 2 cities');
+    expect(townsText([{ kind: 'capital' }])).toBe('See that of its capital');
+    expect(townsText([{ kind: 'city' }])).toBe('See that of one city');
+  });
+});
+
+describe('whom a country borders', () => {
+  const byId = new Map(INDEX.countries.map((c) => [c.id, c]));
+  const names = (id: string, lang: 'es' | 'en'): string[] => {
+    setLang(lang);
+    return neighboursOf(byId.get(id)!, byId).map((other) => byId.get(other)!.n[lang] ?? byId.get(other)!.n.es);
+  };
+
+  it('lists them by their name in the language of the game, and not by their code', () => {
+    // As the game keeps them: Peru (PE) before Paraguay (PY), Austria (AT) before Germany (DE).
+    expect(byId.get('BR')!.nb).toEqual(['AR', 'BO', 'CO', 'GF', 'GY', 'PE', 'PY', 'SR', 'UY', 'VE']);
+    expect(names('BR', 'es')).toEqual(['Argentina', 'Bolivia', 'Colombia', 'Guayana Francesa', 'Guyana', 'Paraguay', 'Perú', 'Surinam', 'Uruguay', 'Venezuela']);
+    expect(names('CH', 'es')).toEqual(['Alemania', 'Austria', 'Francia', 'Italia', 'Liechtenstein']);
+    expect(names('CH', 'en')).toEqual(['Austria', 'France', 'Germany', 'Italy', 'Liechtenstein']);
+    expect(names('BR', 'en')).toEqual(['Argentina', 'Bolivia', 'Colombia', 'French Guiana', 'Guyana', 'Paraguay', 'Peru', 'Suriname', 'Uruguay', 'Venezuela']);
+    // The list of the game is left as it was.
+    expect(byId.get('BR')!.nb).toEqual(['AR', 'BO', 'CO', 'GF', 'GY', 'PE', 'PY', 'SR', 'UY', 'VE']);
+  });
+
+  it('leaves out what the game does not have, and is empty for an island', () => {
+    expect(neighboursOf({ nb: ['ES', 'ZZ', 'PT'] }, byId)).toEqual(['ES', 'PT']);
+    expect(neighboursOf(byId.get('IS')!, byId)).toEqual([]);
+    expect(neighboursOf({}, byId)).toEqual([]);
+  });
+
+  it('is every neighbour of every country, each once', () => {
+    setLang('es');
+    for (const country of INDEX.countries) {
+      const said = neighboursOf(country, byId);
+      expect([...said].sort(), country.id).toEqual([...(country.nb ?? [])].filter((id) => byId.has(id)).sort());
+    }
+  });
+});
+
 describe('the pictures of a photograph', () => {
   it('are named after it and their width', () => {
     expect(photoSrc('0123456789', 640, '/x/')).toBe('/x/photos/0123456789-640.webp');
@@ -118,6 +201,13 @@ describe('a day', () => {
     expect(isDay('1889-13-01')).toBe(false);
     expect(isDay('19-11-1889')).toBe(false);
     expect(isDay('')).toBe(false);
+  });
+
+  it('gives its year, as does a year alone', () => {
+    expect(yearOfDay('1889-11-19')).toBe(1889);
+    expect(yearOfDay('1866')).toBe(1866);
+    expect(yearOfDay('')).toBeNull();
+    expect(yearOfDay('hace mucho')).toBeNull();
   });
 });
 
@@ -153,10 +243,246 @@ describe('where a country is', () => {
   it('is nothing for what the map does not have', () => {
     expect(locator(world, 'ZZ', [0, 0], 200)).toBeNull();
   });
+
+  it('is told by a ring where the country is too small to be seen', () => {
+    const at = (id: string) => locator(world, id, INDEX.countries.find((c) => c.id === id)!.lp, 220)!;
+    // A spot of colour that the eye finds needs none.
+    for (const id of ['BR', 'ES', 'RU', 'UY', 'IE', 'AT', 'KR']) expect(at(id).ring, id).toBeNull();
+    // Kiribati is specks over an ocean as wide as a continent: what counts is how much is drawn, not how far apart.
+    expect(at('KI').ring).not.toBeNull();
+    for (const id of ['VA', 'MC', 'SM', 'NR', 'TV', 'MT', 'SG', 'LU', 'LB', 'GI']) {
+      const drawn = at(id);
+      expect(drawn.ring, id).not.toBeNull();
+      // Where the country is: on the line down the middle of the globe, which is turned to face it, above
+      // its middle if the country is north of the equator and below if south.
+      const [x, y] = drawn.ring!;
+      const north = INDEX.countries.find((c) => c.id === id)!.lp[1] > 0;
+      expect(Math.abs(x - 110), id).toBeLessThan(6);
+      expect(y, id).toBeGreaterThan(20);
+      expect(y, id).toBeLessThan(200);
+      expect(y < 110, id).toBe(north);
+    }
+  });
+
+  it('is drawn for countries of every kind: across the line where the day changes, at a pole, an island', () => {
+    for (const id of ['FJ', 'KI', 'NZ', 'US', 'AQ', 'GL', 'SJ', 'BV', 'PN', 'EH', 'XK', 'PS', 'TF', 'HM', 'UM'].filter(has)) {
+      const country = INDEX.countries.find((c) => c.id === id)!;
+      const drawn = locator(world, id, country.lp, 220);
+      expect(drawn, id).not.toBeNull();
+      expect(drawn!.own.length > 0 || drawn!.ring !== null, id).toBe(true);
+    }
+  }, 30_000);
 });
 
-describe.each(PROFILE_LANDS.map((id) => [id]))('the sheet of %s', (id) => {
-  const sheet = sheetOf(id);
+describe('the flags a country flew before', () => {
+  it('are those the game has of it, the oldest first', () => {
+    const cards = flownCards('BR', FLAGS, INDEX, '/');
+    expect(cards.map((card) => card.years)).toEqual([
+      [1889, 1889],
+      [1889, 1960],
+      [1960, 1968],
+      [1968, 1992],
+    ]);
+    for (const card of cards) expect(card).toMatchObject({ kind: 'past', id: 'BR' });
+    const all = flownCards('US', FLAGS, INDEX, '/');
+    expect(all.length).toBeGreaterThan(20);
+    const from = all.map((card) => card.years![0]);
+    expect(from).toEqual([...from].sort((a, b) => a - b));
+  });
+
+  it('are none for a country the game has no earlier flag of', () => {
+    expect(FLAGS.past?.AD).toBeUndefined();
+    expect(flownCards('AD', FLAGS, INDEX, '/')).toEqual([]);
+    expect(flownCards('ZZ', FLAGS, INDEX, '/')).toEqual([]);
+  });
+});
+
+/** A text that says something, with no space at its ends nor two together, and nothing left of how a wiki writes. */
+const clean = (text: unknown, what: string) => {
+  expect(typeof text, what).toBe('string');
+  const said = text as string;
+  expect(said.length, what).toBeGreaterThan(0);
+  expect(said, what).toBe(said.trim());
+  expect(said, what).not.toMatch(/\s{2}|[{}[\]<>|=]|\n|https?:|&\w+;|''/);
+};
+/** A text in one language of the game or in both, each clean. */
+const cleanIn = (said: { es?: string; en?: string } | undefined, what: string) => {
+  if (said === undefined) return;
+  expect(Object.keys(said).length, what).toBeGreaterThan(0);
+  for (const [lang, text] of Object.entries(said)) {
+    expect(['es', 'en'], what).toContain(lang);
+    clean(text, `${what} (${lang})`);
+  }
+};
+
+describe('the sheet of every country', () => {
+  const sheets = LANDS.map((id) => sheetOf(id));
+
+  it('is of its country, and says only what a sheet says', () => {
+    const known = ['v', 'id', 'official', 'local', 'localLang', 'motto', 'anthem', 'about', 'flag', 'times', 'photos', 'read', 'readFlag'];
+    const ofFlag = ['of', 'adopted', 'changed', 'ratio', 'colours', 'called', 'by', 'text', 'parts'];
+    for (const [i, sheet] of sheets.entries()) {
+      expect(sheet.v, LANDS[i]).toBe(1);
+      expect(sheet.id).toBe(LANDS[i]);
+      for (const key of Object.keys(sheet)) expect(known, `${sheet.id}.${key}`).toContain(key);
+      for (const key of Object.keys(sheet.flag ?? {})) expect(ofFlag, `${sheet.id}.flag.${key}`).toContain(key);
+      // Only what somebody wrote by hand has texts, times and photographs.
+      if (!WRITTEN.includes(sheet.id)) for (const key of ['about', 'times', 'photos'] as const) expect(sheet[key], `${sheet.id}.${key}`).toBeUndefined();
+    }
+  });
+
+  it('names the country in full, and says its motto and its anthem, in words that read clean', () => {
+    for (const sheet of sheets) {
+      const { id } = sheet;
+      cleanIn(sheet.official, `${id} official`);
+      cleanIn(sheet.anthem, `${id} anthem`);
+      if (sheet.local !== undefined) {
+        clean(sheet.local, `${id} local`);
+        expect(sheet.localLang, id).toMatch(/^[a-z]{2,3}$/);
+      } else expect(sheet.localLang, id).toBeUndefined();
+      if (sheet.motto) {
+        const { text, lang, ...means } = sheet.motto;
+        clean(text, `${id} motto`);
+        if (lang !== undefined) expect(lang, id).toMatch(/^[a-z]{2,3}$/);
+        if (Object.keys(means).length) cleanIn(means, `${id} motto means`);
+        // A motto said in a language of the game means what it says.
+        if (lang === 'es') expect(means.es, id).toBe(text);
+        if (lang === 'en') expect(means.en, id).toBe(text);
+        // No slogan of a tourist board, which is what Wikidata often calls a motto.
+        expect(text, id).not.toMatch(/visit|discover|tourism|experience|magical|wonder|timeless|inspired by/i);
+      }
+    }
+    const count = (of: (sheet: ProfileFile) => unknown) => sheets.filter((sheet) => of(sheet)).length;
+    // As many as the sources give: a fall here is a source read worse than it was.
+    expect(count((s) => s.official?.es)).toBeGreaterThanOrEqual(232);
+    expect(count((s) => s.official?.en)).toBeGreaterThanOrEqual(236);
+    expect(count((s) => s.motto)).toBeGreaterThanOrEqual(160);
+    expect(count((s) => s.motto?.es)).toBeGreaterThanOrEqual(158);
+    expect(count((s) => s.motto?.en)).toBeGreaterThanOrEqual(155);
+    expect(count((s) => s.anthem)).toBeGreaterThanOrEqual(233);
+    // Every State of the United Nations is named in full in both languages.
+    for (const sheet of sheets) if (INDEX.countries.find((c) => c.id === sheet.id)?.cl === 'un') expect(Object.keys(sheet.official ?? {}).sort(), sheet.id).toEqual(['en', 'es']);
+  });
+
+  it('says of its flag the day it was adopted, its proportions and its colours as they are written', () => {
+    for (const sheet of sheets) {
+      const { id, flag } = sheet;
+      if (!flag) continue;
+      if (flag.adopted !== undefined) {
+        expect(yearOfDay(flag.adopted), `${id} ${flag.adopted}`).not.toBeNull();
+        expect(flag.adopted.length === 4 || isDay(flag.adopted), `${id} ${flag.adopted}`).toBe(true);
+        // No flag is said to be adopted after today, nor before any flag was.
+        expect(yearOfDay(flag.adopted)!, id).toBeGreaterThan(1200);
+        expect(yearOfDay(flag.adopted)!, id).toBeLessThanOrEqual(2026);
+      }
+      if (flag.changed !== undefined) {
+        expect(flag.changed.length === 4 || isDay(flag.changed), `${id} ${flag.changed}`).toBe(true);
+        expect(flag.adopted, id).toBeDefined();
+        expect(yearOfDay(flag.changed)!, id).toBeGreaterThanOrEqual(yearOfDay(flag.adopted!)!);
+        expect(yearOfDay(flag.changed)!, id).toBeLessThanOrEqual(2026);
+      }
+      if (flag.ratio !== undefined) {
+        expect(flag.ratio, id).toMatch(/^\d+(\.\d+)?:\d+(\.\d+)?$/);
+        const [h, w] = flag.ratio.split(':').map(Number);
+        // Height to width: no flag of a country is taller than it is wide but for a hair, and none is four times as wide.
+        expect(h / w, `${id} ${flag.ratio}`).toBeGreaterThan(0.35);
+        expect(h / w, `${id} ${flag.ratio}`).toBeLessThanOrEqual(1);
+      }
+      if (flag.colours) {
+        expect(flag.colours.es.length, id).toBeGreaterThanOrEqual(2);
+        expect(flag.colours.en, id).toHaveLength(flag.colours.es.length);
+        for (const name of [...flag.colours.es, ...flag.colours.en]) expect(name, id).toMatch(/^[a-záéíóúñ ]+$/);
+        expect(new Set(flag.colours.es).size, id).toBe(flag.colours.es.length);
+      }
+      cleanIn(flag.by, `${id} flag by`);
+    }
+    const count = (of: (sheet: ProfileFile) => unknown) => sheets.filter((sheet) => of(sheet)).length;
+    expect(count((s) => s.flag?.adopted)).toBeGreaterThanOrEqual(228);
+    expect(count((s) => s.flag?.ratio)).toBeGreaterThanOrEqual(238);
+    expect(count((s) => s.flag?.colours)).toBeGreaterThanOrEqual(225);
+  });
+
+  it('says its flag is as it is since the year the game has its last earlier flag lowered', () => {
+    for (const sheet of sheets) {
+      if (!sheet.flag?.changed || WRITTEN.includes(sheet.id)) continue;
+      const lowered = (FLAGS.past?.[sheet.id] ?? []).map((row) => row[3]);
+      expect(lowered.length, sheet.id).toBeGreaterThan(0);
+      expect(Math.abs(yearOfDay(sheet.flag.changed)! - Math.max(...lowered)), sheet.id).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('says whose flag it is of the territories that the game draws with the flag of their country, and of that flag the same as that country', () => {
+    const byId = new Map(INDEX.countries.map((c) => [c.id, c]));
+    // The game knows which they are (lib/pairs.ts): the territories among the flags that are the same as another.
+    const drawn = Object.entries(SAME_FLAG).filter(([id]) => byId.get(id)?.cl === 'dep');
+    expect(drawn.map(([id]) => id).sort()).toEqual(['BL', 'BQ', 'BV', 'GF', 'GP', 'HM', 'MF', 'PM', 'RE', 'SH', 'SJ', 'WF', 'YT']);
+    const said = sheets.filter((sheet) => sheet.flag?.of !== undefined).map((sheet) => [sheet.id, sheet.flag!.of]);
+    expect(said.sort()).toEqual(drawn.sort());
+    for (const [id, of] of drawn) {
+      // The country it depends on, whose sheet it leads to.
+      expect(byId.get(id)?.sov, id).toBe(of);
+      expect(has(of), of).toBe(true);
+      const mine = sheetOf(id);
+      const theirs = sheetOf(of);
+      expect(theirs.flag?.of, of).toBeUndefined();
+      const { of: _whose, ...flag } = mine.flag!;
+      // What is true of a flag wherever it flies; not what somebody wrote of it for the sheet of its country.
+      const { text: _text, parts: _parts, called: _called, ...facts } = theirs.flag!;
+      expect(flag, id).toEqual(facts);
+      expect(Object.keys(flag).length, id).toBeGreaterThanOrEqual(2);
+      expect(mine.readFlag, id).toEqual(theirs.readFlag);
+      // Of the territory itself, its own page.
+      expect(mine.read, id).not.toEqual(theirs.read);
+    }
+    expect(sheetOf('RE').flag).toMatchObject({ of: 'FR', adopted: '1794-02-15', ratio: '2:3' });
+    // One with a flag of its own says nothing of whose it is: New Caledonia flies the Kanak flag beside the French.
+    expect(sheetOf('NC').flag).toMatchObject({ adopted: '2010', ratio: '1:2' });
+    expect(sheetOf('NC').flag?.of).toBeUndefined();
+    expect(sheetOf('NC').readFlag?.en).toBe('https://en.wikipedia.org/wiki/Flags_of_New_Caledonia');
+  });
+
+  it('leads to the page of the country and of its flag in the Wikipedia of each language', () => {
+    for (const sheet of sheets) {
+      for (const key of ['read', 'readFlag'] as const) {
+        for (const [lang, url] of Object.entries(sheet[key] ?? {})) {
+          expect(['es', 'en'], sheet.id).toContain(lang);
+          expect(url, sheet.id).toMatch(new RegExp(`^https://${lang}\\.wikipedia\\.org/wiki/[^ ?#]+$`));
+        }
+      }
+      // Every country has a page in both.
+      expect(Object.keys(sheet.read ?? {}).sort(), sheet.id).toEqual(['en', 'es']);
+    }
+  });
+
+  it('says what a few are known to be', () => {
+    const of = (id: string) => sheetOf(id);
+    expect(of('ES')).toMatchObject({
+      official: { es: 'Reino de España', en: 'Kingdom of Spain' },
+      local: 'Reino de España',
+      localLang: 'es',
+      motto: { text: 'Plus ultra', lang: 'la', es: 'Más allá' },
+      anthem: { es: 'Marcha Real' },
+      flag: { adopted: '1785-05-28', changed: '1981-10-05', ratio: '2:3', colours: { es: ['rojo', 'amarillo'], en: ['red', 'yellow'] } },
+    });
+    expect(of('US').flag).toMatchObject({ adopted: '1777-06-14', changed: '1960-07-04', ratio: '10:19' });
+    expect(of('FR')).toMatchObject({ official: { es: 'República Francesa', en: 'French Republic' }, local: 'République française', localLang: 'fr', motto: { text: 'Liberté, égalité, fraternité', lang: 'fr' } });
+    expect(of('CH')).toMatchObject({ official: { es: 'Confederación Suiza' }, flag: { ratio: '1:1' } });
+    expect(of('JP').local).toBe('日本国');
+    expect(of('LK').official?.en).toBe('Democratic Socialist Republic of Sri Lanka');
+    expect(of('IE')).toMatchObject({ local: 'Éire', localLang: 'ga' });
+    expect(of('NO')).toMatchObject({ local: 'Kongeriket Norge', localLang: 'nb' });
+    expect(of('AR').flag?.ratio).toBe('9:14');
+    expect(of('GI')).toMatchObject({ motto: { lang: 'la' }, anthem: { es: 'Himno de Gibraltar · God Save the King' } });
+    // Nepal's is no rectangle, and nothing is said of its proportions.
+    expect(of('NP').flag?.ratio).toBeUndefined();
+    // Whoever has no motto is given none.
+    for (const id of ['AU', 'IT', 'MX', 'JP']) expect(of(id).motto, id).toBeUndefined();
+  });
+});
+
+
+describe.each(WRITTEN.map((id) => [id]))('the sheet of %s, written by hand', (id) => {
+  const sheet = sheetOf(id) as Written;
   const source = sourceOf(id);
 
   it('says what was written of the country by hand: `npm run data:profiles` has been run since', () => {
@@ -167,7 +493,9 @@ describe.each(PROFILE_LANDS.map((id) => [id]))('the sheet of %s', (id) => {
     expect(sheet.local).toBe(source.local);
     expect(sheet.localLang).toBe(source.localLang);
     expect(sheet.about).toEqual(source.about);
-    expect(sheet.flag).toEqual(source.flag);
+    // Of the flag, what was written; of what the sources say besides, nothing that was written is changed.
+    expect(sheet.flag).toMatchObject(source.flag);
+    expect(sheet.flag.colours).toBeUndefined();
     expect(sheet.read).toEqual(source.read);
     expect(sheet.photos.map((p) => [p.title, p.es, p.en, p.focus])).toEqual(source.photos.map((p) => [p.file, p.es, p.en, p.focus]));
     expect(sheet.times.map(({ picture, ...time }) => ({ ...time, picture: picture && [picture.title, picture.es, picture.en] }))).toEqual(
@@ -179,10 +507,10 @@ describe.each(PROFILE_LANDS.map((id) => [id]))('the sheet of %s', (id) => {
 
   it('says everything in the two languages, a paragraph for a paragraph', () => {
     const texts: string[] = [];
-    const both = (said: { es: string; en: string }, what: string) => {
-      expect(said.es.trim(), `${what} (es)`).not.toBe('');
-      expect(said.en.trim(), `${what} (en)`).not.toBe('');
-      texts.push(said.es, said.en);
+    const both = (said: { es?: string; en?: string }, what: string) => {
+      expect(said.es?.trim(), `${what} (es)`).toBeTruthy();
+      expect(said.en?.trim(), `${what} (en)`).toBeTruthy();
+      texts.push(said.es!, said.en!);
     };
     both(sheet.official, 'official');
     both(sheet.read, 'read');
@@ -256,7 +584,7 @@ describe.each(PROFILE_LANDS.map((id) => [id]))('the sheet of %s', (id) => {
   });
 
   it('keeps no picture that no sheet shows', () => {
-    const used = new Set(PROFILE_LANDS.flatMap((land) => photosOf(sheetOf(land)).flatMap((photo) => photo.sizes.map((w) => `${photo.file}-${w}.webp`))));
+    const used = new Set(LANDS.flatMap((land) => photosOf(sheetOf(land)).flatMap((photo) => photo.sizes.map((w) => `${photo.file}-${w}.webp`))));
     expect(fs.readdirSync(path.join(ROOT, PICTURES)).sort()).toEqual([...used].sort());
   });
 
@@ -292,7 +620,7 @@ describe.each(PROFILE_LANDS.map((id) => [id]))('the sheet of %s', (id) => {
   });
 
   it('has a time none of whose flags the game has when asked about one it does not', () => {
-    const odd: ProfileFile = { ...sheet, times: [{ ...sheet.times[0], gone: 'Q0', past: undefined, now: undefined }, { ...sheet.times[0], gone: undefined, past: [1, 2], now: undefined }] };
+    const odd: Written = { ...sheet, times: [{ ...sheet.times[0], gone: 'Q0', past: undefined, now: undefined }, { ...sheet.times[0], gone: undefined, past: [1, 2], now: undefined }] };
     expect(timeCards(odd, FLAGS, INDEX, '/')).toEqual([null, null]);
   });
 });
@@ -308,7 +636,7 @@ describe('the photographs that are fetched to make the sheets', () => {
     for (const [file] of PHOTOS) expect(file).toMatch(/^photos\/files\/[0-9a-f]{40}\.1920\.(jpg|png)$/);
     // Under the SHA-1 of its original, whose first figures are what its pictures are named after.
     const pinned = PHOTOS.map(([file]) => path.basename(file).slice(0, 10)).sort();
-    const shown = PROFILE_LANDS.flatMap((land) => photosOf(sheetOf(land)).map((photo) => photo.file)).sort();
+    const shown = LANDS.flatMap((land) => photosOf(sheetOf(land)).map((photo) => photo.file)).sort();
     expect(pinned).toEqual(shown);
   });
 });

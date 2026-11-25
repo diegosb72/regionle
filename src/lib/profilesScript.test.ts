@@ -1,8 +1,10 @@
 /**
- * scripts/data/profiles.mjs, which makes the sheets of the countries, run on a country made up here: what
- * it takes from what is written by hand and what from Commons, the pictures it makes of each photograph,
- * and what it refuses — a photograph nobody asked Commons about, one that is not free to show, a text in
- * one language only, a time whose flag the game does not have.
+ * scripts/data/profiles.mjs, which makes the sheets of the countries, run on countries made up here: that
+ * every country with a flag gets one with what Wikidata and Wikipedia say of it, what a correction by hand
+ * does to that, and what is laid over both where somebody wrote of the country — what it takes from what
+ * is written and what from Commons, the pictures it makes of each photograph — and what it refuses: a
+ * photograph nobody asked Commons about, one that is not free to show, a text in one language only, a time
+ * whose flag the game does not have, a correction that leaves a sheet saying what it should not.
  */
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -11,7 +13,10 @@ import os from 'node:os';
 import path from 'node:path';
 import sharp from 'sharp';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import type { ProfileFile } from './profiles';
+import type { ProfileFile, ProfilePhoto, ProfileTime } from './profiles';
+
+/** A sheet written by hand, as the script leaves it: with its times and its photographs. */
+type Written = ProfileFile & { times: ProfileTime[]; photos: ProfilePhoto[] };
 
 // Every test runs the script, which draws pictures: seconds on a machine that is doing other things.
 vi.setConfig({ testTimeout: 30_000 });
@@ -45,6 +50,42 @@ const COMMONS: Record<string, Brought> = {
   'Gone.jpg': { missing: true },
 };
 
+/**
+ * What Wikidata and Wikipedia say of the three, as the workflow brings it: of AA its motto and its anthem
+ * and a flag whose day the two do not agree on; of BB nothing; of CC everything, in the box of each page.
+ */
+const SAID = {
+  items: {
+    AA: { wd: 'Q1', official: [['aa', 'Aa-land wd']], motto: [['la', 'Semper Aa']], anthem: ['Q11'], flag: ['Q12'], pages: { es: 'Aa', en: 'Aa' } },
+    BB: { wd: 'Q2', pages: {} },
+    CC: { wd: 'Q3', official: [['fr', 'République de Cc']], anthem: ['Q31', 'Q11'], flag: ['Q32'], pages: { es: 'Cc (país)', en: 'Cc' } },
+  },
+  flags: {
+    Q12: { since: [['1949-12-31', 11]], ratio: ['Q21'], colours: ['Q41', 'Q42'], pages: { es: 'Bandera de Aa', en: 'Flag of Aa' } },
+    Q32: { since: [['1960-08-07', 11]], ratio: ['Q22'], colours: ['Q42', 'Q41', 'Q43'], by: ['Q51'], pages: { es: 'Bandera de Cc', en: 'Flag of Cc' } },
+  },
+  names: {
+    Q11: { es: 'Himno de todos', en: 'Anthem of all' },
+    Q31: { es: 'la Ccesa', en: 'The Ccaise' },
+    Q21: { en: '3:2' },
+    Q22: { en: '2:1', es: '2:1' },
+    Q41: { es: 'rojo', en: 'red' },
+    Q42: { es: 'blanco', en: 'white' },
+    Q43: { es: 'oro', en: 'gold' },
+    Q51: { es: 'Ana Diseño', en: 'Ana Diseño' },
+  },
+  boxes: {
+    'es:Aa': "{{Ficha de país\n| nombre_oficial = República de Aa (cajas)\n| lema_nacional = ''Semper Aa''<br />(en [[latín]]: «Siempre Aa»)\n}}",
+    'en:Aa': '{{Infobox country\n| conventional_long_name = Republic of Aa\n| national_motto = {{lang|la|Semper Aa}}<br />"Always Aa"\n}}',
+    'es:Bandera de Aa': '{{Ficha de bandera\n| adopción = 2 de enero de 1950\n| proporción = 2:3\n}}',
+    'en:Flag of Aa': '{{Infobox flag\n| adoption = {{start date and age|1950|1|2}}\n| proportion = 2:3\n}}',
+    'es:Cc (país)': "{{Ficha de país\n| nombre_oficial = República de Cc<ref>La ley.</ref>\n| lema_nacional = ''Unité, Travail''<br />(en [[Idioma francés|francés]]: «Unidad, Trabajo»)\n}}",
+    'en:Cc': "{{Infobox country\n| conventional_long_name = Republic of Cc\n| native_name = {{native name|fr|République de Cc}}\n| national_motto = \"Unité, Travail\"<br />\"Unity, Work\"\n}}",
+    'es:Bandera de Cc': '{{Ficha de bandera\n| adopción = {{fecha|7|8|1960}}\n| proporción = 1:2\n}}',
+    'en:Flag of Cc': '{{Infobox flag\n| adoption = 7 August 1960\n| proportion = 1:2\n| designer = Somebody else\n}}',
+  },
+};
+
 let brought = '';
 let data = '';
 beforeAll(async () => {
@@ -63,7 +104,10 @@ beforeAll(async () => {
     if (!one.lost) await sharp({ create: { width: one.width!, height: one.height!, channels: 3, background: { r: 30, g: 120, b: 90 } } }).jpeg().toFile(path.join(brought, name));
   }
   fs.writeFileSync(path.join(brought, 'photos.json'), JSON.stringify({ files }));
-  fs.writeFileSync(path.join(data, 'index.json'), JSON.stringify({ countries: [{ id: 'AA' }, { id: 'BB' }] }));
+  // Three countries with a flag — of the first two somebody may write by hand — and a patch of ice with none.
+  fs.writeFileSync(path.join(data, 'index.json'), JSON.stringify({ countries: [{ id: 'AA', fl: 'aa' }, { id: 'BB', fl: 'bb' }, { id: 'CC', fl: 'cc' }, { id: 'X1' }] }));
+  fs.writeFileSync(path.join(data, 'facts.json'), JSON.stringify({ c: { AA: { l: ['aa'] }, CC: { l: ['fr', 'en'] } }, l: { fr: ['francés', 'French'], la: ['latín', 'Latin'] } }));
+  fs.writeFileSync(path.join(TMP, 'said.json'), JSON.stringify(SAID));
   fs.writeFileSync(
     path.join(data, 'flags.json'),
     JSON.stringify({ regions: {}, capitals: [], gone: [['Q9', 'Reino de Aa', 'Kingdom of Aa', '0000000001.svg', 1.5, 1800, 1900]], past: { AA: [['0000000002.svg', 1.5, 1900, 1950]], BB: [['0000000003.svg', 1.5, 1700, 1750]] } }),
@@ -101,28 +145,41 @@ const SHEET = () => ({
 });
 
 let n = 0;
-/** Runs the script on the sheets that are given, each under the name of its file. */
-function run(sheets: Record<string, unknown>, before?: (dirs: { data: string; photos: string }) => void) {
+/**
+ * Runs the script on the sheets that are given, each under the name of its file. `fixes` are the corrections
+ * by hand, `said` what the sources say when it is not what they say above (`null`: nothing was brought), and
+ * `flags` what else the script is told.
+ */
+function run(sheets: Record<string, unknown>, opts: { before?: (dirs: { data: string; photos: string }) => void; fixes?: Record<string, unknown>; said?: unknown; flags?: string[] } = {}) {
   const dir = path.join(TMP, `run-${++n}`);
-  const [said, mine, photos] = [path.join(dir, 'sheets'), path.join(dir, 'data'), path.join(dir, 'photos')];
-  fs.mkdirSync(said, { recursive: true });
+  const [written, mine, photos] = [path.join(dir, 'sheets'), path.join(dir, 'data'), path.join(dir, 'photos')];
+  fs.mkdirSync(written, { recursive: true });
   fs.cpSync(data, mine, { recursive: true });
-  for (const [name, sheet] of Object.entries(sheets)) fs.writeFileSync(path.join(said, `${name}.json`), JSON.stringify(sheet));
-  before?.({ data: mine, photos });
+  for (const [name, sheet] of Object.entries(sheets)) fs.writeFileSync(path.join(written, `${name}.json`), JSON.stringify(sheet));
+  const fixes = path.join(dir, 'fixes.json');
+  if (opts.fixes) fs.writeFileSync(fixes, JSON.stringify({ _: 'Why this file is here.', ...opts.fixes }));
+  let said = path.join(TMP, 'said.json');
+  if (opts.said !== undefined) {
+    said = path.join(dir, 'said.json');
+    if (opts.said !== null) fs.writeFileSync(said, JSON.stringify(opts.said));
+  }
+  opts.before?.({ data: mine, photos });
   let out = '';
   let code = 0;
   try {
-    out = execFileSync('node', [SCRIPT, '--sheets', said, '--brought', brought, '--data', mine, '--photos', photos], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    out = execFileSync('node', [SCRIPT, '--sheets', written, '--brought', brought, '--said', said, '--fixes', fixes, '--data', mine, '--photos', photos, ...(opts.flags ?? [])], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
   } catch (err) {
     const failed = err as { status?: number; stderr?: string; stdout?: string };
     code = failed.status ?? 1;
     out = `${failed.stdout ?? ''}${failed.stderr ?? ''}`;
   }
   const pictures = () => (fs.existsSync(photos) ? fs.readdirSync(photos).sort() : []);
-  const sheet = (id: string) => JSON.parse(fs.readFileSync(path.join(mine, 'profiles', `${id}.json`), 'utf8')) as ProfileFile;
-  const written = () => (fs.existsSync(path.join(mine, 'profiles')) ? fs.readdirSync(path.join(mine, 'profiles')).sort() : []);
-  return { code, out, pictures, sheet, written, photos };
+  const sheet = (id: string) => JSON.parse(fs.readFileSync(path.join(mine, 'profiles', `${id}.json`), 'utf8')) as Written;
+  const files = () => (fs.existsSync(path.join(mine, 'profiles')) ? fs.readdirSync(path.join(mine, 'profiles')).sort() : []);
+  return { code, out, pictures, sheet, written: files, photos };
 }
+/** Every country with a flag has a sheet, whoever was written of. */
+const ALL = ['AA.json', 'BB.json', 'CC.json'];
 /** What goes wrong when a sheet is changed so: the script stops, says why and writes no sheet. */
 function refused(change: (sheet: ReturnType<typeof SHEET>) => void): string {
   const sheet = SHEET();
@@ -154,8 +211,8 @@ describe('the sheet of a country, as the script makes it', () => {
       { past: [1900, 1950], from: 1900, to: 1950, when: both('Medio siglo'), name: both('La de antes'), text: both('Antes') },
       { now: true, from: 1950, name: both('La de hoy'), text: both('Hoy') },
     ]);
-    expect(r.written()).toEqual(['AA.json']);
-    expect(r.out).toContain('AA.json');
+    expect(r.written()).toEqual(ALL);
+    expect(r.out).toContain('AA: escrita a mano');
   });
 
   it('shows each photograph with whose it is, as Commons says, and at the widths of where it goes', () => {
@@ -189,25 +246,192 @@ describe('the sheet of a country, as the script makes it', () => {
   });
 
   it('keeps nothing of what no sheet shows any more: neither a picture nor a sheet', () => {
-    const r = run({ AA: SHEET() }, ({ data: mine, photos }) => {
-      fs.mkdirSync(photos, { recursive: true });
-      fs.mkdirSync(path.join(mine, 'profiles'), { recursive: true });
-      fs.writeFileSync(path.join(photos, 'ffffffffff-640.webp'), 'old');
-      fs.writeFileSync(path.join(mine, 'profiles', 'ZZ.json'), '{}');
-    });
+    const r = run(
+      { AA: SHEET() },
+      {
+        before: ({ data: mine, photos }) => {
+          fs.mkdirSync(photos, { recursive: true });
+          fs.mkdirSync(path.join(mine, 'profiles'), { recursive: true });
+          fs.writeFileSync(path.join(photos, 'ffffffffff-640.webp'), 'old');
+          fs.writeFileSync(path.join(mine, 'profiles', 'ZZ.json'), '{}');
+        },
+      },
+    );
     expect(r.code).toBe(0);
     expect(r.pictures()).not.toContain('ffffffffff-640.webp');
-    expect(r.written()).toEqual(['AA.json']);
+    expect(r.written()).toEqual(ALL);
   });
 
-  it('makes one sheet for each country that has one written, and a photograph that two show once', () => {
+  it('lays what is written over the sheet of each country that has it, and makes a photograph that two show once', () => {
     const other = { ...SHEET(), id: 'BB', times: [{ past: [1700, 1750], from: 1700, to: 1750, name: both('Vieja'), text: both('Vieja') }, { now: true, from: 1750, name: both('Hoy'), text: both('Hoy') }], photos: [{ file: 'Falls.jpg', ...both('Las mismas cataratas') }] };
     const r = run({ AA: SHEET(), BB: other });
     expect(r.code).toBe(0);
-    expect(r.written()).toEqual(['AA.json', 'BB.json']);
+    expect(r.written()).toEqual(ALL);
     // At the head of the second it is wanted wider than in the gallery of the first: every width is there, each once.
     expect(r.sheet('BB').photos[0]).toMatchObject({ file: name('Falls.jpg'), sizes: [640, 1280, 1920], es: 'Las mismas cataratas.' });
     expect(r.pictures().filter((file) => file.startsWith(name('Falls.jpg')))).toEqual([`${name('Falls.jpg')}-1280.webp`, `${name('Falls.jpg')}-1920.webp`, `${name('Falls.jpg')}-640.webp`]);
+  });
+});
+
+describe('the sheet of a country nobody has written of', () => {
+  it('is made all the same, of what Wikidata and Wikipedia say of it', () => {
+    const r = run({});
+    expect(r.code).toBe(0);
+    // One for every country with a flag, and none for what has no flag to open it by.
+    expect(r.written()).toEqual(ALL);
+    expect(r.sheet('CC')).toEqual({
+      v: 1,
+      id: 'CC',
+      official: { es: 'República de Cc', en: 'Republic of Cc' },
+      local: 'République de Cc',
+      localLang: 'fr',
+      motto: { text: 'Unité, Travail', lang: 'fr', es: 'Unidad, Trabajo', en: 'Unity, Work' },
+      // Its own before the one it shares with another, each with the capital of a name.
+      anthem: { es: 'La Ccesa · Himno de todos', en: 'The Ccaise · Anthem of all' },
+      // Wikidata says width to height; the sheet, like the boxes, height to width. Gold is told as yellow.
+      flag: { adopted: '1960-08-07', ratio: '1:2', colours: { es: ['rojo', 'amarillo', 'blanco'], en: ['red', 'yellow', 'white'] }, by: { es: 'Ana Diseño', en: 'Ana Diseño' } },
+      read: { es: 'https://es.wikipedia.org/wiki/Cc_(pa%C3%ADs)', en: 'https://en.wikipedia.org/wiki/Cc' },
+      readFlag: { es: 'https://es.wikipedia.org/wiki/Bandera_de_Cc', en: 'https://en.wikipedia.org/wiki/Flag_of_Cc' },
+    });
+    // No texts, no times and no photographs: nobody wrote them.
+    expect(r.pictures()).toEqual([]);
+    // Of what nothing is said, a sheet with nothing but whose it is: the game shows it with what it knows.
+    expect(r.sheet('BB')).toEqual({ v: 1, id: 'BB' });
+    expect(r.out).toMatch(/3 fichas .*0 escritas a mano; nombre oficial en 2, lema en 2, himno en 2, fecha de la bandera en 2, proporción en 2/);
+  });
+
+  it('takes the day both boxes give when Wikidata gives another, and tells whoever reviews it', () => {
+    const r = run({}, { flags: ['--review'] });
+    // Wikidata: 31 December 1949. Both Wikipedias: 2 January 1950.
+    expect(r.sheet('AA').flag).toMatchObject({ adopted: '1950-01-02', ratio: '2:3', colours: { es: ['rojo', 'blanco'], en: ['red', 'white'] } });
+    expect(r.out).toContain('AA: adopted: Wikidata 1949-12-31, en [1950-01-02], es [1950-01-02] → 1950-01-02');
+    // Without being asked, nothing of it is said.
+    expect(run({}).out).not.toContain('adopted:');
+  });
+
+  it('is corrected by hand: what is written replaces what was read, and null takes it away', () => {
+    const r = run({}, { fixes: { CC: { motto: null, official: { es: 'Cc' }, flag: { adopted: '1961', by: null }, anthem: { es: 'La Ccesa' } }, BB: { official: { es: 'Reino de Bb', en: 'Kingdom of Bb' } } }, flags: ['--review'] });
+    expect(r.code).toBe(0);
+    const sheet = r.sheet('CC');
+    expect(sheet.motto).toBeUndefined();
+    // Only what is named changes: the name in English, the proportions and the colours stay as they were read.
+    expect(sheet.official).toEqual({ es: 'Cc', en: 'Republic of Cc' });
+    expect(sheet.anthem).toEqual({ es: 'La Ccesa', en: 'The Ccaise · Anthem of all' });
+    expect(sheet.flag).toEqual({ adopted: '1961', ratio: '1:2', colours: { es: ['rojo', 'amarillo', 'blanco'], en: ['red', 'yellow', 'white'] } });
+    // A country nothing was read of can be told by hand too.
+    expect(r.sheet('BB')).toEqual({ v: 1, id: 'BB', official: { es: 'Reino de Bb', en: 'Kingdom of Bb' } });
+    expect(r.out).toContain('2 países con correcciones a mano');
+    expect(r.out).toContain('AA: adopted');
+  });
+
+  it('says of the flag of a territory that flies that of its country what that country says of it', () => {
+    const r = run({}, { fixes: { BB: { flag: { of: 'CC', adopted: '1999' } }, CC: { flag: { adopted: '1961' } } } });
+    expect(r.code).toBe(0);
+    // Whose it is, and what is said of that flag after its own corrections; nothing of what was said of another.
+    expect(r.sheet('BB')).toEqual({
+      v: 1,
+      id: 'BB',
+      flag: { of: 'CC', adopted: '1961', ratio: '1:2', colours: { es: ['rojo', 'amarillo', 'blanco'], en: ['red', 'yellow', 'white'] }, by: { es: 'Ana Diseño', en: 'Ana Diseño' } },
+      readFlag: { es: 'https://es.wikipedia.org/wiki/Bandera_de_Cc', en: 'https://en.wikipedia.org/wiki/Flag_of_Cc' },
+    });
+    expect(r.sheet('CC').flag?.of).toBeUndefined();
+    // Of a flag written of by hand: its days and its proportions, not the texts of the sheet of that country.
+    const hand = run({ AA: SHEET() }, { fixes: { BB: { flag: { of: 'AA' } } } });
+    expect(hand.code).toBe(0);
+    expect(hand.sheet('BB').flag).toEqual({ of: 'AA', adopted: '1950-01-02', changed: '1990-03-04', ratio: '2:3', by: both('Alguien') });
+    expect(hand.sheet('BB').readFlag).toEqual({ es: 'https://es.wikipedia.org/wiki/Bandera_de_Aa', en: 'https://en.wikipedia.org/wiki/Flag_of_Aa' });
+  });
+
+  it('is not made of a flag said to be that of no country, of itself, or of one that flies that of another', () => {
+    const wrong = (fixes: Record<string, unknown>, sheets: Record<string, unknown> = {}) => {
+      const r = run(sheets, { fixes });
+      expect(r.code).not.toBe(0);
+      expect(r.written()).toEqual([]);
+      return r.out;
+    };
+    expect(wrong({ BB: { flag: { of: 'ZZ' } } })).toContain('BB: its flag is said to be that of «ZZ», which is no other country of the game with a flag');
+    expect(wrong({ BB: { flag: { of: 'X1' } } })).toContain('«X1», which is no other country');
+    expect(wrong({ BB: { flag: { of: 'BB' } } })).toContain('«BB», which is no other country');
+    expect(wrong({ BB: { flag: { of: 'CC' } }, CC: { flag: { of: 'AA' } } })).toContain('whose flag is that of another');
+    expect(wrong({ AA: { flag: { of: 'CC' } } }, { AA: SHEET() })).toContain('AA: somebody wrote of its flag, which is said to be that of another country');
+  });
+
+  it('is not made of a correction of no country, nor of one that leaves it saying what it should not', () => {
+    const wrong = (fixes: Record<string, unknown>) => {
+      const r = run({}, { fixes });
+      expect(r.code).not.toBe(0);
+      expect(r.written()).toEqual([]);
+      return r.out;
+    };
+    expect(wrong({ ZZ: { motto: null } })).toContain('corrects «ZZ», which is no country of the game with a flag');
+    expect(wrong({ X1: { motto: null } })).toContain('corrects «X1»');
+    expect(wrong({ CC: { flag: { ratio: '1,5' } } })).toContain('CC: the proportions of its flag are not two numbers: 1,5');
+    expect(wrong({ CC: { flag: { adopted: 'ayer' } } })).toContain('CC: the day its flag was adopted on is not a day or a year: ayer');
+    expect(wrong({ CC: { flag: { adopted: '1960-02-30' } } })).toContain('is not a day or a year');
+    expect(wrong({ CC: { flag: { changed: '1950-01-01' } } })).toContain('which is not a day after the one it was adopted on');
+    expect(wrong({ BB: { flag: { changed: '1950-01-01' } } })).toContain('BB: its flag is said to be as it is since');
+    expect(wrong({ CC: { official: { fr: 'République' } } })).toContain('CC: its official name is not a text in a language of the game');
+    expect(wrong({ CC: { official: { es: ' Cc ' } } })).toContain('its official name');
+    expect(wrong({ CC: { motto: { text: '' } } })).toContain('CC: its motto has no words');
+    expect(wrong({ CC: { motto: { lang: 'French' } } })).toContain('the language of its motto');
+    expect(wrong({ CC: { localLang: 'francés' } })).toContain('does not say which language');
+    expect(wrong({ BB: { localLang: 'fr' } })).toContain('BB: it names a language of its own and no name in it');
+    expect(wrong({ CC: { read: { es: 'https://example.com/Cc' } } })).toContain('«read» is not a page of the Wikipedia of each language');
+    expect(wrong({ CC: { flag: { colours: { es: ['rojo'], en: ['red'] } } } })).toContain('the colours of its flag');
+  });
+
+  it('is not made when what the sources say was not brought', () => {
+    const r = run({}, { said: null });
+    expect(r.code).not.toBe(0);
+    expect(r.out).toContain('npm run data:fetch -- countries-said');
+    expect(r.written()).toEqual([]);
+  });
+});
+
+describe('what is written by hand, over what the sources say', () => {
+  it('is what the sheet says; what nobody wrote stays as it was read', () => {
+    const r = run({ AA: SHEET() });
+    const sheet = r.sheet('AA');
+    // Written: the name, the days of the flag, its proportions.
+    expect(sheet.official).toEqual({ es: 'República de Aa', en: 'Republic of Aa' });
+    expect(sheet.local).toBe('Aa-land');
+    expect(sheet.flag).toMatchObject({ adopted: '1950-01-02', changed: '1990-03-04', ratio: '2:3', by: both('Alguien') });
+    // Read: the motto, the anthem and where to read of the flag.
+    expect(sheet.motto).toEqual({ text: 'Semper Aa', lang: 'la', es: 'Siempre Aa', en: 'Always Aa' });
+    expect(sheet.anthem).toEqual({ es: 'Himno de todos', en: 'Anthem of all' });
+    expect(sheet.readFlag).toEqual({ es: 'https://es.wikipedia.org/wiki/Bandera_de_Aa', en: 'https://en.wikipedia.org/wiki/Flag_of_Aa' });
+    // Whoever wrote of the flag told its colours in words: the list of them is not said besides.
+    expect(sheet.flag?.colours).toBeUndefined();
+  });
+
+  it('is corrected like the rest in what nobody wrote, and not in what somebody did', () => {
+    const r = run({ AA: SHEET() }, { fixes: { AA: { motto: null, official: { es: 'Otra cosa' }, anthem: { es: 'Aa, Aa' } } } });
+    const sheet = r.sheet('AA');
+    expect(sheet.motto).toBeUndefined();
+    expect(sheet.anthem).toEqual({ es: 'Aa, Aa', en: 'Anthem of all' });
+    expect(sheet.official).toEqual({ es: 'República de Aa', en: 'Republic of Aa' });
+  });
+
+  it('needs what Commons says of its photographs; a run with nothing written does not', () => {
+    const gone = (dirs: { data: string }) => void dirs;
+    const without = path.join(TMP, 'no-photos');
+    fs.mkdirSync(without, { recursive: true });
+    const args = (sheets: string) => [SCRIPT, '--sheets', sheets, '--brought', without, '--said', path.join(TMP, 'said.json'), '--fixes', path.join(TMP, 'none.json'), '--data', path.join(TMP, 'data-np'), '--photos', path.join(TMP, 'photos-np')];
+    fs.cpSync(data, path.join(TMP, 'data-np'), { recursive: true });
+    const empty = path.join(TMP, 'sheets-none');
+    fs.mkdirSync(empty, { recursive: true });
+    expect(() => execFileSync('node', args(empty), { stdio: 'pipe' })).not.toThrow();
+    const some = path.join(TMP, 'sheets-some');
+    fs.mkdirSync(some, { recursive: true });
+    fs.writeFileSync(path.join(some, 'AA.json'), JSON.stringify(SHEET()));
+    let said = '';
+    try {
+      execFileSync('node', args(some), { stdio: 'pipe', encoding: 'utf8' });
+    } catch (err) {
+      said = String((err as { stderr?: string }).stderr);
+    }
+    expect(said).toContain('npm run data:fetch -- photos');
+    gone({ data });
   });
 });
 

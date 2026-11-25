@@ -1526,6 +1526,147 @@ async function profilePhotos(source, keep) {
   };
 }
 
+/* ------------------------------------------------------------------ what is said of each country */
+
+/** What a country says of itself in words, each in its language: what it is called in full, what it calls itself, and its motto. */
+const COUNTRY_WORDS = { official: 'P1448', native: 'P1705', motto: 'P1451' };
+/** What it names: its anthem, how it is governed and its flag, each an entity. */
+const COUNTRY_THINGS = { anthem: 'P85', government: 'P122', flag: 'P163' };
+/** What its flag names: its proportions (width to height), its colours and who designed it. */
+const FLAG_THINGS = { ratio: 'P2061', colours: 'P462', by: 'P287' };
+/** The longest box of facts that is kept, in characters: that of a country is a few thousand. */
+const BOX_MAX = 60_000;
+
+/** What each of these entities gives through a property: the values of its statements of best rank that have not ended. */
+const valuesOf = (ids, prop, opts) =>
+  inParts(ids, 200, (part) => `SELECT ?item ?value WHERE { VALUES ?item { ${wd(part)} } ?item p:${prop} ?st . ?st a wikibase:BestRank ; ps:${prop} ?value . FILTER NOT EXISTS { ?st pq:P582 ?end } }`, opts);
+
+/**
+ * The box of facts of a page of Wikipedia, as it is written: the first of its templates that is called one
+ * («Infobox…», «Ficha de…»), up to the braces that close it. What it says is read by whoever builds the
+ * game (scripts/data/profiles.mjs), where reading it another way does not mean asking again.
+ */
+function boxIn(text) {
+  const start = /\{\{\s*(?:Infobox|Ficha de)\b/i.exec(text)?.index;
+  if (start === undefined) return null;
+  let depth = 0;
+  for (let i = start; i < text.length - 1; i++) {
+    const two = text.slice(i, i + 2);
+    if (two === '{{') {
+      depth++;
+      i++;
+    } else if (two === '}}') {
+      depth--;
+      i++;
+      if (!depth) return text.slice(start, i + 1).slice(0, BOX_MAX);
+    }
+  }
+  return null;
+}
+
+/**
+ * What Wikidata and Wikipedia say of each country of the game and of its flag: what the sheets of the
+ * countries are filled with before anybody writes anything of them (scripts/data/profiles.mjs).
+ *
+ * From Wikidata, of the country: what it is called in full (P1448), what it calls itself (P1705) and its
+ * motto (P1451), each in the language it is said in; its anthem (P85), how it is governed (P122), its coat
+ * of arms (P94, the name of its file in Commons) and its flag (P163). Of the flag, which is an entity of
+ * its own: the day it began (P571, with how exactly it is known: 11 a day, 10 a month, 9 a year), its
+ * proportions (P2061, width to height), its colours (P462) and who designed it (P287). What is named by an
+ * entity has its names in Spanish and in English under `names`.
+ *
+ * From the English and the Spanish Wikipedia, the page of the country and that of its flag (`pages`) and the
+ * box of facts each opens with, as it is written (`boxes`, by `language:title`): a second source to hold
+ * what Wikidata says against, and what it does not say (the official name in Spanish).
+ *
+ * Only the first question has to be answered. What is not answered after it is left out and told.
+ */
+async function countryFacts(source) {
+  const subjects = countries();
+  if (!subjects.length) throw new Error('No country of the game has a Wikidata id');
+  const { until, undone, attempt, lax } = patient();
+  const ids = [...new Set(subjects.map((u) => u.wd))].sort(byNumber);
+  const said = new Map(ids.map((id) => [id, {}]));
+  const words = (cell) => (cell?.value && cell['xml:lang'] ? [String(cell['xml:lang']), String(cell.value).replace(/\s+/g, ' ').trim()] : null);
+  /** One more value of something, once. */
+  const add = (one, key, value) => {
+    if (!one || value === null || value === undefined) return;
+    const list = (one[key] ??= []);
+    if (!list.some((v) => JSON.stringify(v) === JSON.stringify(value))) list.push(value);
+  };
+
+  for (const row of await valuesOf(ids, COUNTRY_WORDS.official, { until: Date.now() + PATIENCE / 2 })) add(said.get(entity(row.item)), 'official', words(row.value));
+  if (![...said.values()].some((one) => one.official)) throw new Error('Wikidata gives the official name of no country');
+  for (const [key, prop] of Object.entries(COUNTRY_WORDS).slice(1))
+    await attempt(`${key} (${prop})`, async () => {
+      for (const row of await valuesOf(ids, prop, lax)) add(said.get(entity(row.item)), key, words(row.value));
+    });
+  for (const [key, prop] of Object.entries(COUNTRY_THINGS))
+    await attempt(`${key} (${prop})`, async () => {
+      for (const row of await valuesOf(ids, prop, lax)) add(said.get(entity(row.item)), key, entity(row.value));
+    });
+  await attempt('arms (P94)', async () => {
+    for (const row of await valuesOf(ids, 'P94', lax)) add(said.get(entity(row.item)), 'arms', fileOf(row.value));
+  });
+
+  const flagIds = [...new Set([...said.values()].flatMap((one) => one.flag ?? []))].sort(byNumber);
+  const flags = new Map(flagIds.map((id) => [id, {}]));
+  if (flagIds.length) {
+    await attempt('since (P571)', async () => {
+      const rows = await inParts(flagIds, 200, (part) => `SELECT ?item ?day ?precision WHERE { VALUES ?item { ${wd(part)} } ?item p:P571 ?st . ?st a wikibase:BestRank ; psv:P571 ?v . ?v wikibase:timeValue ?day ; wikibase:timePrecision ?precision }`, lax);
+      for (const row of rows) {
+        const day = /^(\d{4}-\d{2}-\d{2})T/.exec(String(row.day?.value ?? ''))?.[1];
+        if (day) add(flags.get(entity(row.item)), 'since', [day, Number(row.precision?.value) || 0]);
+      }
+    });
+    for (const [key, prop] of Object.entries(FLAG_THINGS))
+      await attempt(`${key} (${prop})`, async () => {
+        for (const row of await valuesOf(flagIds, prop, lax)) add(flags.get(entity(row.item)), key, entity(row.value));
+      });
+  }
+
+  const names = {};
+  const named = [...new Set([...[...said.values()].flatMap((one) => [...(one.anthem ?? []), ...(one.government ?? [])]), ...[...flags.values()].flatMap((one) => [...(one.ratio ?? []), ...(one.colours ?? []), ...(one.by ?? [])])])].sort(byNumber);
+  if (named.length)
+    await attempt('the names of what they name', async () => {
+      const rows = await inParts(named, 300, (part) => `SELECT ?item ?label WHERE { VALUES ?item { ${wd(part)} } ?item rdfs:label ?label . FILTER(LANG(?label) IN ("es", "en")) }`, lax);
+      for (const row of rows) if (entity(row.item) && row.label?.value) (names[entity(row.item)] ??= {})[row.label['xml:lang'] === 'es' ? 'es' : 'en'] = String(row.label.value);
+    });
+
+  const pages = new Map();
+  const boxes = {};
+  await attempt('the pages of Wikipedia', async () => {
+    for (const [id, titles] of await pagesOf([...ids, ...flagIds], lax)) pages.set(id, titles);
+  });
+  for (const lang of WIKIS)
+    await attempt(`the boxes of facts of the Wikipedia in «${lang}»`, async () => {
+      const titles = [...new Set([...pages.values()].map((of) => of[lang]).filter(Boolean))].sort();
+      for (const [title, text] of await leadsOf(lang, titles, until)) {
+        const box = boxIn(text);
+        if (box) boxes[`${lang}:${title}`] = box;
+      }
+    });
+
+  /** What was said, in an order that does not change with the day it is asked on. */
+  const tidy = (one) => Object.fromEntries(Object.entries(one ?? {}).map(([key, list]) => [key, [...list].sort((a, b) => (typeof a === 'string' && QID.test(a) && QID.test(b) ? byNumber(a, b) : JSON.stringify(a).localeCompare(JSON.stringify(b))))]));
+  const items = {};
+  for (const u of subjects) items[u.id] = { wd: u.wd, ...tidy(said.get(u.wd)), ...(pages.has(u.wd) ? { pages: pages.get(u.wd) } : {}) };
+  const flown = {};
+  for (const id of flagIds) flown[id] = { ...tidy(flags.get(id)), ...(pages.has(id) ? { pages: pages.get(id) } : {}) };
+  const count = (key) => Object.values(items).filter((item) => item[key]).length;
+  const dated = Object.values(flown).filter((flag) => flag.since).length;
+  return {
+    text: listed({ source: source.from, licence: source.licence, what: source.what, asked: subjects.length }, { items, flags: flown, names, boxes }),
+    note: [
+      `nombre oficial de ${count('official')} de ${subjects.length} países, lema de ${count('motto')}, himno de ${count('anthem')}, bandera de ${count('flag')}`,
+      `${dated} banderas con fecha`,
+      `${Object.keys(boxes).length} fichas de Wikipedia`,
+      ...(undone.length ? [`sin mirar: ${undone.join('; ')}`] : []),
+    ].join('; '),
+    detail: { asked: subjects.length, official: count('official'), motto: count('motto'), anthem: count('anthem'), flag: count('flag'), dated, boxes: Object.keys(boxes).length, undone },
+  };
+}
+
 /** The year a day of Wikidata is of: «-0026-01-01T00:00:00Z» is 27 BC, and is told as -26. */
 const yearOf = (cell) => {
   const m = /^(-?)(\d{1,6})-\d{2}-\d{2}/.exec(String(cell?.value ?? ''));
@@ -1705,6 +1846,20 @@ const SOURCES = [
     es: 'Fotografías de las fichas de los países',
     needs: '113',
     run: profilePhotos,
+  },
+  {
+    id: 'countries',
+    file: 'countries/countries.json',
+    from: 'Wikidata (https://www.wikidata.org) y Wikipedia (https://www.wikipedia.org)',
+    licence: 'CC0 1.0 lo que dice Wikidata; CC BY-SA 4.0 las fichas de Wikipedia, cada una bajo el título de su página',
+    what:
+      'What Wikidata and Wikipedia say of each country of the game and of its flag. items, by the id of the country: its Wikidata entity (wd); what it is called in full (official, P1448), what it calls itself (native, P1705) and its motto (motto, P1451), each a list of [language, text]; ' +
+      'its anthem (anthem, P85), how it is governed (government, P122) and its flag (flag, P163), each a list of entities; the file of its coat of arms in Commons (arms, P94); and its page in each Wikipedia (pages). Only statements of best rank that have not ended are told. ' +
+      'flags, by the entity of the flag: the day it began with how exactly it is known (since, P571: [day, precision], 11 a day, 10 a month, 9 a year), its proportions as width to height (ratio, P2061), its colours (colours, P462) and who designed it (by, P287), each a list of entities, and its page in each Wikipedia (pages). ' +
+      'names: the name in Spanish and in English of every entity named. boxes, by language:title: the box of facts that the page opens with, as it is written.',
+    es: 'Lo que Wikidata y Wikipedia dicen de cada país y de su bandera',
+    needs: '113',
+    run: countryFacts,
   },
 ];
 

@@ -62,6 +62,48 @@ export function go(path: string, top = true): void {
   if (top) window.scrollTo(0, 0);
 }
 
+/** How many steps back the page under what is open over it is: none when what is on screen was not opened from it. */
+export function overDepth(): number {
+  const depth = Number((window.history.state as { over?: unknown } | null)?.over);
+  return Number.isInteger(depth) && depth > 0 ? depth : 0;
+}
+
+/**
+ * Moves to the address of something that is opened over the page on screen (a sheet over a gallery), or
+ * from one such thing to another, and remembers how far back the page under them is: going back undoes one
+ * step, and closing undoes them all at once (`closeOver`), so that nothing closed is opened again by going
+ * back. The page stays where it was.
+ *
+ * `under` is the address of the page under what is on screen, when what is on screen is itself one of those
+ * things. One that was opened by its address has no such page behind it in the history: it is put there,
+ * so that going back from the second thing returns to the first, and closing either leaves that page.
+ */
+export function goOver(path: string, under?: string): void {
+  try {
+    const state = (window.history.state as object | null) ?? {};
+    let depth = overDepth();
+    if (!depth && under !== undefined) {
+      const here = window.location.href;
+      window.history.replaceState({ ...state, over: 0 }, '', `#/${under}`);
+      window.history.pushState({ ...state, over: 1 }, '', here);
+      depth = 1;
+    }
+    window.history.pushState({ ...state, over: depth + 1 }, '', `#/${path}`);
+  } catch {
+    // A page that may not touch its history: the address is changed the plain way.
+    window.location.hash = `#/${path}`;
+    return;
+  }
+  window.dispatchEvent(new PopStateEvent('popstate'));
+}
+
+/** Closes what is open over a page: back to the page it was opened from or, when it was opened by its address, to `under`. */
+export function closeOver(under: string): void {
+  const depth = overDepth();
+  if (depth > 0) window.history.go(-depth);
+  else settle(under);
+}
+
 /**
  * The address of where the game already is, written anew, and the game told about it: a link that has been
  * followed and applied gives way to the plain address of its screen, with no new entry in the history.

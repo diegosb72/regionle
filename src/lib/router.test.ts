@@ -7,7 +7,7 @@ import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { applyMeta } from './pageMeta';
-import { followLang, go, settle, useRoute } from './router';
+import { closeOver, followLang, go, goOver, overDepth, settle, useRoute } from './router';
 import { routeOf } from './routes';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -180,5 +180,108 @@ describe('the page of a screen, as it was', () => {
     open('#/reto');
     followLang('en', true);
     expect(at()).toBe('#/reto');
+  });
+});
+
+describe('what is opened over a page', () => {
+  /** One step back or forth in the history, as the buttons of the browser do. */
+  const step = async (by: number) => {
+    window.history.go(by);
+    await told();
+    await told();
+  };
+
+  it('is a step on from that page for each thing opened, and going back undoes one', async () => {
+    open('es.html#/banderas');
+    expect(overDepth()).toBe(0);
+    act(() => goOver('banderas/paises/ES'));
+    expect(route()).toBe('banderas/paises/ES');
+    expect(at()).toBe('es.html#/banderas/paises/ES');
+    expect(overDepth()).toBe(1);
+    act(() => goOver('banderas/paises/FR'));
+    expect(route()).toBe('banderas/paises/FR');
+    expect(overDepth()).toBe(2);
+    await step(-1);
+    expect(route()).toBe('banderas/paises/ES');
+    expect(overDepth()).toBe(1);
+    await step(-1);
+    expect(route()).toBe('banderas');
+    expect(overDepth()).toBe(0);
+    // And forth again: each remembers how far from the page it is.
+    await step(2);
+    expect(route()).toBe('banderas/paises/FR');
+    expect(overDepth()).toBe(2);
+  });
+
+  it('is closed all at once, however many were opened one from another', async () => {
+    open('es.html#/banderas');
+    act(() => goOver('banderas/paises/ES'));
+    act(() => goOver('banderas/paises/FR'));
+    act(() => goOver('banderas/paises/DE'));
+    expect(overDepth()).toBe(3);
+    act(() => closeOver('banderas'));
+    await told();
+    await told();
+    expect(route()).toBe('banderas');
+    expect(overDepth()).toBe(0);
+    // Nothing that was closed is opened again by going back: before the page there is what was before it.
+    act(() => goOver('banderas/paises/PT'));
+    expect(overDepth()).toBe(1);
+    act(() => closeOver('banderas'));
+    await told();
+    await told();
+    expect(route()).toBe('banderas');
+  });
+
+  it('opened by its address, is closed onto the page it is said to be over, with no step added', () => {
+    open('es.html#/banderas/paises/ES');
+    expect(overDepth()).toBe(0);
+    const before = window.history.length;
+    act(() => closeOver('banderas'));
+    expect(route()).toBe('banderas');
+    expect(at()).toBe('es.html#/banderas');
+    expect(window.history.length).toBe(before);
+  });
+
+  it('opened by its address, has that page put under it when another thing is opened from it', async () => {
+    open('es.html#/banderas/paises/ES');
+    act(() => goOver('banderas/paises/FR', 'banderas'));
+    expect(route()).toBe('banderas/paises/FR');
+    // The page, the first thing and the second: it is the second step on from the page.
+    expect(overDepth()).toBe(2);
+    await step(-1);
+    expect(route()).toBe('banderas/paises/ES');
+    expect(overDepth()).toBe(1);
+    await step(-1);
+    expect(route()).toBe('banderas');
+    expect(overDepth()).toBe(0);
+    // Closing from the second leaves the page, not the first thing.
+    await step(2);
+    expect(route()).toBe('banderas/paises/FR');
+    act(() => closeOver('banderas'));
+    await told();
+    await told();
+    expect(route()).toBe('banderas');
+    expect(at()).toBe('es.html#/banderas');
+  });
+
+  it('opened from the page, needs no page put under it: the one it was opened from is there', async () => {
+    open('es.html#/banderas');
+    act(() => goOver('banderas/paises/ES'));
+    act(() => goOver('banderas/paises/FR', 'banderas'));
+    expect(overDepth()).toBe(2);
+    await step(-2);
+    expect(route()).toBe('banderas');
+    expect(overDepth()).toBe(0);
+  });
+
+  it('takes no number that is not one for how far the page is', () => {
+    open('es.html#/banderas');
+    for (const over of [-1, 1.5, 'dos', null, {}]) {
+      window.history.replaceState({ over }, '', window.location.href);
+      expect(overDepth()).toBe(0);
+    }
+    window.history.replaceState({ over: 3 }, '', window.location.href);
+    expect(overDepth()).toBe(3);
   });
 });

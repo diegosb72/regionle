@@ -1,21 +1,36 @@
-// Makes the sheets of the countries that the gallery of flags shows (src/screens/FlagProfile.tsx).
+// Makes the sheets of the countries that the gallery of flags shows (src/screens/FlagProfile.tsx): one for
+// every country of the game that has a flag.
 //
-//   npm run data:fetch -- photos     the photographs, into .cache/src/photos (see photos-pinned.mjs)
-//   npm run data:profiles            the sheets and their pictures
+//   npm run data:fetch -- countries-said   what Wikidata and Wikipedia say of each country, into .cache/src
+//   npm run data:fetch -- photos           the photographs, into .cache/src/photos (see photos-pinned.mjs)
+//   npm run data:profiles                  the sheets and their pictures
+//   npm run data:profiles -- --review      the same, and what whoever corrects the sources should look at
 //
-// (`--sheets`, `--brought`, `--data` and `--photos` name other folders to read from and write to: the tests
-// run it on a country made up for the occasion.)
+// (`--sheets`, `--brought`, `--said`, `--fixes`, `--data` and `--photos` name other folders and files to
+// read from and write to: the tests run it on countries made up for the occasion.)
 //
-// What goes in:
+// A sheet is made of three things, each laid over the one before:
 //
-//   · scripts/data/profiles/<country>.json: what is written of the country by hand, in the two languages of
-//     the game — what it is, what its flag means, what it was at the time of each of the flags it flew — and
-//     the photographs it is shown with, each a file of Wikimedia Commons named by its title, with its caption;
+//   1. What Wikidata and Wikipedia say of the country and of its flag (profiles-said.mjs reads it from
+//      .cache/src/countries-said.json, which the workflow "Traer datos" brought: scripts/data/outside.mjs,
+//      source `countries`): what it is called in full, its motto, its anthem, since when its flag is flown,
+//      its proportions and its colours. Every country has this, as far as the sources say it.
+//   2. scripts/data/profiles-fixes.json: what was corrected by hand after reading it (profiles-fixes.md
+//      tells why). No program writes that file, so bringing the sources again undoes nothing.
+//      A territory that the game draws with the flag of its country (Réunion with that of France, Svalbard
+//      with that of Norway) is told there whose flag it is (`flag.of`), and says of it what that country says.
+//   3. scripts/data/profiles/<country>.json, where there is one: what is written of the country by hand, in
+//      the two languages of the game — what it is, what its flag means, what it was at the time of each of
+//      the flags it flew — and the photographs it is shown with, each a file of Wikimedia Commons named by
+//      its title, with its caption. What it says is what the sheet says; the rest stays as it was read.
+//
+// And two more are read:
+//
 //   · .cache/src/photos: what Commons says of each of those files (who made it and on what terms it is
 //     given: photos.json) and the picture of it that Wikimedia draws, 1920 px wide. The workflow "Traer
-//     datos" brings them (scripts/data/outside.mjs, source `photos`);
-//   · public/data/index.json and flags.json: the country has to be one of the game, and each of its times
-//     one of the flags the game has.
+//     datos" brings them (source `photos`);
+//   · public/data/index.json, flags.json and facts.json: which countries the game has, the flags it has of
+//     each of their times, and which languages are official in each.
 //
 // What comes out:
 //
@@ -32,6 +47,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
+import { saidOf, tongueCodes } from './profiles-said.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const args = process.argv.slice(2);
@@ -43,6 +59,9 @@ const value = (name) => {
 const SHEETS = path.resolve(ROOT, value('sheets') ?? 'scripts/data/profiles');
 /** What was brought from Commons. */
 const BROUGHT = path.resolve(ROOT, value('brought') ?? '.cache/src/photos');
+/** What Wikidata and Wikipedia say of each country, as it was brought, and what was corrected of it by hand. */
+const SAID = path.resolve(ROOT, value('said') ?? '.cache/src/countries-said.json');
+const FIXES = path.resolve(ROOT, value('fixes') ?? 'scripts/data/profiles-fixes.json');
 /** The data of the game: read, and where the sheets are written (under `profiles`). */
 const DATA = path.resolve(ROOT, value('data') ?? 'public/data');
 const OUT = path.join(DATA, 'profiles');
@@ -60,6 +79,8 @@ const QUALITY = 78;
 /** The terms a photograph may be given on to be shown here: none that forbids reusing it or changing its size. */
 const FREE = /^(CC0|CC BY(-SA)? \d|Public domain)/;
 const LANGS = ['es', 'en'];
+/** What is said of a flag that is true of it wherever it is flown: a territory that flies that of its country says the same. */
+const FLAG_FACTS = ['adopted', 'changed', 'ratio', 'colours', 'by'];
 
 const read = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
 const fail = (id, what) => {
@@ -137,11 +158,13 @@ function flown(id, time, flags) {
   return fail(id, 'a time names no flag: «now», «gone» or «past»');
 }
 
+/** What is written of a country by hand, as the sheet tells it: its texts, its times and its photographs, with their pictures made. */
 async function sheet(file, commons, index, flags, made) {
   const id = path.basename(file, '.json');
   const src = read(file);
   if (src.id !== id) fail(id, `the file says it is of «${src.id}»`);
   if (!index.countries.some((c) => c.id === id)) fail(id, 'the game has no such country');
+  if (!commons) fail(id, `what Commons says of the photographs is not in ${path.relative(ROOT, BROUGHT) || BROUGHT}: run «npm run data:fetch -- photos»`);
   if (!Array.isArray(src.photos) || !src.photos.length) fail(id, 'the sheet has no photographs');
   if (!Array.isArray(src.times) || !src.times.length) fail(id, 'the sheet has no times');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(src.flag?.adopted ?? '')) fail(id, 'the flag has no day it was adopted on');
@@ -174,8 +197,6 @@ async function sheet(file, commons, index, flags, made) {
   for (const [i, one] of src.photos.entries()) photos.push(await photograph(id, one, commons, i ? WIDTHS.photo : WIDTHS.head, made));
 
   return {
-    v: 1,
-    id,
     official: said(id, 'the official name', src.official),
     ...(local ? { local, localLang: src.localLang } : {}),
     about: paragraphs(id, 'what is said of the country', src.about),
@@ -194,32 +215,135 @@ async function sheet(file, commons, index, flags, made) {
   };
 }
 
+/** One thing laid over another: what the one above says replaces what is under it, and `null` takes it away. */
+export function laid(under, over) {
+  if (over === null) return undefined;
+  if (typeof over !== 'object' || Array.isArray(over) || typeof under !== 'object' || under === null || Array.isArray(under)) return over;
+  const out = { ...under };
+  for (const [key, value] of Object.entries(over)) {
+    const mine = laid(out[key], value);
+    if (mine === undefined) delete out[key];
+    else out[key] = mine;
+  }
+  return out;
+}
+
+/** A day that there was, or a year alone: «1960-02-30» is neither, though a clock would take it for the first of March. */
+const isDay = (text) => {
+  if (typeof text !== 'string') return false;
+  if (/^\d{4}$/.test(text)) return true;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
+  if (!m) return false;
+  const day = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+  return day.getUTCMonth() === Number(m[2]) - 1 && day.getUTCDate() === Number(m[3]);
+};
+const isText = (text) => typeof text === 'string' && text.trim() === text && text.length > 0;
+/** A text in one language of the game, or in both: none empty, none in any other. */
+const inSome = (text) => !!text && typeof text === 'object' && Object.keys(text).length > 0 && Object.entries(text).every(([lang, words]) => LANGS.includes(lang) && isText(words));
+
+/** What the sources and the corrections left of a country, looked at before anybody sees it: a sheet says nothing that is not what it is said to be. */
+function checked(id, one) {
+  const flag = one.flag ?? {};
+  if (one.official !== undefined && !inSome(one.official)) fail(id, 'its official name is not a text in a language of the game');
+  if (one.local !== undefined && (!isText(one.local) || !/^[a-z]{2,3}$/.test(one.localLang ?? ''))) fail(id, 'the name in its own language is not a text, or does not say which language that is (localLang)');
+  if (one.local === undefined && one.localLang !== undefined) fail(id, 'it names a language of its own and no name in it');
+  if (one.motto !== undefined) {
+    const { text, lang, ...means } = one.motto;
+    if (!isText(text)) fail(id, 'its motto has no words');
+    if (lang !== undefined && !/^[a-z]{2,3}$/.test(lang)) fail(id, 'the language of its motto is not the code of one');
+    if (Object.keys(means).length && !inSome(means)) fail(id, 'what its motto means is not a text in a language of the game');
+  }
+  if (one.anthem !== undefined && !inSome(one.anthem)) fail(id, 'its anthem is not a text in a language of the game');
+  if (flag.adopted !== undefined && !isDay(flag.adopted)) fail(id, `the day its flag was adopted on is not a day or a year: ${flag.adopted}`);
+  if (flag.changed !== undefined && (!isDay(flag.changed) || !flag.adopted || flag.changed.slice(0, 4) < flag.adopted.slice(0, 4))) fail(id, `its flag is said to be as it is since ${flag.changed}, which is not a day after the one it was adopted on`);
+  if (flag.ratio !== undefined && !/^\d+(\.\d+)?:\d+(\.\d+)?$/.test(flag.ratio)) fail(id, `the proportions of its flag are not two numbers: ${flag.ratio}`);
+  if (flag.colours !== undefined && !(LANGS.every((lang) => Array.isArray(flag.colours[lang]) && flag.colours[lang].length >= 2 && flag.colours[lang].every(isText)) && flag.colours.es.length === flag.colours.en.length))
+    fail(id, 'the colours of its flag are not named in both languages');
+  if (flag.by !== undefined && !inSome(flag.by)) fail(id, 'who designed its flag is not a text in a language of the game');
+  for (const key of ['read', 'readFlag']) {
+    if (one[key] === undefined) continue;
+    if (!inSome(one[key]) || Object.entries(one[key]).some(([lang, url]) => !url.startsWith(`https://${lang}.wikipedia.org/wiki/`))) fail(id, `«${key}» is not a page of the Wikipedia of each language`);
+  }
+  return one;
+}
+
 const kB = (bytes) => `${Math.round(bytes / 1024)} kB`;
 
 async function main() {
   const index = read(path.join(DATA, 'index.json'));
   const flags = read(path.join(DATA, 'flags.json'));
+  const facts = fs.existsSync(path.join(DATA, 'facts.json')) ? read(path.join(DATA, 'facts.json')) : {};
+  if (!fs.existsSync(SAID)) throw new Error(`What Wikidata and Wikipedia say of the countries is not in ${path.relative(ROOT, SAID) || SAID}: run «npm run data:fetch -- countries-said»`);
+  const told = read(SAID);
+  const { _: _why, ...fixes } = fs.existsSync(FIXES) ? read(FIXES) : {};
   const about = path.join(BROUGHT, 'photos.json');
-  if (!fs.existsSync(about)) throw new Error(`What Commons says of the photographs is not in ${path.relative(ROOT, BROUGHT) || BROUGHT}: run «npm run data:fetch -- photos»`);
-  const commons = read(about);
+  const commons = fs.existsSync(about) ? read(about) : null;
+  const review = args.includes('--review');
   fs.mkdirSync(OUT, { recursive: true });
   fs.mkdirSync(PICTURES, { recursive: true });
 
+  const lands = index.countries.filter((c) => c.fl);
+  for (const id of Object.keys(fixes)) if (!lands.some((c) => c.id === id)) throw new Error(`${path.basename(FIXES)} corrects «${id}», which is no country of the game with a flag`);
+  const written = fs.existsSync(SHEETS) ? fs.readdirSync(SHEETS).filter((f) => f.endsWith('.json')).map((f) => path.basename(f, '.json')) : [];
+  for (const id of written) if (!lands.some((c) => c.id === id)) fail(id, 'the game has no such country with a flag');
+
+  const codes = tongueCodes(facts);
   const made = new Set();
-  const written = new Set();
-  for (const name of fs.readdirSync(SHEETS).filter((f) => f.endsWith('.json')).sort()) {
-    const one = await sheet(path.join(SHEETS, name), commons, index, flags, made);
-    const text = JSON.stringify(one);
-    fs.writeFileSync(path.join(OUT, name), text);
-    written.add(name);
-    const mine = [...one.photos, ...one.times.flatMap((time) => (time.picture ? [time.picture] : []))];
-    const bytes = mine.flatMap((p) => p.sizes.map((w) => fs.statSync(path.join(PICTURES, `${p.file}-${w}.webp`)).size)).reduce((a, b) => a + b, 0);
-    console.log(`  ${name}: ${kB(text.length)}; ${one.times.length} tiempos; ${mine.length} fotografías en ${mine.reduce((n, p) => n + p.sizes.length, 0)} imágenes, ${kB(bytes)}`);
+  /** What each sheet says, by its country; and the sheets as they are written, by the name of the file of each. */
+  const sheets = new Map();
+  const out = new Map();
+  const count = { official: 0, motto: 0, anthem: 0, adopted: 0, ratio: 0 };
+  let bytes = 0;
+  for (const country of lands) {
+    const { id } = country;
+    const flown = (flags.past?.[id] ?? []).map((row) => [row[2], row[3]]);
+    const { given, notes } = saidOf({ country, said: told, tongues: facts.c?.[id]?.l ?? [], codes, flown });
+    if (review && notes.length) console.log(`  ${id}: ${notes.join(' · ')}${fixes[id] ? `  [corregido a mano: ${Object.keys(fixes[id]).join(', ')}]` : ''}`);
+    let one = laid(given, fixes[id] ?? {}) ?? {};
+    if (written.includes(id)) {
+      const mine = await sheet(path.join(SHEETS, `${id}.json`), commons, index, flags, made);
+      // Whoever wrote of the flag told its colours in words: the list of them is not said twice.
+      const { colours: _told, ...read } = one.flag ?? {};
+      one = { ...one, ...mine, flag: { ...read, ...mine.flag } };
+      const pictures = [...mine.photos, ...mine.times.flatMap((time) => (time.picture ? [time.picture] : []))];
+      const weight = pictures.flatMap((p) => p.sizes.map((w) => fs.statSync(path.join(PICTURES, `${p.file}-${w}.webp`)).size)).reduce((a, b) => a + b, 0);
+      console.log(`  ${id}: escrita a mano; ${mine.times.length} tiempos; ${pictures.length} fotografías en ${pictures.reduce((n, p) => n + p.sizes.length, 0)} imágenes, ${kB(weight)}`);
+    }
+    sheets.set(id, one);
   }
+  // A territory that the game draws with the flag of its country says whose it is, and of that flag what
+  // the sheet of that country says: one thing said in one place.
+  for (const [id, one] of sheets) {
+    const of = one.flag?.of;
+    if (of === undefined) continue;
+    const theirs = sheets.get(of);
+    if (!theirs || of === id) fail(id, `its flag is said to be that of «${of}», which is no other country of the game with a flag`);
+    if (theirs.flag?.of !== undefined) fail(id, `its flag is said to be that of «${of}», whose flag is that of another`);
+    if (written.includes(id)) fail(id, 'somebody wrote of its flag, which is said to be that of another country');
+    one.flag = { of, ...Object.fromEntries(FLAG_FACTS.filter((key) => theirs.flag?.[key] !== undefined).map((key) => [key, theirs.flag[key]])) };
+    if (theirs.readFlag) one.readFlag = theirs.readFlag;
+    else delete one.readFlag;
+  }
+  for (const [id, one] of sheets) {
+    if (one.flag && !Object.keys(one.flag).length) delete one.flag;
+    const text = JSON.stringify({ v: 1, id, ...checked(id, one) });
+    out.set(`${id}.json`, text);
+    bytes += text.length;
+    if (one.official) count.official++;
+    if (one.motto) count.motto++;
+    if (one.anthem) count.anthem++;
+    if (one.flag?.adopted) count.adopted++;
+    if (one.flag?.ratio) count.ratio++;
+  }
+  // Every sheet could be made: only now is any written, so that one that could not leaves them all as they were.
+  for (const [name, text] of out) fs.writeFileSync(path.join(OUT, name), text);
   // What no sheet shows any more is not kept.
-  for (const name of fs.readdirSync(OUT)) if (!written.has(name)) fs.rmSync(path.join(OUT, name));
+  for (const name of fs.readdirSync(OUT)) if (!out.has(name)) fs.rmSync(path.join(OUT, name));
   for (const name of fs.readdirSync(PICTURES)) if (!made.has(name)) fs.rmSync(path.join(PICTURES, name));
-  console.log(`${written.size} fichas en ${path.relative(ROOT, OUT) || OUT}, ${made.size} imágenes en ${path.relative(ROOT, PICTURES) || PICTURES}`);
+  console.log(
+    `${out.size} fichas en ${path.relative(ROOT, OUT) || OUT} (${kB(bytes)}): ${written.length} escritas a mano; nombre oficial en ${count.official}, lema en ${count.motto}, himno en ${count.anthem}, ` +
+      `fecha de la bandera en ${count.adopted}, proporción en ${count.ratio}; ${Object.keys(fixes).length} países con correcciones a mano. ${made.size} imágenes en ${path.relative(ROOT, PICTURES) || PICTURES}`,
+  );
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();

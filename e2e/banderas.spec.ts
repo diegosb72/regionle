@@ -103,11 +103,14 @@ test.describe('the gallery of flags', () => {
     await page.keyboard.press('Escape');
     await expect(dialog).toHaveCount(0);
 
-    // The flag of a country comes with the game: it says so, and names no file of Commons.
+    // The flag of a country opens the sheet of the country, and not this panel (e2e/ficha-pais.spec.ts). It
+    // comes with the game: the sheet says so, and names no file of Commons.
     await open(page, '/banderas/paises');
     await page.locator('.fg-tile').filter({ hasText: /^España$/ }).click();
-    await expect(dialog.locator('.fg-what')).toHaveText('País o territorio');
-    await expect(dialog.locator('.fg-note')).toContainText('flag-icons');
+    await expect(dialog.getByRole('heading', { level: 2 })).toHaveText('España');
+    await expect(page.locator('dialog.fp-dlg')).toHaveCount(1);
+    await expect(page.locator('dialog.fg-dlg')).toHaveCount(0);
+    await expect(dialog.locator('.fp-foot')).toContainText('flag-icons');
     await expect(dialog.locator('.fg-credit')).toHaveCount(0);
   });
 
