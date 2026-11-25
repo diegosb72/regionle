@@ -735,12 +735,14 @@ const HEAD_SHAPE = [1.25, 2.4];
 const HEADS_EACH = 10;
 const HEADS_SOUGHT = 8;
 /**
- * Where the photographs of Commons that its people have judged good are, the best first: something looked
- * for by its words is looked for among these, and among the next ones only while few have been found.
+ * Where the photographs of Commons that its people have judged good are, the best first, and after them
+ * all the photographs there are: something looked for by its words is looked for among the first, and
+ * among the next ones only while few have been found.
  */
 const HEADS_AMONG = [
-  ['featured', 'incategory:"Featured pictures on Wikimedia Commons"'],
-  ['quality', 'incategory:"Quality images"'],
+  ['featured', 'incategory:"Featured pictures on Wikimedia Commons" '],
+  ['quality', 'incategory:"Quality images" '],
+  ['any', ''],
 ];
 /** How many found among the best are enough not to look among the next. */
 const HEADS_ENOUGH = 4;
@@ -1615,7 +1617,7 @@ async function soughtInCommons(words, until) {
   const pages = new Map();
   for (const [among, where] of HEADS_AMONG) {
     const json = await commonsSays(
-      new URLSearchParams({ action: 'query', format: 'json', formatversion: '2', maxlag: '5', generator: 'search', gsrnamespace: '6', gsrlimit: '20', gsrsearch: `${words} ${where} filetype:bitmap filew:>${HEAD_WIDE - 1}`, ...HEAD_ASKING }),
+      new URLSearchParams({ action: 'query', format: 'json', formatversion: '2', maxlag: '5', generator: 'search', gsrnamespace: '6', gsrlimit: '20', gsrsearch: `${words} ${where}filetype:bitmap filew:>${HEAD_WIDE - 1}`, ...HEAD_ASKING }),
       until,
     );
     // As Commons orders them: what answers best to the words, first.
@@ -2237,7 +2239,7 @@ const SOURCES = [
       'What could be shown at the head of the sheet of each country that is named (scripts/data/heads-asked.txt): the pictures Wikidata shows what the country is known by with ' +
       '(what UNESCO lists as World Heritage, its national parks, what is called a tourist attraction, its capital and its highest point). ' +
       'items: of each country, by its id, its candidates (sights), the best known of each kind first: the file, the kind (heritage, park, sight, capital, top), the entity it is of (of), how many Wikipedias tell of it (links) and its name (es, en); ' +
-      'and after them what was looked for in Commons by words that the list gives (kind sought, with the words and whether it was found among the featured pictures or the quality images: among). ' +
+      'and after them what was looked for in Commons by words that the list gives (kind sought, with the words and whether it was found among the featured pictures, the quality images or any others: among). ' +
       'files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height of the original, licence and its address, author, credit, whether it must be attributed and its page; ' +
       `and where the small picture of it, ${HEAD_PICTURE} px wide, is kept in this branch (picture), to choose among them by eye. Only photographs at least ${HEAD_WIDE} px wide and between ${HEAD_SHAPE[0]} and ${HEAD_SHAPE[1]} times wider than tall are candidates. ` +
       'Nothing is chosen here: the one that stays is written in scripts/data/profiles-heads.json and brought by the source photos.',

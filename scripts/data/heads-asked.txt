@@ -11,17 +11,10 @@
 # PH PK PY RU SD SV TH TR TZ UG US UY VE VN ZA). What some of them are best known by was not among what
 # Wikidata showed, and was looked for by its name (Iguazu Falls, Salar de Uyuni, Great Wall of China, Giza
 # pyramids, Alhambra, Mont Saint-Michel, Colosseum, Machu Picchu, Hagia Sophia…). These are the ones that
-# were looked at a third time, with other words.
-GT: Tikal temple
-GT: Antigua Guatemala
-GT: Lake Atitlán
-HN: Copán ruins
-HN: Roatán
-SV: Izalco
-SV: Coatepeque
+# were looked at again with other words, among all the photographs of Commons and not only the best.
+HN: Copán Maya ruins
+HN: Roatán beach
+SV: Izalco volcano
+SV: Lago de Coatepeque
+SV: Santa Ana volcano El Salvador
 SV: Suchitoto
-SD: Meroe
-SD: Nubian pyramids
-VN: Halong Bay
-CD: Kinshasa
-CD: Congo River

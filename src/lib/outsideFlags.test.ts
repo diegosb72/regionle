@@ -1463,10 +1463,11 @@ describe('what could be shown at the head of the sheet of a country', () => {
     expect((await run('heads', lands(), { OUTSIDE_HEADS_ASKED: asking })).source().ok).toBe(false);
   });
 
-  it('looks in Commons for what the list says to look for by its words: among the pictures judged best, and among the next ones while those are few', async () => {
+  it('looks in Commons for what the list says to look for by its words: among the pictures judged best, and among the others while those are few', async () => {
     const dir = lands();
     const FEATURED = (words: string) => `${words} incategory:"Featured pictures on Wikimedia Commons" filetype:bitmap filew:>1279`;
     const QUALITY = (words: string) => `${words} incategory:"Quality images" filetype:bitmap filew:>1279`;
+    const ANY = (words: string) => `${words} filetype:bitmap filew:>1279`;
     for (const name of ['M1', 'M2', 'M3', 'M4', 'M5', 'Q1', 'Tall', 'N1', 'N2', 'N3']) world.files[`${name}.jpg`] = photo(name.toLowerCase(), name === 'Tall' ? { w: 2000, h: 3000 } : {});
     world.files['Machu Picchu.jpg'] = photo('machu');
     world.sights = { Q419: [{ kind: 'heritage', of: 'Q676203', file: 'Machu Picchu.jpg', links: 180, es: 'Machu Picchu' }] };
@@ -1474,9 +1475,10 @@ describe('what could be shown at the head of the sheet of a country', () => {
       // Enough among the best: the next ones are not looked at. What Wikidata showed already is not a candidate twice, nor what does not fit.
       [FEATURED('Machu Picchu')]: ['M1.jpg', 'Machu Picchu.jpg', 'Tall.jpg', 'M2.jpg', 'M3.jpg', 'M4.jpg', 'M5.jpg'],
       [QUALITY('Machu Picchu')]: ['Q1.jpg'],
-      // Few among the best: the next ones are looked at too.
+      // Few among the best: the next ones are looked at too, and after them all the others.
       [FEATURED('Nazca lines')]: ['N1.jpg'],
       [QUALITY('Nazca lines')]: ['N2.jpg', 'N1.jpg', 'N3.jpg'],
+      [ANY('Nazca lines')]: ['N3.jpg', 'Q1.jpg'],
     };
     const r = await run('heads', dir, { OUTSIDE_HEADS_ASKED: list('PE: Machu Picchu\nPE:  Nazca   lines # the lines\nPE: Nothing such\nAD\n') });
     expect(r.source().ok).toBe(true);
@@ -1491,12 +1493,13 @@ describe('what could be shown at the head of the sheet of a country', () => {
       { file: 'N1.jpg', kind: 'sought', words: 'Nazca lines', among: 'featured' },
       { file: 'N2.jpg', kind: 'sought', words: 'Nazca lines', among: 'quality' },
       { file: 'N3.jpg', kind: 'sought', words: 'Nazca lines', among: 'quality' },
+      { file: 'Q1.jpg', kind: 'sought', words: 'Nazca lines', among: 'any' },
     ]);
     // Each is brought small, as the others are, and with whose it is.
     expect(r.data().files['M1.jpg']).toMatchObject({ sha1: sha1('m1'), licence: 'CC BY-SA 4.0', artist: 'Ana', picture: small('m1') });
     expect(r.read(small('n3'))).toBe('a picture of N3.jpg');
     const searches = asked.filter((q) => q.startsWith('api ') && q.includes('generator=search')).map((q) => new URLSearchParams(q.slice(4)).get('gsrsearch'));
-    expect(searches).toEqual([FEATURED('Machu Picchu'), FEATURED('Nazca lines'), QUALITY('Nazca lines'), FEATURED('Nothing such'), QUALITY('Nothing such')]);
+    expect(searches).toEqual([FEATURED('Machu Picchu'), FEATURED('Nazca lines'), QUALITY('Nazca lines'), ANY('Nazca lines'), FEATURED('Nothing such'), QUALITY('Nothing such'), ANY('Nothing such')]);
     expect(r.source().note).toContain('3 cosas buscadas en Commons por su nombre');
     // A country that is only named has what Wikidata shows of it, which here is nothing.
     expect((r.data().items.AD as unknown as { sights: unknown[] }).sights).toEqual([]);
