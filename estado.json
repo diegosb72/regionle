@@ -1,6 +1,6 @@
 {
-  "when": "2026-11-25T05:25:51.927Z",
-  "from": "arena/baec5cdd-regionle@186d4b7",
+  "when": "2026-11-25T05:35:37.103Z",
+  "from": "arena/baec5cdd-regionle@467aca4",
   "workflow": "same",
   "sources": [
     {
@@ -12,8 +12,8 @@
       "es": "Cómo empieza Wikipedia a hablar de cada país y de su bandera",
       "needs": "113",
       "ok": true,
-      "bytes": 1870542,
-      "blob": "68b072db36521ada37c1f3c85f79d1b96834b42b",
+      "bytes": 1872491,
+      "blob": "a75b469fc8b0a0aae422a27b02576e40f625f6da",
       "note": "el comienzo de 970 de 970 páginas, de 249 fichas (en: 485, es: 485)",
       "detail": {
         "asked": 970,
@@ -25,7 +25,7 @@
         },
         "undone": []
       },
-      "ms": 60334
+      "ms": 42272
     }
   ],
   "reach": []
