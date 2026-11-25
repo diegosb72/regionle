@@ -1,12 +1,12 @@
 {
-  "_": "Corrections by hand to what Wikidata and Wikipedia say of each country (scripts/data/profiles-said.mjs), by the id of the country. Each entry is laid over what was read: a value replaces the one read, null takes it away. A new run of «npm run data:profiles» keeps them: this file is never written by a program. Why each is here is told in scripts/data/profiles-fixes.md.",
+  "_": "Corrections by hand to what Wikidata and Wikipedia say of each country (scripts/data/profiles-said.mjs), by the id of the country. Each entry is laid over what was read: a value replaces the one read, null takes it away. «leads» is not laid over anything: it says what to do with the opening of the pages of Wikipedia that the sheet shows (about: that of the country; flag: that of its flag), by language: false, that it is not shown; a number, how many of its sentences are. A new run of «npm run data:profiles» keeps them: this file is never written by a program. Why each is here is told in scripts/data/profiles-fixes.md.",
 
   "AD": { "flag": { "adopted": "1866" } },
   "AF": { "motto": { "en": "There is no god but God; Muhammad is the messenger of God" } },
   "AL": { "motto": { "en": "You, Albania, give me honour, give me the name Albanian" } },
   "AM": { "motto": { "en": "One Nation, One Culture" } },
   "AO": { "motto": { "en": "Virtue is stronger when united" } },
-  "AQ": { "flag": { "colours": { "es": ["celeste", "blanco"], "en": ["sky blue", "white"] }, "by": { "es": "Graham Bartram: una propuesta de 1996, la más usada; la Antártida no tiene bandera oficial", "en": "Graham Bartram: a proposal of 1996, the most used; Antarctica has no official flag" } }, "readFlag": { "es": "https://es.wikipedia.org/wiki/Bandera_de_la_Ant%C3%A1rtida", "en": "https://en.wikipedia.org/wiki/Flag_of_Antarctica" } },
+  "AQ": { "flag": { "colours": { "es": ["celeste", "blanco"], "en": ["sky blue", "white"] }, "by": { "es": "Graham Bartram: una propuesta de 1996, la más usada; la Antártida no tiene bandera oficial", "en": "Graham Bartram: a proposal of 1996, the most used; Antarctica has no official flag" } }, "readFlag": { "es": "https://es.wikipedia.org/wiki/Bandera_de_la_Ant%C3%A1rtida", "en": "https://en.wikipedia.org/wiki/Flag_of_Antarctica" }, "leads": { "flag": { "es": false } } },
   "AR": { "flag": { "ratio": "9:14" } },
   "AU": { "motto": null },
   "AW": { "motto": null },
@@ -82,7 +82,7 @@
   "PM": { "flag": { "of": "FR" } },
   "PN": { "motto": { "lang": "en", "en": "Come ye Blessed" } },
   "PR": { "flag": { "adopted": "1952-07-24", "changed": null } },
-  "PS": { "official": { "es": "Estado de Palestina", "en": "State of Palestine" }, "local": "دولة فلسطين", "localLang": "ar", "flag": { "adopted": "1964-05-28", "ratio": "1:2", "colours": { "es": ["rojo", "verde", "blanco", "negro"], "en": ["red", "green", "white", "black"] } }, "readFlag": { "es": "https://es.wikipedia.org/wiki/Bandera_de_Palestina", "en": "https://en.wikipedia.org/wiki/Flag_of_Palestine" } },
+  "PS": { "official": { "es": "Estado de Palestina", "en": "State of Palestine" }, "local": "دولة فلسطين", "localLang": "ar", "flag": { "adopted": "1964-05-28", "ratio": "1:2", "colours": { "es": ["rojo", "verde", "blanco", "negro"], "en": ["red", "green", "white", "black"] } }, "readFlag": { "es": "https://es.wikipedia.org/wiki/Bandera_de_Palestina", "en": "https://en.wikipedia.org/wiki/Flag_of_Palestine" }, "read": { "es": "https://es.wikipedia.org/wiki/Palestina", "en": "https://en.wikipedia.org/wiki/Palestine" } },
   "PT": { "anthem": { "es": "A Portuguesa", "en": "A Portuguesa" } },
   "PW": { "motto": null },
   "RE": { "motto": { "en": "I will flourish wherever I am brought" }, "flag": { "of": "FR" } },

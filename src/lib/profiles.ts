@@ -7,6 +7,8 @@
  *   · what Wikidata and Wikipedia say of it and of its flag — what it is called in full, its motto, its
  *     anthem, since when the flag is flown, its proportions and its colours —, which every sheet has as far
  *     as they say it;
+ *   · how the page of Wikipedia of the country and that of its flag begin, shortened, in each language of
+ *     the game: what a sheet tells in words while nobody has written of the country;
  *   · and, where somebody has written it (for now, of Brazil alone), what the country is, what its flag
  *     means, what it was at the time of each flag it flew, and the photographs it is shown with.
  */
@@ -63,6 +65,13 @@ export interface ProfileTime {
 /** A text in one of the two languages, or in both: what is not known in a language is not said in it. */
 export type SaidIn = Partial<Said>;
 
+/**
+ * How Wikipedia begins to tell of something, shortened: its paragraphs, in each language of the game it was
+ * read in. The text is of the authors of the page, under CC BY-SA 4.0: whoever shows it says so, and leads
+ * to the page.
+ */
+export type ProfileLead = Partial<Record<'es' | 'en', string[]>>;
+
 export interface ProfileFile {
   v: number;
   id: string;
@@ -77,6 +86,8 @@ export interface ProfileFile {
   anthem?: SaidIn;
   /** What the country is: written for the game. */
   about?: { es: string[]; en: string[] };
+  /** How its page of Wikipedia (`read`) begins: what is shown of it while nobody has written `about`. */
+  lead?: ProfileLead;
   flag?: {
     /**
      * Whose flag it is, where it is not its own: a territory that flies that of its country (Réunion, that
@@ -93,6 +104,8 @@ export interface ProfileFile {
     called?: Said;
     by?: SaidIn;
     text?: { es: string[]; en: string[] };
+    /** How the page of Wikipedia of the flag (`readFlag`) begins: what is shown of it while nobody has written `text`. */
+    lead?: ProfileLead;
     /** What each part of it means: its name and what is said of it. */
     parts?: { es: [string, string]; en: [string, string] }[];
   };

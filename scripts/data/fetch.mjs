@@ -32,6 +32,9 @@
 //     called in full, its motto and its anthem, and since when its flag is flown, its proportions and its
 //     colours, for the sheets of the countries (scripts/data/profiles.mjs). The same workflow asks them
 //       https://github.com/diegosb72/regionle/tree/datos @ 60b5c3b
+//   · Wikipedia in English and in Spanish (CC BY-SA 4.0): how the page of each country and that of its
+//     flag begin, which the sheets of the countries show shortened, each with its page. The same workflow
+//       https://github.com/diegosb72/regionle/tree/datos @ 1d0984a
 //
 // The flags that are not those of the countries (of regions and cities, of other times, of organisations and
 // peoples, and the signals: Wikidata, Wikipedia and Wikimedia Commons) are in the branch `datos` too, and
@@ -106,6 +109,8 @@ const FILES = [
   { ...CLDR, file: 'cldr-core/supplemental/currencyData.json', as: 'cldr/currencyData.json', sha: '3f66e0733c578ddea370fdcd2829263f31b40dfc' },
   // What Wikidata and Wikipedia say of each country and of its flag (scripts/data/profiles.mjs).
   { repo: 'diegosb72/regionle', commit: '60b5c3b096b25b4f40b70e36ef2f6888cb2b858a', dir: '', file: 'countries/countries.json', as: 'countries-said.json', sha: 'a38639f521d15a923a2c9c5646ab640a70f51327' },
+  // How Wikipedia begins to tell of each country and of its flag (scripts/data/profiles.mjs): CC BY-SA 4.0.
+  { repo: 'diegosb72/regionle', commit: '1d0984ae847cd003bebc94877cbf7111cc13c71f', dir: '', file: 'countries/texts.json', as: 'countries-texts.json', sha: '68b072db36521ada37c1f3c85f79d1b96834b42b' },
   // The photographs of the sheets of the countries (scripts/data/profiles.mjs): what Commons says of each, and the pictures.
   ...[PHOTOS_SAID, ...PHOTOS].map(([file, sha]) => ({ ...PHOTOS_AT, file, as: `photos/${path.basename(file)}`, sha })),
 ];
