@@ -436,33 +436,61 @@
 # ST: Praia Banana Principe Sao Tome
 #
 # Part C
-WS: To Sua Ocean Trench Samoa
-WS: Lalomanu Beach Samoa
-LC: Pitons Saint Lucia
-LC: Soufriere Saint Lucia
-KI: Tarawa lagoon Kiribati
-KI: South Tarawa Kiribati
-SC: Anse Source dArgent Seychelles
-SC: La Digue Seychelles
-GD: St Georges Grenada harbour
-GD: Grand Anse Grenada beach
-FM: Nan Madol Pohnpei Micronesia
-FM: Chuuk lagoon Micronesia
-TO: Haamonga a Maui Tonga
-TO: Vavau Tonga islands
-VC: Tobago Cays St Vincent Grenadines
-VC: La Soufriere Saint Vincent
-AG: Nelsons Dockyard Antigua
-AG: English Harbour Antigua Barbuda
-DM: Boiling Lake Dominica
-DM: Trafalgar Falls Dominica
-KN: Brimstone Hill Fortress Saint Kitts
-KN: Nevis Peak Saint Kitts
-MH: Majuro Marshall Islands aerial
-MH: Jaluit Atoll Marshall Islands
-PW: Rock Islands Palau
-PW: Jellyfish Lake Palau
-NR: Anibare Bay Nauru
-NR: Nauru island coast
-TV: Funafuti lagoon Tuvalu
-TV: Funafuti Tuvalu aerial
+# WS: To Sua Ocean Trench Samoa
+# WS: Lalomanu Beach Samoa
+# LC: Pitons Saint Lucia
+# LC: Soufriere Saint Lucia
+# KI: Tarawa lagoon Kiribati
+# KI: South Tarawa Kiribati
+# SC: Anse Source dArgent Seychelles
+# SC: La Digue Seychelles
+# GD: St Georges Grenada harbour
+# GD: Grand Anse Grenada beach
+# FM: Nan Madol Pohnpei Micronesia
+# FM: Chuuk lagoon Micronesia
+# TO: Haamonga a Maui Tonga
+# TO: Vavau Tonga islands
+# VC: Tobago Cays St Vincent Grenadines
+# VC: La Soufriere Saint Vincent
+# AG: Nelsons Dockyard Antigua
+# AG: English Harbour Antigua Barbuda
+# DM: Boiling Lake Dominica
+# DM: Trafalgar Falls Dominica
+# KN: Brimstone Hill Fortress Saint Kitts
+# KN: Nevis Peak Saint Kitts
+# MH: Majuro Marshall Islands aerial
+# MH: Jaluit Atoll Marshall Islands
+# PW: Rock Islands Palau
+# PW: Jellyfish Lake Palau
+# NR: Anibare Bay Nauru
+# NR: Nauru island coast
+# TV: Funafuti lagoon Tuvalu
+# TV: Funafuti Tuvalu aerial
+
+# Part D: second look at the two countries without a candidate in B (Commons was too busy), and at
+# the less convincing pictures of other places. Still only candidates, not a choice for the game.
+BB: Bathsheba Barbados coast
+BB: Bridgetown Barbados Careenage
+EH: Dakhla Western Sahara lagoon
+EH: Laayoune Western Sahara panorama
+BS: Nassau Bahamas harbour
+BS: Exuma Cays Bahamas aerial
+BT: Paro Taktsang Bhutan
+BT: Punakha Dzong Bhutan
+FJ: Yasawa Fiji lagoon
+FJ: Mamanuca Fiji beach
+CV: Fogo volcano Cape Verde
+CV: Pico do Fogo Cape Verde
+SZ: Sibebe Rock Swaziland
+SZ: Mantenga Falls Swaziland
+MN: Khongoryn Els Mongolia dunes
+MN: Gobi sand dunes Mongolia
+VC: Tobago Cays Saint Vincent
+VC: Grenadines Tobago Cays
+KM: Mount Karthala Comoros
+KM: Grande Comore coastline
+GW: Orango Bijagos beach
+GW: Bijagos Guinea Bissau coast
+GM: Kunta Kinteh Island Gambia
+GM: James Island River Gambia
+GA: Kongou Falls Gabon
