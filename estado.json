@@ -1,6 +1,6 @@
 {
-  "when": "2026-11-24T20:20:19.127Z",
-  "from": "arena/baec5cdd-regionle@6a65473",
+  "when": "2026-11-25T04:59:58.645Z",
+  "from": "main@9859d39",
   "workflow": "same",
   "sources": [
     {
@@ -12,8 +12,8 @@
       "es": "Lo que Wikidata y Wikipedia dicen de cada país y de su bandera",
       "needs": "113",
       "ok": true,
-      "bytes": 4149323,
-      "blob": "a38639f521d15a923a2c9c5646ab640a70f51327",
+      "bytes": 4150001,
+      "blob": "9b05f30e328c5746c99d495f0023d4f02adef950",
       "note": "nombre oficial de 241 de 251 países, lema de 187, himno de 234, bandera de 243; 235 banderas con fecha; 973 fichas de Wikipedia",
       "detail": {
         "asked": 251,
@@ -25,7 +25,7 @@
         "boxes": 973,
         "undone": []
       },
-      "ms": 217001
+      "ms": 61315
     }
   ],
   "reach": []
