@@ -7,8 +7,8 @@ Qué se trae y de dónde lo dice `scripts/data/outside.mjs`, en la rama del jueg
 
 ## Última descarga: 2026-11-25
 
-Hecha con `main@9859d39`. Lo que no se pidió esta vez sigue en la rama `datos` como estaba.
+Hecha con `arena/baec5cdd-regionle@186d4b7`. Lo que no se pidió esta vez sigue en la rama `datos` como estaba.
 
 | Archivo | Qué es | De dónde | Licencia | Resultado |
 | --- | --- | --- | --- | --- |
-| `countries/countries.json` | Lo que Wikidata y Wikipedia dicen de cada país y de su bandera | Wikidata (https://www.wikidata.org) y Wikipedia (https://www.wikipedia.org) | CC0 1.0 lo que dice Wikidata; CC BY-SA 4.0 las fichas de Wikipedia, cada una bajo el título de su página | 4150 kB · nombre oficial de 241 de 251 países, lema de 187, himno de 234, bandera de 243; 235 banderas con fecha; 973 fichas de Wikipedia |
+| `countries/texts.json` | Cómo empieza Wikipedia a hablar de cada país y de su bandera | Wikipedia (https://www.wikipedia.org) | CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/): cada texto es de los autores de su página, que es la que le da nombre | 1871 kB · el comienzo de 970 de 970 páginas, de 249 fichas (en: 485, es: 485) |

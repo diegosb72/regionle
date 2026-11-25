@@ -1,31 +1,31 @@
 {
-  "when": "2026-11-25T04:59:58.645Z",
-  "from": "main@9859d39",
+  "when": "2026-11-25T05:25:51.927Z",
+  "from": "arena/baec5cdd-regionle@186d4b7",
   "workflow": "same",
   "sources": [
     {
-      "id": "countries",
-      "file": "countries/countries.json",
-      "from": "Wikidata (https://www.wikidata.org) y Wikipedia (https://www.wikipedia.org)",
-      "licence": "CC0 1.0 lo que dice Wikidata; CC BY-SA 4.0 las fichas de Wikipedia, cada una bajo el título de su página",
-      "what": "What Wikidata and Wikipedia say of each country of the game and of its flag. items, by the id of the country: its Wikidata entity (wd); what it is called in full (official, P1448), what it calls itself (native, P1705) and its motto (motto, P1451), each a list of [language, text]; its anthem (anthem, P85), how it is governed (government, P122) and its flag (flag, P163), each a list of entities; the file of its coat of arms in Commons (arms, P94); and its page in each Wikipedia (pages). Only statements of best rank that have not ended are told. flags, by the entity of the flag: the day it began with how exactly it is known (since, P571: [day, precision], 11 a day, 10 a month, 9 a year), its proportions as width to height (ratio, P2061), its colours (colours, P462) and who designed it (by, P287), each a list of entities, and its page in each Wikipedia (pages). names: the name in Spanish and in English of every entity named. boxes, by language:title: the box of facts that the page opens with, as it is written.",
-      "es": "Lo que Wikidata y Wikipedia dicen de cada país y de su bandera",
+      "id": "texts",
+      "file": "countries/texts.json",
+      "from": "Wikipedia (https://www.wikipedia.org)",
+      "licence": "CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/): cada texto es de los autores de su página, que es la que le da nombre",
+      "what": "How Wikipedia begins to tell of each country of the game and of its flag: the opening of each page that the sheets of the countries lead to (public/data/profiles/<country>.json: read and readFlag), in Spanish and in English, as plain text. pages, by language:title, the title being the one the sheet names: the text (text), the revision of the page it was read from (rev) and, when that title leads to another page, the title of that one (title).",
+      "es": "Cómo empieza Wikipedia a hablar de cada país y de su bandera",
       "needs": "113",
       "ok": true,
-      "bytes": 4150001,
-      "blob": "9b05f30e328c5746c99d495f0023d4f02adef950",
-      "note": "nombre oficial de 241 de 251 países, lema de 187, himno de 234, bandera de 243; 235 banderas con fecha; 973 fichas de Wikipedia",
+      "bytes": 1870542,
+      "blob": "68b072db36521ada37c1f3c85f79d1b96834b42b",
+      "note": "el comienzo de 970 de 970 páginas, de 249 fichas (en: 485, es: 485)",
       "detail": {
-        "asked": 251,
-        "official": 241,
-        "motto": 187,
-        "anthem": 234,
-        "flag": 243,
-        "dated": 235,
-        "boxes": 973,
+        "asked": 970,
+        "sheets": 249,
+        "read": 970,
+        "by": {
+          "en": 485,
+          "es": 485
+        },
         "undone": []
       },
-      "ms": 61315
+      "ms": 60334
     }
   ],
   "reach": []
