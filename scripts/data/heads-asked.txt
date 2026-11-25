@@ -601,29 +601,29 @@
 # PN: Bounty Bay Pitcairn Island
 # PN: Adamstown Pitcairn panorama
 #
-# Part D
-PR: Old San Juan Puerto Rico
-PR: El Yunque Puerto Rico
-RE: Cirque de Mafate Reunion
-RE: Piton de la Fournaise Reunion
-SH: Jamestown Saint Helena harbour
-SH: Diana Peak Saint Helena
-SJ: Longyearbyen Svalbard
-SJ: Svalbard glacier
-SX: Philipsburg Sint Maarten
-SX: Maho Beach Sint Maarten
-TC: Grace Bay Providenciales Turks Caicos
-TC: Grand Turk Turks Caicos
-TF: Kerguelen Islands French Southern
-TF: Crozet Islands penguins
-TF: Amsterdam Island
-TK: Atafu Tokelau atoll
-TK: Fakaofo Tokelau
-VG: The Baths Virgin Gorda British Virgin Islands
-VG: Tortola Road Town harbour
-VI: Trunk Bay St John US Virgin Islands
-VI: Charlotte Amalie St Thomas
-WF: Lake Lalolalo Wallis
-WF: Mata Utu Wallis Futuna
-YT: Mayotte lagoon coral reef
-YT: Mont Choungui Mayotte
+# Part D: all twelve chosen and checked individually in Commons (profiles-territories.md).
+# PR: Old San Juan Puerto Rico
+# PR: El Yunque Puerto Rico
+# RE: Cirque de Mafate Reunion
+# RE: Piton de la Fournaise Reunion
+# SH: Jamestown Saint Helena harbour
+# SH: Diana Peak Saint Helena
+# SJ: Longyearbyen Svalbard
+# SJ: Svalbard glacier
+# SX: Philipsburg Sint Maarten
+# SX: Maho Beach Sint Maarten
+# TC: Grace Bay Providenciales Turks Caicos
+# TC: Grand Turk Turks Caicos
+# TF: Kerguelen Islands French Southern
+# TF: Crozet Islands penguins
+# TF: Amsterdam Island
+# TK: Atafu Tokelau atoll
+# TK: Fakaofo Tokelau
+# VG: The Baths Virgin Gorda British Virgin Islands
+# VG: Tortola Road Town harbour
+# VI: Trunk Bay St John US Virgin Islands
+# VI: Charlotte Amalie St Thomas
+# WF: Lake Lalolalo Wallis
+# WF: Mata Utu Wallis Futuna
+# YT: Mayotte lagoon coral reef
+# YT: Mont Choungui Mayotte

@@ -1,0 +1,562 @@
+[
+  {
+    "id": "imn",
+    "nombre": "Isla de Man",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Flag_of_the_Isle_of_Man.svg",
+    "historia": "La isla ha estado habitada desde finales de la última glaciación, hace más de 10.000 años, y recibió influencia celta desde el siglo V d.C. Alrededor del año 800, un gran número de vikingos se asentaron en la isla; los primeros escritos que atestiguan de manera segura la ocupación nórdica datan aproximadamente del año 900. En 979 se fundó el Tynwald, que existe hasta el día de hoy y es considerado uno de los parlamentos más antiguos del mundo en funcionamiento continuo. La isla pasó posteriormente a formar parte de los reinos de Noruega, Escocia e Inglaterra. Desde 1866 es un territorio de la Corona británica con autogobierno democrático, y no forma parte del Reino Unido ni de la Unión Europea.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/5/5d/Flag_of_the_Isle_of_Man.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Flag_of_the_Isle_of_Man.svg/320px-Flag_of_the_Isle_of_Man.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Civil_Ensign_of_the_Isle_of_Man.svg/320px-Civil_Ensign_of_the_Isle_of_Man.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Snaefell,_Isle_of_Man.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Douglas_Bay,_Isle_of_Man.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Castletown,_Isle_of_Man.jpg?width=800"
+    ]
+  },
+  {
+    "id": "cxr",
+    "nombre": "Isla de Navidad",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/6/6f/Flag_of_Christmas_Island.svg",
+    "historia": "La isla fue avistada por primera vez por el capitán William Mynors de la Compañía de las Indias Orientales el día de Navidad de 1643, de ahí su nombre. Permanecía deshabitada hasta su anexión a Gran Bretaña en 1888, cuando se confirmó la presencia de valiosos yacimientos de fosfato. La explotación minera marcó la historia industrial de la isla durante más de un siglo. Durante la Segunda Guerra Mundial sufrió la invasión japonesa (1942-1945). En 1958 la isla fue transferida a Australia, y hoy es un territorio australiano con una población mixta compuesta principalmente por chinos, australianos y malayos. En las últimas décadas ha diversificado su economía hacia el turismo de naturaleza y la conservación ambiental.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/6/6f/Flag_of_Christmas_Island.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Flag_of_Christmas_Island.svg/320px-Flag_of_Christmas_Island.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Flag_of_Christmas_Island_%28WFB_2000%29.jpg/320px-Flag_of_Christmas_Island_%28WFB_2000%29.jpg"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Christmas_Island,_Flying_Fish_Cove.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Red_crab_on_Christmas_Island.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Christmas_Island_national_park.jpg?width=800"
+    ]
+  },
+  {
+    "id": "nfk",
+    "nombre": "Isla Norfolk",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/4/48/Flag_of_Norfolk_Island.svg",
+    "historia": "La isla estaba deshabitada cuando llegaron los primeros ocupantes europeos en 1774, aunque se ha encontrado evidencia de ocupación polinesia previa. El capitán James Cook la descubrió ese año y la nombró en honor a la duquesa de Norfolk. El primer asentamiento europeo se estableció en marzo de 1788, apenas cinco semanas después de que la Primera Flota llegara a Sídney, y funcionó como colonia penitenciaria hasta 1855, con una interrupción entre 1814 y 1825. En 1856, los habitantes de la isla Pitcairn, descendientes de los amotinados del Bounty, fueron trasladados a Norfolk. Después de la creación de la Mancomunidad de Australia en 1901, la isla pasó a estar bajo la autoridad del gobierno australiano, siendo administrada como territorio externo desde 1914.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/4/48/Flag_of_Norfolk_Island.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Flag_of_Norfolk_Island.svg/320px-Flag_of_Norfolk_Island.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Flag_of_Norfolk_Island_%283-2%29.svg/320px-Flag_of_Norfolk_Island_%283-2%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Norfolk_Island_coastline.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Norfolk_Island_pines.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Kingston,_Norfolk_Island.jpg?width=800"
+    ]
+  },
+  {
+    "id": "cym",
+    "nombre": "Islas Caimán",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/0/0f/Flag_of_the_Cayman_Islands.svg",
+    "historia": "Las islas fueron avistadas por Cristóbal Colón en 1503 durante su cuarto viaje y las denominó «Islas Tortugas» por la abundancia de quelonios. Fueron colonizadas por exploradores españoles y británicos entre los siglos XVIII y XIX. Inglaterra tomó el control oficial de las islas junto con Jamaica en 1670 mediante el Tratado de Madrid. Los primeros colonos permanentes llegaron de Jamaica entre 1661 y 1671. Durante el siglo XVII las islas fueron refugio de piratas. Comenzaron a ser administradas por el gobierno colonial de Jamaica a partir de 1863. Cuando Jamaica consiguió su independencia en 1962, las Islas Caimán pasaron a ser administradas como territorio británico de ultramar.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/0/0f/Flag_of_the_Cayman_Islands.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Flag_of_the_Cayman_Islands.svg/320px-Flag_of_the_Cayman_Islands.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Flag_of_the_Cayman_Islands_%28pre-1999%29.svg/320px-Flag_of_the_Cayman_Islands_%28pre-1999%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Seven_Mile_Beach,_Grand_Cayman.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Stingray_City,_Grand_Cayman.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/George_Town,_Cayman_Islands.jpg?width=800"
+    ]
+  },
+  {
+    "id": "cck",
+    "nombre": "Islas Cocos",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/7/74/Flag_of_the_Cocos_%28Keeling%29_Islands.svg",
+    "historia": "El grupo norteño de Keeling se cree que fue descubierto en 1609 por el capitán William Keeling de la Compañía de las Indias Orientales. Las islas permanecieron deshabitadas hasta 1826, cuando el inglés Alexander Hare estableció el primer asentamiento en el atolón principal, seguido poco después por la familia Clunies-Ross, que gobernó las islas de forma feudal hasta 1978. Las islas fueron anexadas al Imperio Británico en 1857. El 9 de noviembre de 1914 fueron escenario de la Batalla de Cocos, uno de los primeros combates navales de la Primera Guerra Mundial. En 1955 el Reino Unido traspasó el dominio de las islas a Australia, aunque los intereses de la empresa Clunies-Ross no se vieron afectados de inmediato. En 1984, mediante un plebiscito, los habitantes optaron por la nacionalidad australiana y la plena anexión a Australia.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/7/74/Flag_of_the_Cocos_%28Keeling%29_Islands.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Flag_of_the_Cocos_%28Keeling%29_Islands.svg/320px-Flag_of_the_Cocos_%28Keeling%29_Islands.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Flag_of_the_Cocos_%28Keeling%29_Islands_%28WFB_2000%29.jpg/320px-Flag_of_the_Cocos_%28Keeling%29_Islands_%28WFB_2000%29.jpg"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Cocos_(Keeling)_Islands,_Direction_Island.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Cocos_Islands_beach.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/West_Island,_Cocos_(Keeling)_Islands.jpg?width=800"
+    ]
+  },
+  {
+    "id": "cok",
+    "nombre": "Islas Cook",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Flag_of_the_Cook_Islands.svg",
+    "historia": "Los navegantes españoles fueron los primeros europeos en avistar las islas del norte en 1595, seguidos del primer desembarco en 1606. No hubo más contacto europeo hasta la década de 1760. Entre 1773 y 1779, el capitán James Cook reclamó para la corona británica el archipiélago que ahora lleva su nombre. En 1888, las islas se convirtieron en protectorado británico. En 1901, el Reino Unido las cedió a Nueva Zelanda, que las administró como parte de su colonia, y en 1915 la Cook Islands Act las organizó en una sola entidad política. En 1965, tras un proceso de descolonización, las Islas Cook obtuvieron la autonomía interna y establecieron un estatuto de libre asociación con Nueva Zelanda, que se encarga de su defensa y asuntos exteriores.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/3/3f/Flag_of_the_Cook_Islands.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Flag_of_the_Cook_Islands.svg/320px-Flag_of_the_Cook_Islands.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Flag_of_the_Cook_Islands_%281973%E2%80%931979%29.svg/320px-Flag_of_the_Cook_Islands_%281973%E2%80%931979%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Aitutaki_lagoon,_Cook_Islands.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Rarotonga,_Cook_Islands.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Avara,_Rarotonga.jpg?width=800"
+    ]
+  },
+  {
+    "id": "fro",
+    "nombre": "Islas Feroe",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/3/3c/Flag_of_the_Faroe_Islands.svg",
+    "historia": "La historia de las islas comienza alrededor del año 625, cuando fueron descubiertas por monjes irlandeses. A comienzos del siglo IX, los monjes fueron desplazados por vikingos noruegos que llevaron a cabo una importante colonización. En el año 999 se produjo la cristianización de las islas. En 1035 pasaron a formar parte del Reino de Noruega. Tras la unión personal de los reinos de Noruega y Dinamarca en 1380, quedaron vinculadas a Dinamarca. Después de la Paz de Kiel de 1814, las islas permanecieron bajo poder danés, formando junto con Groenlandia una parte del Reino. Durante la Segunda Guerra Mundial, las islas fueron ocupadas por fuerzas británicas y quedaron aisladas de Dinamarca. En 1948 obtuvieron un amplio autogobierno (home rule) dentro del Reino de Dinamarca.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/3/3c/Flag_of_the_Faroe_Islands.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Flag_of_the_Faroe_Islands.svg/320px-Flag_of_the_Faroe_Islands.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Flag_of_the_Faroe_Islands_%283-2%29.svg/320px-Flag_of_the_Faroe_Islands_%283-2%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/T%C3%B3rshavn,_Faroe_Islands.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Gasadalur,_Faroe_Islands.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Kirkjub%C3%B8ur,_Faroe_Islands.jpg?width=800"
+    ]
+  },
+  {
+    "id": "hmd",
+    "nombre": "Islas Heard y McDonald",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/8/88/Flag_of_Australia_%28converted%29.svg",
+    "historia": "La Isla Heard fue descubierta por el marinero estadounidense John Heard el 25 de noviembre de 1853, y el capitán William McDonald descubrió las islas McDonald el 4 de enero de 1854. A partir de 1855, los cazadores de focas vivieron en las islas y extrajeron aceite de elefante marino. El Reino Unido reclamó formalmente las islas en 1910, y el explorador australiano Douglas Mawson visitó la Isla Heard en 1929. En 1947, el Reino Unido transfirió estas islas subantárticas deshabitadas y estériles a Australia, que las administra como territorio externo. La Isla McDonald ha sido un volcán activo desde que despertó de su letargo en 1992, y duplicó su tamaño tras una erupción en 1996.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/8/88/Flag_of_Australia_%28converted%29.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Flag_of_Australia_%28converted%29.svg/320px-Flag_of_Australia_%28converted%29.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Flag_of_Heard_Island_and_McDonald_Islands_%28WFB_2000%29.jpg/320px-Flag_of_Heard_Island_and_McDonald_Islands_%28WFB_2000%29.jpg"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Heard_Island.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/McDonald_Islands.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Atlas_Cove,_Heard_Island.jpg?width=800"
+    ]
+  },
+  {
+    "id": "flk",
+    "nombre": "Islas Malvinas",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/8/8e/Flag_of_the_Falkland_Islands.svg",
+    "historia": "Para los argentinos, las islas fueron descubiertas por los españoles entre 1520 y 1540; para los ingleses, por John Davis en 1592 a bordo del navío «Desire». El primer desembarco documentado lo realizó el capitán Strong en 1690, quien las bautizó como Falklands en homenaje al vizconde Falkland. A partir de 1698, pescadores franceses de Saint-Maló las visitaron con frecuencia. La época hispánica duró de 1767 a 1811, con veinte gobernadores. En 1820, la República Argentina tomó posesión de las islas, y en 1833 fueron ocupadas por fuerzas británicas. En 1982, las tensiones desembocaron en un conflicto bélico entre Argentina y el Reino Unido. Tras la guerra, las islas permanecen como territorio británico de ultramar, con un reclamo de soberanía argentino activo.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/8/8e/Flag_of_the_Falkland_Islands.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Flag_of_the_Falkland_Islands.svg/320px-Flag_of_the_Falkland_Islands.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Civil_Ensign_of_the_Falkland_Islands_%281948%E2%80%931999%29.svg/320px-Civil_Ensign_of_the_Falkland_Islands_%281948%E2%80%931999%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Stanley,_Falkland_Islands.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Sea_Lion_Island,_Falkland_Islands.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Gypsy_Cove,_Falkland_Islands.jpg?width=800"
+    ]
+  },
+  {
+    "id": "mnp",
+    "nombre": "Islas Marianas del Norte",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/e/e0/Flag_of_the_Northern_Mariana_Islands.svg",
+    "historia": "Las islas fueron pobladas por pueblos austronesios alrededor del 1500 a.C., que dieron origen al pueblo chamorro. Los primeros europeos en alcanzar la zona fueron Fernando de Magallanes y Juan Sebastián Elcano, que desembarcaron en Guam en 1521 y las bautizaron como «Islas de los Ladrones». En 1565 las islas pasaron a depender de España, y en 1668 se estableció una misión jesuita. Tras la Guerra Hispano-Estadounidense, España vendió las Marianas del Norte a Alemania en 1899. Tras la Primera Guerra Mundial, Japón recibió un mandato sobre las islas. Estados Unidos las capturó en 1944, durante la Batalla de Saipán, y las administró tras la guerra como parte del Territorio en Fideicomiso de las Islas del Pacífico. En 1975 se firmó un pacto de libre asociación con EE.UU., y en 1978 se concedió el autogobierno.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/e/e0/Flag_of_the_Northern_Mariana_Islands.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Flag_of_the_Northern_Mariana_Islands.svg/320px-Flag_of_the_Northern_Mariana_Islands.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Flag_of_the_Northern_Mariana_Islands_%281976%E2%80%931989%29.svg/320px-Flag_of_the_Northern_Mariana_Islands_%281976%E2%80%931989%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Managaha_Island,_Saipan.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Bird_Island,_Saipan.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Garapan,_Saipan.jpg?width=800"
+    ]
+  },
+  {
+    "id": "pcn",
+    "nombre": "Islas Pitcairn",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Flag_of_the_Pitcairn_Islands.svg",
+    "historia": "Los polinesios fueron los primeros pobladores de las cuatro pequeñas islas, pero todas estaban deshabitadas cuando los europeos las descubrieron en 1606. La isla Pitcairn fue redescubierta por un explorador británico en 1767. En enero de 1790, los amotinados del «Bounty» y sus compañeros polinesios se establecieron en la isla, y su historia ha marcado la identidad del territorio. La isla se convirtió en colonia británica oficial en 1838. En 1856, el Reino Unido consideró que la población de 193 habitantes era demasiado alta y trasladó a todos los residentes a la Isla Norfolk; varias familias regresaron en 1858 y 1864. El Reino Unido anexó las islas cercanas de Henderson, Oeno y Ducie en 1902 y las incorporó a la colonia de las Pitcairn en 1938.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/3/3e/Flag_of_the_Pitcairn_Islands.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Flag_of_the_Pitcairn_Islands.svg/320px-Flag_of_the_Pitcairn_Islands.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Flag_of_the_Pitcairn_Islands_%283-2%29.svg/320px-Flag_of_the_Pitcairn_Islands_%283-2%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Pitcairn_Island_landscape.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Adamstown,_Pitcairn_Islands.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Bounty_Bay,_Pitcairn_Island.jpg?width=800"
+    ]
+  },
+  {
+    "id": "tca",
+    "nombre": "Islas Turcas y Caicos",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/a/a0/Flag_of_the_Turks_and_Caicos_Islands.svg",
+    "historia": "Las islas fueron descubiertas en 1512 por el navegante español Juan Ponce de León, que probablemente las encontró deshabitadas. Permanecen sin población permanente hasta alrededor de 1678, cuando se estableció la industria de la recolección de sal. Recolectores de sal de las Bermudas se asentaron en las Islas Turcas hacia 1681. En 1799, tanto las Turcas como el grupo de islas Caicos fueron anexadas por Gran Bretaña como parte de las Bahamas. De 1874 a 1959, el Gobierno británico administró las islas como una dependencia de Jamaica. En 1962, tras la independencia de Jamaica, se convirtieron en territorio británico de ultramar. En 2017, el huracán Irma y luego María causaron graves daños en el archipiélago.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/a/a0/Flag_of_the_Turks_and_Caicos_Islands.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Flag_of_the_Turks_and_Caicos_Islands.svg/320px-Flag_of_the_Turks_and_Caicos_Islands.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Flag_of_the_Turks_and_Caicos_Islands_%281968%E2%80%931999%29.svg/320px-Flag_of_the_Turks_and_Caicos_Islands_%281968%E2%80%931999%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Grace_Bay,_Providenciales.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Grand_Turk,_Turks_and_Caicos.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Cockburn_Town,_Grand_Turk.jpg?width=800"
+    ]
+  },
+  {
+    "id": "vgb",
+    "nombre": "Islas Vírgenes Británicas",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/4/42/Flag_of_the_British_Virgin_Islands.svg",
+    "historia": "Las islas estuvieron habitadas primero por los arahuacos y luego por los caribes. Cristóbal Colón las avistó en 1493 durante su segundo viaje y las nombró «Islas de las Once Mil Vírgenes» en honor a Santa Úrsula. Los holandeses establecieron la primera colonia europea en 1648. En 1666, un grupo de británicos propietarios de plantaciones se hicieron con el control de las islas, y el territorio pasó a ser colonia británica. En 1872, las islas pasaron a formar parte de la Federación de las Islas de Sotavento. En 1956 se convirtieron en una colonia independiente de la Corona, y en 1967 se les concedió la autonomía. En 2017, el huracán Irma devastó la isla de Tórtola, destruyendo o dañando aproximadamente el 80% de las estructuras residenciales y comerciales.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/4/42/Flag_of_the_British_Virgin_Islands.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Flag_of_the_British_Virgin_Islands.svg/320px-Flag_of_the_British_Virgin_Islands.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Flag_of_the_British_Virgin_Islands_%283-2%29.svg/320px-Flag_of_the_British_Virgin_Islands_%283-2%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/The_Baths,_Virgin_Gorda.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Road_Town,_Tortola.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Anegada,_British_Virgin_Islands.jpg?width=800"
+    ]
+  },
+  {
+    "id": "vir",
+    "nombre": "Islas Vírgenes de EE. UU.",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/7/7c/Flag_of_the_United_States_Virgin_Islands.svg",
+    "historia": "El archipiélago estaba originalmente habitado por los indígenas caribes y arahuacos. Cristóbal Colón divisó estas islas en 1493 durante su segundo viaje y les dio el nombre en honor de Santa Úrsula y sus vírgenes. Durante el siglo XVII, el archipiélago se dividió en dos unidades territoriales, una inglesa y otra danesa. Las islas que hoy son territorio estadounidense fueron colonia danesa desde 1754. Tras la abolición de la esclavitud en 1848, la economía de la parte danesa entró en declive. En 1917, Estados Unidos compró oficialmente las islas a Dinamarca por 25 millones de dólares, por razones estratégicas relacionadas con la defensa del Canal de Panamá. Desde 1931 son administradas por el Departamento del Interior de EE.UU. como territorio no incorporado.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/7/7c/Flag_of_the_United_States_Virgin_Islands.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Flag_of_the_United_States_Virgin_Islands.svg/320px-Flag_of_the_United_States_Virgin_Islands.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Flag_of_the_United_States_Virgin_Islands_%283-2%29.svg/320px-Flag_of_the_United_States_Virgin_Islands_%283-2%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Trunk_Bay,_St._John.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Charlotte_Amalie,_St._Thomas.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Buck_Island_Reef.jpg?width=800"
+    ]
+  },
+  {
+    "id": "jey",
+    "nombre": "Jersey",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/1/1e/Flag_of_Jersey.svg",
+    "historia": "La isla formó parte históricamente del Ducado de Normandía desde principios del siglo X. Cuando en 1066 los normandos invadieron Inglaterra, Normandía e Inglaterra quedaron unidas bajo la misma monarquía. En 1204, el rey Juan de Inglaterra perdió Normandía continental ante el rey Felipe II Augusto de Francia, pero conservó la posesión de Jersey y las otras islas del Canal. Desde entonces, Jersey ha disfrutado de autogobierno. Durante la Edad Media sufrió varias invasiones francesas. Durante la Segunda Guerra Mundial, la isla fue invadida y ocupada por fuerzas alemanas desde el 30 de junio de 1940 hasta la liberación en 1945. Hoy es una dependencia de la Corona británica con autogobierno, no forma parte del Reino Unido ni de la UE.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/1/1e/Flag_of_Jersey.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Flag_of_Jersey.svg/320px-Flag_of_Jersey.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Flag_of_Jersey_%28pre_1981%29.svg/320px-Flag_of_Jersey_%28pre_1981%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/St._Helier,_Jersey.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Mont_Orgueil_Castle,_Jersey.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/La_Corbi%C3%A8re,_Jersey.jpg?width=800"
+    ]
+  },
+  {
+    "id": "mac",
+    "nombre": "Macao",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/f/f0/Flag_of_Macau.svg",
+    "historia": "La historia de Macao se remonta unos 6000 años, con evidencias de cultura china en la península y de ocupación en las islas de Coloane hace unos 5000 años. Los primeros pobladores conocidos fueron pescadores de Fujian y agricultores de Guangdong. En la década de 1550 llegaron los portugueses, que establecieron un asentamiento comercial en 1557. Macao se convirtió en un centro importante del comercio portugués con China, Japón y Filipinas durante los siglos XVII, XVIII y XIX. En 1943, Japón estableció un control sobre Macao que duró hasta agosto de 1945. Según el acuerdo firmado por China y Portugal el 13 de abril de 1987, Macao se convirtió en la Región Administrativa Especial de la República Popular China el 20 de diciembre de 1999, bajo el principio «un país, dos sistemas».",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/f/f0/Flag_of_Macau.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Flag_of_Macau.svg/320px-Flag_of_Macau.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Flag_of_Portuguese_Macau_%281975%E2%80%931999%29.svg/320px-Flag_of_Portuguese_Macau_%281975%E2%80%931999%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Macau_skyline.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Ruins_of_St._Paul%27s,_Macau.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Senado_Square,_Macau.jpg?width=800"
+    ]
+  },
+  {
+    "id": "mtq",
+    "nombre": "Martinica",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/c/c3/Flag_of_France.svg",
+    "historia": "La isla fue avistada por Cristóbal Colón en 1493, durante su segundo viaje, y desembarcó en ella el 15 de junio de 1502, durante su cuarto viaje. Estaba habitada por los arahuacos y luego por los caribes. A principios de 1635, los colonizadores franceses se asentaron en la isla bajo el liderazgo de Pierre Belain d'Esnambuc. La Compañía de las Islas de América se instaló allí, y en 1674 el gobierno francés compró la isla, incorporándola a la corona. La isla prosperó con plantaciones de azúcar, café y cacao, basadas en el trabajo esclavo. Fue ocupada brevemente por los británicos en 1762, 1793 y 1809. En 1946, Martinica se convirtió en departamento de ultramar de Francia.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/c/c3/Flag_of_France.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Flag_of_France.svg/320px-Flag_of_France.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Flag_of_Martinique_%28snake%29.svg/320px-Flag_of_Martinique_%28snake%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Mont_Pel%C3%A9e,_Martinique.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Fort-de-France,_Martinique.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Les_Anses_d%27Arlet,_Martinique.jpg?width=800"
+    ]
+  },
+  {
+    "id": "myt",
+    "nombre": "Mayotte",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/c/c3/Flag_of_France.svg",
+    "historia": "La historia de Mayotte se remonta al siglo XV, cuando piratas árabes desembarcaron en la isla. Hacia finales del siglo XVIII, la isla fue invadida por los malgaches provenientes de Madagascar. En 1843, el sultán Andriantsoly vendió la isla al Reino de Francia para obtener apoyo frente a los sultanes vecinos. La Corona francesa tomó el control de Mayotte y estableció una colonia. A comienzos del siglo XX, Mayotte quedó vinculada administrativamente al archipiélago de las Comoras. En 1975, cuando las Comoras declararon su independencia, los habitantes de Mayotte decidieron en referéndum permanecer bajo dominio francés. En 2011, Mayotte se convirtió en el 101º departamento de Francia y en región ultraperiférica de la UE.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/c/c3/Flag_of_France.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Flag_of_France.svg/320px-Flag_of_France.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Flag_of_Mayotte_%28local%29.svg/320px-Flag_of_Mayotte_%28local%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Lagoon_of_Mayotte.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Mamoudzou,_Mayotte.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Mtsamboro,_Mayotte.jpg?width=800"
+    ]
+  },
+  {
+    "id": "msr",
+    "nombre": "Montserrat",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/d/d0/Flag_of_Montserrat.svg",
+    "historia": "La isla fue avistada por Cristóbal Colón en 1493 y nombrada así por la montaña de Montserrat en Cataluña. Fue colonizada por ingleses y franceses a lo largo del siglo XVII, aunque finalmente quedó bajo control británico. La economía colonial se basó en plantaciones de azúcar y tabaco, trabajadas por esclavos africanos. La esclavitud fue abolida en 1834. A lo largo del siglo XX, la isla dependió administrativamente de las Islas de Sotavento y luego se convirtió en territorio británico de ultramar. En 1995, la erupción del volcán Soufrière Hills devastó la parte sur de la isla, incluida la capital Plymouth, que quedó enterrada bajo la ceniza y fue abandonada. Más de la mitad de la población emigró, y la capital administrativa se trasladó provisionalmente a Brades.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/d/d0/Flag_of_Montserrat.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Flag_of_Montserrat.svg/320px-Flag_of_Montserrat.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Flag_of_Montserrat_%281960%E2%80%931999%29.svg/320px-Flag_of_Montserrat_%281960%E2%80%931999%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Soufri%C3%A8re_Hills_volcano,_Montserrat.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Little_Bay,_Montserrat.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Brades,_Montserrat.jpg?width=800"
+    ]
+  },
+  {
+    "id": "niu",
+    "nombre": "Niue",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/0/01/Flag_of_Niue.svg",
+    "historia": "Los primeros habitantes de Niue fueron viajeros polinesios procedentes de Tonga, que llegaron alrededor del siglo X d.C. Nuevos colonos procedentes de Samoa llegaron hacia la década de 1440. La isla fue avistada por el capitán James Cook en 1774, aunque no desembarcó debido a la hostilidad de los nativos. En la década de 1830 comenzó la penetración de europeos, y en 1846 la London Missionary Society estableció una misión protestante. En 1900 Niue se convirtió en protectorado británico, y al año siguiente fue anexionada por Nueva Zelanda y incluida como parte de las Islas Cook. Su lejanía y sus diferencias culturales y lingüísticas llevaron a Nueva Zelanda a separar Niue en su propia administración en 1904. En 1974 la isla obtuvo el autogobierno interno y estableció un estatuto de libre asociación con Nueva Zelanda.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/0/01/Flag_of_Niue.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Flag_of_Niue.svg/320px-Flag_of_Niue.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Flag_of_Niue_%283-2%29.svg/320px-Flag_of_Niue_%283-2%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Alofi,_Niue.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Avaiki,_Niue.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Niue_coastline.jpg?width=800"
+    ]
+  },
+  {
+    "id": "ncl",
+    "nombre": "Nueva Caledonia",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/c/c3/Flag_of_France.svg",
+    "historia": "Los primeros humanos se asentaron en Nueva Caledonia alrededor del 1600 a.C., en el contexto de la cultura Lapita. El capitán James Cook llegó a la isla principal en 1774. Los misioneros desembarcaron por primera vez en 1840. En 1853, Francia anexó Nueva Caledonia para evitar cualquier intento británico de reclamar la isla, y en 1854 se fundó Nouméa. Durante el siglo XIX y XX hubo varias revueltas kanak, en 1878 y 1917. En 1946, Nueva Caledonia se convirtió en territorio francés de ultramar. En 1988, las aspiraciones independentistas kanak condujeron a la tragedia de Ouvéa. Tras los acuerdos de Matignon y de Nouméa, se celebraron referendos de independencia en 2018, 2020 y 2021, en los que la independencia fue rechazada.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/c/c3/Flag_of_France.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Flag_of_France.svg/320px-Flag_of_France.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Flag_of_New_Caledonia.svg/320px-Flag_of_New_Caledonia.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Noum%C3%A9a,_New_Caledonia.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Isle_of_Pines,_New_Caledonia.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Lifou,_Loyalty_Islands.jpg?width=800"
+    ]
+  },
+  {
+    "id": "pyf",
+    "nombre": "Polinesia Francesa",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/d/db/Flag_of_French_Polynesia.svg",
+    "historia": "Las islas fueron pobladas por navegantes polinesios en olas migratorias que comenzaron alrededor del 200 a.C. El rey Pomare I unificó Tahití y las islas circundantes en el Reino de Tahití en 1788. Los misioneros ingleses llegaron en 1797 y ayudaron a la dinastía Pomare a consolidar su control. La reina Pomare IV rechazó permitir la operación de misioneros católicos franceses, lo que llevó a Francia a imponer un protectorado en 1842 sobre Tahití y las islas del Viento. En 1880, el rey Pomare V cedió Tahití y sus posesiones a Francia, convirtiendo su estatus en colonia. En 1946, los isleños recibieron la ciudadanía francesa y el territorio se convirtió en territorio de ultramar. En 1957 las islas fueron rebautizadas como Polinesia Francesa. Francia otorgó autonomía interna parcial en 1977 y la amplió en 1984.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/d/db/Flag_of_French_Polynesia.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Flag_of_French_Polynesia.svg/320px-Flag_of_French_Polynesia.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Flag_of_the_Kingdom_of_Tahiti.svg/320px-Flag_of_the_Kingdom_of_Tahiti.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Bora_Bora,_French_Polynesia.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Papeete,_Tahiti.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Moorea,_French_Polynesia.jpg?width=800"
+    ]
+  },
+  {
+    "id": "pri",
+    "nombre": "Puerto Rico",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/2/28/Flag_of_Puerto_Rico.svg",
+    "historia": "La isla, llamada Borinquen por los taínos, fue avistada por Cristóbal Colón en 1493 durante su segundo viaje. La colonización española comenzó en 1508 bajo el liderazgo de Juan Ponce de León, y en 1521 la isla fue renombrada Puerto Rico, mientras que San Juan se convirtió en su capital. Durante cuatro siglos fue colonia española, con una economía basada inicialmente en la minería de oro y luego en la agricultura (azúcar, tabaco, café). La esclavitud fue abolida en 1873, y en 1897 España otorgó una Carta de Autonomía. Tras la Guerra Hispano-Estadounidense, la isla fue cedida a Estados Unidos en 1898 mediante el Tratado de París. En 1917 los puertorriqueños obtuvieron la ciudadanía estadounidense, y en 1952 se convirtió en Estado Libre Asociado de EE.UU.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/2/28/Flag_of_Puerto_Rico.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Flag_of_Puerto_Rico.svg/320px-Flag_of_Puerto_Rico.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Flag_of_Puerto_Rico_%281895%29.svg/320px-Flag_of_Puerto_Rico_%281895%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Old_San_Juan,_Puerto_Rico.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/El_Yunque_National_Forest.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Culebra_Island,_Puerto_Rico.jpg?width=800"
+    ]
+  },
+  {
+    "id": "reu",
+    "nombre": "Reunión",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/c/c3/Flag_of_France.svg",
+    "historia": "La isla fue avistada por los portugueses en 1513, que la encontraron deshabitada y la llamaron Santa Apolonia. En 1638 fue ocupada por Francia, y en 1642, por decreto del rey Luis XIII, pasó a llamarse Île Bourbon. El desarrollo de la isla comenzó en 1649 y se aceleró con el gobernador Bertrand-François Mahé de La Bourdonnais, entre 1735 y 1746. La economía se basó en el cultivo de café, especias y caña de azúcar, con mano de obra esclava. La esclavitud fue abolida en 1848. En 1946, la isla se convirtió en departamento de ultramar de Francia. En 1974 se creó el Parque Nacional de Reunión, que en 2010 fue inscrito como Patrimonio de la Humanidad por la UNESCO.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/c/c3/Flag_of_France.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Flag_of_France.svg/320px-Flag_of_France.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Proposed_flag_of_R%C3%A9union_%28ARF%29.svg/320px-Proposed_flag_of_R%C3%A9union_%28ARF%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Piton_de_la_Fournaise,_R%C3%A9union.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Saint-Denis,_R%C3%A9union.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Cirque_de_Mafate,_R%C3%A9union.jpg?width=800"
+    ]
+  },
+  {
+    "id": "asm",
+    "nombre": "Samoa Estadounidense",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/8/87/Flag_of_American_Samoa.svg",
+    "historia": "Las islas Samoa fueron pobladas originalmente alrededor del 1000 a.C. por polinesios que probablemente llegaron a través de Fiyi y Tonga. El contacto europeo comenzó en el siglo XVIII. En 1872, el alto jefe de Tutuila ofreció a Estados Unidos derechos exclusivos sobre Pago Pago a cambio de protección, pero la oferta fue rechazada inicialmente. Tras la Segunda Guerra Civil de Samoa y la convención tripartita de 1899, Alemania y Estados Unidos dividieron el archipiélago. El 7 de junio de 1900, Estados Unidos tomó el control de su región asignada mediante el Acta de Cesión, y en 1904 el jefe de Manu'a cedió sus tierras. El territorio fue oficialmente nombrado «Samoa Americana» en 1911. En 1977, tras cuatro intentos, los votantes aprobaron la elección directa de su gobernador.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/8/87/Flag_of_American_Samoa.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Flag_of_American_Samoa.svg/320px-Flag_of_American_Samoa.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Flag_of_American_Samoa_%283-2%29.svg/320px-Flag_of_American_Samoa_%283-2%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Pago_Pago,_American_Samoa.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/National_Park_of_American_Samoa.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Tutuila,_American_Samoa.jpg?width=800"
+    ]
+  },
+  {
+    "id": "blm",
+    "nombre": "San Bartolomé",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/c/c3/Flag_of_France.svg",
+    "historia": "La isla fue avistada por Cristóbal Colón en 1493 y nombrada en honor a San Bartolomé. Los franceses se establecieron en 1648, pero la isla fue cedida a Suecia en 1784 a cambio de derechos comerciales en Gotemburgo. Bajo dominio sueco, la capital, Gustavia, se convirtió en un puerto franco próspero. En 1878, Suecia devolvió la isla a Francia. A lo largo del siglo XX, San Bartolomé fue administrada como parte de Guadalupe. En 2003, la población votó en referéndum a favor de separarse de Guadalupe y convertirse en una colectividad de ultramar de Francia, estatus que entró en vigor en 2007.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/c/c3/Flag_of_France.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Flag_of_France.svg/320px-Flag_of_France.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Flag_of_Saint_Barth%C3%A9lemy_%28local%29.svg/320px-Flag_of_Saint_Barth%C3%A9lemy_%28local%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Gustavia,_Saint_Barth%C3%A9lemy.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/St._Jean_Beach,_Saint_Barth%C3%A9lemy.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Colombier_Beach,_Saint_Barth%C3%A9lemy.jpg?width=800"
+    ]
+  },
+  {
+    "id": "maf",
+    "nombre": "San Martín (Francia)",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/c/c3/Flag_of_France.svg",
+    "historia": "La isla de San Martín fue avistada por Cristóbal Colón en 1493 y nombrada en honor a San Martín de Tours. Los franceses y neerlandeses se establecieron en la isla en el siglo XVII, y en 1648 se firmó el Tratado de Concordia, que dividió la isla entre Francia y los Países Bajos, división que persiste hoy. La parte francesa dependió administrativamente de Guadalupe durante siglos. En 2003, la población de la parte francesa votó en referéndum a favor de convertirse en una colectividad de ultramar separada de Guadalupe, estatus que entró en vigor en 2007. En 2017, el huracán Irma causó daños catastróficos en la isla, afectando gravemente a la economía y la infraestructura.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/c/c3/Flag_of_France.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Flag_of_France.svg/320px-Flag_of_France.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Flag_of_Saint-Martin_%28local%29.svg/320px-Flag_of_Saint-Martin_%28local%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Marigot,_Saint_Martin.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Oriental_Bay,_Saint_Martin.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Grand_Case,_Saint_Martin.jpg?width=800"
+    ]
+  },
+  {
+    "id": "spm",
+    "nombre": "San Pedro y Miquelón",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/c/c3/Flag_of_France.svg",
+    "historia": "La primera referencia escrita del nombre de Saint-Pierre apareció en 1536, hecha por Jacques Cartier. El archipiélago es el único vestigio del antiguo imperio colonial de la Nueva Francia que sigue bajo control francés. En 1713, los ingleses tomaron posesión de las islas, pero Francia las recuperó en 1763 gracias al Tratado de París. Volvieron a ser atacadas por los británicos en 1778. La población pasó de uno a otro bando durante 38 años, hasta que las islas se convirtieron definitivamente en francesas en 1815, tras la segunda abdicación de Napoleón. En 1945 fueron declaradas territorio de ultramar, y en 1976 se convirtieron en departamento de ultramar. En 1985 recuperaron el estatus de colectividad territorial.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/c/c3/Flag_of_France.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Flag_of_France.svg/320px-Flag_of_France.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Flag_of_Saint-Pierre_and_Miquelon.svg/320px-Flag_of_Saint-Pierre_and_Miquelon.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Saint-Pierre,_Saint-Pierre_and_Miquelon.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Miquelon,_Saint-Pierre_and_Miquelon.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Ile_aux_Marins,_Saint-Pierre_and_Miquelon.jpg?width=800"
+    ]
+  },
+  {
+    "id": "shn",
+    "nombre": "Santa Elena",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/0/00/Flag_of_Saint_Helena.svg",
+    "historia": "La isla fue descubierta por el navegante español Juan de Nova en 1502, cuando regresaba de un viaje a la India. Permanecía prácticamente deshabitada hasta que los ingleses, de la mano del marino y corsario Thomas Cavendish, la redescubrieron en 1588. Los primeros habitantes conocidos fueron colonos neerlandeses en 1645. La Compañía Británica de las Indias Orientales tomó posesión de la isla en 1659, y se convirtió en un punto de escala estratégico para los barcos que regresaban de Asia. Napoleón Bonaparte fue exiliado en la isla en 1815 y murió allí en 1821. La isla sigue siendo un territorio británico de ultramar, y su economía depende de la ayuda del Reino Unido y de la pesca.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/0/00/Flag_of_Saint_Helena.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Flag_of_Saint_Helena.svg/320px-Flag_of_Saint_Helena.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Flag_of_Saint_Helena_%281874%E2%80%931984%29.svg/320px-Flag_of_Saint_Helena_%281874%E2%80%931984%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Jamestown,_Saint_Helena.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Longwood_House,_Saint_Helena.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Saint_Helena_coastline.jpg?width=800"
+    ]
+  },
+  {
+    "id": "sxm",
+    "nombre": "Sint Maarten",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/d/d3/Flag_of_Sint_Maarten.svg",
+    "historia": "La isla fue avistada por Cristóbal Colón en 1493 y reclamada para España, pero fueron los neerlandeses quienes la ocuparon en 1631 y comenzaron a explotar sus depósitos de sal. Los españoles recuperaron la isla en 1633, pero los neerlandeses continuaron afirmando sus derechos. En 1648, la isla fue dividida entre Francia y los Países Bajos mediante el Tratado de Concordia. En 1954, Sint Maarten y otras posesiones neerlandesas del Caribe pasaron a formar parte del Reino de los Países Bajos como las Antillas Neerlandesas. En un referéndum celebrado en 2000, los ciudadanos de Sint Maarten votaron a favor de convertirse en un país autónomo dentro del Reino de los Países Bajos, lo que se hizo efectivo en octubre de 2010. En septiembre de 2017, el huracán Irma causó una devastación generalizada.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/d/d3/Flag_of_Sint_Maarten.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Flag_of_Sint_Maarten.svg/320px-Flag_of_Sint_Maarten.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Flag_of_Sint_Maarten_%283-2%29.svg/320px-Flag_of_Sint_Maarten_%283-2%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Philipsburg,_Sint_Maarten.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Great_Bay,_Sint_Maarten.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Maho_Beach,_Sint_Maarten.jpg?width=800"
+    ]
+  },
+  {
+    "id": "sjm",
+    "nombre": "Svalbard",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/d/d9/Flag_of_Norway.svg",
+    "historia": "Según los Anales islandeses, el archipiélago pudo haber sido descubierto por los noruegos en 1194, pero permaneció desconocido para el mundo moderno hasta que el navegante neerlandés Willem Barentsz lo redescubrió en 1596 mientras buscaba el Paso del Nordeste. Durante los siglos XVII y XVIII, las islas sirvieron como base ballenera para neerlandeses, españoles e ingleses, y también se establecieron en ellas bases operativas para muchas expediciones árticas. Los rusos llegaron en 1715. La actividad científica comenzó en la segunda mitad del siglo XVIII, y en 1899-1901 se llevó a cabo la primera expedición internacional ártica. El Tratado de Spitsbergen se firmó en París en 1920, y el 14 de agosto de 1925 el archipiélago fue oficialmente incorporado a Noruega.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/d/d9/Flag_of_Norway.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Flag_of_Norway.svg/320px-Flag_of_Norway.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Proposed_flag_of_Svalbard_%281930%29.svg/320px-Proposed_flag_of_Svalbard_%281930%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Longyearbyen,_Svalbard.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Ny-%C3%85lesund,_Svalbard.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Svalbard_glacier.jpg?width=800"
+    ]
+  },
+  {
+    "id": "iot",
+    "nombre": "Territorio Británico del Océano Índico",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/6/6e/Flag_of_the_British_Indian_Ocean_Territory.svg",
+    "historia": "El archipiélago de Chagos fue descubierto por el explorador español Diego García de Moguer en 1554, quien le dio su nombre a la isla más grande. Las islas fueron cedidas a Gran Bretaña por Francia en 1814 y administradas desde la colonia británica de Mauricio. En 1965, el Reino Unido creó el Territorio Británico del Océano Índico (BIOT), separándolo de Mauricio. Entre 1968 y 1973, la población nativa de la isla de Diego García fue desplazada para permitir la construcción de una base militar estadounidense. En 1976, algunas islas del territorio fueron transferidas a Seychelles cuando este país alcanzó la independencia. Desde entonces, el territorio ha sido objeto de disputas internacionales sobre la soberanía y el derecho al retorno de los chagosianos.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/6/6e/Flag_of_the_British_Indian_Ocean_Territory.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Flag_of_the_British_Indian_Ocean_Territory.svg/320px-Flag_of_the_British_Indian_Ocean_Territory.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Flag_of_the_British_Indian_Ocean_Territory_%28WFB_2000%29.jpg/320px-Flag_of_the_British_Indian_Ocean_Territory_%28WFB_2000%29.jpg"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Diego_Garcia,_Chagos_Archipelago.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Peros_Banhos,_Chagos.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Salomon_Islands,_Chagos.jpg?width=800"
+    ]
+  },
+  {
+    "id": "atf",
+    "nombre": "Tierras Australes Francesas",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/a/a5/Flag_of_the_French_Southern_and_Antarctic_Lands.svg",
+    "historia": "Las Tierras Australes y Antárticas Francesas (TAAF) son un territorio de ultramar creado en 1955, que agrupa varios archipiélagos subantárticos y una porción de la Antártida. La toma de posesión francesa de estos territorios se extendió entre los siglos XVIII y XIX: las islas Crozet y Kerguelen fueron descubiertas en 1772, y las islas Saint-Paul y Amsterdam en 1772 y 1557 respectivamente. Las posesiones australes y antárticas francesas fueron organizadas administrativamente por primera vez en 1924, dependiendo de Madagascar. La ley del 6 de agosto de 1955 les otorgó un estatus propio con autonomía administrativa y financiera. El territorio incluye las islas Kerguelen, Crozet, San Pablo y Amsterdam, además de la Tierra Adelia en la Antártida.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/a/a5/Flag_of_the_French_Southern_and_Antarctic_Lands.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Flag_of_the_French_Southern_and_Antarctic_Lands.svg/320px-Flag_of_the_French_Southern_and_Antarctic_Lands.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Flag_of_the_French_Southern_and_Antarctic_Lands_%28WFB_2000%29.jpg/320px-Flag_of_the_French_Southern_and_Antarctic_Lands_%28WFB_2000%29.jpg"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Kerguelen_Islands.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Crozet_Islands.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Amsterdam_Island.jpg?width=800"
+    ]
+  },
+  {
+    "id": "tkl",
+    "nombre": "Tokelau",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/8/8e/Flag_of_Tokelau.svg",
+    "historia": "Tokelau, que comprende tres atolones, fue poblada por polinesios alrededor del año 1000 d.C. El interés británico comenzó a finales de la década de 1870, y Tokelau se convirtió en protectorado británico en 1889. En 1916 fue anexada bajo el nombre de Union Group. En 1925, el Reino Unido transfirió la administración de Tokelau a Nueva Zelanda. La Tokelau Islands Act de 1948 transfirió formalmente la soberanía del Reino Unido a Nueva Zelanda, y a los tokelauanos se les concedió la ciudadanía neozelandesa. En 1946 el grupo recibió su nombre actual de Tokelau. Se han celebrado varios referendos sobre el estatus político de las islas, pero ninguno ha logrado la mayoría de dos tercios necesaria para cambiar su estatus de territorio dependiente de Nueva Zelanda.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/8/8e/Flag_of_Tokelau.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Flag_of_Tokelau.svg/320px-Flag_of_Tokelau.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Flag_of_Tokelau_%281980s%29.svg/320px-Flag_of_Tokelau_%281980s%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Atafu_atoll,_Tokelau.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Nukunonu_atoll,_Tokelau.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Fakaofo_atoll,_Tokelau.jpg?width=800"
+    ]
+  },
+  {
+    "id": "wlf",
+    "nombre": "Wallis y Futuna",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/8/8e/Flag_of_Wallis_and_Futuna.svg",
+    "historia": "Los primeros seres humanos se asentaron en las islas de Wallis y Futuna alrededor del 800 a.C., en un punto natural a medio camino entre Fiyi y Samoa. Alrededor del año 1500 d.C., inmigrantes de Tonga tomaron el poder en Wallis. Los navegantes neerlandeses visitaron Futuna en 1616, y el británico Samuel Wallis llegó a la isla que lleva su nombre en 1767. Los misioneros católicos franceses fueron los primeros europeos en asentarse permanentemente en 1837. En 1888, los reyes de Alo y Sigave, en Futuna, firmaron un tratado que establecía un protectorado francés. Wallis y Futuna fue la única colonia francesa que se puso del lado del régimen de Vichy durante la Segunda Guerra Mundial, hasta la llegada de las tropas de la Francia Libre y de EE.UU. en 1942. En 1959, los habitantes votaron a favor de separarse de Nueva Caledonia y convertirse en territorio francés de ultramar, estatus que asumieron en 1961.",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/8/8e/Flag_of_Wallis_and_Futuna.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Flag_of_Wallis_and_Futuna.svg/320px-Flag_of_Wallis_and_Futuna.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Flag_of_Wallis_and_Futuna_%281976%E2%80%931985%29.svg/320px-Flag_of_Wallis_and_Futuna_%281976%E2%80%931985%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Mata-Utu,_Wallis_and_Futuna.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Lake_Lalolalo,_Wallis.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Futuna_island,_Wallis_and_Futuna.jpg?width=800"
+    ]
+  }
+]
