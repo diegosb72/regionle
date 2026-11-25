@@ -65,12 +65,20 @@ describe('the paragraphs of a text', () => {
 describe('the spaces of a text', () => {
   it('are put right where a note was taken from between two words', () => {
     expect(spaced('Es árabe y musulmán.Su capital es Argel.')).toBe('Es árabe y musulmán. Su capital es Argel.');
+    expect(spaced('Tiene una extensión de 75 517 km².Localizado en el istmo, creció en 1990.La ley lo dice (art. 4).Así es.')).toBe('Tiene una extensión de 75 517 km². Localizado en el istmo, creció en 1990. La ley lo dice (art. 4). Así es.');
     expect(spaced('Su capital es Ámsterdam;no obstante, la sede está en La Haya.')).toBe('Su capital es Ámsterdam; no obstante, la sede está en La Haya.');
     expect(spaced('Tiene  dos   islas , y ( pocas ) más .')).toBe('Tiene dos islas, y (pocas) más.');
     expect(spaced('una población de 11 754 004habitantes')).toBe('una población de 11 754 004 habitantes');
     expect(spaced('de Santa Lucía de Siracusa..')).toBe('de Santa Lucía de Siracusa.');
     // Figures and short forms are not words that were stuck together.
-    expect(spaced('Mide 6.8 km2, el 11th del mundo, en los 1970s; EE.UU. y U.S.A. lo saben...')).toBe('Mide 6.8 km2, el 11th del mundo, en los 1970s; EE.UU. y U.S.A. lo saben...');
+    expect(spaced('Mide 6.8 km, el 11th del mundo, en los 1970s; EE.UU. y U.S.A. lo saben...')).toBe('Mide 6.8 km, el 11th del mundo, en los 1970s; EE.UU. y U.S.A. lo saben...');
+  });
+
+  it('has the figure that stood raised after a unit raised again', () => {
+    expect(spaced('It covers 83,879 km2 (32,386 sq mi), or 8.1 mi2; 383/km2 and 1.8 million km2.')).toBe('It covers 83,879 km² (32,386 sq mi), or 8.1 mi²; 383/km² and 1.8 million km².');
+    expect(spaced('A lake of 12 km3, a room of 40 m2 and a field of 900 ft2.')).toBe('A lake of 12 km³, a room of 40 m² and a field of 900 ft².');
+    // What is no unit after a figure is left as it is: a road, a year, a word.
+    expect(spaced('The M2 and the m25 lead to 2 km2000 and to Form2.')).toBe('The M2 and the m25 lead to 2 km2000 and to Form2.');
   });
 });
 
@@ -144,6 +152,10 @@ describe('the opening of a page, made short', () => {
     expect(whole('La República Democrática del Congo (RDC; en francés: République démocratique du Congo; en lingala: Republiki ya Kongó) es un país.')).toBe('La República Democrática del Congo (RDC) es un país.');
     // A name in another language is only taken from the first sentence: later, a bracket says what it says.
     expect(whole('Es un país del sur de Europa. Su lema (en latín: Plus ultra) es antiguo.')).toBe('Es un país del sur de Europa. Su lema (en latín: Plus ultra) es antiguo.');
+    // The names of Polynesia are written in Latin letters, their turned comma among them: a bracket of them is no other script.
+    expect(whole('Samoa is an island country. It has several smaller islands, including the Aleipata Islands (Nuʻutele, Nuʻulua, Fanuatapu and Namua).', 'en')).toBe(
+      'Samoa is an island country. It has several smaller islands, including the Aleipata Islands (Nuʻutele, Nuʻulua, Fanuatapu and Namua).',
+    );
     // But how something sounds, or a text in another script, is taken from anywhere.
     expect(whole('Es un país del sur de Europa. Su capital (AFI: [maˈðɾið]) es grande, y su río (نهر) es largo.')).toBe('Es un país del sur de Europa. Su capital es grande, y su río es largo.');
   });
@@ -153,6 +165,9 @@ describe('the opening of a page, made short', () => {
     expect(whole('Está cubierto por el desierto de Kalahari.[cita requerida] Limita al norte con Zambia[citation needed].')).toBe('Está cubierto por el desierto de Kalahari. Limita al norte con Zambia.');
     expect(whole('Es un territorio administrado por el Reino Unido\u200bque comprende dos archipiélagos,\u200b\u200by poco más.')).toBe('Es un territorio administrado por el Reino Unido que comprende dos archipiélagos, y poco más.');
     expect(whole('Mide\u00a021\u2009km² y tiene\u202f12 000 habitantes.')).toBe('Mide 21 km² y tiene 12 000 habitantes.');
+    // A note that stood between a word and a bracket, with no space of its own: the bracket goes, and the words stay apart.
+    expect(whole('Åland\u200b\u200b(en sueco, Åland; en finés, Ahvenanmaa)\u200b\u200bes un archipiélago y región autónoma de Finlandia.')).toBe('Åland es un archipiélago y región autónoma de Finlandia.');
+    expect(whole('Es una isla\u200b(la mayor del mar Báltico)\u200by tiene un solo puerto.')).toBe('Es una isla (la mayor del mar Báltico) y tiene un solo puerto.');
     // What a bracket of another kind holds is part of the text.
     expect(whole('Se llama Pulu Cocos [Keeling] desde entonces.')).toBe('Se llama Pulu Cocos [Keeling] desde entonces.');
   });

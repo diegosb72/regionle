@@ -113,3 +113,11 @@ decidido a mano (`leads`, o la página de la que sale):
   por las del Estado, «Palestina» y «Palestine», y de ellas sale el texto.
 - **AQ**: el comienzo del artículo en español sobre la bandera habla de la del Tratado Antártico, que no es
   la que el juego dibuja: no se enseña. El inglés, que habla de las propuestas, sí.
+- **BO**: la segunda frase del artículo en español tiene una errata («ciento doce provincias. trescientos
+  cuarenta municipios»): se deja la primera, que dice lo que es el país.
+- **AM**: en el artículo en español sobre la bandera, la segunda frase sigue tras un punto con minúscula
+  («1990. la Ley de la Bandera…»): se deja la primera. La fecha de adopción está entre los datos.
+
+Lo que es de Wikipedia y se queda como está, porque quitarlo dejaría la ficha sin lo que cuenta: «es el
+bandera» (Japón, en español), «(símbolo Estado)» (Uganda, en español), una coma por una conjunción en la de
+Costa Rica. Se arreglan en Wikipedia, no aquí.

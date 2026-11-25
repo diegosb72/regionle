@@ -14,7 +14,7 @@
 // Whoever shows the text says it is Wikipedia's, shortened, and leads to the page.
 
 /** A space with no width between two words: what is left where a note stood between them with no space of its own. */
-const GLUED = /([\p{L}\p{N}])\u200b+(?=[\p{L}\p{N}])/gu;
+const GLUED = /([\p{L}\p{N})»”])\u200b+(?=[\p{L}\p{N}(«“])/gu;
 /** What is never part of a text to read: marks that say which way a script runs, and spaces with no width. */
 const UNSEEN = /[\u200b-\u200f\u202a-\u202e\u2060\ufeff\u00ad]/g;
 /** Spaces of other widths, which plain text has no use for. */
@@ -22,8 +22,11 @@ const SPACES = /[\u00a0\u2000-\u200a\u202f\u205f\u3000\t]/g;
 /** The place of a note, or what an editor asks of the others: «[1]», «[a]», «[nota 2]», «[n. 3]», «[cita requerida]», «[citation needed]». */
 const NOTE = /\s*\[(?:\d{1,3}|[a-z]|(?:nota|note|n\.?|N)\s?\d{1,3}|[^\]\d]{0,30}(?:requerida|needed|\?))\]/gi;
 
-/** A letter of a script that is not the Latin one, or a mark of how something is said (ˈ, ː). */
-const OTHER_SCRIPT = /[^\P{L}\p{Script=Latin}]/u;
+/**
+ * A letter of a script that is not the Latin one, or a mark of how something is said (ˈ, ː). The turned comma
+ * and the apostrophe of the names of Polynesia («Nuʻutele») are letters of theirs, written in Latin script.
+ */
+const OTHER_SCRIPT = /[^\P{L}\p{Script=Latin}\u02bb\u02bc]/u;
 /** How something is said, between brackets or bars: «[ˈqɑtˁɑr]», «/buˈɾundi/». */
 const SOUNDS = /\[[^\]]*\]|\/[^/\s][^/]*\//;
 /** A word that tells how a name is said or written: in any sentence, whatever it is of. */
@@ -91,7 +94,7 @@ function unglossed(sentence, lang, first) {
   return out + sentence.slice(at);
 }
 
-/** The spaces of a text put right: one between words, none before a mark that closes, one after a full stop that had none. */
+/** The spaces of a text put right: one between words, none before a mark that closes, one after a full stop that had none; and the raised figure of a unit, raised again. */
 export function spaced(text) {
   return text
     .replace(/[ ]{2,}/g, ' ')
@@ -100,8 +103,10 @@ export function spaced(text) {
     .replace(/ +([,;:.!?])/g, '$1')
     .replace(/,(?:\s*,)+/g, ',')
     .replace(/([,;])(\p{L})/gu, '$1 $2')
-    .replace(/(\p{Ll}[.!?])(\p{Lu}\p{Ll})/gu, '$1 $2')
+    .replace(/([\p{Ll}\p{N}²³%)»”][.!?])(\p{Lu}\p{Ll})/gu, '$1 $2')
     .replace(/(\d)(\p{Ll}{5,})/gu, '$1 $2')
+    // A figure that stood raised after a unit comes down as plain text: «km2» is «km²».
+    .replace(/((?:\d[ \u00a0]?(?:m|cm|ft)|(?<![\p{L}\p{N}])(?:km|mi)))([23])(?![\p{L}\p{N}])/gu, (_, unit, n) => `${unit}${n === '2' ? '²' : '³'}`)
     .replace(/([^.])\.\.(?!\.)/g, '$1.')
     .trim();
 }
