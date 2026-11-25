@@ -1,31 +1,62 @@
 {
-  "when": "2026-11-25T06:56:21.404Z",
-  "from": "main@757cff5",
+  "when": "2026-11-25T08:09:19.873Z",
+  "from": "arena/baec5cdd-regionle@0af412c",
   "workflow": "same",
   "sources": [
     {
-      "id": "texts",
-      "file": "countries/texts.json",
-      "from": "Wikipedia (https://www.wikipedia.org)",
-      "licence": "CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/): cada texto es de los autores de su página, que es la que le da nombre",
-      "what": "How Wikipedia begins to tell of each country of the game and of its flag: the opening of each page that the sheets of the countries lead to (public/data/profiles/<country>.json: read and readFlag), in Spanish and in English, as plain text. pages, by language:title, the title being the one the sheet names: the text (text), the revision of the page it was read from (rev) and, when that title leads to another page, the title of that one (title).",
-      "es": "Cómo empieza Wikipedia a hablar de cada país y de su bandera",
+      "id": "heads",
+      "file": "heads/heads.json",
+      "from": "Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org)",
+      "licence": "Lo de Wikidata, CC0; cada imagen, la licencia que dice su entrada: dominio público o una licencia libre",
+      "what": "What could be shown at the head of the sheet of each country that is named (scripts/data/heads-asked.txt): the pictures Wikidata shows what the country is known by with (what UNESCO lists as World Heritage, its national parks, what is called a tourist attraction, its capital and its highest point). items: of each country, by its id, its candidates (sights), the best known of each kind first: the file, the kind (heritage, park, sight, capital, top), the entity it is of (of), how many Wikipedias tell of it (links) and its name (es, en). files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height of the original, licence and its address, author, credit, whether it must be attributed and its page; and where the small picture of it, 330 px wide, is kept in this branch (picture), to choose among them by eye. Only photographs at least 1900 px wide and between 1.25 and 2.4 times wider than tall are candidates. Nothing is chosen here: the one that stays is written in scripts/data/profiles-heads.json and brought by the source photos.",
+      "es": "Candidatas a fotografía de cabecera de las fichas de los países",
       "needs": "113",
       "ok": true,
-      "bytes": 1872491,
-      "blob": "92fd485c724f638c0a23fe742dd4e75beaa502a2",
-      "note": "el comienzo de 970 de 970 páginas, de 249 fichas (en: 485, es: 485)",
+      "bytes": 205920,
+      "blob": "cf877d4fa4de11fb9044b108f480da3398a7c74b",
+      "note": "326 candidatas para 50 de 50 países: 326 imágenes traídas (9408 kB); 293 que no sirven de cabecera",
       "detail": {
-        "asked": 970,
-        "sheets": 249,
-        "read": 970,
-        "by": {
-          "en": 485,
-          "es": 485
+        "asked": 50,
+        "found": 50,
+        "none": [],
+        "files": {
+          "all": 326,
+          "unfit": 293,
+          "brought": 326,
+          "left": 0,
+          "bytes": 9408085
+        },
+        "kinds": {
+          "heritage": 198,
+          "park": 63,
+          "capital": 31,
+          "sight": 21,
+          "top": 20
+        },
+        "licences": {
+          "CC BY-SA 4.0": 104,
+          "CC BY-SA 3.0": 97,
+          "CC BY 2.0": 33,
+          "CC BY-SA 2.0": 19,
+          "Public domain": 15,
+          "CC BY 3.0": 13,
+          "CC BY 4.0": 9,
+          "CC BY-SA 2.5": 7,
+          "FAL": 7,
+          "CC BY 2.5": 5,
+          "CC BY-SA 3.0 de": 5,
+          "CC0": 4,
+          "CC BY-SA 3.0 igo": 2,
+          "CC BY-SA 1.0": 1,
+          "CC BY-SA 2.5 nl": 1,
+          "GFDL": 1,
+          "KOGL Type 1": 1,
+          "Licence Ouverte": 1,
+          "OGL v1.0": 1
         },
         "undone": []
       },
-      "ms": 44986
+      "ms": 197628
     }
   ],
   "reach": []
