@@ -1,6 +1,6 @@
 {
-  "when": "2026-11-25T08:40:13.003Z",
-  "from": "arena/baec5cdd-regionle@d78759b",
+  "when": "2026-11-25T09:41:09.862Z",
+  "from": "main@0ed73f2",
   "workflow": "same",
   "sources": [
     {
@@ -38,7 +38,7 @@
         },
         "undone": []
       },
-      "ms": 29512
+      "ms": 38273
     }
   ],
   "reach": []
