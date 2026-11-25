@@ -559,10 +559,14 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
                 )}`}
               {profile.about && ` ${L('El texto está escrito para el juego, con lo que cuentan Wikipedia y The World Factbook.', 'The text is written for the game, from what Wikipedia and The World Factbook tell.')}`}
               {head &&
-                ` ${L(
-                  'Las fotografías son de Wikimedia Commons, reducidas de tamaño; bajo cada una van su autor y su licencia.',
-                  'The photographs are from Wikimedia Commons, made smaller; under each are its author and its licence.',
-                )}`}
+                ` ${
+                  (profile.photos?.length ?? 0) + (profile.times?.some((time) => time.picture) ? 1 : 0) > 1
+                    ? L(
+                        'Las fotografías son de Wikimedia Commons, reducidas de tamaño; bajo cada una van su autor y su licencia.',
+                        'The photographs are from Wikimedia Commons, made smaller; under each are its author and its licence.',
+                      )
+                    : L('La fotografía es de Wikimedia Commons, reducida de tamaño; bajo ella van su autor y su licencia.', 'The photograph is from Wikimedia Commons, made smaller; under it are its author and its licence.')
+                }`}
             </p>
             <p className="fp-foot-links">
               {read && (
