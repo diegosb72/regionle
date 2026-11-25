@@ -121,49 +121,60 @@
 # LT: Vilnius old town
 # LU: Luxembourg City Grund
 # LU: Vianden Castle
-LV: Riga old town
-LV: House of the Blackheads Riga
-MA: Aït Benhaddou
-MA: Chefchaouen
-MA: Hassan II Mosque
-MC: Monaco harbour
-MD: Orheiul Vechi
-MD: Chișinău
-ME: Bay of Kotor
-ME: Sveti Stefan
-MK: Ohrid
-MT: Valletta
-MY: Petronas Towers
-MY: Mount Kinabalu
-MZ: Island of Mozambique
-MZ: Maputo
-NL: Kinderdijk
-NL: Amsterdam canal
-NO: Geirangerfjord
-NO: Lofoten Reine
-PL: Wawel
-PL: Kraków Main Square
-PT: Belém Tower
-PT: Porto Ribeira
-PT: Pena Palace
-RO: Peleș Castle
-RO: Bran Castle
-RS: Belgrade Fortress
-RS: Church of Saint Sava
-SA: Mada'in Salih
-SA: Riyadh skyline
-SE: Stockholm Gamla stan
-SE: Riddarholmen
-SI: Lake Bled
-SK: Spiš Castle
-SK: High Tatras
-SM: Guaita
-UA: Kyiv Pechersk Lavra
-UA: Saint Sophia Cathedral Kyiv
-UZ: Registan
-UZ: Khiva
-VA: St. Peter's Basilica
-VA: St. Peter's Square
-XK: Prizren
-YE: Sana'a old city
-YE: Socotra dragon blood tree
+# LV: Riga old town
+# LV: House of the Blackheads Riga
+# MA: Aït Benhaddou
+# MA: Chefchaouen
+# MA: Hassan II Mosque
+# MC: Monaco harbour
+# MD: Orheiul Vechi
+# MD: Chișinău
+# ME: Bay of Kotor
+# ME: Sveti Stefan
+# MK: Ohrid
+# MT: Valletta
+# MY: Petronas Towers
+# MY: Mount Kinabalu
+# MZ: Island of Mozambique
+# MZ: Maputo
+# NL: Kinderdijk
+# NL: Amsterdam canal
+# NO: Geirangerfjord
+# NO: Lofoten Reine
+# PL: Wawel
+# PL: Kraków Main Square
+# PT: Belém Tower
+# PT: Porto Ribeira
+# PT: Pena Palace
+# RO: Peleș Castle
+# RO: Bran Castle
+# RS: Belgrade Fortress
+# RS: Church of Saint Sava
+# SA: Mada'in Salih
+# SA: Riyadh skyline
+# SE: Stockholm Gamla stan
+# SE: Riddarholmen
+# SI: Lake Bled
+# SK: Spiš Castle
+# SK: High Tatras
+# SM: Guaita
+# UA: Kyiv Pechersk Lavra
+# UA: Saint Sophia Cathedral Kyiv
+# UZ: Registan
+# UZ: Khiva
+# VA: St. Peter's Basilica
+# VA: St. Peter's Square
+# XK: Prizren
+# YE: Sana'a old city
+# YE: Socotra dragon blood tree
+#
+# Asked again with other words: what came of the first ones was of other places (Neuschwanstein for Peleș)
+# or showed little of the country.
+FI: Olavinlinna
+FI: Senate Square Helsinki
+FI: Koli Pielinen
+FI: Lake Saimaa
+RO: Bran Castle Romania
+RO: Castelul Peleș
+RO: Sighișoara
+RO: Palace of the Parliament Bucharest
