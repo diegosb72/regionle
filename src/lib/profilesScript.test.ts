@@ -108,6 +108,8 @@ beforeAll(async () => {
   fs.writeFileSync(path.join(data, 'index.json'), JSON.stringify({ countries: [{ id: 'AA', fl: 'aa' }, { id: 'BB', fl: 'bb' }, { id: 'CC', fl: 'cc' }, { id: 'X1' }] }));
   fs.writeFileSync(path.join(data, 'facts.json'), JSON.stringify({ c: { AA: { l: ['aa'] }, CC: { l: ['fr', 'en'] } }, l: { fr: ['francés', 'French'], la: ['latín', 'Latin'] } }));
   fs.writeFileSync(path.join(TMP, 'said.json'), JSON.stringify(SAID));
+  // Nothing of how Wikipedia begins to tell of them, unless a test says otherwise.
+  fs.writeFileSync(path.join(TMP, 'texts.json'), JSON.stringify({ pages: {} }));
   fs.writeFileSync(
     path.join(data, 'flags.json'),
     JSON.stringify({ regions: {}, capitals: [], gone: [['Q9', 'Reino de Aa', 'Kingdom of Aa', '0000000001.svg', 1.5, 1800, 1900]], past: { AA: [['0000000002.svg', 1.5, 1900, 1950]], BB: [['0000000003.svg', 1.5, 1700, 1750]] } }),
@@ -147,10 +149,14 @@ const SHEET = () => ({
 let n = 0;
 /**
  * Runs the script on the sheets that are given, each under the name of its file. `fixes` are the corrections
- * by hand, `said` what the sources say when it is not what they say above (`null`: nothing was brought), and
- * `flags` what else the script is told.
+ * by hand, `said` what the sources say when it is not what they say above (`null`: nothing was brought),
+ * `texts` how Wikipedia begins each page, by `language:title` (`null`: nothing was brought), and `flags` what
+ * else the script is told.
  */
-function run(sheets: Record<string, unknown>, opts: { before?: (dirs: { data: string; photos: string }) => void; fixes?: Record<string, unknown>; said?: unknown; flags?: string[] } = {}) {
+function run(
+  sheets: Record<string, unknown>,
+  opts: { before?: (dirs: { data: string; photos: string }) => void; fixes?: Record<string, unknown>; said?: unknown; texts?: Record<string, string> | null; flags?: string[] } = {},
+) {
   const dir = path.join(TMP, `run-${++n}`);
   const [written, mine, photos] = [path.join(dir, 'sheets'), path.join(dir, 'data'), path.join(dir, 'photos')];
   fs.mkdirSync(written, { recursive: true });
@@ -163,11 +169,16 @@ function run(sheets: Record<string, unknown>, opts: { before?: (dirs: { data: st
     said = path.join(dir, 'said.json');
     if (opts.said !== null) fs.writeFileSync(said, JSON.stringify(opts.said));
   }
+  let texts = path.join(TMP, 'texts.json');
+  if (opts.texts !== undefined) {
+    texts = path.join(dir, 'texts.json');
+    if (opts.texts !== null) fs.writeFileSync(texts, JSON.stringify({ pages: Object.fromEntries(Object.entries(opts.texts).map(([page, text], i) => [page, { rev: 100 + i, text }])) }));
+  }
   opts.before?.({ data: mine, photos });
   let out = '';
   let code = 0;
   try {
-    out = execFileSync('node', [SCRIPT, '--sheets', written, '--brought', brought, '--said', said, '--fixes', fixes, '--data', mine, '--photos', photos, ...(opts.flags ?? [])], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    out = execFileSync('node', [SCRIPT, '--sheets', written, '--brought', brought, '--said', said, '--texts', texts, '--fixes', fixes, '--data', mine, '--photos', photos, ...(opts.flags ?? [])], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
   } catch (err) {
     const failed = err as { status?: number; stderr?: string; stdout?: string };
     code = failed.status ?? 1;
@@ -297,7 +308,7 @@ describe('the sheet of a country nobody has written of', () => {
     expect(r.pictures()).toEqual([]);
     // Of what nothing is said, a sheet with nothing but whose it is: the game shows it with what it knows.
     expect(r.sheet('BB')).toEqual({ v: 1, id: 'BB' });
-    expect(r.out).toMatch(/3 fichas .*0 escritas a mano; nombre oficial en 2, lema en 2, himno en 2, fecha de la bandera en 2, proporción en 2/);
+    expect(r.out).toMatch(/3 fichas .*0 escritas a mano; nombre oficial en 2, lema en 2, himno en 2, fecha de la bandera en 2, proporción en 2; texto de Wikipedia del país en 0 y de la bandera en 0/);
   });
 
   it('takes the day both boxes give when Wikidata gives another, and tells whoever reviews it', () => {
@@ -388,6 +399,93 @@ describe('the sheet of a country nobody has written of', () => {
   });
 });
 
+describe('how Wikipedia begins to tell of a country and of its flag', () => {
+  /** A text longer than a sheet shows: sentences of some sixty characters, each with its number. */
+  const long = (what: string, n: number) => Array.from({ length: n }, (_, i) => `${what} tiene una frase número ${i + 1} que dice algo de ella.`).join(' ');
+  const TEXTS = {
+    'es:Cc (país)': 'Cc (en francés: République de Cc\u200e, AFI: [se.se]), oficialmente República de Cc,\u200b es un país.[1] Tiene dos islas.\nOtro párrafo, que ya no cabe aquí.',
+    'en:Cc': 'Cc (French: République de Cc), officially the Republic of Cc, is a country. It has two islands.',
+    'es:Bandera de Cc': 'La bandera de Cc es roja, amarilla y blanca. Fue adoptada en 1960.',
+    'es:Aa': 'Aa es un país del que alguien ha escrito a mano.',
+    'es:Bandera de Aa': 'La bandera de Aa es roja y blanca desde 1950.',
+  };
+
+  it('is told in the sheet of whom nobody has written of, shortened, in each language whose page was brought', () => {
+    const r = run({}, { texts: TEXTS });
+    expect(r.code).toBe(0);
+    const sheet = r.sheet('CC');
+    // The brackets that say how it is called elsewhere, the place of a note and the marks that are not seen are gone.
+    expect(sheet.lead).toEqual({ es: ['Cc, oficialmente República de Cc, es un país. Tiene dos islas.', 'Otro párrafo, que ya no cabe aquí.'], en: ['Cc, officially the Republic of Cc, is a country. It has two islands.'] });
+    // Of its flag, the page in Spanish was brought and the one in English was not.
+    expect(sheet.flag?.lead).toEqual({ es: ['La bandera de Cc es roja, amarilla y blanca. Fue adoptada en 1960.'] });
+    // What else the sheet says is what it said.
+    expect(sheet.flag).toMatchObject({ adopted: '1960-08-07', ratio: '1:2' });
+    expect(sheet.read).toEqual({ es: 'https://es.wikipedia.org/wiki/Cc_(pa%C3%ADs)', en: 'https://en.wikipedia.org/wiki/Cc' });
+    // A country the sheet leads to no page of has nothing to tell.
+    expect(r.sheet('BB')).toEqual({ v: 1, id: 'BB' });
+    expect(r.out).toMatch(/texto de Wikipedia del país en 2 y de la bandera en 2/);
+  });
+
+  it('is cut after as many whole sentences as fit: more of the country than of its flag', () => {
+    const r = run({}, { texts: { 'es:Cc (país)': long('La república', 30), 'es:Bandera de Cc': long('La bandera', 30) } });
+    const [about, flag] = [r.sheet('CC').lead!.es!, r.sheet('CC').flag!.lead!.es!];
+    expect(about).toHaveLength(1);
+    expect(flag).toHaveLength(1);
+    expect(about[0].length).toBeLessThanOrEqual(640);
+    expect(about[0].length).toBeGreaterThan(560);
+    expect(flag[0].length).toBeLessThanOrEqual(480);
+    expect(flag[0].length).toBeGreaterThan(400);
+    for (const text of [about[0], flag[0]]) expect(text).toMatch(/^La (república|bandera) tiene una frase número 1 .* que dice algo de ella\.$/);
+  });
+
+  it('is not told where somebody has written: of the country, of its flag, or of both', () => {
+    const r = run({ AA: SHEET() }, { texts: TEXTS });
+    expect(r.code).toBe(0);
+    const sheet = r.sheet('AA');
+    expect(sheet.about).toEqual({ es: ['Uno.', 'Dos.'], en: ['One.', 'Two.'] });
+    expect(sheet.lead).toBeUndefined();
+    expect(sheet.flag?.text).toEqual({ es: ['De la bandera.'], en: ['Of the flag.'] });
+    expect(sheet.flag?.lead).toBeUndefined();
+    // With nobody having written of it, it is.
+    const plain = run({}, { texts: TEXTS }).sheet('AA');
+    expect(plain.lead).toEqual({ es: ['Aa es un país del que alguien ha escrito a mano.'] });
+    expect(plain.flag?.lead).toEqual({ es: ['La bandera de Aa es roja y blanca desde 1950.'] });
+  });
+
+  it('is, of the flag of a territory that flies that of its country, what is told of that flag', () => {
+    const r = run({}, { texts: TEXTS, fixes: { BB: { flag: { of: 'CC' } } } });
+    expect(r.code).toBe(0);
+    expect(r.sheet('BB').flag?.lead).toEqual({ es: ['La bandera de Cc es roja, amarilla y blanca. Fue adoptada en 1960.'] });
+    expect(r.sheet('BB').flag?.of).toBe('CC');
+    // Of the territory itself there is no page: nothing is told.
+    expect(r.sheet('BB').lead).toBeUndefined();
+  });
+
+  it('is cut where whoever read it says, or not shown: and what is said of it is no part of the sheet', () => {
+    const r = run({}, { texts: TEXTS, fixes: { CC: { leads: { about: { es: 1, en: false }, flag: { es: false } }, motto: null }, BB: { flag: { of: 'CC' } } } });
+    expect(r.code).toBe(0);
+    const sheet = r.sheet('CC') as unknown as Record<string, unknown> & Written;
+    expect(sheet.lead).toEqual({ es: ['Cc, oficialmente República de Cc, es un país.'] });
+    expect(sheet.flag?.lead).toBeUndefined();
+    expect(sheet.leads).toBeUndefined();
+    // The rest of the corrections is laid as it was.
+    expect(sheet.motto).toBeUndefined();
+    expect(sheet.official).toEqual({ es: 'República de Cc', en: 'Republic of Cc' });
+    // What was said of the flag holds for whoever flies it.
+    expect(r.sheet('BB').flag?.lead).toBeUndefined();
+    // More sentences than it would keep by itself can be asked for too.
+    const more = run({}, { texts: { 'es:Cc (país)': long('La república', 30) }, fixes: { CC: { leads: { about: { es: 12 } } } } });
+    expect(more.sheet('CC').lead!.es![0]).toMatch(/frase número 12 que dice algo de ella\.$/);
+  });
+
+  it('is not made a sheet of when it was not brought', () => {
+    const r = run({}, { texts: null });
+    expect(r.code).not.toBe(0);
+    expect(r.out).toContain('npm run data:fetch -- countries-texts');
+    expect(r.written()).toEqual([]);
+  });
+});
+
 describe('what is written by hand, over what the sources say', () => {
   it('is what the sheet says; what nobody wrote stays as it was read', () => {
     const r = run({ AA: SHEET() });
@@ -416,7 +514,7 @@ describe('what is written by hand, over what the sources say', () => {
     const gone = (dirs: { data: string }) => void dirs;
     const without = path.join(TMP, 'no-photos');
     fs.mkdirSync(without, { recursive: true });
-    const args = (sheets: string) => [SCRIPT, '--sheets', sheets, '--brought', without, '--said', path.join(TMP, 'said.json'), '--fixes', path.join(TMP, 'none.json'), '--data', path.join(TMP, 'data-np'), '--photos', path.join(TMP, 'photos-np')];
+    const args = (sheets: string) => [SCRIPT, '--sheets', sheets, '--brought', without, '--said', path.join(TMP, 'said.json'), '--texts', path.join(TMP, 'texts.json'), '--fixes', path.join(TMP, 'none.json'), '--data', path.join(TMP, 'data-np'), '--photos', path.join(TMP, 'photos-np')];
     fs.cpSync(data, path.join(TMP, 'data-np'), { recursive: true });
     const empty = path.join(TMP, 'sheets-none');
     fs.mkdirSync(empty, { recursive: true });

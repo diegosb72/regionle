@@ -81,7 +81,7 @@ function unglossed(sentence, lang, first) {
   for (const [from, to] of brackets(sentence)) {
     const inside = sentence.slice(from + 1, to - 1);
     out += sentence.slice(at, from);
-    const parts = gloss(inside, lang, first) ? [] : inside.split(';').filter((part, i, all) => all.length === 1 || !gloss(part, lang, first));
+    const parts = gloss(inside, lang, first) ? [] : inside.split(';').filter((part, i, all) => all.length === 1 || !gloss(part.trimStart(), lang, first));
     const kept = unglossed(parts.join(';'), lang, false).replace(/^[\s;,:]+|[\s;,:]+$/g, '');
     if (kept) out += `(${kept})`;
     // What was before a bracket that is gone is not left hanging from a space before a mark.
@@ -145,10 +145,15 @@ export function sentencesOf(paragraph, lang) {
   return out;
 }
 
+/** How many paragraphs are kept at most: a page of many short ones is not shown as a list of lines. */
+const PARAGRAPHS = 3;
+/** The shortest line that is taken for a sentence when it ends with no mark: a shorter one is the name of a thing in a list, or a heading. */
+const A_SENTENCE = 60;
+
 /**
  * The paragraphs of a text, each on its line. A line that is broken in the middle of a sentence (the next
  * one goes on in small letters, or a bracket was left open) is put together again; one that ends with no
- * mark at all, where a paragraph ends, is given its full stop.
+ * mark at all, where a paragraph ends, is given its full stop when it is long enough to be a sentence.
  */
 export function paragraphsOf(text) {
   const lines = text
@@ -162,7 +167,7 @@ export function paragraphsOf(text) {
     if (before !== undefined && !/[.!?…:][»”"')\]]*$/.test(before) && (open || /^[\p{Ll}(]/u.test(line))) out[out.length - 1] = `${before} ${line}`;
     else out.push(line);
   }
-  return out.map((p) => (/[\p{L}\p{N})»”]$/u.test(p) ? `${p}.` : p));
+  return out.map((p) => (p.length >= A_SENTENCE && /[\p{L}\p{N})»”]$/u.test(p) ? `${p}.` : p));
 }
 
 /** Whether a sentence can be the last that is shown, or be shown at all: whole, closed, and not one that only leads to what is no longer there. */
@@ -172,7 +177,7 @@ function sound(sentence) {
   if (count('(') !== count(')') || count('«') !== count('»') || count('“') !== count('”') || count('"') % 2) return false;
   // Something was here that plain text did not keep: a formula, a quotation, a list.
   if (/\(\s*\)|:\s*$|\b(?:siguiente|following):?[.]?$/i.test(sentence)) return false;
-  return sentence.length >= 20;
+  return sentence.length >= 12;
 }
 
 /**
@@ -189,8 +194,8 @@ export function leadOf(text, { lang, max, most = Math.round(max * 1.6), keep } =
   let kept = 0;
   let first = true;
   for (const paragraph of paragraphs) {
-    // A second paragraph is begun only while little has been said.
-    if (out.length && keep === undefined && length > max / 2) break;
+    // Another paragraph is begun only while little has been said, and never a fourth.
+    if (out.length && keep === undefined && (length > max / 2 || out.length >= PARAGRAPHS)) break;
     const mine = [];
     let stop = false;
     for (const raw of sentencesOf(paragraph, lang)) {
