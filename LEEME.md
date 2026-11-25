@@ -7,8 +7,8 @@ Qué se trae y de dónde lo dice `scripts/data/outside.mjs`, en la rama del jueg
 
 ## Última descarga: 2026-11-25
 
-Hecha con `arena/baec5cdd-regionle@516f712`. Lo que no se pidió esta vez sigue en la rama `datos` como estaba.
+Hecha con `arena/baec5cdd-regionle@c1dd36d`. Lo que no se pidió esta vez sigue en la rama `datos` como estaba.
 
 | Archivo | Qué es | De dónde | Licencia | Resultado |
 | --- | --- | --- | --- | --- |
-| `photos/photos.json` | Fotografías de las fichas de los países | Wikimedia Commons (https://commons.wikimedia.org) | La de cada archivo, que su entrada dice: dominio público o una licencia libre | 33 kB · 60 fotografías de 51 fichas: 60 traídas (38.462 kB) |
+| `heads/heads.json` | Candidatas a fotografía de cabecera de las fichas de los países | Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org) | Lo de Wikidata, CC0; cada imagen, la licencia que dice su entrada: dominio público o una licencia libre | 14 kB · 20 candidatas para 1 de 1 países: 20 imágenes traídas (508 kB); 3 cosas buscadas en Commons por su nombre; 4 que no sirven de cabecera |
