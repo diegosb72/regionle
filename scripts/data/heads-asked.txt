@@ -546,60 +546,60 @@
 # CX: Flying Fish Cove Christmas Island
 #
 # Part B
-FK: Stanley Falkland Islands harbour
-FK: Falkland Islands penguins coast
-FO: Gasadalur Faroe Islands waterfall
-FO: Torshavn Faroe Islands harbour
-GF: French Guiana Amazon river aerial
-GF: Cayenne French Guiana
-GG: Guernsey coastal cliffs
-GG: St Peter Port Guernsey
-GI: Rock of Gibraltar
-GI: Gibraltar bay sunset
-GL: Ilulissat Icefjord Greenland
-GL: Nuuk Greenland harbour
-GP: Guadeloupe La Soufriere volcano
-GP: Petite Terre Guadeloupe
-GS: South Georgia king penguins Salisbury Plain
-GS: Grytviken South Georgia
-GU: Pago Bay Guam
-GU: Tumon Bay Guam
-HK: Victoria Harbour Hong Kong skyline
-HK: Victoria Peak Hong Kong
-HM: Heard Island Big Ben volcano
-HM: Heard Island coast
-IM: Snaefell Isle of Man
-IM: Douglas Bay Isle of Man
-IO: Diego Garcia Chagos atoll
-IO: Peros Banhos Chagos
+# FK: Stanley Falkland Islands harbour
+# FK: Falkland Islands penguins coast
+# FO: Gasadalur Faroe Islands waterfall
+# FO: Torshavn Faroe Islands harbour
+# GF: French Guiana Amazon river aerial
+# GF: Cayenne French Guiana
+# GG: Guernsey coastal cliffs
+# GG: St Peter Port Guernsey
+# GI: Rock of Gibraltar
+# GI: Gibraltar bay sunset
+# GL: Ilulissat Icefjord Greenland
+# GL: Nuuk Greenland harbour
+# GP: Guadeloupe La Soufriere volcano
+# GP: Petite Terre Guadeloupe
+# GS: South Georgia king penguins Salisbury Plain
+# GS: Grytviken South Georgia
+# GU: Pago Bay Guam
+# GU: Tumon Bay Guam
+# HK: Victoria Harbour Hong Kong skyline
+# HK: Victoria Peak Hong Kong
+# HM: Heard Island Big Ben volcano
+# HM: Heard Island coast
+# IM: Snaefell Isle of Man
+# IM: Douglas Bay Isle of Man
+# IO: Diego Garcia Chagos atoll
+# IO: Peros Banhos Chagos
 #
 # Part C
-# JE: Mont Orgueil Jersey castle
-# JE: La Corbiere lighthouse Jersey
-# KY: Stingray City Grand Cayman
-# KY: Seven Mile Beach Grand Cayman
-# MF: Marigot Saint Martin France
-# MF: Grand Case Saint Martin
-# MO: Macau Ruins St Pauls
-# MO: Macau skyline
-# MP: Managaha Island Saipan
-# MP: Bird Island Saipan
-# MQ: Les Anses d Arlet Martinique
-# MQ: Mount Pelee Martinique
-# MS: Soufriere Hills volcano Montserrat
-# MS: Little Bay Montserrat
-# NC: Noumea New Caledonia
-# NC: Isle of Pines New Caledonia
-# NF: Kingston Norfolk Island
-# NF: Norfolk Island pines
-# NU: Avaiki cave Niue
-# NU: Niue coastline
-# PF: Bora Bora French Polynesia
-# PF: Moorea Tahiti lagoon
-# PM: Saint Pierre Miquelon harbour
-# PM: Ile aux Marins Saint Pierre Miquelon
-# PN: Bounty Bay Pitcairn Island
-# PN: Adamstown Pitcairn panorama
+JE: Mont Orgueil Jersey castle
+JE: La Corbiere lighthouse Jersey
+KY: Stingray City Grand Cayman
+KY: Seven Mile Beach Grand Cayman
+MF: Marigot Saint Martin France
+MF: Grand Case Saint Martin
+MO: Macau Ruins St Pauls
+MO: Macau skyline
+MP: Managaha Island Saipan
+MP: Bird Island Saipan
+MQ: Les Anses d Arlet Martinique
+MQ: Mount Pelee Martinique
+MS: Soufriere Hills volcano Montserrat
+MS: Little Bay Montserrat
+NC: Noumea New Caledonia
+NC: Isle of Pines New Caledonia
+NF: Kingston Norfolk Island
+NF: Norfolk Island pines
+NU: Avaiki cave Niue
+NU: Niue coastline
+PF: Bora Bora French Polynesia
+PF: Moorea Tahiti lagoon
+PM: Saint Pierre Miquelon harbour
+PM: Ile aux Marins Saint Pierre Miquelon
+PN: Bounty Bay Pitcairn Island
+PN: Adamstown Pitcairn panorama
 #
 # Part D
 # PR: Old San Juan Puerto Rico
