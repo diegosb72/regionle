@@ -1,44 +1,45 @@
 {
-  "when": "2026-11-25T11:40:46.686Z",
-  "from": "arena/baec5cdd-regionle@4b3368f",
+  "when": "2026-11-25T11:43:33.093Z",
+  "from": "arena/baec5cdd-regionle@e11f83c",
   "workflow": "same",
   "sources": [
     {
-      "id": "arms",
-      "file": "arms/arms.json",
-      "from": "Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org)",
-      "licence": "Lo de Wikidata, CC0; cada imagen, la licencia que dice su entrada: dominio público o una licencia libre",
-      "what": "The coat of arms of each country of the game, or its emblem or its seal: the file Wikidata shows it with (P94) and the one that somebody chose for it by hand instead (scripts/data/profiles-fixes.json). items, by the id of the country: the files Wikidata names (files), in order of name, and the one chosen by hand (chosen). files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height of the original, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; and where the picture of it that Wikimedia draws, 330 px wide, is kept in this branch (picture): the original is not brought. The pictures are under arms/files, each named after the SHA-1 of its original.",
-      "es": "Escudo de cada país",
+      "id": "photos",
+      "file": "photos/photos.json",
+      "from": "Wikimedia Commons (https://commons.wikimedia.org)",
+      "licence": "La de cada archivo, que su entrada dice: dominio público o una licencia libre",
+      "what": "The photographs that the sheets of the countries show, each a file of Commons that a sheet names (scripts/data/profiles/<country>.json) or the one chosen for the head of the sheet of a country nobody has written of (scripts/data/profiles-heads.json). items: the titles of those of each sheet, by the id of its country (photos). files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height of the original, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; and where the picture of it that Wikimedia draws, 1920 px wide, is kept in this branch (picture): the original is not brought. The pictures are under photos/files, each named after the SHA-1 of its original.",
+      "es": "Fotografías de las fichas de los países",
       "needs": "113",
       "ok": true,
-      "bytes": 130203,
-      "blob": "9d03a20a7cdb5a533f959162a64a2248756acd1c",
-      "note": "escudo de 239 de 251 países: 242 imágenes traídas (21.626 kB); 4 elegidos a mano",
+      "bytes": 61384,
+      "blob": "0c0b2654ce8f564f5402fe4b0582e8251ad13cc2",
+      "note": "110 fotografías de 101 fichas: 110 traídas (74.954 kB)",
       "detail": {
-        "asked": 251,
-        "found": 239,
+        "asked": 110,
+        "found": 110,
         "files": {
-          "all": 242,
+          "all": 110,
           "missing": 0,
-          "brought": 242,
+          "brought": 110,
           "left": 0,
-          "bytes": 21626044
+          "bytes": 74954348
         },
         "licences": {
-          "Public domain": 165,
-          "CC BY-SA 3.0": 40,
-          "CC BY-SA 4.0": 23,
-          "CC0": 8,
-          "Attribution": 2,
-          "CC BY 2.5": 1,
-          "CC BY 3.0": 1,
-          "CC BY 4.0": 1,
-          "OGL-om 1.0": 1
+          "CC BY-SA 4.0": 56,
+          "CC BY-SA 3.0": 27,
+          "CC BY 2.0": 6,
+          "CC BY-SA 2.0": 5,
+          "CC BY 3.0": 3,
+          "CC BY 4.0": 3,
+          "CC BY-SA 2.5": 3,
+          "CC0": 3,
+          "Public domain": 3,
+          "CC BY-SA 3.0 nl": 1
         },
         "undone": []
       },
-      "ms": 124490
+      "ms": 54715
     }
   ],
   "reach": []

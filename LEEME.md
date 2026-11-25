@@ -7,8 +7,8 @@ Qué se trae y de dónde lo dice `scripts/data/outside.mjs`, en la rama del jueg
 
 ## Última descarga: 2026-11-25
 
-Hecha con `arena/baec5cdd-regionle@4b3368f`. Lo que no se pidió esta vez sigue en la rama `datos` como estaba.
+Hecha con `arena/baec5cdd-regionle@e11f83c`. Lo que no se pidió esta vez sigue en la rama `datos` como estaba.
 
 | Archivo | Qué es | De dónde | Licencia | Resultado |
 | --- | --- | --- | --- | --- |
-| `arms/arms.json` | Escudo de cada país | Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org) | Lo de Wikidata, CC0; cada imagen, la licencia que dice su entrada: dominio público o una licencia libre | 130 kB · escudo de 239 de 251 países: 242 imágenes traídas (21.626 kB); 4 elegidos a mano |
+| `photos/photos.json` | Fotografías de las fichas de los países | Wikimedia Commons (https://commons.wikimedia.org) | La de cada archivo, que su entrada dice: dominio público o una licencia libre | 61 kB · 110 fotografías de 101 fichas: 110 traídas (74.954 kB) |
