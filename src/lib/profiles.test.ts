@@ -348,10 +348,16 @@ describe('the sheet of every country', () => {
     // The file is written by hand, one country to a line and in order; and every country it names is one of the game.
     expect(ids).toEqual([...ids].sort());
     for (const id of ids) expect(LANDS, id).toContain(id);
-    // The first lot: the countries where Spanish is spoken, and the most populous of the rest. The second: the rest of Europe, and ten more.
-    expect(ids.length).toBeGreaterThanOrEqual(100);
+    // The first lot: the Spanish-speaking countries and the most populous of the rest. The second: the rest of Europe, and ten more. The third: the next fifty by population.
+    expect(ids.length).toBeGreaterThanOrEqual(150);
     for (const id of ['ES', 'MX', 'AR', 'CO', 'PE', 'CL', 'US', 'CN', 'IN', 'JP', 'DE', 'FR', 'GB', 'IT']) expect(ids, id).toContain(id);
     for (const id of ['PT', 'NL', 'GR', 'SE', 'PL', 'CH', 'AT', 'IE', 'VA', 'XK', 'CA', 'MA', 'SA']) expect(ids, id).toContain(id);
+    // Nobody is silently skipped, even when the search for a place's name returned pictures of another place.
+    const third = 'MG CI CM NP NE AU KP SY ML BF TW MW ZM LK TD KZ SO SN KH ZW GN BJ RW BI TN SS HT JO AE TJ PG AZ IL SL TG LA TM LY KG CG SG LB LR CF OM PS NZ MR KW GE'.split(' ');
+    expect(third).toHaveLength(50);
+    for (const id of third) expect(ids, id).toContain(id);
+    expect(chosen.LK.file).toBe('Sigiriya Rock fortress.jpg');
+    expect(chosen.PS.by).toBe('Andrew Shiva / Wikipedia');
     // Every State of Europe has one.
     const europe = INDEX.countries.filter((c) => c.ct === 'EU' && c.cl !== 'dep' && hasProfile(c)).map((c) => c.id);
     expect(europe.length).toBeGreaterThanOrEqual(44);
