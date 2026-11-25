@@ -3,7 +3,7 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
-## 1.53.0 — 15 de noviembre de 2026
+## 1.53.0 — 25 de noviembre de 2026
 
 - Fotografía de cabecera en los 47 Estados que faltaban: los 198 tienen ya una, contando Brasil; solo quedan los 51 territorios con la franja de la bandera.
 - Entre ellas, las dunas de Khongoryn Els, el monasterio de Taktsang, Nan Madol, el atolón de Funafuti y los cayos de Tobago.

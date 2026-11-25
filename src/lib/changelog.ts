@@ -16,7 +16,7 @@ export interface Release {
 export const RELEASES: Release[] = [
   {
     version: '1.53.0',
-    date: '2026-11-15',
+    date: '2026-11-25',
     es: [
       'Fotografía de cabecera en los 47 Estados que faltaban: los 198 tienen ya una, contando Brasil; solo quedan los 51 territorios con la franja de la bandera.',
       'Entre ellas, las dunas de Khongoryn Els, el monasterio de Taktsang, Nan Madol, el atolón de Funafuti y los cayos de Tobago.',
