@@ -15,6 +15,22 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.54.0',
+    date: '2026-11-25',
+    es: [
+      'Fotografía de cabecera para los 51 territorios que faltaban: ya la tienen las 249 fichas, los 198 Estados y los 51 territorios.',
+      'De Åland a la Antártida, Saba, Tokelau y la isla Heard: se comprobaron el lugar, el autor y la licencia de cada archivo en Commons.',
+      'Se descartaron propuestas que no eran del territorio; los adjuntos originales se conservan como candidatos sin verificar.',
+      'El crédito de Macao enlaza al fotógrafo Diego Delso; Montserrat nombra al autor como pide su página: Andrew Shiva / Wikipedia.',
+    ],
+    en: [
+      'Head photographs for the 51 remaining territories: all 249 sheets now have one, for the 198 States and 51 territories.',
+      'From Åland to Antarctica, Saba, Tokelau and Heard Island: every file’s location, author and licence were checked on Commons.',
+      'Pictures that were not of the territory were discarded; the original attachments remain as unverified candidates.',
+      'Macau’s credit links to photographer Diego Delso; Montserrat names its author as requested on Commons: Andrew Shiva / Wikipedia.',
+    ],
+  },
+  {
     version: '1.53.0',
     date: '2026-11-25',
     es: [

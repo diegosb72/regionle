@@ -83,7 +83,7 @@ function Lead({ text, page, more, of }: { text: string[]; page: string | undefin
 }
 
 /** What a picture of Commons says of whose it is: its title there, who made it and the terms it is given on. */
-type Owned = Pick<ProfilePhoto, 'title' | 'by' | 'licence' | 'licenceUrl'>;
+type Owned = Pick<ProfilePhoto, 'title' | 'by' | 'byUrl' | 'licence' | 'licenceUrl'>;
 
 /** The terms a picture is given on, as they are written here: its licence, with where it is written. */
 function Licence({ photo }: { photo: Owned }) {
@@ -102,7 +102,12 @@ function Licence({ photo }: { photo: Owned }) {
 function Credit({ photo, adjusted }: { photo: Owned; adjusted?: 'head' | 'photo' }) {
   return (
     <small className="fp-credit">
-      {photo.by ? `${photo.by} · ` : ''}
+      {photo.by && (
+        <>
+          {photo.byUrl ? <a href={photo.byUrl} target="_blank" rel="noopener noreferrer">{photo.by}</a> : photo.by}
+          {' · '}
+        </>
+      )}
       <Licence photo={photo} /> ·{' '}
       <a href={commonsPage(photo.title)} target="_blank" rel="noopener noreferrer">
         Wikimedia Commons

@@ -492,6 +492,12 @@ describe('the photograph chosen for the head of the sheet of a country nobody ha
     expect(r.pictures()).toContain(`${sha1('Head.jpg').slice(0, 10)}-1920.webp`);
   });
 
+  it('keeps the author’s requested credit site beside their name and the licence', () => {
+    const r = run({}, { heads: { CC: { file: 'Head.jpg', by: 'Diego Delso, delso.photo', byUrl: 'https://delso.photo/', ...both('Un lugar') } } });
+    expect(r.code).toBe(0);
+    expect(r.sheet('CC').photos[0]).toMatchObject({ by: 'Diego Delso, delso.photo', byUrl: 'https://delso.photo/', licence: 'CC BY-SA 4.0' });
+  });
+
   it('is not used for a country whose sheet is written by hand, which names its own', () => {
     const r = run({ AA: SHEET() }, { heads: { AA: { file: 'Painting.jpg', ...both('Un cuadro') }, BB: { file: 'Painting.jpg', ...both('Un cuadro') } } });
     expect(r.code).toBe(0);
@@ -541,6 +547,8 @@ describe('the photograph chosen for the head of the sheet of a country nobody ha
     expect(failed({ CC: { file: 'Lost.jpg', ...both('Nada') } })).toContain('the picture of «Lost.jpg» is not among what was brought');
     expect(failed({ CC: { file: 'Mine.jpg', ...both('Nada') } })).toContain('«Mine.jpg» is given on terms that are not known to be free');
     expect(failed({ CC: { file: 'Nobody.jpg', ...both('Nada') } })).toContain('«Nobody.jpg» has to be attributed and Commons names nobody');
+    expect(failed({ CC: { file: 'Head.jpg', byUrl: 'https://example.com/', ...both('Nada') } })).toContain('needs a named author (by) to link a credit site');
+    expect(failed({ CC: { file: 'Head.jpg', by: 'A person', byUrl: 'javascript:alert(1)', ...both('Nada') } })).toContain('has no safe https credit site');
   });
 });
 

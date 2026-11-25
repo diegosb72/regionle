@@ -3,6 +3,13 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.54.0 — 25 de noviembre de 2026
+
+- Fotografía de cabecera para los 51 territorios que faltaban: ya la tienen las 249 fichas, los 198 Estados y los 51 territorios.
+- De Åland a la Antártida, Saba, Tokelau y la isla Heard: se comprobaron el lugar, el autor y la licencia de cada archivo en Commons.
+- Se descartaron propuestas que no eran del territorio; los adjuntos originales se conservan como candidatos sin verificar.
+- El crédito de Macao enlaza al fotógrafo Diego Delso; Montserrat nombra al autor como pide su página: Andrew Shiva / Wikipedia.
+
 ## 1.53.0 — 25 de noviembre de 2026
 
 - Fotografía de cabecera en los 47 Estados que faltaban: los 198 tienen ya una, contando Brasil; solo quedan los 51 territorios con la franja de la bandera.

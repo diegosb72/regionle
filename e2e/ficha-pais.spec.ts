@@ -5,8 +5,8 @@ import { open, seed } from './helpers';
 /**
  * The sheet of a country, which the gallery of flags opens when the flag of a country is touched
  * (screens/FlagProfile.tsx). Every country with a flag has one: with what the game knows of it and what
- * Wikidata and Wikipedia say of it and of its flag, with how Wikipedia begins to tell of both and, where
- * one has been chosen for it, with a photograph at its head; and, where somebody has written of it (for now,
+ * Wikidata and Wikipedia say of it and of its flag, with how Wikipedia begins to tell of both and
+ * a photograph at its head; and, where somebody has written of it (for now,
  * of Brazil alone), with its texts, its times and its photographs instead. One sheet leads to another.
  */
 
@@ -15,6 +15,7 @@ interface Photo {
   sizes: number[];
   title: string;
   by?: string;
+  byUrl?: string;
   licence: string;
   licenceUrl?: string;
   es: string;
@@ -50,9 +51,6 @@ const sheetFile = (id: string) =>
 /** The countries as the game has them: what each is called, and how its finest divisions are. */
 const COUNTRIES = (JSON.parse(fs.readFileSync('public/data/index.json', 'utf8')) as { countries: { id: string; n: { es: string; en?: string }; fl?: string; lv: { k: string; n: number }[] }[] }).countries;
 const commons = (title: string): string => `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(title.replace(/ /g, '_'))}`;
-/** A country for whose sheet no photograph has been chosen yet: the first there is, as long as there is one. */
-const BARE = COUNTRIES.find((c) => c.fl && c.id !== 'AQ' && fs.existsSync(`public/data/profiles/${c.id}.json`) && !sheetFile(c.id).photos)!;
-
 /** Whether an image has arrived and is a picture. */
 const drawn = (img: Locator): Promise<boolean> => img.evaluate((el) => (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth > 0);
 const sheetOf = (page: Page): Locator => page.locator('dialog.fp-dlg');
@@ -516,7 +514,7 @@ test.describe('the sheet of a country nobody has written of yet', () => {
   const fact = (sheet: Locator, name: string): Locator => sheet.locator('.fp-facts > div').filter({ has: sheet.page().locator('dt', { hasText: new RegExp(`^${name}$`) }) }).locator('dd');
   const title = (sheet: Locator): Locator => sheet.getByRole('heading', { level: 2 });
 
-  test('opens from its flag, with what Wikidata and Wikipedia say of it and the photograph chosen for it, or a band of its flag where one will be', async ({ page }) => {
+  test('opens from its flag, with what Wikidata and Wikipedia say of it and its chosen head photograph', async ({ page }) => {
     await seed(page);
     await open(page, '/banderas/paises');
     await page.locator('.fg-tile').filter({ hasText: /^España$/ }).click();
@@ -801,6 +799,30 @@ test.describe('the sheet of a country nobody has written of yet', () => {
     }
     expect(sheetFile('ER').photos![0].title).toBe('Asmara, cinema impero, 07.JPG');
     expect(sheetFile('VC').photos![0].by).toBe('Iain Grant (Igbgrant)');
+  });
+
+  test('shows the territories’ verified photos, including requested author credits', async ({ page }) => {
+    await seed(page);
+    for (const id of ['AX', 'MO', 'MS', 'NF', 'TK', 'WF']) {
+      const photo = sheetFile(id).photos![0];
+      const sheet = await openSheet(page, `/banderas/paises/${id}`);
+      await expect(sheet.locator('.fp-band'), id).toHaveCount(0);
+      const hero = sheet.locator('.fp-hero img');
+      await expect.poll(() => drawn(hero), { message: id }).toBe(true);
+      const caption = sheet.locator('.fp-hero figcaption');
+      await expect(caption, id).toContainText(photo.es);
+      const licence = photo.licence === 'Public domain' ? 'Dominio público' : photo.licence;
+      await expect(caption.locator('.fp-credit'), id).toContainText(`${photo.by} · ${licence} · Wikimedia Commons`);
+      await expect(caption.getByRole('link', { name: 'Wikimedia Commons' }), id).toHaveAttribute('href', commons(photo.title));
+      if (id === 'MO') {
+        expect(photo.by).toBe('Diego Delso, delso.photo');
+        expect(photo.byUrl).toBe('https://delso.photo/');
+        await expect(caption.getByRole('link', { name: 'Diego Delso, delso.photo' })).toHaveAttribute('href', photo.byUrl!);
+        await expect(caption.getByRole('link', { name: photo.licence })).toHaveAttribute('href', photo.licenceUrl!);
+      }
+      if (id === 'MS') expect(photo.by).toBe('Andrew Shiva / Wikipedia');
+      await expect(page.locator('.crash'), id).toHaveCount(0);
+    }
   });
 
   test('gives the last States a bilingual caption and alteration notice on a phone @movil', async ({ page }) => {
@@ -1150,19 +1172,15 @@ test.describe('the sheet of a country nobody has written of yet', () => {
     await expect(sheet.locator('.fp-glance .fp-owner a')).toHaveText('Noruega');
     await expect(sheet.locator('.fp-flag-facts .fp-owner a')).toHaveText('Noruega');
     await expect(sheet.locator('.fp-nb')).toHaveCount(0);
-    // One for which no photograph has been chosen yet: where it will be, the colours of its flag, and the flag standing over their foot.
-    await open(page, `/banderas/paises/${BARE.id}`);
-    await expect(title(sheet)).toHaveText(BARE.n.es);
-    await expect(sheet.locator('.fp-hero')).toHaveCount(0);
-    const band = sheet.locator('.fp-band');
-    await expect(band).toHaveAttribute('aria-hidden', 'true');
-    await expect(band.locator('img')).toHaveAttribute('src', new RegExp(`flags/${BARE.fl}\\.svg#svgView\\(preserveAspectRatio\\(none\\)\\)$`));
-    await expect.poll(() => drawn(band.locator('img'))).toBe(true);
-    const [strip, over, wide] = [(await band.boundingBox())!, (await sheet.locator('.fp-flag').boundingBox())!, (await sheet.locator('.dlg-box').boundingBox())!];
-    expect(Math.round(strip.width)).toBe(Math.round(wide.width));
-    expect(over.y).toBeLessThan(strip.y + strip.height);
-    expect(over.y + over.height).toBeGreaterThan(strip.y + strip.height);
-    await expect(sheet.locator('.fp-foot')).not.toContainText(/fotografía/);
+    // Even an uninhabited territory now has its own photograph instead of the colours of its flag.
+    await expect(sheet.locator('.fp-band')).toHaveCount(0);
+    const hero = sheet.locator('.fp-hero img');
+    await expect.poll(() => drawn(hero)).toBe(true);
+    const [picture, over, wide] = [(await hero.boundingBox())!, (await sheet.locator('.fp-flag').boundingBox())!, (await sheet.locator('.dlg-box').boundingBox())!];
+    expect(Math.round(picture.width)).toBe(Math.round(wide.width));
+    expect(over.y).toBeLessThan(picture.y + picture.height);
+    expect(over.y + over.height).toBeGreaterThan(picture.y + picture.height);
+    await expect(sheet.locator('.fp-foot')).toContainText('La fotografía es de Wikimedia Commons');
 
     // And one with no flag that is official says so.
     await open(page, '/banderas/paises/AQ');
@@ -1170,16 +1188,19 @@ test.describe('the sheet of a country nobody has written of yet', () => {
     await expect(sheet.locator('.fp-flag-facts dd').last()).toContainText('la Antártida no tiene bandera oficial');
   });
 
-  test('fills a phone with nothing wider than the screen, its photograph or the band of its flag from side to side @movil', async ({ page }) => {
+  test('fills a phone with nothing wider than the screen, with territorial and State photographs from side to side @movil', async ({ page }) => {
     await seed(page);
-    // One with no photograph yet: the band is as wide as the screen, and the flag stands over its foot.
-    const sheet = await openSheet(page, `/banderas/paises/${BARE.id}`);
+    // A territory without inhabitants has a photograph as wide as the screen, the flag over its foot.
+    const sheet = await openSheet(page, '/banderas/paises/BV');
     const screen = page.viewportSize()!;
-    const band = (await sheet.locator('.fp-band').boundingBox())!;
-    expect([Math.round(band.x), Math.round(band.width)]).toEqual([0, screen.width]);
+    await expect(sheet.locator('.fp-band')).toHaveCount(0);
+    const territory = sheet.locator('.fp-hero img');
+    await expect.poll(() => drawn(territory)).toBe(true);
+    const pictureOfTerritory = (await territory.boundingBox())!;
+    expect([Math.round(pictureOfTerritory.x), Math.round(pictureOfTerritory.width)]).toEqual([0, screen.width]);
     const over = (await sheet.locator('.fp-flag').boundingBox())!;
-    expect(over.y).toBeLessThan(band.y + band.height);
-    expect(over.y + over.height).toBeGreaterThan(band.y + band.height);
+    expect(over.y).toBeLessThan(pictureOfTerritory.y + pictureOfTerritory.height);
+    expect(over.y + over.height).toBeGreaterThan(pictureOfTerritory.y + pictureOfTerritory.height);
     await sheet.getByRole('button', { name: 'Cerrar' }).click();
     await expect(sheet).toHaveCount(0);
 

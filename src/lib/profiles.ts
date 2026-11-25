@@ -37,6 +37,8 @@ export interface ProfilePhoto {
   title: string;
   /** Who made it; none for a work that names nobody and need not. */
   by?: string;
+  /** Site the author explicitly asks to have linked beside their credit, where applicable. */
+  byUrl?: string;
   licence: string;
   licenceUrl?: string;
   /** What is seen in it. */
