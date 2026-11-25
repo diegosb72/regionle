@@ -181,106 +181,106 @@
 #
 # The third lot (1.52.0): the fifty States with most people of those that were left. It was asked for in
 # three parts, each with fewer than fifty things to look for.
-MG: Morondava baobabs
-MG: Tsingy Bemaraha
-CI: Yamoussoukro basilica
-CI: Abidjan
-CI: Grand-Bassam
-CM: Rhumsiki
-CM: Mount Cameroon
-CM: Kribi
-NP: Boudhanath
-NP: Ama Dablam
-NP: Everest Nepal
-NE: Agadez
-NE: Ténéré
-NE: Niamey
-AU: Sydney Opera House
-AU: Uluru
-AU: Twelve Apostles Victoria
-KP: Pyongyang
-KP: Juche Tower
-KP: Paektu
-SY: Palmyra Syria
-SY: Krak des Chevaliers
-SY: Umayyad Mosque Damascus
-ML: Djenné mosque
-ML: Bandiagara
-ML: Timbuktu
-BF: Sindou
-BF: Bobo-Dioulasso mosque
-BF: Tiébélé
-TW: Taipei 101
-TW: Sun Moon Lake
-TW: Taroko
-MW: Lake Malawi
-MW: Mulanje
-MW: Cape Maclear
-ZM: Victoria Falls Zambia
-ZM: South Luangwa
-ZM: Lusaka
-LK: Sigiriya
-LK: Nine Arch Bridge
-LK: Temple of the Tooth
-TD: Ennedi
-TD: Guelta d'Archei
-TD: Ounianga
-KZ: Bayterek
-KZ: Charyn Canyon
-KZ: Big Almaty Lake
-SO: Mogadishu
-SO: Laas Geel
-SO: Berbera
-# SN: Gorée
-# SN: African Renaissance Monument
-# SN: Saint-Louis Senegal
-# KH: Angkor Wat
-# KH: Bayon
-# ZW: Great Zimbabwe
-# ZW: Matobo
-# ZW: Victoria Falls Zimbabwe
-# GN: Fouta Djallon
-# GN: Conakry
-# GN: Mount Nimba
-# BJ: Ganvié
-# BJ: Ouidah
-# BJ: Abomey
-# RW: Volcanoes National Park Rwanda
-# RW: Kigali
-# RW: Lake Kivu
-# BI: Bujumbura
-# BI: Lake Tanganyika Burundi
-# BI: Burundi
-# TN: El Jem
-# TN: Sidi Bou Said
-# TN: Kairouan mosque
-# SS: Juba South Sudan
-# SS: South Sudan Nile
-# SS: Boma National Park
-# HT: Citadelle Laferrière
-# HT: Sans-Souci Palace Haiti
-# HT: Labadee
-# JO: Petra Al-Khazneh
-# JO: Petra Monastery
-# JO: Wadi Rum
-# AE: Burj Khalifa
-# AE: Dubai Marina skyline
-# AE: Sheikh Zayed Mosque
-# TJ: Iskanderkul
-# TJ: Pamir Tajikistan
-# TJ: Dushanbe
-# PG: Tavurvur
-# PG: Port Moresby
-# PG: Papua New Guinea
-# AZ: Flame Towers
-# AZ: Baku Old City
-# AZ: Heydar Aliyev Center
-# IL: Masada
-# IL: Tel Aviv skyline
-# IL: Bahai Gardens Haifa
-# SL: Freetown
-# SL: Sierra Leone beach
-# SL: Banana Islands
+# MG: Morondava baobabs
+# MG: Tsingy Bemaraha
+# CI: Yamoussoukro basilica
+# CI: Abidjan
+# CI: Grand-Bassam
+# CM: Rhumsiki
+# CM: Mount Cameroon
+# CM: Kribi
+# NP: Boudhanath
+# NP: Ama Dablam
+# NP: Everest Nepal
+# NE: Agadez
+# NE: Ténéré
+# NE: Niamey
+# AU: Sydney Opera House
+# AU: Uluru
+# AU: Twelve Apostles Victoria
+# KP: Pyongyang
+# KP: Juche Tower
+# KP: Paektu
+# SY: Palmyra Syria
+# SY: Krak des Chevaliers
+# SY: Umayyad Mosque Damascus
+# ML: Djenné mosque
+# ML: Bandiagara
+# ML: Timbuktu
+# BF: Sindou
+# BF: Bobo-Dioulasso mosque
+# BF: Tiébélé
+# TW: Taipei 101
+# TW: Sun Moon Lake
+# TW: Taroko
+# MW: Lake Malawi
+# MW: Mulanje
+# MW: Cape Maclear
+# ZM: Victoria Falls Zambia
+# ZM: South Luangwa
+# ZM: Lusaka
+# LK: Sigiriya
+# LK: Nine Arch Bridge
+# LK: Temple of the Tooth
+# TD: Ennedi
+# TD: Guelta d'Archei
+# TD: Ounianga
+# KZ: Bayterek
+# KZ: Charyn Canyon
+# KZ: Big Almaty Lake
+# SO: Mogadishu
+# SO: Laas Geel
+# SO: Berbera
+SN: Gorée
+SN: African Renaissance Monument
+SN: Saint-Louis Senegal
+KH: Angkor Wat
+KH: Bayon
+ZW: Great Zimbabwe
+ZW: Matobo
+ZW: Victoria Falls Zimbabwe
+GN: Fouta Djallon
+GN: Conakry
+GN: Mount Nimba
+BJ: Ganvié
+BJ: Ouidah
+BJ: Abomey
+RW: Volcanoes National Park Rwanda
+RW: Kigali
+RW: Lake Kivu
+BI: Bujumbura
+BI: Lake Tanganyika Burundi
+BI: Burundi
+TN: El Jem
+TN: Sidi Bou Said
+TN: Kairouan mosque
+SS: Juba South Sudan
+SS: South Sudan Nile
+SS: Boma National Park
+HT: Citadelle Laferrière
+HT: Sans-Souci Palace Haiti
+HT: Labadee
+JO: Petra Al-Khazneh
+JO: Petra Monastery
+JO: Wadi Rum
+AE: Burj Khalifa
+AE: Dubai Marina skyline
+AE: Sheikh Zayed Mosque
+TJ: Iskanderkul
+TJ: Pamir Tajikistan
+TJ: Dushanbe
+PG: Tavurvur
+PG: Port Moresby
+PG: Papua New Guinea
+AZ: Flame Towers
+AZ: Baku Old City
+AZ: Heydar Aliyev Center
+IL: Masada
+IL: Tel Aviv skyline
+IL: Bahai Gardens Haifa
+SL: Freetown
+SL: Sierra Leone beach
+SL: Banana Islands
 # TG: Koutammakou
 # TG: Lomé
 # TG: Kpalimé
