@@ -2,7 +2,8 @@
  * scripts/data/profiles.mjs, which makes the sheets of the countries, run on countries made up here: that
  * every country with a flag gets one with what Wikidata and Wikipedia say of it, what a correction by hand
  * does to that, and what is laid over both where somebody wrote of the country — what it takes from what
- * is written and what from Commons, the pictures it makes of each photograph — and what it refuses: a
+ * is written and what from Commons, the pictures it makes of each photograph —, the coat of arms each sheet
+ * shows and whose it says the drawing is, and what it refuses: a
  * photograph nobody asked Commons about, one that is not free to show, a text in one language only, a time
  * whose flag the game does not have, a correction that leaves a sheet saying what it should not.
  */
@@ -13,6 +14,8 @@ import os from 'node:os';
 import path from 'node:path';
 import sharp from 'sharp';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+// @ts-expect-error — the script is plain JavaScript, with no types of its own
+import { maker } from '../../scripts/data/profiles.mjs';
 import type { ProfileFile, ProfilePhoto, ProfileTime } from './profiles';
 
 /** A sheet written by hand, as the script leaves it: with its times and its photographs. */
@@ -86,13 +89,61 @@ const SAID = {
   },
 };
 
+/**
+ * What Commons says of a coat of arms, and the picture of it that was brought: how wide and how high, and
+ * how much of it is drawn (`drawn`: the rest of the picture is see-through, around it).
+ */
+interface Drawn {
+  size?: [number, number];
+  drawn?: [number, number];
+  licence?: string;
+  licenceUrl?: string;
+  artist?: string;
+  attribution?: boolean;
+  lost?: boolean;
+  missing?: boolean;
+}
+const ARMS: Record<string, Drawn> = {
+  // Taller than wide once what is around it is cut off.
+  'Arms AA.svg': { size: [330, 400], drawn: [200, 300], licence: 'CC BY-SA 3.0', licenceUrl: 'http://creativecommons.org/licenses/by-sa/3.0', artist: 'Vectorised by user:Ana', attribution: true },
+  // Drawn to its edges, and wider than tall.
+  'National Emblem of BB.svg': { size: [330, 200], licence: 'Public domain', artist: 'Unknown author' },
+  'Seal of CC.svg': { size: [330, 330], drawn: [300, 300], licence: 'CC0', artist: 'Sello Rojo' },
+  'Given.svg': { size: [330, 330], drawn: [300, 150], licence: 'Attribution', artist: 'C records' },
+  'Closed.svg': { size: [330, 330], licence: 'All rights reserved', artist: 'Somebody' },
+  'Nameless.svg': { size: [330, 330], licence: 'CC BY 4.0', artist: 'See File history below for details.', attribution: true },
+  'Lost.svg': { size: [330, 330], licence: 'CC0', lost: true },
+  'Gone.svg': { missing: true },
+};
+
 let brought = '';
 let data = '';
+let arms = '';
 beforeAll(async () => {
   brought = path.join(TMP, 'brought');
   data = path.join(TMP, 'data');
+  arms = path.join(TMP, 'arms');
   fs.mkdirSync(brought);
   fs.mkdirSync(data);
+  fs.mkdirSync(arms);
+  const drawings: Record<string, unknown> = {};
+  for (const [title, one] of Object.entries(ARMS)) {
+    if (one.missing) {
+      drawings[title] = { missing: true };
+      continue;
+    }
+    const picture = `arms/files/${sha1(title)}.330.png`;
+    drawings[title] = { sha1: sha1(title), mime: 'image/svg+xml', licence: one.licence, ...(one.licenceUrl ? { licenceUrl: one.licenceUrl } : {}), ...(one.artist ? { artist: one.artist } : {}), ...(one.attribution ? { attribution: true } : {}), picture };
+    if (one.lost) continue;
+    const [w, h] = one.size!;
+    const [dw, dh] = one.drawn ?? one.size!;
+    const drawing = await sharp({ create: { width: dw, height: dh, channels: 4, background: { r: 190, g: 30, b: 40, alpha: 1 } } }).png().toBuffer();
+    await sharp({ create: { width: w, height: h, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+      .composite([{ input: drawing }])
+      .png()
+      .toFile(path.join(arms, path.basename(picture)));
+  }
+  fs.writeFileSync(path.join(TMP, 'drawings.json'), JSON.stringify(drawings));
   const files: Record<string, unknown> = {};
   for (const [title, one] of Object.entries(COMMONS)) {
     if (one.missing) {
@@ -151,7 +202,8 @@ let n = 0;
  * Runs the script on the sheets that are given, each under the name of its file. `fixes` are the corrections
  * by hand, `said` what the sources say when it is not what they say above (`null`: nothing was brought),
  * `texts` how Wikipedia begins each page, by `language:title` (`null`: nothing was brought), `heads` the
- * photograph chosen for the head of the sheet of each country, and `flags` what else the script is told.
+ * photograph chosen for the head of the sheet of each country, `arms` the files that Wikidata shows each
+ * country with (none, unless a test says so; `null`: nothing was brought), and `flags` what else the script is told.
  */
 function run(
   sheets: Record<string, unknown>,
@@ -161,6 +213,7 @@ function run(
     said?: unknown;
     texts?: Record<string, string> | null;
     heads?: Record<string, unknown>;
+    arms?: Record<string, string[]> | null;
     flags?: string[];
   } = {},
 ) {
@@ -184,11 +237,20 @@ function run(
   // Never the photographs chosen for the countries of the game: those of the test, or none.
   const heads = path.join(dir, 'heads.json');
   if (opts.heads) fs.writeFileSync(heads, JSON.stringify({ _: 'What this file is.', ...opts.heads }));
+  // What was brought of the coats of arms: the pictures of the test, and which of them Wikidata names for each country.
+  const named = path.join(dir, 'arms');
+  if (opts.arms !== null) {
+    fs.cpSync(arms, named, { recursive: true });
+    fs.writeFileSync(
+      path.join(named, 'arms.json'),
+      JSON.stringify({ items: Object.fromEntries(Object.entries(opts.arms ?? {}).map(([id, files]) => [id, { files }])), files: JSON.parse(fs.readFileSync(path.join(TMP, 'drawings.json'), 'utf8')) }),
+    );
+  }
   opts.before?.({ data: mine, photos });
   let out = '';
   let code = 0;
   try {
-    out = execFileSync('node', [SCRIPT, '--sheets', written, '--brought', brought, '--said', said, '--texts', texts, '--fixes', fixes, '--heads', heads, '--data', mine, '--photos', photos, ...(opts.flags ?? [])], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    out = execFileSync('node', [SCRIPT, '--sheets', written, '--brought', brought, '--arms', named, '--said', said, '--texts', texts, '--fixes', fixes, '--heads', heads, '--data', mine, '--photos', photos, ...(opts.flags ?? [])], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
   } catch (err) {
     const failed = err as { status?: number; stderr?: string; stdout?: string };
     code = failed.status ?? 1;
@@ -482,6 +544,174 @@ describe('the photograph chosen for the head of the sheet of a country nobody ha
   });
 });
 
+describe('the coat of arms of a country', () => {
+  const drawn = (title: string) => sha1(title).slice(0, 10);
+  const armsOf = (r: ReturnType<typeof run>, id: string) => (r.sheet(id) as unknown as { arms?: Record<string, unknown> }).arms;
+  const NAMED = { AA: ['Arms AA.svg', 'Seal of CC.svg'], BB: ['National Emblem of BB.svg'], CC: ['Seal of CC.svg'] };
+
+  it('is the one Wikidata names, made to fit a small box with what is around it cut off, and with whose the drawing is', async () => {
+    const r = run({}, { arms: NAMED });
+    expect(r.code).toBe(0);
+    // The first by name of those Wikidata names. What was 200 by 300 in a picture of 330 by 400 fills the box by its height.
+    expect(armsOf(r, 'AA')).toEqual({ file: drawn('Arms AA.svg'), w: 176, h: 264, title: 'Arms AA.svg', by: 'Ana', licence: 'CC BY-SA 3.0', licenceUrl: 'https://creativecommons.org/licenses/by-sa/3.0' });
+    // One that is drawn to its edges is left whole. Nobody is named where Commons names nobody; and it is called what its file is.
+    expect(armsOf(r, 'BB')).toEqual({ file: drawn('National Emblem of BB.svg'), w: 264, h: 160, title: 'National Emblem of BB.svg', licence: 'Public domain', kind: 'emblem' });
+    expect(armsOf(r, 'CC')).toEqual({ file: drawn('Seal of CC.svg'), w: 264, h: 264, title: 'Seal of CC.svg', by: 'Sello Rojo', licence: 'CC0', kind: 'seal' });
+    expect(r.pictures()).toEqual([`${drawn('Arms AA.svg')}-176.webp`, `${drawn('National Emblem of BB.svg')}-264.webp`, `${drawn('Seal of CC.svg')}-264.webp`].sort());
+    const made = await sharp(path.join(r.photos, `${drawn('Arms AA.svg')}-176.webp`)).metadata();
+    expect([made.format, made.width, made.height]).toEqual(['webp', 176, 264]);
+    expect(r.out).toContain('escudo en 3;');
+  });
+
+  it('is not made again when its picture is there, and is not kept when no sheet shows it any more', () => {
+    const before = ({ photos }: { photos: string }) => {
+      fs.mkdirSync(photos, { recursive: true });
+      fs.writeFileSync(path.join(photos, `${drawn('Arms AA.svg')}-176.webp`), 'made before');
+      fs.writeFileSync(path.join(photos, `${drawn('Seal of CC.svg')}-264.webp`), 'of a sheet that showed it');
+    };
+    const r = run({}, { arms: { AA: NAMED.AA }, before });
+    expect(r.code).toBe(0);
+    expect(r.pictures()).toEqual([`${drawn('Arms AA.svg')}-176.webp`]);
+    expect(fs.readFileSync(path.join(r.photos, `${drawn('Arms AA.svg')}-176.webp`), 'utf8')).toBe('made before');
+  });
+
+  it('is what somebody says by hand: another file, what it is called, who drew it, or none', () => {
+    const r = run({}, {
+      arms: { AA: ['Arms AA.svg'], BB: ['National Emblem of BB.svg'], CC: ['Nameless.svg'] },
+      fixes: { AA: { arms: { file: ' Seal of CC.svg ', kind: 'arms' } }, BB: { arms: null }, CC: { arms: { by: ' Ana y Luis ', kind: 'emblem' } } },
+    });
+    expect(r.code).toBe(0);
+    // Called a coat of arms though its file says seal: nothing is said of what it is, which is what a coat of arms needs.
+    expect(armsOf(r, 'AA')).toEqual({ file: drawn('Seal of CC.svg'), w: 264, h: 264, title: 'Seal of CC.svg', by: 'Sello Rojo', licence: 'CC0' });
+    expect(armsOf(r, 'BB')).toBeUndefined();
+    expect(armsOf(r, 'CC')).toMatchObject({ title: 'Nameless.svg', by: 'Ana y Luis', licence: 'CC BY 4.0', kind: 'emblem' });
+    // One for a country that Wikidata names none for; and the terms Commons calls «Attribution» are free ones, with whom to name.
+    const chosen = run({}, { fixes: { BB: { arms: { file: 'Given.svg' } } } });
+    expect(chosen.code).toBe(0);
+    expect(armsOf(chosen, 'BB')).toEqual({ file: drawn('Given.svg'), w: 264, h: 132, title: 'Given.svg', by: 'C records', licence: 'Attribution' });
+    expect(armsOf(chosen, 'AA')).toBeUndefined();
+  });
+
+  it('is left out where the one Wikidata names cannot be shown, and whoever reviews the sheets is told why', () => {
+    const r = run({}, { arms: { AA: ['Closed.svg'], BB: ['Nameless.svg'], CC: ['Lost.svg'] }, flags: ['--review'] });
+    expect(r.code).toBe(0);
+    for (const id of ['AA', 'BB', 'CC']) expect(armsOf(r, id)).toBeUndefined();
+    expect(r.pictures()).toEqual([]);
+    expect(r.out).toContain('Sin escudo, aunque Wikidata lo nombra:');
+    expect(r.out).toContain('AA: «Closed.svg» is given on terms that are not known to be free: All rights reserved');
+    expect(r.out).toContain('BB: «Nameless.svg» has to be attributed and Commons does not say to whom in a few words');
+    expect(r.out).toContain('CC: the picture of «Lost.svg» is not among what was brought');
+    expect(r.out).toContain('escudo en 0 (3 que Wikidata nombra no se pueden enseñar);');
+    const gone = run({}, { arms: { AA: ['Gone.svg'], BB: ['Never asked.svg'] }, flags: ['--review'] });
+    expect(gone.code).toBe(0);
+    expect(gone.out).toContain('AA: Commons was not asked about «Gone.svg», or has no such file');
+    expect(gone.out).toContain('BB: Commons was not asked about «Never asked.svg», or has no such file');
+  });
+
+  it('stops the script where the one somebody chose cannot be shown, or is not said as it has to be', () => {
+    const failed = (fix: unknown, named: Record<string, string[]> = {}) => {
+      const r = run({}, { arms: named, fixes: { AA: { arms: fix } } });
+      expect(r.code).not.toBe(0);
+      expect(r.written()).toEqual([]);
+      return r.out;
+    };
+    expect(failed({ file: 'Closed.svg' })).toContain('AA: «Closed.svg» is given on terms that are not known to be free');
+    expect(failed({ file: 'Never asked.svg' })).toContain('ask for the source «arms»');
+    expect(failed({ file: 'Nameless.svg' })).toContain('say who made it (arms.by)');
+    expect(failed({ file: 'Lost.svg' })).toContain('npm run data:fetch -- arms');
+    // Who drew it or what it is called, of a country that has none to say it of.
+    expect(failed({ by: 'Somebody' })).toContain('its coat of arms names no file');
+    expect(failed({ kind: 'logo' }, { AA: ['Arms AA.svg'] })).toContain('«logo», which is none of arms, emblem and seal');
+  });
+
+  it('is none for a territory that flies the flag of its country, whatever Wikidata names, and nobody may choose it one', () => {
+    const r = run({}, { arms: NAMED, fixes: { BB: { flag: { of: 'AA' } } } });
+    expect(r.code).toBe(0);
+    expect(armsOf(r, 'BB')).toBeUndefined();
+    expect(armsOf(r, 'AA')).toBeDefined();
+    expect(r.pictures()).not.toContain(`${drawn('National Emblem of BB.svg')}-264.webp`);
+    expect(r.out).toContain('escudo en 2;');
+    const chosen = run({}, { arms: NAMED, fixes: { BB: { flag: { of: 'AA' }, arms: { file: 'Given.svg' } } } });
+    expect(chosen.code).not.toBe(0);
+    expect(chosen.out).toContain('BB: somebody chose a coat of arms for it, and it is drawn with the flag of another country');
+  });
+
+  it('is shown by the sheet somebody wrote by hand too, beside its photographs', () => {
+    const r = run({ AA: SHEET() }, { arms: NAMED });
+    expect(r.code).toBe(0);
+    expect(armsOf(r, 'AA')).toMatchObject({ title: 'Arms AA.svg', by: 'Ana' });
+    expect(r.sheet('AA').photos).toHaveLength(3);
+    expect(r.pictures()).toContain(`${drawn('Arms AA.svg')}-176.webp`);
+  });
+
+  it('is not made a sheet of when the coats of arms were not brought', () => {
+    const r = run({}, { arms: null });
+    expect(r.code).not.toBe(0);
+    expect(r.out).toContain('npm run data:fetch -- arms');
+    expect(r.written()).toEqual([]);
+  });
+});
+
+describe('who made a drawing, as Commons tells it', () => {
+  it('is the name, with nothing of how it is told', () => {
+    expect(maker('Sodacan')).toBe('Sodacan');
+    expect(maker('User:K21edgo')).toBe('K21edgo');
+    expect(maker('en:User:Vino4u')).toBe('Vino4u');
+    expect(maker('Pbroks13 ( talk )')).toBe('Pbroks13');
+    expect(maker('Fvasconcellos ( talk · contribs )')).toBe('Fvasconcellos');
+    expect(maker('Zscout370 at English Wikipedia')).toBe('Zscout370');
+    expect(maker('The original uploader was Zscout370 at English Wikipedia .')).toBe('Zscout370');
+    expect(maker('Sodacan i The source code of this SVG is valid . This vector image was created with Inkscape by v .')).toBe('Sodacan');
+    // A name is not taken for a word of what is said around names.
+    expect(maker('SVG-image-maker')).toBe('SVG-image-maker');
+    expect(maker('F l a n k e r')).toBe('F l a n k e r');
+  });
+
+  it('is every name, one after another, where it tells which part each had', () => {
+    expect(maker('Original: Louis Mühlemann Vector: Fenn-O-maniC')).toBe('Louis Mühlemann, Fenn-O-maniC');
+    expect(maker('Original design by Nicholas Potin , vectorised by user:Fenn-O-maniC')).toBe('Nicholas Potin, Fenn-O-maniC');
+    expect(maker('Vectorized by Froztbyte')).toBe('Froztbyte');
+    expect(maker('Redrawn to SVG by DasREDeemr')).toBe('DasREDeemr');
+    expect(maker('Sodacan , with some elements by Katepanomegas')).toBe('Sodacan, Katepanomegas');
+    expect(maker('Squiresy92 including elements from Sodacan')).toBe('Squiresy92, Sodacan');
+    expect(maker('Borb , modified by User:Di (they-them)')).toBe('Borb, Di (they-them)');
+    expect(maker("Republic of Côte d'Ivoire vectored by FOX 52")).toBe("Republic of Côte d'Ivoire, FOX 52");
+    expect(maker('First version: User:Escondites Second version: User:Cronholm144')).toBe('Escondites, Cronholm144');
+    expect(maker('Autor of SVG image: Ivangricenko')).toBe('Ivangricenko');
+    expect(maker('Original by Caleb Moore Extracted by Himasaram')).toBe('Caleb Moore, Himasaram');
+    expect(maker('upload: User:Rokerismoravee')).toBe('Rokerismoravee');
+    expect(maker('FischX and Zscout370')).toBe('FischX and Zscout370');
+  });
+
+  it('is nobody where Commons names nobody, tells something else in its place, or tells it at length', () => {
+    for (const told of [
+      undefined,
+      '',
+      'Unknown',
+      'Unknown author Unknown author',
+      'Own work',
+      'See File history below for details.',
+      'Various, see File history below for details.',
+      'SVG Added Ramos',
+      'Original: BetacommandBot Vector: Zscout370',
+      'Benedikt Thorolfsson (Versions 1-4)',
+      'multiple people, e.g. Lin Huiyin and Liang Sicheng, see [2]',
+      'Szczepan dyskusja Mail 08:10, 2 April 2007 (UTC)',
+      'Tonyjeff , based on national symbol.',
+      'original from xrmap flag collection 2.9, HansenBCN',
+      'Coat_of_arms_of_Suriname.png : Brokopondo derivative work: Completefailure ( talk )',
+      'Original: Tao Ho : 何弢 Vector: HyBoxwood',
+      'Lion héraldique.svg - Bluebear2 Heraldique meuble lion passant.svg - Rinaldum , S@m , Zigeuner Coat of arms of Haiti (1964-1986).svg - Thommy9 derivative work:…',
+      'This vector image includes elements that have been taken or adapted from this file:',
+    ])
+      expect(maker(told), String(told)).toBe('');
+    // As many characters as fit where it goes: sixty under a photograph, fewer where whoever asks says so.
+    expect(maker('Neville C. Connell, director of the Barbados Museum')).toBe('Neville C. Connell, director of the Barbados Museum');
+    expect(maker('Neville C. Connell, director of the Barbados Museum', 40)).toBe('');
+    expect(maker('Tonyjeff , Omar86 , Kafka1 and AnonMoos ; AnonMoos , Militaryace , and many more')).toBe('');
+  });
+});
+
 describe('how Wikipedia begins to tell of a country and of its flag', () => {
   /** A text longer than a sheet shows: sentences of some sixty characters, each with its number. */
   const long = (what: string, n: number) => Array.from({ length: n }, (_, i) => `${what} tiene una frase número ${i + 1} que dice algo de ella.`).join(' ');
@@ -597,7 +827,8 @@ describe('what is written by hand, over what the sources say', () => {
     const gone = (dirs: { data: string }) => void dirs;
     const without = path.join(TMP, 'no-photos');
     fs.mkdirSync(without, { recursive: true });
-    const args = (sheets: string) => [SCRIPT, '--sheets', sheets, '--brought', without, '--said', path.join(TMP, 'said.json'), '--texts', path.join(TMP, 'texts.json'), '--fixes', path.join(TMP, 'none.json'), '--heads', path.join(TMP, 'none-heads.json'), '--data', path.join(TMP, 'data-np'), '--photos', path.join(TMP, 'photos-np')];
+    fs.writeFileSync(path.join(arms, 'arms.json'), JSON.stringify({ items: {}, files: {} }));
+    const args = (sheets: string) => [SCRIPT, '--sheets', sheets, '--brought', without, '--said', path.join(TMP, 'said.json'), '--texts', path.join(TMP, 'texts.json'), '--fixes', path.join(TMP, 'none.json'), '--arms', arms, '--heads', path.join(TMP, 'none-heads.json'), '--data', path.join(TMP, 'data-np'), '--photos', path.join(TMP, 'photos-np')];
     fs.cpSync(data, path.join(TMP, 'data-np'), { recursive: true });
     const empty = path.join(TMP, 'sheets-none');
     fs.mkdirSync(empty, { recursive: true });

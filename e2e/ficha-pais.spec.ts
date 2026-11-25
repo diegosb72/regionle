@@ -36,8 +36,17 @@ const FLAGS = JSON.parse(fs.readFileSync('public/data/flags.json', 'utf8')) as {
 };
 /** What a sheet nobody has written of tells in words: how Wikipedia begins to tell of the country and of its flag, by language. */
 type Lead = { es?: string[]; en?: string[] };
+/** The coat of arms of a sheet: its picture, how large it is, and whose the drawing is. */
+type Arms = { file: string; w: number; h: number; title: string; by?: string; licence: string; licenceUrl?: string; kind?: 'emblem' | 'seal' };
 const sheetFile = (id: string) =>
-  JSON.parse(fs.readFileSync(`public/data/profiles/${id}.json`, 'utf8')) as { lead?: Lead; flag?: { lead?: Lead }; read?: { es?: string; en?: string }; readFlag?: { es?: string; en?: string }; photos?: (Photo & { focus?: [number, number] })[] };
+  JSON.parse(fs.readFileSync(`public/data/profiles/${id}.json`, 'utf8')) as {
+    lead?: Lead;
+    flag?: { lead?: Lead };
+    read?: { es?: string; en?: string };
+    readFlag?: { es?: string; en?: string };
+    photos?: (Photo & { focus?: [number, number] })[];
+    arms?: Arms;
+  };
 /** The countries as the game has them: what each is called, and how its finest divisions are. */
 const COUNTRIES = (JSON.parse(fs.readFileSync('public/data/index.json', 'utf8')) as { countries: { id: string; n: { es: string; en?: string }; fl?: string; lv: { k: string; n: number }[] }[] }).countries;
 const commons = (title: string): string => `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(title.replace(/ /g, '_'))}`;
@@ -637,6 +646,120 @@ test.describe('the sheet of a country nobody has written of yet', () => {
     await expect(sheet.locator('.fp-flagsec .fp-more a')).toHaveText('Leer sobre la bandera de Antártida en Wikipedia');
     await expect(sheet.locator('.fp-flagsec .fp-more a')).toHaveAttribute('href', 'https://es.wikipedia.org/wiki/Bandera_de_la_Ant%C3%A1rtida');
     await expect(page.locator('.crash')).toHaveCount(0);
+  });
+
+  test('shows the coat of arms of the country under the globe, small, with what it is and whose the drawing is', async ({ page }) => {
+    await seed(page);
+    const sheet = await openSheet(page, '/banderas/paises/ES');
+    const spain = sheetFile('ES').arms!;
+    const arms = sheet.locator('.fp-glance .fp-side .fp-arms');
+    const picture = arms.locator('img');
+    await expect.poll(() => drawn(picture)).toBe(true);
+    await expect(picture).toHaveAttribute('src', new RegExp(`photos/${spain.file}-${spain.w}\\.webp$`));
+    // What it is is said under it, once.
+    await expect(picture).toHaveAttribute('alt', '');
+    await expect(arms.locator('figcaption')).toHaveText(/^Escudo\s/);
+    // In a box of 132 px, whatever its shape: as large as fits, and no larger.
+    const box = (await picture.boundingBox())!;
+    expect(Math.round(Math.max(box.width, box.height))).toBe(132);
+    expect(Math.abs(box.width / box.height - spain.w / spain.h)).toBeLessThan(0.02);
+    // Under the globe, in its column.
+    const globe = (await sheet.locator('.fp-glance .fp-side .fp-where').boundingBox())!;
+    expect(box.y).toBeGreaterThan(globe.y + globe.height);
+    expect(Math.abs(box.x + box.width / 2 - (globe.x + globe.width / 2))).toBeLessThan(2);
+    // Whose the drawing is, on what terms, and its page in Commons, which tells the rest.
+    expect([spain.title, spain.licence, spain.by]).toEqual(['Escudo de España (mazonado).svg', 'Public domain', 'Gobierno de España, SanchoPanzaXXI']);
+    await expect(arms.locator('.fp-credit')).toHaveText(/^Gobierno de España, SanchoPanzaXXI · Dominio público · Wikimedia Commons$/);
+    await expect(arms.locator('.fp-credit a')).toHaveAttribute('href', commons(spain.title));
+    await expect(sheet.locator('.fp-foot')).toContainText('El escudo es un dibujo de Wikimedia Commons, reducido de tamaño');
+
+    // What is no coat of arms is called what it is; and whoever drew it is named, with the terms it is given on and where they are written.
+    for (const [id, what] of [['JP', 'Sello'], ['IT', 'Emblema'], ['NI', 'Escudo']] as const) {
+      await open(page, `/banderas/paises/${id}`);
+      await expect(sheet.locator('article.fp')).toBeVisible();
+      const one = sheetFile(id).arms!;
+      expect(one.kind, id).toBe(what === 'Sello' ? 'seal' : what === 'Emblema' ? 'emblem' : undefined);
+      await expect(arms.locator('figcaption')).toHaveText(new RegExp(`^${what}\\s`));
+      await expect.poll(() => drawn(picture)).toBe(true);
+      await expect(arms.locator('.fp-credit a').last()).toHaveAttribute('href', commons(one.title));
+    }
+    const japan = sheetFile('JP').arms!;
+    const nicaragua = sheetFile('NI').arms!;
+    expect([japan.licence, nicaragua.licence, nicaragua.by]).toEqual(['CC BY-SA 4.0', 'Attribution', 'C records']);
+    // Still that of Nicaragua, the last that was opened: free for any use as long as its author is named, with no page that says so.
+    await expect(arms.locator('.fp-credit')).toHaveText(/^C records · Uso libre con atribución · Wikimedia Commons$/);
+    await expect(arms.locator('.fp-credit a')).toHaveCount(1);
+    await open(page, '/banderas/paises/JP');
+    await expect(arms.locator('.fp-credit')).toHaveText(new RegExp(`^${japan.by} · CC BY-SA 4\\.0 · Wikimedia Commons$`));
+    await expect(arms.locator('.fp-credit a').first()).toHaveAttribute('href', japan.licenceUrl!);
+
+    // A drawing nobody holds rights of, and of which Commons names nobody, says only that.
+    const mexico = sheetFile('MX').arms!;
+    expect([mexico.licence, mexico.by]).toEqual(['Public domain', undefined]);
+    await open(page, '/banderas/paises/MX');
+    await expect(arms.locator('.fp-credit')).toHaveText(/^Dominio público · Wikimedia Commons$/);
+    await expect(arms.locator('.fp-credit a')).toHaveAttribute('href', commons(mexico.title));
+
+    // The sheet somebody wrote by hand shows it too.
+    await open(page, '/banderas/paises/BR');
+    await expect(arms.locator('figcaption')).toHaveText(/^Escudo\s/);
+    await expect.poll(() => drawn(picture)).toBe(true);
+  });
+
+  test('shows no coat of arms of a country that has none, nor of a territory that flies the flag of its country', async ({ page }) => {
+    await seed(page);
+    for (const id of ['TR', 'RE', 'AQ']) expect(sheetFile(id).arms, id).toBeUndefined();
+    const sheet = await openSheet(page, '/banderas/paises/TR');
+    // The globe is where it was, alone.
+    await expect(sheet.locator('.fp-glance .fp-side .fp-where svg')).toBeVisible();
+    await expect(sheet.locator('.fp-arms')).toHaveCount(0);
+    await expect(sheet.locator('.fp-foot')).not.toContainText('El escudo');
+    await open(page, '/banderas/paises/RE');
+    await expect(title(sheet)).toHaveText('Reunión');
+    await expect(sheet.locator('.fp-glance .fp-side .fp-where svg')).toBeVisible();
+    await expect(sheet.locator('.fp-arms')).toHaveCount(0);
+  });
+
+  test('puts a light plate behind the coat of arms where the sheet is dark, and says in English what it is', async ({ page }) => {
+    await seed(page, { theme: 'dark', lang: 'en' });
+    // That of India is drawn in black lines, with nothing behind them.
+    const sheet = await openSheet(page, '/flags/countries/IN');
+    const arms = sheet.locator('.fp-arms');
+    const picture = arms.locator('img');
+    await expect.poll(() => drawn(picture)).toBe(true);
+    const behind = await picture.evaluate((img) => {
+      const style = getComputedStyle(img);
+      return { colour: style.backgroundColor, padding: style.paddingTop, round: style.borderTopLeftRadius, sheet: getComputedStyle(img.closest('.dlg-box')!).backgroundColor };
+    });
+    expect(behind).toMatchObject({ colour: 'rgb(236, 233, 225)', padding: '10px', round: '14px' });
+    expect(behind.sheet).not.toBe(behind.colour);
+    await expect(arms.locator('figcaption')).toHaveText(/^Emblem\s/);
+    await expect(arms.locator('.fp-credit')).toHaveText(/^Government of India · Public domain · Wikimedia Commons$/);
+    await expect(sheet.locator('.fp-foot')).toContainText('The coat of arms is a drawing from Wikimedia Commons, made smaller');
+    await open(page, '/flags/countries/ES');
+    await expect(arms.locator('figcaption')).toHaveText(/^Coat of arms\s/);
+    await open(page, '/flags/countries/JP');
+    await expect(arms.locator('figcaption')).toHaveText(/^Seal\s/);
+  });
+
+  test('puts the coat of arms beside the globe on a phone, under the figures @movil', async ({ page }) => {
+    await seed(page);
+    const sheet = await openSheet(page, '/banderas/paises/ES');
+    const screen = page.viewportSize()!;
+    const picture = sheet.locator('.fp-arms img');
+    await picture.scrollIntoViewIfNeeded();
+    await expect.poll(() => drawn(picture)).toBe(true);
+    const [globe, arms, facts] = [(await sheet.locator('.fp-side .fp-where').boundingBox())!, (await sheet.locator('.fp-side .fp-arms').boundingBox())!, (await sheet.locator('.fp-glance .fp-facts').boundingBox())!];
+    // Side by side, the globe first, both under the figures and inside the screen.
+    expect(Math.abs(globe.y - arms.y)).toBeLessThan(2);
+    expect(arms.x).toBeGreaterThan(globe.x + globe.width);
+    expect(globe.y).toBeGreaterThanOrEqual(facts.y + facts.height);
+    expect(globe.x).toBeGreaterThanOrEqual(0);
+    expect(arms.x + arms.width).toBeLessThanOrEqual(screen.width);
+    const box = (await picture.boundingBox())!;
+    expect(Math.round(Math.max(box.width, box.height))).toBe(132);
+    const scroller = sheet.locator('.dlg-box');
+    expect(await scroller.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
   });
 
   test('shows the flags the game has of its past, each with its years, and the one of today last', async ({ page }) => {

@@ -3,16 +3,18 @@
  * the place of a country among the States, the flags of its times and where it is on the globe; and the
  * sheets themselves, as the game is given them — that every country with a flag has one, that none says
  * anything that is not what it is said to be, that those written by hand say what was written, that every
- * photograph is there at every width it is said to have, with whose it is, and that the flags of its times
- * are flags the game has.
+ * photograph is there at every width it is said to have, with whose it is, that the coat of arms each shows
+ * is one that may be shown, with whose its drawing is, and that the flags of its times are flags the game has.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { feature } from 'topojson-client';
 import type { GeometryCollection, Topology } from 'topojson-specification';
 import { beforeEach, describe, expect, it } from 'vitest';
+// @ts-expect-error a list of the build, written without types
+import { ARMS as ARMS_PINNED, ARMS_AT as ARMS_PINNED_AT, ARMS_SAID as ARMS_PINNED_SAID } from '../../scripts/data/arms-pinned.mjs';
 // @ts-expect-error a script of the build, written without types
-import { LEAD_MAX as LEAD_MAX_SAID, WIDTHS as WIDTHS_SAID } from '../../scripts/data/profiles.mjs';
+import { ARMS_BOX as ARMS_BOX_SAID, LEAD_MAX as LEAD_MAX_SAID, WIDTHS as WIDTHS_SAID } from '../../scripts/data/profiles.mjs';
 // @ts-expect-error a list of the build, written without types
 import { PHOTOS as PINNED, PHOTOS_AT as PINNED_AT, PHOTOS_SAID as PINNED_SAID } from '../../scripts/data/photos-pinned.mjs';
 import type { FlagsFile } from './flags';
@@ -24,7 +26,11 @@ import type { Country, Geo, Index } from './types';
 
 const WIDTHS = WIDTHS_SAID as { head: number[]; photo: number[]; time: number[]; chosen: number[] };
 const LEAD_MAX = LEAD_MAX_SAID as { about: number; flag: number };
-const PHOTOS = PINNED as [file: string, blob: string][];
+const ARMS_BOX = ARMS_BOX_SAID as number;
+const ARMS = ARMS_PINNED as [file: string, blob: string][];
+const ARMS_SAID = ARMS_PINNED_SAID as [file: string, blob: string];
+const ARMS_AT = ARMS_PINNED_AT as { repo: string; commit: string; dir: string };
+const PHOTOS = PINNED as [file: string, blob: string, commit?: string][];
 const PHOTOS_SAID = PINNED_SAID as [file: string, blob: string];
 const PHOTOS_AT = PINNED_AT as { repo: string; commit: string; dir: string };
 
@@ -320,7 +326,7 @@ describe('the sheet of every country', () => {
   const sheets = LANDS.map((id) => sheetOf(id));
 
   it('is of its country, and says only what a sheet says', () => {
-    const known = ['v', 'id', 'official', 'local', 'localLang', 'motto', 'anthem', 'about', 'lead', 'flag', 'times', 'photos', 'read', 'readFlag'];
+    const known = ['v', 'id', 'official', 'local', 'localLang', 'motto', 'anthem', 'about', 'lead', 'flag', 'times', 'photos', 'arms', 'read', 'readFlag'];
     const ofFlag = ['of', 'adopted', 'changed', 'ratio', 'colours', 'called', 'by', 'text', 'lead', 'parts'];
     for (const [i, sheet] of sheets.entries()) {
       expect(sheet.v, LANDS[i]).toBe(1);
@@ -342,9 +348,14 @@ describe('the sheet of every country', () => {
     // The file is written by hand, one country to a line and in order; and every country it names is one of the game.
     expect(ids).toEqual([...ids].sort());
     for (const id of ids) expect(LANDS, id).toContain(id);
-    // The first lot: the countries where Spanish is spoken, and the most populous of the rest.
-    expect(ids.length).toBeGreaterThanOrEqual(50);
+    // The first lot: the countries where Spanish is spoken, and the most populous of the rest. The second: the rest of Europe, and ten more.
+    expect(ids.length).toBeGreaterThanOrEqual(100);
     for (const id of ['ES', 'MX', 'AR', 'CO', 'PE', 'CL', 'US', 'CN', 'IN', 'JP', 'DE', 'FR', 'GB', 'IT']) expect(ids, id).toContain(id);
+    for (const id of ['PT', 'NL', 'GR', 'SE', 'PL', 'CH', 'AT', 'IE', 'VA', 'XK', 'CA', 'MA', 'SA']) expect(ids, id).toContain(id);
+    // Every State of Europe has one.
+    const europe = INDEX.countries.filter((c) => c.ct === 'EU' && c.cl !== 'dep' && hasProfile(c)).map((c) => c.id);
+    expect(europe.length).toBeGreaterThanOrEqual(44);
+    for (const id of europe) expect(ids, id).toContain(id);
     const seen = new Set<string>();
     for (const sheet of sheets) {
       if (WRITTEN.includes(sheet.id)) continue;
@@ -718,7 +729,12 @@ describe.each(WRITTEN.map((id) => [id]))('the sheet of %s, written by hand', (id
   });
 
   it('keeps no picture that no sheet shows', () => {
-    const used = new Set(LANDS.flatMap((land) => photosOf(sheetOf(land)).flatMap((photo) => photo.sizes.map((w) => `${photo.file}-${w}.webp`))));
+    const used = new Set(
+      LANDS.flatMap((land) => {
+        const one = sheetOf(land);
+        return [...photosOf(one).flatMap((photo) => photo.sizes.map((w) => `${photo.file}-${w}.webp`)), ...(one.arms ? [`${one.arms.file}-${one.arms.w}.webp`] : [])];
+      }),
+    );
     expect(fs.readdirSync(path.join(ROOT, PICTURES)).sort()).toEqual([...used].sort());
   });
 
@@ -759,14 +775,115 @@ describe.each(WRITTEN.map((id) => [id]))('the sheet of %s, written by hand', (id
   });
 });
 
+describe('the coat of arms of each country', () => {
+  const sheets = LANDS.map((land) => sheetOf(land));
+  const { _: why, ...FIXES } = json<Record<string, { arms?: { file?: string; kind?: string; by?: string } | null; flag?: { of?: string } }> & { _: string }>('scripts/data/profiles-fixes.json');
+  const shown = sheets.filter((sheet) => sheet.arms);
+
+  it('is shown by nearly every State, and by none of the territories that the game draws with the flag of their country', () => {
+    expect(typeof why).toBe('string');
+    expect(shown.length).toBeGreaterThanOrEqual(220);
+    const states = INDEX.countries.filter((c) => c.cl !== 'dep' && hasProfile(c)).map((c) => c.id);
+    // Wikidata names none for Turkey, which has none; and of three the drawing Commons has is not one the sheet may show as it is.
+    const without = states.filter((id) => !sheetOf(id).arms).sort();
+    expect(without.length).toBeLessThanOrEqual(8);
+    for (const id of ['ES', 'MX', 'AR', 'CO', 'PE', 'CL', 'NI', 'US', 'CN', 'IN', 'JP', 'DE', 'FR', 'GB', 'IT', 'BR', 'PT', 'CA', 'PS']) expect(sheetOf(id).arms, id).toBeDefined();
+    for (const sheet of sheets) if (sheet.flag?.of) expect(sheet.arms, sheet.id).toBeUndefined();
+    expect(sheetOf('AQ').arms).toBeUndefined();
+  });
+
+  it('is a small picture that fits its box, light, and named after what it is made from', () => {
+    for (const { id, arms } of shown) {
+      const one = arms!;
+      expect(Object.keys(one).filter((key) => !['file', 'w', 'h', 'title', 'by', 'licence', 'licenceUrl', 'kind'].includes(key)), id).toEqual([]);
+      expect(one.file, id).toMatch(/^[0-9a-f]{10}$/);
+      expect(Number.isInteger(one.w) && Number.isInteger(one.h), id).toBe(true);
+      expect(Math.max(one.w, one.h), id).toBeLessThanOrEqual(ARMS_BOX);
+      // As large as its box, unless Commons has it smaller; and never a sliver.
+      expect(Math.max(one.w, one.h), id).toBeGreaterThanOrEqual(200);
+      expect(Math.min(one.w, one.h), id).toBeGreaterThanOrEqual(80);
+      const file = path.join(ROOT, PICTURES, `${one.file}-${one.w}.webp`);
+      expect(fs.existsSync(file), file).toBe(true);
+      const bytes = fs.statSync(file).size;
+      expect(bytes, one.title).toBeGreaterThan(1_500);
+      expect(bytes, one.title).toBeLessThan(60_000);
+      expect(fs.readFileSync(file).subarray(8, 12).toString('latin1')).toBe('WEBP');
+    }
+    expect(ARMS_BOX).toBe(264);
+    // Each country its own drawing.
+    expect(new Set(shown.map((sheet) => sheet.arms!.file)).size).toBe(shown.length);
+  });
+
+  it('says whose the drawing is: on free terms, and with a name wherever the terms ask for one', () => {
+    const terms = new Set<string>();
+    for (const { id, arms } of shown) {
+      const one = arms!;
+      expect(one.title.trim(), id).toBe(one.title);
+      expect(one.title, id).toMatch(/\.(svg|png|jpe?g)$/i);
+      expect(one.licence, one.title).toMatch(/^(CC0|CC BY(-SA)? \d\.\d|Public domain$|Attribution$)/);
+      terms.add(one.licence.replace(/ \d.*$/, ''));
+      if (one.licenceUrl !== undefined) expect(one.licenceUrl, one.title).toMatch(/^https:\/\//);
+      if (/^CC BY/.test(one.licence)) expect(one.licenceUrl, one.title).toMatch(/^https:\/\/creativecommons\.org\/licenses\//);
+      if (/^(CC BY|Attribution)/.test(one.licence)) expect(one.by?.trim(), `${id}: ${one.title}`).toBeTruthy();
+      if (one.by !== undefined) {
+        expect(one.by.trim(), one.title).toBe(one.by);
+        expect(one.by.length, one.by).toBeGreaterThan(1);
+        expect(one.by.length, one.by).toBeLessThanOrEqual(60);
+        // A name, or a few: not what the page of the file tells in their place.
+        expect(one.by, `${id}: ${one.title}`).not.toMatch(/\(\s|\s\)|\s,|\.(svg|png|jpe?g)|talk|file history|own work|unknown|version|https?:|\bUser:|Bot\b|…/i);
+      }
+    }
+    expect([...terms].sort()).toEqual(['Attribution', 'CC BY', 'CC BY-SA', 'CC0', 'Public domain']);
+  });
+
+  it('is called what it is: an emblem or a seal where the country has no coat of arms', () => {
+    const kinds = (kind: string | undefined) => shown.filter((sheet) => sheet.arms!.kind === kind).map((sheet) => sheet.id);
+    for (const { id, arms } of shown) expect([undefined, 'emblem', 'seal'], id).toContain(arms!.kind);
+    expect(kinds(undefined).length).toBeGreaterThan(140);
+    for (const id of ['ES', 'MX', 'DE', 'GB', 'PT', 'AR', 'BR', 'RU', 'PL']) expect(kinds(undefined), id).toContain(id);
+    for (const id of ['CN', 'IN', 'IT', 'FR', 'IL', 'KR', 'VN', 'AF', 'LA']) expect(kinds('emblem'), id).toContain(id);
+    for (const id of ['JP', 'MG', 'PW', 'LY', 'GU']) expect(kinds('seal'), id).toContain(id);
+  });
+
+  it('is the one somebody chose by hand where what Wikidata names is not the one, and none where it names what is not one', () => {
+    const chosen = Object.entries(FIXES).filter(([, fix]) => typeof fix.arms?.file === 'string');
+    expect(chosen.map(([id]) => id).sort()).toEqual(['BF', 'ES', 'LA', 'PS']);
+    for (const [id, fix] of chosen) expect(sheetOf(id).arms?.title, id).toBe(fix.arms!.file);
+    expect(sheetOf('ES').arms).toMatchObject({ title: 'Escudo de España (mazonado).svg', licence: 'Public domain' });
+    // Who drew it, where Commons tells it in more words than fit, or in none.
+    for (const [id, fix] of Object.entries(FIXES)) if (fix.arms?.by) expect(sheetOf(id).arms?.by, id).toBe(fix.arms.by);
+    // The arms of a family that owned the islands, a photograph where a drawing is wanted, and a drawing that is asked to be deleted.
+    const none = Object.entries(FIXES).filter(([, fix]) => fix.arms === null).map(([id]) => id).sort();
+    expect(none).toEqual(['CC', 'NU', 'TG']);
+    for (const id of none) expect(sheetOf(id).arms, id).toBeUndefined();
+    // Nobody says anything of the coat of arms of a territory that shows none.
+    for (const [id, fix] of Object.entries(FIXES)) if (fix.flag?.of) expect(fix.arms, id).toBeUndefined();
+  });
+
+  it('is fetched to make the sheets: the ones they show, each pinned by what it holds', () => {
+    expect(ARMS_AT.repo).toBe('diegosb72/regionle');
+    expect(ARMS_AT.commit).toMatch(/^[0-9a-f]{40}$/);
+    expect(ARMS_SAID[0]).toBe('arms/arms.json');
+    for (const [file, blob] of [ARMS_SAID, ...ARMS]) expect(blob, file).toMatch(/^[0-9a-f]{40}$/);
+    for (const [file] of ARMS) expect(file).toMatch(/^arms\/files\/[0-9a-f]{40}\.330\.(png|jpg)$/);
+    expect(ARMS.map(([file]) => path.basename(file).slice(0, 10)).sort()).toEqual(shown.map((sheet) => sheet.arms!.file).sort());
+  });
+});
+
 describe('the photographs that are fetched to make the sheets', () => {
   it('are the ones the sheets show, each pinned by what it holds', () => {
     expect(PHOTOS_AT.repo).toBe('diegosb72/regionle');
     expect(PHOTOS_AT.commit).toMatch(/^[0-9a-f]{40}$/);
     expect(PHOTOS_SAID[0]).toBe('photos/photos.json');
-    for (const [file, blob] of [PHOTOS_SAID, ...PHOTOS]) {
+    for (const [file, blob, commit] of [PHOTOS_SAID, ...PHOTOS]) {
       expect(blob, file).toMatch(/^[0-9a-f]{40}$/);
+      // One that Wikimedia has drawn again since says where it is as it was brought: at an earlier commit, and not the one of the rest.
+      if (commit !== undefined) {
+        expect(commit, file).toMatch(/^[0-9a-f]{40}$/);
+        expect(commit, file).not.toBe(PHOTOS_AT.commit);
+      }
     }
+    expect(PHOTOS_SAID).toHaveLength(2);
     for (const [file] of PHOTOS) expect(file).toMatch(/^photos\/files\/[0-9a-f]{40}\.1920\.(jpg|png)$/);
     // Under the SHA-1 of its original, whose first figures are what its pictures are named after.
     const pinned = PHOTOS.map(([file]) => path.basename(file).slice(0, 10)).sort();

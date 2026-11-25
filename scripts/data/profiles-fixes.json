@@ -38,7 +38,7 @@
   "EC": { "flag": { "adopted": "1860-09-26" } },
   "EH": { "flag": { "adopted": "1976-02-27", "ratio": "1:2", "colours": { "es": ["rojo", "verde", "blanco", "negro"], "en": ["red", "green", "white", "black"] } }, "readFlag": { "en": "https://en.wikipedia.org/wiki/Flag_of_Western_Sahara" } },
   "ER": { "motto": null },
-  "ES": { "anthem": { "es": "Marcha Real", "en": "Marcha Real" }, "arms": { "file": "Escudo de España (mazonado).svg" } },
+  "ES": { "anthem": { "es": "Marcha Real", "en": "Marcha Real" }, "arms": { "file": "Escudo de España (mazonado).svg", "by": "Gobierno de España, SanchoPanzaXXI" } },
   "ET": { "motto": null },
   "FK": { "motto": { "lang": "en", "en": "Desire the Right" } },
   "FR": { "arms": { "kind": "emblem" } },
