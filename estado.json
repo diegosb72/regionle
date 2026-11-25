@@ -1,6 +1,6 @@
 {
-  "when": "2026-11-25T19:27:40.572Z",
-  "from": "arena/baec5cdd-regionle@538dd47",
+  "when": "2026-11-25T19:31:42.283Z",
+  "from": "arena/baec5cdd-regionle@d826878",
   "workflow": "same",
   "sources": [
     {
@@ -12,45 +12,44 @@
       "es": "Candidatas a fotografía de cabecera de las fichas de los países",
       "needs": "113",
       "ok": true,
-      "bytes": 103778,
-      "blob": "2916ddaa2aed6c6404abd9051e9605e3891be051",
-      "note": "160 candidatas para 13 de 13 países: 160 imágenes traídas (4023 kB); 26 cosas buscadas en Commons por su nombre; 7 que no sirven de cabecera",
+      "bytes": 126647,
+      "blob": "a98d55e05ba5bf4f2af2408005f6906fb484d69c",
+      "note": "200 candidatas para 13 de 13 países: 200 imágenes traídas (4910 kB); 26 cosas buscadas en Commons por su nombre; 7 que no sirven de cabecera",
       "detail": {
         "asked": 13,
         "found": 13,
         "none": [],
         "files": {
-          "all": 160,
+          "all": 200,
           "unfit": 7,
-          "brought": 160,
+          "brought": 200,
           "left": 0,
-          "bytes": 4023225
+          "bytes": 4909993
         },
         "kinds": {
-          "sought": 144,
-          "capital": 7,
-          "top": 4,
-          "park": 3,
-          "heritage": 2
+          "sought": 180,
+          "capital": 8,
+          "top": 8,
+          "heritage": 3,
+          "park": 1
         },
         "licences": {
-          "CC BY-SA 4.0": 47,
-          "Public domain": 31,
-          "CC BY-SA 3.0": 22,
-          "CC BY-SA 2.0": 21,
-          "CC BY 3.0": 9,
-          "CC0": 9,
-          "CC BY 2.0": 8,
-          "CC BY 4.0": 4,
-          "CC BY 2.5": 3,
-          "CC BY 2.0 de": 2,
-          "CC BY 2.5 dk": 2,
-          "Attribution": 1,
-          "No restrictions": 1
+          "CC BY-SA 4.0": 50,
+          "Public domain": 37,
+          "CC BY-SA 3.0": 35,
+          "CC BY-SA 2.0": 28,
+          "CC BY 2.0": 26,
+          "CC BY 4.0": 7,
+          "CC0": 7,
+          "CC BY 3.0": 5,
+          "No restrictions": 2,
+          "CC BY 2.5": 1,
+          "CC BY-SA 2.5": 1,
+          "CC BY-SA 3.0 de": 1
         },
         "undone": []
       },
-      "ms": 157828
+      "ms": 176092
     }
   ],
   "reach": []
