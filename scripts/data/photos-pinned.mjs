@@ -17,10 +17,10 @@
 // pictures the game shows).
 
 /** The commit of the branch `datos` that the photographs are taken from. */
-export const PHOTOS_AT = { repo: 'diegosb72/regionle', commit: 'c8444f667e417641f2f6a93d109ac1d0c75cb65a', dir: '' };
+export const PHOTOS_AT = { repo: 'diegosb72/regionle', commit: '93309ab710d7f646db823971bbb1960b65c6f563', dir: '' };
 
 /** What Commons says of every photograph that was asked for. */
-export const PHOTOS_SAID = ['photos/photos.json', '0c0b2654ce8f564f5402fe4b0582e8251ad13cc2'];
+export const PHOTOS_SAID = ['photos/photos.json', 'd0b2b1974c1673ad9de252212255e51f838dadf5'];
 
 /** The pictures, each under the SHA-1 of its original: [where it is in the branch, the Git name of what it holds, the commit it is at where that is another]. */
 export const PHOTOS = [
@@ -137,4 +137,56 @@ export const PHOTOS = [
   ['photos/files/3ea8fd8d447ff794881e341e1fadd824d94b9bcd.1920.jpg', 'cba0627eacae4eea234be6621a37d0b4c881b2cd'], // XK · Stone Bridge in Prizren (by Pudelek).JPG
   ['photos/files/1b3edf52443e8651632110b0285fef1475ad697d.1920.jpg', '37e3a56b0541d384619d764963bf59c34b714901'], // YE · مدينة شبام حضرموت.jpg
   ['photos/files/5b9acba7e2fa142cee61864caf5e42a99dc6cacb.1920.jpg', '59d773b29550534efa801802645aee067b0d9d11', 'ac8c7de5872541fa23c0d28e9f3cf63cfe231d53'], // ZA · Ciudad del Cabo desde Cabeza de León, Sudáfrica, 2018-07-22, DD 34.jpg
+
+  // The next fifty countries by population (1.52.0)
+  ['photos/files/ecc4d9bc7ad94e25af0b6e749b008beb3387a0f5.1920.jpg', '0adab38e7ec8b9c1a743203637342995be8bb7aa'], // AE · Dubai skyline unsplash.jpg
+  ['photos/files/557449d60d79ad5fa116444db8d60596555be652.1920.jpg', 'dc226493d6052ec290b28166e74a970894f23912'], // AU · Sydney (AU), Opera House -- 2019 -- 2280.jpg
+  ['photos/files/9b48715ecc9d3aab3b2437432d2c457eca33adb9.1920.jpg', '3c11f98f6566475c3aaec1b6d014854245e479e5'], // AZ · Flame Towers von der Uferpromenade.jpg
+  ['photos/files/81f7caf7a0c1b8f3d004df5560352d0f79f5a32b.1920.jpg', '46c1ef95144807575b0152bfa8b850baf5596924'], // BF · Moschee von Bobo-Dioulasso.jpg
+  ['photos/files/877e433a4098edb137d4c1c8bee970bb85208339.1920.jpg', '9f8860c05299cc628c5be5ae737472816f5f9114'], // BI · Bujumbura Burundi Lac Tanganyika 24.jpg
+  ['photos/files/9b6b6cde56472291977c09476c797d53a6f2a338.1920.jpg', 'd5d601d280e90e75b7875423490e900905d01257'], // BJ · The village of Ganvié on Lake Nokoué.jpg
+  ['photos/files/159bba72b5a8f53fa4e0bb0cd061add358f04ec2.1920.jpg', '80ffb41018abfb9b126c89d0b17bf67c74cfea0d'], // CF · African forest elephants at Dzanga Bai, Central African Republic.jpg
+  ['photos/files/f3df599ff95fb61d6e856175e914d29df52145cd.1920.jpg', 'ee0d8c75fa29679d3ae4c10c9d012ca9d9c4f33d'], // CG · Brazzaville - Basilique Sainte-Anne-du-Congo.jpg
+  ['photos/files/8e7558e86170c3ac2790a59eac97c96fc707e72d.1920.jpg', '068aa3c5419ea5030f4ac3b5f3a9afb86f7b5f13'], // CI · Basilique notre Dame de la Paix de Yamoussoukro 1.jpg
+  ['photos/files/2092956b7714b6ca0e54fb20201b36bcf1967c47.1920.jpg', 'b7528deae75c96d7b5518190c70fd4ed434d15fc'], // CM · Kapsiki home in Rhumsiki.jpg
+  ['photos/files/612802a4eb9b65f5fd248a9e149d088b6c92615d.1920.jpg', 'cf516fc012e0cd13ee04d30220d4dd75862776a2'], // GE · Gergeti Trinity Church and Mt. Kazbeg 01.jpg
+  ['photos/files/eeb5a26217ba93e934325535e0534a6c0bb21a4f.1920.jpg', 'a942672cc1ae59a390aa69c98e754d5477806ca7'], // GN · Fouta Djallon (14625360573).jpg
+  ['photos/files/8c45aefaf0daa43e981cf8df286a231fc6534b9b.1920.jpg', '0284d025a34e6cd68fb11bd67f525d93e403bab1'], // HT · Citadelle Laferrière Aerial View.jpg
+  ['photos/files/91c0b3b6772df2e59b9f2a501ec238c26190314b.1920.jpg', 'c3550693e068fc4d77bc0cb30f092885858e2993'], // IL · ISR-2013-Aerial-Masada-Northern Palace 01.jpg
+  ['photos/files/dca24bc1c8c01521cf46b945632b368c8ddc83dc.1920.jpg', 'd5b4aa2b96b1131692585e81c1291917d4ad9ef5'], // JO · The Monastery, Petra, Jordan8.jpg
+  ['photos/files/f9a2ffe1b9587ddc7bc21793a95eb4896ed9e24a.1920.jpg', '5cb1080ac01ce4d3ad091e76496a59b98b4f3346'], // KG · Song-Kul, Kyrgyzstan (Unsplash).jpg
+  ['photos/files/daa03f8e483d0fb53fe04a91aff1a922e2608d7b.1920.jpg', '058789b349fa1fa2778a0bf257a5edfb3e91733a'], // KH · Angkor Wat with its reflection (cropped).jpg
+  ['photos/files/c3fca710a6292ec8837d7bbd5c225dcbbb9ec668.1920.jpg', 'fc47eec2ac21fd98e1b82332cf04214051834144'], // KP · Panoramic view from Juche Tower.jpg
+  ['photos/files/f88f8c8ea4bf41f68e82d0fd64df180675327610.1920.jpg', '17ccdaed9a64066db9b9f8679a518999b25f61d5'], // KW · Kuwait City Skyline 2.jpg
+  ['photos/files/22fbc520d4af2929bbd8de6cec9ff4f65f69f379.1920.jpg', '2a9d1fe44cd1cbd7febd07de4dec366b063b0fa7'], // KZ · БАО ранней осенью.jpg
+  ['photos/files/e376f8b999fd0401c2215c7741c268ac7029ea23.1920.jpg', '87663afd82edb8a56c3d424c972a0226a3381fbb'], // LA · 20171118 Pha That Luang in Vientiane 3169 DxO.jpg
+  ['photos/files/9fde15abbe9c312b6a867cd399a4353c62a78e5c.1920.jpg', '9e398bd64a25eb5d7ba6cae5999efc1556a836ec'], // LB · Temple of Bacchus.jpg
+  ['photos/files/d36114216929e790f9c077a6be71ff6e98018179.1920.jpg', 'b8f3b80beb4ff4b13aced676e0203e97ed15deac'], // LK · Sigiriya Rock fortress.jpg
+  ['photos/files/ae59737448ecfbbf492f851e2b103e460e707a41.1920.jpg', '924f8b168da5fc7801f96bbd633125782e201889'], // LR · Liberia, Africa - panoramio (256).jpg
+  ['photos/files/3fa1aaa773d7c948c73e5622bcb4a74b799dcf5b.1920.jpg', '9d48960fece10d76d0b393af2856602c155b03aa'], // LY · Ancient Theatre - Sabratha - Libya 07.jpg
+  ['photos/files/936af063e9f8304345919fe9e535ba7cc0691c06.1920.jpg', '333d9d22bea40231b9f061f67621113c74a1463e'], // MG · Avenue of the Baobabs, central axis.jpg
+  ['photos/files/ffbdbad4ffbc947aaf657e447d8060ab5cf18fcc.1920.jpg', '2abe4d5ac4735fcbd664f47eed564c82cd662633'], // ML · The Great Clay Mosque in Djenne, Mali.jpg
+  ['photos/files/3fa370268983c328a27bad87b6eb173c64c63154.1920.jpg', 'ca2f79559d2d3164528eb6879f17fc1f18e2d657'], // MR · مسجد شنقيط التاريخي.jpg
+  ['photos/files/ef86eb28b3a15298d5278bc22f5d775aa0284347.1920.jpg', '94030a7cd05d417c5bf1d3cb5c6c7ddbd9e41a19'], // MW · Cape McLear, Malawi (2498445835).jpg
+  ['photos/files/66b707c51fbfccd233a36ebe1005cac83d5f28ce.1920.jpg', '4583739c0ac380a2d43fe14e04927b0dd40e3c4b'], // NE · Niger, Agadez (28), grand mosque, old city.jpg
+  ['photos/files/29b947c632c573bd526bb064557ac8bede7fa22d.1920.jpg', '8efd152de94edcd518432fcc82571498765e8033'], // NP · Everest, Nuptse, Khumbu Glacier, Nepal, Himalayas.jpg
+  ['photos/files/3364f92d2e9b59523276d7e9e78a6dc664a6dfb1.1920.jpg', 'ad95f13b8afc1234022bf25ae0907794108e3b21'], // NZ · MilfordSound.jpg
+  ['photos/files/e7279aa9d5c89516640ebad70e38bf927a95eb4e.1920.jpg', 'efcecdb5f9a91a06c890061841737a391a5d0e0c'], // OM · Nizwa Fort and Minaret of Friday Mosque.JPG
+  ['photos/files/946633fb866555e71f77bc3c9b4a19000c2eade8.1920.jpg', '934289b34a1d1ac1bd3171493aebabefac425161'], // PG · Turanguna and Kombiu.jpg
+  ['photos/files/563e0f882dc8555007767d15dbc3f5e19565b27b.1920.jpg', 'cfd6f161c8af772db08420cd1a5a4b2be2616296'], // PS · Aerial view of Mar Saba 03.jpg
+  ['photos/files/96f61a710b371ebcf2295266b3be6b5c2bf14edb.1920.jpg', '5c3ef2794f82496e722cd657380aeee6b2c5dfe5'], // RW · Kigali2018Cropped.jpg
+  ['photos/files/d7919b1cf45caba882d6307f21afa2f3c8440432.1920.jpg', '27583d40e49071a04b04a4f7ce3af28ec78ca0f6'], // SG · Puente Helix, museo ArtScience y hotel Marina Bay Sands, Marina Bay, Singapur, 2023-08-17, DD 67-69 HDR.jpg
+  ['photos/files/04f43dacb65168b646eaca2d2ec3d4c2d21529b9.1920.jpg', 'baca438ce3c5c7ab7084e0f41087c7e1589c86fc'], // SL · Flickr - stringer bel - River No. 2 Village Beach, Sierra Leone (3).jpg
+  ['photos/files/8d2d02650ccb3b08eee91ca7fae1fd1c8446afd2.1920.jpg', 'ccf22d968b926165b67d642837ec216d9033bae9'], // SN · Côtes de l'île de Gorée au Sénégal 11.jpg
+  ['photos/files/b7db7001a99a9d0e95495c4d78d0924aa864c267.1920.jpg', 'd4e08fce614fbd0b9c40995dd6e27d795dd8c465'], // SO · Lido Beach 2023.jpg
+  ['photos/files/e221759a8acb66ef5ccaa8d73412e7cace78d1d4.1920.jpg', '91bf408c92f2a63d92cd73b513a7c7a5aaf8d160'], // SS · Campamento de ganado de la tribu Mundari, Terekeka, Sudán del Sur, 2024-01-28, DD 155.jpg
+  ['photos/files/5c773669a21677a26bc6db62e612643926616a63.1920.jpg', '1af44315b9f4e520b128260879b398b9a3858e87'], // SY · Palmyra 01.jpg
+  ['photos/files/e8355f248eb4bafa8e791574479ad57fe05ed4d4.1920.jpg', '455759c1d041c36b09b4faeec3cdd1bcd1ee7992'], // TD · Camels in the Labyrinthe (Maze) sandstone area of the Ennedi, Chad (42405451704).jpg
+  ['photos/files/ee6c04067587099e006d0f4a45033d10bd6b2107.1920.jpg', '6b6a4ef0ee2dc2652370be82751102ee786797da'], // TG · Togo Taberma house 02.jpg
+  ['photos/files/ec48d88cd1c09714acc772aec1772d68a4c31efb.1920.jpg', '60c2073c89b276e6896a4142d4e06e69721fc301'], // TJ · Iskanderkul.jpg
+  ['photos/files/d98c1268d56db440e8618a57db89b40f3ed4ac3e.1920.jpg', '169b7d298ed4675ace59e336d9e78594dd100cdf'], // TM · The Door to Hell.jpg
+  ['photos/files/3b3f55b5ebc6d7b445bbc5141f153e8fab12904e.1920.jpg', '6bacb056c57948a753c939d8f0c794cb74e1c23f'], // TN · Amphithéâtre d’El Jem vue aerienne (2023) 1.jpg
+  ['photos/files/56c4f87416aef4f5d9221287f837ec298156798c.1920.jpg', 'c7853912368a31c5ff58b127d511ec6e231cb469'], // TW · 1 taipei sunrise panorama dxr edit pangen 141215 1.jpg
+  ['photos/files/8fa0f2f892a829318a63541ab1567ae756fb2172.1920.jpg', '11716424615f4bba0a2d17b12561ae2f07678530'], // ZM · Cataratas Victoria, Zambia-Zimbabue, 2018-07-27, DD 05.jpg
+  ['photos/files/ea5adcbdbc1eeb63df0002aebe31994c66ac129c.1920.jpg', '12db822758981c91f8653823a24a9184aa3e517e'], // ZW · Great-zim-aerial-looking-West.JPG
 ];

@@ -15,6 +15,22 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.52.0',
+    date: '2026-11-25',
+    es: [
+      'Fotografía de cabecera en la ficha de otros cincuenta países: los que seguían por población. Ya son 150 fichas con foto, más la de Brasil.',
+      'Entre ellas, la avenida de los baobabs, el Everest, Angkor Wat, la Ciudadela Laferrière, Petra, el Gran Zimbabue y las cataratas Victoria.',
+      'Cuando Commons dio imágenes de otro lugar con el mismo nombre, se buscaron otras: Sigiriya en Sri Lanka llevaba a Lion Rock en Nueva Zelanda.',
+      'Bajo cada foto, lo que se ve, quién la hizo, su licencia y el enlace a Commons; quedan 47 Estados y 51 territorios con la franja de su bandera.',
+    ],
+    en: [
+      'A head photograph on the sheets of fifty more countries: the next fifty by population. A hundred and fifty sheets now show one, plus Brazil’s.',
+      'Among them, the Avenue of the Baobabs, Everest, Angkor Wat, Citadelle Laferrière, Petra, Great Zimbabwe and Victoria Falls.',
+      'Where Commons returned pictures of a different place of the same name, another was chosen: Sigiriya in Sri Lanka led to Lion Rock in New Zealand.',
+      'Under each picture: what it shows, who took it, its licence and a link to Commons; 47 States and 51 territories still show the flag-coloured band.',
+    ],
+  },
+  {
     version: '1.51.0',
     date: '2026-11-25',
     es: [

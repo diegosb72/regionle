@@ -762,6 +762,40 @@ test.describe('the sheet of a country nobody has written of yet', () => {
     expect(await scroller.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
   });
 
+  test('shows the next fifty countries their own photograph, not a result from a place of the same name elsewhere', async ({ page }) => {
+    await seed(page);
+    for (const id of ['MG', 'LK', 'PS', 'SS', 'ZW']) {
+      const photo = sheetFile(id).photos![0];
+      const sheet = await openSheet(page, `/banderas/paises/${id}`);
+      await expect(sheet.locator('.fp-band'), id).toHaveCount(0);
+      const hero = sheet.locator('.fp-hero img');
+      await expect.poll(() => drawn(hero), { message: id }).toBe(true);
+      expect(await hero.evaluate((img: HTMLImageElement) => img.currentSrc), id).toMatch(new RegExp(`/photos/${photo.file}-(640|1280)\\.webp$`));
+      const caption = sheet.locator('.fp-hero figcaption');
+      await expect(caption, id).toContainText(photo.es);
+      await expect(caption.locator('.fp-credit'), id).toContainText(`${photo.by} · ${photo.licence} · Wikimedia Commons`);
+      await expect(caption.getByRole('link', { name: 'Wikimedia Commons' }), id).toHaveAttribute('href', commons(photo.title));
+      await expect(page.locator('.crash'), id).toHaveCount(0);
+    }
+    // This picture of a Palestinian monastery requires the photographer's real name, not only his username.
+    expect(sheetFile('PS').photos![0].by).toBe('Andrew Shiva / Wikipedia');
+    expect(sheetFile('LK').photos![0].title).toBe('Sigiriya Rock fortress.jpg');
+  });
+
+  test('puts the new photograph across a phone with its English caption and credit @movil', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    const sheet = await openSheet(page, '/flags/countries/SS');
+    await expect(sheet.getByRole('heading', { level: 2 })).toHaveText('South Sudan');
+    const photo = sheetFile('SS').photos![0];
+    const hero = sheet.locator('.fp-hero img');
+    await expect.poll(() => drawn(hero)).toBe(true);
+    const box = (await hero.boundingBox())!;
+    expect([Math.round(box.x), Math.round(box.width)]).toEqual([0, page.viewportSize()!.width]);
+    await expect(sheet.locator('.fp-hero figcaption')).toContainText(photo.en);
+    await expect(sheet.locator('.fp-hero .fp-credit')).toContainText(`${photo.by} · ${photo.licence} · Wikimedia Commons`);
+    expect(await sheet.locator('.dlg-box').evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(0);
+  });
+
   test('shows the flags the game has of its past, each with its years, and the one of today last', async ({ page }) => {
     await seed(page);
     const sheet = await openSheet(page, '/banderas/paises/ES');

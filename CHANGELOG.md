@@ -3,6 +3,13 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.52.0 — 25 de noviembre de 2026
+
+- Fotografía de cabecera en la ficha de otros cincuenta países: los que seguían por población. Ya son 150 fichas con foto, más la de Brasil.
+- Entre ellas, la avenida de los baobabs, el Everest, Angkor Wat, la Ciudadela Laferrière, Petra, el Gran Zimbabue y las cataratas Victoria.
+- Cuando Commons dio imágenes de otro lugar con el mismo nombre, se buscaron otras: Sigiriya en Sri Lanka llevaba a Lion Rock en Nueva Zelanda.
+- Bajo cada foto, lo que se ve, quién la hizo, su licencia y el enlace a Commons; quedan 47 Estados y 51 territorios con la franja de su bandera.
+
 ## 1.51.0 — 25 de noviembre de 2026
 
 - El escudo en la ficha de cada país, bajo el globo: lo enseñan 226, con el nombre de lo que es, porque muchos tienen emblema o sello y no escudo.
