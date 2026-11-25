@@ -1,0 +1,258 @@
+[
+  {
+    "id": "ala",
+    "nombre": "Åland",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/5/52/Flag_of_%C3%85land.svg",
+    "historia": "Los primeros pobladores, cazadores y pescadores, llegaron a las islas hacia el 4200 a.C. Durante siglos Åland formó parte del Reino de Suecia, hasta que en 1809, tras la derrota sueca en la Guerra de Finlandia, pasó junto con el Gran Ducado de Finlandia al Imperio ruso mediante el Tratado de Fredrikshamn. La ciudad de Mariehamn fue fundada en 1861. Tras la independencia de Finlandia en 1917, la población suecohablante reclamó su unión a Suecia, conflicto que la Sociedad de Naciones resolvió en 1921 otorgando la soberanía a Finlandia pero garantizando una amplia autonomía y la desmilitarización. La primera Ley de Autonomía data de 1920, y ha sido reescrita en 1951 y 1991. Hoy Åland es una región autónoma desmilitarizada con su propio parlamento, gobierno y bandera desde 1954.[reference:0][reference:1]",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/5/52/Flag_of_%C3%85land.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Flag_of_%C3%85land.svg/320px-Flag_of_%C3%85land.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Flag_of_%C3%85land_%283-2%29.svg/320px-Flag_of_%C3%85land_%283-2%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Aland_4.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Getaberget_observation_tower.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Mariehamn_harbour.jpg?width=800"
+    ]
+  },
+  {
+    "id": "aia",
+    "nombre": "Anguila",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Flag_of_Anguilla.svg",
+    "historia": "La isla estuvo habitada originalmente por los arahuacos, que la llamaban Malliouhana. Cristóbal Colón la avistó en 1493 sin desembarcar, y los europeos la rebautizaron como Anguila por su forma alargada. Los colonos ingleses procedentes de San Cristóbal se establecieron en 1650. Durante los siglos XIX y XX fue administrada junto con San Cristóbal y Nieves, primero como parte de las Islas de Barlovento y luego como colonia unificada, en contra de la voluntad de los anguilanos. Tras una revuelta en 1969, Anguila se separó de facto y en 1980 se convirtió formalmente en un territorio británico de ultramar con su propia constitución. En 2017 el huracán Irma causó daños catastróficos en la isla.[reference:2][reference:3]",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/b/b4/Flag_of_Anguilla.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Flag_of_Anguilla.svg/320px-Flag_of_Anguilla.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Flag_of_Anguilla_%281967%E2%80%931969%29.svg/320px-Flag_of_Anguilla_%281967%E2%80%931969%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Anguilla_Beach_View.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Cap_Juluca_-_Anguilla.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Sandy_Ground_Village,_Anguilla.jpg?width=800"
+    ]
+  },
+  {
+    "id": "ata",
+    "nombre": "Antártida",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/f/f1/White_Flag_of_Antarctica.svg",
+    "historia": "La idea de una «Terra Australis» fría que equilibrara las regiones árticas ya existía en la Antigüedad griega. Sin embargo, el continente no fue avistado hasta 1820, durante expediciones rusas, británicas y estadounidenses. En las décadas de 1840 y 1850 se intensificó la rivalidad territorial con expediciones de varios países. A lo largo del siglo XX se establecieron bases científicas permanentes y se reclamaron sectores del continente. El Tratado Antártico de 1959 reservó la Antártida para fines pacíficos y científicos, congelando las reclamaciones territoriales. No existe una bandera oficial; la más difundida es la bandera blanca llevada por el barco «Discovery» en la expedición BANZARE (1929-31).[reference:4][reference:5]",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/f/f1/White_Flag_of_Antarctica.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/White_Flag_of_Antarctica.svg/320px-White_Flag_of_Antarctica.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/True_South_Antarctic_Flag.svg/320px-True_South_Antarctic_Flag.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Antarctica_%287%29%2C_Laubeuf_Fjord.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/The_Royal_Society_Range_seen_from_Scott_Base_at_Sunset.JPG?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Paradise_Harbour,_Antarctica.jpg?width=800"
+    ]
+  },
+  {
+    "id": "abw",
+    "nombre": "Aruba",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/f/f6/Flag_of_Aruba.svg",
+    "historia": "Aruba estuvo habitada por los arahuacos antes de la llegada de los españoles, que la reclamaron en 1499. En 1636 pasó a manos de la Compañía Neerlandesa de las Indias Occidentales. Durante los siglos XVIII y XIX su economía giró en torno a la minería de oro y fosfatos y el cultivo de aloe. En 1924 se abrió la refinería de petróleo de Lago, que impulsó un crecimiento económico significativo. En 1986 Aruba se separó de las Antillas Neerlandesas y se convirtió en un país autónomo dentro del Reino de los Países Bajos. El movimiento hacia la independencia total se detuvo a petición de la propia isla en 1990. Hoy su economía depende en gran medida del turismo.[reference:6][reference:7]",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/f/f6/Flag_of_Aruba.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Flag_of_Aruba.svg/320px-Flag_of_Aruba.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Flag_of_Aruba_%28alternative%29.svg/320px-Flag_of_Aruba_%28alternative%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Aruba_landschap.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Aruba-Natural-Pool-2013.JPG?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Oranjestad,_Aruba.jpg?width=800"
+    ]
+  },
+  {
+    "id": "bmu",
+    "nombre": "Bermudas",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/b/bf/Flag_of_Bermuda.svg",
+    "historia": "Las islas fueron descubiertas por el navegante español Juan de Bermúdez hacia 1503-1505. Permanecen deshabitadas hasta 1609, cuando el navío inglés «Sea Venture», que se dirigía a Virginia, naufragó en sus costas; los supervivientes permanecieron nueve meses y reclamaron el archipiélago para Inglaterra. La colonización permanente comenzó en 1612 y en 1684 Bermudas se convirtió en colonia de la Corona inglesa. La esclavitud fue abolida en 1834. En el siglo XX, el turismo y las finanzas offshore transformaron la economía. La Constitución actual data de 1968. Es el territorio británico de ultramar más antiguo que sigue siendo colonia.[reference:8][reference:9]",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/b/bf/Flag_of_Bermuda.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Flag_of_Bermuda.svg/320px-Flag_of_Bermuda.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Flag_of_Bermuda_%281910%E2%80%931999%29.svg/320px-Flag_of_Bermuda_%281910%E2%80%931999%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Large_waves_in_Bermuda_(5011540940).jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Bermuda_(UK)_Number_172_beach_view.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Hamilton,_Bermuda.jpg?width=800"
+    ]
+  },
+  {
+    "id": "bes",
+    "nombre": "Caribe Neerlandés",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/2/20/Flag_of_the_Netherlands.svg",
+    "historia": "Las islas de Bonaire, San Eustaquio y Saba formaron parte del imperio colonial neerlandés desde el siglo XVII. Bonaire fue ocupada por los Países Bajos en 1636, mientras que San Eustaquio y Saba cambiaron de manos varias veces entre neerlandeses, ingleses y franceses antes de quedar bajo control neerlandés definitivo. Durante los siglos XVII y XVIII, San Eustaquio se convirtió en un importante centro de comercio y contrabando en el Caribe. La esclavitud fue abolida en 1863. Tras la disolución de las Antillas Neerlandesas en 2010, las tres islas pasaron a ser municipios especiales (openbare lichamen) directamente integrados en los Países Bajos, aunque no forman parte de la Unión Europea.[reference:10][reference:11]",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/2/20/Flag_of_the_Netherlands.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Flag_of_the_Netherlands.svg/320px-Flag_of_the_Netherlands.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Flag_of_Bonaire.svg/320px-Flag_of_Bonaire.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Wells_Bay,_Saba,_with_Torrens_Point_in_the_distance.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Kralendijk,_Bonaire.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Oranjestad,_Sint_Eustatius.jpg?width=800"
+    ]
+  },
+  {
+    "id": "cuw",
+    "nombre": "Curazao",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/b/b1/Flag_of_Cura%C3%A7ao.svg",
+    "historia": "Los primeros pobladores arahuacos llegaron hacia el año 1000 d.C. Los españoles esclavizaron a gran parte de la población indígena en el siglo XVI. En 1634 la Compañía Neerlandesa de las Indias Occidentales se apoderó de la isla, que se convirtió en un centro del comercio de esclavos en el Caribe. Tras la abolición de la esclavitud en 1863, la economía decayó hasta que a principios del siglo XX la construcción de la refinería Isla para procesar el petróleo venezolano reactivó la prosperidad. En 1954 Curazao pasó a formar parte de las Antillas Neerlandesas. Tras varios referendos, en 2010 se convirtió en un país autónomo dentro del Reino de los Países Bajos.[reference:12]",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/b/b1/Flag_of_Cura%C3%A7ao.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Flag_of_Cura%C3%A7ao.svg/320px-Flag_of_Cura%C3%A7ao.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Flag_of_Cura%C3%A7ao_%283-2%29.svg/320px-Flag_of_Cura%C3%A7ao_%283-2%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Boka_Tabla_Curacao.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Jan_Thiel_road_to_saltpan.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Willemstad,_Cura%C3%A7ao.jpg?width=800"
+    ]
+  },
+  {
+    "id": "sgs",
+    "nombre": "Georgias del Sur y Sandwich del Sur",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/e/ed/Flag_of_South_Georgia_and_the_South_Sandwich_Islands.svg",
+    "historia": "South Georgia fue avistada por primera vez por el comerciante londinense Antoine de la Roche en 1675. El capitán James Cook la reclamó para Gran Bretaña en 1775 y descubrió las islas Sandwich del Sur. Durante el siglo XIX la isla sirvió como base para la caza de focas y ballenas. En 1843 se emitieron cartas patentes que establecieron el gobierno británico, y desde 1908 el territorio quedó bajo administración británica como dependencia de las Islas Malvinas. Argentina mantiene un reclamo de soberanía desde 1927. En 1982, durante la Guerra de las Malvinas, fuerzas argentinas ocuparon brevemente las islas. En 1985 se creó el territorio británico de ultramar con gobierno propio.[reference:13][reference:14]",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/e/ed/Flag_of_South_Georgia_and_the_South_Sandwich_Islands.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Flag_of_South_Georgia_and_the_South_Sandwich_Islands.svg/320px-Flag_of_South_Georgia_and_the_South_Sandwich_Islands.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Flag_of_South_Georgia_and_the_South_Sandwich_Islands_%281985%E2%80%931999%29.svg/320px-Flag_of_South_Georgia_and_the_South_Sandwich_Islands_%281985%E2%80%931999%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/SeMo-94_(49435537187).jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Salisbury_Plain,_South_Georgia.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Grytviken,_South_Georgia.jpg?width=800"
+    ]
+  },
+  {
+    "id": "gib",
+    "nombre": "Gibraltar",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/b/b7/Flag_of_Gibraltar.svg",
+    "historia": "Gibraltar ha estado habitado desde la prehistoria y fue conocido en la Antigüedad como una de las Columnas de Hércules. Tras siglos de dominio musulmán (711-1462) y luego español, fue capturado por una fuerza anglo-neerlandesa en 1704 durante la Guerra de Sucesión Española. El Tratado de Utrecht de 1713 cedió la plaza a Gran Bretaña a perpetuidad. España intentó recuperarla mediante varios sitios, el más famoso entre 1779 y 1783. Durante la Segunda Guerra Mundial fue una base naval clave. En 1969 España cerró la frontera, que no se reabrió hasta 1985. En 2002 los gibraltareños rechazaron en referéndum la soberanía compartida con España. Es un territorio británico de ultramar con autogobierno.[reference:15][reference:16]",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/b/b7/Flag_of_Gibraltar.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Flag_of_Gibraltar.svg/320px-Flag_of_Gibraltar.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Government_Ensign_of_Gibraltar_%281875%E2%80%931921%29.svg/320px-Government_Ensign_of_Gibraltar_%281875%E2%80%931921%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Bay_of_Gibraltar_sunset.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Gibraltar_Rock_03.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Main_Street,_Gibraltar.jpg?width=800"
+    ]
+  },
+  {
+    "id": "grl",
+    "nombre": "Groenlandia",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/0/09/Flag_of_Greenland.svg",
+    "historia": "Los inuit llegaron a Groenlandia desde Norteamérica en varias migraciones entre el 2500 a.C. y el siglo XI. Los vikingos islandeses se establecieron en el sur en el siglo X, pero sus colonias desaparecieron hacia el siglo XV. La colonización danesa comenzó en el siglo XVIII, y en 1953 Groenlandia se integró en el Reino de Dinamarca. En 1979 obtuvo la autonomía (home rule) y en 2009 amplió su autogobierno con la Ley de Autogobierno, que reconoce al groenlandés como lengua oficial y otorga mayores competencias. Dinamarca sigue controlando la política exterior, la seguridad y las finanzas. Groenlandia abandonó la Comunidad Europea en 1985 tras un conflicto por las cuotas pesqueras.[reference:17]",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/0/09/Flag_of_Greenland.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Flag_of_Greenland.svg/320px-Flag_of_Greenland.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Flag_of_Greenland_%283-2%29.svg/320px-Flag_of_Greenland_%283-2%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Ammassalik_Island.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Glacier_in_greenland.JPG?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Nuuk,_Greenland.jpg?width=800"
+    ]
+  },
+  {
+    "id": "glp",
+    "nombre": "Guadalupe",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/c/c3/Flag_of_France.svg",
+    "historia": "La isla estuvo habitada por los arahuacos y luego por los caribes, que la llamaban Karukera («isla de las aguas hermosas»). Cristóbal Colón la avistó en 1493 y la nombró Santa María de Guadalupe. Los franceses se establecieron en 1635, exterminando a la población caribe. La isla prosperó con plantaciones de azúcar, café y cacao, basadas en el trabajo esclavo. Fue ocupada por los británicos en varias ocasiones (1759, 1794, 1810) y devuelta a Francia. La esclavitud fue abolida definitivamente en 1848. En 1946 Guadalupe se convirtió en departamento de ultramar de Francia. Hoy es una región ultraperiférica de la Unión Europea.[reference:18][reference:19]",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/c/c3/Flag_of_France.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Flag_of_France.svg/320px-Flag_of_France.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Flag_of_Guadeloupe_%28UPLG%29.svg/320px-Flag_of_Guadeloupe_%28UPLG%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Petite_Terre,_Guadeloupe.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Plage_de_la_Coul%C3%A9e.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Pointe-%C3%A0-Pitre,_Guadeloupe.jpg?width=800"
+    ]
+  },
+  {
+    "id": "gum",
+    "nombre": "Guam",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/0/07/Flag_of_Guam.svg",
+    "historia": "Guam fue poblada por pueblos austronesios hacia el 1500 a.C., que dieron origen al pueblo chamorro. Fernando de Magallanes llegó en 1521 y España reclamó la isla en 1565, convirtiéndola en escala del galeón de Manila. La colonización española formal comenzó en 1668. Tras la Guerra Hispano-Estadounidense, Estados Unidos tomó posesión de Guam en 1898. Japón invadió la isla en 1941 y la ocupó hasta 1944, cuando fue recuperada por las fuerzas estadounidenses. Tras la guerra, Guam se convirtió en un territorio no incorporado de EE.UU. con autogobierno limitado. La base militar de Andersen es un elemento clave de su economía y geopolítica.[reference:21]",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/0/07/Flag_of_Guam.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Flag_of_Guam.svg/320px-Flag_of_Guam.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Flag_of_Guam_%281917%E2%80%931948%29.svg/320px-Flag_of_Guam_%281917%E2%80%931948%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Pago_Bay_panorama,_Guam_coastline_(line383758019).jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Guam_seascape.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Hag%C3%A5t%C3%B1a,_Guam.jpg?width=800"
+    ]
+  },
+  {
+    "id": "guf",
+    "nombre": "Guayana Francesa",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/c/c3/Flag_of_France.svg",
+    "historia": "Los primeros asentamientos franceses en la zona datan de 1604, pero el territorio, conocido como Cayena, no fue definitivamente asignado a Francia hasta el Tratado de París de 1814. Durante los siglos XVIII y XIX fue un lugar de colonización y explotación de recursos. Entre 1852 y 1953 funcionó como colonia penitenciaria, con la infame Isla del Diablo, donde estuvo recluido Alfred Dreyfus. En 1946 la Guayana Francesa se convirtió en departamento de ultramar de Francia. Desde 1968 alberga el puerto espacial de Kourou, que la convirtió en la base de lanzamiento de la Agencia Espacial Europea. La mayoría de la población vive en la costa; el interior está cubierto de selva amazónica.[reference:22][reference:23]",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/c/c3/Flag_of_France.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Flag_of_France.svg/320px-Flag_of_France.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Flag_of_French_Guiana.svg/320px-Flag_of_French_Guiana.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Passage_%C3%A9cologique.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Canop%C3%A9e_for%C3%AAt_guyanaise.JPG?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Cayenne,_French_Guiana.jpg?width=800"
+    ]
+  },
+  {
+    "id": "ggy",
+    "nombre": "Guernsey",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/f/fd/Flag_of_Guernsey.svg",
+    "historia": "Guernsey formó parte del Ducado de Normandía y, tras la conquista normanda de Inglaterra en 1066, quedó vinculada a la Corona inglesa. Cuando en 1204 el rey Juan perdió Normandía continental, las islas del Canal permanecieron leales a Inglaterra. A lo largo de la Edad Media y la Edad Moderna desarrolló instituciones propias, como el Bailiazgo y los Estados de Guernsey. Durante la Segunda Guerra Mundial fue ocupada por Alemania (1940-1945), la única parte del territorio británico que sufrió ocupación. Hoy es una dependencia de la Corona británica con autogobierno, no forma parte del Reino Unido ni de la UE.[reference:24][reference:25]",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/f/fd/Flag_of_Guernsey.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Flag_of_Guernsey.svg/320px-Flag_of_Guernsey.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Flag_of_Guernsey_%281936%29.svg/320px-Flag_of_Guernsey_%281936%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Guernsey_Scenery_-_HDR_%2814201170497%29.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/La_For%C3%AAt,_Guernsey_(Unsplash).jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/St._Peter_Port,_Guernsey.jpg?width=800"
+    ]
+  },
+  {
+    "id": "hkg",
+    "nombre": "Hong Kong",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/5/5b/Flag_of_Hong_Kong.svg",
+    "historia": "La región estuvo habitada desde el Neolítico y formó parte de China imperial durante siglos. Tras la Primera Guerra del Opio, el Imperio británico ocupó la isla de Hong Kong en 1841 y la obtuvo formalmente mediante el Tratado de Nankín (1842). En 1860 se añadió la península de Kowloon y en 1898 se arrendaron los Nuevos Territorios por 99 años. Hong Kong se convirtió en un centro neurálgico del comercio y las finanzas, y acogió a numerosos emigrantes chinos. En 1984 el Reino Unido y China firmaron la Declaración Conjunta sino-británica, y el 1 de julio de 1997 Hong Kong regresó a China como Región Administrativa Especial, conservando su sistema legal y económico propio bajo el principio «un país, dos sistemas».[reference:26][reference:27]",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/5/5b/Flag_of_Hong_Kong.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Flag_of_Hong_Kong.svg/320px-Flag_of_Hong_Kong.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Flag_of_Hong_Kong_%281959%E2%80%931997%29.svg/320px-Flag_of_Hong_Kong_%281959%E2%80%931997%29.svg.png"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Hong_Kong%27s_Skyline.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/500px_photo_(149709985).jpeg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Victoria_Harbour,_Hong_Kong.jpg?width=800"
+    ]
+  },
+  {
+    "id": "bvt",
+    "nombre": "Isla Bouvet",
+    "bandera": "https://upload.wikimedia.org/wikipedia/commons/d/d9/Flag_of_Norway.svg",
+    "historia": "La isla fue descubierta el 1 de enero de 1739 por el oficial naval francés Jean-Baptiste-Charles Bouvet de Lozier, que la avistó desde los barcos «L'Aigle» y «Marie». Al no lograr desembarcar, la isla quedó envuelta en la bruma y no fue redescubierta hasta 1808. Gran Bretaña izó su bandera en 1825, pero renunció a su reclamación en 1929 en favor de Noruega, que la había ocupado en 1927. En 1971 Noruega la declaró reserva natural. Desde 1977 opera una estación meteorológica automatizada y ha realizado estudios sobre focas y pingüinos. Es el lugar más remoto del planeta: se encuentra a 1.639 km de la Antártida.[reference:28]",
+    "imagenes": [
+      "https://upload.wikimedia.org/wikipedia/commons/d/d9/Flag_of_Norway.svg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Flag_of_Norway.svg/320px-Flag_of_Norway.svg.png",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Flag_of_Bouvet_Island_%28WFB_2000%29.jpg/320px-Flag_of_Bouvet_Island_%28WFB_2000%29.jpg"
+    ],
+    "imagenes_region": [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Bouvet_Island_west_coast.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Bouvet_island_0.jpg?width=800",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Bouvet_Island_glacier.jpg?width=800"
+    ]
+  }
+]

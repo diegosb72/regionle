@@ -342,20 +342,27 @@ describe('the sheet of every country', () => {
   });
 
   it('has at its head the photograph that was chosen for it, as it was chosen, light enough and with whose it is', () => {
-    const { _: note, ...chosen } = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/data/profiles-heads.json'), 'utf8')) as Record<string, { file: string; es: string; en: string; by?: string; focus?: [number, number] }> & { _: string };
+    const { _: note, ...chosen } = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/data/profiles-heads.json'), 'utf8')) as Record<string, { file: string; es: string; en: string; by?: string; byUrl?: string; focus?: [number, number] }> & { _: string };
     expect(typeof note).toBe('string');
     const ids = Object.keys(chosen);
     // The file is written by hand, one country to a line and in order; and every country it names is one of the game.
     expect(ids).toEqual([...ids].sort());
     for (const id of ids) expect(LANDS, id).toContain(id);
-    // Every one of the 198 States now has its photograph (Brazil's is in its hand-written sheet).
-    // The 51 territories still have their flag-coloured band, until their own photographs are chosen.
+    // Every State and territory now has a photograph (Brazil's is in its hand-written sheet).
     const states = INDEX.countries.filter((c) => c.cl !== 'dep' && hasProfile(c)).map((c) => c.id);
     const territories = INDEX.countries.filter((c) => c.cl === 'dep' && hasProfile(c)).map((c) => c.id);
     expect(states).toHaveLength(198);
     expect(territories).toHaveLength(51);
-    expect(ids).toHaveLength(197);
-    expect([...WRITTEN, ...ids].sort()).toEqual([...states].sort());
+    expect(ids).toHaveLength(248);
+    expect([...WRITTEN, ...ids].sort()).toEqual([...states, ...territories].sort());
+    for (const id of territories) expect(ids, id).toContain(id);
+    // The Åland attachment calls it «ala»; the game's sheet is AX.
+    expect(chosen.AX.file).toBe('Аландские острова - panoramio.jpg');
+    // The search for Kingston returned Canadian places, so Norfolk's file was verified directly in Commons.
+    expect(chosen.NF.file).toBe('Kingston, Norfolk Island.jpg');
+    // Credits that Commons explicitly requires, not merely the uploader's account name.
+    expect(chosen.MO).toMatchObject({ by: 'Diego Delso, delso.photo', byUrl: 'https://delso.photo/' });
+    expect(chosen.MS.by).toBe('Andrew Shiva / Wikipedia');
     // The first lot: the Spanish-speaking countries and the most populous of the rest. The second: the rest of Europe, and ten more. The third: the next fifty by population.
     for (const id of ['ES', 'MX', 'AR', 'CO', 'PE', 'CL', 'US', 'CN', 'IN', 'JP', 'DE', 'FR', 'GB', 'IT']) expect(ids, id).toContain(id);
     for (const id of ['PT', 'NL', 'GR', 'SE', 'PL', 'CH', 'AT', 'IE', 'VA', 'XK', 'CA', 'MA', 'SA']) expect(ids, id).toContain(id);
@@ -373,10 +380,7 @@ describe('the sheet of every country', () => {
     for (const sheet of sheets) {
       if (WRITTEN.includes(sheet.id)) continue;
       const head = chosen[sheet.id];
-      if (!head) {
-        expect(sheet.photos, sheet.id).toBeUndefined();
-        continue;
-      }
+      expect(head, sheet.id).toBeDefined();
       expect(sheet.photos, sheet.id).toHaveLength(1);
       const photo = sheet.photos![0];
       expect(photo.title, sheet.id).toBe(head.file);
@@ -388,6 +392,9 @@ describe('the sheet of every country', () => {
         expect(text, sheet.id).toMatch(/^\p{Lu}.*[^.]$/u);
       }
       expect(photo.focus, sheet.id).toEqual(head.focus);
+      if (head.by) expect(photo.by, sheet.id).toBe(head.by);
+      expect(photo.byUrl, sheet.id).toBe(head.byUrl);
+      if (photo.byUrl) expect(photo.byUrl, sheet.id).toMatch(/^https:\/\//);
       // Each country its own: no photograph is at the head of two sheets.
       expect(seen.has(photo.file), `${sheet.id}: ${photo.title}`).toBe(false);
       seen.add(photo.file);

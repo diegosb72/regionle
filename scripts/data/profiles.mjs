@@ -165,8 +165,14 @@ async function photograph(id, one, commons, widths, made) {
   const from = path.join(BROUGHT, path.basename(file.picture));
   if (!fs.existsSync(from)) fail(id, `the picture of «${title}» is not among what was brought: pin it (scripts/data/photos-pinned.mjs) and run «npm run data:fetch -- photos»`);
   const by = (typeof one.by === 'string' && one.by.trim()) || file.artist || '';
-  // A work whose author has to be named has one to name.
+  // A work whose author has to be named has one to name. A site requested in the credit must be a safe link,
+  // shown with the explicit credit from the sheet rather than an unverified link in Commons metadata.
   if (!by && file.attribution) fail(id, `«${title}» has to be attributed and Commons names nobody: say who made it (by)`);
+  if (one.byUrl !== undefined) {
+    if (typeof one.byUrl !== 'string' || !one.by?.trim()) fail(id, `«${title}» needs a named author (by) to link a credit site (byUrl)`);
+    const url = URL.canParse(one.byUrl) ? new URL(one.byUrl) : null;
+    if (url?.protocol !== 'https:' || url.username || url.password || !url.hostname) fail(id, `«${title}» has no safe https credit site (byUrl)`);
+  }
   const text = said(id, `the photograph «${title}»`, one);
   const name = file.sha1.slice(0, 10);
   const { width, height } = await sharp(from).metadata();
@@ -202,6 +208,7 @@ async function photograph(id, one, commons, widths, made) {
     sizes,
     title,
     ...(by ? { by } : {}),
+    ...(one.byUrl ? { byUrl: one.byUrl } : {}),
     licence: file.licence,
     ...(file.licenceUrl ? { licenceUrl: file.licenceUrl.replace(/^http:/, 'https:') } : {}),
     ...text,

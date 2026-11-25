@@ -513,3 +513,117 @@
 # SZ: Mbabane Landscape
 # SZ: Malolotja Nature Reserve Swaziland
 # SZ: Swaziland mountains valley
+
+# The fifth lot: 51 territories without a head photograph; user-suggested places and other local landmarks.
+# Four parts; the user-provided file titles are unverified suggestions, not chosen photographs.
+#
+# Part A
+# AI: Anguilla Beach View Anguilla
+# AI: Cap Juluca Anguilla beach
+# AQ: Paradise Harbour Antarctica
+# AQ: Royal Society Range Scott Base Antarctica
+# AS: National Park American Samoa
+# AS: Pago Pago Tutuila coast
+# AW: Aruba landschap
+# AW: Arikok National Park Aruba
+# AX: Mariehamn Aland Islands harbour
+# AX: Aland archipelago islands
+# BL: Gustavia Saint Barthelemy
+# BL: St Jean Beach Saint Barthelemy
+# BM: Horseshoe Bay Bermuda beach
+# BM: Hamilton Bermuda harbour
+# BQ: Wells Bay Saba
+# BQ: Bonaire salt flats
+# BV: Bouvet Island west coast
+# BV: Bouvet Island glacier
+# CC: Direction Island Cocos Keeling
+# CC: Cocos Keeling Islands aerial
+# CK: Rarotonga Cook Islands
+# CK: Aitutaki lagoon Cook Islands
+# CW: Boka Tabla Curacao
+# CW: Willemstad Curacao waterfront
+# CX: Christmas Island red crabs
+# CX: Flying Fish Cove Christmas Island
+#
+# Part B
+# FK: Stanley Falkland Islands harbour
+# FK: Falkland Islands penguins coast
+# FO: Gasadalur Faroe Islands waterfall
+# FO: Torshavn Faroe Islands harbour
+# GF: French Guiana Amazon river aerial
+# GF: Cayenne French Guiana
+# GG: Guernsey coastal cliffs
+# GG: St Peter Port Guernsey
+# GI: Rock of Gibraltar
+# GI: Gibraltar bay sunset
+# GL: Ilulissat Icefjord Greenland
+# GL: Nuuk Greenland harbour
+# GP: Guadeloupe La Soufriere volcano
+# GP: Petite Terre Guadeloupe
+# GS: South Georgia king penguins Salisbury Plain
+# GS: Grytviken South Georgia
+# GU: Pago Bay Guam
+# GU: Tumon Bay Guam
+# HK: Victoria Harbour Hong Kong skyline
+# HK: Victoria Peak Hong Kong
+# HM: Heard Island Big Ben volcano
+# HM: Heard Island coast
+# IM: Snaefell Isle of Man
+# IM: Douglas Bay Isle of Man
+# IO: Diego Garcia Chagos atoll
+# IO: Peros Banhos Chagos
+#
+# Part C
+# JE: Mont Orgueil Jersey castle
+# JE: La Corbiere lighthouse Jersey
+# KY: Stingray City Grand Cayman
+# KY: Seven Mile Beach Grand Cayman
+# MF: Marigot Saint Martin France
+# MF: Grand Case Saint Martin
+# MO: Macau Ruins St Pauls
+# MO: Macau skyline
+# MP: Managaha Island Saipan
+# MP: Bird Island Saipan
+# MQ: Les Anses d Arlet Martinique
+# MQ: Mount Pelee Martinique
+# MS: Soufriere Hills volcano Montserrat
+# MS: Little Bay Montserrat
+# NC: Noumea New Caledonia
+# NC: Isle of Pines New Caledonia
+# NF: Kingston Norfolk Island
+# NF: Norfolk Island pines
+# NU: Avaiki cave Niue
+# NU: Niue coastline
+# PF: Bora Bora French Polynesia
+# PF: Moorea Tahiti lagoon
+# PM: Saint Pierre Miquelon harbour
+# PM: Ile aux Marins Saint Pierre Miquelon
+# PN: Bounty Bay Pitcairn Island
+# PN: Adamstown Pitcairn panorama
+#
+# Part D: all twelve chosen and checked individually in Commons (profiles-territories.md).
+# PR: Old San Juan Puerto Rico
+# PR: El Yunque Puerto Rico
+# RE: Cirque de Mafate Reunion
+# RE: Piton de la Fournaise Reunion
+# SH: Jamestown Saint Helena harbour
+# SH: Diana Peak Saint Helena
+# SJ: Longyearbyen Svalbard
+# SJ: Svalbard glacier
+# SX: Philipsburg Sint Maarten
+# SX: Maho Beach Sint Maarten
+# TC: Grace Bay Providenciales Turks Caicos
+# TC: Grand Turk Turks Caicos
+# TF: Kerguelen Islands French Southern
+# TF: Crozet Islands penguins
+# TF: Amsterdam Island
+# TK: Atafu Tokelau atoll
+# TK: Fakaofo Tokelau
+# VG: The Baths Virgin Gorda British Virgin Islands
+# VG: Tortola Road Town harbour
+# VI: Trunk Bay St John US Virgin Islands
+# VI: Charlotte Amalie St Thomas
+# WF: Lake Lalolalo Wallis
+# WF: Mata Utu Wallis Futuna
+# YT: Mayotte lagoon coral reef
+# YT: Mont Choungui Mayotte

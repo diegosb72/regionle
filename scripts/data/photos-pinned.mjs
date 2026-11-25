@@ -17,10 +17,10 @@
 // pictures the game shows).
 
 /** The commit of the branch `datos` that the photographs are taken from. */
-export const PHOTOS_AT = { repo: 'diegosb72/regionle', commit: '47e0374f2fb22f0b5448e305b66fd9ecb2bc1db1', dir: '' };
+export const PHOTOS_AT = { repo: 'diegosb72/regionle', commit: '2a95dd4bd0fd18af109c36dc59503adc2e4fc7e3', dir: '' };
 
 /** What Commons says of every photograph that was asked for. */
-export const PHOTOS_SAID = ['photos/photos.json', '18915dff429fbe022c85ad2ac30eade81f83992e'];
+export const PHOTOS_SAID = ['photos/photos.json', '35df25ef126c44ad1068e36f68efc563c48b1da2'];
 
 /** The pictures, each under the SHA-1 of its original: [where it is in the branch, the Git name of what it holds, the commit it is at where that is another]. */
 export const PHOTOS = [
@@ -30,7 +30,7 @@ export const PHOTOS = [
   ['photos/files/df9f5a916ad881477729bab9429752021fc159c1.1920.jpg', 'a6114a1f0767a456e85e0ac27a30b8e9e863d77d'], // Aurora amazônica no Lago do Cuniã.jpg
   ['photos/files/6c69a66ec7c2d751bcc1fce5a35652951cc7e381.1920.jpg', '34ebef15117a82a27448c203fd38e091c0633a9f'], // Lençóis Maranhenses 2018.jpg
   ['photos/files/bcb8323aceec610554f337e4855b6361aedb6a5a.1920.jpg', '56cd2659697337aaec2d8e56f06e9be710ab93a9'], // Brazilian National Congress.jpg
-  ['photos/files/786408c8e6ab4f8caec60252ff61885cf5f4f517.1920.jpg', '40a5914dbd75fdb262ff3b2a3771694a1953395f', 'ac8c7de5872541fa23c0d28e9f3cf63cfe231d53'], // Largo do Pelourinho Salvador 2019-9754 (cropped).jpg
+  ['photos/files/786408c8e6ab4f8caec60252ff61885cf5f4f517.1920.jpg', '40a5914dbd75fdb262ff3b2a3771694a1953395f'], // Largo do Pelourinho Salvador 2019-9754 (cropped).jpg
   ['photos/files/c99a798303d51d25fcf753c12d60a2b0d6acaa95.1920.jpg', '17ef523d3281a986dfb902d5729717a78537ef36'], // Ponte estaiada Octavio Frias - Sao Paulo.jpg
   ['photos/files/c642015fde6a5821353b0bd7f1391ce70fcd4893.1920.jpg', '5477d8d5dad83f81a44686da73d93e25d5875c6a'], // 011 Jaguar drinking in Encontro das Águas State Park Photo by Giles Laurent.jpg
   ['photos/files/1d59587d31c376719c3767bfbbab1b93e3a635bd.1920.jpg', '7f18d924513cc42d63f3c73c986fdd496497a1d1'], // Pedro Américo - Independência ou Morte - Google Art Project.jpg
@@ -80,7 +80,7 @@ export const PHOTOS = [
   ['photos/files/5640628b7f288c644bb9ab7a42ffcd6b5e5ed65f.1920.jpg', '779ec22950a74ea4bfc59f70b158b4978d7fdbf8'], // HU · HUN-2015-Budapest-Hungarian Parliament (Budapest) 2015-02.jpg
   ['photos/files/ea098cd915c3349f75acc2026ed59125e2c0ab3b.1920.jpg', '7aa99cfef6e9bb7b1c875390c1382d073f8903e2'], // ID · Prambanan Complex 1.jpg
   ['photos/files/7a7b2a1cfcf3ae50f20a90bb2bcb9323488093cb.1920.jpg', '7be4e3d9992039470af054b47e7622d6867d18fb'], // IE · Ireland Cliffs of Moher BW 2025-09-11 13-47-21.jpg
-  ['photos/files/46dd616163d1ed0802a43898af08993c5deec820.1920.jpg', 'e671b67155d02a94a948c38502925306e667e76f', 'ac8c7de5872541fa23c0d28e9f3cf63cfe231d53'], // IN · Taj Mahal, Agra, India edit3.jpg
+  ['photos/files/46dd616163d1ed0802a43898af08993c5deec820.1920.jpg', 'e671b67155d02a94a948c38502925306e667e76f'], // IN · Taj Mahal, Agra, India edit3.jpg
   ['photos/files/c6eb409de56efce99ef2846338e04e3b0b16b0aa.1920.jpg', '9d8015b9efa024f045c4d895f359ec11273f02ba'], // IQ · Hawler Castle.jpg
   ['photos/files/75c37c7f0c52beabcbfe89fe91afc5572f48ea61.1920.jpg', 'e6cdaeebf0dfad0c8c36b4484419957f3451d651'], // IR · Persépolis, Irán, 2016-09-24, DD 56.jpg
   ['photos/files/932d251ae34449d76f1ab0569a45e7e520836c41.1920.jpg', '07dfd88c4368707e72bc98288d648881448caeff'], // IS · Skógafoss Waterfall, Iceland, 20240720 1318 2975.jpg
@@ -108,7 +108,7 @@ export const PHOTOS = [
   ['photos/files/1f88c118add77da8e6acee236c83831928c3a991.1920.jpg', '1b6146ad84acb852dedf247edde302070f019a66'], // NO · Geirangerfjord from Ørnesvingen, 2013 June.jpg
   ['photos/files/b3ad3e6601318e4da40f925572c321d3312ff390.1920.jpg', 'a014f9d272d6d377ca24e43713908870494c6a6c'], // PA · Panama City Skyline 1.jpg
   ['photos/files/7df08731943d66b4131105648d88b0706d967dcd.1920.jpg', 'bfd5b17d4f09096553f2169aa63dac189aa528d6'], // PE · Machu Picchu, Perú, 2015-07-30, DD 47.JPG
-  ['photos/files/5a74a622db738dab05bac5f4be96cb9b607a31d2.1920.jpg', '49219e3326fe0a82324b74d3510a7fe31367714c', 'ac8c7de5872541fa23c0d28e9f3cf63cfe231d53'], // PH · Batad Rice Terraces after the rain.JPG
+  ['photos/files/5a74a622db738dab05bac5f4be96cb9b607a31d2.1920.jpg', '49219e3326fe0a82324b74d3510a7fe31367714c'], // PH · Batad Rice Terraces after the rain.JPG
   ['photos/files/d4bf9d1f0485e290d26f4655d6041410d8712ee6.1920.jpg', '4d8de135acf8fa0316a6e9d4b83c45464c44c105'], // PK · King Faisal Mosque.jpg
   ['photos/files/cde40cd6b74f8e8387547413df4e12205dcfd714.1920.jpg', 'ee4326cd1fff16590164a4c00f09c689714853e5'], // PL · Krakow - Cloth Hall from Basilica - 1.jpg
   ['photos/files/bbead22d0c621c544247853cc63806eaec526d61.1920.jpg', '8cc29b34a5ad3f9e6f2925aa4cffa59deee1a84d'], // PT · Torre de Belém and wooden bridge - landscape view - Lisbon - 2026-05-14.jpg
@@ -129,14 +129,14 @@ export const PHOTOS = [
   ['photos/files/db0d8615f9b424462fe0c18bd760ec7a0ccb5fa9.1920.jpg', '8d939f10a2f677c9cbdbfb4716c9f2c2bf857372'], // UA · Dormition and Refectory Churches Lavra.jpg
   ['photos/files/98922cebae54ee14b20b05abc304596028976a45.1920.jpg', '62c55fde1e7fa1f3c686300e5460c176faa93f95'], // UG · Kasubi Tombs 20250815 1.jpg
   ['photos/files/618981b52f620318f0c60c86d67319d31ca0ec25.1920.jpg', '45de19a9c7670adb4bec2f7996cda006bb32aa78'], // US · Statue of Liberty and a sightseeing boat, Liberty Island, New York.jpg
-  ['photos/files/40bf6743462fedbd11b56e136f3e46e2d356fe05.1920.jpg', '51dcb8cbc3ba8d06c916e82f52f082c6ba279654', 'ac8c7de5872541fa23c0d28e9f3cf63cfe231d53'], // UY · ColoniaSacramento.JPG
+  ['photos/files/40bf6743462fedbd11b56e136f3e46e2d356fe05.1920.jpg', '51dcb8cbc3ba8d06c916e82f52f082c6ba279654'], // UY · ColoniaSacramento.JPG
   ['photos/files/af40d6f01713ed4ae6a1d08e6da3c4632c0b21cf.1920.jpg', 'face1b1f4eced0a31ca5500b22ad023466406068'], // UZ · Самарканд. Площадь-Регистан.jpg
   ['photos/files/93ed31e7ed4e4b4fafd7b7c4460a088bf9c15b9e.1920.jpg', '193183edb3a9da6e832af47a17f7bef26829ed3a', '93309ab710d7f646db823971bbb1960b65c6f563'], // VA · Basilica di San Pietro in Vaticano September 2015-1a.jpg
   ['photos/files/f9e45a330009aa9f41cfcdeebe6d99eb97f4c8e6.1920.jpg', 'f7946491cf1672ae413a0c2b0c53b6c968f0dc5d'], // VE · Canaima 34.JPG
   ['photos/files/32a9ec8f676cfc7207541f67ac033ae36d21b595.1920.jpg', '3111d309db2f7ac3e8db1c5c14469f87e4b74369'], // VN · Hội An, Ancient Town, 2020-01 CN-06.jpg
   ['photos/files/3ea8fd8d447ff794881e341e1fadd824d94b9bcd.1920.jpg', 'cba0627eacae4eea234be6621a37d0b4c881b2cd'], // XK · Stone Bridge in Prizren (by Pudelek).JPG
   ['photos/files/1b3edf52443e8651632110b0285fef1475ad697d.1920.jpg', '37e3a56b0541d384619d764963bf59c34b714901'], // YE · مدينة شبام حضرموت.jpg
-  ['photos/files/5b9acba7e2fa142cee61864caf5e42a99dc6cacb.1920.jpg', '59d773b29550534efa801802645aee067b0d9d11', 'ac8c7de5872541fa23c0d28e9f3cf63cfe231d53'], // ZA · Ciudad del Cabo desde Cabeza de León, Sudáfrica, 2018-07-22, DD 34.jpg
+  ['photos/files/5b9acba7e2fa142cee61864caf5e42a99dc6cacb.1920.jpg', '59d773b29550534efa801802645aee067b0d9d11'], // ZA · Ciudad del Cabo desde Cabeza de León, Sudáfrica, 2018-07-22, DD 34.jpg
 
   // The next fifty countries by population (1.52.0)
   ['photos/files/ecc4d9bc7ad94e25af0b6e749b008beb3387a0f5.1920.jpg', '0adab38e7ec8b9c1a743203637342995be8bb7aa'], // AE · Dubai skyline unsplash.jpg
@@ -238,4 +238,57 @@ export const PHOTOS = [
   ['photos/files/7e5c3259996911fb1ce72525ee2560a6ed31c8f7.1920.jpg', 'c40455e236062f38cfcc60777992fc31ff57fd70'], // VC · TobagoCaysAerial.jpg
   ['photos/files/179d099782f0d1bb6d1d972bf60d680b4fef522a.1920.jpg', 'e4a730e3a5f7fbf2dfb48afeaf7820f302b88ea9'], // VU · Lava trails at Mount Yasur Volcano, Tanna, Vanuatu (49181693888).jpg
   ['photos/files/6cea9416d864f798ad819fdde2e13ee701e581ef.1920.jpg', 'ee5a4d7b92a7d162d486b511bc91413d2a6e066a'], // WS · To Sua Ocean Trench.jpg
+
+  // The 51 territories: a photograph for each head, checked against its Commons file page
+  ['photos/files/8a8778280b11cd072a0fd85625143dd24c02d715.1920.jpg', '29af11ddf5ca583b5fc683b771a68261b84f652c'], // AI · Anguilla Shoal Bay is the BEST beach in the Caribbean. - panoramio.jpg
+  ['photos/files/af4f9f696c7f7d2d0249eac5bbe934dbfb9a1767.1920.jpg', 'c5a7517c052373f867614e75be2432590e4a9603'], // AQ · Paradise Harbour, Antarctica (6087280325).jpg
+  ['photos/files/695180153cde144b4a3a1b59859cbb9eb463a54d.1920.jpg', '9a2c3a6f616e1afe12c0644b2f9cdff3dea217af'], // AS · Ofu Beach American Samoa US National Park Service.jpg
+  ['photos/files/ef9b4079c6d756235957d991ea05e53de4e536d8.1920.jpg', 'ab921d76f42f55eee98dca064040c492185b8ed8'], // AW · Aruba landschap.jpg
+  ['photos/files/6d346a86acb9afeb4ea6acf319a998bc5804cc17.1920.jpg', '9aa4bd8ed4a30b219b0c618f678f9d85c16ef464'], // AX · Аландские острова - panoramio.jpg
+  ['photos/files/5253ee53dca7db685cd5ad5783ea8048efae98fd.1920.jpg', '250177ce253a11a01fe3e9d94d2c8c5aafac8a05'], // BL · Saint Barth - Vue aérienne (Anse de Lorient) - Octobre 2009.jpg
+  ['photos/files/18322a49a200403b04b37c1449b48e96a567c1b0.1920.jpg', 'c4537f57813c7750e1a94478d0f2adf00779202a'], // BM · Horseshoe Bay beach, Bermuda IMG 0349.jpg
+  ['photos/files/58040648a5bb8a05a3dc913c59771231cc57f676.1920.jpg', '89bdd30714252bf4cd97c56774e4d769fea25241'], // BQ · Saba with cloud cover.jpg
+  ['photos/files/09ffe6a104bc1252dc1296512510027d5fd004c2.1920.jpg', '2e3379f989c9866655611a60d6435725a9d904a6'], // BV · Bouvet Island west coast glacier.jpg
+  ['photos/files/293dc7afa93961cd175c8d0a5831e7c15a4fb848.1920.jpg', '835fee695fabdf8f7aad61cbb004040651c21c05'], // CC · Cocos Island Atoll.JPG
+  ['photos/files/955f09f3515faa137a8c4d85551c3228f1184787.1920.jpg', '693c95809de3b6b665b381aa2fa117b68551472d'], // CK · Maina Island, Aitutaki Lagoon, Cook Islands.jpg
+  ['photos/files/0210f5aa7da7d61186003baa936aef2ab002aef7.1920.jpg', '9bdfda441e97ff2ce3858067b8e58b6da208c650'], // CW · Handelskade Willemstad - Curacao.jpg
+  ['photos/files/ea9d02b46aefc5ed9dea237c6ec8854c9985f004.1920.jpg', '9039e0233561e04720d4a36d36b8927e90c4cb00'], // CX · Flying Fish Cove.jpg
+  ['photos/files/a775da84f4d583dae0561920dc40cc1c3e7b418a.1920.jpg', '5ab9d905b76023af9ae265f4bc3cda118d7c102d'], // FK · Mount Usborne - Flickr - chris lovelock.jpg
+  ['photos/files/bb74ec2923311951dc78e9cd6685e5c9333b4f00.1920.jpg', '80c7ca649f295320dc160fd2c7b9d2ea4c229f7f'], // FO · Gasadalur village and a waterfall.jpg
+  ['photos/files/2bb568d17d83e3d23294f2de8342bb5eac1c41ad.1920.jpg', 'c67b3d4f2e54f4bfef1c66bf5b494cb736f0e788'], // GF · Cayenne av Général-de-Gaulle.jpg
+  ['photos/files/5552b8a4ba84cc2627ca18e61d0e74db1b7e2144.1920.jpg', '4692283502eaabb274a66c6cced72f992c3450f9'], // GG · StPeterPortSouth.jpg
+  ['photos/files/27d184fd85af30c5827cc37803d93d2c80cc2cf9.1920.jpg', 'a12d61aecf589c442259409bd0dd7f1287893314'], // GI · Bay of Gibraltar sunset Aug 2020 - 6.jpg
+  ['photos/files/8cebf30706818b5df62b5861e9f25e7b35d02811.1920.jpg', '1a0dd0a63a92729ff151951dd44ad2f1d5a52769'], // GL · Iceberg in the Ilulissat Icefjord, Greenland (54067514893).jpg
+  ['photos/files/d6c3c667f0f4892b3289f29a506926c610d78584.1920.jpg', 'e6e0a58e3f856b35afcf23f35ba013f3cc6bd3d3'], // GP · Guadeloupe Iles de la PetiteTerre 1.jpg
+  ['photos/files/83cd8a3a2cac0f92d9e8fc78e01bcf9e4273a495.1920.jpg', '7b0cc4c84fde40d0138b525bdb47ff586d11198c'], // GS · King Penguins at Salisbury Plain (5719507571).jpg
+  ['photos/files/716046806f2e4f3f2d410bb919971d74eb4aec11.1920.jpg', 'cf4cf28fe6f3afab97519afc8fc07c5da19cd8e5'], // GU · Beach of Tumon Bay, Guam, USA (8532198983).jpg
+  ['photos/files/550a93042fb5580f100bf8a7046c0d8a6c04738b.1920.jpg', '94c87104ef86818671648ea0c348c26dde5ad7c1'], // HK · Victoria Harbour skyscrapers.jpg
+  ['photos/files/d3d818681fe6eac54ddf7cfe64045e5f65e22c8b.1920.jpg', '76b597bed5f9a3de56d74d571f9ddb4e25036fc7'], // HM · Heard.jpg
+  ['photos/files/711b5fbc5c006621e82f21c1465b8c9e1887b826.1920.jpg', 'd310412c430d3ab3a9cf38b786f6aa6ef898d3dd'], // IM · The View From Douglas Head, Isle Of Man..jpg
+  ['photos/files/7b19003a968b74ea33790a367a3150c87a9fa220.1920.jpg', '586feec925b63467e46960224a5171990ecc410a'], // IO · Diego Garcia (satellite).jpg
+  ['photos/files/23104050fdd54ce2c8a4b5c69bf813f877762e10.1920.jpg', '6d0ac021862457e84ecefef61a09b29dc53d81f6'], // JE · Mont Orgueil and Gorey.jpg
+  ['photos/files/750c4cd7f99b098e8de406af38f4bc5fba18db4d.1920.jpg', 'a1c0d507a1e6239484e024fb5aa996fa6da80fef'], // KY · Resorts on Seven Mile Beach, Grand Cayman.jpg
+  ['photos/files/ec34a85ba4779f446841b6ea884b98ca6a9102d4.1920.jpg', '172fb5e05f20407a44e3a8ec31a15509ecb94777'], // MF · Marigot, Saint Martin (51332436871).jpg
+  ['photos/files/fd601e365316086905ae39712c3febdcc68967bc.1920.jpg', '67279ac3f31f3818ddf36f30040c7828220986fe'], // MO · Restos de la Catedral de San Pablo, Macao, 2013-08-08, DD 02.jpg
+  ['photos/files/821141d80a36529daaf69be59b75a5654af947c5.1920.jpg', 'ac861e892a492e07823a19cf2de1e205658292e8'], // MP · Bird island saipan.JPG
+  ['photos/files/696ba4007f06cac854a6dad5d83e68c3863ec41e.1920.jpg', '02c3fc0f820c3ad2f27efe41eab043fc5f8f4c21'], // MQ · Ansesdarlet.jpg
+  ['photos/files/0233068768034b89b516f7050906ba5872c6f07c.1920.jpg', 'e5b83f5c8cc88bd42921ffc5e2f5c5f1225ca2e6'], // MS · Soufrière Hills volcano (Aerial views, Montserrat, 2007) 02.jpg
+  ['photos/files/4a1d873fd31a6f66f4a31d76e7614b72613538a2.1920.jpg', 'a3c0ab6c97de46dff1caa1e9c9bf48d7e217c960'], // NC · Kuto Bay, Isle of Pines, New Caledonia, 2007 (6).jpg
+  ['photos/files/9e619faa0c4305c0287ab9138fb0f525cf098930.1920.jpg', 'c9fb6f8cb272470978057d1c3d782fcf4c9cbc1d'], // NF · Kingston, Norfolk Island.jpg
+  ['photos/files/a5c0a53b63e8935ec5bc7d936251fcc5624090ce.1920.jpg', 'f9d9bbfa8121b96aa7e0b4ade7555b3325a2d854'], // NU · Main street of Alofi.jpg
+  ['photos/files/d543ac14fea4c8df1c5a4df6d3f10b930735b3b3.1920.jpg', '2c9c01ee65aad0cf26236fe18dc3ba2e11c56386'], // PF · Bora-Bora French Polynesia - panoramio (4).jpg
+  ['photos/files/0db350890e61cf8d3961cd160dfb7980cd7b6d3d.1920.jpg', 'a67562edec898d19a00051877adc2a7e737fd38c'], // PM · Ile aux Marins 03 08 2019.jpg
+  ['photos/files/5d4f6bc5df70dbeacc6c2dbdf31d67c8421a53bf.1920.jpg', 'f60adad589b9711b35757894c7d1640550f7dd03'], // PN · Approaching Bounty Bay - panoramio.jpg
+  ['photos/files/ac79e86a46119643fa508dca196c89d884e7175c.1920.jpg', '7616fa8823a8b44bd63cb2320b617c7e95d614ae'], // PR · El Morro - Walls 1.jpg
+  ['photos/files/bddcafdeabc8ce63a4dd82b1a28647255d05d920.1920.jpg', 'ae3fc1fdb32c266df99ac4216c192c9f1f60a30a'], // RE · Cirque de Mafate Ile Reunion.jpg
+  ['photos/files/766e35a1ed0b8fe94c14cfe5c93e8397ea0afaa0.1920.jpg', 'b620e64be44644722269c1776a3d589ca0aed8b4'], // SH · View of Sandy Bay from Diana's Peak.jpg
+  ['photos/files/86187c717e0f602fe05060c8b03a2002708bace6.1920.jpg', '872d7e98ebc5ac667cc75460310f06a2abf2061d'], // SJ · Nathorst glacier, Svalbard, at midnight sun.jpg
+  ['photos/files/9fbf61415e416cf368ac734c25131fac0b6d50ba.1920.jpg', 'b0b9f83232b61eb2fca4313ccd4a42a36e8b5424'], // SX · St. Maarten Philipsburg Great Bay Beach.jpg
+  ['photos/files/e10b8cf9f755f4182a488e19f451e0aa67be89c1.1920.jpg', 'b83814f6da12099ef2290bd2a64c1d896dce0771'], // TC · Grace Bay - panoramio.jpg
+  ['photos/files/270696928b2c27f136e66df32562e4024e3b3c13.1920.jpg', '421da2dfd1a1ab4c37b0be67da017cd7558d824c'], // TF · Mont Ross - Archipel des Kerguelen.jpg
+  ['photos/files/f1989ae9147312449b1e1046272420f1928a1011.1920.jpg', '82e5d51ab0cc04e9bf9d4d7659e2ab0096f1b5af'], // TK · Atafu.jpg
+  ['photos/files/dbfd219642b29b9cf9fff412db176bcac38e5b66.1920.jpg', '448b72b142e0a49365b9027681e28f292f0d6f67'], // VG · BVI-road town hafen.jpg
+  ['photos/files/2f36c3d81a938c3bc9c155a61db3198665a78199.1920.jpg', '9cf3edc0fd9308719db1af813f8e096ecd42239e'], // VI · Trunk Bay, St. John USVI 02.jpg
+  ['photos/files/2b72e6839b9546ec7cdba8d89b2343eb69aec51d.1920.jpg', 'f07a03c2b8c6ec2ccacb6dde35fe6574d6e9a8d2'], // WF · Wallis le cratère du lac Lalolao.jpg
+  ['photos/files/0be803bb31f7aa4f1e9edc5cbb0b8e0ad5b81ef1.1920.jpg', '2e1a36c5c74b036560801c2a7782af6c9c2e81f8'], // YT · Barrière de corail et lagon vus du Mont Choungui.jpg
 ];
