@@ -723,6 +723,15 @@ const HEADS = path.resolve(ROOT, process.env.OUTSIDE_HEADS ?? 'scripts/data/prof
  * country is best known by is not always what Wikidata shows it with.
  */
 const HEADS_ASKED = path.resolve(ROOT, process.env.OUTSIDE_HEADS_ASKED ?? 'scripts/data/heads-asked.txt');
+/**
+ * What was corrected by hand of what the sources say of each country (scripts/data/profiles-fixes.json): the
+ * coat of arms that somebody chose for a country instead of the one Wikidata names is brought too.
+ */
+const PROFILE_FIXES = path.resolve(ROOT, process.env.OUTSIDE_PROFILE_FIXES ?? 'scripts/data/profiles-fixes.json');
+/** How wide the picture of a coat of arms is brought, in px: twice what the sheet shows one at, and more. One of the widths Wikimedia draws its pictures at. */
+const ARMS_PICTURE = 330;
+/** Where those pictures are kept in the branch: each under the SHA-1 of its original and its width. */
+const ARMS_FILES = 'arms/files';
 /** How wide the picture of a candidate is brought, in px: enough to choose among them. One of the widths Wikimedia draws its pictures at. */
 const HEAD_PICTURE = 330;
 /** Where those small pictures are kept in the branch: each under the SHA-1 of its original and its width. */
@@ -1774,6 +1783,101 @@ async function headSights(source, keep) {
   };
 }
 
+/* ------------------------------------------------------------------ the coat of arms of each country */
+
+/** The coat of arms that somebody chose for a country instead of the one Wikidata names, by the id of the country: the title of its file. */
+function armsChosen() {
+  if (!fs.existsSync(PROFILE_FIXES)) return {};
+  const { _: _note, ...fixes } = JSON.parse(fs.readFileSync(PROFILE_FIXES, 'utf8'));
+  return Object.fromEntries(Object.entries(fixes).flatMap(([id, fix]) => (typeof fix?.arms?.file === 'string' && fix.arms.file.trim() ? [[id, fix.arms.file.trim()]] : [])));
+}
+
+/**
+ * The coat of arms of each country of the game — or its emblem, or its seal: what Wikidata shows it with
+ * (P94) — and the one that somebody chose for it by hand instead (scripts/data/profiles-fixes.json). Of
+ * each file, what Commons says of it (who drew it and on what terms it is given) and a picture of it as
+ * Wikimedia draws it, `ARMS_PICTURE` px wide: most are drawings that weigh hundreds of kilobytes, and the
+ * sheet shows one small. Which of them a sheet shows is decided where the sheets are made.
+ */
+async function countryArms(source, keep) {
+  const subjects = countries();
+  if (!subjects.length) throw new Error('No country of the game has a Wikidata id');
+  const { until, undone } = patient();
+  const ids = [...new Set(subjects.map((u) => u.wd))].sort(byNumber);
+  const named = new Map(ids.map((id) => [id, []]));
+  for (const row of await valuesOf(ids, 'P94', { until: Date.now() + PATIENCE / 2 })) {
+    const [list, file] = [named.get(entity(row.item)), fileOf(row.value)];
+    if (list && file && !list.includes(file)) list.push(file);
+  }
+  const chosen = armsChosen();
+  const names = [...new Set([...[...named.values()].flat(), ...subjects.flatMap((u) => (chosen[u.id] ? [chosen[u.id]] : []))])].sort();
+  if (!names.length) throw new Error('Wikidata names the coat of arms of no country');
+  const { pages, titled } = await commonsOf(names, { ...HEAD_ASKING, iiurlwidth: String(ARMS_PICTURE) }, until);
+
+  const items = {};
+  for (const u of subjects) {
+    // Each under the title Commons has it by, and in the same order whenever they are asked for.
+    const said = [...new Set(named.get(u.wd).map(titled))].sort();
+    const mine = chosen[u.id] ? titled(chosen[u.id]) : null;
+    if (said.length || mine) items[u.id] = { ...(said.length ? { files: said } : {}), ...(mine ? { chosen: mine } : {}) };
+  }
+  const files = {};
+  const sources = new Map();
+  for (const title of [...new Set(names.map(titled))].sort()) {
+    const info = about(pages.get(title));
+    files[title] = info ?? { missing: true };
+    if (info) sources.set(title, pages.get(title).imageinfo[0]);
+  }
+
+  const [brought, left] = [[], []];
+  let [bytes, failed] = [0, 0];
+  let last = null;
+  for (const title of sources.keys()) {
+    if (Date.now() >= until || failed >= FLAGS_FAILED) {
+      left.push(title);
+      continue;
+    }
+    const file = files[title];
+    const from = sources.get(title);
+    // The picture Wikimedia draws of a drawing is a PNG; that of a photograph, what the photograph is.
+    const kind = KIND[from.thumbmime] ?? (file.mime === 'image/jpeg' ? 'jpg' : 'png');
+    try {
+      await sleep(FLAG_GAP);
+      const { body } = await request(from.thumburl ?? from.url, { tries: 3, until });
+      const at = `${ARMS_FILES}/${file.sha1}.${ARMS_PICTURE}.${kind}`;
+      keep(at, body);
+      file.picture = at;
+      bytes += body.length;
+      brought.push(title);
+      failed = 0;
+    } catch (err) {
+      failed++;
+      last = err;
+      left.push(title);
+    }
+  }
+  if (left.length) undone.push(`${left.length} de ${sources.size} imágenes (${last ? short(last) : 'no quedaba tiempo'})`);
+  const missing = Object.keys(files).length - sources.size;
+  const several = Object.values(items).filter((item) => (item.files?.length ?? 0) > 1).length;
+  return {
+    text: listed({ source: source.from, licence: source.licence, what: source.what, asked: subjects.length }, { items, files }),
+    note: [
+      `escudo de ${Object.keys(items).length} de ${subjects.length} países: ${brought.length} imágenes traídas (${kB(bytes)})`,
+      ...(several ? [`${several} países con más de uno`] : []),
+      ...(Object.keys(chosen).length ? [`${Object.keys(chosen).length} elegidos a mano`] : []),
+      ...(missing ? [`${missing} que Commons no tiene`] : []),
+      ...(undone.length ? [`sin mirar: ${undone.join('; ')}`] : []),
+    ].join('; '),
+    detail: {
+      asked: subjects.length,
+      found: Object.keys(items).length,
+      files: { all: sources.size, missing, brought: brought.length, left: left.length, bytes },
+      licences: tally([...sources.keys()].map((title) => files[title]), (f) => f.licence || '?'),
+      undone,
+    },
+  };
+}
+
 /* ------------------------------------------------------------------ what is said of each country */
 
 /** What a country says of itself in words, each in its language: what it is called in full, what it calls itself, and its motto. */
@@ -2246,6 +2350,20 @@ const SOURCES = [
     es: 'Candidatas a fotografía de cabecera de las fichas de los países',
     needs: '113',
     run: headSights,
+  },
+  {
+    id: 'arms',
+    file: 'arms/arms.json',
+    from: 'Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org)',
+    licence: 'Lo de Wikidata, CC0; cada imagen, la licencia que dice su entrada: dominio público o una licencia libre',
+    what:
+      'The coat of arms of each country of the game, or its emblem or its seal: the file Wikidata shows it with (P94) and the one that somebody chose for it by hand instead (scripts/data/profiles-fixes.json). ' +
+      'items, by the id of the country: the files Wikidata names (files), in order of name, and the one chosen by hand (chosen). ' +
+      'files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height of the original, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; ' +
+      `and where the picture of it that Wikimedia draws, ${ARMS_PICTURE} px wide, is kept in this branch (picture): the original is not brought. The pictures are under ${ARMS_FILES}, each named after the SHA-1 of its original.`,
+    es: 'Escudo de cada país',
+    needs: '113',
+    run: countryArms,
   },
   {
     id: 'countries',
