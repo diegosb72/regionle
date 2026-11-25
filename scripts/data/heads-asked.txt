@@ -331,35 +331,139 @@
 #
 # Asked again with other words: one word alone found what was of other things (Darvaza is «gate» in other
 # languages; Agadez, who took a photograph), and the name of the country beside it keeps to the place.
-LK: Sigiriya Sri Lanka rock
-LK: Sigiriya Lion Rock fortress
-NE: Agadez mosque Niger
-NE: Agadez Niger
-SO: Mogadishu Lido beach
-SO: Mogadishu Somalia coast
-SO: Hargeisa Somaliland
-AE: Downtown Dubai skyline Burj Khalifa
-AE: Sheikh Zayed Grand Mosque Abu Dhabi
-SS: Mundari cattle camp South Sudan
-CG: Brazzaville Basilique Sainte-Anne
-CG: Brazzaville Congo
-CG: Tour Nabemba
-CF: Dzanga Bai elephants
-KG: Song-Kul Kyrgyzstan
-KG: Son-Kul yurt
-KW: Kuwait Towers Kuwait
-LY: Leptis Magna Libya
-LY: Sabratha theatre Libya
-PS: Bethlehem Palestine panorama
-PS: Jericho Mount of Temptation
-PS: Nablus Palestine
-TM: Darvaza gas crater
-TM: Derweze Turkmenistan
-RW: Rwanda hills landscape
-KZ: Baiterek Astana
+# LK: Sigiriya Sri Lanka rock
+# LK: Sigiriya Lion Rock fortress
+# NE: Agadez mosque Niger
+# NE: Agadez Niger
+# SO: Mogadishu Lido beach
+# SO: Mogadishu Somalia coast
+# SO: Hargeisa Somaliland
+# AE: Downtown Dubai skyline Burj Khalifa
+# AE: Sheikh Zayed Grand Mosque Abu Dhabi
+# SS: Mundari cattle camp South Sudan
+# CG: Brazzaville Basilique Sainte-Anne
+# CG: Brazzaville Congo
+# CG: Tour Nabemba
+# CF: Dzanga Bai elephants
+# KG: Song-Kul Kyrgyzstan
+# KG: Son-Kul yurt
+# KW: Kuwait Towers Kuwait
+# LY: Leptis Magna Libya
+# LY: Sabratha theatre Libya
+# PS: Bethlehem Palestine panorama
+# PS: Jericho Mount of Temptation
+# PS: Nablus Palestine
+# TM: Darvaza gas crater
+# TM: Derweze Turkmenistan
+# RW: Rwanda hills landscape
+# KZ: Baiterek Astana
 
 # The photograph chosen for LK (File:Sigiriya Rock fortress.jpg) was found on its Commons file page: the
 # search for Sigiriya instead brought Lion Rock in New Zealand.
 
 # The first SS pick (DD 50) has a personality restriction in Commons; DD 155, of the same camp without
 # anyone identifiable, replaces it.
+
+#
+# The fourth lot (1.53.0): the last 47 States, in three parts.
+# From most to least populated. Only one part at a time: a run has a limited time for each source.
+#
+# Part A
+ER: Asmara Art Deco Eritrea
+ER: Massawa Eritrea harbour
+MN: Gobi desert Mongolia
+MN: Lake Khovsgol Mongolia
+NA: Sossusvlei Deadvlei Namibia
+NA: Namib desert dunes
+AM: Khor Virap Armenia Ararat
+AM: Geghard monastery Armenia
+QA: Doha West Bay skyline Qatar
+QA: Museum of Islamic Art Doha
+JM: Dunns River Falls Jamaica
+JM: Blue Mountains Jamaica
+GM: Kunta Kinteh Island Gambia
+GM: Gambia River boats
+GA: Kongou Falls Ivindo Gabon
+GA: Loango National Park Gabon
+BW: Okavango Delta Botswana
+BW: Chobe elephants Botswana
+LS: Maletsunyane Falls Lesotho
+LS: Sani Pass Lesotho
+GW: Bijagos Islands Guinea Bissau
+GW: Bissau city Guinea Bissau
+BH: Bahrain Fort Manama
+BH: Bahrain World Trade Center
+TL: Cristo Rei Dili Timor Leste
+TL: Jaco Island Timor Leste
+TT: Maracas Beach Trinidad
+TT: Pigeon Point Tobago
+SZ: Sibebe Rock Eswatini
+SZ: Mantenga Falls Eswatini
+MU: Le Morne Brabant Mauritius
+MU: Chamarel Seven Coloured Earth Mauritius
+#
+# Part B
+# DJ: Lake Assal Djibouti
+# DJ: Lake Abbe Djibouti
+# FJ: Mamanuca Islands Fiji
+# FJ: Yasawa Islands Fiji
+# KM: Mount Karthala Comoros
+# KM: Moroni Comoros mosque
+# SB: Marovo Lagoon Solomon Islands
+# SB: Honiara Solomon Islands
+# GY: Kaieteur Falls Guyana
+# GY: Georgetown St Georges Cathedral Guyana
+# BT: Paro Taktsang Bhutan
+# BT: Punakha Dzong Bhutan
+# SR: Paramaribo historic centre Suriname
+# SR: Brownsberg Nature Park Suriname
+# EH: Dakhla Western Sahara lagoon
+# EH: Laayoune Western Sahara city
+# MV: Maldives atoll aerial
+# MV: Male Maldives skyline
+# CV: Pico do Fogo Cabo Verde
+# CV: Mindelo Cape Verde harbour
+# BN: Omar Ali Saifuddien Mosque Brunei
+# BN: Kampong Ayer Brunei
+# BZ: Great Blue Hole Belize
+# BZ: Xunantunich Belize
+# BS: Exuma Bahamas islands
+# BS: Nassau Bahamas harbour
+# VU: Mount Yasur Vanuatu volcano
+# VU: Champagne Beach Vanuatu
+# BB: Bathsheba Beach Barbados
+# BB: Bridgetown Barbados
+# ST: Pico Cao Grande Sao Tome
+# ST: Praia Banana Principe Sao Tome
+#
+# Part C
+# WS: To Sua Ocean Trench Samoa
+# WS: Lalomanu Beach Samoa
+# LC: Pitons Saint Lucia
+# LC: Soufriere Saint Lucia
+# KI: Tarawa lagoon Kiribati
+# KI: South Tarawa Kiribati
+# SC: Anse Source dArgent Seychelles
+# SC: La Digue Seychelles
+# GD: St Georges Grenada harbour
+# GD: Grand Anse Grenada beach
+# FM: Nan Madol Pohnpei Micronesia
+# FM: Chuuk lagoon Micronesia
+# TO: Haamonga a Maui Tonga
+# TO: Vavau Tonga islands
+# VC: Tobago Cays St Vincent Grenadines
+# VC: La Soufriere Saint Vincent
+# AG: Nelsons Dockyard Antigua
+# AG: English Harbour Antigua Barbuda
+# DM: Boiling Lake Dominica
+# DM: Trafalgar Falls Dominica
+# KN: Brimstone Hill Fortress Saint Kitts
+# KN: Nevis Peak Saint Kitts
+# MH: Majuro Marshall Islands aerial
+# MH: Jaluit Atoll Marshall Islands
+# PW: Rock Islands Palau
+# PW: Jellyfish Lake Palau
+# NR: Anibare Bay Nauru
+# NR: Nauru island coast
+# TV: Funafuti lagoon Tuvalu
+# TV: Funafuti Tuvalu aerial
