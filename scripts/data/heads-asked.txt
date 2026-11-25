@@ -3,54 +3,44 @@
 # each of them is known by and brings a small picture of each candidate, to choose among them by eye. The one
 # that stays is written in scripts/data/profiles-heads.json, and the source `photos` brings it.
 #
-# The first lot: the countries where Spanish is spoken and the thirty with most people of the rest.
-AR
-BD
-BO
-CD
-CL
-CN
-CO
-CR
-CU
-DE
-DO
-DZ
-EC
-EG
-ES
-ET
-FR
-GB
-GQ
-GT
-HN
-ID
-IN
-IQ
-IR
-IT
-JP
-KE
-KR
-MM
-MX
-NG
-NI
-PA
-PE
-PH
-PK
-PY
-RU
-SD
-SV
-TH
-TR
-TZ
-UG
-US
-UY
-VE
-VN
-ZA
+# After the id and a colon, a line may say words to look for in Commons too, among the photographs its
+# people have judged best: what a country is best known by is not always what Wikidata shows it with.
+#
+# The first lot was the countries where Spanish is spoken and the thirty with most people of the rest
+# (AR BD BO CD CL CN CO CR CU DE DO DZ EC EG ES ET FR GB GQ GT HN ID IN IQ IR IT JP KE KR MM MX NG NI PA PE
+# PH PK PY RU SD SV TH TR TZ UG US UY VE VN ZA). These are the ones of that lot that were looked at twice:
+# what they are best known by was not among what Wikidata showed.
+AR: Iguazu Falls
+AR: Perito Moreno Glacier
+BO: Salar de Uyuni
+CD: Nyiragongo
+CN: Great Wall of China
+CO: Cartagena Colombia walled city
+CO: Cocora Valley
+DE: Neuschwanstein
+DE: Brandenburg Gate
+EG: Giza pyramids
+ES: Alhambra
+ES: Plaza de España Seville
+FR: Mont Saint-Michel
+FR: Eiffel Tower
+GQ: Malabo
+GT: Tikal
+HN: Copán
+IR: Persepolis
+IT: Colosseum
+IT: Venice Grand Canal
+KE: Maasai Mara
+NG: Zuma Rock
+PA: Panama Canal
+PE: Machu Picchu
+RU: Saint Basil's Cathedral
+RU: Moscow Kremlin
+SD: Meroë pyramids
+SV: Santa Ana Volcano
+SV: San Salvador
+TH: Wat Arun
+TH: Ayutthaya
+TR: Hagia Sophia
+TR: Cappadocia
+VN: Ha Long Bay

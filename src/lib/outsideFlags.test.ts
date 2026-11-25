@@ -68,6 +68,8 @@ interface World {
   known: Record<string, { links: number; es?: string; en?: string; is?: string[]; in?: string[]; born?: string[]; died?: string[] }>;
   /** What each country is known by, by the entity of the country: of which kind each thing is, its entity, its picture, how many pages tell of it and its names. */
   sights?: Record<string, { kind: 'heritage' | 'park' | 'sight' | 'capital' | 'top'; of: string; file: string; links: number; es?: string; en?: string }[]>;
+  /** What Commons finds when it is searched: the titles of the files, the best answer first, by what was looked for, as it was written. */
+  sought?: Record<string, string[]>;
 }
 /** A way of not answering: this status for what matches, the first `times` of it. */
 interface Refusal {
@@ -158,6 +160,12 @@ function wikipedia(lang: string, form: URLSearchParams): Record<string, unknown>
 
 /** What Commons says of the files it is asked about. */
 function commons(form: URLSearchParams): Record<string, unknown> {
+  if (form.get('generator') === 'search') {
+    // What it finds for some words: each file with all that is said of it, and its place among the answers. They do not come in order.
+    const found = world.sought?.[form.get('gsrsearch') ?? ''] ?? [];
+    const pages = found.map((title, i) => ({ ...(commons(new URLSearchParams({ titles: `File:${title}` })).query as { pages: Record<string, unknown>[] }).pages[0], index: i + 1 }));
+    return { batchcomplete: true, ...(pages.length ? { query: { pages: pages.reverse() } } : {}) };
+  }
   const names = (form.get('titles') ?? '').split('|').filter(Boolean);
   const normalized: { from: string; to: string }[] = [];
   const redirects: { from: string; to: string }[] = [];
@@ -1453,6 +1461,45 @@ describe('what could be shown at the head of the sheet of a country', () => {
     expect(r.source().detail?.undone.join(' ')).toContain('capital');
     refusals = [{ when: (q) => q.startsWith('sparql ') && q.includes('wdt:P1435'), status: 500, times: 99 }];
     expect((await run('heads', lands(), { OUTSIDE_HEADS_ASKED: asking })).source().ok).toBe(false);
+  });
+
+  it('looks in Commons for what the list says to look for by its words: among the pictures judged best, and among the next ones while those are few', async () => {
+    const dir = lands();
+    const FEATURED = (words: string) => `${words} incategory:"Featured pictures on Wikimedia Commons" filetype:bitmap filew:>1279`;
+    const QUALITY = (words: string) => `${words} incategory:"Quality images" filetype:bitmap filew:>1279`;
+    for (const name of ['M1', 'M2', 'M3', 'M4', 'M5', 'Q1', 'Tall', 'N1', 'N2', 'N3']) world.files[`${name}.jpg`] = photo(name.toLowerCase(), name === 'Tall' ? { w: 2000, h: 3000 } : {});
+    world.files['Machu Picchu.jpg'] = photo('machu');
+    world.sights = { Q419: [{ kind: 'heritage', of: 'Q676203', file: 'Machu Picchu.jpg', links: 180, es: 'Machu Picchu' }] };
+    world.sought = {
+      // Enough among the best: the next ones are not looked at. What Wikidata showed already is not a candidate twice, nor what does not fit.
+      [FEATURED('Machu Picchu')]: ['M1.jpg', 'Machu Picchu.jpg', 'Tall.jpg', 'M2.jpg', 'M3.jpg', 'M4.jpg', 'M5.jpg'],
+      [QUALITY('Machu Picchu')]: ['Q1.jpg'],
+      // Few among the best: the next ones are looked at too.
+      [FEATURED('Nazca lines')]: ['N1.jpg'],
+      [QUALITY('Nazca lines')]: ['N2.jpg', 'N1.jpg', 'N3.jpg'],
+    };
+    const r = await run('heads', dir, { OUTSIDE_HEADS_ASKED: list('PE: Machu Picchu\nPE:  Nazca   lines # the lines\nPE: Nothing such\nAD\n') });
+    expect(r.source().ok).toBe(true);
+    const sights = (r.data().items.PE as unknown as { sights: Record<string, unknown>[] }).sights;
+    expect(sights).toEqual([
+      { file: 'Machu Picchu.jpg', kind: 'heritage', of: 'Q676203', links: 180, es: 'Machu Picchu' },
+      { file: 'M1.jpg', kind: 'sought', words: 'Machu Picchu', among: 'featured' },
+      { file: 'M2.jpg', kind: 'sought', words: 'Machu Picchu', among: 'featured' },
+      { file: 'M3.jpg', kind: 'sought', words: 'Machu Picchu', among: 'featured' },
+      { file: 'M4.jpg', kind: 'sought', words: 'Machu Picchu', among: 'featured' },
+      { file: 'M5.jpg', kind: 'sought', words: 'Machu Picchu', among: 'featured' },
+      { file: 'N1.jpg', kind: 'sought', words: 'Nazca lines', among: 'featured' },
+      { file: 'N2.jpg', kind: 'sought', words: 'Nazca lines', among: 'quality' },
+      { file: 'N3.jpg', kind: 'sought', words: 'Nazca lines', among: 'quality' },
+    ]);
+    // Each is brought small, as the others are, and with whose it is.
+    expect(r.data().files['M1.jpg']).toMatchObject({ sha1: sha1('m1'), licence: 'CC BY-SA 4.0', artist: 'Ana', picture: small('m1') });
+    expect(r.read(small('n3'))).toBe('a picture of N3.jpg');
+    const searches = asked.filter((q) => q.startsWith('api ') && q.includes('generator=search')).map((q) => new URLSearchParams(q.slice(4)).get('gsrsearch'));
+    expect(searches).toEqual([FEATURED('Machu Picchu'), FEATURED('Nazca lines'), QUALITY('Nazca lines'), FEATURED('Nothing such'), QUALITY('Nothing such')]);
+    expect(r.source().note).toContain('3 cosas buscadas en Commons por su nombre');
+    // A country that is only named has what Wikidata shows of it, which here is nothing.
+    expect((r.data().items.AD as unknown as { sights: unknown[] }).sights).toEqual([]);
   });
 
   it('is left unread where no country is named', async () => {

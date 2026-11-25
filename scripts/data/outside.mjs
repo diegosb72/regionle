@@ -719,18 +719,31 @@ const HEADS = path.resolve(ROOT, process.env.OUTSIDE_HEADS ?? 'scripts/data/prof
 /**
  * The countries that such a photograph is about to be chosen for, one id to a line (a line that starts
  * with # is a note): those whose candidates are looked for and brought as small pictures, to choose by eye.
+ * A line may say, after the id and a colon, words to look for in Commons too («PE: Machu Picchu»): what a
+ * country is best known by is not always what Wikidata shows it with.
  */
 const HEADS_ASKED = path.resolve(ROOT, process.env.OUTSIDE_HEADS_ASKED ?? 'scripts/data/heads-asked.txt');
 /** How wide the picture of a candidate is brought, in px: enough to choose among them. One of the widths Wikimedia draws its pictures at. */
 const HEAD_PICTURE = 330;
 /** Where those small pictures are kept in the branch: each under the SHA-1 of its original and its width. */
 const HEAD_FILES = 'heads/files';
-/** The narrowest original that is a candidate, in px: the head of a sheet is shown up to 1920 px wide. */
-const HEAD_WIDE = 1900;
+/** The narrowest original that is a candidate, in px: the photograph chosen for a sheet is kept up to 1280 px wide. */
+const HEAD_WIDE = 1280;
 /** How many times wider than tall a candidate is, at least and at most: the head of a sheet is twice as wide as tall, and a tower or a strip would lose most of itself in it. */
 const HEAD_SHAPE = [1.25, 2.4];
-/** How many candidates are kept of each country at most. */
+/** How many candidates are kept of each country at most, of those Wikidata shows; and how many of each thing looked for in Commons. */
 const HEADS_EACH = 10;
+const HEADS_SOUGHT = 8;
+/**
+ * Where the photographs of Commons that its people have judged good are, the best first: something looked
+ * for by its words is looked for among these, and among the next ones only while few have been found.
+ */
+const HEADS_AMONG = [
+  ['featured', 'incategory:"Featured pictures on Wikimedia Commons"'],
+  ['quality', 'incategory:"Quality images"'],
+];
+/** How many found among the best are enough not to look among the next. */
+const HEADS_ENOUGH = 4;
 /**
  * What a country is known by, as Wikidata has it, each kind with how it is asked for and how many of it are
  * candidates at most (those that most Wikipedias tell of, first): what UNESCO lists as World Heritage, its
@@ -1571,10 +1584,51 @@ async function profilePhotos(source, keep) {
 
 /* ------------------------------------------------------------------ what to show at the head of a sheet */
 
-/** The countries named in the list of those a photograph is to be chosen for. */
+/** The countries named in the list of those a photograph is to be chosen for: by the id of each, the words to look for in Commons that the list gives it. */
 function headsAsked() {
-  if (!fs.existsSync(HEADS_ASKED)) return [];
-  return [...new Set(fs.readFileSync(HEADS_ASKED, 'utf8').split(/\r?\n/).map((line) => line.replace(/#.*/, '').trim()).filter(Boolean))];
+  const asked = new Map();
+  if (!fs.existsSync(HEADS_ASKED)) return asked;
+  for (const line of fs.readFileSync(HEADS_ASKED, 'utf8').split(/\r?\n/)) {
+    const [id, ...rest] = line.replace(/#.*/, '').split(':');
+    if (!id.trim()) continue;
+    const words = rest.join(':').replace(/\s+/g, ' ').trim();
+    const sought = asked.get(id.trim()) ?? asked.set(id.trim(), []).get(id.trim());
+    if (words && !sought.includes(words)) sought.push(words);
+  }
+  return asked;
+}
+
+/** What is asked of Commons about a file that may be shown at the head of a sheet. */
+const HEAD_ASKING = {
+  prop: 'imageinfo',
+  iiprop: 'url|size|mime|thumbmime|sha1|extmetadata',
+  iiextmetadatafilter: 'LicenseShortName|UsageTerms|LicenseUrl|Artist|Credit|AttributionRequired|Restrictions',
+  iiurlwidth: String(HEAD_PICTURE),
+};
+
+/**
+ * The photographs of Commons that answer to some words and could be at the head of a sheet, the ones its
+ * people have judged best first: each with where it was found (`among`), and the page of each by its title.
+ */
+async function soughtInCommons(words, until) {
+  const found = [];
+  const pages = new Map();
+  for (const [among, where] of HEADS_AMONG) {
+    const json = await commonsSays(
+      new URLSearchParams({ action: 'query', format: 'json', formatversion: '2', maxlag: '5', generator: 'search', gsrnamespace: '6', gsrlimit: '20', gsrsearch: `${words} ${where} filetype:bitmap filew:>${HEAD_WIDE - 1}`, ...HEAD_ASKING }),
+      until,
+    );
+    // As Commons orders them: what answers best to the words, first.
+    for (const page of [...(json.query?.pages ?? [])].sort((a, b) => (a.index ?? 0) - (b.index ?? 0))) {
+      const title = bare(page.title);
+      if (pages.has(title) || found.length >= HEADS_SOUGHT || !fitsHead(about(page))) continue;
+      pages.set(title, page);
+      found.push({ file: title, among });
+    }
+    await sleep(PAUSE);
+    if (found.length >= HEADS_ENOUGH) break;
+  }
+  return { found, pages };
 }
 
 /** Whether a file of Commons could be the photograph at the head of a sheet: a photograph, wide enough, and of a shape that fits there. */
@@ -1589,7 +1643,7 @@ const fitsHead = (file) => !!file && file.mime === 'image/jpeg' && file.w >= HEA
  */
 async function headSights(source, keep) {
   const asked = headsAsked();
-  const subjects = countries().filter((u) => asked.includes(u.id));
+  const subjects = countries().filter((u) => asked.has(u.id));
   if (!subjects.length) throw new Error('No country of the game is named to look for what to show at the head of its sheet');
   const { until, undone, attempt, lax } = patient();
   const ids = [...new Set(subjects.map((u) => u.wd))].sort(byNumber);
@@ -1627,17 +1681,8 @@ async function headSights(source, keep) {
   }
 
   const names = [...new Set([...found.values()].flatMap((list) => list.map((one) => one.file)))].sort();
-  if (!names.length) throw new Error('Wikidata shows nothing of the countries named with a picture');
-  const { pages, titled } = await commonsOf(
-    names,
-    {
-      prop: 'imageinfo',
-      iiprop: 'url|size|mime|thumbmime|sha1|extmetadata',
-      iiextmetadatafilter: 'LicenseShortName|UsageTerms|LicenseUrl|Artist|Credit|AttributionRequired|Restrictions',
-      iiurlwidth: String(HEAD_PICTURE),
-    },
-    until,
-  );
+  if (!names.length && ![...asked.values()].some((list) => list.length)) throw new Error('Wikidata shows nothing of the countries named with a picture');
+  const { pages, titled } = await commonsOf(names, HEAD_ASKING, until);
 
   const items = {};
   const files = {};
@@ -1663,6 +1708,21 @@ async function headSights(source, keep) {
     }
     items[u.id] = { sights };
   }
+  // What the list says to look for in Commons by its words, after what Wikidata shows: each thing looked for, with what was found of it.
+  let sought = 0;
+  for (const u of subjects)
+    for (const words of asked.get(u.id)) {
+      sought++;
+      await attempt(`«${words}»`, async () => {
+        const { found: got, pages: theirs } = await soughtInCommons(words, until);
+        for (const one of got) {
+          if (items[u.id].sights.some((s) => s.file === one.file)) continue;
+          items[u.id].sights.push({ file: one.file, kind: 'sought', words, among: one.among });
+          files[one.file] = about(theirs.get(one.file));
+          sources.set(one.file, theirs.get(one.file).imageinfo[0]);
+        }
+      });
+    }
 
   const [brought, left] = [[], []];
   let [bytes, failed] = [0, 0];
@@ -1695,6 +1755,7 @@ async function headSights(source, keep) {
     text: listed({ source: source.from, licence: source.licence, what: source.what, asked: subjects.length }, { items, files }),
     note: [
       `${sources.size} candidatas para ${subjects.length - none.length} de ${subjects.length} países: ${brought.length} imágenes traídas (${kB(bytes)})`,
+      ...(sought ? [`${sought} cosas buscadas en Commons por su nombre`] : []),
       ...(unfit ? [`${unfit} que no sirven de cabecera`] : []),
       ...(none.length ? [`sin ninguna: ${none.join(' ')}`] : []),
       ...(undone.length ? [`sin mirar: ${undone.join('; ')}`] : []),
@@ -2175,7 +2236,8 @@ const SOURCES = [
     what:
       'What could be shown at the head of the sheet of each country that is named (scripts/data/heads-asked.txt): the pictures Wikidata shows what the country is known by with ' +
       '(what UNESCO lists as World Heritage, its national parks, what is called a tourist attraction, its capital and its highest point). ' +
-      'items: of each country, by its id, its candidates (sights), the best known of each kind first: the file, the kind (heritage, park, sight, capital, top), the entity it is of (of), how many Wikipedias tell of it (links) and its name (es, en). ' +
+      'items: of each country, by its id, its candidates (sights), the best known of each kind first: the file, the kind (heritage, park, sight, capital, top), the entity it is of (of), how many Wikipedias tell of it (links) and its name (es, en); ' +
+      'and after them what was looked for in Commons by words that the list gives (kind sought, with the words and whether it was found among the featured pictures or the quality images: among). ' +
       'files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height of the original, licence and its address, author, credit, whether it must be attributed and its page; ' +
       `and where the small picture of it, ${HEAD_PICTURE} px wide, is kept in this branch (picture), to choose among them by eye. Only photographs at least ${HEAD_WIDE} px wide and between ${HEAD_SHAPE[0]} and ${HEAD_SHAPE[1]} times wider than tall are candidates. ` +
       'Nothing is chosen here: the one that stays is written in scripts/data/profiles-heads.json and brought by the source photos.',
