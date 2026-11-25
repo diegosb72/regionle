@@ -281,50 +281,79 @@
 # SL: Freetown
 # SL: Sierra Leone beach
 # SL: Banana Islands
-TG: Koutammakou
-TG: Lomé
-TG: Kpalimé
-LA: Pha That Luang
-LA: Luang Prabang
-LA: Kuang Si
-TM: Darvaza
-TM: Ashgabat
-TM: Yangykala
-LY: Leptis Magna
-LY: Sabratha
-LY: Ghadames
-KG: Song Kul
-KG: Issyk-Kul
-KG: Ala Archa
-CG: Brazzaville
-CG: Odzala
-CG: Pointe-Noire
-SG: Marina Bay Sands
-SG: Singapore skyline
-SG: Gardens by the Bay
-LB: Baalbek
-LB: Raouché
-LB: Byblos
-LR: Monrovia
-LR: Liberia beach
-LR: Robertsport
-CF: Bangui
-CF: Dzanga-Sangha
-CF: Boali
-OM: Sultan Qaboos Grand Mosque
-OM: Muttrah
-OM: Nizwa Fort
-PS: Church of the Nativity Bethlehem
-PS: Mar Saba
-PS: Hisham's Palace
-NZ: Milford Sound
-NZ: Aoraki Mount Cook
-NZ: Lake Tekapo
-MR: Chinguetti
-MR: Ouadane
-MR: Banc d'Arguin
-KW: Kuwait Towers
-KW: Kuwait City skyline
-GE: Gergeti Trinity Church
-GE: Ushguli
-GE: Tbilisi old town
+# TG: Koutammakou
+# TG: Lomé
+# TG: Kpalimé
+# LA: Pha That Luang
+# LA: Luang Prabang
+# LA: Kuang Si
+# TM: Darvaza
+# TM: Ashgabat
+# TM: Yangykala
+# LY: Leptis Magna
+# LY: Sabratha
+# LY: Ghadames
+# KG: Song Kul
+# KG: Issyk-Kul
+# KG: Ala Archa
+# CG: Brazzaville
+# CG: Odzala
+# CG: Pointe-Noire
+# SG: Marina Bay Sands
+# SG: Singapore skyline
+# SG: Gardens by the Bay
+# LB: Baalbek
+# LB: Raouché
+# LB: Byblos
+# LR: Monrovia
+# LR: Liberia beach
+# LR: Robertsport
+# CF: Bangui
+# CF: Dzanga-Sangha
+# CF: Boali
+# OM: Sultan Qaboos Grand Mosque
+# OM: Muttrah
+# OM: Nizwa Fort
+# PS: Church of the Nativity Bethlehem
+# PS: Mar Saba
+# PS: Hisham's Palace
+# NZ: Milford Sound
+# NZ: Aoraki Mount Cook
+# NZ: Lake Tekapo
+# MR: Chinguetti
+# MR: Ouadane
+# MR: Banc d'Arguin
+# KW: Kuwait Towers
+# KW: Kuwait City skyline
+# GE: Gergeti Trinity Church
+# GE: Ushguli
+# GE: Tbilisi old town
+#
+# Asked again with other words: one word alone found what was of other things (Darvaza is «gate» in other
+# languages; Agadez, who took a photograph), and the name of the country beside it keeps to the place.
+LK: Sigiriya Sri Lanka rock
+LK: Sigiriya Lion Rock fortress
+NE: Agadez mosque Niger
+NE: Agadez Niger
+SO: Mogadishu Lido beach
+SO: Mogadishu Somalia coast
+SO: Hargeisa Somaliland
+AE: Downtown Dubai skyline Burj Khalifa
+AE: Sheikh Zayed Grand Mosque Abu Dhabi
+SS: Mundari cattle camp South Sudan
+CG: Brazzaville Basilique Sainte-Anne
+CG: Brazzaville Congo
+CG: Tour Nabemba
+CF: Dzanga Bai elephants
+KG: Song-Kul Kyrgyzstan
+KG: Son-Kul yurt
+KW: Kuwait Towers Kuwait
+LY: Leptis Magna Libya
+LY: Sabratha theatre Libya
+PS: Bethlehem Palestine panorama
+PS: Jericho Mount of Temptation
+PS: Nablus Palestine
+TM: Darvaza gas crater
+TM: Derweze Turkmenistan
+RW: Rwanda hills landscape
+KZ: Baiterek Astana
