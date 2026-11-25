@@ -357,3 +357,6 @@ TM: Darvaza gas crater
 TM: Derweze Turkmenistan
 RW: Rwanda hills landscape
 KZ: Baiterek Astana
+
+# The photograph chosen for LK (File:Sigiriya Rock fortress.jpg) was found on its Commons file page: the
+# search for Sigiriya instead brought Lion Rock in New Zealand.
