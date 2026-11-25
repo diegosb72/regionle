@@ -1,0 +1,56 @@
+# The countries whose sheet is about to be given a photograph at its head: their ids, one to a line (a line
+# that starts with # is a note). The source `heads` of scripts/data/outside.mjs looks for what Wikidata shows
+# each of them is known by and brings a small picture of each candidate, to choose among them by eye. The one
+# that stays is written in scripts/data/profiles-heads.json, and the source `photos` brings it.
+#
+# The first lot: the countries where Spanish is spoken and the thirty with most people of the rest.
+AR
+BD
+BO
+CD
+CL
+CN
+CO
+CR
+CU
+DE
+DO
+DZ
+EC
+EG
+ES
+ET
+FR
+GB
+GQ
+GT
+HN
+ID
+IN
+IQ
+IR
+IT
+JP
+KE
+KR
+MM
+MX
+NG
+NI
+PA
+PE
+PH
+PK
+PY
+RU
+SD
+SV
+TH
+TR
+TZ
+UG
+US
+UY
+VE
+VN
+ZA

@@ -710,6 +710,40 @@ const PROFILES = path.resolve(ROOT, process.env.OUTSIDE_PROFILES ?? 'scripts/dat
 const PHOTO_WIDTH = 1920;
 /** Where the photographs are kept in the branch: each under the SHA-1 of its original and the width it was asked for at. */
 const PHOTO_FILES = 'photos/files';
+/**
+ * The photograph at the head of the sheet of a country nobody has written of: one chosen by eye for each,
+ * a file of Commons, with what is seen in it (scripts/data/profiles-heads.json). A country whose sheet is
+ * written by hand names its own photographs, and this one is not brought for it.
+ */
+const HEADS = path.resolve(ROOT, process.env.OUTSIDE_HEADS ?? 'scripts/data/profiles-heads.json');
+/**
+ * The countries that such a photograph is about to be chosen for, one id to a line (a line that starts
+ * with # is a note): those whose candidates are looked for and brought as small pictures, to choose by eye.
+ */
+const HEADS_ASKED = path.resolve(ROOT, process.env.OUTSIDE_HEADS_ASKED ?? 'scripts/data/heads-asked.txt');
+/** How wide the picture of a candidate is brought, in px: enough to choose among them. One of the widths Wikimedia draws its pictures at. */
+const HEAD_PICTURE = 330;
+/** Where those small pictures are kept in the branch: each under the SHA-1 of its original and its width. */
+const HEAD_FILES = 'heads/files';
+/** The narrowest original that is a candidate, in px: the head of a sheet is shown up to 1920 px wide. */
+const HEAD_WIDE = 1900;
+/** How many times wider than tall a candidate is, at least and at most: the head of a sheet is twice as wide as tall, and a tower or a strip would lose most of itself in it. */
+const HEAD_SHAPE = [1.25, 2.4];
+/** How many candidates are kept of each country at most. */
+const HEADS_EACH = 10;
+/**
+ * What a country is known by, as Wikidata has it, each kind with how it is asked for and how many of it are
+ * candidates at most (those that most Wikipedias tell of, first): what UNESCO lists as World Heritage, its
+ * national parks, what is called a tourist attraction, its capital and its highest point. Each gives the
+ * picture Wikidata shows it with (P18).
+ */
+const SIGHTS = [
+  { kind: 'heritage', most: 6, where: '?sight wdt:P1435 wd:Q9259 ; wdt:P17 ?country .' },
+  { kind: 'park', most: 2, where: '?sight wdt:P31 wd:Q46169 ; wdt:P17 ?country .' },
+  { kind: 'sight', most: 3, where: '?sight wdt:P31 wd:Q570116 ; wdt:P17 ?country .' },
+  { kind: 'capital', most: 1, where: '?country wdt:P36 ?sight .' },
+  { kind: 'top', most: 1, where: '?country wdt:P610 ?sight .' },
+];
 /** How many pages of Wikimedia sites have to tell of something that has a flag for it to be a candidate for those lists. */
 const CANDIDATE_LINKS = Number(process.env.OUTSIDE_CANDIDATE_LINKS ?? 40);
 /** How many of them Wikidata is asked about in one question: they are thousands, and each question has its wait. */
@@ -1446,6 +1480,13 @@ async function signalFlags(source, keep) {
   };
 }
 
+/** The photograph chosen for the head of the sheet of each country, by its id: what the file of them says, without its note. */
+function headsChosen() {
+  if (!fs.existsSync(HEADS)) return {};
+  const { _: _note, ...heads } = JSON.parse(fs.readFileSync(HEADS, 'utf8'));
+  return heads;
+}
+
 /** The photographs that a sheet names: those it shows, and the one of each of its times that has one. */
 function photosIn(sheet) {
   const named = [...(Array.isArray(sheet?.photos) ? sheet.photos : []), ...(Array.isArray(sheet?.times) ? sheet.times.map((time) => time?.picture) : [])];
@@ -1465,6 +1506,8 @@ async function profilePhotos(source, keep) {
     const photos = photosIn(JSON.parse(fs.readFileSync(path.join(PROFILES, name), 'utf8')));
     if (photos.length) items[name.slice(0, -5)] = { photos };
   }
+  // The one chosen for the head of the sheet of each country nobody has written of.
+  for (const [id, head] of Object.entries(headsChosen())) if (!items[id] && typeof head?.file === 'string' && head.file.trim()) items[id] = { photos: [head.file.trim()] };
   const names = [...new Set(Object.values(items).flatMap((item) => item.photos))].sort();
   if (!names.length) throw new Error('The sheets name no photograph');
   const { until, undone } = patient();
@@ -1520,6 +1563,148 @@ async function profilePhotos(source, keep) {
       asked: names.length,
       found: sources.size,
       files: { all: sources.size, missing, brought: brought.length, left: left.length, bytes },
+      licences: tally([...sources.keys()].map((title) => files[title]), (f) => f.licence || '?'),
+      undone,
+    },
+  };
+}
+
+/* ------------------------------------------------------------------ what to show at the head of a sheet */
+
+/** The countries named in the list of those a photograph is to be chosen for. */
+function headsAsked() {
+  if (!fs.existsSync(HEADS_ASKED)) return [];
+  return [...new Set(fs.readFileSync(HEADS_ASKED, 'utf8').split(/\r?\n/).map((line) => line.replace(/#.*/, '').trim()).filter(Boolean))];
+}
+
+/** Whether a file of Commons could be the photograph at the head of a sheet: a photograph, wide enough, and of a shape that fits there. */
+const fitsHead = (file) => !!file && file.mime === 'image/jpeg' && file.w >= HEAD_WIDE && file.h > 0 && file.w / file.h >= HEAD_SHAPE[0] && file.w / file.h <= HEAD_SHAPE[1];
+
+/**
+ * What could be shown at the head of the sheet of each country that is named (scripts/data/heads-asked.txt):
+ * the pictures that Wikidata shows what the country is known by with (`SIGHTS`), each with what it is of and
+ * how many Wikipedias tell of that, and a small picture of each to choose among them by eye. Nothing is
+ * chosen here: somebody looks at them and writes the one that stays in scripts/data/profiles-heads.json,
+ * and the source `photos` brings that one as the sheet will show it.
+ */
+async function headSights(source, keep) {
+  const asked = headsAsked();
+  const subjects = countries().filter((u) => asked.includes(u.id));
+  if (!subjects.length) throw new Error('No country of the game is named to look for what to show at the head of its sheet');
+  const { until, undone, attempt, lax } = patient();
+  const ids = [...new Set(subjects.map((u) => u.wd))].sort(byNumber);
+  const text = (cell) => (cell?.value ? String(cell.value).replace(/\s+/g, ' ').trim() : '');
+
+  /** What each country is known by, by kind: the best known first, each once and with one picture. */
+  const found = new Map(ids.map((id) => [id, []]));
+  let first = true;
+  for (const { kind, most, where } of SIGHTS) {
+    const ask = async () => {
+      const rows = await inParts(
+        ids,
+        40,
+        (part) =>
+          `SELECT ?country ?sight ?image ?links ?es ?en WHERE { VALUES ?country { ${wd(part)} } ${where} ?sight wdt:P18 ?image ; wikibase:sitelinks ?links . ` +
+          'OPTIONAL { ?sight rdfs:label ?es FILTER(LANG(?es) = "es") } OPTIONAL { ?sight rdfs:label ?en FILTER(LANG(?en) = "en") } }',
+        first ? { until: Date.now() + PATIENCE / 2 } : lax,
+      );
+      const of = new Map();
+      for (const row of rows) {
+        const [country, sight, file] = [entity(row.country), entity(row.sight), fileOf(row.image)];
+        if (!found.has(country) || !sight || !file) continue;
+        const list = of.get(country) ?? of.set(country, new Map()).get(country);
+        const was = list.get(sight);
+        // A thing with several pictures is a candidate with one: the first by name, so that asking again gives the same.
+        if (!was || file < was.file) list.set(sight, { file, kind, of: sight, links: Number(row.links?.value) || 0, ...(text(row.es) ? { es: text(row.es) } : {}), ...(text(row.en) ? { en: text(row.en) } : {}) });
+      }
+      // Twice as many as will stay: some will turn out not to fit the head of a sheet.
+      for (const [country, list] of of) found.get(country).push(...[...list.values()].sort((a, b) => b.links - a.links || byNumber(a.of, b.of)).slice(0, most * 2));
+    };
+    // The first kind has to come: without it there is nothing to say whether Wikidata answers.
+    if (first) await ask();
+    else await attempt(kind, ask);
+    first = false;
+  }
+
+  const names = [...new Set([...found.values()].flatMap((list) => list.map((one) => one.file)))].sort();
+  if (!names.length) throw new Error('Wikidata shows nothing of the countries named with a picture');
+  const { pages, titled } = await commonsOf(
+    names,
+    {
+      prop: 'imageinfo',
+      iiprop: 'url|size|mime|thumbmime|sha1|extmetadata',
+      iiextmetadatafilter: 'LicenseShortName|UsageTerms|LicenseUrl|Artist|Credit|AttributionRequired|Restrictions',
+      iiurlwidth: String(HEAD_PICTURE),
+    },
+    until,
+  );
+
+  const items = {};
+  const files = {};
+  const sources = new Map();
+  let unfit = 0;
+  for (const u of subjects) {
+    const sights = [];
+    const per = {};
+    for (const one of found.get(u.wd)) {
+      const title = titled(one.file);
+      const info = about(pages.get(title));
+      if (sights.some((s) => s.file === title)) continue;
+      if (!fitsHead(info)) {
+        unfit++;
+        continue;
+      }
+      const most = SIGHTS.find((s) => s.kind === one.kind).most;
+      if ((per[one.kind] ?? 0) >= most || sights.length >= HEADS_EACH) continue;
+      per[one.kind] = (per[one.kind] ?? 0) + 1;
+      sights.push({ ...one, file: title });
+      files[title] = info;
+      sources.set(title, pages.get(title).imageinfo[0]);
+    }
+    items[u.id] = { sights };
+  }
+
+  const [brought, left] = [[], []];
+  let [bytes, failed] = [0, 0];
+  let last = null;
+  for (const title of [...sources.keys()].sort()) {
+    if (Date.now() >= until || failed >= FLAGS_FAILED) {
+      left.push(title);
+      continue;
+    }
+    const file = files[title];
+    const from = sources.get(title);
+    try {
+      await sleep(FLAG_GAP);
+      const { body } = await request(from.thumburl ?? from.url, { tries: 3, until });
+      const at = `${HEAD_FILES}/${file.sha1}.${HEAD_PICTURE}.jpg`;
+      keep(at, body);
+      file.picture = at;
+      bytes += body.length;
+      brought.push(title);
+      failed = 0;
+    } catch (err) {
+      failed++;
+      last = err;
+      left.push(title);
+    }
+  }
+  if (left.length) undone.push(`${left.length} de ${sources.size} imágenes (${last ? short(last) : 'no quedaba tiempo'})`);
+  const none = subjects.filter((u) => !items[u.id].sights.length).map((u) => u.id);
+  return {
+    text: listed({ source: source.from, licence: source.licence, what: source.what, asked: subjects.length }, { items, files }),
+    note: [
+      `${sources.size} candidatas para ${subjects.length - none.length} de ${subjects.length} países: ${brought.length} imágenes traídas (${kB(bytes)})`,
+      ...(unfit ? [`${unfit} que no sirven de cabecera`] : []),
+      ...(none.length ? [`sin ninguna: ${none.join(' ')}`] : []),
+      ...(undone.length ? [`sin mirar: ${undone.join('; ')}`] : []),
+    ].join('; '),
+    detail: {
+      asked: subjects.length,
+      found: subjects.length - none.length,
+      none,
+      files: { all: sources.size, unfit, brought: brought.length, left: left.length, bytes },
+      kinds: tally(Object.values(items).flatMap((item) => item.sights), (s) => s.kind),
       licences: tally([...sources.keys()].map((title) => files[title]), (f) => f.licence || '?'),
       undone,
     },
@@ -1974,12 +2159,29 @@ const SOURCES = [
     from: 'Wikimedia Commons (https://commons.wikimedia.org)',
     licence: 'La de cada archivo, que su entrada dice: dominio público o una licencia libre',
     what:
-      'The photographs that the sheets of the countries show, each a file of Commons that a sheet names (scripts/data/profiles/<country>.json). items: the titles of those of each sheet, by the id of its country (photos). ' +
+      'The photographs that the sheets of the countries show, each a file of Commons that a sheet names (scripts/data/profiles/<country>.json) or the one chosen for the head of the sheet of a country nobody has written of (scripts/data/profiles-heads.json). ' +
+      'items: the titles of those of each sheet, by the id of its country (photos). ' +
       'files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height of the original, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; ' +
       `and where the picture of it that Wikimedia draws, ${PHOTO_WIDTH} px wide, is kept in this branch (picture): the original is not brought. The pictures are under ${PHOTO_FILES}, each named after the SHA-1 of its original.`,
     es: 'Fotografías de las fichas de los países',
     needs: '113',
     run: profilePhotos,
+  },
+  {
+    id: 'heads',
+    file: 'heads/heads.json',
+    from: 'Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org)',
+    licence: 'Lo de Wikidata, CC0; cada imagen, la licencia que dice su entrada: dominio público o una licencia libre',
+    what:
+      'What could be shown at the head of the sheet of each country that is named (scripts/data/heads-asked.txt): the pictures Wikidata shows what the country is known by with ' +
+      '(what UNESCO lists as World Heritage, its national parks, what is called a tourist attraction, its capital and its highest point). ' +
+      'items: of each country, by its id, its candidates (sights), the best known of each kind first: the file, the kind (heritage, park, sight, capital, top), the entity it is of (of), how many Wikipedias tell of it (links) and its name (es, en). ' +
+      'files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height of the original, licence and its address, author, credit, whether it must be attributed and its page; ' +
+      `and where the small picture of it, ${HEAD_PICTURE} px wide, is kept in this branch (picture), to choose among them by eye. Only photographs at least ${HEAD_WIDE} px wide and between ${HEAD_SHAPE[0]} and ${HEAD_SHAPE[1]} times wider than tall are candidates. ` +
+      'Nothing is chosen here: the one that stays is written in scripts/data/profiles-heads.json and brought by the source photos.',
+    es: 'Candidatas a fotografía de cabecera de las fichas de los países',
+    needs: '113',
+    run: headSights,
   },
   {
     id: 'countries',
