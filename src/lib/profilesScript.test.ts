@@ -150,12 +150,19 @@ let n = 0;
 /**
  * Runs the script on the sheets that are given, each under the name of its file. `fixes` are the corrections
  * by hand, `said` what the sources say when it is not what they say above (`null`: nothing was brought),
- * `texts` how Wikipedia begins each page, by `language:title` (`null`: nothing was brought), and `flags` what
- * else the script is told.
+ * `texts` how Wikipedia begins each page, by `language:title` (`null`: nothing was brought), `heads` the
+ * photograph chosen for the head of the sheet of each country, and `flags` what else the script is told.
  */
 function run(
   sheets: Record<string, unknown>,
-  opts: { before?: (dirs: { data: string; photos: string }) => void; fixes?: Record<string, unknown>; said?: unknown; texts?: Record<string, string> | null; flags?: string[] } = {},
+  opts: {
+    before?: (dirs: { data: string; photos: string }) => void;
+    fixes?: Record<string, unknown>;
+    said?: unknown;
+    texts?: Record<string, string> | null;
+    heads?: Record<string, unknown>;
+    flags?: string[];
+  } = {},
 ) {
   const dir = path.join(TMP, `run-${++n}`);
   const [written, mine, photos] = [path.join(dir, 'sheets'), path.join(dir, 'data'), path.join(dir, 'photos')];
@@ -174,11 +181,14 @@ function run(
     texts = path.join(dir, 'texts.json');
     if (opts.texts !== null) fs.writeFileSync(texts, JSON.stringify({ pages: Object.fromEntries(Object.entries(opts.texts).map(([page, text], i) => [page, { rev: 100 + i, text }])) }));
   }
+  // Never the photographs chosen for the countries of the game: those of the test, or none.
+  const heads = path.join(dir, 'heads.json');
+  if (opts.heads) fs.writeFileSync(heads, JSON.stringify({ _: 'What this file is.', ...opts.heads }));
   opts.before?.({ data: mine, photos });
   let out = '';
   let code = 0;
   try {
-    out = execFileSync('node', [SCRIPT, '--sheets', written, '--brought', brought, '--said', said, '--texts', texts, '--fixes', fixes, '--data', mine, '--photos', photos, ...(opts.flags ?? [])], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    out = execFileSync('node', [SCRIPT, '--sheets', written, '--brought', brought, '--said', said, '--texts', texts, '--fixes', fixes, '--heads', heads, '--data', mine, '--photos', photos, ...(opts.flags ?? [])], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
   } catch (err) {
     const failed = err as { status?: number; stderr?: string; stdout?: string };
     code = failed.status ?? 1;
@@ -399,6 +409,79 @@ describe('the sheet of a country nobody has written of', () => {
   });
 });
 
+describe('the photograph chosen for the head of the sheet of a country nobody has written of', () => {
+  const HEAD = () => ({ file: ' Falls.jpg ', focus: [50, 30], ...both('Unas cataratas') });
+
+  it('is at the head of its sheet, with what is seen in it and whose it is, and not as wide as that of a sheet written by hand', () => {
+    const r = run({ AA: SHEET() }, { heads: { CC: HEAD() } });
+    expect(r.code).toBe(0);
+    const name = sha1('Falls.jpg').slice(0, 10);
+    expect(r.sheet('CC').photos).toEqual([
+      { file: name, w: 1920, h: 1280, sizes: [640, 1280], title: 'Falls.jpg', licence: 'CC0', licenceUrl: 'https://creativecommons.org/publicdomain/zero/1.0/', es: 'Unas cataratas.', en: 'Unas cataratas (en).', focus: [50, 30] },
+    ]);
+    // It is the only thing somebody chose for that sheet: no text of its own, no times.
+    const sheet = r.sheet('CC') as unknown as Record<string, unknown>;
+    expect(sheet.about).toBeUndefined();
+    expect(sheet.times).toBeUndefined();
+    // The same photograph is in the gallery of the sheet written by hand, where it is no wider: each picture is made once.
+    expect(r.pictures().filter((file) => file.startsWith(name))).toEqual([`${name}-1280.webp`, `${name}-640.webp`]);
+    expect(r.out).toContain('fotografía de cabecera elegida en 1;');
+    // The one at the head of the sheet written by hand is kept wider.
+    expect(r.pictures()).toContain(`${sha1('Head.jpg').slice(0, 10)}-1920.webp`);
+  });
+
+  it('is not used for a country whose sheet is written by hand, which names its own', () => {
+    const r = run({ AA: SHEET() }, { heads: { AA: { file: 'Painting.jpg', ...both('Un cuadro') }, BB: { file: 'Painting.jpg', ...both('Un cuadro') } } });
+    expect(r.code).toBe(0);
+    expect(r.sheet('AA').photos.map((photo) => photo.title)).toEqual(['Head.jpg', 'Falls.jpg', 'Small.jpg']);
+    expect(r.sheet('BB').photos.map((photo) => photo.title)).toEqual(['Painting.jpg']);
+    expect(r.out).toContain('fotografía de cabecera elegida en 1;');
+  });
+
+  it('is none where none was chosen, and the pictures no sheet shows any more are not kept', () => {
+    const r = run({}, {
+      heads: { CC: HEAD() },
+      before: ({ photos }) => {
+        fs.mkdirSync(photos, { recursive: true });
+        fs.writeFileSync(path.join(photos, '0000000000-640.webp'), 'old');
+      },
+    });
+    expect(r.code).toBe(0);
+    expect((r.sheet('BB') as unknown as Record<string, unknown>).photos).toBeUndefined();
+    expect(r.pictures()).toEqual([`${sha1('Falls.jpg').slice(0, 10)}-1280.webp`, `${sha1('Falls.jpg').slice(0, 10)}-640.webp`]);
+  });
+
+  it('is not made again when its pictures are there: each is named after what it is made from and how wide it is', () => {
+    const name = sha1('Falls.jpg').slice(0, 10);
+    const r = run({}, {
+      heads: { CC: HEAD() },
+      before: ({ photos }) => {
+        fs.mkdirSync(photos, { recursive: true });
+        fs.writeFileSync(path.join(photos, `${name}-640.webp`), 'made before');
+      },
+    });
+    expect(r.code).toBe(0);
+    expect(fs.readFileSync(path.join(r.photos, `${name}-640.webp`), 'utf8')).toBe('made before');
+    expect(fs.statSync(path.join(r.photos, `${name}-1280.webp`)).size).toBeGreaterThan(100);
+  });
+
+  it('has to be one that can be shown: of a country of the game, brought, free, and with what is seen in it in both languages', () => {
+    const failed = (heads: Record<string, unknown>) => {
+      const r = run({}, { heads });
+      expect(r.code).not.toBe(0);
+      expect(r.written()).toEqual([]);
+      return r.out;
+    };
+    expect(failed({ ZZ: HEAD() })).toContain('chooses a photograph for «ZZ», which is no country of the game with a flag');
+    expect(failed({ CC: { file: 'Falls.jpg', es: 'Unas cataratas' } })).toContain('CC: the photograph «Falls.jpg» has no text in «en»');
+    expect(failed({ CC: { ...both('Nada') } })).toContain('CC: a photograph names no file');
+    expect(failed({ CC: { file: 'Gone.jpg', ...both('Nada') } })).toContain('Commons was not asked about «Gone.jpg»');
+    expect(failed({ CC: { file: 'Lost.jpg', ...both('Nada') } })).toContain('the picture of «Lost.jpg» is not among what was brought');
+    expect(failed({ CC: { file: 'Mine.jpg', ...both('Nada') } })).toContain('«Mine.jpg» is given on terms that are not known to be free');
+    expect(failed({ CC: { file: 'Nobody.jpg', ...both('Nada') } })).toContain('«Nobody.jpg» has to be attributed and Commons names nobody');
+  });
+});
+
 describe('how Wikipedia begins to tell of a country and of its flag', () => {
   /** A text longer than a sheet shows: sentences of some sixty characters, each with its number. */
   const long = (what: string, n: number) => Array.from({ length: n }, (_, i) => `${what} tiene una frase número ${i + 1} que dice algo de ella.`).join(' ');
@@ -514,7 +597,7 @@ describe('what is written by hand, over what the sources say', () => {
     const gone = (dirs: { data: string }) => void dirs;
     const without = path.join(TMP, 'no-photos');
     fs.mkdirSync(without, { recursive: true });
-    const args = (sheets: string) => [SCRIPT, '--sheets', sheets, '--brought', without, '--said', path.join(TMP, 'said.json'), '--texts', path.join(TMP, 'texts.json'), '--fixes', path.join(TMP, 'none.json'), '--data', path.join(TMP, 'data-np'), '--photos', path.join(TMP, 'photos-np')];
+    const args = (sheets: string) => [SCRIPT, '--sheets', sheets, '--brought', without, '--said', path.join(TMP, 'said.json'), '--texts', path.join(TMP, 'texts.json'), '--fixes', path.join(TMP, 'none.json'), '--heads', path.join(TMP, 'none-heads.json'), '--data', path.join(TMP, 'data-np'), '--photos', path.join(TMP, 'photos-np')];
     fs.cpSync(data, path.join(TMP, 'data-np'), { recursive: true });
     const empty = path.join(TMP, 'sheets-none');
     fs.mkdirSync(empty, { recursive: true });

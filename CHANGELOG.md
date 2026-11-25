@@ -3,6 +3,14 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.50.0 — 25 de noviembre de 2026
+
+- Fotografía en la ficha de cincuenta países: España, los demás de habla hispana y los treinta más poblados del resto.
+- Una por país, elegida a ojo entre lo que más se conoce de él: la Alhambra, Machu Picchu, el Taj Mahal, las pirámides de Guiza, el monte Fuji.
+- Bajo cada una, lo que se ve en ella, quién la hizo y con qué licencia, con el enlace a su página en Wikimedia Commons.
+- Los demás países siguen con la franja de los colores de su bandera hasta que les llegue su tanda.
+- Las fotografías se piden al abrir cada ficha: no pesan al abrir el juego ni entran en «Descargar todo».
+
 ## 1.49.0 — 25 de noviembre de 2026
 
 - Las fichas de los países ya cuentan algo: bajo el nombre, cómo empieza el artículo de Wikipedia sobre el país, en unas frases.

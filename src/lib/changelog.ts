@@ -15,6 +15,24 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.50.0',
+    date: '2026-11-25',
+    es: [
+      'Fotografía en la ficha de cincuenta países: España, los demás de habla hispana y los treinta más poblados del resto.',
+      'Una por país, elegida a ojo entre lo que más se conoce de él: la Alhambra, Machu Picchu, el Taj Mahal, las pirámides de Guiza, el monte Fuji.',
+      'Bajo cada una, lo que se ve en ella, quién la hizo y con qué licencia, con el enlace a su página en Wikimedia Commons.',
+      'Los demás países siguen con la franja de los colores de su bandera hasta que les llegue su tanda.',
+      'Las fotografías se piden al abrir cada ficha: no pesan al abrir el juego ni entran en «Descargar todo».',
+    ],
+    en: [
+      'A photograph on the sheet of fifty countries: Spain, the other Spanish-speaking ones and the thirty most populous of the rest.',
+      'One per country, chosen by eye among what it is best known by: the Alhambra, Machu Picchu, the Taj Mahal, the pyramids of Giza, Mount Fuji.',
+      'Under each, what is seen in it, who made it and under which licence, with the link to its page on Wikimedia Commons.',
+      'The other countries keep the band in the colours of their flag until their turn comes.',
+      'Photographs are asked for when a sheet is opened: they add nothing to opening the game, nor to “Download everything”.',
+    ],
+  },
+  {
     version: '1.49.0',
     date: '2026-11-25',
     es: [

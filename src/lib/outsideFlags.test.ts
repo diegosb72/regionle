@@ -66,6 +66,10 @@ interface World {
   wikiLeads: Record<string, string>;
   /** What Wikidata says of what has a flag and many pages: how many, its names, what it is, where, and when it began and ended. */
   known: Record<string, { links: number; es?: string; en?: string; is?: string[]; in?: string[]; born?: string[]; died?: string[] }>;
+  /** What each country is known by, by the entity of the country: of which kind each thing is, its entity, its picture, how many pages tell of it and its names. */
+  sights?: Record<string, { kind: 'heritage' | 'park' | 'sight' | 'capital' | 'top'; of: string; file: string; links: number; es?: string; en?: string }[]>;
+  /** What Commons finds when it is searched: the titles of the files, the best answer first, by what was looked for, as it was written. */
+  sought?: Record<string, string[]>;
 }
 /** A way of not answering: this status for what matches, the first `times` of it. */
 interface Refusal {
@@ -99,7 +103,25 @@ const rows = (id: string, more: Record<string, unknown> = {}) =>
     ...more,
   }));
 
+/** How each kind of thing a country is known by is asked for. */
+const SIGHT_ASKED = { heritage: 'wdt:P1435 wd:Q9259', park: 'wdt:P31 wd:Q46169', sight: 'wdt:P31 wd:Q570116', capital: 'wdt:P36', top: 'wdt:P610' };
+
 function answer(query: string): Record<string, unknown>[] {
+  if (query.includes('?sight')) {
+    const kind = (Object.keys(SIGHT_ASKED) as (keyof typeof SIGHT_ASKED)[]).find((k) => query.includes(SIGHT_ASKED[k]));
+    return ids(query).flatMap((id) =>
+      (world.sights?.[id] ?? [])
+        .filter((one) => one.kind === kind)
+        .map((one) => ({
+          country: uri(id),
+          sight: uri(one.of),
+          image: { type: 'uri', value: `http://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(one.file)}` },
+          links: text(one.links),
+          ...(one.es ? { es: { type: 'literal', 'xml:lang': 'es', value: one.es } } : {}),
+          ...(one.en ? { en: { type: 'literal', 'xml:lang': 'en', value: one.en } } : {}),
+        })),
+    );
+  }
   if (query.includes('p:P41') && query.includes('wdt:P300'))
     return [...query.matchAll(/"([A-Z]{2}-[A-Z0-9]+)"/g)].flatMap(([, code]) => (world.codes[code] ?? []).flatMap((id) => rows(id, { code: text(code) })));
   if (query.includes('p:P41')) return ids(query).flatMap((id) => rows(id));
@@ -138,6 +160,12 @@ function wikipedia(lang: string, form: URLSearchParams): Record<string, unknown>
 
 /** What Commons says of the files it is asked about. */
 function commons(form: URLSearchParams): Record<string, unknown> {
+  if (form.get('generator') === 'search') {
+    // What it finds for some words: each file with all that is said of it, and its place among the answers. They do not come in order.
+    const found = world.sought?.[form.get('gsrsearch') ?? ''] ?? [];
+    const pages = found.map((title, i) => ({ ...(commons(new URLSearchParams({ titles: `File:${title}` })).query as { pages: Record<string, unknown>[] }).pages[0], index: i + 1 }));
+    return { batchcomplete: true, ...(pages.length ? { query: { pages: pages.reverse() } } : {}) };
+  }
   const names = (form.get('titles') ?? '').split('|').filter(Boolean);
   const normalized: { from: string; to: string }[] = [];
   const redirects: { from: string; to: string }[] = [];
@@ -338,6 +366,7 @@ const FILE: Record<string, string> = {
   'flags-listed': 'flags/listed.json',
   'flags-signals': 'flags/signals.json',
   photos: 'photos/photos.json',
+  heads: 'heads/heads.json',
 };
 
 /** Runs the script. It gets no variable of the machine but the ones named here. */
@@ -358,6 +387,8 @@ function run(source: string, data: string, env: Record<string, string> = {}, out
       OUTSIDE_FLAG_LISTS: none,
       OUTSIDE_FLAG_SIGNALS: none,
       OUTSIDE_PROFILES: none,
+      OUTSIDE_HEADS: none,
+      OUTSIDE_HEADS_ASKED: none,
       ...env,
     };
     execFile('node', ['scripts/data/outside.mjs', '--out', out, '--only', source, '--data', data], { cwd: ROOT, env: vars }, (error, stdout) => {
@@ -1283,6 +1314,202 @@ describe('the photographs of the sheets of the countries', () => {
     expect(asked).toEqual([]);
     // …and where there are no sheets at all.
     expect((await run('photos', PLAIN())).source().ok).toBe(false);
+  });
+});
+
+describe('the photograph chosen for the head of the sheet of a country nobody has written of', () => {
+  const chosen = (said: Record<string, unknown>) => {
+    const file = path.join(fresh('heads'), 'profiles-heads.json');
+    fs.writeFileSync(file, JSON.stringify({ _: 'what this file is', ...said }));
+    return file;
+  };
+  const sheets = (said: Record<string, unknown>) => {
+    const dir = fresh('profiles');
+    for (const [id, sheet] of Object.entries(said)) fs.writeFileSync(path.join(dir, `${id}.json`), JSON.stringify(sheet));
+    return dir;
+  };
+
+  it('is brought with the photographs of the sheets, and not for a country whose sheet names its own', async () => {
+    world.files['Alhambra.jpg'] = { body: 'the Alhambra', mime: 'image/jpeg', licence: 'CC BY-SA 4.0', artist: 'Ana' };
+    world.files['Rio.jpg'] = { body: 'Rio', mime: 'image/jpeg', licence: 'CC0' };
+    world.files['Not Rio.jpg'] = { body: 'another', mime: 'image/jpeg', licence: 'CC0' };
+    const r = await run('photos', PLAIN(), {
+      OUTSIDE_PROFILES: sheets({ BR: { photos: [{ file: 'Rio.jpg' }] } }),
+      OUTSIDE_HEADS: chosen({ ES: { file: ' Alhambra.jpg ', es: 'La Alhambra' }, BR: { file: 'Not Rio.jpg' }, XX: { es: 'sin archivo' } }),
+    });
+    expect(r.source().ok).toBe(true);
+    expect(r.data().items).toEqual({ BR: { photos: ['Rio.jpg'] }, ES: { photos: ['Alhambra.jpg'] } });
+    expect(r.data().files['Alhambra.jpg']).toMatchObject({ licence: 'CC BY-SA 4.0', artist: 'Ana', picture: `photos/files/${sha1('the Alhambra')}.1920.jpg` });
+    expect(r.data().files['Not Rio.jpg']).toBeUndefined();
+    expect(asked.filter((q) => q.startsWith('picture ')).sort()).toEqual(['picture Alhambra.jpg', 'picture Rio.jpg']);
+    // The note at the head of the file is no country.
+    expect(Object.keys(r.data().items)).not.toContain('_');
+  });
+
+  it('is enough to bring something where no sheet is written by hand', async () => {
+    world.files['Alhambra.jpg'] = { body: 'the Alhambra', mime: 'image/jpeg', licence: 'CC BY-SA 4.0', artist: 'Ana' };
+    const r = await run('photos', PLAIN(), { OUTSIDE_HEADS: chosen({ ES: { file: 'Alhambra.jpg' } }) });
+    expect(r.source().ok).toBe(true);
+    expect(r.data().items).toEqual({ ES: { photos: ['Alhambra.jpg'] } });
+  });
+});
+
+describe('what could be shown at the head of the sheet of a country', () => {
+  /** The countries of the game, each with its entity; and the list of those a photograph is to be chosen for. */
+  const lands = () => game({ ES: { units: [], wd: 'Q29' }, PE: { units: [], wd: 'Q419' }, AD: { units: [], wd: 'Q228' }, ZZ: { units: [] } });
+  const list = (text: string) => {
+    const file = path.join(fresh('asked'), 'heads-asked.txt');
+    fs.writeFileSync(file, text);
+    return file;
+  };
+  const photo = (body: string, more: Partial<Kept> = {}): Kept => ({ body, mime: 'image/jpeg', w: 4000, h: 2500, licence: 'CC BY-SA 4.0', artist: 'Ana', ...more });
+  const small = (body: string) => `heads/files/${sha1(body)}.330.jpg`;
+  const SIGHTS = () => {
+    world.files['Alhambra.jpg'] = photo('alhambra');
+    world.files['Sagrada.jpg'] = photo('sagrada', { w: 3000, h: 4000 });
+    world.files['Teide.jpg'] = photo('teide', { licence: 'CC0', artist: undefined });
+    world.files['Madrid.jpg'] = photo('madrid');
+    world.files['Plan.png'] = photo('plan', { mime: 'image/png' });
+    world.files['Tiny.jpg'] = photo('tiny', { w: 1200, h: 800 });
+    world.files['Strip.jpg'] = photo('strip', { w: 9000, h: 1500 });
+    world.files['Machu Picchu.jpg'] = photo('machu');
+    world.leads = { 'Alhambra de Granada.jpg': 'Alhambra.jpg' };
+    world.sights = {
+      Q29: [
+        { kind: 'heritage', of: 'Q47476', file: 'Alhambra de Granada.jpg', links: 150, es: 'Alhambra', en: 'Alhambra' },
+        // Its second picture: the first by name is the one that counts.
+        { kind: 'heritage', of: 'Q47476', file: 'Zzz.jpg', links: 150, es: 'Alhambra' },
+        { kind: 'heritage', of: 'Q48435', file: 'Sagrada.jpg', links: 200, es: 'Sagrada Familia', en: 'Sagrada Família' },
+        { kind: 'heritage', of: 'Q5', file: 'Plan.png', links: 90 },
+        { kind: 'heritage', of: 'Q6', file: 'Tiny.jpg', links: 80 },
+        { kind: 'heritage', of: 'Q7', file: 'Strip.jpg', links: 70 },
+        { kind: 'heritage', of: 'Q8', file: 'Gone.jpg', links: 60 },
+        { kind: 'park', of: 'Q131393', file: 'Teide.jpg', links: 60, es: 'Parque nacional del Teide', en: 'Teide National Park' },
+        { kind: 'capital', of: 'Q2807', file: 'Madrid.jpg', links: 300, es: 'Madrid', en: 'Madrid' },
+        // What it is known by twice is a candidate once: the Teide is its highest point too.
+        { kind: 'top', of: 'Q83057', file: 'Teide.jpg', links: 110, es: 'Teide', en: 'Teide' },
+      ],
+      Q419: [{ kind: 'heritage', of: 'Q676203', file: 'Machu Picchu.jpg', links: 180, es: 'Machu Picchu', en: 'Machu Picchu' }],
+      Q228: [{ kind: 'capital', of: 'Q1863', file: 'Plan.png', links: 100, es: 'Andorra la Vieja' }],
+    };
+    return list('# the first lot\nES\nAD  # with a note\n\nXX\nZZ\n');
+  };
+
+  it('is what Wikidata shows the country is known by with, the best known of each kind first, with a small picture of each', async () => {
+    const r = await run('heads', lands(), { OUTSIDE_HEADS_ASKED: SIGHTS() });
+    expect(r.code).toBe(0);
+    expect(r.source().ok).toBe(true);
+    // Only the countries that are named, and of them only those the game has with an entity.
+    expect(Object.keys(r.data().items).sort()).toEqual(['AD', 'ES']);
+    expect(r.data().asked).toBe(2);
+    expect((r.data().items.ES as unknown as { sights: unknown[] }).sights).toEqual([
+      { file: 'Alhambra.jpg', kind: 'heritage', of: 'Q47476', links: 150, es: 'Alhambra', en: 'Alhambra' },
+      { file: 'Teide.jpg', kind: 'park', of: 'Q131393', links: 60, es: 'Parque nacional del Teide', en: 'Teide National Park' },
+      { file: 'Madrid.jpg', kind: 'capital', of: 'Q2807', links: 300, es: 'Madrid', en: 'Madrid' },
+    ]);
+    // What is taller than wide, no photograph, too small or a strip does not fit the head of a sheet; a country may be left with nothing.
+    expect((r.data().items.AD as unknown as { sights: unknown[] }).sights).toEqual([]);
+    expect(Object.keys(r.data().files).sort()).toEqual(['Alhambra.jpg', 'Madrid.jpg', 'Teide.jpg']);
+    expect(r.data().files['Alhambra.jpg']).toMatchObject({ sha1: sha1('alhambra'), w: 4000, h: 2500, mime: 'image/jpeg', licence: 'CC BY-SA 4.0', artist: 'Ana', picture: small('alhambra') });
+    expect(r.read(small('alhambra'))).toBe('a picture of Alhambra.jpg');
+    expect(asked.filter((q) => q.startsWith('picture ')).sort()).toEqual(['picture Alhambra.jpg', 'picture Madrid.jpg', 'picture Teide.jpg']);
+    // The pictures are asked for small, and no original is.
+    expect(asked.find((q) => q.startsWith('api '))).toContain('iiurlwidth=330');
+    expect(asked.some((q) => q.startsWith('file '))).toBe(false);
+    // Five things are asked of Wikidata, and of none of them about a country that was not named.
+    const queries = asked.filter((q) => q.startsWith('sparql '));
+    expect(queries).toHaveLength(5);
+    expect(queries.every((q) => q.includes('wd:Q29') && q.includes('wd:Q228') && !q.includes('wd:Q419'))).toBe(true);
+    expect(r.source().note).toContain('3 candidatas para 1 de 2 países: 3 imágenes traídas');
+    expect(r.source().note).toContain('sin ninguna: AD');
+    expect(r.source().detail).toMatchObject({ asked: 2, found: 1, none: ['AD'], kinds: { capital: 1, heritage: 1, park: 1 } });
+  });
+
+  it('keeps no more of a kind than it says, nor more than ten of a country', async () => {
+    const dir = lands();
+    world.sights = { Q419: [] };
+    for (let i = 0; i < 20; i++) {
+      world.files[`H${i}.jpg`] = photo(`h${i}`);
+      world.sights.Q419.push({ kind: 'heritage', of: `Q${1000 + i}`, file: `H${i}.jpg`, links: 100 - i });
+    }
+    for (const kind of ['park', 'sight'] as const)
+      for (let i = 0; i < 5; i++) {
+        world.files[`${kind}${i}.jpg`] = photo(`${kind}${i}`);
+        world.sights.Q419.push({ kind, of: `Q${kind === 'park' ? 2000 + i : 3000 + i}`, file: `${kind}${i}.jpg`, links: 50 - i });
+      }
+    const r = await run('heads', dir, { OUTSIDE_HEADS_ASKED: list('PE\n') });
+    const sights = (r.data().items.PE as unknown as { sights: { file: string; kind: string }[] }).sights;
+    expect(sights.map((s) => s.file)).toEqual(['H0.jpg', 'H1.jpg', 'H2.jpg', 'H3.jpg', 'H4.jpg', 'H5.jpg', 'park0.jpg', 'park1.jpg', 'sight0.jpg', 'sight1.jpg']);
+  });
+
+  it('keeps the candidates whose picture did not come, without one, and says so', async () => {
+    const asking = SIGHTS();
+    refusals = [{ when: (q) => q === 'picture Teide.jpg', status: 404, times: 99 }];
+    const r = await run('heads', lands(), { OUTSIDE_HEADS_ASKED: asking });
+    expect(r.source().ok).toBe(true);
+    expect(r.data().files['Teide.jpg'].picture).toBeUndefined();
+    expect(r.data().files['Alhambra.jpg'].picture).toBe(small('alhambra'));
+    expect(r.source().detail?.undone).toEqual(['1 de 3 imágenes (HTTP 404 Not Found)']);
+  });
+
+  it('goes on without a kind that Wikidata does not answer about, but not without the first', async () => {
+    const asking = SIGHTS();
+    refusals = [{ when: (q) => q.startsWith('sparql ') && q.includes('wdt:P36'), status: 500, times: 99 }];
+    const r = await run('heads', lands(), { OUTSIDE_HEADS_ASKED: asking });
+    expect(r.source().ok).toBe(true);
+    expect((r.data().items.ES as unknown as { sights: { kind: string }[] }).sights.map((s) => s.kind)).toEqual(['heritage', 'park']);
+    expect(r.source().detail?.undone.join(' ')).toContain('capital');
+    refusals = [{ when: (q) => q.startsWith('sparql ') && q.includes('wdt:P1435'), status: 500, times: 99 }];
+    expect((await run('heads', lands(), { OUTSIDE_HEADS_ASKED: asking })).source().ok).toBe(false);
+  });
+
+  it('looks in Commons for what the list says to look for by its words: among the pictures judged best, and among the others while those are few', async () => {
+    const dir = lands();
+    const FEATURED = (words: string) => `${words} incategory:"Featured pictures on Wikimedia Commons" filetype:bitmap filew:>1279`;
+    const QUALITY = (words: string) => `${words} incategory:"Quality images" filetype:bitmap filew:>1279`;
+    const ANY = (words: string) => `${words} filetype:bitmap filew:>1279`;
+    for (const name of ['M1', 'M2', 'M3', 'M4', 'M5', 'Q1', 'Tall', 'N1', 'N2', 'N3']) world.files[`${name}.jpg`] = photo(name.toLowerCase(), name === 'Tall' ? { w: 2000, h: 3000 } : {});
+    world.files['Machu Picchu.jpg'] = photo('machu');
+    world.sights = { Q419: [{ kind: 'heritage', of: 'Q676203', file: 'Machu Picchu.jpg', links: 180, es: 'Machu Picchu' }] };
+    world.sought = {
+      // Enough among the best: the next ones are not looked at. What Wikidata showed already is not a candidate twice, nor what does not fit.
+      [FEATURED('Machu Picchu')]: ['M1.jpg', 'Machu Picchu.jpg', 'Tall.jpg', 'M2.jpg', 'M3.jpg', 'M4.jpg', 'M5.jpg'],
+      [QUALITY('Machu Picchu')]: ['Q1.jpg'],
+      // Few among the best: the next ones are looked at too, and after them all the others.
+      [FEATURED('Nazca lines')]: ['N1.jpg'],
+      [QUALITY('Nazca lines')]: ['N2.jpg', 'N1.jpg', 'N3.jpg'],
+      [ANY('Nazca lines')]: ['N3.jpg', 'Q1.jpg'],
+    };
+    const r = await run('heads', dir, { OUTSIDE_HEADS_ASKED: list('PE: Machu Picchu\nPE:  Nazca   lines # the lines\nPE: Nothing such\nAD\n') });
+    expect(r.source().ok).toBe(true);
+    const sights = (r.data().items.PE as unknown as { sights: Record<string, unknown>[] }).sights;
+    expect(sights).toEqual([
+      { file: 'Machu Picchu.jpg', kind: 'heritage', of: 'Q676203', links: 180, es: 'Machu Picchu' },
+      { file: 'M1.jpg', kind: 'sought', words: 'Machu Picchu', among: 'featured' },
+      { file: 'M2.jpg', kind: 'sought', words: 'Machu Picchu', among: 'featured' },
+      { file: 'M3.jpg', kind: 'sought', words: 'Machu Picchu', among: 'featured' },
+      { file: 'M4.jpg', kind: 'sought', words: 'Machu Picchu', among: 'featured' },
+      { file: 'M5.jpg', kind: 'sought', words: 'Machu Picchu', among: 'featured' },
+      { file: 'N1.jpg', kind: 'sought', words: 'Nazca lines', among: 'featured' },
+      { file: 'N2.jpg', kind: 'sought', words: 'Nazca lines', among: 'quality' },
+      { file: 'N3.jpg', kind: 'sought', words: 'Nazca lines', among: 'quality' },
+      { file: 'Q1.jpg', kind: 'sought', words: 'Nazca lines', among: 'any' },
+    ]);
+    // Each is brought small, as the others are, and with whose it is.
+    expect(r.data().files['M1.jpg']).toMatchObject({ sha1: sha1('m1'), licence: 'CC BY-SA 4.0', artist: 'Ana', picture: small('m1') });
+    expect(r.read(small('n3'))).toBe('a picture of N3.jpg');
+    const searches = asked.filter((q) => q.startsWith('api ') && q.includes('generator=search')).map((q) => new URLSearchParams(q.slice(4)).get('gsrsearch'));
+    expect(searches).toEqual([FEATURED('Machu Picchu'), FEATURED('Nazca lines'), QUALITY('Nazca lines'), ANY('Nazca lines'), FEATURED('Nothing such'), QUALITY('Nothing such'), ANY('Nothing such')]);
+    expect(r.source().note).toContain('3 cosas buscadas en Commons por su nombre');
+    // A country that is only named has what Wikidata shows of it, which here is nothing.
+    expect((r.data().items.AD as unknown as { sights: unknown[] }).sights).toEqual([]);
+  });
+
+  it('is left unread where no country is named', async () => {
+    SIGHTS();
+    expect((await run('heads', lands())).source().ok).toBe(false);
+    expect((await run('heads', lands(), { OUTSIDE_HEADS_ASKED: list('# nobody yet\nXX\n') })).source().ok).toBe(false);
+    expect(asked).toEqual([]);
   });
 });
 

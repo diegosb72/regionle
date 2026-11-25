@@ -7,7 +7,7 @@
 //   npm run data:profiles                  the sheets and their pictures
 //   npm run data:profiles -- --review      the same, and what whoever corrects the sources should look at
 //
-// (`--sheets`, `--brought`, `--said`, `--texts`, `--fixes`, `--data` and `--photos` name other folders and
+// (`--sheets`, `--brought`, `--said`, `--texts`, `--fixes`, `--heads`, `--data` and `--photos` name other folders and
 // files to read from and write to: the tests run it on countries made up for the occasion.)
 //
 // A sheet is made of three things, each laid over the one before:
@@ -71,6 +71,8 @@ const BROUGHT = path.resolve(ROOT, value('brought') ?? '.cache/src/photos');
 /** What Wikidata and Wikipedia say of each country, as it was brought, and what was corrected of it by hand. */
 const SAID = path.resolve(ROOT, value('said') ?? '.cache/src/countries-said.json');
 const FIXES = path.resolve(ROOT, value('fixes') ?? 'scripts/data/profiles-fixes.json');
+/** The photograph chosen for the head of the sheet of each country nobody has written of, with what is seen in it. */
+const HEADS = path.resolve(ROOT, value('heads') ?? 'scripts/data/profiles-heads.json');
 /** How Wikipedia begins to tell of each country and of its flag, as it was brought. */
 const TEXTS = path.resolve(ROOT, value('texts') ?? '.cache/src/countries-texts.json');
 /** The data of the game: read, and where the sheets are written (under `profiles`). */
@@ -82,9 +84,11 @@ const PICTURES = path.resolve(ROOT, value('photos') ?? 'public/photos');
 /**
  * How wide each photograph is kept, in px, by where the sheet shows it: the one at its head, which is as
  * wide as the sheet and is drawn with two dots to one on many screens; the ones of its gallery, two abreast;
- * and the one of a time, beside a paragraph. The browser takes the narrowest that fills its box.
+ * and the one of a time, beside a paragraph. The browser takes the narrowest that fills its box. The one
+ * chosen for the head of a sheet nobody has written (`chosen`) is not kept at its widest: there are some
+ * two hundred and fifty of them, and each width of each is carried by the repository twice.
  */
-export const WIDTHS = { head: [640, 1280, 1920], photo: [640, 1280], time: [640] };
+export const WIDTHS = { head: [640, 1280, 1920], photo: [640, 1280], time: [640], chosen: [640, 1280] };
 /**
  * How long what a sheet shows of the opening of a page of Wikipedia may be, in characters: of that of the
  * country, which is read first, and of that of its flag, which is read beside the flag.
@@ -92,6 +96,9 @@ export const WIDTHS = { head: [640, 1280, 1920], photo: [640, 1280], time: [640]
 export const LEAD_MAX = { about: 640, flag: 480 };
 /** How much of what is seen is kept when a picture is made lighter: past this, a sky starts to show bands. */
 const QUALITY = 78;
+/** The least that is kept of a picture that comes out too heavy; and how heavy a picture may be, in bytes, by its width. */
+const QUALITY_LEAST = 54;
+export const HEAVY = (width) => (width > 1280 ? 420_000 : 300_000);
 /** The terms a photograph may be given on to be shown here: none that forbids reusing it or changing its size. */
 const FREE = /^(CC0|CC BY(-SA)? \d|Public domain)/;
 const LANGS = ['es', 'en'];
@@ -140,7 +147,13 @@ async function photograph(id, one, commons, widths, made) {
   for (const w of sizes) {
     const dest = `${name}-${w}.webp`;
     if (!made.has(dest)) {
-      await sharp(from).resize({ width: w }).webp({ quality: QUALITY, effort: 6 }).toFile(path.join(PICTURES, dest));
+      // A picture is named after what it is made from and how wide it is: one that is there is that one, and is not made again.
+      if (!fs.existsSync(path.join(PICTURES, dest))) {
+        // One that comes out heavier than a page should carry (leaves, water, a city seen from the air) is made again keeping a little less of what is seen.
+        let picture;
+        for (let quality = QUALITY; !picture || (picture.length > HEAVY(w) && quality >= QUALITY_LEAST); quality -= 6) picture = await sharp(from).resize({ width: w }).webp({ quality, effort: 6 }).toBuffer();
+        fs.writeFileSync(path.join(PICTURES, dest), picture);
+      }
       made.add(dest);
     }
   }
@@ -326,6 +339,7 @@ async function main() {
   if (!fs.existsSync(TEXTS)) throw new Error(`How Wikipedia begins to tell of the countries is not in ${path.relative(ROOT, TEXTS) || TEXTS}: run «npm run data:fetch -- countries-texts»`);
   const pages = read(TEXTS).pages ?? {};
   const { _: _why, ...fixes } = fs.existsSync(FIXES) ? read(FIXES) : {};
+  const { _: _what, ...heads } = fs.existsSync(HEADS) ? read(HEADS) : {};
   const about = path.join(BROUGHT, 'photos.json');
   const commons = fs.existsSync(about) ? read(about) : null;
   const review = args.includes('--review');
@@ -336,13 +350,14 @@ async function main() {
   for (const id of Object.keys(fixes)) if (!lands.some((c) => c.id === id)) throw new Error(`${path.basename(FIXES)} corrects «${id}», which is no country of the game with a flag`);
   const written = fs.existsSync(SHEETS) ? fs.readdirSync(SHEETS).filter((f) => f.endsWith('.json')).map((f) => path.basename(f, '.json')) : [];
   for (const id of written) if (!lands.some((c) => c.id === id)) fail(id, 'the game has no such country with a flag');
+  for (const id of Object.keys(heads)) if (!lands.some((c) => c.id === id)) throw new Error(`${path.basename(HEADS)} chooses a photograph for «${id}», which is no country of the game with a flag`);
 
   const codes = tongueCodes(facts);
   const made = new Set();
   /** What each sheet says, by its country; and the sheets as they are written, by the name of the file of each. */
   const sheets = new Map();
   const out = new Map();
-  const count = { official: 0, motto: 0, anthem: 0, adopted: 0, ratio: 0, lead: 0, flagLead: 0 };
+  const count = { official: 0, motto: 0, anthem: 0, adopted: 0, ratio: 0, lead: 0, flagLead: 0, head: 0 };
   /** What somebody who read the openings said of them, by country. */
   const cuts = new Map();
   let bytes = 0;
@@ -363,6 +378,10 @@ async function main() {
       const pictures = [...mine.photos, ...mine.times.flatMap((time) => (time.picture ? [time.picture] : []))];
       const weight = pictures.flatMap((p) => p.sizes.map((w) => fs.statSync(path.join(PICTURES, `${p.file}-${w}.webp`)).size)).reduce((a, b) => a + b, 0);
       console.log(`  ${id}: escrita a mano; ${mine.times.length} tiempos; ${pictures.length} fotografías en ${pictures.reduce((n, p) => n + p.sizes.length, 0)} imágenes, ${kB(weight)}`);
+    } else if (heads[id]) {
+      // Nobody has written of it: at its head, the photograph that was chosen for it.
+      one = { ...one, photos: [await photograph(id, heads[id], commons, WIDTHS.chosen, made)] };
+      count.head++;
     }
     sheets.set(id, one);
   }
@@ -407,7 +426,7 @@ async function main() {
   for (const name of fs.readdirSync(PICTURES)) if (!made.has(name)) fs.rmSync(path.join(PICTURES, name));
   console.log(
     `${out.size} fichas en ${path.relative(ROOT, OUT) || OUT} (${kB(bytes)}): ${written.length} escritas a mano; nombre oficial en ${count.official}, lema en ${count.motto}, himno en ${count.anthem}, ` +
-      `fecha de la bandera en ${count.adopted}, proporción en ${count.ratio}; texto de Wikipedia del país en ${count.lead} y de la bandera en ${count.flagLead}; ${Object.keys(fixes).length} países con correcciones a mano. ${made.size} imágenes en ${path.relative(ROOT, PICTURES) || PICTURES}`,
+      `fecha de la bandera en ${count.adopted}, proporción en ${count.ratio}; texto de Wikipedia del país en ${count.lead} y de la bandera en ${count.flagLead}; fotografía de cabecera elegida en ${count.head}; ${Object.keys(fixes).length} países con correcciones a mano. ${made.size} imágenes en ${path.relative(ROOT, PICTURES) || PICTURES}`,
   );
 }
 
