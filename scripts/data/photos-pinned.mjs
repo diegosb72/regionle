@@ -13,10 +13,10 @@
 // pictures the game shows).
 
 /** The commit of the branch `datos` that the photographs are taken from. */
-export const PHOTOS_AT = { repo: 'diegosb72/regionle', commit: '2e28ba624580df62a60a3d137a33852b5353adde', dir: '' };
+export const PHOTOS_AT = { repo: 'diegosb72/regionle', commit: 'ac8c7de5872541fa23c0d28e9f3cf63cfe231d53', dir: '' };
 
 /** What Commons says of every photograph that was asked for. */
-export const PHOTOS_SAID = ['photos/photos.json', 'b161c943ad9ada10c9d2f69e9ceccdd16057968a'];
+export const PHOTOS_SAID = ['photos/photos.json', '29a5d49966516eb0752940b5b698b54b811e008d'];
 
 /** The pictures, each under the SHA-1 of its original: [where it is in the branch, the Git name of what it holds]. */
 export const PHOTOS = [
@@ -40,7 +40,7 @@ export const PHOTOS = [
   ['photos/files/c578a856908af77b287cb053aed617ca82ce6fa1.1920.jpg', '3e2c1495d32fd09e72674b202e70298517fdbf13'], // CL · Torres del Paine, Laguna Azul 09.jpg
   ['photos/files/2349f782792284013cdaf70bc6b065bf7fc11f92.1920.jpg', '365c7c940e85c402756252370936202ab5df6a65'], // CN · Badaling China Great-Wall-of-China-01.jpg
   ['photos/files/8d63f453b6392bd3d1f71716165ff59bab6d1de3.1920.jpg', '99ba4f2f94636d7cb805127c77b1cca44f2cdf72'], // CO · Valle de Cocora, Colombia 02.jpg
-  ['photos/files/61090d200d471cf6778e5612390c877b94c8c1f0.1920.jpg', '8facc42cdaf3178feae4582aeef6d26d1f678ad8'], // CR · Manuel Antonio CRI 07 2016 7495.jpg
+  ['photos/files/a7779333e4e921ebbe699e26061a2cf75173e94f.1920.jpg', '321fa3882ea5408ed5bb504a1bd65e60570f7724'], // CR · Arenal Volcano 02.jpg
   ['photos/files/dc76f039848179173b70d21a79f5ab63e766096e.1920.jpg', 'ac73cc75c26cd28ec345e975c78e9ca202f885d4'], // CU · Viñales Valley.jpg
   ['photos/files/5c8b94222c6c2508c38a5f2524140019da47c690.1920.jpg', 'ba7aa334c968df8c02b37e593fa5b69f8980f2a0'], // DE · Brandenburger Tor nachts 2012-07.jpg
   ['photos/files/5035feb746ad529794ae3d2dd566b1bb60edef59.1920.jpg', '17aa199779ed51db721f74e914cc7c510b388a6a'], // DO · Isla Saona III.jpg

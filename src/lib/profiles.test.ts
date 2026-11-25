@@ -22,7 +22,7 @@ import { locator } from './profileMap';
 import { bordersText, flownCards, hasProfile, isDay, neighboursOf, photoSet, photoSrc, profileIn, profileRest, rankOf, regionsText, timeCards, townsText, yearOfDay, type ProfileFile, type ProfilePhoto, type ProfileTime } from './profiles';
 import type { Country, Geo, Index } from './types';
 
-const WIDTHS = WIDTHS_SAID as { head: number[]; photo: number[]; time: number[] };
+const WIDTHS = WIDTHS_SAID as { head: number[]; photo: number[]; time: number[]; chosen: number[] };
 const LEAD_MAX = LEAD_MAX_SAID as { about: number; flag: number };
 const PHOTOS = PINNED as [file: string, blob: string][];
 const PHOTOS_SAID = PINNED_SAID as [file: string, blob: string];
@@ -327,9 +327,72 @@ describe('the sheet of every country', () => {
       expect(sheet.id).toBe(LANDS[i]);
       for (const key of Object.keys(sheet)) expect(known, `${sheet.id}.${key}`).toContain(key);
       for (const key of Object.keys(sheet.flag ?? {})) expect(ofFlag, `${sheet.id}.flag.${key}`).toContain(key);
-      // Only what somebody wrote by hand has texts, times and photographs.
-      if (!WRITTEN.includes(sheet.id)) for (const key of ['about', 'times', 'photos'] as const) expect(sheet[key], `${sheet.id}.${key}`).toBeUndefined();
+      // Only what somebody wrote by hand has texts and times; and of photographs, the others have at most the one chosen for their head.
+      if (!WRITTEN.includes(sheet.id)) {
+        for (const key of ['about', 'times'] as const) expect(sheet[key], `${sheet.id}.${key}`).toBeUndefined();
+        expect(sheet.photos?.length ?? 0, `${sheet.id}.photos`).toBeLessThanOrEqual(1);
+      }
     }
+  });
+
+  it('has at its head the photograph that was chosen for it, as it was chosen, light enough and with whose it is', () => {
+    const { _: note, ...chosen } = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/data/profiles-heads.json'), 'utf8')) as Record<string, { file: string; es: string; en: string; by?: string; focus?: [number, number] }> & { _: string };
+    expect(typeof note).toBe('string');
+    const ids = Object.keys(chosen);
+    // The file is written by hand, one country to a line and in order; and every country it names is one of the game.
+    expect(ids).toEqual([...ids].sort());
+    for (const id of ids) expect(LANDS, id).toContain(id);
+    // The first lot: the countries where Spanish is spoken, and the most populous of the rest.
+    expect(ids.length).toBeGreaterThanOrEqual(50);
+    for (const id of ['ES', 'MX', 'AR', 'CO', 'PE', 'CL', 'US', 'CN', 'IN', 'JP', 'DE', 'FR', 'GB', 'IT']) expect(ids, id).toContain(id);
+    const seen = new Set<string>();
+    for (const sheet of sheets) {
+      if (WRITTEN.includes(sheet.id)) continue;
+      const head = chosen[sheet.id];
+      if (!head) {
+        expect(sheet.photos, sheet.id).toBeUndefined();
+        continue;
+      }
+      expect(sheet.photos, sheet.id).toHaveLength(1);
+      const photo = sheet.photos![0];
+      expect(photo.title, sheet.id).toBe(head.file);
+      expect([photo.es, photo.en], sheet.id).toEqual([head.es, head.en]);
+      for (const text of [photo.es, photo.en]) {
+        expect(text.length, `${sheet.id}: ${text}`).toBeGreaterThan(3);
+        expect(text.length, `${sheet.id}: ${text}`).toBeLessThanOrEqual(100);
+        // What is seen, said as a name is: no full stop.
+        expect(text, sheet.id).toMatch(/^\p{Lu}.*[^.]$/u);
+      }
+      expect(photo.focus, sheet.id).toEqual(head.focus);
+      // Each country its own: no photograph is at the head of two sheets.
+      expect(seen.has(photo.file), `${sheet.id}: ${photo.title}`).toBe(false);
+      seen.add(photo.file);
+      expect(photo.file, photo.title).toMatch(/^[0-9a-f]{10}$/);
+      expect(photo.title).toMatch(/\.jpe?g$/i);
+      // Twice as wide as tall is how it is shown on a wide screen: one much taller or much wider than that loses most of itself.
+      expect(photo.w / photo.h, photo.title).toBeGreaterThanOrEqual(1.25);
+      expect(photo.w / photo.h, photo.title).toBeLessThanOrEqual(2.4);
+      expect(photo.sizes, photo.title).toEqual(WIDTHS.chosen.filter((w) => w <= photo.w));
+      expect(photo.sizes.at(-1), photo.title).toBe(1280);
+      for (const w of photo.sizes) {
+        const file = path.join(ROOT, PICTURES, `${photo.file}-${w}.webp`);
+        expect(fs.existsSync(file), file).toBe(true);
+        const bytes = fs.statSync(file).size;
+        expect(bytes, `${photo.title} ${w}`).toBeGreaterThan(2_000);
+        expect(bytes, `${photo.title} ${w}`).toBeLessThan(300_000);
+        expect(fs.readFileSync(file).subarray(8, 12).toString('latin1')).toBe('WEBP');
+      }
+      // Free to show and to make smaller, and said as its licence asks.
+      expect(photo.licence, photo.title).toMatch(/^(CC0|CC BY(-SA)? \d\.\d|Public domain)/);
+      if (photo.licence.startsWith('CC')) expect(photo.licenceUrl, photo.title).toMatch(/^https:\/\/creativecommons\.org\//);
+      if (/^CC BY/.test(photo.licence)) expect(photo.by?.trim(), photo.title).toBeTruthy();
+      // A name, not all that the page of the file tells of how it was made.
+      if (photo.by) {
+        expect(photo.by.length, photo.by).toBeLessThanOrEqual(60);
+        expect(photo.by, photo.title).not.toMatch(/\(\s|\s\)|\s,|\.jpe?g|talk|more photos/i);
+      }
+    }
+    expect(seen.size).toBe(ids.filter((id) => !WRITTEN.includes(id)).length);
   });
 
   it('names the country in full, and says its motto and its anthem, in words that read clean', () => {

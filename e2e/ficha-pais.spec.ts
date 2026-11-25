@@ -5,9 +5,9 @@ import { open, seed } from './helpers';
 /**
  * The sheet of a country, which the gallery of flags opens when the flag of a country is touched
  * (screens/FlagProfile.tsx). Every country with a flag has one: with what the game knows of it and what
- * Wikidata and Wikipedia say of it and of its flag, and with how Wikipedia begins to tell of both; and, where
- * somebody has written of it (for now, of Brazil alone), with its texts, its times and its photographs
- * instead. One sheet leads to another.
+ * Wikidata and Wikipedia say of it and of its flag, with how Wikipedia begins to tell of both and, where
+ * one has been chosen for it, with a photograph at its head; and, where somebody has written of it (for now,
+ * of Brazil alone), with its texts, its times and its photographs instead. One sheet leads to another.
  */
 
 interface Photo {
@@ -36,10 +36,13 @@ const FLAGS = JSON.parse(fs.readFileSync('public/data/flags.json', 'utf8')) as {
 };
 /** What a sheet nobody has written of tells in words: how Wikipedia begins to tell of the country and of its flag, by language. */
 type Lead = { es?: string[]; en?: string[] };
-const sheetFile = (id: string) => JSON.parse(fs.readFileSync(`public/data/profiles/${id}.json`, 'utf8')) as { lead?: Lead; flag?: { lead?: Lead }; read?: { es?: string; en?: string }; readFlag?: { es?: string; en?: string } };
+const sheetFile = (id: string) =>
+  JSON.parse(fs.readFileSync(`public/data/profiles/${id}.json`, 'utf8')) as { lead?: Lead; flag?: { lead?: Lead }; read?: { es?: string; en?: string }; readFlag?: { es?: string; en?: string }; photos?: (Photo & { focus?: [number, number] })[] };
 /** The countries as the game has them: what each is called, and how its finest divisions are. */
 const COUNTRIES = (JSON.parse(fs.readFileSync('public/data/index.json', 'utf8')) as { countries: { id: string; n: { es: string; en?: string }; fl?: string; lv: { k: string; n: number }[] }[] }).countries;
 const commons = (title: string): string => `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(title.replace(/ /g, '_'))}`;
+/** A country for whose sheet no photograph has been chosen yet: the first there is, as long as there is one. */
+const BARE = COUNTRIES.find((c) => c.fl && c.id !== 'AQ' && fs.existsSync(`public/data/profiles/${c.id}.json`) && !sheetFile(c.id).photos)!;
 
 /** Whether an image has arrived and is a picture. */
 const drawn = (img: Locator): Promise<boolean> => img.evaluate((el) => (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth > 0);
@@ -504,7 +507,7 @@ test.describe('the sheet of a country nobody has written of yet', () => {
   const fact = (sheet: Locator, name: string): Locator => sheet.locator('.fp-facts > div').filter({ has: sheet.page().locator('dt', { hasText: new RegExp(`^${name}$`) }) }).locator('dd');
   const title = (sheet: Locator): Locator => sheet.getByRole('heading', { level: 2 });
 
-  test('opens from its flag, with what Wikidata and Wikipedia say of it and a band of its flag where a photograph will be', async ({ page }) => {
+  test('opens from its flag, with what Wikidata and Wikipedia say of it and the photograph chosen for it, or a band of its flag where one will be', async ({ page }) => {
     await seed(page);
     await open(page, '/banderas/paises');
     await page.locator('.fg-tile').filter({ hasText: /^España$/ }).click();
@@ -519,16 +522,28 @@ test.describe('the sheet of a country nobody has written of yet', () => {
     await expect(sheet.locator('.fp-local')).toHaveCount(0);
     await expect(sheet.locator('.fp-flag')).toHaveAttribute('alt', 'Bandera de España');
 
-    // No photograph yet: where it will be, the colours of its flag, and the flag standing over their foot.
-    await expect(sheet.locator('.fp-hero')).toHaveCount(0);
-    const band = sheet.locator('.fp-band');
-    await expect(band).toHaveAttribute('aria-hidden', 'true');
-    await expect(band.locator('img')).toHaveAttribute('src', /flags\/es\.svg#svgView\(preserveAspectRatio\(none\)\)$/);
-    await expect.poll(() => drawn(band.locator('img'))).toBe(true);
-    const [strip, flag, box] = [(await band.boundingBox())!, (await sheet.locator('.fp-flag').boundingBox())!, (await sheet.locator('.dlg-box').boundingBox())!];
-    expect(Math.round(strip.width)).toBe(Math.round(box.width));
-    expect(flag.y).toBeLessThan(strip.y + strip.height);
-    expect(flag.y + flag.height).toBeGreaterThan(strip.y + strip.height);
+    // At its head, the photograph that was chosen for it: as wide as the sheet, twice as wide as tall, with what is seen in it and whose it is.
+    const head = sheetFile('ES').photos![0];
+    expect(sheetFile('ES').photos).toHaveLength(1);
+    await expect(sheet.locator('.fp-band')).toHaveCount(0);
+    const hero = sheet.locator('.fp-hero img');
+    expect(head.sizes).toEqual([640, 1280]);
+    await expect.poll(() => drawn(hero)).toBe(true);
+    // Asked for at once, from the site itself, at one of the widths it is kept at.
+    expect(await hero.getAttribute('loading')).toBeNull();
+    expect(await hero.evaluate((el) => (el as HTMLImageElement).currentSrc)).toMatch(new RegExp(`/photos/${head.file}-(640|1280)\\.webp$`));
+    const [picture, flag, box] = [(await hero.boundingBox())!, (await sheet.locator('.fp-flag').boundingBox())!, (await sheet.locator('.dlg-box').boundingBox())!];
+    expect(Math.round(picture.width)).toBe(Math.round(box.width));
+    expect(picture.width / picture.height).toBeGreaterThan(1.9);
+    expect(flag.y).toBeLessThan(picture.y + picture.height);
+    expect(flag.y + flag.height).toBeGreaterThan(picture.y + picture.height);
+    const caption = sheet.locator('.fp-hero figcaption');
+    await expect(caption).toContainText('La Alhambra de Granada');
+    await expect(caption).toContainText(head.es);
+    await expect(caption.locator('.fp-credit')).toContainText(`${head.by} · ${head.licence} · Wikimedia Commons`);
+    await expect(caption.locator('.fp-credit a').first()).toHaveAttribute('href', head.licenceUrl!);
+    await expect(caption.locator('.fp-credit a').first()).toHaveAttribute('rel', /license/);
+    await expect(caption.locator('.fp-credit a').last()).toHaveAttribute('href', commons(head.title));
 
     // Nothing is said that nobody wrote: no parts of the flag, no times, no photographs, and no text but Wikipedia's.
     await expect(sheet.getByRole('heading', { level: 3 })).toHaveText(['De un vistazo', 'La bandera', 'Sus banderas en el tiempo', 'Las banderas de España']);
@@ -552,12 +567,13 @@ test.describe('the sheet of a country nobody has written of yet', () => {
     await expect(more).toHaveAttribute('href', 'https://es.wikipedia.org/wiki/Bandera_de_Espa%C3%B1a');
     await expect(more).toHaveAttribute('target', '_blank');
 
-    // Under it all, whose each thing is: nothing of photographs that are not there, nor of a text written for the game.
+    // Under it all, whose each thing is: its one photograph, and nothing of a text written for the game.
     const foot = sheet.locator('.fp-foot');
     await expect(foot).toContainText('The World Factbook');
     await expect(foot).toContainText('El nombre oficial, el lema, el himno y los datos de la bandera son los que dan Wikidata y Wikipedia.');
     await expect(foot).toContainText('El dibujo de la bandera es de la colección flag-icons.');
     await expect(foot).toContainText('El texto es el comienzo de los artículos de Wikipedia, abreviado, con licencia CC BY-SA 4.0.');
+    await expect(foot).toContainText('La fotografía es de Wikimedia Commons, reducida de tamaño; bajo ella van su autor y su licencia.');
     await expect(foot).not.toContainText(/fotografías|escrito para el juego/);
     await expect(foot.getByRole('link', { name: 'Leer más sobre España en Wikipedia' })).toHaveAttribute('href', 'https://es.wikipedia.org/wiki/Espa%C3%B1a');
     const report = (await foot.getByRole('link', { name: 'Avisar de un error en esta ficha' }).getAttribute('href'))!;
@@ -941,27 +957,55 @@ test.describe('the sheet of a country nobody has written of yet', () => {
     await expect(sheet.locator('.fp-glance .fp-owner a')).toHaveText('Noruega');
     await expect(sheet.locator('.fp-flag-facts .fp-owner a')).toHaveText('Noruega');
     await expect(sheet.locator('.fp-nb')).toHaveCount(0);
+    // One for which no photograph has been chosen yet: where it will be, the colours of its flag, and the flag standing over their foot.
+    await open(page, `/banderas/paises/${BARE.id}`);
+    await expect(title(sheet)).toHaveText(BARE.n.es);
+    await expect(sheet.locator('.fp-hero')).toHaveCount(0);
+    const band = sheet.locator('.fp-band');
+    await expect(band).toHaveAttribute('aria-hidden', 'true');
+    await expect(band.locator('img')).toHaveAttribute('src', new RegExp(`flags/${BARE.fl}\\.svg#svgView\\(preserveAspectRatio\\(none\\)\\)$`));
+    await expect.poll(() => drawn(band.locator('img'))).toBe(true);
+    const [strip, over, wide] = [(await band.boundingBox())!, (await sheet.locator('.fp-flag').boundingBox())!, (await sheet.locator('.dlg-box').boundingBox())!];
+    expect(Math.round(strip.width)).toBe(Math.round(wide.width));
+    expect(over.y).toBeLessThan(strip.y + strip.height);
+    expect(over.y + over.height).toBeGreaterThan(strip.y + strip.height);
+    await expect(sheet.locator('.fp-foot')).not.toContainText(/fotografía/);
+
     // And one with no flag that is official says so.
     await open(page, '/banderas/paises/AQ');
     await expect(sheet.locator('.fp-flag-facts dt')).toHaveText(['Colores', 'Diseño de']);
     await expect(sheet.locator('.fp-flag-facts dd').last()).toContainText('la Antártida no tiene bandera oficial');
   });
 
-  test('fills a phone with nothing wider than the screen, the band of its flag from side to side @movil', async ({ page }) => {
+  test('fills a phone with nothing wider than the screen, its photograph or the band of its flag from side to side @movil', async ({ page }) => {
     await seed(page);
-    await open(page, '/banderas/paises');
-    await page.locator('.fg-tile').filter({ hasText: /^España$/ }).click();
-    const sheet = sheetOf(page);
-    await expect(sheet.locator('article.fp')).toBeVisible();
+    // One with no photograph yet: the band is as wide as the screen, and the flag stands over its foot.
+    const sheet = await openSheet(page, `/banderas/paises/${BARE.id}`);
     const screen = page.viewportSize()!;
-    const box = (await sheet.boundingBox())!;
-    expect([Math.round(box.x), Math.round(box.width)]).toEqual([0, screen.width]);
-    // The band is as wide as the screen, and the flag stands over its foot.
     const band = (await sheet.locator('.fp-band').boundingBox())!;
     expect([Math.round(band.x), Math.round(band.width)]).toEqual([0, screen.width]);
+    const over = (await sheet.locator('.fp-flag').boundingBox())!;
+    expect(over.y).toBeLessThan(band.y + band.height);
+    expect(over.y + over.height).toBeGreaterThan(band.y + band.height);
+    await sheet.getByRole('button', { name: 'Cerrar' }).click();
+    await expect(sheet).toHaveCount(0);
+
+    await open(page, '/banderas/paises');
+    await page.locator('.fg-tile').filter({ hasText: /^España$/ }).click();
+    await expect(sheet.locator('article.fp')).toBeVisible();
+    const box = (await sheet.boundingBox())!;
+    expect([Math.round(box.x), Math.round(box.width)]).toEqual([0, screen.width]);
+    // Its photograph is as wide as the screen and taller than on a wide one, and the flag stands over its foot.
+    const hero = sheet.locator('.fp-hero img');
+    await expect.poll(() => drawn(hero)).toBe(true);
+    const picture = (await hero.boundingBox())!;
+    expect([Math.round(picture.x), Math.round(picture.width)]).toEqual([0, screen.width]);
+    expect(Math.round((picture.width / picture.height) * 10)).toBe(15);
+    // On a screen this narrow, the lightest picture is the one that is asked for... or the next: never more than fills it.
+    expect(await hero.evaluate((img: HTMLImageElement) => img.currentSrc)).toMatch(/-(640|1280)\.webp$/);
     const flag = (await sheet.locator('.fp-flag').boundingBox())!;
-    expect(flag.y).toBeLessThan(band.y + band.height);
-    expect(flag.y + flag.height).toBeGreaterThan(band.y + band.height);
+    expect(flag.y).toBeLessThan(picture.y + picture.height);
+    expect(flag.y + flag.height).toBeGreaterThan(picture.y + picture.height);
     // Nothing of the sheet is wider than it.
     const scroller = sheet.locator('.dlg-box');
     expect(await scroller.evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(0);
