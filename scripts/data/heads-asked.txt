@@ -469,28 +469,40 @@
 
 # Part D: second look at the two countries without a candidate in B (Commons was too busy), and at
 # the less convincing pictures of other places. Still only candidates, not a choice for the game.
-BB: Bathsheba Barbados coast
-BB: Bridgetown Barbados Careenage
-EH: Dakhla Western Sahara lagoon
-EH: Laayoune Western Sahara panorama
-BS: Nassau Bahamas harbour
-BS: Exuma Cays Bahamas aerial
-BT: Paro Taktsang Bhutan
-BT: Punakha Dzong Bhutan
-FJ: Yasawa Fiji lagoon
-FJ: Mamanuca Fiji beach
-CV: Fogo volcano Cape Verde
-CV: Pico do Fogo Cape Verde
+# BB: Bathsheba Barbados coast
+# BB: Bridgetown Barbados Careenage
+# EH: Dakhla Western Sahara lagoon
+# EH: Laayoune Western Sahara panorama
+# BS: Nassau Bahamas harbour
+# BS: Exuma Cays Bahamas aerial
+# BT: Paro Taktsang Bhutan
+# BT: Punakha Dzong Bhutan
+# FJ: Yasawa Fiji lagoon
+# FJ: Mamanuca Fiji beach
+# CV: Fogo volcano Cape Verde
+# CV: Pico do Fogo Cape Verde
+# SZ: Sibebe Rock Swaziland
+# SZ: Mantenga Falls Swaziland
+# MN: Khongoryn Els Mongolia dunes
+# MN: Gobi sand dunes Mongolia
+# VC: Tobago Cays Saint Vincent
+# VC: Grenadines Tobago Cays
+# KM: Mount Karthala Comoros
+# KM: Grande Comore coastline
+# GW: Orango Bijagos beach
+# GW: Bijagos Guinea Bissau coast
+# GM: Kunta Kinteh Island Gambia
+# GM: James Island River Gambia
+# GA: Kongou Falls Gabon
+
+# Part E: distinct search terms for the Atlantic coast of Western Sahara; repeat the last six
+# searches Commons did not answer in part D. The previous choices remain candidates, not selections.
+EH: Atlantic Ocean in Western Sahara
+EH: Boujdour Western Sahara coastline
+EH: Laayoune Western Sahara dunes
 SZ: Sibebe Rock Swaziland
-SZ: Mantenga Falls Swaziland
-MN: Khongoryn Els Mongolia dunes
-MN: Gobi sand dunes Mongolia
+SZ: Mantenga Falls Eswatini
+MN: Khongoryn Els sand dunes
+MN: Gobi Mongolia dunes
 VC: Tobago Cays Saint Vincent
-VC: Grenadines Tobago Cays
-KM: Mount Karthala Comoros
-KM: Grande Comore coastline
-GW: Orango Bijagos beach
-GW: Bijagos Guinea Bissau coast
-GM: Kunta Kinteh Island Gambia
-GM: James Island River Gambia
-GA: Kongou Falls Gabon
+VC: Tobago Cays Grenadines aerial
