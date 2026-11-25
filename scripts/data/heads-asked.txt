@@ -3,18 +3,71 @@
 # each of them is known by and brings a small picture of each candidate, to choose among them by eye. The one
 # that stays is written in scripts/data/profiles-heads.json, and the source `photos` brings it.
 #
-# After the id and a colon, a line may say words to look for in Commons too, among the photographs its
-# people have judged best: what a country is best known by is not always what Wikidata shows it with.
+# After the id and a colon, a line may say words to look for in Commons too: among the photographs its
+# people have judged best, and among all of them where those are few. What a country is best known by is not
+# always what Wikidata shows it with.
 #
-# The first lot was the countries where Spanish is spoken and the thirty with most people of the rest
-# (AR BD BO CD CL CN CO CR CU DE DO DZ EC EG ES ET FR GB GQ GT HN ID IN IQ IR IT JP KE KR MM MX NG NI PA PE
-# PH PK PY RU SD SV TH TR TZ UG US UY VE VN ZA). What some of them are best known by was not among what
-# Wikidata showed, and was looked for by its name (Iguazu Falls, Salar de Uyuni, Great Wall of China, Giza
-# pyramids, Alhambra, Mont Saint-Michel, Colosseum, Machu Picchu, Hagia Sophia…). These are the ones that
-# were looked at again with other words, among all the photographs of Commons and not only the best.
+# The first lot: the countries where Spanish is spoken and the thirty with most people of the rest. The
+# words are the ones that were looked for after seeing what Wikidata showed; not all of them found what
+# was chosen in the end.
+AR: Iguazu Falls
+AR: Perito Moreno Glacier
+BD
+BO: Salar de Uyuni
+CD
+CL
+CN: Great Wall of China
+CO: Cartagena Colombia walled city
+CO: Cocora Valley
+CR
+CU
+DE: Neuschwanstein
+DE: Brandenburg Gate
+DO
+DZ
+EC
+EG: Giza pyramids
+ES: Alhambra
+ES: Plaza de España Seville
+ET
+FR: Mont Saint-Michel
+FR: Eiffel Tower
+GB
+GQ
+GT
 HN: Copán Maya ruins
 HN: Roatán beach
+ID
+IN
+IQ
+IR: Persepolis
+IT: Colosseum
+IT: Venice Grand Canal
+JP
+KE: Maasai Mara
+KR
+MM
+MX
+NG
+NI
+PA: Panama Canal
+PE: Machu Picchu
+PH
+PK
+PY
+RU: Saint Basil's Cathedral
+RU: Moscow Kremlin
+SD
 SV: Izalco volcano
 SV: Lago de Coatepeque
-SV: Santa Ana volcano El Salvador
-SV: Suchitoto
+TH: Wat Arun
+TH: Ayutthaya
+TR: Hagia Sophia
+TR: Cappadocia
+TZ
+UG
+US
+UY
+VE
+VN: Ha Long Bay
+ZA
