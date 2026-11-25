@@ -518,60 +518,60 @@
 # Four parts; the user-provided file titles are unverified suggestions, not chosen photographs.
 #
 # Part A
-AI: Anguilla Beach View Anguilla
-AI: Cap Juluca Anguilla beach
-AQ: Paradise Harbour Antarctica
-AQ: Royal Society Range Scott Base Antarctica
-AS: National Park American Samoa
-AS: Pago Pago Tutuila coast
-AW: Aruba landschap
-AW: Arikok National Park Aruba
-AX: Mariehamn Aland Islands harbour
-AX: Aland archipelago islands
-BL: Gustavia Saint Barthelemy
-BL: St Jean Beach Saint Barthelemy
-BM: Horseshoe Bay Bermuda beach
-BM: Hamilton Bermuda harbour
-BQ: Wells Bay Saba
-BQ: Bonaire salt flats
-BV: Bouvet Island west coast
-BV: Bouvet Island glacier
-CC: Direction Island Cocos Keeling
-CC: Cocos Keeling Islands aerial
-CK: Rarotonga Cook Islands
-CK: Aitutaki lagoon Cook Islands
-CW: Boka Tabla Curacao
-CW: Willemstad Curacao waterfront
-CX: Christmas Island red crabs
-CX: Flying Fish Cove Christmas Island
+# AI: Anguilla Beach View Anguilla
+# AI: Cap Juluca Anguilla beach
+# AQ: Paradise Harbour Antarctica
+# AQ: Royal Society Range Scott Base Antarctica
+# AS: National Park American Samoa
+# AS: Pago Pago Tutuila coast
+# AW: Aruba landschap
+# AW: Arikok National Park Aruba
+# AX: Mariehamn Aland Islands harbour
+# AX: Aland archipelago islands
+# BL: Gustavia Saint Barthelemy
+# BL: St Jean Beach Saint Barthelemy
+# BM: Horseshoe Bay Bermuda beach
+# BM: Hamilton Bermuda harbour
+# BQ: Wells Bay Saba
+# BQ: Bonaire salt flats
+# BV: Bouvet Island west coast
+# BV: Bouvet Island glacier
+# CC: Direction Island Cocos Keeling
+# CC: Cocos Keeling Islands aerial
+# CK: Rarotonga Cook Islands
+# CK: Aitutaki lagoon Cook Islands
+# CW: Boka Tabla Curacao
+# CW: Willemstad Curacao waterfront
+# CX: Christmas Island red crabs
+# CX: Flying Fish Cove Christmas Island
 #
 # Part B
-# FK: Stanley Falkland Islands harbour
-# FK: Falkland Islands penguins coast
-# FO: Gasadalur Faroe Islands waterfall
-# FO: Torshavn Faroe Islands harbour
-# GF: French Guiana Amazon river aerial
-# GF: Cayenne French Guiana
-# GG: Guernsey coastal cliffs
-# GG: St Peter Port Guernsey
-# GI: Rock of Gibraltar
-# GI: Gibraltar bay sunset
-# GL: Ilulissat Icefjord Greenland
-# GL: Nuuk Greenland harbour
-# GP: Guadeloupe La Soufriere volcano
-# GP: Petite Terre Guadeloupe
-# GS: South Georgia king penguins Salisbury Plain
-# GS: Grytviken South Georgia
-# GU: Pago Bay Guam
-# GU: Tumon Bay Guam
-# HK: Victoria Harbour Hong Kong skyline
-# HK: Victoria Peak Hong Kong
-# HM: Heard Island Big Ben volcano
-# HM: Heard Island coast
-# IM: Snaefell Isle of Man
-# IM: Douglas Bay Isle of Man
-# IO: Diego Garcia Chagos atoll
-# IO: Peros Banhos Chagos
+FK: Stanley Falkland Islands harbour
+FK: Falkland Islands penguins coast
+FO: Gasadalur Faroe Islands waterfall
+FO: Torshavn Faroe Islands harbour
+GF: French Guiana Amazon river aerial
+GF: Cayenne French Guiana
+GG: Guernsey coastal cliffs
+GG: St Peter Port Guernsey
+GI: Rock of Gibraltar
+GI: Gibraltar bay sunset
+GL: Ilulissat Icefjord Greenland
+GL: Nuuk Greenland harbour
+GP: Guadeloupe La Soufriere volcano
+GP: Petite Terre Guadeloupe
+GS: South Georgia king penguins Salisbury Plain
+GS: Grytviken South Georgia
+GU: Pago Bay Guam
+GU: Tumon Bay Guam
+HK: Victoria Harbour Hong Kong skyline
+HK: Victoria Peak Hong Kong
+HM: Heard Island Big Ben volcano
+HM: Heard Island coast
+IM: Snaefell Isle of Man
+IM: Douglas Bay Isle of Man
+IO: Diego Garcia Chagos atoll
+IO: Peros Banhos Chagos
 #
 # Part C
 # JE: Mont Orgueil Jersey castle
