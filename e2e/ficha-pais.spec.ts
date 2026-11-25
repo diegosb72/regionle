@@ -587,6 +587,9 @@ test.describe('the sheet of a country nobody has written of yet', () => {
     await expect(from.locator('a').last()).toHaveAttribute('href', told.read!.es!);
     await expect(from.locator('a').last()).toHaveAttribute('target', '_blank');
     await expect(from.locator('a').last()).toHaveAttribute('rel', /noopener/);
+    // Heard apart from the text, as in a list of links, each of the two says where it leads and what of.
+    await expect(about.getByRole('link', { name: 'Seguir leyendo sobre España en Wikipedia', exact: true })).toHaveAttribute('href', told.read!.es!);
+    await expect(sheet.locator('.fp-flagsec').getByRole('link', { name: 'Seguir leyendo sobre la bandera de España en Wikipedia', exact: true })).toHaveAttribute('href', told.readFlag!.es!);
 
     // Of the flag, beside it and before what is known of it: the same, from its own page.
     const flagSec = sheet.locator('.fp-flagsec');
@@ -819,6 +822,7 @@ test.describe('the sheet of a country nobody has written of yet', () => {
     const more = sheet.locator('.fp-flagsec .fp-from a').last();
     await expect(more).toHaveText('Seguir leyendo');
     await expect(more).toHaveAttribute('href', 'https://es.wikipedia.org/wiki/Bandera_de_Francia');
+    await expect(more).toHaveAccessibleName('Seguir leyendo sobre la bandera de Francia en Wikipedia');
     // Of the territory, what its own page begins with.
     await expect(sheet.locator('section.fp-about.fp-lead p:not(.fp-from)').first()).toHaveText(/^Reunión /);
     // Of the territory itself, its own page.
@@ -883,6 +887,8 @@ test.describe('the sheet of a country nobody has written of yet', () => {
     await expect(sheet.locator('section.fp-about .fp-from a').last()).toHaveAttribute('href', 'https://en.wikipedia.org/wiki/Spain');
     await expect(sheet.locator('.fp-flagsec .fp-lead p:not(.fp-from)')).toHaveText(sheetFile('ES').flag!.lead!.en!);
     await expect(sheet.locator('.fp-flagsec .fp-from a').last()).toHaveText('Read on');
+    await expect(sheet.locator('.fp-flagsec .fp-from a').last()).toHaveAccessibleName('Read on about the flag of Spain on Wikipedia');
+    await expect(sheet.locator('section.fp-about .fp-from a').last()).toHaveAccessibleName('Read on about Spain on Wikipedia');
     await expect(sheet.locator('.fp-flagsec .fp-from a').last()).toHaveAttribute('href', 'https://en.wikipedia.org/wiki/Flag_of_Spain');
     await expect(sheet.locator('.fp-foot')).toContainText('The text is the opening of the articles of Wikipedia, abridged, under the CC BY-SA 4.0 licence.');
     await expect(sheet.locator('.fp-flown .fp-when').last()).toHaveText('Today');

@@ -54,9 +54,10 @@ function nth(n: number): string {
 
 /**
  * How Wikipedia begins to tell of something, and whose that text is, under it: Wikipedia's, shortened, on
- * the terms it is given on, with the page it comes from to read on.
+ * the terms it is given on, with the page it comes from to read on. `more` is what the link to that page
+ * says, and `of` what it is called for whoever hears it apart from the text: where it leads and what of.
  */
-function Lead({ text, page, more }: { text: string[]; page: string | undefined; more: string }) {
+function Lead({ text, page, more, of }: { text: string[]; page: string | undefined; more: string; of: string }) {
   return (
     <>
       {text.map((paragraph) => (
@@ -70,7 +71,7 @@ function Lead({ text, page, more }: { text: string[]; page: string | undefined; 
         {page && (
           <>
             {' · '}
-            <a href={page} target="_blank" rel="noopener noreferrer">
+            <a href={page} target="_blank" rel="noopener noreferrer" aria-label={of}>
               {more}
               <ExternalLink size={12} aria-hidden="true" />
             </a>
@@ -369,7 +370,12 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
           ) : (
             lead && (
               <section className="fp-about fp-lead">
-                <Lead text={lead} page={profile.read?.[lang]} more={L('Seguir leyendo', 'Read on')} />
+                <Lead
+                  text={lead}
+                  page={profile.read?.[lang]}
+                  more={L('Seguir leyendo', 'Read on')}
+                  of={L(`Seguir leyendo sobre ${name} en Wikipedia`, `Read on about ${name} on Wikipedia`)}
+                />
               </section>
             )
           )}
@@ -400,7 +406,12 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
                 {flag?.text && paragraphs(flag.text).map((text) => <p key={text}>{text}</p>)}
                 {flagLead && (
                   <div className="fp-lead">
-                    <Lead text={flagLead} page={profile.readFlag?.[lang]} more={L('Seguir leyendo', 'Read on')} />
+                    <Lead
+                      text={flagLead}
+                      page={profile.readFlag?.[lang]}
+                      more={L('Seguir leyendo', 'Read on')}
+                      of={L(`Seguir leyendo sobre la bandera de ${flies ? nm(flies.n) : name} en Wikipedia`, `Read on about the flag of ${flies ? nm(flies.n) : name} on Wikipedia`)}
+                    />
                   </div>
                 )}
                 {flagRows.length > 0 && <FactList rows={flagRows} className="fp-flag-facts" />}
