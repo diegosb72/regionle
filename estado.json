@@ -1,6 +1,6 @@
 {
-  "when": "2026-11-25T16:55:14.201Z",
-  "from": "arena/baec5cdd-regionle@431cfd6",
+  "when": "2026-11-25T17:01:28.805Z",
+  "from": "arena/baec5cdd-regionle@62800dd",
   "workflow": "same",
   "sources": [
     {
@@ -12,49 +12,41 @@
       "es": "Candidatas a fotografía de cabecera de las fichas de los países",
       "needs": "113",
       "ok": true,
-      "bytes": 62666,
-      "blob": "413ee750b506be2f0ff0252571b55efbb6ba34a0",
-      "note": "102 candidatas para 13 de 13 países: 102 imágenes traídas (2922 kB); 25 cosas buscadas en Commons por su nombre; 27 que no sirven de cabecera; sin mirar: «Khongoryn Els Mongolia dunes» (Commons: cirrussearch-too-busy-error); «Gobi sand dunes Mongolia» (Commons: cirrussearch-too-busy-error); «Sibebe Rock Swaziland» (Commons: cirrussearch-too-busy-error); «Mantenga Falls Swaziland» (Commons: cirrussearch-too-busy-error); «Tobago Cays Saint Vincent» (Commons: cirrussearch-too-busy-error); «Grenadines Tobago Cays» (Commons: cirrussearch-too-busy-error)",
+      "bytes": 24972,
+      "blob": "9431e904387cdfd9e4eda1fd0bb2136254e4189c",
+      "note": "38 candidatas para 4 de 4 países: 38 imágenes traídas (925 kB); 9 cosas buscadas en Commons por su nombre; 8 que no sirven de cabecera",
       "detail": {
-        "asked": 13,
-        "found": 13,
+        "asked": 4,
+        "found": 4,
         "none": [],
         "files": {
-          "all": 102,
-          "unfit": 27,
-          "brought": 102,
+          "all": 38,
+          "unfit": 8,
+          "brought": 38,
           "left": 0,
-          "bytes": 2922480
+          "bytes": 925013
         },
         "kinds": {
-          "sought": 74,
-          "park": 11,
-          "capital": 10,
-          "heritage": 4,
-          "top": 3
+          "sought": 29,
+          "capital": 3,
+          "park": 3,
+          "heritage": 2,
+          "top": 1
         },
         "licences": {
-          "CC BY-SA 4.0": 41,
-          "CC BY-SA 3.0": 21,
-          "CC BY-SA 2.0": 14,
-          "Public domain": 13,
-          "CC BY 2.0": 4,
+          "CC0": 11,
+          "Public domain": 8,
+          "CC BY-SA 4.0": 7,
           "CC BY 3.0": 4,
-          "CC0": 2,
+          "CC BY-SA 2.0": 4,
+          "CC BY 2.0": 1,
+          "CC BY 2.5": 1,
           "CC BY 4.0": 1,
-          "CC BY-SA 2.5": 1,
-          "GFDL 1.2": 1
+          "CC BY-SA 2.5": 1
         },
-        "undone": [
-          "«Khongoryn Els Mongolia dunes» (Commons: cirrussearch-too-busy-error)",
-          "«Gobi sand dunes Mongolia» (Commons: cirrussearch-too-busy-error)",
-          "«Sibebe Rock Swaziland» (Commons: cirrussearch-too-busy-error)",
-          "«Mantenga Falls Swaziland» (Commons: cirrussearch-too-busy-error)",
-          "«Tobago Cays Saint Vincent» (Commons: cirrussearch-too-busy-error)",
-          "«Grenadines Tobago Cays» (Commons: cirrussearch-too-busy-error)"
-        ]
+        "undone": []
       },
-      "ms": 132911
+      "ms": 47771
     }
   ],
   "reach": []
