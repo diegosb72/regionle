@@ -46,6 +46,16 @@ export interface ProfilePhoto {
   focus?: [number, number];
 }
 
+/**
+ * The coat of arms of a country — or what it has instead: an emblem, a seal —, as the sheet shows it: one
+ * small picture of the drawing Wikimedia Commons has (`<file>-<w>.webp`), with who drew it and on what terms
+ * it is given.
+ */
+export interface ProfileArms extends Pick<ProfilePhoto, 'file' | 'w' | 'h' | 'title' | 'by' | 'licence' | 'licenceUrl'> {
+  /** What it is, where it is not a coat of arms. */
+  kind?: 'emblem' | 'seal';
+}
+
 /** A time of the country, by the flag it flew then: one of other times, that of what it was then, or the one it flies. */
 export interface ProfileTime {
   /** The years the country flew it between, as the game has that flag (public/data/flags.json, `past`). */
@@ -113,6 +123,8 @@ export interface ProfileFile {
   times?: ProfileTime[];
   /** The first is the one at the head of the sheet. */
   photos?: ProfilePhoto[];
+  /** Its coat of arms. A territory that flies the flag of its country shows none. */
+  arms?: ProfileArms;
   /** Where to read more: its page in the Wikipedia of each language, and that of its flag. */
   read?: SaidIn;
   readFlag?: SaidIn;

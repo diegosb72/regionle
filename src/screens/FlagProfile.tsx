@@ -1,6 +1,6 @@
 /**
- * The sheet of a country, over the gallery of flags: what the country is, the figures the game has of it
- * and where it is, what its flag means, the flags it flew before with what the country was at the time of
+ * The sheet of a country, over the gallery of flags: what the country is, the figures the game has of it,
+ * where it is and its coat of arms, what its flag means, the flags it flew before with what the country was at the time of
  * each, photographs of it — each with who took it and on what terms it is given — and the flags of its
  * regions and of its cities, to go and look at or to play with (lib/profiles.ts).
  *
@@ -24,7 +24,7 @@ import { capitalFlags, cityFlags, commonsPage, flagsRest, levelOf, loadFlags, re
 import { flagSetText } from '../lib/flagSets';
 import { L, capName, fmtDay, getLang, nm } from '../lib/i18n';
 import { locator } from '../lib/profileMap';
-import { bordersText, flownCards, hasProfile, loadProfile, neighboursOf, photoSet, photoSrc, profileRest, rankOf, regionsText, timeCards, townsText, type ProfileFile, type ProfilePhoto, type Said, type SaidIn } from '../lib/profiles';
+import { bordersText, flownCards, hasProfile, loadProfile, neighboursOf, photoSet, photoSrc, profileRest, rankOf, regionsText, timeCards, townsText, type ProfileArms, type ProfileFile, type ProfilePhoto, type Said, type SaidIn } from '../lib/profiles';
 import { reportUrl } from '../lib/report';
 import { FLAGS_PATH, FLAG_GAMES_PATH } from '../lib/routes';
 import { cx, fmtArea, fmtPop } from '../lib/text';
@@ -82,9 +82,13 @@ function Lead({ text, page, more, of }: { text: string[]; page: string | undefin
   );
 }
 
-/** The terms a photograph is given on, as they are written here: its licence, with where it is written. */
-function Licence({ photo }: { photo: ProfilePhoto }) {
-  const name = photo.licence === 'Public domain' ? L('Dominio público', 'Public domain') : photo.licence;
+/** What a picture of Commons says of whose it is: its title there, who made it and the terms it is given on. */
+type Owned = Pick<ProfilePhoto, 'title' | 'by' | 'licence' | 'licenceUrl'>;
+
+/** The terms a picture is given on, as they are written here: its licence, with where it is written. */
+function Licence({ photo }: { photo: Owned }) {
+  // The two that Commons names in English words, and not by letters: free of rights, and free as long as its author is named.
+  const name = photo.licence === 'Public domain' ? L('Dominio público', 'Public domain') : photo.licence === 'Attribution' ? L('Uso libre con atribución', 'Free use with attribution') : photo.licence;
   return photo.licenceUrl ? (
     <a href={photo.licenceUrl} target="_blank" rel="noopener noreferrer license">
       {name}
@@ -94,8 +98,8 @@ function Licence({ photo }: { photo: ProfilePhoto }) {
   );
 }
 
-/** Whose a photograph is: who made it, on what terms, and its page in Commons. */
-function Credit({ photo }: { photo: ProfilePhoto }) {
+/** Whose a picture is: who made it, on what terms, and its page in Commons. */
+function Credit({ photo }: { photo: Owned }) {
   return (
     <small className="fp-credit">
       {photo.by ? `${photo.by} · ` : ''}
@@ -152,6 +156,21 @@ function Where({ geo, country, under }: { geo: ReadonlyMap<string, Geo>; country
         {drawn.ring && <circle className="fp-ring" cx={drawn.ring[0]} cy={drawn.ring[1]} r={9} />}
       </svg>
       <figcaption>{under}</figcaption>
+    </figure>
+  );
+}
+
+/**
+ * The coat of arms of the country — or the emblem or the seal it has instead —, small: what it is, and under
+ * that whose the drawing is. What is not drawn of it lets the sheet show through.
+ */
+function Arms({ arms }: { arms: ProfileArms }) {
+  return (
+    <figure className="fp-arms">
+      <img src={photoSrc(arms.file, arms.w)} width={arms.w} height={arms.h} alt="" loading="lazy" decoding="async" draggable={false} />
+      <figcaption>
+        {arms.kind === 'emblem' ? L('Emblema', 'Emblem') : arms.kind === 'seal' ? L('Sello', 'Seal') : L('Escudo', 'Coat of arms')} <Credit photo={arms} />
+      </figcaption>
     </figure>
   );
 }
@@ -384,7 +403,12 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
             <h3>{L('De un vistazo', 'At a glance')}</h3>
             <div className="fp-glance-in">
               <FactList rows={rows} />
-              {geo && <Where geo={geo} country={country} under={nm(where)} />}
+              {(geo || profile.arms) && (
+                <div className="fp-side">
+                  {geo && <Where geo={geo} country={country} under={nm(where)} />}
+                  {profile.arms && <Arms arms={profile.arms} />}
+                </div>
+              )}
             </div>
             {neighbours.length > 0 && (
               <>
@@ -552,6 +576,11 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
                   'The official name, the motto, the anthem and the facts of the flag are those that Wikidata and Wikipedia give.',
                 )}`}
               {` ${L('El dibujo de la bandera es de la colección flag-icons.', 'The drawing of the flag is from the flag-icons collection.')}`}
+              {profile.arms &&
+                ` ${L(
+                  'El escudo es un dibujo de Wikimedia Commons, reducido de tamaño; bajo él van su autor, cuando se conoce, y su licencia.',
+                  'The coat of arms is a drawing from Wikimedia Commons, made smaller; under it are its author, where known, and its licence.',
+                )}`}
               {(lead || flagLead) &&
                 ` ${L(
                   'El texto es el comienzo de los artículos de Wikipedia, abreviado, con licencia CC BY-SA 4.0.',

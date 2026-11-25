@@ -28,6 +28,9 @@
 //   · Wikimedia Commons: the photographs that the sheets of the countries show (scripts/data/profiles.mjs),
 //     each with its author and its licence. Commons is not on GitHub either: the same workflow brings them,
 //     and scripts/data/photos-pinned.mjs says which ones and at which commit of the branch `datos`
+//   · Wikidata (CC0) and Wikimedia Commons: the coat of arms of each country, or the emblem or the seal it has
+//     instead, which its sheet shows small with whose the drawing is (scripts/data/profiles.mjs). The same
+//     workflow brings them, and scripts/data/arms-pinned.mjs says which ones and at which commit
 //   · Wikidata (CC0) and the Wikipedias in English and in Spanish (CC BY-SA 4.0): what each country is
 //     called in full, its motto and its anthem, and since when its flag is flown, its proportions and its
 //     colours, for the sheets of the countries (scripts/data/profiles.mjs). The same workflow asks them
@@ -52,6 +55,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PAGES } from './factbook-pages.mjs';
+import { ARMS, ARMS_AT, ARMS_SAID } from './arms-pinned.mjs';
 import { PHOTOS, PHOTOS_AT, PHOTOS_SAID } from './photos-pinned.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -112,7 +116,10 @@ const FILES = [
   // How Wikipedia begins to tell of each country and of its flag (scripts/data/profiles.mjs): CC BY-SA 4.0.
   { repo: 'diegosb72/regionle', commit: '1f1160af71cb60a9492eccd723f6b5dcd0b555ca', dir: '', file: 'countries/texts.json', as: 'countries-texts.json', sha: 'a75b469fc8b0a0aae422a27b02576e40f625f6da' },
   // The photographs of the sheets of the countries (scripts/data/profiles.mjs): what Commons says of each, and the pictures.
-  ...[PHOTOS_SAID, ...PHOTOS].map(([file, sha]) => ({ ...PHOTOS_AT, file, as: `photos/${path.basename(file)}`, sha })),
+  // One that Wikimedia has drawn again since it was brought says the commit where it is as it was brought.
+  ...[PHOTOS_SAID, ...PHOTOS].map(([file, sha, commit]) => ({ ...PHOTOS_AT, ...(commit ? { commit } : {}), file, as: `photos/${path.basename(file)}`, sha })),
+  // The coat of arms of each country (scripts/data/profiles.mjs): which file each is shown with, what Commons says of each, and the pictures.
+  ...[ARMS_SAID, ...ARMS].map(([file, sha]) => ({ ...ARMS_AT, file, as: `arms/${path.basename(file)}`, sha })),
 ];
 
 function token() {
