@@ -240,6 +240,8 @@ git commit -m "Publica la última versión"
 git push
 ```
 
+Si se fusiona una PR pero GitHub Pages sigue sirviendo la versión anterior y no arranca una compilación nueva (puede ocurrir cuando la fusión la hace una integración), en **Actions → Pruebas y publicación → Run workflow** se elige `main`. Tras pasar las pruebas, el flujo pide a Pages que reconstruya `main/docs` con el permiso de su propia acción; no cambia la configuración del repositorio ni requiere un token personal. No hace nada si Pages ya ha publicado ese commit.
+
 El archivo `docs/.nojekyll` (se copia desde `public/`) hace que GitHub Pages sirva los archivos tal cual, sin pasarlos por Jekyll.
 
 #### Instalación y uso sin conexión

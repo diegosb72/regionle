@@ -6,7 +6,8 @@
 #
 # The last step only happens when the repository has "GitHub Actions" as the source of its Pages
 # (Settings → Pages → Build and deployment → Source). While it says "Deploy from a branch", Pages goes on
-# publishing the `docs` folder of `main`, as it always did, and this workflow only tests.
+# publishing the `docs` folder of `main`. If an integration merges a PR without triggering Pages, a
+# manual workflow_dispatch on main tests the site and requests a build of that folder.
 name: Pruebas y publicación
 
 on:
@@ -105,3 +106,31 @@ jobs:
     steps:
       - id: publicar
         uses: actions/deploy-pages@v5
+
+  # A merge made by an integration can leave Pages serving the previous commit: its push may not start
+  # the legacy Pages builder. Dispatch this workflow on main, after checking that docs/ is already built.
+  # The workflow token has Pages write permission; the integration token used to merge does not.
+  republicar_docs:
+    name: Reconstruir Pages desde main/docs (manual)
+    needs: [pruebas, navegador]
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && needs.pruebas.outputs.publica == 'no'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pages: write
+    steps:
+      - name: Solicitar la compilación de docs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          origen=$(gh api "repos/${GITHUB_REPOSITORY}/pages" --jq '[.build_type, .source.branch // "", .source.path // ""] | join(" ")')
+          if [ "$origen" != "legacy main /docs" ]; then
+            echo "::error title=Origen de Pages distinto::Se esperaba legacy main /docs; se encontró $origen"
+            exit 1
+          fi
+          ultima=$(gh api "repos/${GITHUB_REPOSITORY}/pages/builds/latest" --jq '.commit + " " + .status')
+          if [ "$ultima" = "$GITHUB_SHA built" ]; then
+            echo "Pages ya sirve la versión $GITHUB_SHA."
+            exit 0
+          fi
+          gh api -X POST "repos/${GITHUB_REPOSITORY}/pages/builds" --jq '"Compilación solicitada: " + .status'
