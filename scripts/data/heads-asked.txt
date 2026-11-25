@@ -509,7 +509,7 @@
 
 # Part F: the general landscape search missed Eswatini; its Commons category contains photos
 # titled "Eswatini landscape" and "Mbabane Landscape" with free licences and suitable size.
-SZ: Eswatini landscape
-SZ: Mbabane Landscape
-SZ: Malolotja Nature Reserve Swaziland
-SZ: Swaziland mountains valley
+# SZ: Eswatini landscape
+# SZ: Mbabane Landscape
+# SZ: Malolotja Nature Reserve Swaziland
+# SZ: Swaziland mountains valley
