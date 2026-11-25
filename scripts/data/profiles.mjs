@@ -177,9 +177,18 @@ async function photograph(id, one, commons, widths, made) {
     if (!made.has(dest)) {
       // A picture is named after what it is made from and how wide it is: one that is there is that one, and is not made again.
       if (!fs.existsSync(path.join(PICTURES, dest))) {
-        // One that comes out heavier than a page should carry (leaves, water, a city seen from the air) is made again keeping a little less of what is seen.
+        // Fine foliage and water may still be too heavy at the lowest quality. Smooth only as much of
+        // that detail as is needed, then try the qualities again; never silently ship an oversized image.
         let picture;
-        for (let quality = QUALITY; !picture || (picture.length > HEAVY(w) && quality >= QUALITY_LEAST); quality -= 6) picture = await sharp(from).resize({ width: w }).webp({ quality, effort: 6 }).toBuffer();
+        for (const soften of [0, 0.6, 0.8, 1, 1.3, 1.6]) {
+          for (let quality = QUALITY; quality >= QUALITY_LEAST; quality -= 6) {
+            const image = sharp(from).resize({ width: w });
+            picture = await (soften ? image.blur(soften) : image).webp({ quality, effort: 6 }).toBuffer();
+            if (picture.length <= HEAVY(w)) break;
+          }
+          if (picture.length <= HEAVY(w)) break;
+        }
+        if (picture.length > HEAVY(w)) fail(id, `«${title}» is too heavy to show at ${w} px (${picture.length} bytes)`);
         fs.writeFileSync(path.join(PICTURES, dest), picture);
       }
       made.add(dest);

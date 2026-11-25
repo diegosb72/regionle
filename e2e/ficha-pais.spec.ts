@@ -782,6 +782,42 @@ test.describe('the sheet of a country nobody has written of yet', () => {
     expect(sheetFile('LK').photos![0].title).toBe('Sigiriya Rock fortress.jpg');
   });
 
+  test('shows photographs of the last States with their actual subject, attribution and reframing', async ({ page }) => {
+    await seed(page);
+    for (const id of ['EH', 'ER', 'GA', 'MN', 'SZ', 'VC']) {
+      const photo = sheetFile(id).photos![0];
+      const sheet = await openSheet(page, `/banderas/paises/${id}`);
+      await expect(sheet.locator('.fp-band'), id).toHaveCount(0);
+      const hero = sheet.locator('.fp-hero img');
+      await expect.poll(() => drawn(hero), { message: id }).toBe(true);
+      const box = (await hero.boundingBox())!;
+      expect(box.width / box.height, id).toBeGreaterThan(1.9);
+      expect(await hero.evaluate((img: HTMLImageElement) => img.currentSrc), id).toMatch(new RegExp(`/photos/${photo.file}-(640|1280)\\.webp$`));
+      const caption = sheet.locator('.fp-hero figcaption');
+      await expect(caption, id).toContainText(photo.es);
+      await expect(caption.locator('.fp-credit'), id).toContainText(`${photo.by} · ${photo.licence} · Wikimedia Commons · reducida a WebP y reencuadrada`);
+      await expect(caption.getByRole('link', { name: 'Wikimedia Commons' }), id).toHaveAttribute('href', commons(photo.title));
+      await expect(page.locator('.crash'), id).toHaveCount(0);
+    }
+    expect(sheetFile('ER').photos![0].title).toBe('Asmara, cinema impero, 07.JPG');
+    expect(sheetFile('VC').photos![0].by).toBe('Iain Grant (Igbgrant)');
+  });
+
+  test('gives the last States a bilingual caption and alteration notice on a phone @movil', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    const photo = sheetFile('MN').photos![0];
+    const sheet = await openSheet(page, '/flags/countries/MN');
+    const hero = sheet.locator('.fp-hero img');
+    await expect.poll(() => drawn(hero)).toBe(true);
+    const box = (await hero.boundingBox())!;
+    expect([Math.round(box.x), Math.round(box.width)]).toEqual([0, page.viewportSize()!.width]);
+    expect(box.width / box.height).toBeGreaterThan(1.4);
+    expect(box.width / box.height).toBeLessThan(1.6);
+    await expect(sheet.locator('.fp-hero figcaption')).toContainText(photo.en);
+    await expect(sheet.locator('.fp-hero .fp-credit')).toContainText('resized to WebP and reframed');
+    expect(await sheet.locator('.dlg-box').evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(0);
+  });
+
   test('puts the new photograph across a phone with its English caption and credit @movil', async ({ page }) => {
     await seed(page, { lang: 'en' });
     const sheet = await openSheet(page, '/flags/countries/SS');

@@ -15,6 +15,22 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.53.0',
+    date: '2026-11-25',
+    es: [
+      'Fotografía de cabecera en los 47 Estados que faltaban: los 198 tienen ya una, contando Brasil; solo quedan los 51 territorios con la franja de la bandera.',
+      'Entre ellas, las dunas de Khongoryn Els, el monasterio de Taktsang, Nan Madol, el atolón de Funafuti y los cayos de Tobago.',
+      'Se revisaron la procedencia, la licencia, la atribución y los recortes en ordenador y móvil; se descartó una foto de Majuro con datos contradictorios.',
+      'El pie de cada foto dice ahora también que se ha reducido a WebP y que la cabecera se reencuadra para encajar en la pantalla.',
+    ],
+    en: [
+      'Head photographs for the 47 remaining States: all 198 now have one, including Brazil; only the 51 territories still show the flag-coloured band.',
+      'Among them: the Khongoryn Els dunes, Taktsang Monastery, Nan Madol, Funafuti Atoll and the Tobago Cays.',
+      'We checked provenance, licensing, attribution and crops on desktop and mobile; a Majuro photo with conflicting metadata was discarded.',
+      'Each photo’s credit now also says it was resized to WebP and that the header is reframed to fit the screen.',
+    ],
+  },
+  {
     version: '1.52.0',
     date: '2026-11-25',
     es: [

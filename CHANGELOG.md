@@ -3,6 +3,13 @@
 Lo que ha traído cada versión, de la más reciente a la primera. Es la misma lista que enseña el juego en
 «Acerca de»: sale de `src/lib/changelog.ts`, y este archivo se escribe a partir de ella con `npm test -- -u`.
 
+## 1.53.0 — 25 de noviembre de 2026
+
+- Fotografía de cabecera en los 47 Estados que faltaban: los 198 tienen ya una, contando Brasil; solo quedan los 51 territorios con la franja de la bandera.
+- Entre ellas, las dunas de Khongoryn Els, el monasterio de Taktsang, Nan Madol, el atolón de Funafuti y los cayos de Tobago.
+- Se revisaron la procedencia, la licencia, la atribución y los recortes en ordenador y móvil; se descartó una foto de Majuro con datos contradictorios.
+- El pie de cada foto dice ahora también que se ha reducido a WebP y que la cabecera se reencuadra para encajar en la pantalla.
+
 ## 1.52.0 — 25 de noviembre de 2026
 
 - Fotografía de cabecera en la ficha de otros cincuenta países: los que seguían por población. Ya son 150 fichas con foto, más la de Brasil.
