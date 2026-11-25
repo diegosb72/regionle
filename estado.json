@@ -1,47 +1,56 @@
 {
-  "when": "2026-11-25T17:09:30.415Z",
-  "from": "arena/baec5cdd-regionle@33ccb61",
+  "when": "2026-11-25T19:27:40.572Z",
+  "from": "arena/baec5cdd-regionle@538dd47",
   "workflow": "same",
   "sources": [
     {
-      "id": "photos",
-      "file": "photos/photos.json",
-      "from": "Wikimedia Commons (https://commons.wikimedia.org)",
-      "licence": "La de cada archivo, que su entrada dice: dominio público o una licencia libre",
-      "what": "The photographs that the sheets of the countries show, each a file of Commons that a sheet names (scripts/data/profiles/<country>.json) or the one chosen for the head of the sheet of a country nobody has written of (scripts/data/profiles-heads.json). items: the titles of those of each sheet, by the id of its country (photos). files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height of the original, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; and where the picture of it that Wikimedia draws, 1920 px wide, is kept in this branch (picture): the original is not brought. The pictures are under photos/files, each named after the SHA-1 of its original.",
-      "es": "Fotografías de las fichas de los países",
+      "id": "heads",
+      "file": "heads/heads.json",
+      "from": "Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org)",
+      "licence": "Lo de Wikidata, CC0; cada imagen, la licencia que dice su entrada: dominio público o una licencia libre",
+      "what": "What could be shown at the head of the sheet of each country that is named (scripts/data/heads-asked.txt): the pictures Wikidata shows what the country is known by with (what UNESCO lists as World Heritage, its national parks, what is called a tourist attraction, its capital and its highest point). items: of each country, by its id, its candidates (sights), the best known of each kind first: the file, the kind (heritage, park, sight, capital, top), the entity it is of (of), how many Wikipedias tell of it (links) and its name (es, en); and after them what was looked for in Commons by words that the list gives (kind sought, with the words and whether it was found among the featured pictures, the quality images or any others: among). files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height of the original, licence and its address, author, credit, whether it must be attributed and its page; and where the small picture of it, 330 px wide, is kept in this branch (picture), to choose among them by eye. Only photographs at least 1280 px wide and between 1.25 and 2.4 times wider than tall are candidates. Nothing is chosen here: the one that stays is written in scripts/data/profiles-heads.json and brought by the source photos.",
+      "es": "Candidatas a fotografía de cabecera de las fichas de los países",
       "needs": "113",
       "ok": true,
-      "bytes": 113579,
-      "blob": "18915dff429fbe022c85ad2ac30eade81f83992e",
-      "note": "207 fotografías de 198 fichas: 207 traídas (141.376 kB)",
+      "bytes": 103778,
+      "blob": "2916ddaa2aed6c6404abd9051e9605e3891be051",
+      "note": "160 candidatas para 13 de 13 países: 160 imágenes traídas (4023 kB); 26 cosas buscadas en Commons por su nombre; 7 que no sirven de cabecera",
       "detail": {
-        "asked": 207,
-        "found": 207,
+        "asked": 13,
+        "found": 13,
+        "none": [],
         "files": {
-          "all": 207,
-          "missing": 0,
-          "brought": 207,
+          "all": 160,
+          "unfit": 7,
+          "brought": 160,
           "left": 0,
-          "bytes": 141375976
+          "bytes": 4023225
+        },
+        "kinds": {
+          "sought": 144,
+          "capital": 7,
+          "top": 4,
+          "park": 3,
+          "heritage": 2
         },
         "licences": {
-          "CC BY-SA 4.0": 105,
-          "CC BY-SA 3.0": 35,
-          "CC BY 2.0": 18,
-          "CC BY-SA 2.0": 11,
-          "CC0": 10,
-          "CC BY 3.0": 8,
-          "CC BY 4.0": 7,
-          "Public domain": 7,
-          "CC BY-SA 2.5": 3,
-          "CC BY 2.5": 1,
-          "CC BY-SA 2.0 fr": 1,
-          "CC BY-SA 3.0 nl": 1
+          "CC BY-SA 4.0": 47,
+          "Public domain": 31,
+          "CC BY-SA 3.0": 22,
+          "CC BY-SA 2.0": 21,
+          "CC BY 3.0": 9,
+          "CC0": 9,
+          "CC BY 2.0": 8,
+          "CC BY 4.0": 4,
+          "CC BY 2.5": 3,
+          "CC BY 2.0 de": 2,
+          "CC BY 2.5 dk": 2,
+          "Attribution": 1,
+          "No restrictions": 1
         },
         "undone": []
       },
-      "ms": 134027
+      "ms": 157828
     }
   ],
   "reach": []
