@@ -497,12 +497,19 @@
 
 # Part E: distinct search terms for the Atlantic coast of Western Sahara; repeat the last six
 # searches Commons did not answer in part D. The previous choices remain candidates, not selections.
-EH: Atlantic Ocean in Western Sahara
-EH: Boujdour Western Sahara coastline
-EH: Laayoune Western Sahara dunes
-SZ: Sibebe Rock Swaziland
-SZ: Mantenga Falls Eswatini
-MN: Khongoryn Els sand dunes
-MN: Gobi Mongolia dunes
-VC: Tobago Cays Saint Vincent
-VC: Tobago Cays Grenadines aerial
+# EH: Atlantic Ocean in Western Sahara
+# EH: Boujdour Western Sahara coastline
+# EH: Laayoune Western Sahara dunes
+# SZ: Sibebe Rock Swaziland
+# SZ: Mantenga Falls Eswatini
+# MN: Khongoryn Els sand dunes
+# MN: Gobi Mongolia dunes
+# VC: Tobago Cays Saint Vincent
+# VC: Tobago Cays Grenadines aerial
+
+# Part F: the general landscape search missed Eswatini; its Commons category contains photos
+# titled "Eswatini landscape" and "Mbabane Landscape" with free licences and suitable size.
+SZ: Eswatini landscape
+SZ: Mbabane Landscape
+SZ: Malolotja Nature Reserve Swaziland
+SZ: Swaziland mountains valley
