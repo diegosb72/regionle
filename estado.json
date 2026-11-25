@@ -1,6 +1,6 @@
 {
-  "when": "2026-11-25T08:09:19.873Z",
-  "from": "arena/baec5cdd-regionle@0af412c",
+  "when": "2026-11-25T08:19:16.859Z",
+  "from": "arena/baec5cdd-regionle@d1c16cf",
   "workflow": "same",
   "sources": [
     {
@@ -8,55 +8,52 @@
       "file": "heads/heads.json",
       "from": "Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org)",
       "licence": "Lo de Wikidata, CC0; cada imagen, la licencia que dice su entrada: dominio público o una licencia libre",
-      "what": "What could be shown at the head of the sheet of each country that is named (scripts/data/heads-asked.txt): the pictures Wikidata shows what the country is known by with (what UNESCO lists as World Heritage, its national parks, what is called a tourist attraction, its capital and its highest point). items: of each country, by its id, its candidates (sights), the best known of each kind first: the file, the kind (heritage, park, sight, capital, top), the entity it is of (of), how many Wikipedias tell of it (links) and its name (es, en). files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height of the original, licence and its address, author, credit, whether it must be attributed and its page; and where the small picture of it, 330 px wide, is kept in this branch (picture), to choose among them by eye. Only photographs at least 1900 px wide and between 1.25 and 2.4 times wider than tall are candidates. Nothing is chosen here: the one that stays is written in scripts/data/profiles-heads.json and brought by the source photos.",
+      "what": "What could be shown at the head of the sheet of each country that is named (scripts/data/heads-asked.txt): the pictures Wikidata shows what the country is known by with (what UNESCO lists as World Heritage, its national parks, what is called a tourist attraction, its capital and its highest point). items: of each country, by its id, its candidates (sights), the best known of each kind first: the file, the kind (heritage, park, sight, capital, top), the entity it is of (of), how many Wikipedias tell of it (links) and its name (es, en); and after them what was looked for in Commons by words that the list gives (kind sought, with the words and whether it was found among the featured pictures or the quality images: among). files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height of the original, licence and its address, author, credit, whether it must be attributed and its page; and where the small picture of it, 330 px wide, is kept in this branch (picture), to choose among them by eye. Only photographs at least 1280 px wide and between 1.25 and 2.4 times wider than tall are candidates. Nothing is chosen here: the one that stays is written in scripts/data/profiles-heads.json and brought by the source photos.",
       "es": "Candidatas a fotografía de cabecera de las fichas de los países",
       "needs": "113",
       "ok": true,
-      "bytes": 205920,
-      "blob": "cf877d4fa4de11fb9044b108f480da3398a7c74b",
-      "note": "326 candidatas para 50 de 50 países: 326 imágenes traídas (9408 kB); 293 que no sirven de cabecera",
+      "bytes": 238867,
+      "blob": "cddd6dd33bba9b890953a1caff83ad94ca517b1e",
+      "note": "382 candidatas para 24 de 24 países: 382 imágenes traídas (10.742 kB); 34 cosas buscadas en Commons por su nombre; 119 que no sirven de cabecera",
       "detail": {
-        "asked": 50,
-        "found": 50,
+        "asked": 24,
+        "found": 24,
         "none": [],
         "files": {
-          "all": 326,
-          "unfit": 293,
-          "brought": 326,
+          "all": 382,
+          "unfit": 119,
+          "brought": 382,
           "left": 0,
-          "bytes": 9408085
+          "bytes": 10741973
         },
         "kinds": {
-          "heritage": 198,
-          "park": 63,
-          "capital": 31,
-          "sight": 21,
-          "top": 20
+          "sought": 215,
+          "heritage": 104,
+          "park": 32,
+          "capital": 18,
+          "top": 11,
+          "sight": 7
         },
         "licences": {
-          "CC BY-SA 4.0": 104,
-          "CC BY-SA 3.0": 97,
-          "CC BY 2.0": 33,
-          "CC BY-SA 2.0": 19,
-          "Public domain": 15,
-          "CC BY 3.0": 13,
-          "CC BY 4.0": 9,
-          "CC BY-SA 2.5": 7,
-          "FAL": 7,
-          "CC BY 2.5": 5,
+          "CC BY-SA 4.0": 173,
+          "CC BY-SA 3.0": 96,
+          "Public domain": 26,
+          "CC BY 2.0": 18,
+          "CC BY 4.0": 11,
+          "CC0": 11,
+          "CC BY 3.0": 10,
+          "CC BY-SA 2.0": 9,
+          "CC BY-SA 2.5": 9,
+          "FAL": 6,
           "CC BY-SA 3.0 de": 5,
-          "CC0": 4,
+          "CC BY 2.5": 3,
+          "Attribution": 2,
           "CC BY-SA 3.0 igo": 2,
-          "CC BY-SA 1.0": 1,
-          "CC BY-SA 2.5 nl": 1,
-          "GFDL": 1,
-          "KOGL Type 1": 1,
-          "Licence Ouverte": 1,
-          "OGL v1.0": 1
+          "CC BY-SA 2.5 nl": 1
         },
         "undone": []
       },
-      "ms": 197628
+      "ms": 233630
     }
   ],
   "reach": []
