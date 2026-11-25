@@ -10,6 +10,64 @@
 # The first lot: the countries where Spanish is spoken and the thirty with most people of the rest. The
 # words are the ones that were looked for after seeing what Wikidata showed; not all of them found what
 # was chosen in the end.
+AR: Iguazu Falls
+AR: Perito Moreno Glacier
+BD
+BO: Salar de Uyuni
+CD
+CL
+CN: Great Wall of China
+CO: Cartagena Colombia walled city
+CO: Cocora Valley
 CR: Arenal Volcano
-CR: Tortuguero
-CR: Costa Rica cloud forest
+CU
+DE: Neuschwanstein
+DE: Brandenburg Gate
+DO
+DZ
+EC
+EG: Giza pyramids
+ES: Alhambra
+ES: Plaza de España Seville
+ET
+FR: Mont Saint-Michel
+FR: Eiffel Tower
+GB
+GQ
+GT
+HN: Copán Maya ruins
+HN: Roatán beach
+ID
+IN
+IQ
+IR: Persepolis
+IT: Colosseum
+IT: Venice Grand Canal
+JP
+KE: Maasai Mara
+KR
+MM
+MX
+NG
+NI
+PA: Panama Canal
+PE: Machu Picchu
+PH
+PK
+PY
+RU: Saint Basil's Cathedral
+RU: Moscow Kremlin
+SD
+SV: Izalco volcano
+SV: Lago de Coatepeque
+TH: Wat Arun
+TH: Ayutthaya
+TR: Hagia Sophia
+TR: Cappadocia
+TZ
+UG
+US
+UY
+VE
+VN: Ha Long Bay
+ZA

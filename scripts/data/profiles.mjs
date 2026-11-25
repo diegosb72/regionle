@@ -96,6 +96,9 @@ export const WIDTHS = { head: [640, 1280, 1920], photo: [640, 1280], time: [640]
 export const LEAD_MAX = { about: 640, flag: 480 };
 /** How much of what is seen is kept when a picture is made lighter: past this, a sky starts to show bands. */
 const QUALITY = 78;
+/** The least that is kept of a picture that comes out too heavy; and how heavy a picture may be, in bytes, by its width. */
+const QUALITY_LEAST = 54;
+export const HEAVY = (width) => (width > 1280 ? 420_000 : 300_000);
 /** The terms a photograph may be given on to be shown here: none that forbids reusing it or changing its size. */
 const FREE = /^(CC0|CC BY(-SA)? \d|Public domain)/;
 const LANGS = ['es', 'en'];
@@ -145,7 +148,12 @@ async function photograph(id, one, commons, widths, made) {
     const dest = `${name}-${w}.webp`;
     if (!made.has(dest)) {
       // A picture is named after what it is made from and how wide it is: one that is there is that one, and is not made again.
-      if (!fs.existsSync(path.join(PICTURES, dest))) await sharp(from).resize({ width: w }).webp({ quality: QUALITY, effort: 6 }).toFile(path.join(PICTURES, dest));
+      if (!fs.existsSync(path.join(PICTURES, dest))) {
+        // One that comes out heavier than a page should carry (leaves, water, a city seen from the air) is made again keeping a little less of what is seen.
+        let picture;
+        for (let quality = QUALITY; !picture || (picture.length > HEAVY(w) && quality >= QUALITY_LEAST); quality -= 6) picture = await sharp(from).resize({ width: w }).webp({ quality, effort: 6 }).toBuffer();
+        fs.writeFileSync(path.join(PICTURES, dest), picture);
+      }
       made.add(dest);
     }
   }
