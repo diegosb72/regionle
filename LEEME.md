@@ -7,7 +7,7 @@ Qué se trae y de dónde lo dice `scripts/data/outside.mjs`, en la rama del jueg
 
 ## Última descarga: 2026-11-25
 
-Hecha con `arena/baec5cdd-regionle@3b50802`. Lo que no se pidió esta vez sigue en la rama `datos` como estaba.
+Hecha con `main@a1a446f`. Lo que no se pidió esta vez sigue en la rama `datos` como estaba.
 
 | Archivo | Qué es | De dónde | Licencia | Resultado |
 | --- | --- | --- | --- | --- |
