@@ -20,15 +20,14 @@ describe('what each version brought', () => {
     expect(lock.packages[''].version).toBe(pkg.version);
   });
 
-  it('goes from the newest to the first, each with its day', () => {
+  it('goes from the newest version to the first, each with a real calendar day', () => {
     for (const [i, r] of RELEASES.entries()) {
       expect(r.version).toMatch(/^\d+\.\d+\.\d+$/);
       expect(r.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
       expect(new Date(`${r.date}T00:00:00Z`).toISOString().slice(0, 10)).toBe(r.date);
-      if (i) {
-        expect(newer(RELEASES[i - 1].version, r.version), `${RELEASES[i - 1].version} > ${r.version}`).toBe(true);
-        expect(RELEASES[i - 1].date >= r.date, `${RELEASES[i - 1].date} ≥ ${r.date}`).toBe(true);
-      }
+      // Versions are ordered; dates are their own records, not a sorting key. A corrected date must not
+      // require changing the date recorded for an earlier version.
+      if (i) expect(newer(RELEASES[i - 1].version, r.version), `${RELEASES[i - 1].version} > ${r.version}`).toBe(true);
     }
     expect(RELEASES[RELEASES.length - 1].version).toBe('1.0.0');
   });

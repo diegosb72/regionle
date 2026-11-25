@@ -98,8 +98,8 @@ function Licence({ photo }: { photo: Owned }) {
   );
 }
 
-/** Whose a picture is: who made it, on what terms, and its page in Commons. */
-function Credit({ photo }: { photo: Owned }) {
+/** Whose a picture is: who made it, on what terms, its page in Commons, and what we changed. */
+function Credit({ photo, adjusted }: { photo: Owned; adjusted?: 'head' | 'photo' }) {
   return (
     <small className="fp-credit">
       {photo.by ? `${photo.by} · ` : ''}
@@ -108,6 +108,7 @@ function Credit({ photo }: { photo: Owned }) {
         Wikimedia Commons
         <ExternalLink size={11} aria-hidden="true" />
       </a>
+      {adjusted && <> · {adjusted === 'head' ? L('reducida a WebP y reencuadrada', 'resized to WebP and reframed') : L('reducida a WebP', 'resized to WebP')}</>}
     </small>
   );
 }
@@ -131,7 +132,7 @@ function Photo({ photo, sizes, lazy = true, className }: { photo: ProfilePhoto; 
         draggable={false}
       />
       <figcaption>
-        {say(photo)} <Credit photo={photo} />
+        {say(photo)} <Credit photo={photo} adjusted={className === 'fp-hero' ? 'head' : 'photo'} />
       </figcaption>
     </figure>
   );

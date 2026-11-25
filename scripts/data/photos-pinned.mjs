@@ -17,10 +17,10 @@
 // pictures the game shows).
 
 /** The commit of the branch `datos` that the photographs are taken from. */
-export const PHOTOS_AT = { repo: 'diegosb72/regionle', commit: '93309ab710d7f646db823971bbb1960b65c6f563', dir: '' };
+export const PHOTOS_AT = { repo: 'diegosb72/regionle', commit: '47e0374f2fb22f0b5448e305b66fd9ecb2bc1db1', dir: '' };
 
 /** What Commons says of every photograph that was asked for. */
-export const PHOTOS_SAID = ['photos/photos.json', 'd0b2b1974c1673ad9de252212255e51f838dadf5'];
+export const PHOTOS_SAID = ['photos/photos.json', '18915dff429fbe022c85ad2ac30eade81f83992e'];
 
 /** The pictures, each under the SHA-1 of its original: [where it is in the branch, the Git name of what it holds, the commit it is at where that is another]. */
 export const PHOTOS = [
@@ -40,9 +40,9 @@ export const PHOTOS = [
   ['photos/files/692fd0f034ca1e1755b8c657ca1b13aa762948c0.1920.jpg', '45a7841d966750dbe3ef5d04521f49c50a33a4d5'], // AD · Vista de Andorra la Vieja, Andorra, 2013-12-30, DD 01.JPG
   ['photos/files/3eba322096a76f800440af790de29403903b5f7e.1920.jpg', 'd36af4f968b5306ac6455de6cc74e0c36fa06a0a'], // AF · Lake in Band-e Amir National Park, March 2008.jpg
   ['photos/files/061b8864dfc060bdfc084f308b3c5eaeb58b805b.1920.jpg', 'ef5f8178a1f2b61e962668064eb9178d25d2b349'], // AL · The old city of Berat.jpg
-  ['photos/files/d8b1a0236f8d2f9132fb25d17ce8e5f43fc786de.1920.jpg', '0e588878bb5f8b215328575872d40adf14e6a5d2'], // AO · Quedas-Kalandula 07 queda LWS-2011-08 QD18 (cropped).jpg
+  ['photos/files/d8b1a0236f8d2f9132fb25d17ce8e5f43fc786de.1920.jpg', '0e588878bb5f8b215328575872d40adf14e6a5d2', '93309ab710d7f646db823971bbb1960b65c6f563'], // AO · Quedas-Kalandula 07 queda LWS-2011-08 QD18 (cropped).jpg
   ['photos/files/a7284c67c3f9f0e1a98abaa365965b267e5b9c18.1920.jpg', '3bd61954c9ecb3617f9ab458704170cc02ab513a'], // AR · Perito Moreno Glacier Patagonia Argentina Luca Galuzzi 2005.JPG
-  ['photos/files/4b89654ddcbc74c0b5dc3718b4d6d916ce790d8e.1920.jpg', 'f1f2914fac5085d3bb3fafccb2abf7c9fcb4fe77'], // AT · Hallstatt - Nordansicht.JPG
+  ['photos/files/4b89654ddcbc74c0b5dc3718b4d6d916ce790d8e.1920.jpg', 'f1f2914fac5085d3bb3fafccb2abf7c9fcb4fe77', '93309ab710d7f646db823971bbb1960b65c6f563'], // AT · Hallstatt - Nordansicht.JPG
   ['photos/files/b429f8e3c970e9e5b2a55dcda42db5aec705d15b.1920.jpg', '303249c55baf03b37188d8685885440dac5f9eea'], // BA · Mostar Old Town Panorama 2007.jpg
   ['photos/files/1b680881286ba48b847770e6fef743ff70f35818.1920.jpg', '4172abd184631a9786b3e33399d6eb07031df136'], // BD · পাহাড়পুর বৌদ্ধ বিহার 22.jpg
   ['photos/files/ab8ec3a93db66ad9f700791ec6e121101d6eaaad.1920.jpg', '65fdcc7e7a27fd2f2e34e3665d7925808a304fc6'], // BE · Edificios en la Grand-Place, Bruselas, Bélgica, 2021-12-15, DD 184-186 HDR.jpg
@@ -57,10 +57,10 @@ export const PHOTOS = [
   ['photos/files/8d63f453b6392bd3d1f71716165ff59bab6d1de3.1920.jpg', '99ba4f2f94636d7cb805127c77b1cca44f2cdf72'], // CO · Valle de Cocora, Colombia 02.jpg
   ['photos/files/a7779333e4e921ebbe699e26061a2cf75173e94f.1920.jpg', '321fa3882ea5408ed5bb504a1bd65e60570f7724'], // CR · Arenal Volcano 02.jpg
   ['photos/files/dc76f039848179173b70d21a79f5ab63e766096e.1920.jpg', 'ac73cc75c26cd28ec345e975c78e9ca202f885d4'], // CU · Viñales Valley.jpg
-  ['photos/files/3919d4990ce83d06a30f03ae16717bd84dc559f1.1920.jpg', '5f345734f9f965587d528c7fc42d7363672d7798'], // CY · Roca de Afrodita, Chipre, 2021-12-10, DD 65.jpg
+  ['photos/files/3919d4990ce83d06a30f03ae16717bd84dc559f1.1920.jpg', '5f345734f9f965587d528c7fc42d7363672d7798', '93309ab710d7f646db823971bbb1960b65c6f563'], // CY · Roca de Afrodita, Chipre, 2021-12-10, DD 65.jpg
   ['photos/files/8c1492ac61ca4ec60dbdff4a6c7e96442e5ea63d.1920.jpg', 'bcb1bf5c73df7a0d0ee6ba03a66d01ce6d660c7a'], // CZ · Vltava river in Prague.jpg
   ['photos/files/5c8b94222c6c2508c38a5f2524140019da47c690.1920.jpg', 'ba7aa334c968df8c02b37e593fa5b69f8980f2a0'], // DE · Brandenburger Tor nachts 2012-07.jpg
-  ['photos/files/ff625fccfb6d812ac48bf0e9da90cc16a9cae70c.1920.jpg', 'c4b729a55415b2a7d191d2d378acd26cee3737f0'], // DK · Nyhavn, Copenhagen, 20220618 1728 7354.jpg
+  ['photos/files/ff625fccfb6d812ac48bf0e9da90cc16a9cae70c.1920.jpg', 'c4b729a55415b2a7d191d2d378acd26cee3737f0', '93309ab710d7f646db823971bbb1960b65c6f563'], // DK · Nyhavn, Copenhagen, 20220618 1728 7354.jpg
   ['photos/files/5035feb746ad529794ae3d2dd566b1bb60edef59.1920.jpg', '17aa199779ed51db721f74e914cc7c510b388a6a'], // DO · Isla Saona III.jpg
   ['photos/files/cd5706dc2d888de61f5e8e49bf29bcef04a45248.1920.jpg', 'fc2edc1260060743d7f4840a9777eabed38ad21f'], // DZ · Tassili Desert Algeria.jpg
   ['photos/files/429eb8f84da4088410337d2175a7ea2c72816832.1920.jpg', '6e355bcc32bc91ced2c423648c22e69d377fec92'], // EC · Volcán Chimborazo desde Riobamba.jpg
@@ -94,7 +94,7 @@ export const PHOTOS = [
   ['photos/files/1e3128a36aabaa95021d4a0f0d0e466293981849.1920.jpg', 'e93e85f5e80b1c2e63cbbf35bae8ec9f0e88c1b0'], // LV · Riga (33844464828).jpg
   ['photos/files/cf8a51afde2d59d430ab42dfcbe43d249528f278.1920.jpg', 'e149517cc8c4fbbec39914b49ab9014454454f45'], // MA · Ksar Aït Benhaddou, Marocco (أيت بن حدو، المغرب, ⴰⵢⵜ ⵃⴰⴷⴷⵓ).jpg
   ['photos/files/1bdab673b49d7b9468c5b6013c25047f092a4fce.1920.jpg', '3392fd224a808fa073ce8bdc65352a07fe838eaf'], // MC · Panorama von Monaco-La Turbie.jpg
-  ['photos/files/36c557a5fc575197a101e63811a8e92611302327.1920.jpg', 'b5e125c21dac6f6c6c43760a5a28c067d4d3a395'], // MD · Monasterio Orheiul Vechi, Orhei, Moldavia, 2023-11-02, DD 06.jpg
+  ['photos/files/36c557a5fc575197a101e63811a8e92611302327.1920.jpg', 'b5e125c21dac6f6c6c43760a5a28c067d4d3a395', '93309ab710d7f646db823971bbb1960b65c6f563'], // MD · Monasterio Orheiul Vechi, Orhei, Moldavia, 2023-11-02, DD 06.jpg
   ['photos/files/2ef66d820f90d68dcf17bb767bdadead5d568f07.1920.jpg', '07268d791497375292cfeb73c82a06db6eec620a'], // ME · 20090719 Crkva Gospa od Zdravlja Kotor Bay Montenegro.jpg
   ['photos/files/c210e0d53a7e8029c74dec48e35f27f1908eda12.1920.jpg', 'a5ca5c5aa6bb3d8d99495f17733f42c60586f5cb'], // MK · Church of St. John at Kaneo 6.jpg
   ['photos/files/51fb9b0b3119cde1bc0f719e2be3a19ca6308539.1920.jpg', 'f092e0004abbfa5094e0898a41d67ef9e66b0606'], // MM · Bagan, Myanmar, Htilominlo Temple and other Buddhist stupas in Bagan plain.jpg
@@ -131,7 +131,7 @@ export const PHOTOS = [
   ['photos/files/618981b52f620318f0c60c86d67319d31ca0ec25.1920.jpg', '45de19a9c7670adb4bec2f7996cda006bb32aa78'], // US · Statue of Liberty and a sightseeing boat, Liberty Island, New York.jpg
   ['photos/files/40bf6743462fedbd11b56e136f3e46e2d356fe05.1920.jpg', '51dcb8cbc3ba8d06c916e82f52f082c6ba279654', 'ac8c7de5872541fa23c0d28e9f3cf63cfe231d53'], // UY · ColoniaSacramento.JPG
   ['photos/files/af40d6f01713ed4ae6a1d08e6da3c4632c0b21cf.1920.jpg', 'face1b1f4eced0a31ca5500b22ad023466406068'], // UZ · Самарканд. Площадь-Регистан.jpg
-  ['photos/files/93ed31e7ed4e4b4fafd7b7c4460a088bf9c15b9e.1920.jpg', '193183edb3a9da6e832af47a17f7bef26829ed3a'], // VA · Basilica di San Pietro in Vaticano September 2015-1a.jpg
+  ['photos/files/93ed31e7ed4e4b4fafd7b7c4460a088bf9c15b9e.1920.jpg', '193183edb3a9da6e832af47a17f7bef26829ed3a', '93309ab710d7f646db823971bbb1960b65c6f563'], // VA · Basilica di San Pietro in Vaticano September 2015-1a.jpg
   ['photos/files/f9e45a330009aa9f41cfcdeebe6d99eb97f4c8e6.1920.jpg', 'f7946491cf1672ae413a0c2b0c53b6c968f0dc5d'], // VE · Canaima 34.JPG
   ['photos/files/32a9ec8f676cfc7207541f67ac033ae36d21b595.1920.jpg', '3111d309db2f7ac3e8db1c5c14469f87e4b74369'], // VN · Hội An, Ancient Town, 2020-01 CN-06.jpg
   ['photos/files/3ea8fd8d447ff794881e341e1fadd824d94b9bcd.1920.jpg', 'cba0627eacae4eea234be6621a37d0b4c881b2cd'], // XK · Stone Bridge in Prizren (by Pudelek).JPG
@@ -171,11 +171,11 @@ export const PHOTOS = [
   ['photos/files/66b707c51fbfccd233a36ebe1005cac83d5f28ce.1920.jpg', '4583739c0ac380a2d43fe14e04927b0dd40e3c4b'], // NE · Niger, Agadez (28), grand mosque, old city.jpg
   ['photos/files/29b947c632c573bd526bb064557ac8bede7fa22d.1920.jpg', '8efd152de94edcd518432fcc82571498765e8033'], // NP · Everest, Nuptse, Khumbu Glacier, Nepal, Himalayas.jpg
   ['photos/files/3364f92d2e9b59523276d7e9e78a6dc664a6dfb1.1920.jpg', 'ad95f13b8afc1234022bf25ae0907794108e3b21'], // NZ · MilfordSound.jpg
-  ['photos/files/e7279aa9d5c89516640ebad70e38bf927a95eb4e.1920.jpg', 'efcecdb5f9a91a06c890061841737a391a5d0e0c'], // OM · Nizwa Fort and Minaret of Friday Mosque.JPG
-  ['photos/files/946633fb866555e71f77bc3c9b4a19000c2eade8.1920.jpg', '934289b34a1d1ac1bd3171493aebabefac425161'], // PG · Turanguna and Kombiu.jpg
+  ['photos/files/e7279aa9d5c89516640ebad70e38bf927a95eb4e.1920.jpg', 'efcecdb5f9a91a06c890061841737a391a5d0e0c', '93309ab710d7f646db823971bbb1960b65c6f563'], // OM · Nizwa Fort and Minaret of Friday Mosque.JPG
+  ['photos/files/946633fb866555e71f77bc3c9b4a19000c2eade8.1920.jpg', '934289b34a1d1ac1bd3171493aebabefac425161', '93309ab710d7f646db823971bbb1960b65c6f563'], // PG · Turanguna and Kombiu.jpg
   ['photos/files/563e0f882dc8555007767d15dbc3f5e19565b27b.1920.jpg', 'cfd6f161c8af772db08420cd1a5a4b2be2616296'], // PS · Aerial view of Mar Saba 03.jpg
   ['photos/files/96f61a710b371ebcf2295266b3be6b5c2bf14edb.1920.jpg', '5c3ef2794f82496e722cd657380aeee6b2c5dfe5'], // RW · Kigali2018Cropped.jpg
-  ['photos/files/d7919b1cf45caba882d6307f21afa2f3c8440432.1920.jpg', '27583d40e49071a04b04a4f7ce3af28ec78ca0f6'], // SG · Puente Helix, museo ArtScience y hotel Marina Bay Sands, Marina Bay, Singapur, 2023-08-17, DD 67-69 HDR.jpg
+  ['photos/files/d7919b1cf45caba882d6307f21afa2f3c8440432.1920.jpg', '27583d40e49071a04b04a4f7ce3af28ec78ca0f6', '93309ab710d7f646db823971bbb1960b65c6f563'], // SG · Puente Helix, museo ArtScience y hotel Marina Bay Sands, Marina Bay, Singapur, 2023-08-17, DD 67-69 HDR.jpg
   ['photos/files/04f43dacb65168b646eaca2d2ec3d4c2d21529b9.1920.jpg', 'baca438ce3c5c7ab7084e0f41087c7e1589c86fc'], // SL · Flickr - stringer bel - River No. 2 Village Beach, Sierra Leone (3).jpg
   ['photos/files/8d2d02650ccb3b08eee91ca7fae1fd1c8446afd2.1920.jpg', 'ccf22d968b926165b67d642837ec216d9033bae9'], // SN · Côtes de l'île de Gorée au Sénégal 11.jpg
   ['photos/files/b7db7001a99a9d0e95495c4d78d0924aa864c267.1920.jpg', 'd4e08fce614fbd0b9c40995dd6e27d795dd8c465'], // SO · Lido Beach 2023.jpg
@@ -189,4 +189,53 @@ export const PHOTOS = [
   ['photos/files/56c4f87416aef4f5d9221287f837ec298156798c.1920.jpg', 'c7853912368a31c5ff58b127d511ec6e231cb469'], // TW · 1 taipei sunrise panorama dxr edit pangen 141215 1.jpg
   ['photos/files/8fa0f2f892a829318a63541ab1567ae756fb2172.1920.jpg', '11716424615f4bba0a2d17b12561ae2f07678530'], // ZM · Cataratas Victoria, Zambia-Zimbabue, 2018-07-27, DD 05.jpg
   ['photos/files/ea5adcbdbc1eeb63df0002aebe31994c66ac129c.1920.jpg', '12db822758981c91f8653823a24a9184aa3e517e'], // ZW · Great-zim-aerial-looking-West.JPG
+
+  // The remaining forty-seven States (1.53.0): one photograph per State
+  ['photos/files/ee06a7a8172e102015427a9710354b6ed776056e.1920.jpg', 'f72b5e461f73d1b7e8e4a68d54e58a46583dd5e9'], // AG · Antigua and Barbuda, English Harbour (24).jpg
+  ['photos/files/2913433b1d341c3f7a50aa3cc4c162f2e32de515.1920.jpg', '44d18fa4c077c1953f44ca68984af147988e5708'], // AM · Monasterio Khor Virap, Armenia, 2016-10-01, DD 25.jpg
+  ['photos/files/a6a8c199f000158b09490cc90dbc0ae3e3752754.1920.jpg', '08eae41d1271bf87916efd54acf0f626fe2d0022'], // BB · Bathsheba, Barbados 27.jpg
+  ['photos/files/bce11b5c097fa6fc47e4016c6562c7dad66b1d4c.1920.jpg', 'a016421980913fee9058251e232ce79dc5819ce9'], // BH · Bahrain World trade Center .jpg
+  ['photos/files/333774ccfec9f3de7223acc00575b6737ed83098.1920.jpg', '9cae9055ac742d898ae997ce480b044d4b5df4f9'], // BN · Sultan Omar Ali Saifuddin Mosque 02.jpg
+  ['photos/files/e6728f2afbeafb0fb1cbc61b88e4b97facaa8d79.1920.jpg', 'f496820f6966c0a66c018eb5fc650b297c0d0dc3'], // BS · Nassau Harbour Lighthouse, near Nassau Cruise Port, Bahamas (March 14, 2024) 01.jpg
+  ['photos/files/e0569b776d902456cf64d48a199ab7baafd94407.1920.jpg', '867bf916edc8c5e2b3434dfc702c6b693e126a8a'], // BT · Bhutan-Paro-136-Taktshang-Tigernest-gje.jpg
+  ['photos/files/1266648284b97be8a031a2402c88e7a72e5f8f12.1920.jpg', '61ca59dd808f5f200a5427b4c755cea9accfee35'], // BW · Cebras de Burchell (Equus quagga burchellii), vista aérea del delta del Okavango, Botsuana, 2018-08-01, DD 30.jpg
+  ['photos/files/660b9ed6ae87f256020f35fd6fdbb76818cea9a5.1920.jpg', '9c28c772fcccaa3ec0cd2e6e28b30ceb46cec419'], // BZ · Xunantunich Belize 1 19.jpg
+  ['photos/files/a1157cf16c6210cf5455ba5343d6956b39660384.1920.jpg', 'c5cc4246689dc150fd1ff6d541e15ec990c3bb4c'], // CV · Pico de Fogo & summit of 1995 erruption.jpg
+  ['photos/files/58d8c3ff1d4436df60b1dc1fe0bae163900161eb.1920.jpg', 'e1d640206f2e3c43c5f6e84e1f3732f1fc96ae6c'], // DJ · Lac Abbe-02.JPG
+  ['photos/files/e74201bb5df50cc269e32420a12bad1fd0a177be.1920.jpg', '912fa0640efac446db0ef11fbb77f29353b4095b'], // DM · Cascadas Trafalgar, Dominica.jpg
+  ['photos/files/f511b3bb5d2f20358d9f9997607aac992d9716be.1920.jpg', 'c1ed3db7d3d0703ff39c73f66aca4f23521bb35e'], // EH · Atlantic Ocean in Western Sahara.jpg
+  ['photos/files/f315f339fd835a8009a5c6c30d68765dd28dcc6d.1920.jpg', '824892d3707cfcb4ec502f3677bb18815d824467'], // ER · Asmara, cinema impero, 07.JPG
+  ['photos/files/1d3fa35fb41d196d93443daa225313e650e7c32f.1920.jpg', 'de1632bd0b93c2f54fbe376d88b7ae6a44059e5b'], // FJ · Monuriki Island 20150108.jpg
+  ['photos/files/d62239d0e8c2a77fe927f6ce9ec8d6c04d6571af.1920.jpg', '1d570171ad6f7c040573835ba645d63d258a5097'], // FM · Nan madol.jpg
+  ['photos/files/f172086b83c959ade2a210343cae0dcadf678981.1920.jpg', '1aa29c86c6191154714ebe92e1ef1674aa796bed'], // GA · Gabon Loango National Park Elephant with offspring.jpeg
+  ['photos/files/fc518c7d4825d4a646a4d7a0773fc167db761601.1920.jpg', '85b9f551d5681c46ff6c34bf46bd9304f5577227'], // GD · Grenada - St. George.jpg
+  ['photos/files/a582d82aa490420713a40182abc5ec2ca8f98221.1920.jpg', '2d8d88bc1eb840dd58643e9f0eec30d7bd684431'], // GM · Banjul Gambia skyline.jpg
+  ['photos/files/c5012ea3c7c3f7802ff85d2bb609e646d74a7a25.1920.jpg', '395bc2e3c8fbbfee4e6b3b56a018aaa8680b6c90'], // GW · Lagoa com hipopótamos 03 (cropped).jpg
+  ['photos/files/82e623376b5cf2e15a45fa9642ac733e9b032781.1920.jpg', 'b7e3f6dfad0fdfb40707cf42787ee5fd1085080c'], // GY · Kaieteur Falls Guyana (2) 2007.jpg
+  ['photos/files/67ef6dd14621234b23b0bf58063b13094f72a40c.1920.jpg', '2787144b5327b71d8e549b6f53b38782a59d72c0'], // JM · Jamaica Ocho Rios Dunn's River Falls 1.jpg
+  ['photos/files/98c2b1222fb74c1b7d0365bf3b152494c51ce4fd.1920.jpg', '806e2bc788ca9cee14e49af0032d6a4c7b1a1bba'], // KI · South Tarawa from the air.jpg
+  ['photos/files/8c62d03afbe3fa71d0de035fecbd5082bc836abc.1920.jpg', '7fa9cd653ecafd63963410b84ba64c96d35e36a9'], // KM · Moroni City Comoros.JPG
+  ['photos/files/196ee4eedc0cd7473f7b7916e4939ffe987a162c.1920.jpg', '363a8e7c3371ef9982857e8f582a179652190e57'], // KN · BrimstoneHill01.jpg
+  ['photos/files/ce6c90864479ccece09e71299fc67ede919062eb.1920.jpg', 'd06a615dae01689e4686afa51b0170ccb953062c'], // LC · Soufriere, St. Lucia Sunset.jpg
+  ['photos/files/6fc2b5dd749d1d987eab75fb6fd33cb6c90ec586.1920.jpg', '33e97107b9856177a162bd0175a4f5a250991c2b'], // LS · Maletsunyanefalls.JPG
+  ['photos/files/82e184b37bda19a4eaff6964bd37e09a77a9c356.1920.jpg', '833e61c9c0200f5e322cc01a4e07c9b5fda94088'], // MH · Majuro aerial (10703502814).jpg
+  ['photos/files/2dab7d24b86cdf92aba5aeb1e7e78aed8fe87ffe.1920.jpg', '7247f0269ac2de498f20622983e165bdbb25a999'], // MN · Khongoryn Els 05.jpg
+  ['photos/files/8b64637c3672e4cda982502e123feecc424e4dee.1920.jpg', '2c4ebfb0935da32b6d6564a70b09199ed87d4e08'], // MU · Le Morne Peninsula in Mauritius (53697779236).jpg
+  ['photos/files/0a855d6b42bc46f5e6f8ca721396517f72d340cb.1920.jpg', '70c48d2c2b0947e0f619e0d7c75525d152f4d103'], // MV · Guriadhoo-2019-aerial-view-Luka-Peternel.jpg
+  ['photos/files/4574557fe1113e7e13867b0b5632d30cd278ab4c.1920.jpg', '2f110b2ed73b6577a70ca626b8944f8f3d882b98'], // NA · Dead Vlei, Sossusvlei, Namibia, 2018-08-06, DD 086.jpg
+  ['photos/files/694bdbc3da73fd685dc9ce9bc79a5af79683dbac.1920.jpg', 'bf7fc187bc59eed185f2f57c3ddf09681f5ba171'], // NR · Living on a Blue Planet - Nauru.jpg
+  ['photos/files/8f9b98f20bb6ac8240d414b40db9421085da74cd.1920.jpg', '3ba6c8b2369132401533882c1f4f457ff5cdec26'], // PW · Ngerukewid-2016-aerial-view-Luka-Peternel.jpg
+  ['photos/files/3f3b027005b9fa58e5490cbc22dd9235c875174d.1920.jpg', 'e75aaf79b0296c9ae88d36c9597935566669f378'], // QA · Doha - West Bay Skyline 03.jpg
+  ['photos/files/ced46554a85c62cbfe67cfec085a0168b20113e2.1920.jpg', '1f4c2a5a8ab0e448d3280a9c57a8d9e6c7b3f402'], // SB · Marovo Lagoon (16 August 2008).jpg
+  ['photos/files/c946c81ddc6a5e3332037b3fa488c37eddded1ee.1920.jpg', '5fa3375a3868cd2c89e615df92758094d792203a'], // SC · Anse source d argent.jpg
+  ['photos/files/3c826166790f082f516296a6136f17efef3b671f.1920.jpg', '408695c735e101a8180bb2f11f451e375d97146b'], // SR · Officiers Woning Paramaribo Suriname.jpg
+  ['photos/files/59417b37c515415d187d17ae04cef0d15a9001fc.1920.jpg', '6a66ae03f9ecb6a20328cbb28485fb8a9f30a917'], // ST · Pico Cao Grande.jpg
+  ['photos/files/7810e1ffa51f486647715ac3344acebe814be3ca.1920.jpg', 'a2dd52a8f74ad85a27220199c9610aa9ad05ee92'], // SZ · Swaziland (32819536884).jpg
+  ['photos/files/8eaced8a02afe76cbc406a3414d53fb270aafb02.1920.jpg', '6ebdf7af562a962ca66d47f4b874ffc743051026'], // TL · Cristo Rei Dili Timor Leste 2.jpg
+  ['photos/files/c28cd7b9b64d9e7d4c16c3ef49f75cdfa2ac5cc3.1920.jpg', 'f9898fdd601e4c7f86704f0bcfd1345bd56d997f'], // TO · Leaving Vava'u airport, flying down east side of Vava'u, Tonga - panoramio (12).jpg
+  ['photos/files/63a8ea58120c28e6cc8288165ac6c188a210f64e.1920.jpg', 'c7ece7f9583a32ae32aed4c68fdf5cd765bf6a39'], // TT · TnT Maracas Bay 2.jpg
+  ['photos/files/fbac2d9e236f4d7d6d5b31bad8812a92f2d78a40.1920.jpg', '7ed344c164c27fe3b8407b3560023c8661e990c6'], // TV · Tuvalu Funafuti Atoll.JPG
+  ['photos/files/7e5c3259996911fb1ce72525ee2560a6ed31c8f7.1920.jpg', 'c40455e236062f38cfcc60777992fc31ff57fd70'], // VC · TobagoCaysAerial.jpg
+  ['photos/files/179d099782f0d1bb6d1d972bf60d680b4fef522a.1920.jpg', 'e4a730e3a5f7fbf2dfb48afeaf7820f302b88ea9'], // VU · Lava trails at Mount Yasur Volcano, Tanna, Vanuatu (49181693888).jpg
+  ['photos/files/6cea9416d864f798ad819fdde2e13ee701e581ef.1920.jpg', 'ee5a4d7b92a7d162d486b511bc91413d2a6e066a'], // WS · To Sua Ocean Trench.jpg
 ];

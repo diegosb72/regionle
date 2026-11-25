@@ -348,8 +348,15 @@ describe('the sheet of every country', () => {
     // The file is written by hand, one country to a line and in order; and every country it names is one of the game.
     expect(ids).toEqual([...ids].sort());
     for (const id of ids) expect(LANDS, id).toContain(id);
+    // Every one of the 198 States now has its photograph (Brazil's is in its hand-written sheet).
+    // The 51 territories still have their flag-coloured band, until their own photographs are chosen.
+    const states = INDEX.countries.filter((c) => c.cl !== 'dep' && hasProfile(c)).map((c) => c.id);
+    const territories = INDEX.countries.filter((c) => c.cl === 'dep' && hasProfile(c)).map((c) => c.id);
+    expect(states).toHaveLength(198);
+    expect(territories).toHaveLength(51);
+    expect(ids).toHaveLength(197);
+    expect([...WRITTEN, ...ids].sort()).toEqual([...states].sort());
     // The first lot: the Spanish-speaking countries and the most populous of the rest. The second: the rest of Europe, and ten more. The third: the next fifty by population.
-    expect(ids.length).toBeGreaterThanOrEqual(150);
     for (const id of ['ES', 'MX', 'AR', 'CO', 'PE', 'CL', 'US', 'CN', 'IN', 'JP', 'DE', 'FR', 'GB', 'IT']) expect(ids, id).toContain(id);
     for (const id of ['PT', 'NL', 'GR', 'SE', 'PL', 'CH', 'AT', 'IE', 'VA', 'XK', 'CA', 'MA', 'SA']) expect(ids, id).toContain(id);
     // Nobody is silently skipped, even when the search for a place's name returned pictures of another place.
