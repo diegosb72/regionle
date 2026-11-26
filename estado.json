@@ -1,6 +1,6 @@
 {
-  "when": "2026-11-25T21:07:56.544Z",
-  "from": "main@a1a446f",
+  "when": "2026-11-26T08:33:48.914Z",
+  "from": "arena/baec5cdd-regionle@d133c1f",
   "workflow": "same",
   "sources": [
     {
@@ -12,25 +12,25 @@
       "es": "Fotografías de las fichas de los países",
       "needs": "113",
       "ok": true,
-      "bytes": 141014,
-      "blob": "35df25ef126c44ad1068e36f68efc563c48b1da2",
-      "note": "258 fotografías de 249 fichas: 258 traídas (171.855 kB)",
+      "bytes": 142076,
+      "blob": "060e26642bce52a678092094a27d5996e751bd9f",
+      "note": "260 fotografías de 249 fichas: 260 traídas (172.394 kB)",
       "detail": {
-        "asked": 258,
-        "found": 258,
+        "asked": 260,
+        "found": 260,
         "files": {
-          "all": 258,
+          "all": 260,
           "missing": 0,
-          "brought": 258,
+          "brought": 260,
           "left": 0,
-          "bytes": 171854625
+          "bytes": 172393818
         },
         "licences": {
           "CC BY-SA 4.0": 122,
           "CC BY-SA 3.0": 47,
           "CC BY 2.0": 22,
           "CC BY-SA 2.0": 18,
-          "Public domain": 13,
+          "Public domain": 15,
           "CC0": 12,
           "CC BY 3.0": 11,
           "CC BY 4.0": 7,
@@ -41,7 +41,7 @@
         },
         "undone": []
       },
-      "ms": 127114
+      "ms": 127246
     }
   ],
   "reach": []
