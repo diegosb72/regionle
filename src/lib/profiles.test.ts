@@ -504,9 +504,16 @@ describe('the sheet of every country', () => {
     expect(count((s) => s.flag?.colours)).toBeGreaterThanOrEqual(225);
   });
 
-  it('says its flag is as it is since the year the game has its last earlier flag lowered', () => {
+  it('says its flag is as it is since the last earlier flag was lowered, when that catalogue range records a replacement', () => {
     for (const sheet of sheets) {
       if (!sheet.flag?.changed || WRITTEN.includes(sheet.id)) continue;
+      // HN's 1949 statute specified today's turquoise and arrangement; the catalogue's 2022–2026
+      // range records governments switching between shades, not a new legal national flag.
+      if (sheet.id === 'HN') {
+        expect(sheet.flag.changed).toBe('1949-01-26');
+        expect(sheet.timeNote?.en).toContain('not new adoptions of national flags');
+        continue;
+      }
       const lowered = (FLAGS.past?.[sheet.id] ?? []).map((row) => row[3]);
       expect(lowered.length, sheet.id).toBeGreaterThan(0);
       expect(Math.abs(yearOfDay(sheet.flag.changed)! - Math.max(...lowered)), sheet.id).toBeLessThanOrEqual(1);
@@ -612,9 +619,10 @@ describe('the sheet of every country', () => {
     // The page in Spanish of the flag of Antarctica begins with another flag than the one the game draws.
     expect(Object.keys(sheetOf('AQ').flag?.lead ?? {})).toEqual(['en']);
     expect(Object.keys(sheetOf('AQ').lead ?? {}).sort()).toEqual(['en', 'es']);
-    // Spanish Wikipedia misdates Jersey's first hoisting and Rwanda's parliamentary vote; both
-    // Wikipedia introductions claim a settled adoption year for Tunisia despite conflicting sources.
-    for (const id of ['JE', 'RW']) expect(Object.keys(sheetOf(id).flag?.lead ?? {})).toEqual(['en']);
+    // Misleading dates or colours in the source are hidden rather than attributed to it after rewriting.
+    for (const id of ['GQ', 'JE', 'RW']) expect(Object.keys(sheetOf(id).flag?.lead ?? {})).toEqual(['en']);
+    expect(Object.keys(sheetOf('HN').flag?.lead ?? {})).toEqual(['es']);
+    expect(sheetOf('RS').flag?.lead?.es).toHaveLength(1); // No unverified pre-uprising delegation to Russia.
     expect(sheetOf('TN').flag?.lead).toBeUndefined();
   });
 
@@ -657,14 +665,14 @@ describe('the sheet of every country', () => {
 });
 
 describe('researched timelines layered over the generated sheets', () => {
-  it('covers seventy-five real countries without replacing their photograph or attributing corrected text to Wikipedia', () => {
+  it('covers eighty-one real countries without replacing their photograph or attributing corrected text to Wikipedia', () => {
     expect(typeof TIMELINE_REASON).toBe('string');
     const ids = Object.keys(TIMELINES);
     expect(ids).toEqual([...ids].sort());
-    expect(ids).toHaveLength(75);
+    expect(ids).toHaveLength(81);
     expect(ids).not.toContain('BR');
     expect(ids.every(has)).toBe(true);
-    expect(ids.reduce((n, id) => n + TIMELINES[id].times.length, 0)).toBe(283);
+    expect(ids.reduce((n, id) => n + TIMELINES[id].times.length, 0)).toBe(310);
     for (const id of ids) {
       const sheet = sheetOf(id);
       const source = TIMELINES[id];
@@ -672,11 +680,11 @@ describe('researched timelines layered over the generated sheets', () => {
       expect(sheet.photos, id).toHaveLength(1);
       expect(sheet.lead?.es?.length, id).toBeGreaterThan(0);
       expect(sheet.lead?.en?.length, id).toBeGreaterThan(0);
-      // Spanish Wikipedia misdates Jersey and Rwanda; both versions give an unqualified date for Tunisia.
+      // Misleading dates and descriptions are hidden, not rewritten as if they came from Wikipedia.
       // The separately sourced timeline does not masquerade as an extract of either encyclopedia.
-      if (['JE', 'RW', 'TN'].includes(id)) expect(sheet.flag?.lead?.es, id).toBeUndefined();
+      if (['GQ', 'JE', 'RW', 'TN'].includes(id)) expect(sheet.flag?.lead?.es, id).toBeUndefined();
       else expect(sheet.flag?.lead?.es?.length, id).toBeGreaterThan(0);
-      if (id === 'TN') expect(sheet.flag?.lead?.en, id).toBeUndefined();
+      if (['HN', 'TN'].includes(id)) expect(sheet.flag?.lead?.en, id).toBeUndefined();
       else expect(sheet.flag?.lead?.en?.length, id).toBeGreaterThan(0);
       expect(sheet.timeSource, id).toBe(source.source);
       expect(sheet.timeNote, id).toEqual(source.note);
@@ -824,6 +832,31 @@ describe('researched timelines layered over the generated sheets', () => {
     expect(sheetOf('TG').times?.map((time) => time.past)).toEqual([[1957, 1958], [1958, 1960], undefined]);
     expect(sheetOf('TN').times?.[0]).toMatchObject({ past: [0, 1999], from: 1831, when: { en: 'Nineteenth century–1999 · pre-law version' } });
     expect(sheetOf('TN').flag?.adopted).toBeUndefined(); // The battle in 1827 was not adoption.
+    // This batch does not promote technical catalogue ranges, alternative tones, civil flags or union
+    // flags to a seamless sequence of independent national flags.
+    expect(sheetOf('GQ').times?.[0]).toMatchObject({ past: [1968, 1973], from: 1968, to: 1968, when: { en: 'From 12 October 1968 · duration uncertain' } });
+    expect(sheetOf('GQ').timeNote?.en).toContain('FOTW dates their introduction to 1973 and Britannica to 1978');
+    expect(sheetOf('HN').times?.map((time) => time.past)).toEqual([[1839, 1866], [1866, 1898], undefined]);
+    expect(sheetOf('HN').flag).toMatchObject({ adopted: '1866-02-16', changed: '1949-01-26' });
+    expect(sheetOf('HN').timeNote?.en).toContain('government returned to turquoise in 2022 and to navy blue in 2026');
+    expect(sheetOf('RS').times?.[0]).toMatchObject({ past: [1835, 1882], from: 1839 });
+    expect(sheetOf('RS').times?.[2]).toMatchObject({ past: [1946, 1992], from: 1947 });
+    expect(sheetOf('RS').timeNote?.en).toContain('constituent republic');
+    expect(sheetOf('SY').times?.map((time) => time.past)).toEqual([[1961, 1963], [1963, 1972], [1961, 1963], [1972, 1980], [1963, 1972], undefined]);
+    expect(sheetOf('SY').times?.[1]).toMatchObject({ past: [1963, 1972], from: 1958, to: 1961 }); // The drawing has TWO stars.
+    expect(sheetOf('SY').times?.[4]).toMatchObject({ past: [1963, 1972], from: 1980, to: 2024 });
+    expect(sheetOf('SY').timeNote?.en).toContain('the 1963–1972 three-green-star flag are omitted');
+    expect(sheetOf('SY').flag?.adopted).toBe('2025-03-13'); // 2024 was only de facto state use.
+    expect(sheetOf('TW').times?.[0]).toMatchObject({ past: [1912, 1928], from: 1912 });
+    expect(sheetOf('TW').timeNote?.en).toContain('not a sequence of flags flown on the island');
+    expect(sheetOf('TW').flag).toMatchObject({ adopted: '1928-10-28', by: { en: 'Lu Haodong (canton) and Sun Yat-sen (red field)' } });
+    expect(sheetOf('VE').times?.[0]).toMatchObject({ past: [1817, 1899], from: 1811, to: 1812 });
+    expect(sheetOf('VE').times?.[1]).toMatchObject({ past: [1903, 1905], from: 1817, to: 1819 });
+    expect(sheetOf('VE').times?.[2]).toMatchObject({ past: [1905, 1917], from: 1830, to: 1836 });
+    expect(sheetOf('VE').times?.at(-2)).toMatchObject({ past: [1930, 1954], from: 1930, to: 2006 });
+    expect(sheetOf('VE').flag?.adopted).toBe('2006-03-09'); // Publication of the eight-star law.
+    expect(sheetOf('VE').timeNote?.en).toContain('not successive civil-to-state replacements');
+    expect(sheetOf('VE').times?.some((time) => time.from === 1859)).toBe(false); // Federalist rebel flags.
     // A contested occupation flag and a rejected proposal are not historical national flags.
     expect(sheetOf('KH').times?.some((time) => time.past?.[0] === 1942)).toBe(false);
     expect(sheetOf('IQ').times?.some((time) => time.name.en.includes('blue'))).toBe(false);

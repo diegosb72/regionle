@@ -1271,6 +1271,32 @@
       }
     ]
   },
+  "GQ": {
+    "source": "https://www.britannica.com/topic/flag-of-Equatorial-Guinea",
+    "note": {
+      "es": "La primera imagen solo representa la enseña izada en la independencia: se desconoce cuándo se añadió el escudo. No se muestra el escudo posterior de Macías, que no existe en el catálogo; FOTW sitúa el cambio en 1973 y Britannica en 1978. La bandera sin escudo también circula como variante civil y no se presenta como sustituto de la actual.",
+      "en": "The first drawing represents only the flag raised at independence: the date the arms were added is uncertain. Macías's later arms are not in the catalogue; FOTW dates their introduction to 1973 and Britannica to 1978. The plain flag also occurs as a civil variant and is not presented as replacing the current flag."
+    },
+    "times": [
+      {
+        "past": [1968, 1973], "from": 1968, "to": 1968,
+        "when": { "es": "Desde el 12 de octubre de 1968 · duración incierta", "en": "From 12 October 1968 · duration uncertain" },
+        "name": { "es": "La enseña izada al independizarse", "en": "The flag raised at independence" },
+        "text": {
+          "es": "Al independizarse de España, Guinea Ecuatorial izó la tricolor verde, blanca y roja con un triángulo azul, aún sin escudo. El escudo nacional se añadió más tarde, en una fecha que no se puede deducir del rango del dibujo del catálogo.",
+          "en": "At independence from Spain, Equatorial Guinea raised the green, white and red tricolour with a blue triangle, still without a coat of arms. The national arms were added later, on a date that cannot be inferred from the catalogue drawing's range."
+        }
+      },
+      {
+        "now": true, "from": 1979,
+        "name": { "es": "Restauración del escudo del árbol", "en": "The tree arms are restored" },
+        "text": {
+          "es": "El 21 de agosto de 1979 se restauró la bandera con el escudo del árbol de algodón de seda, desplazando al escudo empleado bajo Francisco Macías. Las seis estrellas del escudo representan el territorio continental y las islas principales.",
+          "en": "On 21 August 1979 the flag with the silk-cotton tree arms was restored, replacing the arms used under Francisco Macías. The six stars above the shield stand for the mainland territory and the principal islands."
+        }
+      }
+    ]
+  },
   "GR": {
     "source": "https://en.wikipedia.org/wiki/Flag_of_Greece",
     "note": {
@@ -1305,6 +1331,39 @@
         "text": {
           "es": "La ley del 22 de diciembre de 1978 fijó como bandera nacional la antigua enseña de mar: cinco franjas azules y cuatro blancas, con una cruz blanca en el cantón azul. La cruz simple no desapareció por completo, pero quedó para usos militares y especiales.",
           "en": "The law of 22 December 1978 made the former sea ensign the national flag: five blue stripes and four white, with a white cross in the blue canton. The plain cross did not vanish altogether, but was retained for military and other special uses."
+        }
+      }
+    ]
+  },
+  "HN": {
+    "source": "https://en.wikipedia.org/wiki/Flag_of_Honduras",
+    "note": {
+      "es": "No se incluyen las banderas de las federaciones centroamericanas como si fueran enseñas hondureñas propias, ni la variante no oficial de estrellas doradas. El decreto de 1949 prescribe el azul turquesa, aunque durante décadas se usó también el azul oscuro; el Gobierno volvió a emplear turquesa en 2022 y azul oscuro en 2026. Son diferencias de tono y uso, no nuevas adopciones de banderas nacionales.",
+      "en": "The Central American federations' flags are not treated as separate Honduran flags, nor is the unofficial gold-star variant. The 1949 decree prescribes turquoise, though navy blue was widely flown for decades; the government returned to turquoise in 2022 and to navy blue in 2026. These are differences in shade and usage, not new adoptions of national flags."
+    },
+    "times": [
+      {
+        "past": [1839, 1866], "from": 1839, "to": 1866,
+        "name": { "es": "La tricolor sin estrellas", "en": "The starless tricolour" },
+        "text": {
+          "es": "Tras separarse de la federación centroamericana, Honduras mantuvo las tres franjas azules y blancas, pero sin las armas de la antigua unión. Este dibujo representa su bandera propia anterior a las cinco estrellas.",
+          "en": "After separating from the Central American federation, Honduras kept the blue and white stripes without the former union's arms. This drawing represents its own flag before the five stars were added."
+        }
+      },
+      {
+        "past": [1866, 1898], "from": 1866, "to": 1949,
+        "name": { "es": "Cinco estrellas para Centroamérica", "en": "Five stars for Central America" },
+        "text": {
+          "es": "El decreto del 16 de febrero de 1866 creó una bandera hondureña con cinco estrellas azules por los Estados de la antigua federación. El dibujo muestra una disposición histórica de las estrellas: hubo otras antes de que se fijase la actual; las estrellas amarillas catalogadas son una variante no declarada oficial.",
+          "en": "The decree of 16 February 1866 created a Honduran flag with five blue stars for the former federation's states. This drawing shows one historical arrangement: others existed before today's layout was fixed; the catalogue's yellow-star design was never declared official."
+        }
+      },
+      {
+        "now": true, "from": 1949,
+        "name": { "es": "La disposición y el turquesa de la ley", "en": "The statutory layout and turquoise" },
+        "text": {
+          "es": "El decreto del 18 de enero de 1949, publicado el día 26, precisó la posición de las cinco estrellas y el azul turquesa de franjas y estrellas. La imagen muestra esa descripción legal; el uso frecuente de azul marino, incluido su regreso en actos oficiales en 2026, no anuló el decreto ni creó otra bandera nacional.",
+          "en": "The decree of 18 January 1949, published on the 26th, specified the five stars' positions and turquoise for the stripes and stars. This drawing follows the legal description; widespread navy-blue use, including its return to official ceremonies in 2026, did not repeal the decree or create another national flag."
         }
       }
     ]
@@ -2480,6 +2539,63 @@
       }
     ]
   },
+  "RS": {
+    "source": "https://en.wikipedia.org/wiki/Flag_of_Serbia",
+    "note": {
+      "es": "La primera imagen es una tricolor civil, no la bandera estatal con escudo y marcas de vasallaje otomano usada desde 1839; la primera enseña constitucional de 1835 tuvo otros colores y no se muestra. Entre 1918 y la posguerra Serbia no fue un Estado independiente con bandera nacional separada. Las enseñas de 1947 y 1992 son de una república integrante de Yugoslavia; la tricolor civil también siguió usándose en épocas con bandera estatal con escudo.",
+      "en": "The first drawing is a civil tricolour, not the 1839 state flag with arms and marks of Ottoman suzerainty; the short-lived constitutional flag of 1835 had different colours and is omitted. From 1918 until after World War II Serbia was not an independent state with its own national flag. The 1947 and 1992 drawings belong to a Yugoslav constituent republic; the civil tricolour also continued alongside armorial state flags."
+    },
+    "times": [
+      {
+        "past": [1835, 1882], "from": 1839, "to": 1882,
+        "name": { "es": "La tricolor civil del principado", "en": "The principality's civil tricolour" },
+        "text": {
+          "es": "La secuencia roja, azul y blanca se consolidó en el principado autónomo de Serbia bajo soberanía otomana. Esta es la versión civil sin escudo; la estatal del principado llevaba además símbolos de su situación política.",
+          "en": "Red, blue and white became established in the autonomous Principality of Serbia under Ottoman sovereignty. This is the civil flag without arms; the principality's state flag also bore symbols of its political status."
+        }
+      },
+      {
+        "past": [1882, 1918], "from": 1882, "to": 1918,
+        "name": { "es": "El escudo del reino", "en": "The kingdom's coat of arms" },
+        "text": {
+          "es": "Al proclamarse el Reino de Serbia en 1882, la bandera estatal incorporó las nuevas armas reales sobre la tricolor. La bandera civil, sin escudo, coexistió con ella; esta imagen es la enseña estatal del reino.",
+          "en": "When the Kingdom of Serbia was proclaimed in 1882, its state flag added the new royal arms to the tricolour. A plain civil flag existed alongside it; this drawing shows the kingdom's state flag."
+        }
+      },
+      {
+        "past": [1946, 1992], "from": 1947, "to": 1992,
+        "name": { "es": "La estrella de la república yugoslava", "en": "The Yugoslav republic's star" },
+        "text": {
+          "es": "La república serbia dentro de la federación yugoslava usó la tricolor roja, azul y blanca con una estrella roja bordeada de amarillo. No era la bandera de Yugoslavia ni la de una Serbia independiente.",
+          "en": "The Serbian republic within the Yugoslav federation flew the red, blue and white tricolour with a yellow-edged red star. It was neither Yugoslavia's flag nor that of an independent Serbia."
+        }
+      },
+      {
+        "past": [1992, 2004], "from": 1992, "to": 2004,
+        "name": { "es": "Se retira la estrella", "en": "The star is removed" },
+        "text": {
+          "es": "En 1992 la república de Serbia dejó de llevar la estrella en su propia bandera y conservó las tres franjas. Aún formaba parte de la República Federal de Yugoslavia, después llamada Serbia y Montenegro: su enseña no sustituyó a la de la federación.",
+          "en": "In 1992 the Republic of Serbia removed the star from its own flag and retained the three stripes. It still belonged to the Federal Republic of Yugoslavia, later Serbia and Montenegro: its flag did not replace the federation's."
+        }
+      },
+      {
+        "past": [2004, 2010], "from": 2004, "to": 2010,
+        "name": { "es": "Vuelve el escudo a la bandera estatal", "en": "The arms return to the state flag" },
+        "text": {
+          "es": "El 17 de agosto de 2004 se recomendó la nueva bandera estatal roja, azul y blanca con el escudo menor junto al asta; la civil siguió sin escudo. Serbia mantuvo estas enseñas al independizarse de la unión con Montenegro en 2006.",
+          "en": "On 17 August 2004 the new red, blue and white state flag with the lesser arms near the hoist was recommended; the civil flag remained plain. Serbia kept these flags on becoming independent from the union with Montenegro in 2006."
+        }
+      },
+      {
+        "now": true, "from": 2010,
+        "name": { "es": "Se normalizan el escudo y los colores", "en": "The arms and colours are standardised" },
+        "text": {
+          "es": "En 2010 se ajustaron el dibujo del escudo y los colores de la bandera estatal. La enseña civil sin escudo sigue siendo una versión simultánea, no una etapa anterior a la actual.",
+          "en": "In 2010 the state flag's arms and colours were standardised. The plain civil flag remains a simultaneous version, not an earlier stage replaced by today's flag."
+        }
+      }
+    ]
+  },
   "RU": {
     "source": "https://en.wikipedia.org/wiki/Flag_of_Russia",
     "note": {
@@ -2732,6 +2848,64 @@
       }
     ]
   },
+  "SY": {
+    "source": "https://en.wikipedia.org/wiki/Flag_of_Syria",
+    "note": {
+      "es": "Se omiten algunas enseñas del mandato francés y la de tres estrellas verdes de 1963–1972, cuyo dibujo no existe en el catálogo. La imagen catalogada como 1963–1972 tiene en realidad DOS estrellas: se usa aquí para la República Árabe Unida (Siria y Egipto) en 1958–1961 y para la bandera siria recuperada en 1980–2024, no como prueba de una bandera de 1963. La tricolor de tres estrellas rojas fue de la oposición desde 2011, no sustituyó entonces a la enseña del Gobierno; se empleó de facto desde diciembre de 2024 y quedó definida por el artículo 6 de la Declaración Constitucional de marzo de 2025.",
+      "en": "Some French-mandate flags and the 1963–1972 three-green-star flag are omitted: the latter drawing is absent from the catalogue. The image catalogued as 1963–1972 actually has TWO stars, so it illustrates the 1958–1961 United Arab Republic (Syria and Egypt) and Syria's readopted 1980–2024 flag, not a supposed 1963 flag. The three-red-star tricolour was used by the opposition from 2011, not as a replacement for the government flag then; it came into de facto state use in December 2024 and was defined in Article 6 of the March 2025 Constitutional Declaration."
+    },
+    "times": [
+      {
+        "past": [1961, 1963], "from": 1930, "to": 1958,
+        "name": { "es": "Tres estrellas rojas para la república", "en": "Three red stars for the republic" },
+        "text": {
+          "es": "La constitución siria de mayo de 1930 estableció la tricolor verde, blanca y negra con tres estrellas rojas, todavía bajo mandato francés. Siguió siendo la bandera del país tras la independencia plena de 1946 hasta la unión con Egipto en 1958; el dibujo del catálogo también sirve para su restablecimiento en 1961.",
+          "en": "Syria's May 1930 constitution established the green, white and black tricolour with three red stars while still under French mandate. It remained the country's flag after full independence in 1946 until union with Egypt in 1958; the same catalogue drawing also represents its restoration in 1961."
+        }
+      },
+      {
+        "past": [1963, 1972], "from": 1958, "to": 1961,
+        "name": { "es": "La bandera de la unión con Egipto", "en": "The union flag shared with Egypt" },
+        "text": {
+          "es": "Al unirse Siria y Egipto en la República Árabe Unida en 1958, la nueva enseña común llevó dos estrellas verdes por sus dos partes. Es la bandera de esa unión de Estados, no un diseño sirio independiente ni la enseña de tres estrellas verdes de 1963.",
+          "en": "When Syria and Egypt formed the United Arab Republic in 1958, its shared flag carried two green stars for the two parts. It is the union's flag, not a separate Syrian design or the three-green-star flag introduced in 1963."
+        }
+      },
+      {
+        "past": [1961, 1963], "from": 1961, "to": 1963,
+        "name": { "es": "Vuelve la bandera de 1930", "en": "The 1930 flag returns" },
+        "text": {
+          "es": "Tras la separación de la República Árabe Unida en septiembre de 1961, Siria volvió a usar la enseña verde, blanca y negra de tres estrellas rojas. En 1963 se sustituyó por otra bandera, con tres estrellas verdes sobre rojo, blanco y negro, que esta selección no dibuja.",
+          "en": "After leaving the United Arab Republic in September 1961, Syria returned to the green, white and black flag with three red stars. In 1963 it was replaced by a DIFFERENT flag with three green stars on red, white and black; this selection has no drawing of that flag."
+        }
+      },
+      {
+        "past": [1972, 1980], "from": 1972, "to": 1980,
+        "name": { "es": "El halcón de la federación", "en": "The federation's hawk" },
+        "text": {
+          "es": "En enero de 1972 Siria adoptó una bandera roja, blanca y negra con el halcón de Quraysh al integrarse en la Federación de Repúblicas Árabes. Continuó usándola después de la disolución de la federación en 1977, hasta 1980.",
+          "en": "In January 1972 Syria adopted a red, white and black flag with the Hawk of Quraish on joining the Federation of Arab Republics. It continued to use the flag after the federation dissolved in 1977, until 1980."
+        }
+      },
+      {
+        "past": [1963, 1972], "from": 1980, "to": 2024,
+        "name": { "es": "Regresan las dos estrellas verdes", "en": "The two green stars return" },
+        "text": {
+          "es": "El 29 de marzo de 1980 Siria recuperó para su bandera nacional las dos estrellas verdes de la antigua enseña de la República Árabe Unida, aunque aquella unión ya no existía. Este fue el símbolo del Gobierno sirio hasta diciembre de 2024, mientras la oposición empleaba el de tres estrellas rojas.",
+          "en": "On 29 March 1980 Syria brought the former United Arab Republic flag's two green stars back to its national flag, although the union no longer existed. It represented the Syrian government until December 2024 while the opposition flew the three-red-star flag."
+        }
+      },
+      {
+        "now": true, "from": 2024,
+        "when": { "es": "De facto desde diciembre de 2024; oficial desde marzo de 2025", "en": "De facto since December 2024; official since March 2025" },
+        "name": { "es": "Tres estrellas rojas, de nuevo", "en": "Three red stars return" },
+        "text": {
+          "es": "Tras la caída del gobierno de Asad el 8 de diciembre de 2024, la tricolor verde, blanca y negra usada por la oposición pasó a emplearse como enseña estatal. El artículo 6 de la Declaración Constitucional del 13 de marzo de 2025 fijó las tres estrellas rojas y la proporción 2:3; evoca el modelo de 1930, originalmente de proporción 1:2.",
+          "en": "After the fall of the Assad government on 8 December 2024, the opposition's green, white and black tricolour came into state use. Article 6 of the Constitutional Declaration of 13 March 2025 specified three red stars and a 2:3 ratio; it recalls the 1930 design, originally in a 1:2 ratio."
+        }
+      }
+    ]
+  },
   "TG": {
     "source": "https://www.crwflags.com/fotw/flags/tg-1957.html",
     "note": {
@@ -2833,6 +3007,32 @@
       }
     ]
   },
+  "TW": {
+    "source": "https://en.wikipedia.org/wiki/Flag_of_the_Republic_of_China",
+    "note": {
+      "es": "Esta es la historia de la bandera de la República de China, hoy usada en Taiwán, no una sucesión de banderas que ondearon en la isla. La enseña de cinco colores pertenecía a su gobierno en China continental entre 1912 y 1928; Taiwán estuvo bajo dominio japonés hasta 1945. La bandera roja fue enseña naval antes de hacerse nacional en 1928 y llegó a la isla en 1945. No se muestran banderas del período colonial ni propuestas de independencia.",
+      "en": "This is the history of the Republic of China's flag, now flown in Taiwan, not a sequence of flags flown on the island. The five-colour flag belonged to its government on the mainland in 1912–1928; Taiwan was under Japanese rule until 1945. The red flag was a naval ensign before becoming national in 1928 and came into use on the island in 1945. Colonial flags and independence proposals are omitted."
+    },
+    "times": [
+      {
+        "past": [1912, 1928], "from": 1912, "to": 1928,
+        "name": { "es": "Los cinco colores de la república", "en": "The republic's five colours" },
+        "text": {
+          "es": "La República de China adoptó en el continente una bandera con cinco franjas horizontales en 1912. Era su enseña nacional antes de la adopción de la bandera roja del sol blanco; no representaba entonces a Taiwán, que se hallaba bajo administración japonesa.",
+          "en": "The Republic of China adopted a five-stripe flag on the mainland in 1912. It was its national flag before adoption of the red flag with the white sun; it did not represent Taiwan at the time, when the island was under Japanese rule."
+        }
+      },
+      {
+        "now": true, "from": 1928,
+        "when": { "es": "De la República de China desde 1928; en Taiwán desde 1945", "en": "Republic of China since 1928; in Taiwan since 1945" },
+        "name": { "es": "El sol blanco sobre campo rojo", "en": "The white sun on a red field" },
+        "text": {
+          "es": "El gobierno nacionalista convirtió en bandera nacional de la República de China la enseña roja con cantón azul y sol blanco de doce rayos el 28 de octubre de 1928. El sol procedía del diseño de Lu Haodong y el campo rojo fue añadido por Sun Yat-sen; el uso de esta bandera en Taiwán comenzó al terminar el dominio japonés en 1945.",
+          "en": "The Nationalist government made the red flag with a blue canton and twelve-rayed white sun the Republic of China's national flag on 28 October 1928. Lu Haodong had designed the sun and Sun Yat-sen added the red field; its use in Taiwan began when Japanese rule ended in 1945."
+        }
+      }
+    ]
+  },
   "UA": {
     "source": "https://en.wikipedia.org/wiki/Flag_of_Ukraine",
     "note": {
@@ -2927,6 +3127,80 @@
         "text": {
           "es": "Hawái ingresó en la Unión en agosto de 1959 y su estrella apareció en la bandera el 4 de julio de 1960. Desde entonces hay cincuenta estrellas, una por Estado, y siguen las trece franjas de los primeros. Es la versión nacional vigente más larga de la historia estadounidense.",
           "en": "Hawaii joined the Union in August 1959 and its star appeared on the flag on 4 July 1960. There have since been fifty stars, one per state, and the original thirteen stripes remain. It is the longest-serving version in US history."
+        }
+      }
+    ]
+  },
+  "VE": {
+    "source": "https://en.wikipedia.org/wiki/Flag_of_Venezuela",
+    "note": {
+      "es": "Selección, no sucesión ininterrumpida: se omiten los cambios de poder durante la guerra de independencia y las banderas de la Gran Colombia (1819–1830). Los rangos técnicos del catálogo trasladan dibujos de 1811, 1817 y 1830 al siglo XX; aquí llevan los años de su uso histórico. Se muestran enseñas estatales con escudo en 1830 y 1836 y modelos sin él en otras etapas, NO sustituciones entre bandera civil y estatal. Las enseñas federalistas de 1859 eran de los rebeldes, no reemplazaron a la bandera del gobierno; la reforma de 1954 afectó además a las versiones estatales y mercantes.",
+      "en": "A selection, not a continuous succession: wartime changes of control and Gran Colombia's flags (1819–1830) are omitted. The catalogue's technical ranges place drawings from 1811, 1817 and 1830 in the twentieth century; the historical dates are used here. Armorial state flags are shown for 1830 and 1836 and unarmorial versions in other periods; they were not successive civil-to-state replacements. The federalist flags of 1859 belonged to rebels and did not displace the government's flag; the 1954 reform also affected state and merchant versions."
+    },
+    "times": [
+      {
+        "past": [1817, 1899], "from": 1811, "to": 1812,
+        "name": { "es": "La tricolor de la primera república", "en": "The first republic's tricolour" },
+        "text": {
+          "es": "En 1811 la primera república venezolana hizo suya la tricolor amarilla, azul y roja, con franjas de distinta altura y un emblema en el cantón blanco. Este dibujo representa aquella primera enseña; no estuvo vigente sin interrupción hasta el año 1899 que figura en el catálogo.",
+          "en": "In 1811 Venezuela's first republic adopted the yellow, blue and red tricolour, with unequal bands and an emblem in a white canton. This drawing represents that early flag; it did not remain in continuous use until the catalogue's 1899 date."
+        }
+      },
+      {
+        "past": [1903, 1905], "from": 1817, "to": 1819,
+        "name": { "es": "La octava estrella de Angostura", "en": "Angostura's eighth star" },
+        "text": {
+          "es": "En noviembre de 1817 Simón Bolívar decretó añadir una octava estrella azul a las siete de la franja amarilla, para reconocer la incorporación de Guayana. La bandera de Angostura corresponde a la república insurgente, antes de la creación de la Gran Colombia.",
+          "en": "In November 1817 Simón Bolívar decreed an eighth blue star beside the seven on the yellow band, marking Guayana's incorporation. The Angostura flag belonged to the insurgent republic before Gran Colombia was formed."
+        }
+      },
+      {
+        "past": [1905, 1917], "from": 1830, "to": 1836,
+        "name": { "es": "El escudo tras la separación", "en": "Arms after separation" },
+        "text": {
+          "es": "Al separarse de la Gran Colombia en 1830, Venezuela empleó una tricolor estatal con un escudo propio en el centro. Es un ejemplo de la enseña del nuevo gobierno; las versiones civiles sin escudo no fueron abolidas por esta imagen.",
+          "en": "After separating from Gran Colombia in 1830, Venezuela used a state tricolour with its own arms at the centre. This shows a version flown by the new government; plain civil versions were not abolished by it."
+        }
+      },
+      {
+        "past": [1917, 1920], "from": 1836, "to": 1863,
+        "name": { "es": "Franjas iguales y armas nuevas", "en": "Equal stripes and new arms" },
+        "text": {
+          "es": "La ley de abril de 1836 fijó tres franjas iguales y nuevas armas para las banderas de uso oficial. La tricolor civil sin escudo coexistía; durante la Guerra Federal las banderas de las fuerzas rebeldes no sustituyeron a la de este gobierno.",
+          "en": "The April 1836 law specified three equal stripes and new arms for official-use flags. A plain civil tricolour coexisted; during the Federal War, rebel banners did not replace this government's flag."
+        }
+      },
+      {
+        "past": [1926, 1927], "from": 1863, "to": 1905,
+        "name": { "es": "Siete estrellas blancas", "en": "Seven white stars" },
+        "text": {
+          "es": "En julio de 1863 el gobierno de Juan Crisóstomo Falcón dispuso siete estrellas blancas en el centro de la franja azul, seis alrededor de la séptima. Este dibujo sin escudo representa una versión de uso civil; la enseña estatal llevaba además las armas.",
+          "en": "In July 1863 Juan Crisóstomo Falcón's government placed seven white stars in the blue stripe, six around the seventh. This plain drawing represents a civil version; the state flag also displayed the arms."
+        }
+      },
+      {
+        "past": [1927, 1930], "from": 1905, "to": 1930,
+        "name": { "es": "Las estrellas forman un círculo", "en": "The stars form a circle" },
+        "text": {
+          "es": "En marzo de 1905 se ordenó colocar en círculo las siete estrellas, conservando las franjas amarilla, azul y roja. La imagen es una versión sin escudo; no reemplazó por sí sola a la enseña estatal con armas.",
+          "en": "In March 1905 the seven stars were ordered into a circle while the yellow, blue and red stripes remained. This drawing is an unarmorial version; it did not by itself replace the state's flag with arms."
+        }
+      },
+      {
+        "past": [1930, 1954], "from": 1930, "to": 2006,
+        "when": { "es": "1930–2006 · versión de siete estrellas", "en": "1930–2006 · seven-star version" },
+        "name": { "es": "El arco de siete estrellas", "en": "An arc of seven stars" },
+        "text": {
+          "es": "En julio de 1930 las siete estrellas se dispusieron en arco. Este dibujo sin escudo circuló ampliamente; la ley de 1954 distinguió además la enseña civil sin estrellas, la mercante con ellas y la estatal con escudo. Esas versiones coexistían: no fueron reemplazos sucesivos.",
+          "en": "In July 1930 the seven stars were set in an arc. This unarmorial drawing was widely used; the 1954 law also distinguished the starless civil flag, the starred merchant flag and the state flag with arms. These versions coexisted rather than replacing one another."
+        }
+      },
+      {
+        "now": true, "from": 2006,
+        "name": { "es": "La octava estrella regresa", "en": "The eighth star returns" },
+        "text": {
+          "es": "La ley publicada el 9 de marzo de 2006 situó ocho estrellas blancas en arco en la franja azul, recuperando para Guayana la estrella decretada en 1817. La imagen muestra la bandera sin escudo; la que usan las instituciones estatales añade el escudo en la franja amarilla.",
+          "en": "The law published on 9 March 2006 placed eight white stars in an arc on the blue band, restoring the star decreed for Guayana in 1817. This drawing lacks arms; the version used by state institutions adds the coat of arms to the yellow band."
         }
       }
     ]

@@ -59,8 +59,8 @@ La fecha de adopción solo se da sola cuando Wikidata y una ficha de Wikipedia c
 se toma el primer día que dan las dos fichas, y si tampoco, nada. Estos se han puesto a mano:
 
 - **AD** 1866 · **CU** 20-5-1902 · **CX** 26-1-2002 · **EC** 26-9-1860 (Wikidata da 1830, la bandera de la
-  Gran Colombia) · **HN** 16-2-1866 · **PR** 24-7-1952 · **RS** 17-8-2004, como es hoy desde el 11-11-2010 ·
-  **SV** 27-5-1912 · **TW** 1928.
+  Gran Colombia) · **HN** 16-2-1866 (diseño original con estrellas; normalizado en 1949) · **PR** 24-7-1952 ·
+  **RS** 17-8-2004, como es hoy desde el 11-11-2010 · **SV** 27-5-1912.
 - **AS**: 17-4-1960, día en que se izó la bandera territorial de Samoa Estadounidense, según la historia de
   su bandera; las fuentes traídas daban por error el 27 de abril.
 - **MR**: 25-10-2017, fecha del decreto de la bandera con franjas rojas, según la historia de la bandera de
@@ -77,6 +77,36 @@ se toma el primer día que dan las dos fichas, y si tampoco, nada. Estos se han 
   adopción. Wikipedia la sitúa en 1831 y Britannica en 1835; se ocultan ambas entradillas de Wikipedia
   sobre la bandera porque afirman sin reservas una de esas fechas. La cronología fecha solo el siglo y
   distingue la ley que precisó el dibujo en 1999 de la creación de la bandera.
+- **GQ**: se oculta la entradilla española, que fecha sin matices el cambio del escudo en 1973:
+  [FOTW](https://www.crwflags.com/fotw/flags/gq_1973.html) da ese año, mientras
+  [Britannica](https://www.britannica.com/topic/flag-of-Equatorial-Guinea) lo sitúa en 1978. Ambas
+  coinciden en el izado de la bandera sin escudo en 1968 y la restauración del escudo del árbol el 21-8-1979;
+  no se atribuye una fecha de fin a la imagen de la independencia.
+- **HN**: se conserva el 16-2-1866 para la incorporación de las cinco estrellas
+  ([Britannica](https://www.britannica.com/topic/flag-of-Honduras)); se añade `changed: 1949-01-26`,
+  publicación del decreto de 18-1-1949 que fija su disposición y el turquesa. Se oculta la entradilla
+  inglesa, que afirma sin matices que las franjas son azul marino aunque el dibujo que usa el juego sigue
+  la norma turquesa: en 2022 volvió a usarse en actos oficiales y en enero de 2026 el Congreso recuperó
+  el azul oscuro, sin que conste la derogación del decreto de 1949
+  ([La Prensa, 25-1-2026](https://www.laprensa.hn/fotogalerias/honduras/honduras-congreso-nacional-regresa-color-azul-marino-bandera-nacional-OO29055391);
+  [El Heraldo, 23-1-2026](https://www.elheraldo.hn/honduras/cambia-color-bandera-honduras-vuelve-azul-marino-congreso-nacional-PI29037459)).
+- **RS**: se corta la entradilla española antes de la anécdota no verificada que sitúa una delegación a
+  Rusia antes del primer levantamiento serbio; se conservan la descripción y el enlace a Wikipedia. La
+  versión civil sin escudo no es una etapa posterior a la estatal con armas
+  ([Britannica](https://www.britannica.com/topic/flag-of-Serbia)).
+- **SY**: 13-3-2025 es la adopción *oficial* del diseño de tres estrellas rojas según el
+  [artículo 6 de la Declaración Constitucional](https://constitutionnet.org/sites/default/files/2025-03/2025.03.13%20-%20Constitutional%20declaration%20(English).pdf).
+  El 8-12-2024 fue su vuelta al uso estatal *de facto*, no la fecha de su definición constitucional;
+  la cronología distingue ambas y reutiliza los dibujos de 1930 y 1958 para sus dos etapas históricas.
+- **TW**: 28-10-1928 es la adopción de la bandera roja por la República de China en el continente;
+  en Taiwán se usa desde 1945, no desde 1928. La entradilla de
+  [su bandera](https://en.wikipedia.org/wiki/Flag_of_the_Republic_of_China) atribuye a Lu Haodong el
+  sol del cantón y a Sun Yat-sen el campo rojo: se nombran ambos en lugar de atribuirle a uno el conjunto.
+- **VE**: 9-3-2006 es la fecha de publicación en la Gaceta Oficial n.º 38.394 de la
+  [ley que fija ocho estrellas en arco](https://es.wikisource.org/wiki/Ley_de_Bandera_Nacional,_Himno_Nacional_y_Escudo_de_Armas_de_la_Rep%C3%BAblica_Bolivariana_de_Venezuela),
+  aprobada el día 7; no se confunde con su primer izado posterior. Las banderas federalistas de 1859
+  fueron enseñas de los rebeldes, no sustituyeron a las del Gobierno
+  ([FOTW](https://www.crwflags.com/fotw/flags/ve-hist4.html)).
 - **DK**: se quita; la fecha de las fichas (15-6-1219) es la de la leyenda.
 - **AR**: proporción 9:14, la oficial (Wikidata y la ficha en inglés dan 5:8).
 - **KP**: se quita el diseñador (atribución discutida). La proporción 20:33 es la de las dos fichas, que

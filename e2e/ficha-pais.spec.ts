@@ -912,13 +912,14 @@ test.describe('the sheet of a country without a complete handwritten account', (
 
   test('keeps the simple past-flags gallery where no history has been written', async ({ page }) => {
     await seed(page);
-    const sheet = await openSheet(page, '/banderas/paises/VE');
+    // Tuvalu still lacks the 1995–1997 flag without a Union Jack, so it has no researched timeline yet.
+    const sheet = await openSheet(page, '/banderas/paises/TV');
     const flown = sheet.locator('.fp-flown');
     await expect(sheet.locator('.fp-times')).toHaveCount(0);
-    await expect(flown.locator('ol > li')).toHaveCount(FLAGS.past.VE.length + 1);
+    await expect(flown.locator('ol > li')).toHaveCount(FLAGS.past.TV.length + 1);
     await expect(flown.locator('.fp-when').last()).toHaveText('Hoy');
     await expect(flown.locator('.fp-note')).toHaveText('Son las banderas anteriores que recoge Wikidata, con los años en que ondeó cada una; puede faltar alguna.');
-    await expect(flown.locator('li.fp-now img')).toHaveAttribute('src', /flags\/ve\.svg$/);
+    await expect(flown.locator('li.fp-now img')).toHaveAttribute('src', /flags\/tv\.svg$/);
   });
 
   for (const [group, ids] of [
@@ -935,6 +936,7 @@ test.describe('the sheet of a country without a complete handwritten account', (
     ['first four of the sixth batch', ['BB', 'GA', 'GG', 'JE']],
     ['next four of the sixth batch', ['KM', 'KW', 'LC', 'LS']],
     ['last four of the sixth batch', ['MY', 'RW', 'TG', 'TN']],
+    ['six of the seventh batch', ['GQ', 'HN', 'RS', 'SY', 'TW', 'VE']],
   ] as const) {
     test(`shows the ${group} researched histories with the actual catalogue drawings and a source`, async ({ page }) => {
       await seed(page);
@@ -1085,6 +1087,55 @@ test.describe('the sheet of a country without a complete handwritten account', (
     await expect(times.getByRole('link', { name: 'See the source' })).toHaveAttribute('href', 'https://www.crwflags.com/fotw/flags/tg-1957.html');
   });
 
+  test('keeps legal dates, the wrong Syrian catalogue range and mainland ROC history distinct', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    const sheet = await openSheet(page, '/flags/countries/SY');
+    const times = sheet.locator('.fp-times');
+    await expect(times.locator('ol > li')).toHaveCount(6);
+    await expect(times.locator('.fp-when').last()).toHaveText('De facto since December 2024; official since March 2025');
+    await expect(times.locator('li').nth(1).locator('img')).toHaveAttribute('src', /flags\/commons\/6ee3d471b4\.svg$/);
+    await expect(times.locator('li').nth(4).locator('img')).toHaveAttribute('src', /flags\/commons\/6ee3d471b4\.svg$/);
+    await expect(times.locator('.fp-note')).toContainText('actually has TWO stars');
+    await expect(times.locator('.fp-note')).toContainText('three-green-star flag are omitted');
+    await openSheet(page, '/flags/countries/TW');
+    await expect(times.locator('li')).toHaveCount(2);
+    await expect(times.locator('.fp-when').last()).toHaveText('Republic of China since 1928; in Taiwan since 1945');
+    await expect(times.locator('.fp-note')).toContainText('not a sequence of flags flown on the island');
+    await openSheet(page, '/flags/countries/HN');
+    await expect(times.locator('li')).toHaveCount(3);
+    await expect(times.locator('.fp-note')).toContainText('not new adoptions of national flags');
+    await expect(sheet.locator('.fp-flagsec .fp-lead')).toHaveCount(0); // Wikipedia's English navy-blue claim is not the statutory turquoise.
+    await expect(times.locator('.fp-when').last()).toHaveText('Since 1949');
+    await openSheet(page, '/flags/countries/VE');
+    await expect(times.locator('.fp-when').first()).toHaveText('1811–1812');
+    await expect(times.locator('.fp-when').nth(6)).toHaveText('1930–2006 · seven-star version');
+    await expect(times.locator('.fp-note')).toContainText('not successive civil-to-state replacements');
+    await openSheet(page, '/flags/countries/RS');
+    await expect(times.locator('.fp-when').first()).toHaveText('1839–1882');
+    await expect(times.locator('.fp-note')).toContainText('constituent republic');
+    await openSheet(page, '/flags/countries/GQ');
+    await expect(times.locator('.fp-when').first()).toHaveText('From 12 October 1968 · duration uncertain');
+    await expect(times.locator('.fp-note')).toContainText('FOTW dates their introduction to 1973 and Britannica to 1978');
+  });
+
+  test('keeps the sixth and seventh batches’ disputed flag dates distinct from Wikipedia in Spanish', async ({ page }) => {
+    await seed(page);
+    const sheet = await openSheet(page, '/banderas/paises/GQ');
+    const times = sheet.locator('.fp-times');
+    await expect(sheet.locator('.fp-flagsec .fp-lead')).toHaveCount(0);
+    await expect(sheet.locator('.fp-flagsec .fp-more a')).toHaveAttribute('href', sheetFile('GQ').readFlag!.es!);
+    await expect(times.locator('.fp-when').first()).toHaveText('Desde el 12 de octubre de 1968 · duración incierta');
+    await openSheet(page, '/banderas/paises/SY');
+    await expect(sheet.locator('.fp-flag-facts dd').first()).toContainText('13 de marzo de 2025');
+    await expect(times.locator('.fp-note')).toContainText('La imagen catalogada como 1963–1972 tiene en realidad DOS estrellas');
+    await openSheet(page, '/banderas/paises/HN');
+    await expect(sheet.locator('.fp-flag-facts dd').first()).toContainText('16 de febrero de 1866');
+    await expect(times.locator('.fp-time-text').last()).toContainText('no anuló el decreto');
+    await openSheet(page, '/banderas/paises/VE');
+    await expect(sheet.locator('.fp-flag-facts dd').first()).toContainText('9 de marzo de 2006');
+    await expect(times.locator('.fp-note')).toContainText('Los rangos técnicos del catálogo');
+  });
+
   test('does not display disputed adoption days as verified flag facts or Wikipedia quotations', async ({ page }) => {
     await seed(page);
     const sheet = await openSheet(page, '/banderas/paises/JE');
@@ -1114,6 +1165,26 @@ test.describe('the sheet of a country without a complete handwritten account', (
       await expect(flag).toHaveAttribute('src', new RegExp(`flags/commons/${file}\\.svg$`));
       await expect.poll(() => drawn(flag)).toBe(true);
     }
+    expect(await sheet.locator('.dlg-box').evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(0);
+  });
+
+  test('reads the restored Syrian flag and the Venezuelan selection on a phone @movil', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    const sheet = await openSheet(page, '/flags/countries/SY');
+    const times = sheet.locator('.fp-times');
+    await expect(times.locator('li')).toHaveCount(6);
+    const earlier = times.locator('li').nth(1).locator('img');
+    await earlier.scrollIntoViewIfNeeded();
+    await expect(earlier).toHaveAttribute('src', /flags\/commons\/6ee3d471b4\.svg$/);
+    await expect.poll(() => drawn(earlier)).toBe(true);
+    await expect(times.locator('.fp-note')).toContainText('actually has TWO stars');
+    expect(await sheet.locator('.dlg-box').evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(0);
+    await openSheet(page, '/flags/countries/VE');
+    await expect(times.locator('li')).toHaveCount(8);
+    const first = times.locator('li').first().locator('img');
+    await first.scrollIntoViewIfNeeded();
+    await expect(first).toHaveAttribute('src', /flags\/commons\/062bf47947\.svg$/);
+    await expect.poll(() => drawn(first)).toBe(true);
     expect(await sheet.locator('.dlg-box').evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(0);
   });
 
