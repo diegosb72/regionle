@@ -1,5 +1,39 @@
 {
   "_": "Cronologías investigadas para las fichas. Cada `past` señala una imagen del catálogo, NO sus fechas: `pastFile` la distingue cuando dos tienen los mismos años técnicos; `from` y `to` son los años contrastados que se muestran. `gone` identifica la bandera de un Estado anterior. Las fuentes principales están enlazadas en cada ficha; los pabellones y las variantes se nombran como tales, y se explican las etapas omitidas.",
+  "AG": {
+    "source": "https://en.wikipedia.org/wiki/Flag_of_Antigua_and_Barbuda",
+    "note": {
+      "es": "Los dos pabellones azules son enseñas del territorio bajo dominio británico, no banderas de un Estado independiente. La fecha inicial del primero, hacia 1956, es aproximada. La independencia de 1981 no cambió la bandera adoptada en 1967.",
+      "en": "The two Blue Ensigns represent the territory under British rule, not an independent state's flags. The first design's starting date, around 1956, is approximate. Independence in 1981 did not change the flag adopted in 1967."
+    },
+    "times": [
+      {
+        "past": [1956, 1962], "from": 1956, "to": 1962,
+        "when": { "es": "Hacia 1956–1962", "en": "Around 1956–1962" },
+        "name": { "es": "El pabellón azul de la colonia", "en": "The colony's Blue Ensign" },
+        "text": {
+          "es": "Antigua y Barbuda, aún bajo administración británica, empleó un pabellón azul con la Union Jack y una insignia local. Este dibujo conserva un disco blanco detrás de la insignia; no era la bandera de un país independiente.",
+          "en": "Still under British administration, Antigua and Barbuda used a Blue Ensign with the Union Jack and a local badge. This drawing retains a white disc behind the badge; it was not the flag of an independent country."
+        }
+      },
+      {
+        "past": [1962, 1967], "from": 1962, "to": 1967,
+        "name": { "es": "La insignia sin disco", "en": "The badge without its disc" },
+        "text": {
+          "es": "Tras la disolución de la Federación de las Indias Occidentales se siguió usando una enseña azul del territorio, ahora con la insignia sin el disco blanco. Continuaba siendo un pabellón colonial, no el diseño de sol naciente posterior.",
+          "en": "After the West Indies Federation dissolved, a territorial Blue Ensign continued in use, now displaying the badge without its white disc. It remained a colonial ensign, not the later rising-sun design."
+        }
+      },
+      {
+        "now": true, "from": 1967,
+        "name": { "es": "El sol de la autonomía", "en": "The sun of self-government" },
+        "text": {
+          "es": "El 27 de febrero de 1967, al adquirir autonomía interna como Estado asociado al Reino Unido, las islas adoptaron la bandera diseñada por Reginald Samuel, con un sol naciente sobre franjas negras, azules y blancas entre campos rojos. Se conservó al obtener la independencia en 1981.",
+          "en": "On 27 February 1967, when the islands gained internal self-government as a state associated with the United Kingdom, they adopted Reginald Samuel's flag, with a rising sun above black, blue and white bands between red fields. It remained in use after independence in 1981."
+        }
+      }
+    ]
+  },
   "AL": {
     "source": "https://en.wikipedia.org/wiki/Flag_of_Albania",
     "note": {
@@ -62,6 +96,40 @@
       }
     ]
   },
+  "AS": {
+    "source": "https://en.wikipedia.org/wiki/Flag_of_American_Samoa",
+    "note": {
+      "es": "Las dos primeras imágenes son versiones de la bandera de Estados Unidos, única enseña oficial del territorio hasta 1960: no eran banderas samoanas propias. Antes de 1912 ondearon otras versiones estadounidenses; se muestran solo las dos últimas.",
+      "en": "The first two drawings are versions of the US flag, the territory's only official flag until 1960: they were not separate Samoan flags. Earlier US versions flew before 1912; only the last two are shown."
+    },
+    "times": [
+      {
+        "past": [1912, 1959], "from": 1912, "to": 1959,
+        "name": { "es": "La bandera estadounidense de 48 estrellas", "en": "The 48-star US flag" },
+        "text": {
+          "es": "Estados Unidos había izado su bandera en Tutuila en 1900. La versión de 48 estrellas, vigente desde julio de 1912, también representaba a Samoa Estadounidense mientras no tenía una enseña territorial propia.",
+          "en": "The United States had raised its flag on Tutuila in 1900. The 48-star version, in use from July 1912, also represented American Samoa before it had a territorial flag of its own."
+        }
+      },
+      {
+        "past": [1959, 1960], "from": 1959, "to": 1960,
+        "when": { "es": "Julio de 1959–abril de 1960", "en": "July 1959–April 1960" },
+        "name": { "es": "Cuarenta y nueve estrellas", "en": "Forty-nine stars" },
+        "text": {
+          "es": "Al incorporarse Alaska a Estados Unidos, se añadió su estrella el 4 de julio de 1959. Esa bandera estadounidense de 49 estrellas fue la última enseña oficial del territorio antes de adoptar la suya, aunque siguió ondeando también después.",
+          "en": "After Alaska joined the United States, its star was added on 4 July 1959. That 49-star US flag was the last official flag of the territory before it adopted its own, though the US flag continued to fly there afterwards."
+        }
+      },
+      {
+        "now": true, "from": 1960,
+        "name": { "es": "Una enseña propia para las islas", "en": "A flag of the islands' own" },
+        "text": {
+          "es": "El 17 de abril de 1960 se izó por primera vez la bandera territorial: un águila sobre un triángulo blanco bordeado de rojo, entre dos campos azules. El ave sostiene un bastón y una maza ceremoniales samoanos; los colores y el águila recuerdan el vínculo con Estados Unidos.",
+          "en": "On 17 April 1960 the territory first raised its own flag: an eagle on a red-edged white triangle between two blue fields. The bird holds traditional Samoan symbols of authority, while the colours and eagle recall the link with the United States."
+        }
+      }
+    ]
+  },
   "AT": {
     "source": "https://en.wikipedia.org/wiki/Flag_of_Austria",
     "note": {
@@ -84,6 +152,31 @@
         "text": {
           "es": "Al deshacerse el Imperio en 1918, la nueva república adoptó el rojo-blanco-rojo. La anexión por la Alemania nazi en 1938 interrumpió su uso oficial; la república lo recuperó al terminar la Segunda Guerra Mundial en 1945. La leyenda del jubón ensangrentado no demuestra su origen histórico.",
           "en": "When the empire broke up in 1918, the new republic adopted red-white-red. Nazi Germany's annexation in 1938 interrupted its official use; the republic restored it after World War II in 1945. The story of the blood-soaked tunic is not evidence of its historical origin."
+        }
+      }
+    ]
+  },
+  "AZ": {
+    "source": "https://en.wikipedia.org/wiki/Flag_of_Azerbaijan",
+    "note": {
+      "es": "La tricolor se adoptó por primera vez el 9 de noviembre de 1918, dejó de ser bandera estatal tras la invasión soviética de 1920 y fue restablecida en 1991. El dibujo catalogado hasta 2013 representa esa última etapa: su rango técnico comienza en 0, pero no indica uso continuo desde 1918.",
+      "en": "The tricolour was first adopted on 9 November 1918, ceased to be the state flag after the Soviet invasion of 1920, and was restored in 1991. The drawing catalogued through 2013 represents the latter period: its technical range starts at 0, but does not imply continuous use since 1918."
+    },
+    "times": [
+      {
+        "past": [0, 2013], "from": 1991, "to": 2013,
+        "name": { "es": "Vuelve la tricolor", "en": "The tricolour returns" },
+        "text": {
+          "es": "El 5 de febrero de 1991 Azerbaiyán recuperó el azul, rojo y verde con media luna y estrella de ocho puntas de su primera república. Se había usado entre 1918 y 1920, pero no fue la enseña oficial durante las décadas soviéticas. Esta imagen muestra una versión posterior a su recuperación, no una bandera idéntica documentada para todo el siglo XX.",
+          "en": "On 5 February 1991 Azerbaijan restored the blue, red and green with a crescent and eight-pointed star from its first republic. That design had been used in 1918–1920, but was not the official flag during the Soviet decades. This drawing represents a version after its restoration, not an identical flag documented for the entire twentieth century."
+        }
+      },
+      {
+        "now": true, "from": 2013,
+        "name": { "es": "Los colores quedan precisados", "en": "The colours are standardised" },
+        "text": {
+          "es": "El 22 de octubre de 2013 se fijaron los colores de la bandera actual. No se sustituyeron la media luna, la estrella ni el orden de las tres franjas: fue una normalización del diseño recuperado en 1991.",
+          "en": "The colours of the present flag were standardised on 22 October 2013. The crescent, star and order of the three stripes were retained: this was a standardisation of the design restored in 1991."
         }
       }
     ]
@@ -175,6 +268,91 @@
         "text": {
           "es": "El 27 de noviembre de 1990 se restituyó la bandera blanca, verde y roja sin escudo, como la usada desde 1879 antes de la etapa socialista. La Constitución de 1991 y una ley de 1998 reafirmaron el diseño: los colores atraviesan la bandera de lado a lado sin ninguna figura encima.",
           "en": "On 27 November 1990 Bulgaria restored the white-green-red flag without a coat of arms, the design used from 1879 before the socialist era. The 1991 constitution and a 1998 law reaffirmed it: the three stripes run across the flag without any emblem over them."
+        }
+      }
+    ]
+  },
+  "BH": {
+    "source": "https://www.britannica.com/topic/flag-of-Bahrain",
+    "note": {
+      "es": "El rojo y blanco se empleaba antes de 1933: ese año recibió reconocimiento, no nació entonces. El catálogo fecha el primer dibujo desde 1932. La ley de 1972 no impuso una sola forma para el límite entre los colores: convivieron versiones rectas y dentadas.",
+      "en": "Red and white were used before 1933: that year brought recognition, not the design's first use. The catalogue dates the first drawing from 1932. The 1972 law did not require a single boundary between the colours: straight and serrated versions coexisted."
+    },
+    "times": [
+      {
+        "past": [1932, 1972], "from": 1933, "to": 1972,
+        "when": { "es": "Reconocida en 1933 · hasta 1972", "en": "Recognised in 1933 · through 1972" },
+        "name": { "es": "Rojo y blanco antes de la independencia", "en": "Red and white before independence" },
+        "text": {
+          "es": "Baréin ya utilizaba una bandera roja y blanca cuando se la reconoció en 1933 bajo influencia británica. El dibujo representa su borde dentado en aquellos años; no se conoce el día en que apareció por primera vez el rojo y blanco. Baréin se independizó en agosto de 1971.",
+          "en": "Bahrain was already using a red-and-white flag when it was recognised in 1933 under British influence. This drawing shows a serrated edge in that period; the first day red and white were used is unknown. Bahrain became independent in August 1971."
+        }
+      },
+      {
+        "past": [0, 2002], "from": 1972, "to": 2002,
+        "name": { "es": "La primera ley de la bandera", "en": "The first flag law" },
+        "text": {
+          "es": "El 19 de agosto de 1972 entró en vigor la primera ley de la bandera del país independiente. La imagen presenta uno de los bordes dentados de aquel período; también se usaron versiones con separación recta. El número de puntas aún no estaba fijado en cinco.",
+          "en": "The independent country's first flag law took effect on 19 August 1972. This image shows one of the serrated designs of the period; versions with a straight division also flew. The number of points had not yet been set at five."
+        }
+      },
+      {
+        "now": true, "from": 2002,
+        "name": { "es": "Cinco puntas blancas", "en": "Five white points" },
+        "text": {
+          "es": "El 14 de febrero de 2002 se estableció el modelo actual con cinco puntas blancas en la división dentada, asociadas a los cinco pilares del islam. El rojo y el blanco tradicionales permanecieron.",
+          "en": "On 14 February 2002 the current design specified five white points along the serrated division, associated with the five pillars of Islam. The traditional red and white remained."
+        }
+      }
+    ]
+  },
+  "BM": {
+    "source": "https://en.wikipedia.org/wiki/Flag_of_Bermuda",
+    "note": {
+      "es": "Bermudas es un territorio británico. Su enseña roja se usa también en tierra como bandera territorial; no debe confundirse con el pabellón azul de las embarcaciones gubernamentales. El cambio de 1999 agrandó el escudo, no fue una independencia.",
+      "en": "Bermuda is a British territory. Its Red Ensign is also used on land as the territorial flag; it should not be confused with the Blue Ensign of government vessels. The change in 1999 enlarged the arms, not a move to independence."
+    },
+    "times": [
+      {
+        "past": [1910, 1999], "from": 1910, "to": 1999,
+        "name": { "es": "La enseña roja con escudo", "en": "The Red Ensign with arms" },
+        "text": {
+          "es": "El 4 de octubre de 1910 se adoptó una enseña roja británica con la Union Jack y el escudo de Bermudas. A diferencia de la mayoría de territorios británicos, se utilizó también en tierra para representar las islas. Este dibujo conserva el escudo de menor tamaño anterior a 1999.",
+          "en": "On 4 October 1910 Bermuda adopted a British Red Ensign with the Union Jack and its coat of arms. Unlike most British territories, it was also used on land to represent the islands. This drawing retains the smaller arms used before 1999."
+        }
+      },
+      {
+        "now": true, "from": 1999,
+        "name": { "es": "Un escudo más grande", "en": "Larger arms" },
+        "text": {
+          "es": "En 1999 se amplió el escudo sobre el campo rojo. La Union Jack continúa en el cantón: Bermudas sigue siendo un territorio británico y esta enseña roja es su bandera local.",
+          "en": "In 1999 the coat of arms on the red field was enlarged. The Union Jack remains in the canton: Bermuda is still a British territory, and this Red Ensign remains its local flag."
+        }
+      }
+    ]
+  },
+  "BS": {
+    "source": "https://en.wikipedia.org/wiki/Flag_of_the_Bahamas",
+    "note": {
+      "es": "El catálogo comienza el dibujo colonial en 1964, año en que se aprobó oficialmente la insignia del barco que expulsaba piratas; el pabellón azul con esa insignia ya se había usado antes. No era la bandera de un Estado independiente.",
+      "en": "The catalogue starts its colonial drawing in 1964, the year the badge depicting a ship driving off pirates received official approval; the Blue Ensign with that badge had been used before. It was not an independent state's flag."
+    },
+    "times": [
+      {
+        "past": [1964, 1973], "from": 1964, "to": 1973,
+        "when": { "es": "Insignia aprobada en 1964 · hasta 1973", "en": "Badge approved in 1964 · through 1973" },
+        "name": { "es": "El pabellón azul de la colonia", "en": "The colony's Blue Ensign" },
+        "text": {
+          "es": "Bajo dominio británico, las Bahamas usaban un pabellón azul con la Union Jack y una insignia colonial que mostraba un barco expulsando a dos piratas. La insignia recibió aprobación oficial en 1964, pero su historia es anterior. Esta no era todavía la bandera del país independiente.",
+          "en": "Under British rule, the Bahama Islands used a Blue Ensign with the Union Jack and a colonial badge showing a ship driving off two pirate vessels. The badge was officially approved in 1964, but had been used earlier. This was not yet the independent country's flag."
+        }
+      },
+      {
+        "now": true, "from": 1973,
+        "name": { "es": "Independencia en aguamarina y oro", "en": "Independence in aquamarine and gold" },
+        "text": {
+          "es": "Al alcanzar la independencia el 10 de julio de 1973 se izó una nueva bandera, compuesta a partir de propuestas presentadas a un concurso. El triángulo negro apunta hacia franjas aguamarinas y dorada, símbolos del pueblo, el mar y los recursos del archipiélago.",
+          "en": "At independence on 10 July 1973 a new flag was raised, combining elements from entries in a design competition. Its black triangle points into aquamarine and gold bands evoking the people, the surrounding sea and the islands' resources."
         }
       }
     ]
@@ -350,6 +528,31 @@
       }
     ]
   },
+  "CK": {
+    "source": "https://en.wikipedia.org/wiki/Flag_of_the_Cook_Islands",
+    "note": {
+      "es": "El dibujo verde aparece fechado desde 1973 en el catálogo y en algunas listas, año en que se eligió; la fuente también precisa que se izó por primera vez el 24 de enero de 1974. Esta cronología muestra el uso desde 1974, no una inauguración en 1973.",
+      "en": "The catalogue and some lists date the green drawing from 1973, when it was chosen; the source also specifies that it was first raised on 24 January 1974. This timeline shows its use from 1974, not a first hoisting in 1973."
+    },
+    "times": [
+      {
+        "past": [1973, 1979], "from": 1974, "to": 1979,
+        "name": { "es": "Quince estrellas sobre verde", "en": "Fifteen stars on green" },
+        "text": {
+          "es": "Un concurso de 1973 eligió la enseña verde con un círculo de quince estrellas doradas, una por cada isla. Se izó por primera vez el 24 de enero de 1974. Las Islas Cook tenían autogobierno en libre asociación con Nueva Zelanda; el dibujo verde no indica independencia de esta.",
+          "en": "A 1973 competition selected a green flag with a ring of fifteen gold stars, one for each island. It was first raised on 24 January 1974. The Cook Islands were self-governing in free association with New Zealand; the green design did not mean independence from it."
+        }
+      },
+      {
+        "now": true, "from": 1979,
+        "name": { "es": "La enseña azul de las quince islas", "en": "The fifteen islands' Blue Ensign" },
+        "text": {
+          "es": "El 4 de agosto de 1979 se adoptó la actual enseña azul con la Union Jack y las quince estrellas blancas reunidas en círculo. Conservó el número de estrellas del modelo verde, pero cambió de color y composición.",
+          "en": "On 4 August 1979 the present Blue Ensign was adopted, with the Union Jack and fifteen white stars in a circle. It retained the number of stars of the green design but changed its colours and layout."
+        }
+      }
+    ]
+  },
   "CR": {
     "source": "https://en.wikipedia.org/wiki/Flag_of_Costa_Rica",
     "note": {
@@ -521,6 +724,47 @@
         "text": {
           "es": "El negro, rojo y dorado había sido bandera de la República de Weimar desde 1919 y volvió a serlo de Alemania Occidental en 1949. Al reunificarse el país el 3 de octubre de 1990, pasó a ser la bandera de toda Alemania, sin el emblema que había llevado la oriental. El dibujo actual enlaza así dos etapas democráticas separadas por la dictadura nazi.",
           "en": "Black, red and gold had been the flag of the Weimar Republic from 1919 and returned as West Germany's flag in 1949. When the country reunified on 3 October 1990, it became the flag of all Germany, without the emblem carried by the east. Today's design thus links two democratic periods separated by Nazi rule."
+        }
+      }
+    ]
+  },
+  "DM": {
+    "source": "https://en.wikipedia.org/wiki/Flag_of_Dominica",
+    "note": {
+      "es": "El catálogo fecha el primer dibujo desde 1961, año del escudo de Dominica; es la enseña colonial de 1965–1978. Falta la primera bandera de la independencia (1978–1981), así como la colonial de 1955–1965. No se presentan las reformas de 1981, 1988 y 1990 como nuevas independencias.",
+      "en": "The catalogue dates the first drawing from 1961, the year of Dominica's arms; it is the 1965–1978 colonial ensign. The first independence flag (1978–1981) and the 1955–1965 colonial version are absent. The revisions of 1981, 1988 and 1990 are not new independences."
+    },
+    "times": [
+      {
+        "past": [1961, 1978], "from": 1965, "to": 1978,
+        "name": { "es": "El escudo en la enseña colonial", "en": "The arms on a colonial ensign" },
+        "text": {
+          "es": "La colonia británica recibió un escudo en 1961 y cuatro años después incorporó su insignia a un pabellón azul con la Union Jack. Esta enseña se utilizó también al pasar a ser un Estado asociado; no representa la bandera independiente estrenada en 1978.",
+          "en": "The British colony received arms in 1961 and four years later added their badge to a Blue Ensign with the Union Jack. The ensign was also used after associated statehood; it does not depict the independent flag introduced in 1978."
+        }
+      },
+      {
+        "past": [1981, 1988], "from": 1981, "to": 1988,
+        "name": { "es": "La primera revisión independiente conservada", "en": "The first preserved post-independence revision" },
+        "text": {
+          "es": "Dominica se independizó el 3 de noviembre de 1978 con una bandera diseñada por Alwin Bully, de fondo verde, cruz tricolor y loro sisserou dentro de un disco. Esta imagen ya muestra la modificación de 1981; la primera versión independiente no figura en el catálogo.",
+          "en": "Dominica became independent on 3 November 1978 with a flag designed by Alwin Bully, featuring a green field, a three-colour cross and a sisserou parrot in a disc. This drawing shows the 1981 revision; the first independence version is missing from the catalogue."
+        }
+      },
+      {
+        "past": [1988, 1990], "from": 1988, "to": 1990,
+        "name": { "es": "Otra versión del loro y la cruz", "en": "Another version of the parrot and cross" },
+        "text": {
+          "es": "La bandera volvió a modificarse en 1988, sin abandonar el loro sisserou ni las diez estrellas que representan las parroquias de la isla. El dibujo identifica esa revisión de la bandera nacional, no un nuevo Estado.",
+          "en": "The flag was revised again in 1988 without losing the sisserou parrot or the ten stars representing the island's parishes. This drawing identifies a revision of the national flag, not a new state."
+        }
+      },
+      {
+        "now": true, "from": 1990,
+        "name": { "es": "La versión actual del loro sisserou", "en": "The present sisserou design" },
+        "text": {
+          "es": "El 3 de noviembre de 1990 se introdujo la última de las tres modificaciones posteriores a la independencia. La bandera actual conserva el campo verde, la cruz de tres colores y el loro rodeado por diez estrellas.",
+          "en": "On 3 November 1990 the last of three post-independence modifications was introduced. Today's flag retains the green field, the three-colour cross and the parrot surrounded by ten stars."
         }
       }
     ]
@@ -772,6 +1016,48 @@
       }
     ]
   },
+  "FK": {
+    "source": "https://en.wikipedia.org/wiki/Flag_of_the_Falkland_Islands",
+    "note": {
+      "es": "Son banderas de un territorio británico, no de un Estado independiente. Entre el 2 de abril y el 14 de junio de 1982, durante la ocupación argentina, se prohibió la enseña isleña y ondeó la de Argentina; el tramo 1948–1999 no fue continuo. El pabellón rojo civil y la bandera del gobernador son otros símbolos, no etapas de esta sucesión.",
+      "en": "These are flags of a British territory, not an independent state. During the Argentine occupation from 2 April to 14 June 1982, the island flag was banned and Argentina's flag flew; the 1948–1999 period was not uninterrupted. The civil Red Ensign and the governor's flag are different symbols, not stages of this succession."
+    },
+    "times": [
+      {
+        "past": [1876, 1925], "from": 1876, "to": 1925,
+        "name": { "es": "Un barco y un toro en la enseña azul", "en": "A ship and a bull on a Blue Ensign" },
+        "text": {
+          "es": "En 1876 las islas recibieron una enseña azul con la Union Jack y un sello local: un barco y un toro junto al estrecho de San Carlos. Era una bandera territorial británica, no la de un Estado independiente.",
+          "en": "In 1876 the islands received a Blue Ensign with the Union Jack and a local badge: a ship and a bull beside Falkland Sound. This was a British territorial flag, not the flag of an independent state."
+        }
+      },
+      {
+        "past": [1925, 1948], "from": 1925, "to": 1948,
+        "name": { "es": "La nave Desire y un lobo marino", "en": "The Desire and a sea lion" },
+        "text": {
+          "es": "Un escudo introducido en 1925, con la nave Desire y un lobo marino, sustituyó el sello anterior en la enseña azul. La Union Jack siguió en el cantón de esta bandera territorial.",
+          "en": "Arms introduced in 1925, showing the vessel Desire and a sea lion, replaced the previous badge on the Blue Ensign. The Union Jack remained in the canton of this territorial flag."
+        }
+      },
+      {
+        "past": [1948, 1999], "from": 1948, "to": 1999,
+        "when": { "es": "1948–1999, excepto abril–junio de 1982", "en": "1948–1999, except April–June 1982" },
+        "name": { "es": "El escudo sobre un disco blanco", "en": "The arms on a white disc" },
+        "text": {
+          "es": "En septiembre de 1948 la enseña pasó a mostrar sobre un disco blanco el nuevo escudo, con un carnero encima de la nave Desire. Durante la ocupación argentina de 1982 se prohibió esta bandera y se usó la argentina; después volvió a ondear.",
+          "en": "In September 1948 the ensign came to display new arms on a white disc, with a ram above the Desire. During the Argentine occupation in 1982 this flag was banned and Argentina's was flown; it returned afterwards."
+        }
+      },
+      {
+        "now": true, "from": 1999,
+        "name": { "es": "El escudo sin disco", "en": "The arms without the disc" },
+        "text": {
+          "es": "El 25 de enero de 1999 se adoptó la enseña azul actual: el escudo se agrandó y dejó de aparecer dentro del disco blanco. La bandera del territorio conserva la Union Jack; no debe confundirse con su pabellón rojo civil.",
+          "en": "On 25 January 1999 the current Blue Ensign was adopted: the arms were enlarged and no longer enclosed in a white disc. The territory's flag retains the Union Jack and should not be confused with its civil Red Ensign."
+        }
+      }
+    ]
+  },
   "FR": {
     "source": "https://en.wikipedia.org/wiki/Flag_of_France",
     "note": {
@@ -850,6 +1136,65 @@
       }
     ]
   },
+  "GD": {
+    "source": "https://en.wikipedia.org/wiki/Flag_of_Grenada",
+    "note": {
+      "es": "La primera imagen es un pabellón azul colonial, no una bandera nacional independiente. El tricolor de 1967 fue provisional y se reemplazó al lograr la independencia en 1974; de él se conservó el motivo de la nuez moscada.",
+      "en": "The first drawing is a colonial Blue Ensign, not an independent national flag. The 1967 tricolour was an interim design replaced at independence in 1974; its nutmeg motif survived."
+    },
+    "times": [
+      {
+        "past": [1903, 1967], "from": 1903, "to": 1967,
+        "name": { "es": "La enseña de la colonia británica", "en": "The British colony's ensign" },
+        "text": {
+          "es": "Granada usó bajo dominio británico una enseña azul con la Union Jack y una insignia colonial. Esta imagen muestra una versión anterior a la autonomía de 1967: no es la bandera tricolor que el territorio adoptaría entonces.",
+          "en": "Under British rule Grenada used a Blue Ensign with the Union Jack and a colonial badge. This drawing shows a version from before self-government in 1967, not the tricolour the territory would then adopt."
+        }
+      },
+      {
+        "past": [1967, 1974], "from": 1967, "to": 1974,
+        "name": { "es": "Un tricolor para el Estado asociado", "en": "A tricolour for the associated state" },
+        "text": {
+          "es": "Al convertirse en Estado asociado al Reino Unido en 1967, Granada adoptó provisionalmente franjas horizontales azul, amarilla y verde, con una nuez moscada en el centro. Tenía autonomía interna, pero aún no era independiente.",
+          "en": "When Grenada became a state associated with the United Kingdom in 1967, it provisionally adopted blue, yellow and green horizontal stripes with a nutmeg at the centre. It governed its internal affairs, but was not yet independent."
+        }
+      },
+      {
+        "now": true, "from": 1974,
+        "name": { "es": "La independencia y siete estrellas", "en": "Independence and seven stars" },
+        "text": {
+          "es": "En la medianoche del 6 al 7 de febrero de 1974, día de la independencia, se izó la bandera diseñada por Anthony C. George. Sustituyó las franjas por campos diagonales y un borde rojo con estrellas, pero mantuvo la nuez moscada del diseño provisional.",
+          "en": "At midnight on 6–7 February 1974, the day of independence, Anthony C. George's flag was raised. It replaced the horizontal bands with diagonal fields and a star-studded red border, while retaining the interim design's nutmeg."
+        }
+      }
+    ]
+  },
+  "GH": {
+    "source": "https://www.britannica.com/topic/flag-of-Ghana",
+    "note": {
+      "es": "La bandera roja, amarilla y verde con estrella negra se estrenó con la independencia de 1957, se sustituyó en 1964 y regresó en 1966: el dibujo actual sirve para ambos períodos. Los otros dos dibujos del catálogo pertenecen a la Unión de Estados Africanos (1958–1962), una unión política, y no se tratan como reemplazos sucesivos de la bandera nacional ghanesa.",
+      "en": "The red, yellow and green flag with a black star first flew at independence in 1957, was replaced in 1964 and returned in 1966: the current drawing represents both periods. The two other catalogue drawings belong to the Union of African States (1958–1962), a political union, and are not treated as successive replacements of Ghana's national flag."
+    },
+    "times": [
+      {
+        "past": [1964, 1966], "from": 1964, "to": 1966,
+        "name": { "es": "La franja blanca del gobierno de Nkrumah", "en": "The white band under Nkrumah" },
+        "text": {
+          "es": "En 1964, durante el gobierno de partido único de Kwame Nkrumah, la franja central amarilla de la bandera nacional pasó a ser blanca, como la de su partido, sin retirar la estrella negra. No debe confundirse con las enseñas de la Unión de Estados Africanos que Ghana también integró.",
+          "en": "In 1964, under Kwame Nkrumah's single-party rule, the national flag's central yellow band became white like his party's, while the black star remained. This is not one of the flags of the Union of African States, of which Ghana was also a member."
+        }
+      },
+      {
+        "now": true, "from": 1966,
+        "when": { "es": "1957–1964 y desde 1966", "en": "1957–1964 and since 1966" },
+        "name": { "es": "Regresa el amarillo de la independencia", "en": "The independence flag returns" },
+        "text": {
+          "es": "El 6 de marzo de 1957, al independizarse la Costa de Oro como Ghana, se izó por primera vez la bandera roja, amarilla y verde con estrella negra. Tras la caída de Nkrumah se recuperó el amarillo el 28 de febrero de 1966. El diseño actual no nació entonces: fue restablecido.",
+          "en": "On 6 March 1957, when the Gold Coast became independent as Ghana, the red, yellow and green flag with a black star was first raised. After Nkrumah's fall the yellow band returned on 28 February 1966. Today's design was restored, not invented then."
+        }
+      }
+    ]
+  },
   "GR": {
     "source": "https://en.wikipedia.org/wiki/Flag_of_Greece",
     "note": {
@@ -910,6 +1255,31 @@
         "text": {
           "es": "El 22 de diciembre de 1990 se adoptó oficialmente la bandera actual: conserva los tres colores y el ajedrezado, ahora coronado por cinco escudetes históricos. La declaración de independencia de Croacia llegó en 1991; el cambio de bandera fue anterior.",
           "en": "On 22 December 1990 the present flag was officially adopted: it kept the three colours and the chequerboard, now surmounted by five historic shields. Croatia's declaration of independence followed in 1991; the flag change came first."
+        }
+      }
+    ]
+  },
+  "HT": {
+    "source": "https://www.britannica.com/topic/flag-of-Haiti",
+    "note": {
+      "es": "El dibujo antiguo representa la bandera estatal negra y roja del período de los Duvalier (1964–1986); el pabellón civil no llevaba las armas. La actual bicolor azul y roja también tiene versión civil sin escudo. Britannica fecha su restitución el 25 de febrero de 1986 y Wikipedia el 26: aquí se da solo el mes.",
+      "en": "The earlier drawing is the black-and-red state flag of the Duvalier period (1964–1986); the civil flag did not bear the arms. Today's blue-and-red flag also has a civil version without arms. Britannica dates its restoration to 25 February 1986 and Wikipedia to the 26th: this timeline gives only the month."
+    },
+    "times": [
+      {
+        "past": [1964, 1986], "from": 1964, "to": 1986,
+        "name": { "es": "Negro y rojo bajo los Duvalier", "en": "Black and red under the Duvaliers" },
+        "text": {
+          "es": "François Duvalier cambió la bandera nacional en 1964 por dos franjas verticales negra y roja, retomando colores de antiguas etapas haitianas. El dibujo muestra la versión estatal con escudo; el gobierno de su hijo Jean-Claude mantuvo esa bandera hasta su caída en 1986.",
+          "en": "François Duvalier changed the national flag in 1964 to vertical black and red bands, recalling colours used in earlier Haitian periods. This drawing shows the state version with the arms; his son Jean-Claude's government kept the flag until its fall in 1986."
+        }
+      },
+      {
+        "now": true, "from": 1986,
+        "name": { "es": "Vuelve el azul y rojo", "en": "Blue and red return" },
+        "text": {
+          "es": "En febrero de 1986, tras la salida de Jean-Claude Duvalier, se restableció la bandera de franjas horizontales azul y roja que ya había representado a Haití. La versión estatal lleva el escudo sobre un recuadro blanco; la civil se usa sin él.",
+          "en": "In February 1986, after Jean-Claude Duvalier left power, the horizontal blue-and-red flag that had represented Haiti before was restored. The state version bears the arms on a white panel; the civil version has no arms."
         }
       }
     ]
@@ -1063,6 +1433,31 @@
       }
     ]
   },
+  "IS": {
+    "source": "https://www.britannica.com/topic/flag-of-Iceland",
+    "note": {
+      "es": "La cruz roja y blanca sobre azul obtuvo permiso de uso limitado en 1915 y reconocimiento pleno en 1918. La imagen del catálogo representa el azul más claro de 1918–1944; la república de 1944 conservó la composición y oscureció el azul. El diseño blanco y azul anterior no fue bandera oficial.",
+      "en": "The red-and-white cross on blue received limited permission in 1915 and full recognition in 1918. The catalogue drawing shows the lighter blue of 1918–1944; the 1944 republic retained the layout but darkened the blue. The earlier blue-and-white design was not an official flag."
+    },
+    "times": [
+      {
+        "past": [1918, 1944], "from": 1918, "to": 1944,
+        "name": { "es": "La cruz del reino de Islandia", "en": "The cross of the Kingdom of Iceland" },
+        "text": {
+          "es": "En 1915 el rey danés permitió en condiciones limitadas la bandera azul con cruz blanca y roja. El 1 de diciembre de 1918, cuando Islandia obtuvo soberanía como reino unido a Dinamarca por su monarca, se la reconoció plenamente. Este dibujo usa el tono azul más claro de entonces.",
+          "en": "In 1915 the Danish king allowed limited use of the blue flag with its white and red cross. On 1 December 1918, when Iceland became a sovereign kingdom sharing Denmark's monarch, it received full recognition. This drawing uses the lighter blue shade of that period."
+        }
+      },
+      {
+        "now": true, "from": 1944,
+        "name": { "es": "La república y el azul más oscuro", "en": "The republic and the darker blue" },
+        "text": {
+          "es": "Islandia se convirtió en república el 17 de junio de 1944 y promulgó una ley sobre su bandera. Se mantuvo la cruz nórdica blanca y roja, pero el campo pasó a un azul más oscuro: no se creó desde cero otra composición.",
+          "en": "Iceland became a republic on 17 June 1944 and enacted a flag law. The white and red Nordic cross remained, but the field became a darker blue: the composition was not invented from scratch."
+        }
+      }
+    ]
+  },
   "IT": {
     "source": "https://en.wikipedia.org/wiki/Flag_of_Italy",
     "note": {
@@ -1100,6 +1495,31 @@
         "text": {
           "es": "En 2006 se ajustaron las especificaciones cromáticas oficiales del verde, el blanco y el rojo. La bandera sigue siendo la misma tricolor republicana que nació en 1946: no se añadió escudo ni se alteró su composición. La fecha de esta imagen marca la norma de los tonos, no el origen de los tres colores italianos.",
           "en": "The official colour specifications for green, white and red were adjusted in 2006. It is still the republican tricolour adopted in 1946: no arms were added and its layout did not change. The date of this picture marks a standard for the shades, not the beginning of the three Italian colours."
+        }
+      }
+    ]
+  },
+  "KG": {
+    "source": "https://en.wikipedia.org/wiki/Flag_of_Kyrgyzstan",
+    "note": {
+      "es": "Las dos imágenes son variantes de la bandera nacional adoptada en 1992, no banderas de Estados sucesivos. En diciembre de 2023 se enderezaron los rayos del sol; se conservaron el fondo rojo, los cuarenta rayos y el tunduk central.",
+      "en": "Both drawings are versions of the national flag adopted in 1992, not flags of successive states. In December 2023 the sun's rays were straightened; the red field, forty rays and central tündük remained."
+    },
+    "times": [
+      {
+        "past": [1992, 2023], "from": 1992, "to": 2023,
+        "name": { "es": "El sol de rayos ondulados", "en": "The sun with wavy rays" },
+        "text": {
+          "es": "El 3 de marzo de 1992, después de independizarse de la Unión Soviética, Kirguistán aprobó una bandera roja con un sol amarillo de cuarenta rayos ondulados. En el centro dibujó el tunduk, la abertura del techo de una yurta tradicional.",
+          "en": "On 3 March 1992, after independence from the Soviet Union, Kyrgyzstan adopted a red flag with a yellow sun of forty wavy rays. Its centre shows the tündük, the opening in the roof of a traditional yurt."
+        }
+      },
+      {
+        "now": true, "from": 2023,
+        "name": { "es": "Los rayos se enderezan", "en": "The rays are straightened" },
+        "text": {
+          "es": "El 26 de diciembre de 2023 entró en vigor una modificación del dibujo del sol: sus cuarenta rayos dejaron de ser ondulados y pasaron a ser rectos. El tunduk y el campo rojo siguieron en el mismo lugar.",
+          "en": "On 26 December 2023 a change to the sun design came into force: its forty rays became straight rather than wavy. The tündük and red field stayed in place."
         }
       }
     ]
@@ -1284,6 +1704,31 @@
       }
     ]
   },
+  "MK": {
+    "source": "https://en.wikipedia.org/wiki/Flag_of_North_Macedonia",
+    "note": {
+      "es": "La bandera de 1992 fue la de la República de Macedonia, nombre oficial entonces; Macedonia del Norte es el nombre adoptado en 2019. Antes se usó una bandera con estrella roja de la república yugoslava, ausente de esta selección. El cambio de 1995 no equivale al cambio de nombre de 2019.",
+      "en": "The 1992 flag belonged to the Republic of Macedonia, its official name at the time; the name North Macedonia was adopted in 2019. Before it, a red-star flag of the Yugoslav republic was used but is not shown here. The 1995 flag change was not the 2019 name change."
+    },
+    "times": [
+      {
+        "past": [1992, 1995], "from": 1992, "to": 1995,
+        "name": { "es": "El Sol de Vergina", "en": "The Vergina Sun" },
+        "text": {
+          "es": "La República de Macedonia adoptó el 11 de agosto de 1992 una bandera roja con un sol amarillo de dieciséis rayos, conocido como Sol de Vergina. Grecia también reivindicaba ese símbolo, por lo que su uso en la nueva bandera se convirtió en parte de una disputa entre ambos países.",
+          "en": "On 11 August 1992 the Republic of Macedonia adopted a red flag with a yellow sixteen-rayed sun known as the Vergina Sun. Greece also claimed the symbol, and its use on the new flag became part of a dispute between the two countries."
+        }
+      },
+      {
+        "now": true, "from": 1995,
+        "name": { "es": "Ocho rayos hasta el borde", "en": "Eight rays to the edge" },
+        "text": {
+          "es": "El 5 de octubre de 1995 se adoptó una nueva bandera roja con un sol amarillo de ocho rayos que llegan a los bordes. El país pasó a llamarse Macedonia del Norte en 2019 sin cambiar de nuevo la bandera; el dibujo de 1995 sigue vigente.",
+          "en": "On 5 October 1995 a new red flag was adopted with a yellow sun whose eight rays extend to its edges. The country took the name North Macedonia in 2019 without changing the flag again; the 1995 design remains in use."
+        }
+      }
+    ]
+  },
   "MN": {
     "source": "https://www.britannica.com/topic/flag-of-Mongolia",
     "note": {
@@ -1305,6 +1750,57 @@
         "text": {
           "es": "El 12 de febrero de 1992 se quitó la estrella, pero permanecieron las tres franjas y el soyombo, un antiguo emblema de la cultura mongola. El dibujo del catálogo fechado hasta 2011 y el que se ve hoy representan el mismo símbolo básico, sin un nuevo cambio político en ese año.",
           "en": "On 12 February 1992 the star was removed, but the three stripes and soyombo, an older Mongolian cultural emblem, remained. The catalogue drawing dated through 2011 and today's flag represent the same basic symbol, without a new political change that year."
+        }
+      }
+    ]
+  },
+  "MR": {
+    "source": "https://en.wikipedia.org/wiki/Flag_of_Mauritania",
+    "note": {
+      "es": "La primera enseña nacional se adoptó en 1959, antes de la independencia de 1960. En 2017 se añadieron dos franjas rojas mediante decreto tras un referéndum; las normas gráficas precisas del nuevo modelo se publicaron en 2020.",
+      "en": "The first national flag was adopted in 1959, before independence in 1960. In 2017 two red bands were added by decree after a referendum; detailed graphic rules for the new design were published in 2020."
+    },
+    "times": [
+      {
+        "past": [1959, 2017], "from": 1959, "to": 2017,
+        "name": { "es": "Verde, creciente y estrella", "en": "Green, crescent and star" },
+        "text": {
+          "es": "Mauritania adoptó su primera bandera nacional el 1 de abril de 1959: fondo verde con media luna y estrella doradas, sin las franjas rojas actuales. Ya se utilizaba antes de que el país alcanzara la independencia de Francia en noviembre de 1960.",
+          "en": "Mauritania adopted its first national flag on 1 April 1959: a green field with a golden crescent and star, without today's red bands. It was already in use before independence from France in November 1960."
+        }
+      },
+      {
+        "now": true, "from": 2017,
+        "name": { "es": "Dos franjas rojas", "en": "Two red bands" },
+        "text": {
+          "es": "Tras un referéndum, un decreto del 25 de octubre de 2017 añadió franjas rojas arriba y abajo, dejando en el centro el verde y los símbolos dorados. Las proporciones y los colores precisos de la nueva versión quedaron fijados en unas directrices oficiales de 2020.",
+          "en": "Following a referendum, a decree of 25 October 2017 added red bands at the top and bottom while keeping the green field and gold symbols in the centre. Official guidelines in 2020 specified the new design's proportions and colours."
+        }
+      }
+    ]
+  },
+  "MW": {
+    "source": "https://en.wikipedia.org/wiki/Flag_of_Malawi",
+    "note": {
+      "es": "Solo se conserva en el catálogo la bandera alternativa de 2010–2012. El diseño de hoy se estrenó con la independencia el 6 de julio de 1964, se dejó de usar en 2010 y se restituyó en 2012: no se inventó entonces.",
+      "en": "The catalogue only has the alternative 2010–2012 flag. Today's design was first raised at independence on 6 July 1964, set aside in 2010 and restored in 2012: it was not invented then."
+    },
+    "times": [
+      {
+        "past": [2010, 2012], "from": 2010, "to": 2012,
+        "name": { "es": "Un sol blanco completo", "en": "A full white sun" },
+        "text": {
+          "es": "El 29 de julio de 2010 se aprobó una bandera con franjas roja, negra y verde y un sol blanco completo en el centro. Sustituyó temporalmente la versión independentista del sol rojo naciente; el cambio provocó oposición en el país.",
+          "en": "On 29 July 2010 a flag with red, black and green stripes and a full white sun at its centre was approved. It temporarily replaced the independence flag with its red rising sun; the change met opposition in the country."
+        }
+      },
+      {
+        "now": true, "from": 2012,
+        "when": { "es": "1964–2010 y desde 2012", "en": "1964–2010 and since 2012" },
+        "name": { "es": "Regresa el sol naciente", "en": "The rising sun returns" },
+        "text": {
+          "es": "En mayo de 2012 se restituyó la bandera de la independencia de 1964: negro sobre rojo y verde, con un sol rojo naciente sobre la franja negra. El dibujo volvió tras dos años de interrupción, en lugar de estrenarse en 2012.",
+          "en": "In May 2012 the 1964 independence flag was restored: black above red and green, with a red rising sun on the black stripe. The design returned after a two-year interruption rather than first appearing in 2012."
         }
       }
     ]

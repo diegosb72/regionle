@@ -61,6 +61,12 @@ se toma el primer día que dan las dos fichas, y si tampoco, nada. Estos se han 
 - **AD** 1866 · **CU** 20-5-1902 · **CX** 26-1-2002 · **EC** 26-9-1860 (Wikidata da 1830, la bandera de la
   Gran Colombia) · **HN** 16-2-1866 · **PR** 24-7-1952 · **RS** 17-8-2004, como es hoy desde el 11-11-2010 ·
   **SV** 27-5-1912 · **TW** 1928.
+- **AS**: 17-4-1960, día en que se izó la bandera territorial de Samoa Estadounidense, según la historia de
+  su bandera; las fuentes traídas daban por error el 27 de abril.
+- **MR**: 25-10-2017, fecha del decreto de la bandera con franjas rojas, según la historia de la bandera de
+  Mauritania; las fuentes traídas daban el 15 de agosto, posterior al referéndum pero anterior al decreto.
+- **HT**: se quita el día exacto: Britannica fecha la restitución de la bicolor el 25 de febrero de 1986 y
+  la ficha de Wikipedia el 26. La cronología de Haití dice solamente «febrero de 1986».
 - **DK**: se quita; la fecha de las fichas (15-6-1219) es la de la leyenda.
 - **AR**: proporción 9:14, la oficial (Wikidata y la ficha en inglés dan 5:8).
 - **KP**: se quita el diseñador (atribución discutida). La proporción 20:33 es la de las dos fichas, que

@@ -653,14 +653,14 @@ describe('the sheet of every country', () => {
 });
 
 describe('researched timelines layered over the generated sheets', () => {
-  it('covers forty-six real countries without replacing their photograph or the two Wikipedia leads', () => {
+  it('covers sixty-three real countries without replacing their photograph or the two Wikipedia leads', () => {
     expect(typeof TIMELINE_REASON).toBe('string');
     const ids = Object.keys(TIMELINES);
     expect(ids).toEqual([...ids].sort());
-    expect(ids).toHaveLength(46);
+    expect(ids).toHaveLength(63);
     expect(ids).not.toContain('BR');
     expect(ids.every(has)).toBe(true);
-    expect(ids.reduce((n, id) => n + TIMELINES[id].times.length, 0)).toBe(214);
+    expect(ids.reduce((n, id) => n + TIMELINES[id].times.length, 0)).toBe(256);
     for (const id of ids) {
       const sheet = sheetOf(id);
       const source = TIMELINES[id];
@@ -783,6 +783,23 @@ describe('researched timelines layered over the generated sheets', () => {
     expect(sheetOf('PH').times?.[0]).toMatchObject({ past: [1936, 1998], from: 1955, to: 1985 });
     expect(sheetOf('PL').times?.at(-1)).toMatchObject({ now: true, from: 1980 });
     expect(sheetOf('SA').times?.[0]).toMatchObject({ past: [0, 1932], from: 1921, to: 1932 });
+    // Dates on catalogue drawings can describe a badge's approval, a choice made before the first hoisting,
+    // or simply a bad import. Neither a union flag nor a contemporaneous civil ensign is the next national flag.
+    expect(sheetOf('AG').times?.[0]).toMatchObject({ past: [1956, 1962], when: { es: 'Hacia 1956–1962', en: 'Around 1956–1962' } });
+    expect(sheetOf('AS').times?.map((time) => time.past)).toEqual([[1912, 1959], [1959, 1960], undefined]);
+    expect(sheetOf('AS').flag?.adopted).toBe('1960-04-17');
+    expect(sheetOf('AZ').times?.[0]).toMatchObject({ past: [0, 2013], from: 1991, to: 2013 });
+    expect(sheetOf('BH').times?.[0]).toMatchObject({ past: [1932, 1972], from: 1933 });
+    expect(sheetOf('BS').times?.[0]).toMatchObject({ past: [1964, 1973], when: { es: 'Insignia aprobada en 1964 · hasta 1973', en: 'Badge approved in 1964 · through 1973' } });
+    expect(sheetOf('CK').times?.[0]).toMatchObject({ past: [1973, 1979], from: 1974 });
+    expect(sheetOf('DM').times?.[0]).toMatchObject({ past: [1961, 1978], from: 1965 });
+    expect(sheetOf('DM').times?.[1].from).toBe(1981); // The first 1978 independence design is missing.
+    expect(sheetOf('FK').times?.[2].when?.en).toBe('1948–1999, except April–June 1982');
+    expect(sheetOf('GH').times?.map((time) => time.past)).toEqual([[1964, 1966], undefined]);
+    expect(sheetOf('GH').times?.at(-1)?.when?.en).toBe('1957–1964 and since 1966');
+    expect(sheetOf('HT').flag?.adopted).toBeUndefined(); // Britannica and Wikipedia differ by one day.
+    expect(sheetOf('MR').flag?.adopted).toBe('2017-10-25');
+    expect(sheetOf('MW').times?.at(-1)?.when?.en).toBe('1964–2010 and since 2012');
     // A contested occupation flag is not a historical fact, and a rejected proposal was not adopted.
     expect(sheetOf('KH').times?.some((time) => time.past?.[0] === 1942)).toBe(false);
     expect(sheetOf('IQ').times?.some((time) => time.name.en.includes('blue'))).toBe(false);

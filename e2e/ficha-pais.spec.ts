@@ -929,6 +929,9 @@ test.describe('the sheet of a country without a complete handwritten account', (
     ['last four of the third batch', ['MZ', 'SC', 'TM', 'US']],
     ['first seven of the fourth batch', ['AL', 'AT', 'BA', 'CY', 'GR', 'HR', 'HU']],
     ['last seven of the fourth batch', ['IR', 'LT', 'MN', 'NL', 'PH', 'PL', 'SA']],
+    ['first six of the fifth batch', ['AG', 'AS', 'AZ', 'BH', 'BM', 'BS']],
+    ['next six of the fifth batch', ['CK', 'DM', 'FK', 'GD', 'GH', 'HT']],
+    ['last five of the fifth batch', ['IS', 'KG', 'MK', 'MR', 'MW']],
   ] as const) {
     test(`shows the ${group} researched histories with the actual catalogue drawings and a source`, async ({ page }) => {
       await seed(page);
@@ -1016,6 +1019,62 @@ test.describe('the sheet of a country without a complete handwritten account', (
     await expect(un.locator('.fp-credit')).toContainText('Lexicon assumed');
     await expect(un.getByRole('link', { name: 'CC BY-SA 3.0' })).toHaveAttribute('href', 'https://creativecommons.org/licenses/by-sa/3.0/');
     await expect(un.getByRole('link', { name: 'Wikimedia Commons' })).toHaveAttribute('href', commons('Flag of Cambodia (1992–1993).svg'));
+  });
+
+  test('checks the first hoisting and distinguishes national flags from union and colonial ensigns', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    const sheet = await openSheet(page, '/flags/countries/CK');
+    const times = sheet.locator('.fp-times');
+    await expect(times.locator('.fp-when')).toHaveText(['1974–1979', 'Since 1979']);
+    await expect(times.locator('li').first().locator('img')).toHaveAttribute('src', /flags\/commons\/cca17cb41a\.svg$/);
+    await expect(times.locator('li').first().locator('.fp-time-text')).toContainText('first raised on 24 January 1974');
+    await expect(times.locator('.fp-note')).toContainText('catalogue and some lists date the green drawing from 1973');
+    await expect(times.getByRole('link', { name: 'See the source' })).toHaveAttribute('href', 'https://en.wikipedia.org/wiki/Flag_of_the_Cook_Islands');
+
+    await openSheet(page, '/flags/countries/AZ');
+    await expect(times.locator('.fp-when')).toHaveText(['1991–2013', 'Since 2013']);
+    await expect(times.locator('.fp-note')).toContainText('does not imply continuous use since 1918');
+    await openSheet(page, '/flags/countries/DM');
+    await expect(times.locator('.fp-when').first()).toHaveText('1965–1978');
+    await expect(times.locator('.fp-when').nth(1)).toHaveText('1981–1988');
+    await expect(times.locator('.fp-note')).toContainText('first independence flag (1978–1981)');
+    await openSheet(page, '/flags/countries/GH');
+    await expect(times.locator('ol > li')).toHaveCount(2);
+    await expect(times.locator('.fp-when').last()).toHaveText('1957–1964 and since 1966');
+    await expect(times.locator('.fp-note')).toContainText('Union of African States');
+  });
+
+  test('corrects adoption dates where sources and the catalogue disagree', async ({ page }) => {
+    await seed(page);
+    const sheet = await openSheet(page, '/banderas/paises/AS');
+    await expect(sheet.locator('.fp-flag-facts dd').first()).toContainText('17 de abril de 1960');
+    await expect(sheet.locator('.fp-times ol > li')).toHaveCount(3);
+    await expect(sheet.locator('.fp-times .fp-note')).toContainText('bandera de Estados Unidos');
+    await openSheet(page, '/banderas/paises/BH');
+    await expect(sheet.locator('.fp-times .fp-when').first()).toHaveText('Reconocida en 1933 · hasta 1972');
+    await expect(sheet.locator('.fp-times .fp-note')).toContainText('versiones rectas y dentadas');
+    await openSheet(page, '/banderas/paises/MR');
+    await expect(sheet.locator('.fp-flag-facts dd').first()).toContainText('25 de octubre de 2017');
+    await expect(sheet.locator('.fp-times .fp-when').last()).toHaveText('Desde 2017');
+    await openSheet(page, '/banderas/paises/HT');
+    await expect(sheet.locator('.fp-flag-facts dt').filter({ hasText: 'Adoptada' })).toHaveCount(0);
+    await expect(sheet.locator('.fp-times .fp-note')).toContainText('Britannica fecha su restitución el 25');
+  });
+
+  test('keeps the interruption of the Falklands ensign legible on a phone @movil', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    const sheet = await openSheet(page, '/flags/countries/FK');
+    const times = sheet.locator('.fp-times');
+    await expect(times.locator('ol > li')).toHaveCount(4);
+    await expect(times.locator('.fp-when').nth(2)).toHaveText('1948–1999, except April–June 1982');
+    await expect(times.locator('.fp-note')).toContainText('flag was banned and Argentina\'s flag flew');
+    await times.locator('li').nth(2).scrollIntoViewIfNeeded();
+    expect(await sheet.locator('.dlg-box').evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(0);
+    await expect(times.locator('li').nth(2).locator('img')).toHaveAttribute('src', /flags\/commons\/d8d55f666a\.svg$/);
+    const earlyFlag = times.locator('li').first().locator('img');
+    await earlyFlag.scrollIntoViewIfNeeded();
+    await expect(earlyFlag).toHaveAttribute('src', /flags\/commons\/82bd716c30\.webp$/);
+    await expect.poll(() => drawn(earlyFlag)).toBe(true);
   });
 
   test('shows Albanian and Greek period documents with their Commons credits, without replacing the chosen heads', async ({ page }) => {
