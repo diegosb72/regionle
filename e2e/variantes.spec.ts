@@ -165,6 +165,18 @@ test.describe('flashcards', () => {
     await expect(asks.getByRole('radio')).toHaveText(['¿Cómo se llama?', '¿Dónde está?']);
   });
 
+  test('shows the white Afghan flag at 2:1, not squeezed into a phone’s flag card @movil', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 640 });
+    await start(page, { section: 'countries', mode: 'cards', countries: ['AF', 'AE', 'IN', 'PK'], only: ['AF'], opts: { cardAsk: 'flag' } });
+    const flag = page.locator('.fcard .q-flagbox img');
+    await expect(flag).toHaveAttribute('src', /flags\/af\.svg$/);
+    await expect.poll(() => flag.evaluate((el) => (el as HTMLImageElement).naturalWidth / (el as HTMLImageElement).naturalHeight)).toBe(2);
+    const ratio = await flag.evaluate((el) => el.getBoundingClientRect().width / el.getBoundingClientRect().height);
+    expect(ratio).toBeCloseTo(2, 1);
+    await page.getByRole('button', { name: 'Ver la respuesta' }).tap();
+    await expect(page.locator('.fcard-answer')).toContainText('Afganistán');
+  });
+
   test('fit a small phone: the answer and the three things to say are in sight without a scroll @movil', async ({ page }) => {
     // A short screen: the panel has half of it, and the back of a card is longer than that.
     await page.setViewportSize({ width: 360, height: 640 });

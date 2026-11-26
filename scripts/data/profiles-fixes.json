@@ -1,8 +1,22 @@
 {
-  "_": "Corrections by hand to what Wikidata and Wikipedia say of each country (scripts/data/profiles-said.mjs), by the id of the country. Each entry is laid over what was read: a value replaces the one read, null takes it away. «arms» is the coat of arms that the sheet shows, which is otherwise the one Wikidata names: file, the title in Wikimedia Commons of another, which the source arms then brings (scripts/data/outside.mjs); kind, what it is where the name of its file does not tell (arms, emblem, seal); by, who drew it, where Commons does not say it in a few words; null, that none is shown. «leads» is not laid over anything: it says what to do with the opening of the pages of Wikipedia that the sheet shows (about: that of the country; flag: that of its flag), by language: false, that it is not shown; a number, how many of its sentences are. A new run of «npm run data:profiles» keeps them: this file is never written by a program. Why each is here is told in scripts/data/profiles-fixes.md.",
+  "_": "Corrections by hand to what Wikidata and Wikipedia say of each country (scripts/data/profiles-said.mjs), by the id of the country. Each entry is laid over what was read: a value replaces the one read, null takes it away. «arms» is the coat of arms that the sheet shows, which is otherwise the one Wikidata names: file, the title in Wikimedia Commons of another, which the source arms then brings (scripts/data/outside.mjs); kind, what it is where the name of its file does not tell (arms, emblem, seal); by, who drew it, where Commons does not say it in a few words; null, that none is shown. «flag.drawing» names a sourced country SVG that replaces flag-icons in the games and the sheet, with its Commons credit and a bilingual explanation of flags in competing use. «leads» is not laid over anything: it says what to do with the opening of the pages of Wikipedia that the sheet shows (about: that of the country; flag: that of its flag), by language: false, that it is not shown; a number, how many of its sentences are. A new run of «npm run data:profiles» keeps them: this file is never written by a program. Why each is here is told in scripts/data/profiles-fixes.md.",
 
   "AD": { "flag": { "adopted": "1866" } },
-  "AF": { "motto": { "en": "There is no god but God; Muhammad is the messenger of God" }, "arms": { "kind": "emblem" } },
+  "AF": {
+    "motto": { "en": "There is no god but God; Muhammad is the messenger of God" },
+    "arms": { "kind": "emblem" },
+    "flag": {
+      "adopted": "1997", "changed": null,
+      "drawing": {
+        "file": "af.svg", "title": "Flag of the Taliban.svg", "by": "Lexicon", "licence": "Public domain",
+        "note": {
+          "es": "La ficha y los juegos muestran la enseña blanca utilizada por el gobierno talibán de facto. La tricolor de la república depuesta continúa usándose en ciertos contextos internacionales y aparece en la cronología, pero no representa la enseña del gobierno de facto.",
+          "en": "The sheet and games show the white flag used by the de facto Taliban government. The ousted republic's tricolour remains in use in some international contexts and appears in the timeline, but it is not the de facto government's flag."
+        }
+      }
+    },
+    "leads": { "flag": { "en": false } }
+  },
   "AL": { "motto": { "en": "You, Albania, give me honour, give me the name Albanian" } },
   "AM": { "motto": { "en": "One Nation, One Culture" }, "leads": { "flag": { "es": 1 } } },
   "AO": { "motto": { "en": "Virtue is stronger when united" } },

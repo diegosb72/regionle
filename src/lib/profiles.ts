@@ -120,6 +120,8 @@ export interface ProfileFile {
     colours?: { es: string[]; en: string[] };
     called?: Said;
     by?: SaidIn;
+    /** A sourced replacement for the country icon, used by both the games and the sheet; its Commons credit and context. */
+    drawing?: { file: string; title: string; by: string; licence: string; licenceUrl?: string; note: Said };
     text?: { es: string[]; en: string[] };
     /** How the page of Wikipedia of the flag (`readFlag`) begins: what is shown of it while nobody has written `text`. */
     lead?: ProfileLead;

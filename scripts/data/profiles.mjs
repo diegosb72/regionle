@@ -467,6 +467,13 @@ function checked(id, one) {
   if (flag.colours !== undefined && !(LANGS.every((lang) => Array.isArray(flag.colours[lang]) && flag.colours[lang].length >= 2 && flag.colours[lang].every(isText)) && flag.colours.es.length === flag.colours.en.length))
     fail(id, 'the colours of its flag are not named in both languages');
   if (flag.by !== undefined && !inSome(flag.by)) fail(id, 'who designed its flag is not a text in a language of the game');
+  // The exceptional country SVG replaces the flag-icons version throughout the site. Its provenance is
+  // explained and credited in the sheet, including where another national flag is still in use.
+  if (flag.drawing !== undefined) {
+    const { file, title, by, licence, note } = flag.drawing;
+    if (file !== `${id.toLowerCase()}.svg` || !fs.existsSync(path.join(ROOT, 'scripts/data/flag-overrides', file)) || !isText(title) || !title.endsWith('.svg') || !isText(by) || !ARMS_FREE.test(licence ?? '') || !flag.ratio || !note || !LANGS.every((lang) => isText(note[lang])))
+      fail(id, 'the country flag replacement needs a local SVG, its Commons provenance, a ratio and an explanation in both languages');
+  }
   if (one.lead !== undefined && !isLead(one.lead, one.read)) fail(id, 'what Wikipedia begins to tell of it is not paragraphs in a language of the game, each with its page (read)');
   if (flag.lead !== undefined && !isLead(flag.lead, one.readFlag)) fail(id, 'what Wikipedia begins to tell of its flag is not paragraphs in a language of the game, each with its page (readFlag)');
   if (one.arms !== undefined) {

@@ -61,6 +61,21 @@ se toma el primer día que dan las dos fichas, y si tampoco, nada. Estos se han 
 - **AD** 1866 · **CU** 20-5-1902 · **CX** 26-1-2002 · **EC** 26-9-1860 (Wikidata da 1830, la bandera de la
   Gran Colombia) · **HN** 16-2-1866 (diseño original con estrellas; normalizado en 1949) · **PR** 24-7-1952 ·
   **RS** 17-8-2004, como es hoy desde el 11-11-2010 · **SV** 27-5-1912.
+- **AF**: el gobierno talibán volvió a usar de facto la bandera blanca con la *shahada* en 2021; la
+  tricolor republicana sigue en ciertos contextos internacionales y está en la cronología
+  ([Britannica](https://www.britannica.com/topic/flag-of-Afghanistan),
+  [FOTW](https://www.crwflags.com/fotw/flags/af2021.html)). A petición del dueño, la **ficha y los juegos**
+  sustituyen el icono tricolor de `flag-icons/af.svg` por el original de Commons
+  [«Flag of the Taliban.svg»](https://commons.wikimedia.org/wiki/File:Flag_of_the_Taliban.svg), de Lexicon,
+  dominio público, sin modificar (SHA-1 `fbfe78dee5dbaefbd21b488c0ae0231f3c5e2c9e`). La copia fuente está
+  en `scripts/data/flag-overrides/af.svg`; el servidor y el build la sirven en `flags/af.svg` en vez de
+  editar `node_modules`, y `flag.drawing` lleva el crédito y el contexto bilingüe. Se da **1997**, no un
+  día exacto: las fuentes discrepan entre el 25 y el 27 de octubre para su introducción; el 15-8-2021 es
+  su *retorno*, no una adopción nueva. Se oculta la entradilla inglesa de Wikipedia que lo llama adopción
+  y se conserva su enlace; la cronología explica las fechas. En la bandera monárquica, el 1348 equivalente
+  a 1929 es **lunar**, no solar: [FOTW 2002](https://www.crwflags.com/fotw/flags/af2002.html#coa) lo precisa;
+  [FOTW 1931](https://www.crwflags.com/fotw/flags/af1930.html#des) se contradice al llamarlo solar.
+  El 1298 de la tricolor de 2004–2021 sí pertenece al calendario solar (1919).
 - **AS**: 17-4-1960, día en que se izó la bandera territorial de Samoa Estadounidense, según la historia de
   su bandera; las fuentes traídas daban por error el 27 de abril.
 - **MR**: 25-10-2017, fecha del decreto de la bandera con franjas rojas, según la historia de la bandera de

@@ -256,7 +256,7 @@ export function PairsGame({ countries, cfg, onExit }: { countries: Country[]; cf
                   {/* Always drawn, and hidden while the card is face down: every card is as large as its text needs from the start. */}
                   <span className="pair-face" aria-hidden="true">
                     {card.face === 'flag' ? (
-                      <img className="pair-img" src={`${BASE}flags/${c?.fl}.svg`} alt="" draggable={false} />
+                      <img className="pair-img" style={c?.fl === 'af' ? { aspectRatio: '2 / 1' } : undefined} src={`${BASE}flags/${c?.fl}.svg`} alt="" draggable={false} />
                     ) : (
                       <>
                         {card.face === 'capital' && (

@@ -8,8 +8,9 @@
 //
 // What it reads: the list of flags (public/data/flags.json, which scripts/data/flags.mjs writes), the list
 // of countries (public/data/index.json) and the pictures themselves: those of the countries from
-// flag-icons, the rest from docs/flags/commons. Run it after `npm run data:flags`, whenever that one
-// changes a flag: a test (src/lib/flagAlike.test.ts) says so when the two are out of step.
+// flag-icons or scripts/data/flag-overrides, the rest from docs/flags/commons. Run it after `npm run
+// data:flags`, or after changing a country override, whenever a flag changes: a test
+// (src/lib/flagAlike.test.ts) says so when the two are out of step.
 //
 // What it writes: public/data/alike/<kind>.json, one file for each kind of flag, so that a game fetches
 // only what its flags need:
@@ -427,6 +428,7 @@ async function main() {
   const DATA = path.resolve(ROOT, value('data') ?? 'public/data');
   const COMMONS = path.resolve(ROOT, value('flags') ?? 'docs/flags/commons');
   const ICONS = path.resolve(ROOT, 'node_modules/flag-icons/flags/4x3');
+  const OVERRIDES = path.resolve(ROOT, 'scripts/data/flag-overrides');
   const OUT = path.resolve(ROOT, value('out') ?? 'public/data/alike');
   const CACHE = path.resolve(ROOT, value('cache') ?? '.cache/flag-looks.json');
   const report = value('report');
@@ -447,11 +449,14 @@ async function main() {
     return { px: all.slice(0, GRID.w * GRID.h * 3), pal: all.slice(GRID.w * GRID.h * 3) };
   };
   const dots = async (name) => {
-    // A country: the flag that comes with the game. Anything else: its file, or the light picture of it.
-    const file = code.has(name) ? path.join(ICONS, `${code.get(name)}.svg`) : path.join(COMMONS, light.get(name) ?? name);
-    const key = code.has(name) ? `flag-icons:${code.get(name)}` : (light.get(name) ?? name);
+    // A country: exactly what the game serves, including a sourced replacement. Anything else: its file,
+    // or the light picture of it. A content-based cache key avoids reusing the old tricolour for Afghanistan.
+    const override = code.has(name) ? path.join(OVERRIDES, `${code.get(name)}.svg`) : null;
+    const custom = override && fs.existsSync(override) ? fs.readFileSync(override) : null;
+    const file = code.has(name) ? (custom ? override : path.join(ICONS, `${code.get(name)}.svg`)) : path.join(COMMONS, light.get(name) ?? name);
+    const key = custom ? `flag-override:${code.get(name)}:${createHash('sha1').update(custom).digest('hex')}` : code.has(name) ? `flag-icons:${code.get(name)}` : (light.get(name) ?? name);
     if (kept[key]) return unpack(kept[key]);
-    const buf = fs.readFileSync(file);
+    const buf = custom ?? fs.readFileSync(file);
     const data = file.endsWith('.svg')
       ? (await drawn(buf, DRAWN.w, DRAWN.h)).data
       : await sharp(buf, { limitInputPixels: false }).resize(DRAWN.w, DRAWN.h, { fit: 'fill' }).flatten({ background: '#fff' }).removeAlpha().raw().toBuffer();

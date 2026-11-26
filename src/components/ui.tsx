@@ -12,7 +12,7 @@ export const BASE = import.meta.env.BASE_URL;
 
 export function Flag({ code, size = 'md', className }: { code?: string; size?: 'sm' | 'md' | 'lg' | 'xl'; className?: string }) {
   if (!code) return <span className={cx('flag flag-none', `flag-${size}`, className)} aria-hidden="true" />;
-  return <img className={cx('flag', `flag-${size}`, className)} src={`${BASE}flags/${code}.svg`} alt="" loading="lazy" decoding="async" draggable={false} />;
+  return <img className={cx('flag', `flag-${size}`, code === 'af' && 'flag-af', className)} src={`${BASE}flags/${code}.svg`} alt="" loading="lazy" decoding="async" draggable={false} />;
 }
 
 export interface SegOption<T> {

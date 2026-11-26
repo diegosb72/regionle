@@ -90,6 +90,18 @@ describe('the picture of a day', () => {
     }
   });
 
+  it('preserves the 2:1 Afghan flag in a shared result instead of stretching its script', () => {
+    const { pen, calls } = recorder();
+    const flag = { naturalWidth: 1000, naturalHeight: 500 } as HTMLImageElement;
+    paintCard(pen, { ...info, country: 'Afganistán' }, { flag });
+    const [, x, y, w, h] = calls.find((c) => c.op === 'drawImage')!.args as [HTMLImageElement, number, number, number, number];
+    expect(x).toBe(64);
+    expect(w).toBe(84);
+    expect(h).toBe(42);
+    expect(y).toBeGreaterThan(74);
+    expect(calls.some((c) => c.op === 'fillRect' && c.fill === '#fff' && c.args[2] === 84 && c.args[3] === 63)).toBe(true);
+  });
+
   it('draws the map only when there is one, and leaves the flag and the streak out when there are none', () => {
     const plain = recorder();
     paintCard(plain.pen, { ...info, streak: null });

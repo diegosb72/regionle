@@ -8,6 +8,12 @@ import { SITE_PAGES, localise, pageFile, pageNamed, robots, siteUrl, sitemap } f
 import { mapPagesOf, type MapSource } from './src/lib/seoMaps.ts';
 
 const FLAG_DIR = path.resolve(process.cwd(), 'node_modules/flag-icons/flags/4x3');
+/** The few country drawings deliberately replaced after checking their provenance; never edit node_modules. */
+const FLAG_OVERRIDES = path.resolve(process.cwd(), 'scripts/data/flag-overrides');
+const countryFlagFile = (name: string): string => {
+  const custom = path.join(FLAG_OVERRIDES, name);
+  return fs.existsSync(custom) ? custom : path.join(FLAG_DIR, name);
+};
 
 /** Where the flags taken from Wikimedia Commons are kept: in the folder that GitHub Pages publishes, and nowhere else. */
 const COMMONS_DIR = path.resolve(process.cwd(), 'docs/flags/commons');
@@ -86,8 +92,9 @@ function commonsFlags(): Plugin {
 }
 
 /**
- * Serves the flag-icons SVGs at `<base>flags/<code>.svg`.
- * They stay in node_modules: the dev server reads them on demand and the build copies them into dist.
+ * Serves country SVGs at `<base>flags/<code>.svg`: flag-icons unless a sourced replacement was chosen.
+ * Both development and production read the same override; node_modules is never changed. The original
+ * Commons file is published once, at the usual country URL, so every flag game and the sheet agree.
  */
 function flags(): Plugin {
   return {
@@ -96,7 +103,7 @@ function flags(): Plugin {
       server.middlewares.use((req, res, next) => {
         const m = /\/flags\/([a-z-]+)\.svg(?:\?.*)?$/.exec(req.url ?? '');
         if (!m) return next();
-        fs.readFile(path.join(FLAG_DIR, `${m[1]}.svg`), (err, data) => {
+        fs.readFile(countryFlagFile(`${m[1]}.svg`), (err, data) => {
           if (err) return next();
           res.setHeader('Content-Type', 'image/svg+xml');
           res.setHeader('Cache-Control', 'public, max-age=86400');
@@ -105,9 +112,12 @@ function flags(): Plugin {
       });
     },
     generateBundle() {
+      for (const file of fs.readdirSync(FLAG_OVERRIDES)) {
+        if (!/^[a-z-]+\.svg$/.test(file) || !fs.existsSync(path.join(FLAG_DIR, file))) throw new Error(`No country flag in flag-icons can be replaced by ${file}`);
+      }
       for (const file of fs.readdirSync(FLAG_DIR)) {
         if (file.endsWith('.svg')) {
-          this.emitFile({ type: 'asset', fileName: `flags/${file}`, source: fs.readFileSync(path.join(FLAG_DIR, file)) });
+          this.emitFile({ type: 'asset', fileName: `flags/${file}`, source: fs.readFileSync(countryFlagFile(file)) });
         }
       }
     },

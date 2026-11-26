@@ -280,6 +280,7 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
   const placed = (r: { place: number; among: number } | null) => (r ? L(`${nth(r.place)} del mundo`, `${nth(r.place)} in the world`) : '');
   const level = levelOf(country, 0);
   const levelName = level ? (getLang() === 'en' ? level.en : level.es) : L('regiones', 'regions');
+  const drawing = profile?.flag?.drawing;
   const flagSrc = `${import.meta.env.BASE_URL}flags/${country.fl}.svg`;
 
   /** A link to the sheet of another country: a plain click opens it over this one; any other does what links do. */
@@ -345,7 +346,9 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
   if (flag?.adopted) flagRows.push({ name: L('Adoptada', 'Adopted'), value: dayText(flag.adopted) });
   if (flag?.changed) flagRows.push({ name: L('Como es hoy, desde', 'As it is today, since'), value: dayText(flag.changed) });
   if (flag?.ratio)
-    flagRows.push({ name: L('Proporción', 'Proportions'), value: flag.ratio, note: L('de alto por ancho; aquí se dibuja en 3:4, como todas las de los países', 'height to width; here it is drawn in 3:4, like every flag of a country') });
+    flagRows.push({ name: L('Proporción', 'Proportions'), value: flag.ratio, note: drawing
+      ? L('de alto por ancho; este dibujo respeta sus proporciones', 'height to width; this drawing keeps its original proportions')
+      : L('de alto por ancho; aquí se dibuja en 3:4, como todas las de los países', 'height to width; here it is drawn in 3:4, like every flag of a country') });
   if (flag?.colours) flagRows.push({ name: L('Colores', 'Colours'), value: (getLang() === 'en' ? flag.colours.en : flag.colours.es).join(', ') });
   if (flag?.called) flagRows.push({ name: L('La llaman', 'It is called'), value: say(flag.called) });
   const by = sayAny(flag?.by);
@@ -387,7 +390,7 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
               </div>
             )}
             <div className="fp-id">
-              <img className="fp-flag" src={flagSrc} alt={L(`Bandera de ${name}`, `Flag of ${name}`)} draggable={false} />
+              <img className="fp-flag" src={flagSrc} style={drawing && flag?.ratio ? { aspectRatio: flag.ratio.split(':').reverse().join(' / ') } : undefined} alt={L(`Bandera de ${name}`, `Flag of ${name}`)} draggable={false} />
               <div>
                 <p className="kicker">{nm(where)}</p>
                 {official && <p className="fp-official">{official}</p>}
@@ -446,7 +449,10 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
           <section className="fp-sec fp-flagsec">
             <h3>{L('La bandera', 'The flag')}</h3>
             <div className="fp-flag-in">
-              <img className="fp-flag-big" src={flagSrc} alt="" draggable={false} />
+              <figure>
+                <img className="fp-flag-big" src={flagSrc} style={drawing && flag?.ratio ? { aspectRatio: flag.ratio.split(':').reverse().join(' / ') } : undefined} alt="" draggable={false} />
+                {drawing && <figcaption><Credit photo={drawing} /></figcaption>}
+              </figure>
               <div>
                 {flag?.text && paragraphs(flag.text).map((text) => <p key={text}>{text}</p>)}
                 {flagLead && (
@@ -460,6 +466,7 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
                   </div>
                 )}
                 {flagRows.length > 0 && <FactList rows={flagRows} className="fp-flag-facts" />}
+                {drawing && <p className="fp-note">{say(drawing.note)}</p>}
                 {!flag?.text && !flagLead && readFlag && (
                   <p className="fp-more">
                     <a href={readFlag} target="_blank" rel="noopener noreferrer">
@@ -500,6 +507,7 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
                         <h4>{say(time.name)}</h4>
                         <p>{say(time.text)}</p>
                         {card && <FlagCredit card={card} credits={credits} />}
+                        {time.now && drawing && <Credit photo={drawing} />}
                       </div>
                       {time.picture && <Photo photo={time.picture} sizes="(max-width: 760px) 70vw, 340px" className="fp-time-pic" />}
                     </li>
@@ -607,7 +615,9 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
                   'El nombre oficial, el lema, el himno y los datos de la bandera son los que dan Wikidata y Wikipedia.',
                   'The official name, the motto, the anthem and the facts of the flag are those that Wikidata and Wikipedia give.',
                 )}`}
-              {` ${L('El dibujo de la bandera es de la colección flag-icons.', 'The drawing of the flag is from the flag-icons collection.')}`}
+              {` ${drawing
+                ? L('El dibujo de esta ficha y de los juegos es de Wikimedia Commons; bajo la bandera van su autor y su licencia.', 'The drawing in this sheet and the games is from Wikimedia Commons; its author and licence are credited below the flag.')
+                : L('El dibujo de la bandera es de la colección flag-icons.', 'The drawing of the flag is from the flag-icons collection.')}`}
               {profile.arms &&
                 ` ${L(
                   'El escudo es un dibujo de Wikimedia Commons, reducido de tamaño; bajo él van su autor, cuando se conoce, y su licencia.',

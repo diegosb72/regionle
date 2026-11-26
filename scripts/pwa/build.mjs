@@ -97,7 +97,9 @@ const digest = (list) => {
 
 /** Needed to open the application at all: stored when the worker is installed. */
 const WORLD = ['data/index.json', 'data/world.json'];
-const isPack = (f) => (f.startsWith('data/') && !WORLD.includes(f)) || f.startsWith('flags/');
+/** A country flag whose content changed at its usual URL must replace old copies in the data cache. */
+const revisedFlags = new Set(fs.readdirSync(path.join(here, '../data/flag-overrides')).map((name) => `flags/${name}`));
+const isPack = (f) => (f.startsWith('data/') && !WORLD.includes(f)) || (f.startsWith('flags/') && !revisedFlags.has(f));
 const pack = files.filter(isPack);
 const zipped = (f) => zlib.gzipSync(fs.readFileSync(path.join(out, f)), { level: 6 }).length;
 const offline = { dv: digest(pack), bytes: pack.reduce((n, f) => n + zipped(f), 0), files: pack };

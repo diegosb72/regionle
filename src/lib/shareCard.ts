@@ -302,7 +302,15 @@ export function paintCard(pen: Pen, info: CardInfo, extras: CardExtras = {}): vo
     pen.save();
     rounded(pen, M, y, fw, fh, 8);
     pen.clip();
-    pen.drawImage(extras.flag, M, y, fw, fh);
+    // Most country icons are 4:3. The Afghan replacement is 2:1: fit it into the white plate
+    // rather than stretching the shahada to the proportions of the other icons.
+    const img = extras.flag as HTMLImageElement;
+    const ratio = img.naturalWidth > 0 && img.naturalHeight > 0 ? img.naturalWidth / img.naturalHeight : fw / fh;
+    const w = Math.min(fw, fh * ratio);
+    const h = w / ratio;
+    pen.fillStyle = '#fff';
+    pen.fillRect(M, y, fw, fh);
+    pen.drawImage(extras.flag, M + (fw - w) / 2, y + (fh - h) / 2, w, h);
     pen.restore();
     pen.strokeStyle = C.line;
     pen.lineWidth = 2;

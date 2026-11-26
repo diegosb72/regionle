@@ -199,11 +199,11 @@ export function flagFiles(file: FlagsFile): Set<string> {
   return names;
 }
 
-/** The flags of the countries, which come with the game, all drawn four by three. */
+/** The flags of the countries: flag-icons in 4:3, except the sourced Afghan replacement in 2:1. */
 export function countryFlags(index: Index, base: string = import.meta.env.BASE_URL): FlagCard[] {
   return index.countries
     .filter((c) => c.fl)
-    .map((c) => ({ key: `country:${c.id}`, kind: 'country' as const, id: c.id, country: c.id, name: getLang() === 'en' ? (c.n.en ?? c.n.es) : c.n.es, ...other(c.n.es, c.n.en ?? ''), src: `${base}flags/${c.fl}.svg`, small: `${base}flags/${c.fl}.svg`, ratio: 4 / 3 }));
+    .map((c) => ({ key: `country:${c.id}`, kind: 'country' as const, id: c.id, country: c.id, name: getLang() === 'en' ? (c.n.en ?? c.n.es) : c.n.es, ...other(c.n.es, c.n.en ?? ''), src: `${base}flags/${c.fl}.svg`, small: `${base}flags/${c.fl}.svg`, ratio: c.fl === 'af' ? 2 : 4 / 3 }));
 }
 
 /** How many flags of divisions each country has, by level. */

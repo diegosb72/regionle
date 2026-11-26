@@ -5,7 +5,8 @@
  */
 import { defineConfig, devices } from '@playwright/test';
 
-const PORT = 4173;
+// A second preview may already use the default port in a shared workspace.
+const PORT = Number(process.env.E2E_PORT ?? 4173);
 const own = process.env.CHROME_PATH;
 
 export default defineConfig({

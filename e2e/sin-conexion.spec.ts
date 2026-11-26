@@ -5,6 +5,28 @@ import { seed } from './helpers';
 test.use({ serviceWorkers: 'allow' });
 
 test.describe('without a connection', () => {
+  test('replaces the old cached tricolour with the new Afghan drawing, even offline', async ({ page, context }) => {
+    await seed(page);
+    await page.goto('./');
+    await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
+    await page.waitForFunction(() => !!navigator.serviceWorker.controller);
+    const [shell, pack] = await page.evaluate(async () => {
+      const [worker, offline] = await Promise.all([fetch('./sw.js').then((r) => r.text()), fetch('./offline.json').then((r) => r.json() as Promise<{ files: string[] }>)]);
+      return [JSON.parse(/const SHELL = (\[.*?\]);/s.exec(worker)![1]) as string[], offline.files] as const;
+    });
+    expect(shell).toContain('flags/af.svg');
+    expect(pack).not.toContain('flags/af.svg');
+    const flag = await page.evaluate(async () => {
+      const old = await caches.open('regionle-data');
+      await old.put('./flags/af.svg', new Response('<svg id="old-tricolour"/>', { headers: { 'Content-Type': 'image/svg+xml' } }));
+      return fetch('./flags/af.svg').then((r) => r.text());
+    });
+    expect(flag).not.toContain('old-tricolour');
+    expect(flag).toContain('width="1e3px" height="500px"');
+    await context.setOffline(true);
+    expect(await page.evaluate(() => fetch('./flags/af.svg').then((r) => r.text()))).toBe(flag);
+  });
+
   test('the game opens, in either language, and so do the screens not yet visited', async ({ page, context }) => {
     await seed(page);
     await page.goto('./');

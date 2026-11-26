@@ -6,6 +6,7 @@
  * photograph is there at every width it is said to have, with whose it is, that the coat of arms each shows
  * is one that may be shown, with whose its drawing is, and that the flags of its times are flags the game has.
  */
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { feature } from 'topojson-client';
@@ -17,7 +18,7 @@ import { ARMS as ARMS_PINNED, ARMS_AT as ARMS_PINNED_AT, ARMS_SAID as ARMS_PINNE
 import { ARMS_BOX as ARMS_BOX_SAID, LEAD_MAX as LEAD_MAX_SAID, WIDTHS as WIDTHS_SAID } from '../../scripts/data/profiles.mjs';
 // @ts-expect-error a list of the build, written without types
 import { PHOTOS as PINNED, PHOTOS_AT as PINNED_AT, PHOTOS_SAID as PINNED_SAID } from '../../scripts/data/photos-pinned.mjs';
-import type { CreditsFile, FlagsFile } from './flags';
+import { countryFlags, type CreditsFile, type FlagsFile } from './flags';
 import { setLang } from './i18n';
 import { SAME_FLAG } from './pairs';
 import { locator } from './profileMap';
@@ -332,7 +333,7 @@ describe('the sheet of every country', () => {
 
   it('is of its country, and says only what a sheet says', () => {
     const known = ['v', 'id', 'official', 'local', 'localLang', 'motto', 'anthem', 'about', 'lead', 'flag', 'times', 'timeSource', 'timeNote', 'photos', 'arms', 'read', 'readFlag'];
-    const ofFlag = ['of', 'adopted', 'changed', 'ratio', 'colours', 'called', 'by', 'text', 'lead', 'parts'];
+    const ofFlag = ['of', 'adopted', 'changed', 'ratio', 'colours', 'called', 'by', 'drawing', 'text', 'lead', 'parts'];
     for (const [i, sheet] of sheets.entries()) {
       expect(sheet.v, LANDS[i]).toBe(1);
       expect(sheet.id).toBe(LANDS[i]);
@@ -665,14 +666,14 @@ describe('the sheet of every country', () => {
 });
 
 describe('researched timelines layered over the generated sheets', () => {
-  it('covers eighty-one real countries without replacing their photograph or attributing corrected text to Wikipedia', () => {
+  it('covers eighty-two real countries without replacing their photograph or attributing corrected text to Wikipedia', () => {
     expect(typeof TIMELINE_REASON).toBe('string');
     const ids = Object.keys(TIMELINES);
     expect(ids).toEqual([...ids].sort());
-    expect(ids).toHaveLength(81);
+    expect(ids).toHaveLength(82);
     expect(ids).not.toContain('BR');
     expect(ids.every(has)).toBe(true);
-    expect(ids.reduce((n, id) => n + TIMELINES[id].times.length, 0)).toBe(310);
+    expect(ids.reduce((n, id) => n + TIMELINES[id].times.length, 0)).toBe(327);
     for (const id of ids) {
       const sheet = sheetOf(id);
       const source = TIMELINES[id];
@@ -684,7 +685,7 @@ describe('researched timelines layered over the generated sheets', () => {
       // The separately sourced timeline does not masquerade as an extract of either encyclopedia.
       if (['GQ', 'JE', 'RW', 'TN'].includes(id)) expect(sheet.flag?.lead?.es, id).toBeUndefined();
       else expect(sheet.flag?.lead?.es?.length, id).toBeGreaterThan(0);
-      if (['HN', 'TN'].includes(id)) expect(sheet.flag?.lead?.en, id).toBeUndefined();
+      if (['AF', 'HN', 'TN'].includes(id)) expect(sheet.flag?.lead?.en, id).toBeUndefined();
       else expect(sheet.flag?.lead?.en?.length, id).toBeGreaterThan(0);
       expect(sheet.timeSource, id).toBe(source.source);
       expect(sheet.timeNote, id).toEqual(source.note);
@@ -711,6 +712,26 @@ describe('researched timelines layered over the generated sheets', () => {
     }
     expect(sheetOf('BR').timeSource).toBeUndefined();
     expect(sheetOf('GI').times).toBeUndefined();
+  });
+
+  it('serves the Commons shahada drawing in the games and sheet, while preserving the republic’s tricolour in the history', () => {
+    const profile = sheetOf('AF');
+    const drawing = profile.flag?.drawing;
+    expect(drawing).toMatchObject({ file: 'af.svg', title: 'Flag of the Taliban.svg', by: 'Lexicon', licence: 'Public domain' });
+    expect(drawing?.note.es).toContain('ficha y los juegos');
+    expect(drawing?.note.en).toContain('tricolour');
+    const expectedSha = 'fbfe78dee5dbaefbd21b488c0ae0231f3c5e2c9e';
+    for (const file of ['scripts/data/flag-overrides/af.svg', 'docs/flags/af.svg']) {
+      const svg = fs.readFileSync(path.join(ROOT, file));
+      expect(createHash('sha1').update(svg).digest('hex'), file).toBe(expectedSha);
+      expect(svg.toString()).not.toContain('flag-icons-af');
+    }
+    expect(INDEX.countries.find((c) => c.id === 'AF')?.fl).toBe('af');
+    expect(countryFlags(INDEX, '/').find((card) => card.id === 'AF')).toMatchObject({ src: '/flags/af.svg', ratio: 2 });
+    expect(timeCards(profile, FLAGS, INDEX, '/').at(-1)).toMatchObject({ kind: 'country', id: 'AF', src: '/flags/af.svg', ratio: 2 });
+    expect(timeCards(profile, FLAGS, INDEX, '/').at(-2)?.src).toMatch(/^\/flags\/commons\//);
+    expect(profile.flag?.lead?.en).toBeUndefined(); // Wikipedia dates the first adoption to the 2021 return.
+    expect(profile.readFlag?.en).toBe('https://en.wikipedia.org/wiki/Flag_of_Afghanistan');
   });
 
   it('has Commons provenance and an author and licence link for every drawing needing attribution', () => {
@@ -801,6 +822,17 @@ describe('researched timelines layered over the generated sheets', () => {
     expect(sheetOf('SA').times?.[0]).toMatchObject({ past: [0, 1932], from: 1921, to: 1932 });
     // Dates on catalogue drawings can describe a badge's approval, a choice made before the first hoisting,
     // or simply a bad import. Neither a union flag nor a contemporaneous civil ensign is the next national flag.
+    expect(sheetOf('AF').times).toHaveLength(17);
+    expect(sheetOf('AF').times?.[0]).toMatchObject({ past: [1709, 1901], from: 1881, to: 1901 });
+    expect(sheetOf('AF').times?.some((time) => time.past?.[0] === 1747)).toBe(false); // Herat, not the whole emirate.
+    expect(sheetOf('AF').times?.[12]).toMatchObject({ past: [1996, 1997], from: 1996, to: 1997 });
+    expect(sheetOf('AF').times?.[11]).toMatchObject({ past: [1992, 1996], from: 1992, to: 2001 }); // Rival governments overlapped.
+    expect(sheetOf('AF').times?.[6].text.es).toContain('1348 del calendario islámico lunar'); // Solar 1348 would be 1969–70.
+    expect(sheetOf('AF').times?.[6].text.en).toContain('1348 in the lunar Islamic calendar');
+    expect(sheetOf('AF').times?.at(-2)).toMatchObject({ past: [2013, 2021], from: 2004, to: 2021 }); // 2013 is NOT a new flag adoption.
+    expect(sheetOf('AF').timeNote?.en).toContain('the red 1978–1980 flag');
+    expect(sheetOf('AF').flag?.adopted).toBe('1997'); // Exact October day disputed; 2021 was a return.
+    expect(sheetOf('AF').flag?.changed).toBeUndefined();
     expect(sheetOf('AG').times?.[0]).toMatchObject({ past: [1956, 1962], when: { es: 'Hacia 1956–1962', en: 'Around 1956–1962' } });
     expect(sheetOf('AS').times?.map((time) => time.past)).toEqual([[1912, 1959], [1959, 1960], undefined]);
     expect(sheetOf('AS').flag?.adopted).toBe('1960-04-17');

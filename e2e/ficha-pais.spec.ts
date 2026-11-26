@@ -1118,6 +1118,45 @@ test.describe('the sheet of a country without a complete handwritten account', (
     await expect(times.locator('.fp-note')).toContainText('FOTW dates their introduction to 1973 and Britannica to 1978');
   });
 
+  test('shows Afghanistan’s de facto flag in its sheet and games, with rival regimes and missing drawings explained in Spanish', async ({ page }) => {
+    await seed(page);
+    const sheet = await openSheet(page, '/banderas/paises/AF');
+    const times = sheet.locator('.fp-times');
+    await expect(times.locator('ol > li')).toHaveCount(17);
+    await expect(times.locator('.fp-when').first()).toHaveText('1881–1901');
+    await expect(times.locator('.fp-when').last()).toHaveText('Desde agosto de 2021 · gobierno de facto');
+    await expect(times.locator('.fp-note')).toContainText('la verde y blanca de Herat es local');
+    await expect(times.locator('.fp-note')).toContainText('la bandera roja de 1978–1980');
+    await expect(times.locator('.fp-note')).toContainText('banderas simultáneas');
+    await expect(times.getByRole('link', { name: 'Consultar la fuente' })).toHaveAttribute('href', 'https://www.crwflags.com/fotw/flags/af_his.html');
+    const flag = sheet.locator('.fp-flagsec .fp-flag-big');
+    await expect(flag).toHaveAttribute('src', /flags\/af\.svg$/);
+    await expect(flag).toHaveCSS('aspect-ratio', '2 / 1');
+    await expect.poll(() => drawn(flag)).toBe(true);
+    expect(await flag.evaluate((el) => (el as HTMLImageElement).naturalWidth / (el as HTMLImageElement).naturalHeight)).toBe(2);
+    await expect(sheet.locator('.fp-times li').last().locator('img')).toHaveAttribute('src', /flags\/af\.svg$/);
+    await expect(sheet.locator('.fp-times li').nth(15).locator('img')).toHaveAttribute('src', /flags\/commons\//);
+    await expect(sheet.locator('.fp-flagsec').getByRole('link', { name: 'Wikimedia Commons' })).toHaveAttribute('href', commons('Flag of the Taliban.svg'));
+    await expect(sheet.locator('.fp-flagsec .fp-credit')).toContainText('Lexicon · Dominio público');
+    await expect(sheet.locator('.fp-flagsec .fp-note')).toContainText('La ficha y los juegos muestran la enseña blanca');
+    await expect(sheet.locator('.fp-flag-facts dd').first()).toContainText('1997');
+    await expect(sheet.locator('.fp-flag-facts dt').filter({ hasText: 'Como es hoy, desde' })).toHaveCount(0);
+  });
+
+  test('explains Afghanistan’s competing flags in English', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    const sheet = await openSheet(page, '/flags/countries/AF');
+    const times = sheet.locator('.fp-times');
+    await expect(times.locator('.fp-note')).toContainText('Rival governments and simultaneous flags');
+    await expect(times.locator('.fp-when').nth(11)).toHaveText('December 1992–2001 · recognised government');
+    await expect(times.locator('.fp-when').nth(12)).toHaveText('1996–1997 · in Taliban-controlled areas');
+    await expect(sheet.locator('.fp-flagsec .fp-note')).toContainText('The sheet and games show the white flag');
+    await expect(sheet.locator('.fp-times .fp-note')).toContainText('tricolour remains in use in some international contexts');
+    await expect(sheet.locator('.fp-flagsec .fp-lead')).toHaveCount(0);
+    await expect(sheet.locator('.fp-flagsec .fp-more a')).toHaveAttribute('href', sheetFile('AF').readFlag!.en!);
+    await expect(sheet.locator('.fp-foot')).toContainText('drawing in this sheet and the games is from Wikimedia Commons');
+  });
+
   test('keeps the sixth and seventh batches’ disputed flag dates distinct from Wikipedia in Spanish', async ({ page }) => {
     await seed(page);
     const sheet = await openSheet(page, '/banderas/paises/GQ');
