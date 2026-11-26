@@ -212,6 +212,28 @@ test.describe('where the games of the flags are chosen', () => {
 });
 
 test.describe('«¿De dónde es?»', () => {
+  test('uses the same 2:1 white Afghan flag in the game and its chooser, not the old tricolour', async ({ page }) => {
+    await seed(page);
+    await open(page, '/banderas/juegos/paises-AS');
+    const preview = page.locator('.fgm-strip img[src$="/flags/af.svg"]');
+    await expect(preview).toHaveCount(1);
+    await preview.scrollIntoViewIfNeeded();
+    await expect.poll(() => preview.evaluate((el) => (el as HTMLImageElement).naturalWidth / (el as HTMLImageElement).naturalHeight)).toBe(2);
+
+    // With the shuffle left in its original order, Afghanistan follows the United Arab Emirates.
+    await page.evaluate(() => { Math.random = () => 0.999999; });
+    await open(page, '/banderas/jugar/de-donde/paises-AS/10');
+    expect((await shown(page)).id).toBe('AE');
+    await say(page, true);
+    await page.getByRole('button', { name: 'Siguiente' }).click();
+    expect((await shown(page)).id).toBe('AF');
+    const flag = page.locator('.fq-flag img');
+    await expect(flag).toHaveAttribute('src', /flags\/af\.svg$/);
+    await expect.poll(() => flag.evaluate((el) => (el as HTMLImageElement).naturalWidth / (el as HTMLImageElement).naturalHeight)).toBe(2);
+    const box = (await page.locator('.fq-flag').boundingBox())!;
+    expect(box.width / box.height).toBeCloseTo(2, 1);
+  });
+
   test('shows a flag and four names, marks the answer at once and goes on with the keyboard', async ({ page }) => {
     await seed(page);
     /** The files of flags the page asks for, in the order it does. */

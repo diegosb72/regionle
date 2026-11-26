@@ -184,7 +184,9 @@ export function About() {
           <div>
             <dt>{L('Banderas de los países', 'Flags of the countries')}</dt>
             <dd>
-              <Out href="https://github.com/lipis/flag-icons">flag-icons</Out> · MIT
+              <Out href="https://github.com/lipis/flag-icons">flag-icons</Out> · MIT;{' '}
+              {L('excepto Afganistán: dibujo de Lexicon en', 'except Afghanistan: drawing by Lexicon on')}{' '}
+              <Out href="https://commons.wikimedia.org/wiki/File:Flag_of_the_Taliban.svg">Wikimedia Commons</Out> · {L('dominio público', 'public domain')}
             </dd>
           </div>
           <div>

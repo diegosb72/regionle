@@ -216,7 +216,7 @@ export function AlphabetGame({ countries, world, cfg, onExit }: { countries: Cou
           <p className="kicker center alpha-with">
             {L('Con la', 'With')} <b>{q.letter}</b>
           </p>
-          {q.flag && <img className="alpha-flag" src={`${BASE}flags/${q.flag}.svg`} alt="" draggable={false} />}
+          {q.flag && <img className="alpha-flag" style={q.flag === 'af' ? { aspectRatio: '2 / 1' } : undefined} src={`${BASE}flags/${q.flag}.svg`} alt="" draggable={false} />}
           <h2 className="q-ask center alpha-clue">{q.text}</h2>
           {!done ? (
             <>
