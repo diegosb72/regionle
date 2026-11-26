@@ -6,8 +6,8 @@ import { open, seed } from './helpers';
  * The sheet of a country, which the gallery of flags opens when the flag of a country is touched
  * (screens/FlagProfile.tsx). Every country with a flag has one: with what the game knows of it and what
  * Wikidata and Wikipedia say of it and of its flag, with how Wikipedia begins to tell of both and
- * a photograph at its head; some have a historical timeline added without replacing those things, and
- * Brazil has a complete handwritten sheet. One sheet leads to another.
+ * a photograph at its head; some have a historical timeline, five polar territories have sourced accounts
+ * instead of Wikipedia excerpts, and Brazil has a complete handwritten sheet. One sheet leads to another.
  */
 
 interface Photo {
@@ -42,7 +42,9 @@ type Arms = { file: string; w: number; h: number; title: string; by?: string; li
 const sheetFile = (id: string) =>
   JSON.parse(fs.readFileSync(`public/data/profiles/${id}.json`, 'utf8')) as {
     lead?: Lead;
-    flag?: { lead?: Lead };
+    about?: { es: string[]; en: string[] };
+    sources?: { about?: { title: { es: string; en: string }; url: string }[]; flag?: { title: { es: string; en: string }; url: string }[] };
+    flag?: { lead?: Lead; text?: { es: string[]; en: string[] }; parts?: { es: [string, string]; en: [string, string] }[]; of?: string; adopted?: string };
     read?: { es?: string; en?: string };
     readFlag?: { es?: string; en?: string };
     photos?: (Photo & { focus?: [number, number] })[];
@@ -640,15 +642,130 @@ test.describe('the sheet of a country without a complete handwritten account', (
     await expect(sheet.locator('.fp-foot')).toContainText('El texto está escrito para el juego');
     await expect(sheet.locator('.fp-foot')).not.toContainText('comienzo de los artículos');
 
-    // A flag whose page begins with another flag tells nothing of it, and says where to read of it instead.
+    // The Antarctic article opens with a different flag: the Bartram proposal is explained in authored,
+    // separately sourced words, not passed off as a Wikipedia extract or as the Treaty emblem of 2002.
     await openSheet(page, '/banderas/paises/AQ');
     await expect(sheet.getByRole('heading', { level: 2 })).toHaveText('Antártida');
-    expect(sheetFile('AQ').flag?.lead?.es).toBeUndefined();
-    await expect(sheet.locator('section.fp-about.fp-lead p:not(.fp-from)')).toHaveText(sheetFile('AQ').lead!.es!);
-    await expect(sheet.locator('.fp-flagsec .fp-lead')).toHaveCount(0);
-    await expect(sheet.locator('.fp-flagsec .fp-more a')).toHaveText('Leer sobre la bandera de Antártida en Wikipedia');
-    await expect(sheet.locator('.fp-flagsec .fp-more a')).toHaveAttribute('href', 'https://es.wikipedia.org/wiki/Bandera_de_la_Ant%C3%A1rtida');
+    await expect(sheet.locator('.fp-about p:not(.fp-sources)')).toHaveText(sheetFile('AQ').about!.es);
+    await expect(sheet.locator('.fp-flagsec .fp-flag-in p').first()).toHaveText(sheetFile('AQ').flag!.text!.es[0]);
+    await expect(sheet.locator('.fp-flagsec .fp-flag-in p').first()).toContainText('No es el emblema del Tratado Antártico');
+    await expect(sheet.locator('.fp-about .fp-sources a').first()).toHaveAttribute('href', 'https://www.ats.aq/e/antarctictreaty.html');
+    await expect(sheet.locator('.fp-flagsec .fp-sources a').first()).toHaveAttribute('href', 'https://www.crwflags.com/fotw/flags/aq!.html#gb');
+    await expect(sheet.locator('.fp-lead')).toHaveCount(0);
+    await expect(sheet.locator('.fp-flagsec .fp-more a')).toHaveAttribute('href', sheetFile('AQ').readFlag!.es!);
+    await expect(sheet.locator('.fp-flagsec .fp-more a')).toContainText('Ver también el artículo de Wikipedia sobre las banderas de Antártida');
+    await expect(sheet.locator('.fp-foot-links a').first()).toHaveAttribute('href', sheetFile('AQ').read!.es!);
+    await expect(sheet.locator('.fp-foot')).not.toContainText('con lo que cuentan Wikipedia y The World Factbook');
     await expect(page.locator('.crash')).toHaveCount(0);
+  });
+
+  test('shows five sourced polar accounts with verified photo galleries and unchanged chosen heads', async ({ page }) => {
+    await seed(page);
+    for (const id of ['AQ', 'BV', 'GS', 'HM', 'TF']) {
+      const file = sheetFile(id);
+      const sheet = await openSheet(page, `/banderas/paises/${id}`);
+      await expect(sheet.getByRole('heading', { level: 2 })).toHaveText(COUNTRIES.find((c) => c.id === id)!.n.es);
+      await expect(sheet.locator('.fp-about p:not(.fp-sources)')).toHaveText(file.about!.es);
+      await expect(sheet.locator('.fp-about .fp-sources')).toContainText('Fuente');
+      await expect(sheet.locator('.fp-about .fp-sources a')).toHaveCount(file.sources!.about!.length);
+      await expect(sheet.locator('.fp-about .fp-sources a').first()).toHaveAttribute('href', file.sources!.about![0].url);
+      await expect(sheet.locator('.fp-about.fp-lead, .fp-times, .fp-flown')).toHaveCount(0);
+      await expect(sheet.locator('.fp-hero figcaption')).toContainText(file.photos![0].by!);
+      await expect(sheet.locator('.fp-hero img')).toHaveAttribute('src', new RegExp(`photos/${file.photos![0].file}-640\\.webp$`));
+      await expect.poll(() => drawn(sheet.locator('.fp-hero img'))).toBe(true);
+      const gallery = sheet.locator('.fp-photos .fp-masonry figure');
+      await expect(gallery).toHaveCount(2);
+      for (const [i, photo] of file.photos!.slice(1).entries()) {
+        const item = gallery.nth(i);
+        await expect(item.locator('figcaption')).toContainText(photo.es);
+        await expect(item.locator('figcaption')).toContainText(photo.by!);
+        await expect(item.locator('img')).toHaveAttribute('src', new RegExp(`photos/${photo.file}-640\\.webp$`));
+        await item.locator('img').scrollIntoViewIfNeeded();
+        await expect.poll(() => drawn(item.locator('img'))).toBe(true);
+        if (photo.licenceUrl) {
+          await expect(item.locator(`a[href="${photo.licenceUrl}"]`)).toContainText(photo.licence);
+        } else {
+          await expect(item.locator('figcaption')).toContainText('Dominio público');
+        }
+        await expect(item.locator('a', { hasText: 'Wikimedia Commons' })).toHaveAttribute('href', `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(photo.title.replace(/ /g, '_'))}`);
+      }
+      await expect(sheet.locator('.fp-foot')).toContainText('Los textos escritos para el juego se basan en las fuentes enlazadas');
+      expect((await sheet.locator('article.fp').innerText())).not.toContain('Placeholder');
+      if (file.flag?.text) {
+        await expect(sheet.locator('.fp-flag-in p').first()).toHaveText(file.flag.text.es[0]);
+        await expect(sheet.locator('.fp-flagsec .fp-sources a')).toHaveCount(file.sources!.flag!.length);
+        await expect(sheet.locator('.fp-flagsec .fp-sources a').first()).toHaveAttribute('href', file.sources!.flag![0].url);
+        await expect(sheet.locator('.fp-flagsec .fp-more a')).toHaveAttribute('href', file.readFlag!.es!);
+        await expect(sheet.locator('.fp-parts dt')).toHaveText(file.flag.parts!.map((part) => part.es[0]));
+        await expect(sheet.locator('.fp-flagsec .fp-lead')).toHaveCount(0);
+      } else {
+        await expect(sheet.locator('.fp-flagsec .fp-sources')).toHaveCount(0);
+        await expect(sheet.locator('.fp-flagsec .fp-lead')).toBeVisible();
+        await expect(sheet.locator('.fp-foot')).toContainText('La entradilla sobre la bandera es de Wikipedia');
+        await expect(sheet.locator('.fp-foot')).not.toContainText('El texto es el comienzo de los artículos');
+      }
+      await expect(sheet.locator('.fp-side .fp-arms')).toHaveCount(['GS', 'TF'].includes(id) ? 1 : 0);
+    }
+    const sheet = sheetOf(page);
+    await expect(sheet.locator('.fp-flag-facts dd').first()).toContainText('23 de febrero de 2007');
+    await expect(sheet.locator('.fp-flag-in p').first()).toContainText('El decreto no fija proporciones');
+    await expect(sheet.locator('.fp-parts dd').last()).toContainText('el decreto no establece ese significado');
+    await openSheet(page, '/banderas/paises/GS');
+    await expect(sheet.locator('.fp-parts dd').nth(1)).toContainText('no es fauna nativa');
+    await expect(sheet.locator('.fp-flag-facts dt').filter({ hasText: 'Adoptada' })).toHaveCount(0);
+    await openSheet(page, '/banderas/paises/AQ');
+    await expect(sheet.locator('.fp-flag-facts dt').filter({ hasText: 'Adoptada' })).toHaveCount(0);
+    await expect(sheet.locator('.fp-flag-in p').first()).toContainText('No es el emblema del Tratado Antártico');
+    for (const [id, owner, adopted] of [['BV', 'Noruega', '13 de julio de 1821'], ['HM', 'Australia', '3 de septiembre de 1901']] as const) {
+      await openSheet(page, `/banderas/paises/${id}`);
+      await expect(sheet.locator('.fp-flag-facts .fp-owner a')).toHaveText(owner);
+      await expect(sheet.locator('.fp-flag-facts dd').nth(1)).toContainText(adopted);
+    }
+  });
+
+  test('reads the five sourced accounts and their citations in English', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    for (const id of ['AQ', 'BV', 'GS', 'HM', 'TF']) {
+      const file = sheetFile(id);
+      const sheet = await openSheet(page, `/flags/countries/${id}`);
+      await expect(sheet.locator('.fp-about p:not(.fp-sources)')).toHaveText(file.about!.en);
+      await expect(sheet.locator('.fp-about .fp-sources a').first()).toHaveText(file.sources!.about![0].title.en);
+      const gallery = sheet.locator('.fp-photos .fp-masonry figure');
+      await expect(gallery).toHaveCount(2);
+      for (const [i, photo] of file.photos!.slice(1).entries()) {
+        await expect(gallery.nth(i).locator('figcaption')).toContainText(photo.en);
+        await expect(gallery.nth(i).locator('figcaption')).toContainText(photo.by!);
+        await expect(gallery.nth(i).locator('a', { hasText: 'Wikimedia Commons' })).toHaveAttribute('href', `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(photo.title.replace(/ /g, '_'))}`);
+      }
+      if (file.flag?.text) {
+        await expect(sheet.locator('.fp-flag-in p').first()).toHaveText(file.flag.text.en[0]);
+        await expect(sheet.locator('.fp-flagsec .fp-sources a').first()).toHaveText(file.sources!.flag![0].title.en);
+        await expect(sheet.locator('.fp-flagsec .fp-more a')).toHaveAttribute('href', file.readFlag!.en!);
+        await expect(sheet.locator('.fp-parts dt')).toHaveText(file.flag.parts!.map((part) => part.en[0]));
+      } else {
+        await expect(sheet.locator('.fp-flag-facts .fp-owner a')).toHaveText(id === 'BV' ? 'Norway' : 'Australia');
+        await expect(sheet.locator('.fp-foot')).toContainText('The flag introduction is from Wikipedia, abridged');
+      }
+      await expect(sheet.locator('.fp-foot')).not.toContainText('The text is written for the game, from what Wikipedia and The World Factbook tell.');
+    }
+  });
+
+  test('keeps sourced accounts and citation links within a phone screen @movil', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    for (const id of ['AQ', 'BV', 'GS', 'HM', 'TF']) {
+      const sheet = await openSheet(page, `/flags/countries/${id}`);
+      await sheet.locator('.fp-about .fp-sources a').first().scrollIntoViewIfNeeded();
+      await expect(sheet.locator('.fp-about .fp-sources a').first()).toBeVisible();
+      const gallery = sheet.locator('.fp-photos .fp-masonry figure');
+      await expect(gallery).toHaveCount(2);
+      for (const figure of await gallery.all()) {
+        await figure.locator('img').scrollIntoViewIfNeeded();
+        await expect.poll(() => drawn(figure.locator('img'))).toBe(true);
+        await expect(figure.locator('figcaption')).toBeVisible();
+      }
+      if (sheetFile(id).sources?.flag) await sheet.locator('.fp-flagsec .fp-sources a').first().scrollIntoViewIfNeeded();
+      expect(await sheet.locator('.dlg-box').evaluate((el) => el.scrollWidth - el.clientWidth), id).toBeLessThanOrEqual(0);
+    }
   });
 
   test('shows the coat of arms of the country under the globe, small, with what it is and whose the drawing is', async ({ page }) => {
@@ -1640,7 +1757,8 @@ test.describe('the sheet of a country without a complete handwritten account', (
     await expect(sheet.locator('.fp-flag-facts dd').first()).toHaveText('14 de junio de 1777');
     // A land with no flag of its own and nobody who lives there says whose it is, and little else.
     await open(page, '/banderas/paises/BV');
-    await expect(sheet.locator('.fp-official')).toHaveText('Isla Bouvet');
+    await expect(sheet.locator('.fp-official')).toHaveText('Bouvetøya');
+    await expect(sheet.locator('.fp-official')).toHaveAttribute('lang', 'nb');
     await expect(sheet.locator('.fp-glance .fp-owner a')).toHaveText('Noruega');
     await expect(sheet.locator('.fp-flag-facts .fp-owner a')).toHaveText('Noruega');
     await expect(sheet.locator('.fp-nb')).toHaveCount(0);
@@ -1652,7 +1770,7 @@ test.describe('the sheet of a country without a complete handwritten account', (
     expect(Math.round(picture.width)).toBe(Math.round(wide.width));
     expect(over.y).toBeLessThan(picture.y + picture.height);
     expect(over.y + over.height).toBeGreaterThan(picture.y + picture.height);
-    await expect(sheet.locator('.fp-foot')).toContainText('La fotografía es de Wikimedia Commons');
+    await expect(sheet.locator('.fp-foot')).toContainText('Las fotografías son de Wikimedia Commons');
 
     // And one with no flag that is official says so.
     await open(page, '/banderas/paises/AQ');

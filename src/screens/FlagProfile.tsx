@@ -24,7 +24,7 @@ import { capitalFlags, cityFlags, commonsPage, flagsRest, levelOf, loadFlagCredi
 import { flagSetText } from '../lib/flagSets';
 import { L, capName, fmtDay, getLang, nm } from '../lib/i18n';
 import { locator } from '../lib/profileMap';
-import { bordersText, flownCards, hasProfile, loadProfile, neighboursOf, photoSet, photoSrc, profileRest, rankOf, regionsText, timeCards, townsText, type ProfileArms, type ProfileFile, type ProfilePhoto, type Said, type SaidIn } from '../lib/profiles';
+import { bordersText, flownCards, hasProfile, loadProfile, neighboursOf, photoSet, photoSrc, profileRest, rankOf, regionsText, timeCards, townsText, type ProfileArms, type ProfileFile, type ProfilePhoto, type ProfileSource, type Said, type SaidIn } from '../lib/profiles';
 import { reportUrl } from '../lib/report';
 import { FLAGS_PATH, FLAG_GAMES_PATH } from '../lib/routes';
 import { cx, fmtArea, fmtPop } from '../lib/text';
@@ -79,6 +79,25 @@ function Lead({ text, page, more, of }: { text: string[]; page: string | undefin
         )}
       </p>
     </>
+  );
+}
+
+/** Sources for text written for the game; unlike the Wikipedia lead, it is not a quotation of any one page. */
+function Sources({ sources }: { sources: ProfileSource[] | undefined }) {
+  if (!sources?.length) return null;
+  return (
+    <p className="fp-from fp-sources">
+      {sources.length === 1 ? L('Fuente:', 'Source:') : L('Fuentes:', 'Sources:')}{' '}
+      {sources.map((source, i) => (
+        <span key={source.url}>
+          {i > 0 && ' · '}
+          <a href={source.url} target="_blank" rel="noopener noreferrer">
+            {say(source.title)}
+            <ExternalLink size={12} aria-hidden="true" />
+          </a>
+        </span>
+      ))}
+    </p>
   );
 }
 
@@ -352,7 +371,8 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
   if (flag?.colours) flagRows.push({ name: L('Colores', 'Colours'), value: (getLang() === 'en' ? flag.colours.en : flag.colours.es).join(', ') });
   if (flag?.called) flagRows.push({ name: L('La llaman', 'It is called'), value: say(flag.called) });
   const by = sayAny(flag?.by);
-  if (by) flagRows.push({ name: flag?.text ? L('La idearon', 'Devised by') : L('Diseño de', 'Designed by'), value: by });
+  // A sourced summary can describe a single designer (Bartram); the plural belongs to the full written account.
+  if (by) flagRows.push({ name: flag?.text && !profile?.sources?.flag ? L('La idearon', 'Devised by') : L('Diseño de', 'Designed by'), value: by });
   const read = sayAny(profile?.read);
   const readFlag = sayAny(profile?.readFlag);
   /**
@@ -409,6 +429,7 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
               {paragraphs(profile.about).map((text) => (
                 <p key={text}>{text}</p>
               ))}
+              <Sources sources={profile.sources?.about} />
             </section>
           ) : (
             lead && (
@@ -467,10 +488,12 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
                 )}
                 {flagRows.length > 0 && <FactList rows={flagRows} className="fp-flag-facts" />}
                 {drawing && <p className="fp-note">{say(drawing.note)}</p>}
-                {!flag?.text && !flagLead && readFlag && (
+                {!flagLead && readFlag && (!flag?.text || !!profile?.sources?.flag) && (
                   <p className="fp-more">
                     <a href={readFlag} target="_blank" rel="noopener noreferrer">
-                      {L(`Leer sobre la bandera de ${flies ? nm(flies.n) : name} en Wikipedia`, `Read about the flag of ${flies ? nm(flies.n) : name} on Wikipedia`)}
+                      {flag?.text
+                        ? L(`Ver también el artículo de Wikipedia sobre las banderas de ${name}`, `See also Wikipedia's article on the flags of ${name}`)
+                        : L(`Leer sobre la bandera de ${flies ? nm(flies.n) : name} en Wikipedia`, `Read about the flag of ${flies ? nm(flies.n) : name} on Wikipedia`)}
                       <ExternalLink size={13} aria-hidden="true" />
                     </a>
                   </p>
@@ -490,6 +513,7 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
                 })}
               </dl>
             )}
+            {flag?.text && <Sources sources={profile.sources?.flag} />}
           </section>
 
           {profile.times && profile.times.length > 0 ? (
@@ -611,10 +635,15 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
                 'The figures are those the whole game uses: World Bank, GeoNames, Unicode CLDR and The World Factbook.',
               )}
               {given &&
-                ` ${L(
-                  'El nombre oficial, el lema, el himno y los datos de la bandera son los que dan Wikidata y Wikipedia.',
-                  'The official name, the motto, the anthem and the facts of the flag are those that Wikidata and Wikipedia give.',
-                )}`}
+                ` ${profile.sources
+                  ? L(
+                      'Los nombres, el lema, el himno y los datos de la bandera se basan en Wikidata y Wikipedia, con las correcciones documentadas en las fuentes enlazadas.',
+                      'The names, motto, anthem and flag facts are based on Wikidata and Wikipedia, with corrections documented by the linked sources.',
+                    )
+                  : L(
+                      'El nombre oficial, el lema, el himno y los datos de la bandera son los que dan Wikidata y Wikipedia.',
+                      'The official name, the motto, the anthem and the facts of the flag are those that Wikidata and Wikipedia give.',
+                    )}`}
               {` ${drawing
                 ? L('El dibujo de esta ficha y de los juegos es de Wikimedia Commons; bajo la bandera van su autor y su licencia.', 'The drawing in this sheet and the games is from Wikimedia Commons; its author and licence are credited below the flag.')
                 : L('El dibujo de la bandera es de la colección flag-icons.', 'The drawing of the flag is from the flag-icons collection.')}`}
@@ -624,11 +653,18 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
                   'The coat of arms is a drawing from Wikimedia Commons, made smaller; under it are its author, where known, and its licence.',
                 )}`}
               {(lead || flagLead) &&
-                ` ${L(
-                  'El texto es el comienzo de los artículos de Wikipedia, abreviado, con licencia CC BY-SA 4.0.',
-                  'The text is the opening of the articles of Wikipedia, abridged, under the CC BY-SA 4.0 licence.',
-                )}`}
-              {profile.about && ` ${L('El texto está escrito para el juego, con lo que cuentan Wikipedia y The World Factbook.', 'The text is written for the game, from what Wikipedia and The World Factbook tell.')}`}
+                ` ${profile.about
+                  ? L(
+                      'La entradilla sobre la bandera es de Wikipedia, abreviada, con licencia CC BY-SA 4.0.',
+                      'The flag introduction is from Wikipedia, abridged, under the CC BY-SA 4.0 licence.',
+                    )
+                  : L(
+                      'El texto es el comienzo de los artículos de Wikipedia, abreviado, con licencia CC BY-SA 4.0.',
+                      'The text is the opening of the articles of Wikipedia, abridged, under the CC BY-SA 4.0 licence.',
+                    )}`}
+              {profile.about && ` ${profile.sources?.about
+                ? L('Los textos escritos para el juego se basan en las fuentes enlazadas junto a ellos.', 'The text written for the game is based on the sources linked beside it.')
+                : L('El texto está escrito para el juego, con lo que cuentan Wikipedia y The World Factbook.', 'The text is written for the game, from what Wikipedia and The World Factbook tell.')}`}
               {profile.timeSource && ` ${L('La cronología está escrita para el juego a partir de la fuente enlazada junto a ella.', 'The timeline is written for the game from the source linked beside it.')}`}
               {head &&
                 ` ${

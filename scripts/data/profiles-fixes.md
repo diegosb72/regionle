@@ -163,17 +163,97 @@ y Miquelón «adoptada en 1982», la de Santa Elena en 1984). En cada uno se dic
 diseñador y la página de Wikipedia. Una prueba (`src/lib/profiles.test.ts`) comprueba que son los mismos
 territorios que dice el juego.
 
+## Textos contrastados de los territorios polares
+
+El JSON aportado para **AQ, BV, GS, HM y TF** contenía explicaciones útiles, pero también 20 fotografías
+ficticias con autor «Placeholder», efemérides que no son banderas y fechas y símbolos mezclados. Se
+incorporan los datos contrastados como `about` y, donde hay bandera propia o propuesta, `flag.text` y
+`flag.parts` en `profiles-fixes.json`: son **resúmenes redactados para el juego**, no extractos de Wikipedia.
+`sources.about` y `sources.flag` enlazan los documentos a partir de los que se escribieron. El generador
+mantiene la fotografía de cabecera original acreditada de Commons (y los escudos de GS y TF), añade dos
+fotografías reales por ficha tras comprobar sus páginas de Commons, conserva los enlaces a Wikipedia para
+ampliar información y no inventa imágenes ni etapas de banderas. Las cinco fichas se ofrecen en español e
+inglés; las cronologías del resto de países permanecen intactas.
+
+- **AQ**: el dibujo que usa `flag-icons` es la [propuesta de Graham Bartram de
+  1996](https://www.crwflags.com/fotw/flags/aq!.html#gb), una silueta blanca sobre azul ONU, **no** el
+  [emblema del Tratado](https://www.ats.aq/devAS/e/Meetings/Measure?id=289) aprobado el 20-9-2002.
+  Antártida no tiene bandera oficial ni, por tanto, día de adopción de la propuesta. El
+  [Tratado Antártico](https://www.ats.aq/e/antarctictreaty.html) se firmó en 1959, entró en vigor en
+  1961 y conserva las posiciones de los Estados sobre reivindicaciones anteriores; no las anula.
+  La capa de hielo y el clima se contrastaron con el
+  [British Antarctic Survey](https://www.bas.ac.uk/about/where-we-work/antarctica/).
+- **BV**: la [ficha del Instituto Polar Noruego](https://npolar.no/en/themes/bouvetoya/) confirma que
+  está al **norte de 60° S** (fuera de la Antártida del Tratado), que 89 % de su superficie está cubierta
+  de glaciares, la izada noruega de 1927 y la reserva natural de 1971. El año 1930 es el de la
+  dependencia, **no** el de adopción de su bandera: el generador sigue tomando esta última de NO (1821).
+  Se añade «Bouvetøya» como nombre local, sin atribuirle un himno propio.
+- **GS**: el [gobierno territorial](https://gov.gs/about-sgssi/) documenta la reclamación de Cook en
+  1775, la ocupación argentina de 1982 y la separación de las Dependencias de las Malvinas en 1985;
+  no se convierten esas fechas en supuestos períodos de banderas. [FOTW](https://www.crwflags.com/fotw/flags/gs.html)
+  documenta el escudo concedido el 14-2-1992 y el pabellón inicial con disco blanco, luego sustituido
+  por el dibujo sin disco. **1992 es el año del escudo, no una fecha acreditada para el pabellón actual**:
+  se oculta la fecha heredada, y tampoco se da por verificada la adopción el 1-1-1999 del adjunto.
+  El lobo marino y el pingüino son nativos; el reno del escudo fue [introducido por
+  balleneros](https://gov.gs/eradication-projectsreindeer/). Se conserva el escudo acreditado.
+- **HM**: el [Programa Antártico Australiano](https://www.antarctica.gov.au/antarctic-operations/stations-and-field-locations/heard-island/)
+  confirma que es un territorio exterior deshabitado y protegido; [documenta](https://www.antarctica.gov.au/about-antarctica/history/stations/heard-island-and-mcdonald-islands/research-expeditions/)
+  la estación científica de Atlas Cove **de diciembre de 1947 a marzo de 1955**. No sigue existiendo una
+  estación estacional: hoy hay expediciones ocasionales. La bandera mostrada es la de AU, con la fecha
+  de esa bandera (1901), no la de la transferencia de las islas en 1947.
+- **TF**: la [administración de las TAAF](https://taaf.fr/collectivites/presentation/) enumera sus
+  cinco distritos, con las islas Dispersas incorporadas **en 2007, no en 1960**, y la sede en Saint-Pierre.
+  [FOTW](https://www.crwflags.com/fotw/flags/tf.html#fla) transcribe el decreto que oficializa el
+  emblema el **23-2-2007**: monograma TAAF y **cinco estrellas**. Su proporción habitual 2:3 no está
+  prescrita en el decreto ni este explica el significado de las estrellas; relacionarlas con los
+  distritos es una interpretación. La enseña anterior del administrador tenía tres estrellas y no es
+  la del juego. Suzanne Gauthier diseñó el **escudo** original registrado en 1958, no el pabellón;
+  no se le atribuye su autoría. El lema y el himno de Francia tampoco se adjudican al territorio.
+
+## Fotografías adicionales de AQ, BV, GS, HM y TF
+
+Las diez imágenes proceden de archivos reales de Wikimedia Commons, **no** de los 20 `Placeholder` del
+JSON recibido. `profiles-gallery.json` guarda los pies en español e inglés y, donde los metadatos breves
+no dan el crédito completo, el autor (`by`); `outside.mjs` pide esos mismos archivos en la fuente `photos`.
+El flujo dejó sus metadatos y versiones a 1920 px en la rama `datos` (commit
+`45642b58bfed8394088b056eaa54e85f44a61179`); `photos-pinned.mjs` fija cada archivo por su hash y
+`profiles.mjs` crea WebP de 640 y, cuando la resolución lo permite, 1280 px. Los **cinco pies de cabecera,
+sus créditos y sus imágenes anteriores siguen iguales**. La ficha enlaza cada fotografía a su página
+original de Commons, atribuye al autor y dice su licencia; si la licencia es de dominio público, su
+justificación se consulta en esa página, pues no hay una URL de licencia independiente.
+
+| Ficha | Archivo y lugar contrastados en Commons | Autor/crédito | Licencia indicada por Commons |
+| --- | --- | --- | --- |
+| AQ | [Canal Lemaire, Antártida](https://commons.wikimedia.org/wiki/File:Lemaire_Channel,_Antarctica.jpg) | Liam Quinn | [CC BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/) |
+| AQ | [Estación McMurdo, isla de Ross](https://commons.wikimedia.org/wiki/File:McMurdo_Station.jpg) | Gaelen Marsden | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| BV | [Lobos finos antárticos en Nyrøysa](https://commons.wikimedia.org/wiki/File:Antarktisk_pelssel_p%C3%A5_Bouvet%C3%B8ya,_Nyr%C3%B8ysa.jpg) | Audun Narvestad | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| BV | [Costa sureste, fotografía de 1898 coloreada a mano](https://commons.wikimedia.org/wiki/File:Bouvet_island_0.jpg) | Carl Chun; acuarela de F. Winter | Dominio público según Commons (publicación de 1903) |
+| GS | [Grytviken y la antigua estación ballenera](https://commons.wikimedia.org/wiki/File:Grytviken_Harbour,_Island_of_South_Georgia,_United_Kingdom.jpg) | Lexaxis7 | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| GS | [Glaciares y playa de Gold Harbour](https://commons.wikimedia.org/wiki/File:GoldHarbour.JPG) | BluesyPete | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| HM | [Instalaciones de la antigua estación de Heard](https://commons.wikimedia.org/wiki/File:Heard2.jpg) | NOAA | Dominio público en EE. UU. según Commons (NOAA) |
+| HM | [Heard y vórtices de nubes vistos desde el espacio en 2005](https://commons.wikimedia.org/wiki/File:Heard_Island_2005-08.jpg) | NASA / MODIS | Dominio público en EE. UU. según Commons (obra de NASA) |
+| TF | [Pingüinos rey en la isla de la Posesión, Crozet](https://commons.wikimedia.org/wiki/File:Vagues_et_manchots_%C3%A0_l%27assaut_de_la_plage.jpg) | franek2 | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| TF | [Isla de Ámsterdam desde el mar](https://commons.wikimedia.org/wiki/File:Amsterdam_vue_du_large_-_panoramio.jpg) | franek2 | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+
+El archivo de McMurdo ofrece varias licencias: los metadatos de Commons señalan la alternativa CC BY-SA
+3.0 que se muestra en la ficha. Las dos fotografías de `franek2` tienen revisión de la licencia original
+de Panoramio; la del canal Lemaire también fue verificada desde Flickr. Ni las fotos de dominio público
+ni sus autores se presentan como fotos sin procedencia. El pie de la imagen NASA identifica correctamente
+el instrumento MODIS y **no** atribuye esa imagen a NOAA; el de la antigua base identifica a NOAA y
+no afirma que la estación siga abierta.
+
 ## El texto de Wikipedia
 
-Desde la 1.49.0 cada ficha cuenta cómo empieza el artículo de Wikipedia del país y el de su bandera
-(`scripts/data/profiles-text.mjs`), abreviado. El texto no se corrige: se corta o no se enseña. Lo que se ha
-decidido a mano (`leads`, o la página de la que sale):
+Desde la 1.49.0 las fichas sin texto redactado para el juego cuentan cómo empieza el artículo de Wikipedia
+del país y el de su bandera (`scripts/data/profiles-text.mjs`), abreviado. El texto no se corrige: se corta
+o no se enseña. Lo que se ha decidido a mano (`leads`, o la página de la que sale):
 
 - **PS**: la ficha llevaba al artículo de la región histórica («Palestina (región)»), porque ese es el
   elemento de Wikidata que el juego tiene. La ficha es la del Estado de Palestina: se cambian sus páginas
   por las del Estado, «Palestina» y «Palestine», y de ellas sale el texto.
 - **AQ**: el comienzo del artículo en español sobre la bandera habla de la del Tratado Antártico, que no es
-  la que el juego dibuja: no se enseña. El inglés, que habla de las propuestas, sí.
+  la que el juego dibuja: se ocultó. Ahora ambas entradillas dejan lugar al texto contrastado de arriba,
+  sin atribuírselo a Wikipedia; el enlace al artículo se mantiene.
 - **BO**: la segunda frase del artículo en español tiene una errata («ciento doce provincias. trescientos
   cuarenta municipios»): se deja la primera, que dice lo que es el país.
 - **AM**: en el artículo en español sobre la bandera, la segunda frase sigue tras un punto con minúscula

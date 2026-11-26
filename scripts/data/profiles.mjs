@@ -8,8 +8,8 @@
 //   npm run data:profiles                  the sheets and their pictures
 //   npm run data:profiles -- --review      the same, and what whoever corrects the sources should look at
 //
-// (`--sheets`, `--brought`, `--arms`, `--said`, `--texts`, `--fixes`, `--heads`, `--times`, `--data` and `--photos` name other folders
-// and files to read from and write to: the tests run it on countries made up for the occasion.)
+// (`--sheets`, `--brought`, `--arms`, `--said`, `--texts`, `--fixes`, `--heads`, `--gallery`, `--times`, `--data` and
+// `--photos` name other folders and files to read from and write to: the tests run it on invented countries.)
 //
 // A sheet is made of four things, each laid over the one before:
 //
@@ -19,6 +19,8 @@
 //      its proportions and its colours. Every country has this, as far as the sources say it.
 //   2. scripts/data/profiles-fixes.json: what was corrected by hand after reading it (profiles-fixes.md
 //      tells why). No program writes that file, so bringing the sources again undoes nothing.
+//      A few territories have sourced, bilingual summaries here (`about`, `flag.text`/`parts`, `sources`):
+//      these replace Wikipedia excerpts, not the photographs or historical flag timelines.
 //      A territory that the game draws with the flag of its country (Réunion with that of France, Svalbard
 //      with that of Norway) is told there whose flag it is (`flag.of`), and says of it what that country says.
 //   3. scripts/data/profiles-times.json, where someone has researched its history: the flags of each period
@@ -26,6 +28,8 @@
 //      The year a flag is displayed with may differ from Wikidata's range when that range is wrong: `past`
 //      identifies the image in the game's flags, `pastFile` distinguishes two with the same catalogue
 //      years, and `from`/`to` are the checked years shown to the reader.
+//      scripts/data/profiles-gallery.json can add captioned Commons photographs after a chosen head without
+//      writing a full sheet or changing that photograph. The same list is fetched by outside.mjs.
 //   4. scripts/data/profiles/<country>.json, where there is one: what is written of the country by hand, in
 //      the two languages of the game — what it is, what its flag means, what it was at the time of each of
 //      the flags it flew — and the photographs it is shown with, each a file of Wikimedia Commons named by
@@ -87,6 +91,8 @@ const SAID = path.resolve(ROOT, value('said') ?? '.cache/src/countries-said.json
 const FIXES = path.resolve(ROOT, value('fixes') ?? 'scripts/data/profiles-fixes.json');
 /** The photograph chosen for the head of the sheet of each country nobody has written of, with what is seen in it. */
 const HEADS = path.resolve(ROOT, value('heads') ?? 'scripts/data/profiles-heads.json');
+/** Further Commons photographs, with bilingual captions, without replacing the one chosen for the head. */
+const GALLERY = path.resolve(ROOT, value('gallery') ?? 'scripts/data/profiles-gallery.json');
 /** Historical timelines written for the game without replacing the rest of each country's sheet. */
 const TIMES = path.resolve(ROOT, value('times') ?? 'scripts/data/profiles-times.json');
 /** How Wikipedia begins to tell of each country and of its flag, as it was brought. */
@@ -461,6 +467,26 @@ function checked(id, one) {
     if (Object.keys(means).length && !inSome(means)) fail(id, 'what its motto means is not a text in a language of the game');
   }
   if (one.anthem !== undefined && !inSome(one.anthem)) fail(id, 'its anthem is not a text in a language of the game');
+  // Authored summaries in the corrections must meet the same bilingual standard as a complete hand-written sheet.
+  if (one.about !== undefined) paragraphs(id, 'what is said of the country', one.about);
+  if (flag.text !== undefined) paragraphs(id, 'what is said of the flag', flag.text);
+  if (flag.parts !== undefined) {
+    if (!Array.isArray(flag.parts)) fail(id, 'the parts of the flag are not a list');
+    for (const [i, part] of flag.parts.entries()) {
+      if (!LANGS.every((lang) => Array.isArray(part?.[lang]) && part[lang].length === 2 && part[lang].every(isText))) fail(id, `part ${i + 1} of the flag has no name and text in both languages`);
+    }
+  }
+  if (one.sources !== undefined) {
+    if (!one.sources || typeof one.sources !== 'object' || Array.isArray(one.sources) || !Object.keys(one.sources).length) fail(id, 'its text sources are not grouped by section');
+    for (const [section, sources] of Object.entries(one.sources)) {
+      if (!['about', 'flag'].includes(section) || !(section === 'about' ? one.about : flag.text) || !Array.isArray(sources) || !sources.length) fail(id, `its text sources for «${section}» have no matching text or links`);
+      for (const source of sources) {
+        const url = typeof source?.url === 'string' && URL.canParse(source.url) ? new URL(source.url) : null;
+        if (!source || Object.keys(source).some((key) => !['title', 'url'].includes(key)) || !source.title || !LANGS.every((lang) => isText(source.title[lang])) || Object.keys(source.title).some((lang) => !LANGS.includes(lang)) || url?.protocol !== 'https:' || url.username || url.password || !url.hostname)
+          fail(id, `its text source for «${section}» needs a safe https address and a title in both languages`);
+      }
+    }
+  }
   if (flag.adopted !== undefined && !isDay(flag.adopted)) fail(id, `the day its flag was adopted on is not a day or a year: ${flag.adopted}`);
   if (flag.changed !== undefined && (!isDay(flag.changed) || !flag.adopted || flag.changed.slice(0, 4) < flag.adopted.slice(0, 4))) fail(id, `its flag is said to be as it is since ${flag.changed}, which is not a day after the one it was adopted on`);
   if (flag.ratio !== undefined && !/^\d+(\.\d+)?:\d+(\.\d+)?$/.test(flag.ratio)) fail(id, `the proportions of its flag are not two numbers: ${flag.ratio}`);
@@ -505,6 +531,7 @@ async function main() {
   const pages = read(TEXTS).pages ?? {};
   const { _: _why, ...fixes } = fs.existsSync(FIXES) ? read(FIXES) : {};
   const { _: _what, ...heads } = fs.existsSync(HEADS) ? read(HEADS) : {};
+  const { _: _gallery, ...gallery } = fs.existsSync(GALLERY) ? read(GALLERY) : {};
   const { _: _timeline, ...timelines } = fs.existsSync(TIMES) ? read(TIMES) : {};
   if (!fs.existsSync(path.join(ARMS, 'arms.json'))) throw new Error(`What was brought of the coats of arms is not in ${path.relative(ROOT, ARMS) || ARMS}: run «npm run data:fetch -- arms»`);
   const emblems = read(path.join(ARMS, 'arms.json'));
@@ -515,10 +542,20 @@ async function main() {
   fs.mkdirSync(PICTURES, { recursive: true });
 
   const lands = index.countries.filter((c) => c.fl);
-  for (const id of Object.keys(fixes)) if (!lands.some((c) => c.id === id)) throw new Error(`${path.basename(FIXES)} corrects «${id}», which is no country of the game with a flag`);
+  for (const [id, fix] of Object.entries(fixes)) {
+    if (!lands.some((c) => c.id === id)) throw new Error(`${path.basename(FIXES)} corrects «${id}», which is no country of the game with a flag`);
+    if (fix?.about && !fix.sources?.about?.length) fail(id, 'an authored account of the country needs its sources');
+    if (fix?.flag?.text && !fix.sources?.flag?.length) fail(id, 'an authored account of the flag needs its sources');
+  }
   const written = fs.existsSync(SHEETS) ? fs.readdirSync(SHEETS).filter((f) => f.endsWith('.json')).map((f) => path.basename(f, '.json')) : [];
   for (const id of written) if (!lands.some((c) => c.id === id)) fail(id, 'the game has no such country with a flag');
   for (const id of Object.keys(heads)) if (!lands.some((c) => c.id === id)) throw new Error(`${path.basename(HEADS)} chooses a photograph for «${id}», which is no country of the game with a flag`);
+  for (const [id, photos] of Object.entries(gallery)) {
+    if (!heads[id] || written.includes(id)) fail(id, 'a gallery needs a chosen head, not a full hand-written sheet');
+    if (!Array.isArray(photos) || !photos.length) fail(id, 'a gallery needs photographs');
+    const files = [heads[id].file?.trim(), ...photos.map((p) => (typeof p?.file === 'string' ? p.file.trim() : ''))];
+    if (files.some((file) => !file) || new Set(files).size !== files.length) fail(id, 'a gallery must not repeat its head or another photograph');
+  }
   for (const id of Object.keys(timelines)) {
     if (!lands.some((c) => c.id === id)) fail(id, 'a timeline was written for what is no country of the game with a flag');
     if (written.includes(id)) fail(id, 'a timeline was written twice: once on its own and once in its full hand-written sheet');
@@ -557,6 +594,10 @@ async function main() {
         // Nobody has written of it: at its head, the photograph that was chosen for it.
         one = { ...one, photos: [await photograph(id, heads[id], commons, WIDTHS.chosen, made)] };
         count.head++;
+      }
+      if (gallery[id]) {
+        // These are only additions: the first photo, its caption and its original WebP stay untouched.
+        for (const photo of gallery[id]) one.photos.push(await photograph(id, photo, commons, WIDTHS.photo, made));
       }
       if (timelines[id]) {
         // A historical account is independent of the chosen head, the Wikipedia texts and the rest of its facts.

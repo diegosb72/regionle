@@ -21,7 +21,7 @@
 export const PHOTOS_AT = { repo: 'diegosb72/regionle', commit: '2a95dd4bd0fd18af109c36dc59503adc2e4fc7e3', dir: '' };
 
 /** What Commons says of every photograph that was asked for. */
-export const PHOTOS_SAID = ['photos/photos.json', '060e26642bce52a678092094a27d5996e751bd9f', '57ea97553400f0cb72a2b4a7c0ff67bc8562e0e1'];
+export const PHOTOS_SAID = ['photos/photos.json', '1fbca3bd8104c6fa171ae011d841f1a60574cf8d', '45642b58bfed8394088b056eaa54e85f44a61179'];
 
 /** The pictures, each under the SHA-1 of its original: [where it is in the branch, the Git name of what it holds, the commit it is at where that is another]. */
 export const PHOTOS = [
@@ -41,6 +41,18 @@ export const PHOTOS = [
   // Commons has since redrawn twelve of them, so these new files use their own verified commit.
   ['photos/files/6864d3137af417653a52e862af852f65bb7593ae.1920.jpg', '98af5020ec7797c86548f1f77b3e75f27153b7d5', '57ea97553400f0cb72a2b4a7c0ff67bc8562e0e1'], // AL · Postcard of the Albanian Flag by Aladro Kastriota (1913).jpg
   ['photos/files/a9862cf589cd56ad1fc22871c2a6063f6b9fda1b.1920.jpg', '58dc4254937dec50287bd3a812718a95f89a2877', '57ea97553400f0cb72a2b4a7c0ff67bc8562e0e1'], // GR · Xenophon - Book of Signals - Flags of the Admirals.jpg
+
+  // Additional photographs after the five unchanged chosen heads; each render is fixed at the verified run.
+  ['photos/files/cd079a64ea2c9408f7f67fb83dfe25bef9e139d5.1920.jpg', '7b0d78fc1f6fc790a3df4a675e57de7343bf5f35', '45642b58bfed8394088b056eaa54e85f44a61179'], // AQ · Lemaire Channel, Antarctica.jpg
+  ['photos/files/552d4aa2e7acd051ec1e6700997d250c007126ff.1920.jpg', '57f15273758b86e99c2155ce66886be2c9311f31', '45642b58bfed8394088b056eaa54e85f44a61179'], // AQ · McMurdo Station.jpg
+  ['photos/files/ebc7dde7422d81d6578ed79e1ddb7eda0461deb7.1920.jpg', '221ee783e03973f10275cac35f1190738abc5e34', '45642b58bfed8394088b056eaa54e85f44a61179'], // BV · Antarktisk pelssel på Bouvetøya, Nyrøysa.jpg
+  ['photos/files/8f7a672fefc977c186cac1251bea8945c7e88489.1920.jpg', '8d94fd87d04d5b4d7c772e846f2e0b1b3a5a0203', '45642b58bfed8394088b056eaa54e85f44a61179'], // BV · Bouvet island 0.jpg
+  ['photos/files/3df387071057d77770ffc0b3e885448a50ad1389.1920.jpg', '90560c155d0d75c98047c07e0f222326abd73f39', '45642b58bfed8394088b056eaa54e85f44a61179'], // GS · Grytviken Harbour, Island of South Georgia, United Kingdom.jpg
+  ['photos/files/36baf18281f2c3f9b24bf2571ea2b15f4749c871.1920.jpg', 'd32fc5ad742be620a165d246c47045232d81ce84', '45642b58bfed8394088b056eaa54e85f44a61179'], // GS · GoldHarbour.JPG
+  ['photos/files/1de1f6246da3f8eb65819e5589bc014337039eb8.1920.jpg', '1a90db5160a9eb482ddf0d063629ff9d78777aa3', '45642b58bfed8394088b056eaa54e85f44a61179'], // HM · Heard2.jpg
+  ['photos/files/24d154ce3baf361d121450f1b022568b1072120b.1920.jpg', '020019df20deb2e9e4dcedbfb50ad5eb89a412f6', '45642b58bfed8394088b056eaa54e85f44a61179'], // HM · Heard Island 2005-08.jpg
+  ['photos/files/db364ec3cbeb5010652871a61963b5aa6f1a4aaf.1920.jpg', 'fe950beb27f5fa86c114cd64ef147a463af802a9', '45642b58bfed8394088b056eaa54e85f44a61179'], // TF · Vagues et manchots à l'assaut de la plage.jpg
+  ['photos/files/6e7f24b9b6f157eaa929196089ec9738417d02c2.1920.jpg', '0754a1e5bfadb7d0a206c9f837f5dff1c9f6c8ce', '45642b58bfed8394088b056eaa54e85f44a61179'], // TF · Amsterdam vue du large - panoramio.jpg
 
   // The one chosen for the head of the sheet of each country nobody has written of (scripts/data/profiles-heads.json)
   ['photos/files/692fd0f034ca1e1755b8c657ca1b13aa762948c0.1920.jpg', '45a7841d966750dbe3ef5d04521f49c50a33a4d5'], // AD · Vista de Andorra la Vieja, Andorra, 2013-12-30, DD 01.JPG

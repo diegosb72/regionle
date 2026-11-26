@@ -19,7 +19,7 @@ el final lo que más. La estimación es a ojo y cambia al abrir el código:
 - **Corto**: nada pendiente
 - **Medio**: nada pendiente
 - **Largo**: 44 (francés), 68, 83, 90, y los cinco juegos que faltan del apartado Banderas (112c), de los que el dueño ha pedido ya Banderle y Colorea, con el grupo «Todas» y sus cinco niveles
-- **En marcha**: las fichas de países (113). Todas tienen ya la suya con datos (1.48.0) y con el comienzo de su artículo de Wikipedia y del de su bandera (1.49.0); las 249 fichas, incluidos los 51 territorios, tienen fotografía de cabecera (1.50.0–1.54.0), y 226 muestran su escudo (1.51.0). Faltan las fichas completas como la de Brasil, por tandas
+- **En marcha**: las fichas de países (113). Todas tienen ya la suya con datos (1.48.0) y, salvo las que tienen texto propio contrastado, con el comienzo de su artículo de Wikipedia y del de su bandera (1.49.0); las 249 fichas, incluidos los 51 territorios, tienen fotografía de cabecera (1.50.0–1.54.0), cinco territorios polares suman dos fotografías adicionales y texto propio contrastado, y 226 muestran su escudo (1.51.0). Faltan las fichas completas como la de Brasil, por tandas
 - **Depende de conseguir datos**, lleve lo que lleve: 32, 38, 39, 41–43, 95, y lo que falta del 29, del 35 y del 37
 
 De dónde saldrían esos datos, mirado el 22 de noviembre de 2026. Donde se hace el juego solo se alcanzan

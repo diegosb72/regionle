@@ -214,6 +214,7 @@ function run(
     said?: unknown;
     texts?: Record<string, string> | null;
     heads?: Record<string, unknown>;
+    gallery?: Record<string, unknown>;
     times?: Record<string, unknown>;
     arms?: Record<string, string[]> | null;
     flags?: string[];
@@ -239,6 +240,8 @@ function run(
   // Never the photographs chosen for the countries of the game: those of the test, or none.
   const heads = path.join(dir, 'heads.json');
   if (opts.heads) fs.writeFileSync(heads, JSON.stringify({ _: 'What this file is.', ...opts.heads }));
+  const gallery = path.join(dir, 'gallery.json');
+  if (opts.gallery) fs.writeFileSync(gallery, JSON.stringify({ _: 'Further photographs for the test.', ...opts.gallery }));
   const times = path.join(dir, 'times.json');
   if (opts.times) fs.writeFileSync(times, JSON.stringify({ _: 'Researched periods of the countries of the test.', ...opts.times }));
   // What was brought of the coats of arms: the pictures of the test, and which of them Wikidata names for each country.
@@ -254,7 +257,7 @@ function run(
   let out = '';
   let code = 0;
   try {
-    out = execFileSync('node', [SCRIPT, '--sheets', written, '--brought', brought, '--arms', named, '--said', said, '--texts', texts, '--fixes', fixes, '--heads', heads, '--times', times, '--data', mine, '--photos', photos, ...(opts.flags ?? [])], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    out = execFileSync('node', [SCRIPT, '--sheets', written, '--brought', brought, '--arms', named, '--said', said, '--texts', texts, '--fixes', fixes, '--heads', heads, '--gallery', gallery, '--times', times, '--data', mine, '--photos', photos, ...(opts.flags ?? [])], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
   } catch (err) {
     const failed = err as { status?: number; stderr?: string; stdout?: string };
     code = failed.status ?? 1;
@@ -494,6 +497,41 @@ describe('the photograph chosen for the head of the sheet of a country nobody ha
     expect(r.out).toContain('fotografía de cabecera elegida en 1;');
     // The one at the head of the sheet written by hand is kept wider.
     expect(r.pictures()).toContain(`${sha1('Head.jpg').slice(0, 10)}-1920.webp`);
+  });
+
+  it('adds a bilingual, credited Commons gallery after the chosen head, without changing that head', () => {
+    const head = HEAD();
+    const r = run({}, { heads: { CC: head }, gallery: { CC: [
+      { file: 'Head.jpg', by: 'Ana Pérez', es: 'Un canal', en: 'A channel' },
+      { file: 'Painting.jpg', es: 'Una costa antigua', en: 'An old coast' },
+    ] } });
+    expect(r.code, r.out).toBe(0);
+    const photos = r.sheet('CC').photos;
+    expect(photos).toHaveLength(3);
+    expect(photos[0]).toMatchObject({ title: 'Falls.jpg', file: name('Falls.jpg'), es: head.es, en: head.en, sizes: [640, 1280], focus: head.focus });
+    expect(photos.slice(1).map((p) => [p.title, p.es, p.en])).toEqual([
+      ['Head.jpg', 'Un canal', 'A channel'],
+      ['Painting.jpg', 'Una costa antigua', 'An old coast'],
+    ]);
+    expect(photos[1]).toMatchObject({ by: 'Ana Pérez', licence: 'CC BY-SA 4.0', licenceUrl: 'https://creativecommons.org/licenses/by-sa/4.0', sizes: [640, 1280] });
+    expect(photos[2]).toMatchObject({ by: 'A painter', licence: 'Public domain', sizes: [640, 1280] });
+    expect(r.pictures()).toEqual([name('Falls.jpg'), name('Head.jpg'), name('Painting.jpg')].flatMap((prefix) => [640, 1280].map((w) => `${prefix}-${w}.webp`)).sort());
+    expect(r.sheet('BB').photos).toBeUndefined();
+  });
+
+  it('does not accept galleries without a head, with duplicate or unlicensed files, or without bilingual captions', () => {
+    const failGallery = (id: string, photos: unknown, heads: Record<string, unknown> = { CC: HEAD() }) => {
+      const r = run({}, { heads, gallery: { [id]: photos } });
+      expect(r.code).not.toBe(0);
+      expect(r.written()).toEqual([]);
+      return r.out;
+    };
+    expect(failGallery('BB', [{ file: 'Head.jpg', ...both('Otra foto') }])).toContain('a gallery needs a chosen head');
+    expect(failGallery('CC', [{ file: 'Falls.jpg', ...both('La misma') }])).toContain('must not repeat its head');
+    expect(failGallery('CC', [{ file: 'Head.jpg', ...both('Una foto') }, { file: 'Head.jpg', ...both('Otra foto') }])).toContain('must not repeat its head');
+    expect(failGallery('CC', [{ file: 'Mine.jpg', ...both('No libre') }])).toContain('terms that are not known to be free');
+    expect(failGallery('CC', [{ file: 'Head.jpg', es: 'Una foto' }])).toContain('has no text in «en»');
+    expect(failGallery('CC', [{ file: 'Gone.jpg', ...both('No existe') }])).toContain('Commons was not asked about');
   });
 
   it('keeps the author’s requested credit site beside their name and the licence', () => {
@@ -811,6 +849,56 @@ describe('how Wikipedia begins to tell of a country and of its flag', () => {
   });
 });
 
+describe('sourced accounts on generated sheets', () => {
+  const SOURCES = {
+    about: [{ title: { es: 'Instituto de las islas', en: 'Island institute' }, url: 'https://example.org/islands' }],
+    flag: [{ title: { es: 'Estudio de banderas', en: 'Flag study' }, url: 'https://example.org/flags' }],
+  };
+  const FIX = () => ({
+    about: { es: ['Un archipiélago.'], en: ['An archipelago.'] },
+    flag: { text: { es: ['Su pabellón.'], en: ['Its ensign.'] }, parts: [{ es: ['Una estrella', 'Representa una isla.'], en: ['A star', 'It stands for an island.'] }] },
+    sources: structuredClone(SOURCES),
+  });
+
+  it('keeps the chosen Commons photo, source facts and links while replacing only the Wikipedia extracts', () => {
+    const r = run({}, {
+      fixes: { CC: FIX(), BB: { about: { es: ['Otra isla.'], en: ['Another island.'] }, sources: { about: SOURCES.about }, flag: { of: 'CC' } } },
+      heads: { CC: { file: 'Falls.jpg', ...both('Unas cataratas') } },
+      texts: {
+        'es:Cc (país)': 'Cc era un país.', 'en:Cc': 'Cc was a country.',
+        'es:Bandera de Cc': 'La bandera de Cc era verde.', 'en:Flag of Cc': 'The flag of Cc was green.',
+      },
+    });
+    expect(r.code, r.out).toBe(0);
+    expect(r.sheet('CC')).toMatchObject({ about: FIX().about, sources: SOURCES, flag: FIX().flag });
+    expect(r.sheet('CC').lead).toBeUndefined();
+    expect(r.sheet('CC').flag?.lead).toBeUndefined();
+    expect(r.sheet('CC').flag?.adopted).toBe('1960-08-07');
+    expect(r.sheet('CC').photos[0]).toMatchObject({ title: 'Falls.jpg', licence: 'CC0', sizes: [640, 1280] });
+    expect(r.sheet('CC').read?.es).toBe('https://es.wikipedia.org/wiki/Cc_(pa%C3%ADs)');
+    // A borrowed flag's historical date and designer still come from its owner, not this territory's text.
+    expect(r.sheet('BB').flag?.of).toBe('CC');
+    expect(r.sheet('BB').flag?.adopted).toBe(r.sheet('CC').flag?.adopted);
+    expect(r.sheet('BB').flag?.text).toBeUndefined();
+    expect(r.sheet('BB').about?.en).toEqual(['Another island.']);
+  });
+
+  it('rejects unsourced or unsafe accounts and untranslated flag parts', () => {
+    const wrong = (fix: Record<string, unknown>) => {
+      const r = run({}, { fixes: { CC: fix } });
+      expect(r.code).not.toBe(0);
+      expect(r.written()).toEqual([]);
+      return r.out;
+    };
+    expect(wrong({ about: FIX().about })).toContain('an authored account of the country needs its sources');
+    expect(wrong({ flag: FIX().flag })).toContain('an authored account of the flag needs its sources');
+    expect(wrong({ ...FIX(), sources: { ...SOURCES, flag: [{ title: SOURCES.flag[0].title, url: 'javascript:alert(1)' }] } })).toContain('needs a safe https address');
+    expect(wrong({ ...FIX(), sources: { ...SOURCES, about: [{ title: { es: 'Solo español' }, url: 'https://example.org/islands' }] } })).toContain('a title in both languages');
+    expect(wrong({ ...FIX(), flag: { ...FIX().flag, parts: [{ es: ['Parte', 'Significado.'] }] } })).toContain('has no name and text in both languages');
+    expect(wrong({ sources: { about: SOURCES.about } })).toContain('no matching text or links');
+  });
+});
+
 describe('a researched timeline added without replacing the rest of a sheet', () => {
   const timeline = () => ({
     source: 'https://en.wikipedia.org/wiki/Flag_of_Aa',
@@ -943,7 +1031,7 @@ describe('what is written by hand, over what the sources say', () => {
     const without = path.join(TMP, 'no-photos');
     fs.mkdirSync(without, { recursive: true });
     fs.writeFileSync(path.join(arms, 'arms.json'), JSON.stringify({ items: {}, files: {} }));
-    const args = (sheets: string) => [SCRIPT, '--sheets', sheets, '--brought', without, '--said', path.join(TMP, 'said.json'), '--texts', path.join(TMP, 'texts.json'), '--fixes', path.join(TMP, 'none.json'), '--arms', arms, '--heads', path.join(TMP, 'none-heads.json'), '--times', path.join(TMP, 'none-times.json'), '--data', path.join(TMP, 'data-np'), '--photos', path.join(TMP, 'photos-np')];
+    const args = (sheets: string) => [SCRIPT, '--sheets', sheets, '--brought', without, '--said', path.join(TMP, 'said.json'), '--texts', path.join(TMP, 'texts.json'), '--fixes', path.join(TMP, 'none.json'), '--arms', arms, '--heads', path.join(TMP, 'none-heads.json'), '--gallery', path.join(TMP, 'none-gallery.json'), '--times', path.join(TMP, 'none-times.json'), '--data', path.join(TMP, 'data-np'), '--photos', path.join(TMP, 'photos-np')];
     fs.cpSync(data, path.join(TMP, 'data-np'), { recursive: true });
     const empty = path.join(TMP, 'sheets-none');
     fs.mkdirSync(empty, { recursive: true });

@@ -58,6 +58,12 @@ const files = (dir: string) => fs.readdirSync(path.join(ROOT, dir)).filter((name
 /** The countries that have a sheet, and those of them that somebody has written of by hand. */
 const LANDS = INDEX.countries.filter((c) => hasProfile(c)).map((c) => c.id);
 const WRITTEN = files(SOURCES);
+/** Bilingual, independently sourced accounts added to generated sheets without inventing flag periods. */
+const CURATED = ['AQ', 'BV', 'GS', 'HM', 'TF'] as const;
+/** Commons gallery photographs after the chosen head, with captions/credits checked on each file's page. */
+type GallerySource = { file: string; es: string; en: string; by?: string };
+const GALLERY = Object.fromEntries(Object.entries(json<Record<string, unknown>>('scripts/data/profiles-gallery.json')).filter(([id]) => id !== '_')) as Record<string, GallerySource[]>;
+const FIXES = json<Record<string, Partial<ProfileFile>>>('scripts/data/profiles-fixes.json');
 /** Independent, sourced timelines: these add to the generated sheets rather than replacing them. */
 const TIMELINE_FILE = json<Record<string, unknown>>('scripts/data/profiles-times.json');
 type TimeSource = Omit<ProfileTime, 'picture'> & { picture?: { file: string; by?: string; es: string; en: string } };
@@ -332,19 +338,19 @@ describe('the sheet of every country', () => {
   const sheets = LANDS.map((id) => sheetOf(id));
 
   it('is of its country, and says only what a sheet says', () => {
-    const known = ['v', 'id', 'official', 'local', 'localLang', 'motto', 'anthem', 'about', 'lead', 'flag', 'times', 'timeSource', 'timeNote', 'photos', 'arms', 'read', 'readFlag'];
+    const known = ['v', 'id', 'official', 'local', 'localLang', 'motto', 'anthem', 'about', 'sources', 'lead', 'flag', 'times', 'timeSource', 'timeNote', 'photos', 'arms', 'read', 'readFlag'];
     const ofFlag = ['of', 'adopted', 'changed', 'ratio', 'colours', 'called', 'by', 'drawing', 'text', 'lead', 'parts'];
     for (const [i, sheet] of sheets.entries()) {
       expect(sheet.v, LANDS[i]).toBe(1);
       expect(sheet.id).toBe(LANDS[i]);
       for (const key of Object.keys(sheet)) expect(known, `${sheet.id}.${key}`).toContain(key);
       for (const key of Object.keys(sheet.flag ?? {})) expect(ofFlag, `${sheet.id}.flag.${key}`).toContain(key);
-      // Only Brazil has a complete text and gallery of photographs written by hand. Researched timelines are independent.
+      // Brazil alone has a complete hand-written sheet; five more have sourced text and a checked gallery, not invented flag periods.
       if (!WRITTEN.includes(sheet.id)) {
-        expect(sheet.about, `${sheet.id}.about`).toBeUndefined();
+        if (!CURATED.some((id) => id === sheet.id)) expect(sheet.about, `${sheet.id}.about`).toBeUndefined();
         if (TIMELINES[sheet.id]) expect(sheet.times?.length, `${sheet.id}.times`).toBe(TIMELINES[sheet.id].times.length);
         else expect(sheet.times, `${sheet.id}.times`).toBeUndefined();
-        expect(sheet.photos?.length ?? 0, `${sheet.id}.photos`).toBeLessThanOrEqual(1);
+        expect(sheet.photos?.length ?? 0, `${sheet.id}.photos`).toBeLessThanOrEqual(1 + (GALLERY[sheet.id]?.length ?? 0));
       }
     }
   });
@@ -389,7 +395,7 @@ describe('the sheet of every country', () => {
       if (WRITTEN.includes(sheet.id)) continue;
       const head = chosen[sheet.id];
       expect(head, sheet.id).toBeDefined();
-      expect(sheet.photos, sheet.id).toHaveLength(1);
+      expect(sheet.photos, sheet.id).toHaveLength(1 + (GALLERY[sheet.id]?.length ?? 0));
       const photo = sheet.photos![0];
       expect(photo.title, sheet.id).toBe(head.file);
       expect([photo.es, photo.en], sheet.id).toEqual([head.es, head.en]);
@@ -602,8 +608,8 @@ describe('the sheet of every country', () => {
       if (sheet.flag?.text) expect(sheet.flag.lead, sheet.id).toBeUndefined();
     }
     for (const id of WRITTEN) expect([sheetOf(id).lead, sheetOf(id).flag?.lead], id).toEqual([undefined, undefined]);
-    // Every country nobody has written of has its page in both Wikipedias, and so its text; most flags have theirs.
-    expect(count.about).toEqual({ es: sheets.length - WRITTEN.length, en: sheets.length - WRITTEN.length });
+    // Every country without an authored account has its page in both Wikipedias, and so its text; most flags have theirs.
+    expect(count.about).toEqual({ es: sheets.length - WRITTEN.length - CURATED.length, en: sheets.length - WRITTEN.length - CURATED.length });
     expect(count.flag.es).toBeGreaterThanOrEqual(240);
     expect(count.flag.en).toBeGreaterThanOrEqual(240);
     expect(LEAD_MAX).toEqual({ about: 640, flag: 480 });
@@ -617,9 +623,10 @@ describe('the sheet of every country', () => {
     expect(sheetOf('PS').read).toEqual({ es: 'https://es.wikipedia.org/wiki/Palestina', en: 'https://en.wikipedia.org/wiki/Palestine' });
     expect(sheetOf('PS').lead?.es?.[0]).toMatch(/^Palestina, oficialmente Estado de Palestina, es un país/);
     expect(sheetOf('PS').lead?.en?.[0]).toMatch(/^Palestine, officially the State of Palestine, is a country/);
-    // The page in Spanish of the flag of Antarctica begins with another flag than the one the game draws.
-    expect(Object.keys(sheetOf('AQ').flag?.lead ?? {})).toEqual(['en']);
-    expect(Object.keys(sheetOf('AQ').lead ?? {}).sort()).toEqual(['en', 'es']);
+    // Neither Wikipedia flag lead explains the particular Bartram proposal as accurately as the sourced account.
+    expect(sheetOf('AQ').flag?.lead).toBeUndefined();
+    expect(sheetOf('AQ').lead).toBeUndefined();
+    expect(sheetOf('AQ').flag?.text?.en[0]).toContain('not the Antarctic Treaty emblem');
     // Misleading dates or colours in the source are hidden rather than attributed to it after rewriting.
     for (const id of ['GQ', 'JE', 'RW']) expect(Object.keys(sheetOf(id).flag?.lead ?? {})).toEqual(['en']);
     expect(Object.keys(sheetOf('HN').flag?.lead ?? {})).toEqual(['es']);
@@ -662,6 +669,96 @@ describe('the sheet of every country', () => {
     expect(of('NP').flag?.ratio).toBeUndefined();
     // Whoever has no motto is given none.
     for (const id of ['AU', 'IT', 'MX', 'JP']) expect(of(id).motto, id).toBeUndefined();
+  });
+});
+
+describe('the sourced accounts of the five polar territories', () => {
+  it('adds bilingual text and its real sources without replacing a photograph, an emblem or a Wikipedia link', () => {
+    for (const id of CURATED) {
+      const sheet = sheetOf(id);
+      const fix = FIXES[id];
+      expect(sheet.about, id).toEqual(fix.about);
+      expect(sheet.about?.es, id).toHaveLength(2);
+      expect(sheet.about?.en, id).toHaveLength(2);
+      expect(sheet.lead, id).toBeUndefined(); // Authored accounts are not labelled as Wikipedia excerpts.
+      expect(sheet.sources, id).toEqual(fix.sources);
+      expect(sheet.sources?.about?.length, id).toBeGreaterThan(0);
+      for (const sources of Object.values(sheet.sources ?? {})) for (const source of sources ?? []) {
+        cleanIn(source.title, `${id} source`);
+        expect(new URL(source.url).protocol, id).toBe('https:');
+      }
+      expect(sheet.read?.es, id).toMatch(/^https:\/\/es\.wikipedia\.org\/wiki\//);
+      expect(sheet.read?.en, id).toMatch(/^https:\/\/en\.wikipedia\.org\/wiki\//);
+      expect(sheet.photos, id).toHaveLength(1 + GALLERY[id].length);
+      expect(sheet.photos?.[0].by, id).toBeTruthy();
+      expect(sheet.photos?.[0].licence, id).toMatch(/^(CC BY(-SA)? \d|Public domain)/);
+      expect(JSON.stringify(sheet), id).not.toContain('Placeholder');
+      // The upload's dated historical events are not flag periods; no earlier flag exists in the catalogue.
+      expect(FLAGS.past?.[id], id).toBeUndefined();
+      expect(sheet.times, id).toBeUndefined();
+    }
+    for (const id of ['GS', 'TF']) expect(sheetOf(id).arms, id).toBeDefined();
+  });
+
+  it('keeps each chosen head and adds only the bilingual, licensed Commons photographs in the gallery', () => {
+    expect(Object.keys(GALLERY).sort()).toEqual([...CURATED].sort());
+    const heads = json<Record<string, { file: string; es: string; en: string }>>('scripts/data/profiles-heads.json');
+    const used = new Set<string>();
+    for (const id of CURATED) {
+      const [hero, ...photos] = sheetOf(id).photos!;
+      expect(hero.title, id).toBe(heads[id].file);
+      expect([hero.es, hero.en], id).toEqual([heads[id].es, heads[id].en]);
+      expect(photos, id).toHaveLength(2);
+      for (const [i, photo] of photos.entries()) {
+        const source = GALLERY[id][i];
+        expect([photo.title, photo.es, photo.en, photo.by], id).toEqual([source.file, source.es, source.en, source.by]);
+        expect(used.has(photo.file), photo.title).toBe(false);
+        used.add(photo.file);
+        expect(photo.file, photo.title).toMatch(/^[0-9a-f]{10}$/);
+        expect(photo.sizes, photo.title).toEqual(WIDTHS.photo.filter((w) => w <= photo.w));
+        expect(photo.licence, photo.title).toMatch(/^(CC BY(-SA)? \d|Public domain)/);
+        if (photo.licence.startsWith('CC')) expect(photo.licenceUrl, photo.title).toMatch(/^https:\/\/creativecommons\.org\//);
+        for (const width of photo.sizes) {
+          const file = path.join(ROOT, PICTURES, `${photo.file}-${width}.webp`);
+          expect(fs.existsSync(file), file).toBe(true);
+          expect(fs.statSync(file).size, file).toBeLessThanOrEqual(300_000);
+          expect(fs.readFileSync(file).subarray(8, 12).toString('latin1')).toBe('WEBP');
+        }
+      }
+    }
+  });
+
+  it('distinguishes the Bartram proposal, the borrowed Norwegian/Australian flags and the TAAF emblem', () => {
+    const aq = sheetOf('AQ');
+    expect(aq.flag?.text).toEqual(FIXES.AQ.flag?.text);
+    expect(aq.flag?.parts).toEqual(FIXES.AQ.flag?.parts);
+    expect(aq.flag?.lead).toBeUndefined();
+    expect(aq.flag?.adopted).toBeUndefined(); // 2002 is the Treaty emblem, not this flag.
+    expect(aq.flag?.text?.es[0]).toContain('No es el emblema del Tratado Antártico');
+    for (const [id, owner] of [['BV', 'NO'], ['HM', 'AU']] as const) {
+      const sheet = sheetOf(id);
+      expect(sheet.flag?.of, id).toBe(owner);
+      expect(sheet.flag?.adopted, id).toBe(sheetOf(owner).flag?.adopted);
+      expect(sheet.flag?.ratio, id).toBe(sheetOf(owner).flag?.ratio);
+      expect(sheet.flag?.lead, id).toEqual(sheetOf(owner).flag?.lead);
+      expect(sheet.flag?.text, id).toBeUndefined();
+      expect(sheet.sources?.flag, id).toBeUndefined();
+      expect(sheet.arms, id).toBeUndefined();
+    }
+    expect(sheetOf('BV')).toMatchObject({ local: 'Bouvetøya', localLang: 'nb' });
+    for (const id of ['GS', 'TF'] as const) {
+      const sheet = sheetOf(id);
+      expect(sheet.flag?.text, id).toEqual(FIXES[id].flag?.text);
+      expect(sheet.flag?.parts, id).toEqual(FIXES[id].flag?.parts);
+      expect(sheet.flag?.lead, id).toBeUndefined();
+      expect(sheet.sources?.flag?.length, id).toBeGreaterThan(0);
+    }
+    expect(sheetOf('GS').flag?.adopted).toBeUndefined(); // 1992 dates the arms, not an attested adoption of today's ensign.
+    expect(sheetOf('GS').flag?.parts?.[1].en[1]).toContain('not native wildlife');
+    expect(sheetOf('TF').flag?.adopted).toBe('2007-02-23');
+    expect(sheetOf('TF').flag?.text?.en[0]).toContain('decree sets no proportions');
+    expect(sheetOf('TF').flag?.parts?.[2].es[1]).toContain('el decreto no establece ese significado');
+    expect(sheetOf('TF').motto).toBeUndefined(); // The motto of France is not a motto of this territory.
   });
 });
 

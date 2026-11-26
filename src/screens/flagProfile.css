@@ -158,6 +158,9 @@
   align-items: center;
   gap: 4px;
 }
+.fp-flagsec > .fp-sources {
+  margin-top: 14px;
+}
 
 /* The figures, in as many columns as fit, and the globe beside them. */
 .fp-glance-in {
@@ -479,7 +482,7 @@
   font-size: calc(14px * var(--fs));
 }
 
-/* Where to read of the flag, while nothing is written of it here. */
+/* Where to read about the flag, separately from any summary written for the game. */
 .fp-more a {
   display: inline-flex;
   align-items: center;
