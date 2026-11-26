@@ -9,7 +9,9 @@
  *     as they say it;
  *   · how the page of Wikipedia of the country and that of its flag begin, shortened, in each language of
  *     the game: what a sheet tells in words while nobody has written of the country;
- *   · and, where somebody has written it (for now, of Brazil alone), what the country is, what its flag
+ *   · a researched timeline of historical flags, where someone has written it in both languages, without
+ *     displacing that country's chosen photograph or its Wikipedia text;
+ *   · and, where somebody has written a whole sheet (Brazil), what the country is, what its flag
  *     means, what it was at the time of each flag it flew, and the photographs it is shown with.
  */
 import { countryFlags, goneFlags, pastFlags, type FlagCard, type FlagsFile } from './flags';
@@ -60,14 +62,17 @@ export interface ProfileArms extends Pick<ProfilePhoto, 'file' | 'w' | 'h' | 'ti
 
 /** A time of the country, by the flag it flew then: one of other times, that of what it was then, or the one it flies. */
 export interface ProfileTime {
-  /** The years the country flew it between, as the game has that flag (public/data/flags.json, `past`). */
+  /** The years recorded for the drawing in the game's catalogue (`past`); they may differ from the researched years below. */
   past?: [number, number];
+  /** The catalogue file when two different drawings share the same `past` years. */
+  pastFile?: string;
   /** What the country was then, by its id among those that are no more (`gone`). */
   gone?: string;
   now?: true;
+  /** Historically checked years shown in the timeline, independent of the catalogue range in `past`. */
   from: number;
   to?: number;
-  /** When it flew, where the years do not say it well: four days of one November. */
+  /** When it flew, if `from`–`to` alone would mislead (four days in November, or two separated periods). */
   when?: Said;
   name: Said;
   text: Said;
@@ -123,6 +128,9 @@ export interface ProfileFile {
   };
   /** The oldest first; the last is the flag of today. A sheet that tells nothing of them shows the flags the game has (`flownCards`). */
   times?: ProfileTime[];
+  /** A source for a researched timeline and, if needed, a note about omitted periods or the kind of ensigns shown. */
+  timeSource?: string;
+  timeNote?: Said;
   /** The first is the one at the head of the sheet. */
   photos?: ProfilePhoto[];
   /** Its coat of arms. A territory that flies the flag of its country shows none. */
@@ -180,7 +188,8 @@ export function timeCards(profile: Pick<ProfileFile, 'id' | 'times'>, file: Flag
   return (profile.times ?? []).map((time) => {
     if (time.now) return now;
     if (time.gone) return gone.find((card) => card.id === time.gone) ?? null;
-    return past.find((card) => card.years?.[0] === time.past?.[0] && card.years?.[1] === time.past?.[1]) ?? null;
+    const matches = past.filter((card) => card.years?.[0] === time.past?.[0] && card.years?.[1] === time.past?.[1] && (!time.pastFile || card.file === time.pastFile));
+    return matches.length === 1 ? matches[0] : null;
   });
 }
 

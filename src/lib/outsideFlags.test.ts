@@ -308,6 +308,8 @@ interface Item {
   /** The page of Wikipedia whose box of facts shows the flag. */
   page?: string;
   past?: Past[];
+  /** Files named by a country's sheet and independent timeline (source `photos`). */
+  photos?: string[];
   file: string;
   /** What is listed: whether Wikidata prefers the flag it flies to the others. */
   rank?: string;
@@ -392,6 +394,7 @@ function run(source: string, data: string, env: Record<string, string> = {}, out
       OUTSIDE_FLAG_LISTS: none,
       OUTSIDE_FLAG_SIGNALS: none,
       OUTSIDE_PROFILES: none,
+      OUTSIDE_TIMES: none,
       OUTSIDE_HEADS: none,
       OUTSIDE_HEADS_ASKED: none,
       OUTSIDE_PROFILE_FIXES: none,
@@ -1301,6 +1304,28 @@ describe('the photographs of the sheets of the countries', () => {
     expect(r.source().note).toContain('5 fotografías de 1 fichas: 4 traídas');
     expect(r.source().note).toContain('1 que Commons no tiene');
     expect(agents.every((agent) => agent.startsWith('regionle-data/'))).toBe(true);
+  });
+
+  it('adds period images from independent timelines without losing the chosen head or fetching duplicates', async () => {
+    world.files['Past.jpg'] = { body: 'a period document', mime: 'image/jpeg', licence: 'Public domain', artist: 'E. Le Deley' };
+    world.files['Capital.jpg'] = { body: 'the capital', mime: 'image/jpeg', licence: 'CC0' };
+    const timesFile = path.join(fresh('timelines'), 'profiles-times.json');
+    fs.writeFileSync(timesFile, JSON.stringify({
+      _: 'historical accounts',
+      BR: { times: [{ picture: { file: 'Painting.jpg' } }, { picture: { file: ' Past.jpg ' } }] },
+      ES: { times: [{ picture: { file: 'Past.jpg' } }, { picture: { file: 'Past.jpg' } }] },
+      XX: { times: [{ name: 'no photo' }] },
+    }));
+    const headsFile = path.join(fresh('heads'), 'profiles-heads.json');
+    fs.writeFileSync(headsFile, JSON.stringify({ _: 'chosen heads', ES: { file: 'Capital.jpg' }, BR: { file: 'Not Rio.jpg' } }));
+    const r = await run('photos', PLAIN(), { OUTSIDE_PROFILES: PHOTOS(), OUTSIDE_HEADS: headsFile, OUTSIDE_TIMES: timesFile });
+    expect(r.code).toBe(0);
+    expect(r.data().items.BR.photos).toEqual(['Rio.jpg', 'Falls.jpg', 'Gone.jpg', 'Dunes.png', 'Painting.jpg', 'Past.jpg']);
+    expect(r.data().items.ES.photos).toEqual(['Capital.jpg', 'Past.jpg']);
+    expect(r.data().items.XX).toBeUndefined();
+    expect(r.data().files['Past.jpg']).toMatchObject({ licence: 'Public domain', artist: 'E. Le Deley', picture: picture('a period document') });
+    expect(asked.filter((q) => q === 'picture Past.jpg')).toHaveLength(1);
+    expect(r.data().files['Not Rio.jpg']).toBeUndefined();
   });
 
   it('keeps what it could bring when a picture does not come, and says which did not', async () => {
