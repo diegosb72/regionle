@@ -612,6 +612,10 @@ describe('the sheet of every country', () => {
     // The page in Spanish of the flag of Antarctica begins with another flag than the one the game draws.
     expect(Object.keys(sheetOf('AQ').flag?.lead ?? {})).toEqual(['en']);
     expect(Object.keys(sheetOf('AQ').lead ?? {}).sort()).toEqual(['en', 'es']);
+    // Spanish Wikipedia misdates Jersey's first hoisting and Rwanda's parliamentary vote; both
+    // Wikipedia introductions claim a settled adoption year for Tunisia despite conflicting sources.
+    for (const id of ['JE', 'RW']) expect(Object.keys(sheetOf(id).flag?.lead ?? {})).toEqual(['en']);
+    expect(sheetOf('TN').flag?.lead).toBeUndefined();
   });
 
   it('tells of a few what their pages are known to begin with, without the brackets of how they are called elsewhere', () => {
@@ -653,14 +657,14 @@ describe('the sheet of every country', () => {
 });
 
 describe('researched timelines layered over the generated sheets', () => {
-  it('covers sixty-three real countries without replacing their photograph or the two Wikipedia leads', () => {
+  it('covers seventy-five real countries without replacing their photograph or attributing corrected text to Wikipedia', () => {
     expect(typeof TIMELINE_REASON).toBe('string');
     const ids = Object.keys(TIMELINES);
     expect(ids).toEqual([...ids].sort());
-    expect(ids).toHaveLength(63);
+    expect(ids).toHaveLength(75);
     expect(ids).not.toContain('BR');
     expect(ids.every(has)).toBe(true);
-    expect(ids.reduce((n, id) => n + TIMELINES[id].times.length, 0)).toBe(256);
+    expect(ids.reduce((n, id) => n + TIMELINES[id].times.length, 0)).toBe(283);
     for (const id of ids) {
       const sheet = sheetOf(id);
       const source = TIMELINES[id];
@@ -668,8 +672,12 @@ describe('researched timelines layered over the generated sheets', () => {
       expect(sheet.photos, id).toHaveLength(1);
       expect(sheet.lead?.es?.length, id).toBeGreaterThan(0);
       expect(sheet.lead?.en?.length, id).toBeGreaterThan(0);
-      expect(sheet.flag?.lead?.es?.length, id).toBeGreaterThan(0);
-      expect(sheet.flag?.lead?.en?.length, id).toBeGreaterThan(0);
+      // Spanish Wikipedia misdates Jersey and Rwanda; both versions give an unqualified date for Tunisia.
+      // The separately sourced timeline does not masquerade as an extract of either encyclopedia.
+      if (['JE', 'RW', 'TN'].includes(id)) expect(sheet.flag?.lead?.es, id).toBeUndefined();
+      else expect(sheet.flag?.lead?.es?.length, id).toBeGreaterThan(0);
+      if (id === 'TN') expect(sheet.flag?.lead?.en, id).toBeUndefined();
+      else expect(sheet.flag?.lead?.en?.length, id).toBeGreaterThan(0);
       expect(sheet.timeSource, id).toBe(source.source);
       expect(sheet.timeNote, id).toEqual(source.note);
       // Period photographs are turned into light, credited WebP files rather than copied verbatim.
@@ -800,9 +808,26 @@ describe('researched timelines layered over the generated sheets', () => {
     expect(sheetOf('HT').flag?.adopted).toBeUndefined(); // Britannica and Wikipedia differ by one day.
     expect(sheetOf('MR').flag?.adopted).toBe('2017-10-25');
     expect(sheetOf('MW').times?.at(-1)?.when?.en).toBe('1964–2010 and since 2012');
-    // A contested occupation flag is not a historical fact, and a rejected proposal was not adopted.
+    // The sixth batch distinguishes autonomous and colonial flags, non-national ensigns, missing
+    // independence designs and dates taken from a first hoisting rather than a catalogue filename.
+    expect(sheetOf('BB').times?.[0]).toMatchObject({ past: [0, 1966], from: 1885, when: { en: 'Late nineteenth century–1966' } });
+    expect(sheetOf('GA').times?.at(-1)).toMatchObject({ now: true, from: 1960 });
+    expect(sheetOf('GG').times?.[0]).toMatchObject({ past: [1936, 1985], from: 1936 });
+    expect(sheetOf('JE').times?.[0]).toMatchObject({ past: [0, 1981], from: 1830, when: { en: 'From at least the 1830s until 1981' } });
+    expect(sheetOf('KM').times?.[0]).toMatchObject({ past: [1996, 2002], from: 1996, to: 2001 });
+    expect(sheetOf('KW').times?.[0].when?.en).toBe('1956–1961 · maritime ensign');
+    expect(sheetOf('LC').times?.map((time) => time.from)).toEqual([1939, 1979, 2002]); // The 1967 design is missing.
+    expect(sheetOf('LS').times?.[0]).toMatchObject({ past: [1987, 2006], from: 1987 });
+    expect(sheetOf('MY').times?.[0]).toMatchObject({ past: [1950, 1963], from: 1950 });
+    expect(sheetOf('RW').times?.[0].when?.en).toBe('January–September 1961');
+    expect(sheetOf('RW').flag?.adopted).toBe('2001-12-31'); // October was only a parliamentary vote.
+    expect(sheetOf('TG').times?.map((time) => time.past)).toEqual([[1957, 1958], [1958, 1960], undefined]);
+    expect(sheetOf('TN').times?.[0]).toMatchObject({ past: [0, 1999], from: 1831, when: { en: 'Nineteenth century–1999 · pre-law version' } });
+    expect(sheetOf('TN').flag?.adopted).toBeUndefined(); // The battle in 1827 was not adoption.
+    // A contested occupation flag and a rejected proposal are not historical national flags.
     expect(sheetOf('KH').times?.some((time) => time.past?.[0] === 1942)).toBe(false);
     expect(sheetOf('IQ').times?.some((time) => time.name.en.includes('blue'))).toBe(false);
+    expect(sheetOf('UG').times).toBeUndefined(); // The catalogue's 1962 flag was proposed, not adopted.
     // The UN administration's drawing is licensed, so the in-sheet credit must come from the same Commons catalogue.
     const cambodiaUN = timeCards({ id: 'KH', times: sheetOf('KH').times!.slice(-2, -1) }, FLAGS, INDEX, '/')[0];
     expect(cambodiaUN?.file).toBe('2a344f84d8.svg');

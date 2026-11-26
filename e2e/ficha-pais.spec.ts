@@ -932,6 +932,9 @@ test.describe('the sheet of a country without a complete handwritten account', (
     ['first six of the fifth batch', ['AG', 'AS', 'AZ', 'BH', 'BM', 'BS']],
     ['next six of the fifth batch', ['CK', 'DM', 'FK', 'GD', 'GH', 'HT']],
     ['last five of the fifth batch', ['IS', 'KG', 'MK', 'MR', 'MW']],
+    ['first four of the sixth batch', ['BB', 'GA', 'GG', 'JE']],
+    ['next four of the sixth batch', ['KM', 'KW', 'LC', 'LS']],
+    ['last four of the sixth batch', ['MY', 'RW', 'TG', 'TN']],
   ] as const) {
     test(`shows the ${group} researched histories with the actual catalogue drawings and a source`, async ({ page }) => {
       await seed(page);
@@ -1059,6 +1062,59 @@ test.describe('the sheet of a country without a complete handwritten account', (
     await openSheet(page, '/banderas/paises/HT');
     await expect(sheet.locator('.fp-flag-facts dt').filter({ hasText: 'Adoptada' })).toHaveCount(0);
     await expect(sheet.locator('.fp-times .fp-note')).toContainText('Britannica fecha su restitución el 25');
+  });
+
+  test('keeps maritime ensigns separate from national flags and shows gaps in the sixth batch', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    const sheet = await openSheet(page, '/flags/countries/KW');
+    const times = sheet.locator('.fp-times');
+    await expect(times.locator('.fp-when')).toHaveText(['1956–1961 · maritime ensign', 'Since 1961']);
+    await expect(times.locator('.fp-note')).toContainText('did not replace the red flag with inscriptions flown on land');
+    await expect(times.locator('li').first().locator('img')).toHaveAttribute('src', /flags\/commons\/dd9f13b523\.svg$/);
+    await expect(times.locator('li').first().getByRole('link', { name: 'Wikimedia Commons' })).toHaveAttribute('href', commons('Maritime Ensign of Kuwait 1956-1961.svg'));
+
+    await openSheet(page, '/flags/countries/LC');
+    await expect(times.locator('.fp-when')).toHaveText(['1939–1967', '1979–2002', 'Since 2002']);
+    await expect(times.locator('.fp-note')).toContainText('1967–1979 version is missing');
+    await openSheet(page, '/flags/countries/KM');
+    await expect(times.locator('.fp-when').first()).toHaveText('1996–2001');
+    await expect(times.locator('.fp-note')).toContainText('catalogue ends the previous drawing in 2002');
+    await openSheet(page, '/flags/countries/TG');
+    await expect(times.locator('.fp-when').nth(1)).toHaveText('From sometime in 1958 until 1960');
+    await expect(times.locator('.fp-note')).toContainText('stars\' exact position and colour');
+    await expect(times.getByRole('link', { name: 'See the source' })).toHaveAttribute('href', 'https://www.crwflags.com/fotw/flags/tg-1957.html');
+  });
+
+  test('does not display disputed adoption days as verified flag facts or Wikipedia quotations', async ({ page }) => {
+    await seed(page);
+    const sheet = await openSheet(page, '/banderas/paises/JE');
+    await expect(sheet.locator('.fp-flag-facts dd').first()).toContainText('7 de abril de 1981');
+    await expect(sheet.locator('.fp-flagsec .fp-lead')).toHaveCount(0);
+    await expect(sheet.locator('.fp-flagsec .fp-more a')).toHaveAttribute('href', sheetFile('JE').readFlag!.es!);
+    await expect(sheet.locator('.fp-times .fp-when').first()).toHaveText('Desde al menos la década de 1830 hasta 1981');
+    await openSheet(page, '/banderas/paises/RW');
+    await expect(sheet.locator('.fp-flag-facts dd').first()).toContainText('31 de diciembre de 2001');
+    await expect(sheet.locator('.fp-flagsec .fp-lead')).toHaveCount(0);
+    await expect(sheet.locator('.fp-times .fp-note')).toContainText('El 25 de octubre de 2001 se votó');
+    await openSheet(page, '/banderas/paises/TN');
+    await expect(sheet.locator('.fp-flag-facts dt').filter({ hasText: 'Adoptada' })).toHaveCount(0);
+    await expect(sheet.locator('.fp-flagsec .fp-lead')).toHaveCount(0);
+    await expect(sheet.locator('.fp-times .fp-when').first()).toHaveText('Siglo XIX–1999 · versión anterior a la ley');
+    await expect(sheet.locator('.fp-times .fp-note')).toContainText('ese día no es su fecha de adopción');
+  });
+
+  test('shows both green autonomous Togo designs without overflowing a phone @movil', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    const sheet = await openSheet(page, '/flags/countries/TG');
+    const times = sheet.locator('.fp-times');
+    await expect(times.locator('ol > li')).toHaveCount(3);
+    for (const [i, file] of ['4365a390b0', '3b49a62eb6'].entries()) {
+      const flag = times.locator('li').nth(i).locator('img');
+      await flag.scrollIntoViewIfNeeded();
+      await expect(flag).toHaveAttribute('src', new RegExp(`flags/commons/${file}\\.svg$`));
+      await expect.poll(() => drawn(flag)).toBe(true);
+    }
+    expect(await sheet.locator('.dlg-box').evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(0);
   });
 
   test('keeps the interruption of the Falklands ensign legible on a phone @movil', async ({ page }) => {

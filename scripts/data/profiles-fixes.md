@@ -67,6 +67,16 @@ se toma el primer día que dan las dos fichas, y si tampoco, nada. Estos se han 
   Mauritania; las fuentes traídas daban el 15 de agosto, posterior al referéndum pero anterior al decreto.
 - **HT**: se quita el día exacto: Britannica fecha la restitución de la bicolor el 25 de febrero de 1986 y
   la ficha de Wikipedia el 26. La cronología de Haití dice solamente «febrero de 1986».
+- **JE**: se deja la fecha contrastada del 7-4-1981 en que se izó oficialmente la enseña de Jersey. Se oculta
+  la entradilla española de Wikipedia sobre la bandera: da el 1 de abril, mientras la inglesa y la historia
+  local citada por ella dan el 7; la cronología explica en español las fechas de aprobación e izado.
+- **RW**: 31-12-2001, día en que se izó y adoptó la nueva bandera de Ruanda según Britannica y la historia
+  de la bandera en inglés. El 25 de octubre fue la votación parlamentaria sobre los símbolos: se oculta
+  la entradilla española, que lo confunde con la adopción, y se explica en la cronología en ambos idiomas.
+- **TN**: se quita el 20-10-1827: fue la batalla naval tras la que se decidió crear otra enseña, no su
+  adopción. Wikipedia la sitúa en 1831 y Britannica en 1835; se ocultan ambas entradillas de Wikipedia
+  sobre la bandera porque afirman sin reservas una de esas fechas. La cronología fecha solo el siglo y
+  distingue la ley que precisó el dibujo en 1999 de la creación de la bandera.
 - **DK**: se quita; la fecha de las fichas (15-6-1219) es la de la leyenda.
 - **AR**: proporción 9:14, la oficial (Wikidata y la ficha en inglés dan 5:8).
 - **KP**: se quita el diseñador (atribución discutida). La proporción 20:33 es la de las dos fichas, que
