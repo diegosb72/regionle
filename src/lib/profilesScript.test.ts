@@ -5,7 +5,8 @@
  * is written and what from Commons, the pictures it makes of each photograph —, the coat of arms each sheet
  * shows and whose it says the drawing is, and what it refuses: a
  * photograph nobody asked Commons about, one that is not free to show, a text in one language only, a time
- * whose flag the game does not have, a correction that leaves a sheet saying what it should not.
+ * whose flag the game does not have, a correction that leaves a sheet saying what it should not. A timeline
+ * written on its own is layered over the generated sheet without replacing its photographs or Wikipedia texts.
  */
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -213,6 +214,7 @@ function run(
     said?: unknown;
     texts?: Record<string, string> | null;
     heads?: Record<string, unknown>;
+    times?: Record<string, unknown>;
     arms?: Record<string, string[]> | null;
     flags?: string[];
   } = {},
@@ -237,6 +239,8 @@ function run(
   // Never the photographs chosen for the countries of the game: those of the test, or none.
   const heads = path.join(dir, 'heads.json');
   if (opts.heads) fs.writeFileSync(heads, JSON.stringify({ _: 'What this file is.', ...opts.heads }));
+  const times = path.join(dir, 'times.json');
+  if (opts.times) fs.writeFileSync(times, JSON.stringify({ _: 'Researched periods of the countries of the test.', ...opts.times }));
   // What was brought of the coats of arms: the pictures of the test, and which of them Wikidata names for each country.
   const named = path.join(dir, 'arms');
   if (opts.arms !== null) {
@@ -250,7 +254,7 @@ function run(
   let out = '';
   let code = 0;
   try {
-    out = execFileSync('node', [SCRIPT, '--sheets', written, '--brought', brought, '--arms', named, '--said', said, '--texts', texts, '--fixes', fixes, '--heads', heads, '--data', mine, '--photos', photos, ...(opts.flags ?? [])], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    out = execFileSync('node', [SCRIPT, '--sheets', written, '--brought', brought, '--arms', named, '--said', said, '--texts', texts, '--fixes', fixes, '--heads', heads, '--times', times, '--data', mine, '--photos', photos, ...(opts.flags ?? [])], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
   } catch (err) {
     const failed = err as { status?: number; stderr?: string; stdout?: string };
     code = failed.status ?? 1;
@@ -807,6 +811,109 @@ describe('how Wikipedia begins to tell of a country and of its flag', () => {
   });
 });
 
+describe('a researched timeline added without replacing the rest of a sheet', () => {
+  const timeline = () => ({
+    source: 'https://en.wikipedia.org/wiki/Flag_of_Aa',
+    note: both('Los años de la imagen no son los años de uso'),
+    times: [
+      { past: [1900, 1950], from: 1901, to: 1948, name: both('Primera bandera'), text: both('Una versión de la historia') },
+      { now: true, from: 1948, name: both('Bandera actual'), text: both('La historia sigue') },
+    ],
+  });
+
+  it('keeps the chosen photograph, facts, corrections and Wikipedia texts, while adding bilingual periods with verified years', () => {
+    const r = run({}, { times: { AA: timeline() }, heads: { AA: { file: 'Head.jpg', ...both('La ciudad') } }, texts: { 'es:Aa': 'Aa es un país del que alguien ha escrito a mano.', 'es:Bandera de Aa': 'La bandera de Aa es roja y blanca desde 1950.' }, fixes: { AA: { flag: { ratio: '3:4' } } } });
+    expect(r.code).toBe(0);
+    expect(r.sheet('AA')).toMatchObject({
+      official: { en: 'Republic of Aa' },
+      flag: { ratio: '3:4', lead: { es: ['La bandera de Aa es roja y blanca desde 1950.'] } },
+      lead: { es: ['Aa es un país del que alguien ha escrito a mano.'] },
+      photos: [{ title: 'Head.jpg', es: 'La ciudad.', en: 'La ciudad (en).' }],
+      times: timeline().times,
+      timeSource: timeline().source,
+      timeNote: timeline().note,
+    });
+    expect(r.pictures()).toContain(`${name('Head.jpg')}-640.webp`);
+    expect(r.out).toContain('cronología escrita en 1');
+    // The range [1900, 1950] identifies the drawing, not the checked years 1901–1948 shown to the reader.
+    expect(r.sheet('AA').times[0]).toMatchObject({ past: [1900, 1950], from: 1901, to: 1948 });
+  });
+
+  it('builds a period document at its own width with Commons provenance without replacing the chosen head', () => {
+    const account = timeline();
+    const r = run({}, {
+      times: { AA: { ...account, times: [{ ...account.times[0], picture: { file: 'Painting.jpg', ...both('Un documento de época') } }, account.times[1]] } },
+      heads: { AA: { file: 'Head.jpg', ...both('La ciudad') } },
+    });
+    expect(r.code).toBe(0);
+    expect(r.sheet('AA').photos).toMatchObject([{ title: 'Head.jpg' }]);
+    expect(r.sheet('AA').times[0].picture).toMatchObject({ title: 'Painting.jpg', sizes: [640], by: 'A painter', licence: 'Public domain', es: 'Un documento de época.' });
+    expect(r.pictures()).toContain(`${name('Painting.jpg')}-640.webp`);
+    expect(r.pictures()).toContain(`${name('Head.jpg')}-1280.webp`);
+  });
+
+  it('distinguishes two catalogue drawings that share years and rejects an unqualified or invented file', () => {
+    const withTwin = ({ data }: { data: string }) => {
+      const file = path.join(data, 'flags.json');
+      const flags = JSON.parse(fs.readFileSync(file, 'utf8'));
+      flags.past.AA.push(['0000000004.svg', 1.5, 1900, 1950]);
+      fs.writeFileSync(file, JSON.stringify(flags));
+    };
+    const first = timeline().times[0];
+    const t = {
+      ...timeline(),
+      times: [
+        { ...first, pastFile: '0000000002.svg' },
+        { ...first, pastFile: '0000000004.svg', from: 1902, to: 1949 },
+        timeline().times[1],
+      ],
+    };
+    const r = run({}, { times: { AA: t }, before: withTwin });
+    expect(r.code).toBe(0);
+    expect(r.sheet('AA').times.map((one) => one.pastFile)).toEqual(['0000000002.svg', '0000000004.svg', undefined]);
+
+    const ambiguous = run({}, { times: { AA: timeline() }, before: withTwin });
+    expect(ambiguous.code).not.toBe(0);
+    expect(ambiguous.out).toContain('no unique flag that the country flew from 1900 to 1950');
+    const unknown = run({}, { times: { AA: { ...t, times: [{ ...first, pastFile: 'not-in-catalogue.svg' }, timeline().times[1]] } }, before: withTwin });
+    expect(unknown.code).not.toBe(0);
+    expect(unknown.out).toContain('with file not-in-catalogue.svg');
+    const wrongKind = run({}, { times: { AA: { ...t, times: [{ ...first, pastFile: '0000000002.svg' }, { ...timeline().times[1], pastFile: '0000000004.svg' }] } }, before: withTwin });
+    expect(wrongKind.code).not.toBe(0);
+    expect(wrongKind.out).toContain('a past flag file can only identify a past flag');
+  });
+
+  it('does not confuse a timeline with a whole sheet written by hand, nor make one for a missing country', () => {
+    const doubled = run({ AA: SHEET() }, { times: { AA: timeline() } });
+    expect(doubled.code).not.toBe(0);
+    expect(doubled.out).toContain('AA: a timeline was written twice');
+    expect(doubled.written()).toEqual([]);
+    const unknown = run({}, { times: { ZZ: timeline() } });
+    expect(unknown.code).not.toBe(0);
+    expect(unknown.out).toContain('ZZ: a timeline was written for what is no country');
+    expect(unknown.written()).toEqual([]);
+  });
+
+  it('requires a real https source and readable, bilingual history rather than trusting catalogue images or invalid dates', () => {
+    const refused = (change: (one: ReturnType<typeof timeline>) => void) => {
+      const one = timeline();
+      change(one);
+      const r = run({}, { times: { AA: one } });
+      expect(r.code).not.toBe(0);
+      expect(r.written()).toEqual([]);
+      return r.out;
+    };
+    expect(refused((one) => (one.source = 'javascript:alert(1)'))).toContain('no safe https source');
+    expect(refused((one) => (one.source = 'https://x:password@example.com/'))).toContain('no safe https source');
+    expect(refused((one) => (one.note.en = ' '))).toContain('the note on its timeline');
+    expect(refused((one) => (one.times[0].text.en = ' '))).toContain('time 1 has no text in «en»');
+    expect(refused((one) => (one.times[0].past = [1900, 1949]))).toContain('no unique flag');
+    expect(refused((one) => (one.times[0].to = 1899))).toContain('time 1 has no valid years');
+    expect(refused((one) => (one.times[1].from = 1800))).toContain('is before the one above it');
+    expect(refused((one) => (one.times[1].to = 1950))).toContain('flag of today cannot have an ending year');
+  });
+});
+
 describe('what is written by hand, over what the sources say', () => {
   it('is what the sheet says; what nobody wrote stays as it was read', () => {
     const r = run({ AA: SHEET() });
@@ -836,7 +943,7 @@ describe('what is written by hand, over what the sources say', () => {
     const without = path.join(TMP, 'no-photos');
     fs.mkdirSync(without, { recursive: true });
     fs.writeFileSync(path.join(arms, 'arms.json'), JSON.stringify({ items: {}, files: {} }));
-    const args = (sheets: string) => [SCRIPT, '--sheets', sheets, '--brought', without, '--said', path.join(TMP, 'said.json'), '--texts', path.join(TMP, 'texts.json'), '--fixes', path.join(TMP, 'none.json'), '--arms', arms, '--heads', path.join(TMP, 'none-heads.json'), '--data', path.join(TMP, 'data-np'), '--photos', path.join(TMP, 'photos-np')];
+    const args = (sheets: string) => [SCRIPT, '--sheets', sheets, '--brought', without, '--said', path.join(TMP, 'said.json'), '--texts', path.join(TMP, 'texts.json'), '--fixes', path.join(TMP, 'none.json'), '--arms', arms, '--heads', path.join(TMP, 'none-heads.json'), '--times', path.join(TMP, 'none-times.json'), '--data', path.join(TMP, 'data-np'), '--photos', path.join(TMP, 'photos-np')];
     fs.cpSync(data, path.join(TMP, 'data-np'), { recursive: true });
     const empty = path.join(TMP, 'sheets-none');
     fs.mkdirSync(empty, { recursive: true });
@@ -896,11 +1003,11 @@ describe('what the script will not make a sheet of', () => {
   it('a time whose flag the game does not have, or times that are out of order', () => {
     expect(refused((s) => (s.times[0].gone = 'Q404'))).toContain('no flag of «Q404»');
     expect(refused((s) => (s.times[1].past = [1900, 1951]))).toContain('flew from 1900 to 1951');
-    expect(refused((s) => (s.times[1] = { from: 1900, name: both('x'), text: both('x') }))).toContain('names no flag');
+    expect(refused((s) => (s.times[1] = { from: 1900, name: both('x'), text: both('x') }))).toContain('exactly one flag');
     expect(refused((s) => s.times.reverse())).toMatch(/is before the one above it|the last of the times/);
     expect(refused((s) => s.times.pop())).toContain('the last of the times, and only that one, is the flag of today');
     expect(refused((s) => (s.times[1] = { now: true, from: 1900, name: both('x'), text: both('x') }))).toContain('the last of the times');
-    expect(refused((s) => (s.times[0].to = 1700))).toContain('time 1 has no years');
+    expect(refused((s) => (s.times[0].to = 1700))).toContain('time 1 has no valid years');
     expect(refused((s) => (s.times = []))).toContain('has no times');
   });
 

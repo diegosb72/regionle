@@ -8,10 +8,10 @@
 //   npm run data:profiles                  the sheets and their pictures
 //   npm run data:profiles -- --review      the same, and what whoever corrects the sources should look at
 //
-// (`--sheets`, `--brought`, `--arms`, `--said`, `--texts`, `--fixes`, `--heads`, `--data` and `--photos` name other folders and
-// files to read from and write to: the tests run it on countries made up for the occasion.)
+// (`--sheets`, `--brought`, `--arms`, `--said`, `--texts`, `--fixes`, `--heads`, `--times`, `--data` and `--photos` name other folders
+// and files to read from and write to: the tests run it on countries made up for the occasion.)
 //
-// A sheet is made of three things, each laid over the one before:
+// A sheet is made of four things, each laid over the one before:
 //
 //   1. What Wikidata and Wikipedia say of the country and of its flag (profiles-said.mjs reads it from
 //      .cache/src/countries-said.json, which the workflow "Traer datos" brought: scripts/data/outside.mjs,
@@ -21,7 +21,12 @@
 //      tells why). No program writes that file, so bringing the sources again undoes nothing.
 //      A territory that the game draws with the flag of its country (Réunion with that of France, Svalbard
 //      with that of Norway) is told there whose flag it is (`flag.of`), and says of it what that country says.
-//   3. scripts/data/profiles/<country>.json, where there is one: what is written of the country by hand, in
+//   3. scripts/data/profiles-times.json, where someone has researched its history: the flags of each period
+//      and what happened then, in both languages, without replacing the photograph or the Wikipedia texts.
+//      The year a flag is displayed with may differ from Wikidata's range when that range is wrong: `past`
+//      identifies the image in the game's flags, `pastFile` distinguishes two with the same catalogue
+//      years, and `from`/`to` are the checked years shown to the reader.
+//   4. scripts/data/profiles/<country>.json, where there is one: what is written of the country by hand, in
 //      the two languages of the game — what it is, what its flag means, what it was at the time of each of
 //      the flags it flew — and the photographs it is shown with, each a file of Wikimedia Commons named by
 //      its title, with its caption. What it says is what the sheet says; the rest stays as it was read.
@@ -82,6 +87,8 @@ const SAID = path.resolve(ROOT, value('said') ?? '.cache/src/countries-said.json
 const FIXES = path.resolve(ROOT, value('fixes') ?? 'scripts/data/profiles-fixes.json');
 /** The photograph chosen for the head of the sheet of each country nobody has written of, with what is seen in it. */
 const HEADS = path.resolve(ROOT, value('heads') ?? 'scripts/data/profiles-heads.json');
+/** Historical timelines written for the game without replacing the rest of each country's sheet. */
+const TIMES = path.resolve(ROOT, value('times') ?? 'scripts/data/profiles-times.json');
 /** How Wikipedia begins to tell of each country and of its flag, as it was brought. */
 const TEXTS = path.resolve(ROOT, value('texts') ?? '.cache/src/countries-texts.json');
 /** The data of the game: read, and where the sheets are written (under `profiles`). */
@@ -298,17 +305,48 @@ async function emblem(id, one, commons, made, must, why) {
 
 /** The flag of a time of the country, as the game has it: one it flew before, that of what it was then, or the one it flies. */
 function flown(id, time, flags) {
+  if ([time.now, time.gone, time.past].filter((one) => one !== undefined).length !== 1) fail(id, 'a time must name exactly one flag: «now», «gone» or «past»');
+  if (time.pastFile !== undefined && (!Array.isArray(time.past) || typeof time.pastFile !== 'string' || !time.pastFile)) fail(id, 'a past flag file can only identify a past flag');
   if (time.now === true) return { now: true };
   if (typeof time.gone === 'string') {
     if (!flags.gone.some((row) => row[0] === time.gone)) fail(id, `the game has no flag of «${time.gone}», which is no more`);
     return { gone: time.gone };
   }
-  if (Array.isArray(time.past) && time.past.length === 2) {
+  if (Array.isArray(time.past) && time.past.length === 2 && time.past.every(Number.isInteger)) {
     const [from, to] = time.past;
-    if (!(flags.past?.[id] ?? []).some((row) => row[2] === from && row[3] === to)) fail(id, `the game has no flag that the country flew from ${from} to ${to}`);
-    return { past: [from, to] };
+    if ((flags.past?.[id] ?? []).filter((row) => row[2] === from && row[3] === to && (time.pastFile === undefined || row[0] === time.pastFile)).length !== 1) fail(id, `the game has no unique flag that the country flew from ${from} to ${to}${time.pastFile ? ` with file ${time.pastFile}` : ''}`);
+    return { past: [from, to], ...(time.pastFile ? { pastFile: time.pastFile } : {}) };
   }
   return fail(id, 'a time names no flag: «now», «gone» or «past»');
+}
+
+/**
+ * The historical periods of a country. `past` finds the drawing in the game's catalogue; it may carry
+ * unchecked Wikidata years. The years here, which are shown on the sheet, can instead be checked against
+ * the sources beside the hand-written timeline (and `when` can explain a discontinuous period).
+ */
+async function timesOf(id, source, flags, commons, made) {
+  if (!Array.isArray(source) || source.length < 2) fail(id, 'a historical timeline needs at least one earlier flag and the flag of today');
+  const times = [];
+  const thisYear = new Date().getUTCFullYear();
+  for (const [i, time] of source.entries()) {
+    if (!time || !Number.isInteger(time.from) || time.from < 1 || time.from > thisYear || (time.to !== undefined && (!Number.isInteger(time.to) || time.to < time.from || time.to > thisYear))) fail(id, `time ${i + 1} has no valid years`);
+    if (i && time.from < source[i - 1].from) fail(id, `time ${i + 1} is before the one above it`);
+    const flag = flown(id, time, flags);
+    if (flag.now && time.to !== undefined) fail(id, 'the flag of today cannot have an ending year');
+    if (!flag.now && time.to === undefined) fail(id, `time ${i + 1} has no ending year`);
+    times.push({
+      ...flag,
+      from: time.from,
+      ...(time.to !== undefined ? { to: time.to } : {}),
+      ...(time.when ? { when: said(id, `the days of time ${i + 1}`, time.when) } : {}),
+      name: said(id, `the name of time ${i + 1}`, time.name),
+      text: said(id, `time ${i + 1}`, time.text),
+      ...(time.picture ? { picture: await photograph(id, time.picture, commons, WIDTHS.time, made) } : {}),
+    });
+  }
+  if (times.filter((time) => time.now).length !== 1 || !times[times.length - 1].now) fail(id, 'the last of the times, and only that one, is the flag of today');
+  return times;
 }
 
 /** What is written of a country by hand, as the sheet tells it: its texts, its times and its photographs, with their pictures made. */
@@ -331,21 +369,7 @@ async function sheet(file, commons, index, flags, made) {
     for (const lang of LANGS) if (!Array.isArray(part?.[lang]) || part[lang].length !== 2 || part[lang].some((p) => typeof p !== 'string' || !p.trim())) fail(id, `part ${i + 1} of the flag has no name and text in «${lang}»`);
     return { es: part.es.map((p) => p.trim()), en: part.en.map((p) => p.trim()) };
   });
-  const times = [];
-  for (const [i, time] of src.times.entries()) {
-    if (!Number.isInteger(time.from) || (time.to !== undefined && (!Number.isInteger(time.to) || time.to < time.from))) fail(id, `time ${i + 1} has no years`);
-    if (i && time.from < src.times[i - 1].from) fail(id, `time ${i + 1} is before the one above it`);
-    times.push({
-      ...flown(id, time, flags),
-      from: time.from,
-      ...(time.to !== undefined ? { to: time.to } : {}),
-      ...(time.when ? { when: said(id, `the days of time ${i + 1}`, time.when) } : {}),
-      name: said(id, `the name of time ${i + 1}`, time.name),
-      text: said(id, `time ${i + 1}`, time.text),
-      ...(time.picture ? { picture: await photograph(id, time.picture, commons, WIDTHS.time, made) } : {}),
-    });
-  }
-  if (times.filter((time) => time.now).length !== 1 || !times[times.length - 1].now) fail(id, 'the last of the times, and only that one, is the flag of today');
+  const times = await timesOf(id, src.times, flags, commons, made);
   const photos = [];
   for (const [i, one] of src.photos.entries()) photos.push(await photograph(id, one, commons, i ? WIDTHS.photo : WIDTHS.head, made));
 
@@ -450,6 +474,11 @@ function checked(id, one) {
     if (!/^[0-9a-f]{10}$/.test(file ?? '') || !(w > 0 && h > 0 && w <= ARMS_BOX && h <= ARMS_BOX) || !isText(title) || !ARMS_FREE.test(licence ?? '') || (kind !== undefined && !['emblem', 'seal'].includes(kind)))
       fail(id, 'its coat of arms is not a picture that fits its box, with its title and the free terms it is given on');
   }
+  if (one.timeSource !== undefined) {
+    const url = URL.canParse(one.timeSource) ? new URL(one.timeSource) : null;
+    if (url?.protocol !== 'https:' || url.username || url.password || !url.hostname || !one.times?.length) fail(id, 'its timeline has no safe https source');
+  }
+  if (one.timeNote !== undefined && (!one.timeSource || !inSome(one.timeNote) || !LANGS.every((lang) => isText(one.timeNote[lang])))) fail(id, 'the note on its timeline is not said in both languages');
   for (const key of ['read', 'readFlag']) {
     if (one[key] === undefined) continue;
     if (!inSome(one[key]) || Object.entries(one[key]).some(([lang, url]) => !url.startsWith(`https://${lang}.wikipedia.org/wiki/`))) fail(id, `«${key}» is not a page of the Wikipedia of each language`);
@@ -469,6 +498,7 @@ async function main() {
   const pages = read(TEXTS).pages ?? {};
   const { _: _why, ...fixes } = fs.existsSync(FIXES) ? read(FIXES) : {};
   const { _: _what, ...heads } = fs.existsSync(HEADS) ? read(HEADS) : {};
+  const { _: _timeline, ...timelines } = fs.existsSync(TIMES) ? read(TIMES) : {};
   if (!fs.existsSync(path.join(ARMS, 'arms.json'))) throw new Error(`What was brought of the coats of arms is not in ${path.relative(ROOT, ARMS) || ARMS}: run «npm run data:fetch -- arms»`);
   const emblems = read(path.join(ARMS, 'arms.json'));
   const about = path.join(BROUGHT, 'photos.json');
@@ -482,13 +512,17 @@ async function main() {
   const written = fs.existsSync(SHEETS) ? fs.readdirSync(SHEETS).filter((f) => f.endsWith('.json')).map((f) => path.basename(f, '.json')) : [];
   for (const id of written) if (!lands.some((c) => c.id === id)) fail(id, 'the game has no such country with a flag');
   for (const id of Object.keys(heads)) if (!lands.some((c) => c.id === id)) throw new Error(`${path.basename(HEADS)} chooses a photograph for «${id}», which is no country of the game with a flag`);
+  for (const id of Object.keys(timelines)) {
+    if (!lands.some((c) => c.id === id)) fail(id, 'a timeline was written for what is no country of the game with a flag');
+    if (written.includes(id)) fail(id, 'a timeline was written twice: once on its own and once in its full hand-written sheet');
+  }
 
   const codes = tongueCodes(facts);
   const made = new Set();
   /** What each sheet says, by its country; and the sheets as they are written, by the name of the file of each. */
   const sheets = new Map();
   const out = new Map();
-  const count = { official: 0, motto: 0, anthem: 0, adopted: 0, ratio: 0, lead: 0, flagLead: 0, head: 0, arms: 0 };
+  const count = { official: 0, motto: 0, anthem: 0, adopted: 0, ratio: 0, lead: 0, flagLead: 0, head: 0, arms: 0, timeline: 0 };
   /** What somebody who read the openings said of them, by country. */
   const cuts = new Map();
   let bytes = 0;
@@ -511,10 +545,21 @@ async function main() {
       const pictures = [...mine.photos, ...mine.times.flatMap((time) => (time.picture ? [time.picture] : []))];
       const weight = pictures.flatMap((p) => p.sizes.map((w) => fs.statSync(path.join(PICTURES, `${p.file}-${w}.webp`)).size)).reduce((a, b) => a + b, 0);
       console.log(`  ${id}: escrita a mano; ${mine.times.length} tiempos; ${pictures.length} fotografías en ${pictures.reduce((n, p) => n + p.sizes.length, 0)} imágenes, ${kB(weight)}`);
-    } else if (heads[id]) {
-      // Nobody has written of it: at its head, the photograph that was chosen for it.
-      one = { ...one, photos: [await photograph(id, heads[id], commons, WIDTHS.chosen, made)] };
-      count.head++;
+    } else {
+      if (heads[id]) {
+        // Nobody has written of it: at its head, the photograph that was chosen for it.
+        one = { ...one, photos: [await photograph(id, heads[id], commons, WIDTHS.chosen, made)] };
+        count.head++;
+      }
+      if (timelines[id]) {
+        // A historical account is independent of the chosen head, the Wikipedia texts and the rest of its facts.
+        const { times, source, note } = timelines[id];
+        if (typeof source !== 'string') fail(id, 'its timeline has no source');
+        one.times = await timesOf(id, times, flags, commons, made);
+        one.timeSource = source;
+        if (note !== undefined) one.timeNote = said(id, 'the note on its timeline', note);
+        count.timeline++;
+      }
     }
     sheets.set(id, one);
   }
@@ -572,7 +617,7 @@ async function main() {
   for (const name of fs.readdirSync(PICTURES)) if (!made.has(name)) fs.rmSync(path.join(PICTURES, name));
   console.log(
     `${out.size} fichas en ${path.relative(ROOT, OUT) || OUT} (${kB(bytes)}): ${written.length} escritas a mano; nombre oficial en ${count.official}, lema en ${count.motto}, himno en ${count.anthem}, ` +
-      `fecha de la bandera en ${count.adopted}, proporción en ${count.ratio}; texto de Wikipedia del país en ${count.lead} y de la bandera en ${count.flagLead}; fotografía de cabecera elegida en ${count.head}; escudo en ${count.arms}${without.length ? ` (${without.length} que Wikidata nombra no se pueden enseñar)` : ''}; ${Object.keys(fixes).length} países con correcciones a mano. ${made.size} imágenes en ${path.relative(ROOT, PICTURES) || PICTURES}`,
+      `fecha de la bandera en ${count.adopted}, proporción en ${count.ratio}; texto de Wikipedia del país en ${count.lead} y de la bandera en ${count.flagLead}; fotografía de cabecera elegida en ${count.head}; cronología escrita en ${count.timeline}; escudo en ${count.arms}${without.length ? ` (${without.length} que Wikidata nombra no se pueden enseñar)` : ''}; ${Object.keys(fixes).length} países con correcciones a mano. ${made.size} imágenes en ${path.relative(ROOT, PICTURES) || PICTURES}`,
   );
 }
 

@@ -20,7 +20,7 @@ import { Flag, Spinner, capitalise } from '../components/ui';
 import { bookValue, bookYear, loadBook, type BookFile } from '../lib/book';
 import { loadFacts } from '../lib/facts';
 import { BOOK_FIGS, metricOf } from '../lib/figures';
-import { capitalFlags, cityFlags, commonsPage, flagsRest, levelOf, loadFlags, regionFlags, yearsText, type FlagCard, type FlagsFile } from '../lib/flags';
+import { capitalFlags, cityFlags, commonsPage, flagsRest, levelOf, loadFlagCredits, loadFlags, regionFlags, yearsText, type CreditsFile, type FlagCard, type FlagsFile } from '../lib/flags';
 import { flagSetText } from '../lib/flagSets';
 import { L, capName, fmtDay, getLang, nm } from '../lib/i18n';
 import { locator } from '../lib/profileMap';
@@ -148,6 +148,14 @@ function FlagPicture({ card, alt, className, large }: { card: FlagCard; alt: str
   return <img className={className} style={{ aspectRatio: String(card.ratio) }} src={large ? card.src : card.small} alt={alt} loading="lazy" decoding="async" draggable={false} />;
 }
 
+/** A Commons flag under a licence requiring credit, named beside the drawing rather than only in the gallery. */
+function FlagCredit({ card, credits }: { card: FlagCard; credits: CreditsFile | null }) {
+  const file = card.file ? credits?.files[card.file] : undefined;
+  const licence = file ? credits?.licences[file[2]] : undefined;
+  if (!file || !licence || licence[0] === 'Public domain' || licence[0] === 'CC0') return null;
+  return <Credit photo={{ title: file[0], by: file[1], licence: licence[0], licenceUrl: licence[1]?.replace(/^http:/, 'https:') }} />;
+}
+
 /** Where the country is: the half of the globe that has it in the middle. */
 function Where({ geo, country, under }: { geo: ReadonlyMap<string, Geo>; country: Country; under: string }) {
   const size = 220;
@@ -210,6 +218,7 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
   const [loaded, setLoaded] = useState<ProfileFile | null>(null);
   const [failed, setFailed] = useState(false);
   const [flags, setFlags] = useState<FlagsFile | null>(null);
+  const [credits, setCredits] = useState<CreditsFile | null>(null);
   const [facts, setFacts] = useState<Facts | null>(null);
   const [book, setBook] = useState<BookFile | null>(null);
   const [geo, setGeo] = useState<Map<string, Geo> | null>(null);
@@ -255,6 +264,12 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
   const profile = loaded?.id === id ? loaded : null;
   const times = useMemo(() => (profile?.times?.length && flags ? timeCards(profile, flags, world.index) : null), [profile, flags, world]);
   const flown = useMemo(() => (flags ? flownCards(id, flags, world.index) : []), [flags, id, world]);
+  useEffect(() => {
+    if (!times?.some((card) => card?.file) && !flown.length) return;
+    let alive = true;
+    loadFlagCredits().then((file) => alive && setCredits(file), () => undefined);
+    return () => { alive = false; };
+  }, [times, flown]);
   const regions = useMemo(() => (flags ? regionFlags(flags, id).filter((card) => card.level === 0) : []), [flags, id]);
   const towns = useMemo(() => (flags ? [...capitalFlags(flags).filter((card) => card.country === id), ...cityFlags(flags, id)] : []), [flags, id]);
 
@@ -484,12 +499,22 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
                         <p className="fp-when">{when}</p>
                         <h4>{say(time.name)}</h4>
                         <p>{say(time.text)}</p>
+                        {card && <FlagCredit card={card} credits={credits} />}
                       </div>
                       {time.picture && <Photo photo={time.picture} sizes="(max-width: 760px) 70vw, 340px" className="fp-time-pic" />}
                     </li>
                   );
                 })}
               </ol>
+              {profile.timeSource && (
+                <p className="fp-note">
+                  {profile.timeNote ? say(profile.timeNote) : L('Una selección de enseñas históricas; puede faltar alguna etapa.', 'A selection of historical flags; some periods may be missing.')}{' '}
+                  <a href={profile.timeSource} target="_blank" rel="noopener noreferrer">
+                    {L('Consultar la fuente', 'See the source')}
+                    <ExternalLink size={12} aria-hidden="true" />
+                  </a>
+                </p>
+              )}
             </section>
           ) : (
             flown.length > 0 && (
@@ -503,6 +528,7 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
                       <li key={card.key}>
                         <FlagPicture card={card} alt={L(`Bandera de ${name} (${when})`, `Flag of ${name} (${when})`)} />
                         <p className="fp-when">{when}</p>
+                        <FlagCredit card={card} credits={credits} />
                       </li>
                     );
                   })}
@@ -593,6 +619,7 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
                   'The text is the opening of the articles of Wikipedia, abridged, under the CC BY-SA 4.0 licence.',
                 )}`}
               {profile.about && ` ${L('El texto está escrito para el juego, con lo que cuentan Wikipedia y The World Factbook.', 'The text is written for the game, from what Wikipedia and The World Factbook tell.')}`}
+              {profile.timeSource && ` ${L('La cronología está escrita para el juego a partir de la fuente enlazada junto a ella.', 'The timeline is written for the game from the source linked beside it.')}`}
               {head &&
                 ` ${
                   (profile.photos?.length ?? 0) + (profile.times?.some((time) => time.picture) ? 1 : 0) > 1

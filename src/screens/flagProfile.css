@@ -389,6 +389,15 @@
   border-radius: 5px;
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 16%, transparent), var(--shadow-1);
 }
+.fp-time-text > .fp-credit,
+.fp-flown .fp-credit {
+  font-size: calc(11px * var(--fs));
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.fp-flown .fp-credit {
+  text-align: center;
+}
 .fp-time-text {
   display: grid;
   align-content: start;
@@ -519,6 +528,15 @@
   margin-top: 12px !important;
   color: var(--ink-3);
   font-size: calc(13px * var(--fs));
+}
+.fp-note a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.fp-note a svg {
+  margin-left: 4px;
+  vertical-align: -1px;
 }
 
 .fp-foot {

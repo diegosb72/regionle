@@ -10,8 +10,9 @@
 // again since it was brought here says, after its Git name, the commit of the branch where it is as it was
 // brought: the game keeps showing it as it did.
 //
-// When a sheet names another photograph: add it to scripts/data/pedido.txt (source `photos`), push, and once
-// the workflow has run write here the commit it left and the names `git ls-tree -r <commit> photos/` gives.
+// When a sheet or an independent timeline names another image: request `photos` by changing the number in
+// scripts/data/pedido.txt and pushing. Once the workflow has run, write here the commit and Git blob names
+// it left (`git ls-tree -r <commit> photos/`); older pictures may keep their original pinned bytes.
 //
 // Used by fetch.mjs (which downloads them into .cache/src/photos) and by profiles.mjs (which makes the
 // pictures the game shows).
@@ -20,7 +21,7 @@
 export const PHOTOS_AT = { repo: 'diegosb72/regionle', commit: '2a95dd4bd0fd18af109c36dc59503adc2e4fc7e3', dir: '' };
 
 /** What Commons says of every photograph that was asked for. */
-export const PHOTOS_SAID = ['photos/photos.json', '35df25ef126c44ad1068e36f68efc563c48b1da2'];
+export const PHOTOS_SAID = ['photos/photos.json', '060e26642bce52a678092094a27d5996e751bd9f', '57ea97553400f0cb72a2b4a7c0ff67bc8562e0e1'];
 
 /** The pictures, each under the SHA-1 of its original: [where it is in the branch, the Git name of what it holds, the commit it is at where that is another]. */
 export const PHOTOS = [
@@ -35,6 +36,11 @@ export const PHOTOS = [
   ['photos/files/c642015fde6a5821353b0bd7f1391ce70fcd4893.1920.jpg', '5477d8d5dad83f81a44686da73d93e25d5875c6a'], // 011 Jaguar drinking in Encontro das Águas State Park Photo by Giles Laurent.jpg
   ['photos/files/1d59587d31c376719c3767bfbbab1b93e3a635bd.1920.jpg', '7f18d924513cc42d63f3c73c986fdd496497a1d1'], // Pedro Américo - Independência ou Morte - Google Art Project.jpg
   ['photos/files/bc6dac877532ca052e259488de9cceb59865ba0d.1920.jpg', '0822beb8fa38e898544b5f1d512f4d06341e1425'], // Proclamação da República by Benedito Calixto 1893.jpg
+
+  // Period documents from two independent timelines. The older pinned thumbnails remain unchanged;
+  // Commons has since redrawn twelve of them, so these new files use their own verified commit.
+  ['photos/files/6864d3137af417653a52e862af852f65bb7593ae.1920.jpg', '98af5020ec7797c86548f1f77b3e75f27153b7d5', '57ea97553400f0cb72a2b4a7c0ff67bc8562e0e1'], // AL · Postcard of the Albanian Flag by Aladro Kastriota (1913).jpg
+  ['photos/files/a9862cf589cd56ad1fc22871c2a6063f6b9fda1b.1920.jpg', '58dc4254937dec50287bd3a812718a95f89a2877', '57ea97553400f0cb72a2b4a7c0ff67bc8562e0e1'], // GR · Xenophon - Book of Signals - Flags of the Admirals.jpg
 
   // The one chosen for the head of the sheet of each country nobody has written of (scripts/data/profiles-heads.json)
   ['photos/files/692fd0f034ca1e1755b8c657ca1b13aa762948c0.1920.jpg', '45a7841d966750dbe3ef5d04521f49c50a33a4d5'], // AD · Vista de Andorra la Vieja, Andorra, 2013-12-30, DD 01.JPG

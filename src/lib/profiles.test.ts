@@ -17,11 +17,11 @@ import { ARMS as ARMS_PINNED, ARMS_AT as ARMS_PINNED_AT, ARMS_SAID as ARMS_PINNE
 import { ARMS_BOX as ARMS_BOX_SAID, LEAD_MAX as LEAD_MAX_SAID, WIDTHS as WIDTHS_SAID } from '../../scripts/data/profiles.mjs';
 // @ts-expect-error a list of the build, written without types
 import { PHOTOS as PINNED, PHOTOS_AT as PINNED_AT, PHOTOS_SAID as PINNED_SAID } from '../../scripts/data/photos-pinned.mjs';
-import type { FlagsFile } from './flags';
+import type { CreditsFile, FlagsFile } from './flags';
 import { setLang } from './i18n';
 import { SAME_FLAG } from './pairs';
 import { locator } from './profileMap';
-import { bordersText, flownCards, hasProfile, isDay, neighboursOf, photoSet, photoSrc, profileIn, profileRest, rankOf, regionsText, timeCards, townsText, yearOfDay, type ProfileFile, type ProfilePhoto, type ProfileTime } from './profiles';
+import { bordersText, flownCards, hasProfile, isDay, neighboursOf, photoSet, photoSrc, profileIn, profileRest, rankOf, regionsText, timeCards, townsText, yearOfDay, type ProfileFile, type ProfilePhoto, type ProfileTime, type Said } from './profiles';
 import type { Country, Geo, Index } from './types';
 
 const WIDTHS = WIDTHS_SAID as { head: number[]; photo: number[]; time: number[]; chosen: number[] };
@@ -31,13 +31,14 @@ const ARMS = ARMS_PINNED as [file: string, blob: string][];
 const ARMS_SAID = ARMS_PINNED_SAID as [file: string, blob: string];
 const ARMS_AT = ARMS_PINNED_AT as { repo: string; commit: string; dir: string };
 const PHOTOS = PINNED as [file: string, blob: string, commit?: string][];
-const PHOTOS_SAID = PINNED_SAID as [file: string, blob: string];
+const PHOTOS_SAID = PINNED_SAID as [file: string, blob: string, commit?: string];
 const PHOTOS_AT = PINNED_AT as { repo: string; commit: string; dir: string };
 
 const ROOT = process.cwd();
 const json = <T>(file: string): T => JSON.parse(fs.readFileSync(path.join(ROOT, file), 'utf8')) as T;
 const INDEX = json<Index>('public/data/index.json');
 const FLAGS = json<FlagsFile>('public/data/flags.json');
+const CREDITS = json<CreditsFile>('public/data/flag-credits.json');
 const SHEETS = 'public/data/profiles';
 const SOURCES = 'scripts/data/profiles';
 const PICTURES = 'public/photos';
@@ -56,6 +57,10 @@ const files = (dir: string) => fs.readdirSync(path.join(ROOT, dir)).filter((name
 /** The countries that have a sheet, and those of them that somebody has written of by hand. */
 const LANDS = INDEX.countries.filter((c) => hasProfile(c)).map((c) => c.id);
 const WRITTEN = files(SOURCES);
+/** Independent, sourced timelines: these add to the generated sheets rather than replacing them. */
+const TIMELINE_FILE = json<Record<string, unknown>>('scripts/data/profiles-times.json');
+type TimeSource = Omit<ProfileTime, 'picture'> & { picture?: { file: string; by?: string; es: string; en: string } };
+const { _: TIMELINE_REASON, ...TIMELINES } = TIMELINE_FILE as { _: string } & Record<string, { source: string; note?: Said; times: TimeSource[] }>;
 const has = (id: string) => LANDS.includes(id);
 
 beforeEach(() => setLang('es'));
@@ -326,16 +331,18 @@ describe('the sheet of every country', () => {
   const sheets = LANDS.map((id) => sheetOf(id));
 
   it('is of its country, and says only what a sheet says', () => {
-    const known = ['v', 'id', 'official', 'local', 'localLang', 'motto', 'anthem', 'about', 'lead', 'flag', 'times', 'photos', 'arms', 'read', 'readFlag'];
+    const known = ['v', 'id', 'official', 'local', 'localLang', 'motto', 'anthem', 'about', 'lead', 'flag', 'times', 'timeSource', 'timeNote', 'photos', 'arms', 'read', 'readFlag'];
     const ofFlag = ['of', 'adopted', 'changed', 'ratio', 'colours', 'called', 'by', 'text', 'lead', 'parts'];
     for (const [i, sheet] of sheets.entries()) {
       expect(sheet.v, LANDS[i]).toBe(1);
       expect(sheet.id).toBe(LANDS[i]);
       for (const key of Object.keys(sheet)) expect(known, `${sheet.id}.${key}`).toContain(key);
       for (const key of Object.keys(sheet.flag ?? {})) expect(ofFlag, `${sheet.id}.flag.${key}`).toContain(key);
-      // Only what somebody wrote by hand has texts and times; and of photographs, the others have at most the one chosen for their head.
+      // Only Brazil has a complete text and gallery of photographs written by hand. Researched timelines are independent.
       if (!WRITTEN.includes(sheet.id)) {
-        for (const key of ['about', 'times'] as const) expect(sheet[key], `${sheet.id}.${key}`).toBeUndefined();
+        expect(sheet.about, `${sheet.id}.about`).toBeUndefined();
+        if (TIMELINES[sheet.id]) expect(sheet.times?.length, `${sheet.id}.times`).toBe(TIMELINES[sheet.id].times.length);
+        else expect(sheet.times, `${sheet.id}.times`).toBeUndefined();
         expect(sheet.photos?.length ?? 0, `${sheet.id}.photos`).toBeLessThanOrEqual(1);
       }
     }
@@ -645,6 +652,145 @@ describe('the sheet of every country', () => {
   });
 });
 
+describe('researched timelines layered over the generated sheets', () => {
+  it('covers forty-six real countries without replacing their photograph or the two Wikipedia leads', () => {
+    expect(typeof TIMELINE_REASON).toBe('string');
+    const ids = Object.keys(TIMELINES);
+    expect(ids).toEqual([...ids].sort());
+    expect(ids).toHaveLength(46);
+    expect(ids).not.toContain('BR');
+    expect(ids.every(has)).toBe(true);
+    expect(ids.reduce((n, id) => n + TIMELINES[id].times.length, 0)).toBe(214);
+    for (const id of ids) {
+      const sheet = sheetOf(id);
+      const source = TIMELINES[id];
+      expect(sheet.about, id).toBeUndefined();
+      expect(sheet.photos, id).toHaveLength(1);
+      expect(sheet.lead?.es?.length, id).toBeGreaterThan(0);
+      expect(sheet.lead?.en?.length, id).toBeGreaterThan(0);
+      expect(sheet.flag?.lead?.es?.length, id).toBeGreaterThan(0);
+      expect(sheet.flag?.lead?.en?.length, id).toBeGreaterThan(0);
+      expect(sheet.timeSource, id).toBe(source.source);
+      expect(sheet.timeNote, id).toEqual(source.note);
+      // Period photographs are turned into light, credited WebP files rather than copied verbatim.
+      expect(sheet.times?.map(({ picture: _picture, ...time }) => time), id).toEqual(source.times.map(({ picture: _picture, ...time }) => time));
+      for (const [i, one] of source.times.entries()) {
+        const photo = sheet.times?.[i].picture;
+        if (!one.picture) {
+          expect(photo, `${id} ${i}`).toBeUndefined();
+          continue;
+        }
+        expect(photo, `${id} ${i}`).toMatchObject({ title: one.picture.file, es: one.picture.es, en: one.picture.en, sizes: WIDTHS.time });
+        expect(photo?.licence, `${id} ${i}`).toMatch(/^(Public domain|CC0|CC BY(-SA)? \d)/);
+        if (one.picture.by) expect(photo?.by, `${id} ${i}`).toBe(one.picture.by);
+        if (/^CC BY/.test(photo?.licence ?? '')) expect(photo?.by, `${id} ${i} author`).toBeTruthy();
+        for (const width of photo?.sizes ?? []) {
+          const file = path.join(ROOT, PICTURES, `${photo?.file}-${width}.webp`);
+          expect(fs.existsSync(file), file).toBe(true);
+          expect(fs.statSync(file).size, file).toBeLessThan(300_000);
+        }
+      }
+      expect(new URL(sheet.timeSource!).protocol, id).toBe('https:');
+      cleanIn(sheet.timeNote, `${id} timeline note`);
+    }
+    expect(sheetOf('BR').timeSource).toBeUndefined();
+    expect(sheetOf('GI').times).toBeUndefined();
+  });
+
+  it('has Commons provenance and an author and licence link for every drawing needing attribution', () => {
+    for (const id of Object.keys(TIMELINES)) {
+      for (const card of timeCards(sheetOf(id), FLAGS, INDEX, '/')) {
+        if (!card?.file) continue;
+        const record = CREDITS.files[card.file];
+        expect(record, `${id}: ${card.file}`).toBeDefined();
+        const licence = CREDITS.licences[record[2]];
+        expect(licence, `${id}: ${card.file}`).toBeDefined();
+        if (licence[0] === 'Public domain' || licence[0] === 'CC0') continue;
+        expect(record[1], `${id}: ${card.file} author`).not.toBe('');
+        expect(new URL(licence[1].replace(/^http:/, 'https:')).protocol).toBe('https:');
+      }
+    }
+    expect(CREDITS.files['2a344f84d8.svg'][0]).toBe('Flag of Cambodia (1992–1993).svg');
+    expect(CREDITS.licences[CREDITS.files['2a344f84d8.svg'][2]][0]).toBe('CC BY-SA 3.0');
+  });
+
+  it('shows the flag of each period from the catalogue, even where its historical years differ from the catalogue row', () => {
+    for (const id of Object.keys(TIMELINES)) {
+      const sheet = sheetOf(id);
+      const times = sheet.times!;
+      const cards = timeCards(sheet, FLAGS, INDEX, '/');
+      expect(cards, id).toHaveLength(times.length);
+      expect(times.length, id).toBeGreaterThanOrEqual(2);
+      expect(times.filter((t) => t.now), id).toHaveLength(1);
+      expect(times.at(-1)?.now, id).toBe(true);
+      for (const [i, time] of times.entries()) {
+        const here = `${id} ${i}`;
+        const card = cards[i];
+        expect(card, here).not.toBeNull();
+        expect([time.past, time.gone, time.now].filter((flag) => flag !== undefined), here).toHaveLength(1);
+        if (time.past) {
+          const rows = FLAGS.past?.[id]?.filter((row) => row[2] === time.past![0] && row[3] === time.past![1] && (!time.pastFile || row[0] === time.pastFile));
+          expect(rows, here).toHaveLength(1);
+          expect(card, here).toMatchObject({ kind: 'past', id, file: rows![0][0] });
+        } else if (time.gone) {
+          const row = (FLAGS.gone ?? []).find((row) => row[0] === time.gone);
+          expect(row, here).toBeDefined();
+          expect(card, here).toMatchObject({ kind: 'gone', id: time.gone, file: row![3] });
+        } else expect(card, here).toMatchObject({ kind: 'country', id });
+        expect(time.from, here).toBeGreaterThan(0);
+        if (i) expect(time.from, here).toBeGreaterThanOrEqual(times[i - 1].from);
+        if (!time.now) expect(time.to, here).toBeGreaterThanOrEqual(time.from);
+        cleanIn(time.name, `${here} name`);
+        cleanIn(time.text, `${here} text`);
+        expect(time.text.es, here).toMatch(/[.!?]$/);
+        expect(time.text.en, here).toMatch(/[.!?]$/);
+        if (time.when) cleanIn(time.when, `${here} when`);
+      }
+    }
+    // These ranges are verified independently: the catalogue range chooses the drawing, not the caption.
+    expect(sheetOf('ES').times?.[1]).toMatchObject({ past: [1760, 1843], from: 1760, to: 1785 });
+    expect(sheetOf('DE').times?.[2]).toMatchObject({ past: [1947, 1949], from: 1946, to: 1949 });
+    expect(sheetOf('UA').times?.[1]).toMatchObject({ gone: 'Q133356', from: 1949, to: 1991 });
+    expect(sheetOf('CR').times?.slice(2, 4)).toMatchObject([
+      { past: [1824, 1824], pastFile: '19d0666629.svg', from: 1824, to: 1824 },
+      { past: [1824, 1824], pastFile: '0987a89723.svg', from: 1824, to: 1824 },
+    ]);
+    const costaRica = sheetOf('CR');
+    expect(timeCards({ id: 'CR', times: [{ ...costaRica.times![2], pastFile: undefined }] }, FLAGS, INDEX, '/')).toEqual([null]);
+    expect(timeCards({ id: 'CR', times: costaRica.times!.slice(2, 4) }, FLAGS, INDEX, '/').map((card) => card?.file)).toEqual(['19d0666629.svg', '0987a89723.svg']);
+    expect(sheetOf('NI').times?.[2]).toMatchObject({ past: [1839, 1858], from: 1854, to: 1856 });
+    expect(sheetOf('NI').times?.[5]).toMatchObject({ past: [1858, 1896], from: 1893, to: 1896 });
+    expect(sheetOf('PY').times?.[1]).toMatchObject({ past: [1826, 1879], from: 1826, to: 1842 });
+    expect(sheetOf('ET').times?.[4]).toMatchObject({ past: [1996, 1996], from: 1996, to: 2009 });
+    expect(sheetOf('RO').times?.[1]).toMatchObject({ past: [1947, 1949], when: { es: 'Enero–marzo de 1948', en: 'January–March 1948' } });
+    expect(sheetOf('SV').times?.at(-1)).toMatchObject({ now: true, from: 1922, when: { es: '1916–1921 y desde 1922', en: '1916–1921 and since 1922' } });
+    expect(sheetOf('IQ').times?.[0]).toMatchObject({ past: [0, 1958], from: 1924, to: 1959 });
+    expect(sheetOf('EG').times?.[4]).toMatchObject({ past: [1958, 1999], from: 1958, to: 1972 });
+    expect(sheetOf('TM').times?.[0]).toMatchObject({ past: [1925, 1992], from: 1974, to: 1992 });
+    expect(sheetOf('MZ').times?.[2]).toMatchObject({ past: [0, 1983], when: { es: 'abril–1 de mayo de 1983', en: 'April–1 May 1983' } });
+    expect(sheetOf('US').times?.at(-1)).toMatchObject({ now: true, from: 1960 });
+    expect(sheetOf('AL').times?.[2]).toMatchObject({ past: [1928, 1939], from: 1934, to: 1939 });
+    expect(sheetOf('AT').times?.[0]).toMatchObject({ past: [1804, 1867], from: 1804, to: 1918 });
+    expect(sheetOf('BA').times?.[0]).toMatchObject({ past: [0, 1998], from: 1992, to: 1998 });
+    expect(sheetOf('CY').times?.at(-1)).toMatchObject({ now: true, from: 2006 });
+    expect(sheetOf('GR').times?.[1]).toMatchObject({ past: [1822, 1978], from: 1822, to: 1978 });
+    expect(sheetOf('HR').times?.[0]).toMatchObject({ past: [1990, 1990], when: { es: 'Julio–diciembre de 1990', en: 'July–December 1990' } });
+    expect(sheetOf('HU').times?.[0]).toMatchObject({ past: [1848, 1869], when: { es: '1848–1849 y 1867–1869', en: '1848–1849 and 1867–1869' } });
+    expect(sheetOf('IR').times?.[0]).toMatchObject({ past: [1964, 1980], from: 1964, to: 1979 });
+    expect(sheetOf('LT').times?.[1]).toMatchObject({ past: [1990, 2004], from: 1988, to: 2004 });
+    expect(sheetOf('MN').times?.at(-1)).toMatchObject({ now: true, from: 1992 });
+    expect(sheetOf('NL').times?.[1]).toMatchObject({ past: [1795, 1806], from: 1796, to: 1806 });
+    expect(sheetOf('PH').times?.[0]).toMatchObject({ past: [1936, 1998], from: 1955, to: 1985 });
+    expect(sheetOf('PL').times?.at(-1)).toMatchObject({ now: true, from: 1980 });
+    expect(sheetOf('SA').times?.[0]).toMatchObject({ past: [0, 1932], from: 1921, to: 1932 });
+    // A contested occupation flag is not a historical fact, and a rejected proposal was not adopted.
+    expect(sheetOf('KH').times?.some((time) => time.past?.[0] === 1942)).toBe(false);
+    expect(sheetOf('IQ').times?.some((time) => time.name.en.includes('blue'))).toBe(false);
+    // The UN administration's drawing is licensed, so the in-sheet credit must come from the same Commons catalogue.
+    const cambodiaUN = timeCards({ id: 'KH', times: sheetOf('KH').times!.slice(-2, -1) }, FLAGS, INDEX, '/')[0];
+    expect(cambodiaUN?.file).toBe('2a344f84d8.svg');
+  });
+});
 
 describe.each(WRITTEN.map((id) => [id]))('the sheet of %s, written by hand', (id) => {
   const sheet = sheetOf(id) as Written;
@@ -903,7 +1049,9 @@ describe('the photographs that are fetched to make the sheets', () => {
         expect(commit, file).not.toBe(PHOTOS_AT.commit);
       }
     }
-    expect(PHOTOS_SAID).toHaveLength(2);
+    // The metadata includes the two new period documents; the original thumbnails remain pinned to their older bytes.
+    expect(PHOTOS_SAID).toHaveLength(3);
+    expect(PHOTOS_SAID[2]).not.toBe(PHOTOS_AT.commit);
     for (const [file] of PHOTOS) expect(file).toMatch(/^photos\/files\/[0-9a-f]{40}\.1920\.(jpg|png)$/);
     // Under the SHA-1 of its original, whose first figures are what its pictures are named after.
     const pinned = PHOTOS.map(([file]) => path.basename(file).slice(0, 10)).sort();

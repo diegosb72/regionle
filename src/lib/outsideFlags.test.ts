@@ -308,6 +308,8 @@ interface Item {
   /** The page of Wikipedia whose box of facts shows the flag. */
   page?: string;
   past?: Past[];
+  /** Files named by a country's sheet and independent timeline (source `photos`). */
+  photos?: string[];
   file: string;
   /** What is listed: whether Wikidata prefers the flag it flies to the others. */
   rank?: string;

@@ -6,8 +6,8 @@ import { open, seed } from './helpers';
  * The sheet of a country, which the gallery of flags opens when the flag of a country is touched
  * (screens/FlagProfile.tsx). Every country with a flag has one: with what the game knows of it and what
  * Wikidata and Wikipedia say of it and of its flag, with how Wikipedia begins to tell of both and
- * a photograph at its head; and, where somebody has written of it (for now,
- * of Brazil alone), with its texts, its times and its photographs instead. One sheet leads to another.
+ * a photograph at its head; some have a historical timeline added without replacing those things, and
+ * Brazil has a complete handwritten sheet. One sheet leads to another.
  */
 
 interface Photo {
@@ -46,6 +46,9 @@ const sheetFile = (id: string) =>
     read?: { es?: string; en?: string };
     readFlag?: { es?: string; en?: string };
     photos?: (Photo & { focus?: [number, number] })[];
+    times?: { past?: [number, number]; pastFile?: string; gone?: string; now?: true; from: number; to?: number; when?: { es: string; en: string }; name: { es: string; en: string }; text: { es: string; en: string }; picture?: Photo }[];
+    timeNote?: { es: string; en: string };
+    timeSource?: string;
     arms?: Arms;
   };
 /** The countries as the game has them: what each is called, and how its finest divisions are. */
@@ -509,7 +512,7 @@ test.describe('the sheet of a country, in the gallery of flags', () => {
   });
 });
 
-test.describe('the sheet of a country nobody has written of yet', () => {
+test.describe('the sheet of a country without a complete handwritten account', () => {
   /** A figure of the sheet, by its name. */
   const fact = (sheet: Locator, name: string): Locator => sheet.locator('.fp-facts > div').filter({ has: sheet.page().locator('dt', { hasText: new RegExp(`^${name}$`) }) }).locator('dd');
   const title = (sheet: Locator): Locator => sheet.getByRole('heading', { level: 2 });
@@ -552,9 +555,10 @@ test.describe('the sheet of a country nobody has written of yet', () => {
     await expect(caption.locator('.fp-credit a').first()).toHaveAttribute('rel', /license/);
     await expect(caption.locator('.fp-credit a').last()).toHaveAttribute('href', commons(head.title));
 
-    // Nothing is said that nobody wrote: no parts of the flag, no times, no photographs, and no text but Wikipedia's.
+    // Its researched timeline is added; the country and flag texts remain Wikipedia's, and its photo remains the one chosen.
     await expect(sheet.getByRole('heading', { level: 3 })).toHaveText(['De un vistazo', 'La bandera', 'Sus banderas en el tiempo', 'Las banderas de España']);
-    for (const none of ['.fp-about:not(.fp-lead)', '.fp-parts', '.fp-photos', '.fp-times', '.fp-flag-in > div > p']) await expect(sheet.locator(none), none).toHaveCount(0);
+    await expect(sheet.locator('.fp-times')).toHaveCount(1);
+    for (const none of ['.fp-about:not(.fp-lead)', '.fp-parts', '.fp-photos', '.fp-flown', '.fp-flag-in > div > p']) await expect(sheet.locator(none), none).toHaveCount(0);
 
     // Its figures, as in every sheet; after them its motto, in its language and with what it means, and its anthem.
     await expect(fact(sheet, 'Capital')).toHaveText('Madrid');
@@ -574,14 +578,15 @@ test.describe('the sheet of a country nobody has written of yet', () => {
     await expect(more).toHaveAttribute('href', 'https://es.wikipedia.org/wiki/Bandera_de_Espa%C3%B1a');
     await expect(more).toHaveAttribute('target', '_blank');
 
-    // Under it all, whose each thing is: its one photograph, and nothing of a text written for the game.
+    // Under it all, whose each thing is: its one photograph, Wikipedia's texts and the independently written timeline.
     const foot = sheet.locator('.fp-foot');
     await expect(foot).toContainText('The World Factbook');
     await expect(foot).toContainText('El nombre oficial, el lema, el himno y los datos de la bandera son los que dan Wikidata y Wikipedia.');
     await expect(foot).toContainText('El dibujo de la bandera es de la colección flag-icons.');
     await expect(foot).toContainText('El texto es el comienzo de los artículos de Wikipedia, abreviado, con licencia CC BY-SA 4.0.');
+    await expect(foot).toContainText('La cronología está escrita para el juego a partir de la fuente enlazada junto a ella.');
     await expect(foot).toContainText('La fotografía es de Wikimedia Commons, reducida de tamaño; bajo ella van su autor y su licencia.');
-    await expect(foot).not.toContainText(/fotografías|escrito para el juego/);
+    await expect(foot).not.toContainText('Las fotografías son');
     await expect(foot.getByRole('link', { name: 'Leer más sobre España en Wikipedia' })).toHaveAttribute('href', 'https://es.wikipedia.org/wiki/Espa%C3%B1a');
     const report = (await foot.getByRole('link', { name: 'Avisar de un error en esta ficha' }).getAttribute('href'))!;
     expect(new URL(report).searchParams.get('title')).toBe('Error en los datos: España (ES)');
@@ -854,27 +859,36 @@ test.describe('the sheet of a country nobody has written of yet', () => {
     expect(await sheet.locator('.dlg-box').evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(0);
   });
 
-  test('shows the flags the game has of its past, each with its years, and the one of today last', async ({ page }) => {
+  test('tells the history of Spain, correcting naval ensign years instead of repeating the catalogue captions', async ({ page }) => {
     await seed(page);
     const sheet = await openSheet(page, '/banderas/paises/ES');
-    const flown = sheet.locator('.fp-flown');
-    await expect(flown.getByRole('heading', { level: 3 })).toHaveText('Sus banderas en el tiempo');
-    const stops = flown.locator('ol > li');
+    const times = sheet.locator('.fp-times');
+    await expect(times.getByRole('heading', { level: 3 })).toHaveText('Sus banderas en el tiempo');
+    const stops = times.locator('ol > li');
     expect(FLAGS.past.ES).toHaveLength(7);
-    await expect(stops).toHaveCount(8);
-    // The oldest first.
-    await expect(flown.locator('.fp-when')).toHaveText(['1701–1760', '1760–1843', '1843–1931', '1931–1939', '1939–1945', '1945–1977', '1977–1981', 'Hoy']);
+    await expect(stops).toHaveCount(9);
+    await expect(times.locator('.fp-when')).toHaveText(['1701–1760', '1760–1785', '1785–1843', '1843–1931', '1931–1939', '1939–1945', '1945–1977', '1977–1981', 'Desde 1981']);
+    await expect(times.locator('h4').first()).toHaveText('Pabellón naval de Felipe V');
+    await expect(stops.nth(1).locator('.fp-time-text')).toContainText('Por eso el rey escogió en 1785 otra');
+    await expect(stops.nth(4).locator('h4')).toHaveText('La tricolor de la Segunda República');
+    await expect(stops.nth(7).locator('h4')).toHaveText('La bandera de la transición');
+    for (const [i, time] of sheetFile('ES').times!.entries()) {
+      const img = stops.nth(i).locator('.fp-time-flag img');
+      const file = time.past && FLAGS.past.ES.find((row) => row[2] === time.past![0] && row[3] === time.past![1]);
+      if (file) await expect(img).toHaveAttribute('src', new RegExp(`flags/commons/${file[4] ?? file[0]}$`));
+      else await expect(img).toHaveAttribute('src', /flags\/es\.svg$/);
+    }
     const first = stops.first().locator('img');
     await first.scrollIntoViewIfNeeded();
-    await expect(first).toHaveAttribute('src', /flags\/commons\//);
-    await expect(first).toHaveAttribute('alt', 'Bandera de España (1701–1760)');
+    await expect(first).toHaveAttribute('alt', 'Bandera de España: Pabellón naval de Felipe V (1701–1760)');
     await expect.poll(() => drawn(first)).toBe(true);
-    await expect(flown.locator('li.fp-now')).toHaveCount(1);
+    await expect(stops.nth(1).locator('img')).toHaveAttribute('alt', 'Bandera de España: El pabellón blanco de Carlos III (1760–1785)');
+    await expect(times.locator('li.fp-now')).toHaveCount(1);
     await expect(stops.last()).toHaveClass(/fp-now/);
-    await expect(stops.last().locator('img')).toHaveAttribute('src', /flags\/es\.svg$/);
-    await expect(stops.last().locator('img')).toHaveAttribute('alt', 'Bandera de España, hoy');
-    // And says where they come from, and that they may not be all.
-    await expect(flown.locator('.fp-note')).toHaveText('Son las banderas anteriores que recoge Wikidata, con los años en que ondeó cada una; puede faltar alguna.');
+    await expect(stops.last().locator('img')).toHaveAttribute('alt', 'Bandera de España: La rojigualda con el escudo actual (Desde 1981)');
+    await expect(times.locator('.fp-note')).toContainText('pabellones navales, no banderas nacionales');
+    await expect(times.getByRole('link', { name: 'Consultar la fuente' })).toHaveAttribute('href', 'https://en.wikipedia.org/wiki/Flag_of_Spain');
+    await expect(sheet.locator('.fp-flown')).toHaveCount(0);
 
     // Its own flags: of how many of its provinces the game has one, and those of its cities.
     const own = sheet.locator('.fp-own');
@@ -894,6 +908,172 @@ test.describe('the sheet of a country nobody has written of yet', () => {
     await expect(sheet.getByRole('heading', { level: 3 })).toHaveText(['De un vistazo', 'La bandera', 'Las banderas de Gibraltar']);
     await expect(sheet.locator('.fp-own .fp-links a')).toHaveText(['Ver la de su capital']);
     await expect(sheet.locator('.fp-glance .label')).toHaveText('Limita con un país');
+  });
+
+  test('keeps the simple past-flags gallery where no history has been written', async ({ page }) => {
+    await seed(page);
+    const sheet = await openSheet(page, '/banderas/paises/VE');
+    const flown = sheet.locator('.fp-flown');
+    await expect(sheet.locator('.fp-times')).toHaveCount(0);
+    await expect(flown.locator('ol > li')).toHaveCount(FLAGS.past.VE.length + 1);
+    await expect(flown.locator('.fp-when').last()).toHaveText('Hoy');
+    await expect(flown.locator('.fp-note')).toHaveText('Son las banderas anteriores que recoge Wikidata, con los años en que ondeó cada una; puede faltar alguna.');
+    await expect(flown.locator('li.fp-now img')).toHaveAttribute('src', /flags\/ve\.svg$/);
+  });
+
+  for (const [group, ids] of [
+    ['first seven', ['BD', 'CA', 'CD', 'DE', 'FR', 'GB', 'IN']],
+    ['next seven', ['IT', 'LY', 'MX', 'PT', 'RU', 'UA', 'ZA']],
+    ['second batch of eight', ['CR', 'EC', 'ET', 'KR', 'NI', 'PY', 'RO', 'SV']],
+    ['first five of the third batch', ['BG', 'BY', 'EG', 'IQ', 'KH']],
+    ['last four of the third batch', ['MZ', 'SC', 'TM', 'US']],
+    ['first seven of the fourth batch', ['AL', 'AT', 'BA', 'CY', 'GR', 'HR', 'HU']],
+    ['last seven of the fourth batch', ['IR', 'LT', 'MN', 'NL', 'PH', 'PL', 'SA']],
+  ] as const) {
+    test(`shows the ${group} researched histories with the actual catalogue drawings and a source`, async ({ page }) => {
+      await seed(page);
+      const sheet = sheetOf(page);
+      for (const id of ids) {
+        const said = sheetFile(id);
+        await openSheet(page, `/banderas/paises/${id}`);
+        await expect(sheet.locator('.fp-times ol > li'), id).toHaveCount(said.times!.length);
+        await expect(sheet.locator('.fp-flown'), id).toHaveCount(0);
+        await expect(sheet.locator('.fp-hero img'), id).toHaveAttribute('src', /photos\//);
+        await expect(sheet.locator('section.fp-about.fp-lead'), id).toBeVisible();
+        await expect(sheet.locator('.fp-times h4').first(), id).toHaveText(said.times![0].name.es);
+        await expect(sheet.locator('.fp-times li.fp-now'), id).toHaveCount(1);
+        await expect(sheet.locator('.fp-times .fp-note'), id).toContainText(said.timeNote?.es ?? 'Una selección de enseñas históricas');
+        await expect(sheet.locator('.fp-times').getByRole('link', { name: 'Consultar la fuente' }), id).toHaveAttribute('href', said.timeSource!);
+        for (const [i, time] of said.times!.entries()) {
+          const flag = sheet.locator('.fp-times li').nth(i).locator('.fp-time-flag img');
+          const past = time.past ? FLAGS.past[id].find((row) => row[2] === time.past![0] && row[3] === time.past![1] && (!time.pastFile || row[0] === time.pastFile)) : undefined;
+          const gone = time.gone ? FLAGS.gone.find((row) => row[0] === time.gone) : undefined;
+          const file = past ? past[4] ?? past[0] : gone ? gone[7] ?? gone[3] : null;
+          await expect(flag, `${id} ${i}`).toHaveAttribute('src', file ? new RegExp(`flags/commons/${file}$`) : new RegExp(`flags/${COUNTRIES.find((country) => country.id === id)!.fl}\\.svg$`));
+        }
+        await expect(page.locator('.crash'), id).toHaveCount(0);
+      }
+    });
+  }
+
+  test('translates the narrated periods and their caveats, not only the country text', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    const sheet = await openSheet(page, '/flags/countries/CA');
+    await expect(sheet.locator('.fp-times h4')).toHaveText(['An ensign with provincial arms', "Canada's new coat of arms", 'The leaves turn red', 'A single maple leaf']);
+    await expect(sheet.locator('.fp-times .fp-note')).toContainText('not formally adopted national flags');
+    await expect(sheet.locator('.fp-times').getByRole('link', { name: 'See the source' })).toHaveAttribute('href', 'https://en.wikipedia.org/wiki/Canadian_Red_Ensign');
+    await openSheet(page, '/flags/countries/DE');
+    await expect(sheet.locator('.fp-when').first()).toHaveText('1867–1918 and 1933–1935');
+    await expect(sheet.locator('.fp-times .fp-time-text').nth(2)).toContainText('merchant ships');
+    await expect(sheet.locator('.fp-times .fp-note')).toContainText('not a national flag');
+    await openSheet(page, '/flags/countries/LY');
+    await expect(sheet.locator('.fp-times h4').last()).toHaveText('The 1951 flag returns');
+    await expect(sheet.locator('.fp-times .fp-note')).toContainText('did not restore the monarchy');
+  });
+
+  test('shows researched dates and distinct same-year flags in both languages', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    const sheet = await openSheet(page, '/flags/countries/CR');
+    const times = sheet.locator('.fp-times');
+    await expect(times.locator('ol > li')).toHaveCount(11);
+    await expect(times.locator('.fp-when').nth(2)).toHaveText('4 March–2 November 1824');
+    await expect(times.locator('.fp-when').nth(3)).toHaveText('2–22 November 1824');
+    await expect(times.locator('li').nth(2).locator('img')).toHaveAttribute('src', /flags\/commons\/19d0666629\.svg$/);
+    await expect(times.locator('li').nth(3).locator('img')).toHaveAttribute('src', /flags\/commons\/0987a89723\.svg$/);
+    await expect(times.locator('.fp-when').last()).toHaveText('Civil flag since 1848; current state arms since 1998');
+    await openSheet(page, '/flags/countries/NI');
+    await expect(times.locator('.fp-when').nth(2)).toHaveText('1854–1856');
+    await expect(times.locator('li').nth(3).locator('img')).toHaveAttribute('src', /flags\/commons\/c868c6d62e\.svg$/);
+    await expect(times.locator('li').nth(5).locator('img')).toHaveAttribute('src', /flags\/commons\/c868c6d62e\.svg$/);
+    await openSheet(page, '/flags/countries/RO');
+    await expect(times.locator('.fp-when').nth(1)).toHaveText('January–March 1948');
+    await openSheet(page, '/flags/countries/SV');
+    await expect(times.locator('.fp-when').last()).toHaveText('1916–1921 and since 1922');
+    await expect(times.locator('.fp-note')).toContainText('1912–1916');
+    await expect(times.getByRole('link', { name: 'See the source' })).toHaveAttribute('href', 'https://en.wikipedia.org/wiki/Flag_of_El_Salvador');
+  });
+
+  test('dates the new histories independently of the flag catalogue and credits licensed drawings', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    const sheet = await openSheet(page, '/flags/countries/IQ');
+    const times = sheet.locator('.fp-times');
+    await expect(times.locator('.fp-when').first()).toHaveText('1924–1959');
+    await expect(times.locator('.fp-note')).toContainText('A 2004 proposal that was never adopted is omitted');
+    await openSheet(page, '/flags/countries/EG');
+    await expect(times.locator('.fp-when').nth(4)).toHaveText('1958–1972');
+    await expect(times.locator('.fp-when').last()).toHaveText('Since 1984');
+    await openSheet(page, '/flags/countries/MZ');
+    await expect(times.locator('.fp-when').nth(2)).toHaveText('April–1 May 1983');
+    await expect(times.locator('.fp-when').last()).toHaveText('Since 1983');
+    await openSheet(page, '/flags/countries/TM');
+    await expect(times.locator('.fp-when').first()).toHaveText('1974–1992');
+    await expect(times.locator('.fp-note')).toContainText('catalogue dates the Soviet drawing from 1925');
+    await openSheet(page, '/flags/countries/KH');
+    await expect(times.locator('li')).toHaveCount(6);
+    await expect(times.locator('.fp-note')).toContainText('disputed provenance and is not shown');
+    const un = times.locator('li').nth(4);
+    await expect(un.locator('img')).toHaveAttribute('src', /flags\/commons\/2a344f84d8\.svg$/);
+    await expect(un.locator('.fp-credit')).toContainText('Lexicon assumed');
+    await expect(un.getByRole('link', { name: 'CC BY-SA 3.0' })).toHaveAttribute('href', 'https://creativecommons.org/licenses/by-sa/3.0/');
+    await expect(un.getByRole('link', { name: 'Wikimedia Commons' })).toHaveAttribute('href', commons('Flag of Cambodia (1992–1993).svg'));
+  });
+
+  test('shows Albanian and Greek period documents with their Commons credits, without replacing the chosen heads', async ({ page }) => {
+    await seed(page);
+    const sheet = sheetOf(page);
+    for (const id of ['AL', 'GR']) {
+      const source = sheetFile(id);
+      const picture = source.times![0].picture!;
+      await openSheet(page, `/banderas/paises/${id}`);
+      await expect(sheet.locator('.fp-hero img')).toHaveAttribute('src', new RegExp(`photos/${source.photos![0].file}-640\\.webp$`));
+      const times = sheet.locator('.fp-times');
+      await expect(times.locator('.fp-time-pic')).toHaveCount(1);
+      const figure = times.locator('li').first().locator('.fp-time-pic');
+      const img = figure.locator('img');
+      await img.scrollIntoViewIfNeeded();
+      await expect.poll(() => drawn(img)).toBe(true);
+      await expect(img).toHaveAttribute('src', new RegExp(`photos/${picture.file}-640\\.webp$`));
+      await expect(img).toHaveAttribute('alt', '');
+      await expect(figure.locator('figcaption')).toContainText(picture.es);
+      await expect(figure.locator('.fp-credit')).toContainText(`${picture.by} · Dominio público · Wikimedia Commons`);
+      await expect(figure.getByRole('link', { name: 'Wikimedia Commons' })).toHaveAttribute('href', commons(picture.title));
+      await expect(times.locator('.fp-note')).toContainText(id === 'AL' ? 'no se conserva una prueba definitiva' : 'manuscrito de 1823');
+    }
+  });
+
+  test('explains the Greek manuscript and its limitations in English', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    const greek = await openSheet(page, '/flags/countries/GR');
+    await expect(greek.locator('.fp-times .fp-time-pic figcaption')).toContainText(sheetFile('GR').times![0].picture!.en);
+    await expect(greek.locator('.fp-times .fp-time-pic .fp-credit')).toContainText('Public domain · Wikimedia Commons');
+    await expect(greek.locator('.fp-times .fp-note')).toContainText('other flags, not the exact drawing');
+  });
+
+  test('keeps the required Commons attribution readable on a phone @movil', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    const sheet = await openSheet(page, '/flags/countries/KH');
+    const credit = sheet.locator('.fp-times li').nth(4).locator('.fp-credit');
+    await expect(credit).toContainText('CC BY-SA 3.0 · Wikimedia Commons');
+    await credit.scrollIntoViewIfNeeded();
+    expect(await sheet.locator('.dlg-box').evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(0);
+    await expect(credit.getByRole('link', { name: 'Wikimedia Commons' })).toHaveAttribute('href', commons('Flag of Cambodia (1992–1993).svg'));
+  });
+
+  test('shows the restored Bulgarian tricolour and only a selection of US star counts', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    const sheet = await openSheet(page, '/flags/countries/BG');
+    const times = sheet.locator('.fp-times');
+    await expect(times.locator('.fp-when').last()).toHaveText('Since 1990');
+    await expect(times.locator('li').nth(1).locator('.fp-credit')).toContainText('Scroch · CC BY-SA 4.0');
+    await openSheet(page, '/flags/countries/US');
+    await expect(times.locator('ol > li')).toHaveCount(6);
+    await expect(sheet.locator('.fp-flown')).toHaveCount(0);
+    await expect(times.locator('.fp-when').nth(3)).toHaveText('1861–1863');
+    await expect(times.locator('.fp-when').last()).toHaveText('Since 1960');
+    await expect(times.locator('.fp-note')).toContainText('49-star flag used from July 1959 to July 1960');
+    await openSheet(page, '/flags/countries/BY');
+    await expect(times.locator('.fp-when').nth(5)).toHaveText('1991–1995');
+    await expect(times.locator('.fp-when').last()).toHaveText('Since 2012');
   });
 
   test('leads to the sheets of its neighbours, back one at a time, and closes them all at once onto the gallery', async ({ page }) => {
@@ -1122,9 +1302,14 @@ test.describe('the sheet of a country nobody has written of yet', () => {
     await expect(sheet.locator('section.fp-about .fp-from a').last()).toHaveAccessibleName('Read on about Spain on Wikipedia');
     await expect(sheet.locator('.fp-flagsec .fp-from a').last()).toHaveAttribute('href', 'https://en.wikipedia.org/wiki/Flag_of_Spain');
     await expect(sheet.locator('.fp-foot')).toContainText('The text is the opening of the articles of Wikipedia, abridged, under the CC BY-SA 4.0 licence.');
-    await expect(sheet.locator('.fp-flown .fp-when').last()).toHaveText('Today');
-    await expect(sheet.locator('.fp-flown li img').first()).toHaveAttribute('alt', 'Flag of Spain (1701–1760)');
-    await expect(sheet.locator('.fp-flown .fp-note')).toHaveText('These are the earlier flags that Wikidata records, with the years each was flown; some may be missing.');
+    await expect(sheet.locator('.fp-times .fp-when').first()).toHaveText('1701–1760');
+    await expect(sheet.locator('.fp-times .fp-when').last()).toHaveText('Since 1981');
+    await expect(sheet.locator('.fp-times h4').first()).toHaveText("Philip V's naval ensign");
+    await expect(sheet.locator('.fp-times li img').first()).toHaveAttribute('alt', "Flag of Spain: Philip V's naval ensign (1701–1760)");
+    await expect(sheet.locator('.fp-times li').nth(1).locator('.fp-time-text')).toContainText('The king therefore chose a red-and-yellow one');
+    await expect(sheet.locator('.fp-times .fp-note')).toContainText('naval ensigns, not national flags');
+    await expect(sheet.locator('.fp-times').getByRole('link', { name: 'See the source' })).toHaveAttribute('href', 'https://en.wikipedia.org/wiki/Flag_of_Spain');
+    await expect(sheet.locator('.fp-foot')).toContainText('The timeline is written for the game from the source linked beside it.');
     await expect(sheet.locator('.fp-own .label')).toHaveText('Those of 43 of its 52 provinces');
     await expect(sheet.locator('.fp-foot')).toContainText('The official name, the motto, the anthem and the facts of the flag are those that Wikidata and Wikipedia give.');
     await expect(sheet.locator('.fp-foot')).toContainText('The drawing of the flag is from the flag-icons collection.');
@@ -1162,9 +1347,10 @@ test.describe('the sheet of a country nobody has written of yet', () => {
       await expect(page.locator('.crash'), id).toHaveCount(0);
     }
     expect(errors).toEqual([]);
-    // The one with the most flags behind it shows them all, and the one of today.
+    // The country with the most catalogue flags now has a selected, narrated history rather than unchecked years.
     await open(page, '/banderas/paises/US');
-    await expect(sheet.locator('.fp-flown ol > li')).toHaveCount(FLAGS.past.US.length + 1);
+    await expect(sheet.locator('.fp-times ol > li')).toHaveCount(sheetFile('US').times!.length);
+    await expect(sheet.locator('.fp-flown')).toHaveCount(0);
     await expect(sheet.locator('.fp-flag-facts dd').first()).toHaveText('14 de junio de 1777');
     // A land with no flag of its own and nobody who lives there says whose it is, and little else.
     await open(page, '/banderas/paises/BV');
@@ -1228,11 +1414,14 @@ test.describe('the sheet of a country nobody has written of yet', () => {
       screen.width,
     );
     expect(wide).toEqual([]);
-    // The figures two abreast; the flags of other times, several in a row; the neighbours, as many as fit.
+    // The figures two abreast; the narrated flags one below the other, with text beside them; neighbours wrap.
     const facts = await sheet.locator('.fp-glance .fp-facts > div').evaluateAll((rows) => rows.slice(0, 4).map((row) => Math.round(row.getBoundingClientRect().left)));
     expect(new Set(facts).size).toBe(2);
-    const flown = await sheet.locator('.fp-flown ol > li').evaluateAll((items) => items.map((item) => Math.round(item.getBoundingClientRect().left)));
-    expect(new Set(flown).size).toBeGreaterThanOrEqual(2);
+    await expect(sheet.locator('.fp-times ol > li')).toHaveCount(9);
+    const stops = await sheet.locator('.fp-times ol > li').evaluateAll((items) => items.map((item) => Math.round(item.getBoundingClientRect().left)));
+    expect(new Set(stops).size).toBe(1);
+    const [oldFlag, oldText] = [(await sheet.locator('.fp-time-flag').first().boundingBox())!, (await sheet.locator('.fp-time-text').first().boundingBox())!];
+    expect(oldText.x).toBeGreaterThanOrEqual(oldFlag.x + oldFlag.width);
     const pills = await sheet.locator('.fp-nb li').evaluateAll((items) => items.map((item) => Math.round(item.getBoundingClientRect().top)));
     expect(new Set(pills).size).toBeGreaterThanOrEqual(2);
     // A neighbour is large enough to be touched, and opens its sheet.
