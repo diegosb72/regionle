@@ -7,5 +7,6 @@
 # brings what is named here and keeps it in the branch `datos`. A line that starts with # is a note, so
 # changing the number of the request is enough to ask for the same again.
 #
-# Request 51: fetch the brighter, verified NASA photograph of Atafu for Tokelau
+# Request 52: fetch the 1913 Albanian postcard and the 1823 Greek revolutionary-navy manuscript
+# named in the independently researched timelines (scripts/data/profiles-times.json).
 photos

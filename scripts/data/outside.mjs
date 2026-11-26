@@ -703,6 +703,8 @@ const FLAG_SIGNALS = path.resolve(ROOT, process.env.OUTSIDE_FLAG_SIGNALS ?? 'scr
  * its own in this folder (`BR.json`), and it names the photographs the sheet shows, each a file of Commons.
  */
 const PROFILES = path.resolve(ROOT, process.env.OUTSIDE_PROFILES ?? 'scripts/data/profiles');
+/** Research written separately from the full sheets: its stages may also name period photographs. */
+const PROFILE_TIMES = path.resolve(ROOT, process.env.OUTSIDE_TIMES ?? 'scripts/data/profiles-times.json');
 /**
  * How wide a photograph is brought, in px: one of the widths that Wikimedia draws its pictures at, and
  * more than the game shows one at. The original is not brought: a photograph may weigh tens of megabytes.
@@ -1518,8 +1520,9 @@ function photosIn(sheet) {
 }
 
 /**
- * The photographs of the sheets of the countries, each a file of Commons that a sheet names
- * (scripts/data/profiles). Of each: what Commons says of it (who made it and on what terms it is given,
+ * The photographs of the sheets of the countries, each a file of Commons named by a complete sheet,
+ * a chosen head or an independently written timeline (scripts/data/profiles-times.json).
+ * Of each: what Commons says of it (who made it and on what terms it is given,
  * which the sheet has to say under it) and the picture that Wikimedia draws of it, `PHOTO_WIDTH` px wide.
  * The original is never asked for. A photograph that could not be brought has its entry with no picture.
  */
@@ -1532,6 +1535,14 @@ async function profilePhotos(source, keep) {
   }
   // The one chosen for the head of the sheet of each country nobody has written of.
   for (const [id, head] of Object.entries(headsChosen())) if (!items[id] && typeof head?.file === 'string' && head.file.trim()) items[id] = { photos: [head.file.trim()] };
+  // A timeline is an addition to the sheet, not a replacement for its head photograph. Ask for both.
+  if (fs.existsSync(PROFILE_TIMES)) {
+    const { _: _about, ...timelines } = JSON.parse(fs.readFileSync(PROFILE_TIMES, 'utf8'));
+    for (const [id, timeline] of Object.entries(timelines)) {
+      const photos = photosIn({ times: timeline.times });
+      if (photos.length) items[id] = { photos: [...new Set([...(items[id]?.photos ?? []), ...photos])] };
+    }
+  }
   const names = [...new Set(Object.values(items).flatMap((item) => item.photos))].sort();
   if (!names.length) throw new Error('The sheets name no photograph');
   const { until, undone } = patient();
