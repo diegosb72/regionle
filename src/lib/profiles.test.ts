@@ -666,14 +666,14 @@ describe('the sheet of every country', () => {
 });
 
 describe('researched timelines layered over the generated sheets', () => {
-  it('covers eighty-two real countries without replacing their photograph or attributing corrected text to Wikipedia', () => {
+  it('covers eighty-six real countries without replacing their photograph or attributing corrected text to Wikipedia', () => {
     expect(typeof TIMELINE_REASON).toBe('string');
     const ids = Object.keys(TIMELINES);
     expect(ids).toEqual([...ids].sort());
-    expect(ids).toHaveLength(82);
+    expect(ids).toHaveLength(86);
     expect(ids).not.toContain('BR');
     expect(ids.every(has)).toBe(true);
-    expect(ids.reduce((n, id) => n + TIMELINES[id].times.length, 0)).toBe(327);
+    expect(ids.reduce((n, id) => n + TIMELINES[id].times.length, 0)).toBe(342);
     for (const id of ids) {
       const sheet = sheetOf(id);
       const source = TIMELINES[id];
@@ -896,6 +896,44 @@ describe('researched timelines layered over the generated sheets', () => {
     // The UN administration's drawing is licensed, so the in-sheet credit must come from the same Commons catalogue.
     const cambodiaUN = timeCards({ id: 'KH', times: sheetOf('KH').times!.slice(-2, -1) }, FLAGS, INDEX, '/')[0];
     expect(cambodiaUN?.file).toBe('2a344f84d8.svg');
+  });
+
+  it('does not turn the flags of separate states or technical catalogue years into a national succession', () => {
+    const yemen = sheetOf('YE');
+    expect(yemen.times?.map((time) => time.gone ?? 'now')).toEqual(['Q580188', 'Q267584', 'Q199841', 'now']);
+    expect(FLAGS.gone?.find((row) => row[0] === 'Q580188')?.slice(5, 7)).toEqual([1918, 1970]);
+    expect(yemen.times?.[0]).toMatchObject({ from: 1927, to: 1962 }); // Royalists kept flying it afterwards.
+    expect(yemen.times?.[2]).toMatchObject({ from: 1967, to: 1990 }); // South and north coexisted.
+    expect(yemen.timeNote?.en).toContain('coexisted from 1967');
+    expect(yemen.flag?.adopted).toBe('1990-05-22');
+
+    const tanzania = sheetOf('TZ');
+    expect(tanzania.times?.map((time) => time.gone ?? 'now')).toEqual(['Q431731', 'Q157904', 'now']);
+    expect(FLAGS.gone?.find((row) => row[0] === 'Q157904')?.slice(5, 7)).toEqual([1856, 1964]);
+    expect(tanzania.times?.[1]).toMatchObject({ from: 1963, to: 1964, when: { en: '10 December 1963–12 January 1964 · Zanzibar' } });
+    expect(tanzania.times?.at(-1)).toMatchObject({ now: true, from: 1964, when: { en: 'Since 30 June 1964 · union on 26 April' } });
+    expect(tanzania.timeNote?.en).toContain("revolutionary Zanzibar republic's blue, black and green flag (1964) is missing");
+    expect(tanzania.timeNote?.en).toContain('may have been military rather than national');
+
+    const czechia = sheetOf('CZ');
+    expect(czechia.times?.map((time) => time.gone ?? 'now')).toEqual(['Q33946', 'Q152750', 'Q33946', 'now']);
+    expect(FLAGS.gone?.find((row) => row[0] === 'Q33946')?.slice(5, 7)).toEqual([1918, 1992]);
+    expect(czechia.times?.[0]).toMatchObject({ from: 1920, to: 1939 });
+    expect(czechia.times?.[1]).toMatchObject({ from: 1939, when: { en: 'October 1939–May 1945 · protectorate under German occupation' } });
+    expect(czechia.timeNote?.en).toContain('coexisted with the federal flag');
+
+    const slovakia = sheetOf('SK');
+    expect(slovakia.times?.map((time) => time.gone ?? 'now')).toEqual(['Q33946', 'Q154401', 'Q33946', 'now']);
+    expect(slovakia.times?.[1]).toMatchObject({ from: 1939, to: 1945 });
+    expect(slovakia.times?.at(-1)).toMatchObject({ now: true, from: 1992, when: { en: 'Since September 1992 · independent since January 1993' } });
+    expect(slovakia.timeNote?.en).toContain('coexisted with the federal flag');
+    // The Czech and Slovak timelines both distinguish the federation's emblem from their own flags.
+    for (const id of ['CZ', 'SK', 'TZ', 'YE']) {
+      const profile = sheetOf(id);
+      expect(profile.times?.at(-1)?.now, id).toBe(true);
+      expect(timeCards(profile, FLAGS, INDEX, '/').every(Boolean), id).toBe(true);
+      expect(new URL(profile.timeSource!).protocol, id).toBe('https:');
+    }
   });
 });
 
