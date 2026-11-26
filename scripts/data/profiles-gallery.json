@@ -1,0 +1,73 @@
+{
+  "_": "Photographs added after the chosen head, not instead of it. Each title is a Wikimedia Commons file checked for its location, author and free licence on its file page. The source photos brings the file and its Commons metadata; profiles.mjs makes the bilingual caption and credits from both. No images from the uploaded JSON are used.",
+  "AQ": [
+    {
+      "file": "Lemaire Channel, Antarctica.jpg",
+      "es": "El canal Lemaire, entre la península Antártica y la isla Booth",
+      "en": "Lemaire Channel, between the Antarctic Peninsula and Booth Island",
+      "by": "Liam Quinn"
+    },
+    {
+      "file": "McMurdo Station.jpg",
+      "es": "La estación McMurdo vista desde Observation Hill, en la isla de Ross",
+      "en": "McMurdo Station seen from Observation Hill on Ross Island",
+      "by": "Gaelen Marsden"
+    }
+  ],
+  "BV": [
+    {
+      "file": "Antarktisk pelssel på Bouvetøya, Nyrøysa.jpg",
+      "es": "Lobos marinos antárticos en Nyrøysa, isla Bouvet",
+      "en": "Antarctic fur seals at Nyrøysa, Bouvet Island",
+      "by": "Audun Narvestad"
+    },
+    {
+      "file": "Bouvet island 0.jpg",
+      "es": "Costa sureste de Bouvet en 1898, en una fotografía coloreada a mano",
+      "en": "Bouvet's southeast coast in 1898, in a hand-coloured photograph",
+      "by": "Carl Chun / F. Winter"
+    }
+  ],
+  "GS": [
+    {
+      "file": "Grytviken Harbour, Island of South Georgia, United Kingdom.jpg",
+      "es": "Grytviken y su antigua estación ballenera, en Georgia del Sur",
+      "en": "Grytviken and its former whaling station on South Georgia",
+      "by": "Lexaxis7"
+    },
+    {
+      "file": "GoldHarbour.JPG",
+      "es": "Glaciares y playa de Gold Harbour, Georgia del Sur",
+      "en": "Glaciers and beach at Gold Harbour, South Georgia",
+      "by": "BluesyPete"
+    }
+  ],
+  "HM": [
+    {
+      "file": "Heard2.jpg",
+      "es": "La antigua estación de investigación de la isla Heard",
+      "en": "The former research station on Heard Island",
+      "by": "NOAA"
+    },
+    {
+      "file": "Heard Island 2005-08.jpg",
+      "es": "La isla Heard bajo vórtices de nubes, fotografiada desde el espacio en 2005",
+      "en": "Heard Island beneath cloud vortices, photographed from space in 2005",
+      "by": "NASA / MODIS"
+    }
+  ],
+  "TF": [
+    {
+      "file": "Vagues et manchots à l'assaut de la plage.jpg",
+      "es": "Pingüinos rey en la playa de la isla de la Posesión, archipiélago de Crozet",
+      "en": "King penguins on the beach of Possession Island, Crozet Islands",
+      "by": "franek2"
+    },
+    {
+      "file": "Amsterdam vue du large - panoramio.jpg",
+      "es": "La isla de Ámsterdam vista desde el mar",
+      "en": "Amsterdam Island seen from the sea",
+      "by": "franek2"
+    }
+  ]
+}

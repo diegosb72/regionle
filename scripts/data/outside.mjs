@@ -703,6 +703,8 @@ const FLAG_SIGNALS = path.resolve(ROOT, process.env.OUTSIDE_FLAG_SIGNALS ?? 'scr
  * its own in this folder (`BR.json`), and it names the photographs the sheet shows, each a file of Commons.
  */
 const PROFILES = path.resolve(ROOT, process.env.OUTSIDE_PROFILES ?? 'scripts/data/profiles');
+/** Additional, captioned photographs after a chosen head; never a replacement for the chosen head. */
+const PROFILE_GALLERY = path.resolve(ROOT, process.env.OUTSIDE_GALLERY ?? 'scripts/data/profiles-gallery.json');
 /** Research written separately from the full sheets: its stages may also name period photographs. */
 const PROFILE_TIMES = path.resolve(ROOT, process.env.OUTSIDE_TIMES ?? 'scripts/data/profiles-times.json');
 /**
@@ -1521,7 +1523,8 @@ function photosIn(sheet) {
 
 /**
  * The photographs of the sheets of the countries, each a file of Commons named by a complete sheet,
- * a chosen head or an independently written timeline (scripts/data/profiles-times.json).
+ * a chosen head, its additional gallery (scripts/data/profiles-gallery.json), or an independently written
+ * timeline (scripts/data/profiles-times.json).
  * Of each: what Commons says of it (who made it and on what terms it is given,
  * which the sheet has to say under it) and the picture that Wikimedia draws of it, `PHOTO_WIDTH` px wide.
  * The original is never asked for. A photograph that could not be brought has its entry with no picture.
@@ -1535,6 +1538,18 @@ async function profilePhotos(source, keep) {
   }
   // The one chosen for the head of the sheet of each country nobody has written of.
   for (const [id, head] of Object.entries(headsChosen())) if (!items[id] && typeof head?.file === 'string' && head.file.trim()) items[id] = { photos: [head.file.trim()] };
+  // A gallery adds to an existing head, never replacing it. One manifest supplies captions for the build
+  // and names the very same Commons files for the workflow; otherwise the two can drift apart.
+  if (fs.existsSync(PROFILE_GALLERY)) {
+    const { _: _note, ...gallery } = JSON.parse(fs.readFileSync(PROFILE_GALLERY, 'utf8'));
+    for (const [id, photos] of Object.entries(gallery)) {
+      if (!items[id]) throw new Error(`The gallery of ${id} has no chosen head or hand-written sheet`);
+      if (!Array.isArray(photos) || !photos.length || photosIn({ photos }).length !== photos.length) throw new Error(`The gallery of ${id} needs distinct Commons files`);
+      const named = [...items[id].photos, ...photosIn({ photos })];
+      if (new Set(named).size !== named.length) throw new Error(`The gallery of ${id} repeats its head or another photograph`);
+      items[id].photos = named;
+    }
+  }
   // A timeline is an addition to the sheet, not a replacement for its head photograph. Ask for both.
   if (fs.existsSync(PROFILE_TIMES)) {
     const { _: _about, ...timelines } = JSON.parse(fs.readFileSync(PROFILE_TIMES, 'utf8'));
@@ -2337,7 +2352,7 @@ const SOURCES = [
     from: 'Wikimedia Commons (https://commons.wikimedia.org)',
     licence: 'La de cada archivo, que su entrada dice: dominio público o una licencia libre',
     what:
-      'The photographs that the sheets of the countries show, each a file of Commons that a sheet names (scripts/data/profiles/<country>.json) or the one chosen for the head of the sheet of a country nobody has written of (scripts/data/profiles-heads.json). ' +
+      'The photographs that the sheets of the countries show, each a file of Commons that a sheet names (scripts/data/profiles/<country>.json), the one chosen for the head of a country nobody has written of (scripts/data/profiles-heads.json), or a further photograph in its gallery (scripts/data/profiles-gallery.json). ' +
       'items: the titles of those of each sheet, by the id of its country (photos). ' +
       'files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height of the original, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; ' +
       `and where the picture of it that Wikimedia draws, ${PHOTO_WIDTH} px wide, is kept in this branch (picture): the original is not brought. The pictures are under ${PHOTO_FILES}, each named after the SHA-1 of its original.`,
