@@ -1,6 +1,6 @@
 {
-  "when": "2026-11-26T14:19:05.514Z",
-  "from": "main@33380c6",
+  "when": "2026-11-26T23:23:18.073Z",
+  "from": "arena/baec5cdd-regionle@6da304a",
   "workflow": "same",
   "sources": [
     {
@@ -8,29 +8,29 @@
       "file": "photos/photos.json",
       "from": "Wikimedia Commons (https://commons.wikimedia.org)",
       "licence": "La de cada archivo, que su entrada dice: dominio público o una licencia libre",
-      "what": "The photographs that the sheets of the countries show, each a file of Commons that a sheet names (scripts/data/profiles/<country>.json) or the one chosen for the head of the sheet of a country nobody has written of (scripts/data/profiles-heads.json). items: the titles of those of each sheet, by the id of its country (photos). files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height of the original, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; and where the picture of it that Wikimedia draws, 1920 px wide, is kept in this branch (picture): the original is not brought. The pictures are under photos/files, each named after the SHA-1 of its original.",
+      "what": "The photographs that the sheets of the countries show, each a file of Commons that a sheet names (scripts/data/profiles/<country>.json), the one chosen for the head of a country nobody has written of (scripts/data/profiles-heads.json), or a further photograph in its gallery (scripts/data/profiles-gallery.json). items: the titles of those of each sheet, by the id of its country (photos). files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height of the original, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; and where the picture of it that Wikimedia draws, 1920 px wide, is kept in this branch (picture): the original is not brought. The pictures are under photos/files, each named after the SHA-1 of its original.",
       "es": "Fotografías de las fichas de los países",
       "needs": "113",
       "ok": true,
-      "bytes": 142076,
-      "blob": "060e26642bce52a678092094a27d5996e751bd9f",
-      "note": "260 fotografías de 249 fichas: 260 traídas (172.394 kB)",
+      "bytes": 147017,
+      "blob": "1fbca3bd8104c6fa171ae011d841f1a60574cf8d",
+      "note": "270 fotografías de 249 fichas: 270 traídas (178.296 kB)",
       "detail": {
-        "asked": 260,
-        "found": 260,
+        "asked": 270,
+        "found": 270,
         "files": {
-          "all": 260,
+          "all": 270,
           "missing": 0,
-          "brought": 260,
+          "brought": 270,
           "left": 0,
-          "bytes": 172393818
+          "bytes": 178295894
         },
         "licences": {
-          "CC BY-SA 4.0": 122,
-          "CC BY-SA 3.0": 47,
+          "CC BY-SA 4.0": 123,
+          "CC BY-SA 3.0": 52,
           "CC BY 2.0": 22,
-          "CC BY-SA 2.0": 18,
-          "Public domain": 15,
+          "CC BY-SA 2.0": 19,
+          "Public domain": 18,
           "CC0": 12,
           "CC BY 3.0": 11,
           "CC BY 4.0": 7,
@@ -41,7 +41,7 @@
         },
         "undone": []
       },
-      "ms": 123269
+      "ms": 133909
     }
   ],
   "reach": []
