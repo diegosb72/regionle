@@ -937,6 +937,7 @@ test.describe('the sheet of a country without a complete handwritten account', (
     ['next four of the sixth batch', ['KM', 'KW', 'LC', 'LS']],
     ['last four of the sixth batch', ['MY', 'RW', 'TG', 'TN']],
     ['six of the seventh batch', ['GQ', 'HN', 'RS', 'SY', 'TW', 'VE']],
+    ['four union-and-separation', ['CZ', 'SK', 'TZ', 'YE']],
   ] as const) {
     test(`shows the ${group} researched histories with the actual catalogue drawings and a source`, async ({ page }) => {
       await seed(page);
@@ -963,6 +964,47 @@ test.describe('the sheet of a country without a complete handwritten account', (
       }
     });
   }
+
+  test('explains coexisting predecessor flags and the federation in English with sourced, independently dated drawings', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    const sheet = await openSheet(page, '/flags/countries/YE');
+    const times = sheet.locator('.fp-times');
+    await expect(times.locator('.fp-when').first()).toHaveText('1927–1962'); // The catalogue begins the drawing in 1918.
+    await expect(times.locator('.fp-when').nth(2)).toHaveText('1967–1990'); // Overlaps northern Yemen.
+    const southYemen = times.locator('.fp-time-flag img').nth(2);
+    await expect(southYemen).toHaveAttribute('src', /flags\/commons\/112810bb56\.svg$/);
+    await southYemen.scrollIntoViewIfNeeded();
+    await expect.poll(() => drawn(southYemen)).toBe(true);
+    await expect(times.locator('.fp-note')).toContainText('coexisted from 1967');
+    await expect(times.getByRole('link', { name: 'See the source' })).toHaveAttribute('href', 'https://www.crwflags.com/fotw/flags/ye-index.html');
+
+    await openSheet(page, '/flags/countries/TZ');
+    await expect(times.locator('.fp-when').nth(1)).toHaveText('10 December 1963–12 January 1964 · Zanzibar');
+    const zanzibar = times.locator('.fp-time-flag img').nth(1);
+    await expect(zanzibar).toHaveAttribute('src', /flags\/commons\/6c3a9f65bb\.svg$/);
+    await zanzibar.scrollIntoViewIfNeeded();
+    await expect.poll(() => drawn(zanzibar)).toBe(true);
+    await expect(times.locator('.fp-when').last()).toHaveText('Since 30 June 1964 · union on 26 April');
+    await expect(times.locator('.fp-note')).toContainText('the catalogue starts in 1856');
+
+    await openSheet(page, '/flags/countries/CZ');
+    await expect(times.locator('.fp-when').first()).toHaveText('1920–1939');
+    await expect(times.locator('.fp-when').nth(1)).toHaveText('October 1939–May 1945 · protectorate under German occupation');
+    const protectorate = times.locator('.fp-time-flag img').nth(1);
+    await expect(protectorate).toHaveAttribute('src', /flags\/commons\/41cef6506e\.svg$/);
+    await protectorate.scrollIntoViewIfNeeded();
+    await expect.poll(() => drawn(protectorate)).toBe(true);
+    await expect(times.locator('.fp-note')).toContainText('coexisted with the federal flag');
+
+    await openSheet(page, '/flags/countries/SK');
+    const wartimeSlovakia = times.locator('.fp-time-flag img').nth(1);
+    await expect(wartimeSlovakia).toHaveAttribute('src', /flags\/commons\/fb36e4c94e\.svg$/);
+    await wartimeSlovakia.scrollIntoViewIfNeeded();
+    await expect.poll(() => drawn(wartimeSlovakia)).toBe(true);
+    await expect(times.locator('.fp-when').last()).toHaveText('Since September 1992 · independent since January 1993');
+    await expect(times.locator('.fp-note')).toContainText('state under Nazi German control');
+    await expect(page.locator('.crash')).toHaveCount(0);
+  });
 
   test('translates the narrated periods and their caveats, not only the country text', async ({ page }) => {
     await seed(page, { lang: 'en' });
@@ -1191,6 +1233,25 @@ test.describe('the sheet of a country without a complete handwritten account', (
     await expect(sheet.locator('.fp-flagsec .fp-lead')).toHaveCount(0);
     await expect(sheet.locator('.fp-times .fp-when').first()).toHaveText('Siglo XIX–1999 · versión anterior a la ley');
     await expect(sheet.locator('.fp-times .fp-note')).toContainText('ese día no es su fecha de adopción');
+  });
+
+  test('shows the union and split histories without clipping their drawings or caveats on a phone @movil', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    const sheet = sheetOf(page);
+    for (const [id, file, index] of [
+      ['CZ', '41cef6506e', 1],
+      ['SK', 'fb36e4c94e', 1],
+      ['TZ', '6c3a9f65bb', 1],
+      ['YE', '112810bb56', 2],
+    ] as const) {
+      await openSheet(page, `/flags/countries/${id}`);
+      const flag = sheet.locator('.fp-times li').nth(index).locator('.fp-time-flag img');
+      await flag.scrollIntoViewIfNeeded();
+      await expect(flag, id).toHaveAttribute('src', new RegExp(`flags/commons/${file}\\.svg$`));
+      await expect.poll(() => drawn(flag), id).toBe(true);
+      await expect(sheet.locator('.fp-times .fp-note'), id).toContainText(id === 'TZ' || id === 'YE' ? 'coexisted' : 'federal flag');
+      expect(await sheet.locator('.dlg-box').evaluate((el) => el.scrollWidth - el.clientWidth), id).toBeLessThanOrEqual(0);
+    }
   });
 
   test('shows both green autonomous Togo designs without overflowing a phone @movil', async ({ page }) => {
