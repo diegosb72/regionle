@@ -7,8 +7,8 @@ Qué se trae y de dónde lo dice `scripts/data/outside.mjs`, en la rama del jueg
 
 ## Última descarga: 2026-11-27
 
-Hecha con `arena/baec5cdd-regionle@c407854`. Lo que no se pidió esta vez sigue en la rama `datos` como estaba.
+Hecha con `arena/baec5cdd-regionle@d172fe5`. Lo que no se pidió esta vez sigue en la rama `datos` como estaba.
 
 | Archivo | Qué es | De dónde | Licencia | Resultado |
 | --- | --- | --- | --- | --- |
-| `user-photos/index.json` | Inventario del archivo fotográfico aportado por el dueño | Archivo aportado por el dueño en la release de GitHub (https://github.com/diegosb72/regionle/releases/tag/imagenes) | Sin verificar: el inventario no acredita la licencia de ninguna fotografía | 361 kB · 2134 files (1880 images), 5 documents and 249 photo lists; no images saved |
+| `user-photos/audit.json` | Metadatos actuales de Commons de las fotos candidatas del ZIP | Wikimedia Commons (https://commons.wikimedia.org) | La licencia de cada archivo se consulta en Commons; los metadatos no sustituyen una revisión de derechos de terceros | 746 kB · 1345 candidate photos checked in Commons; 0 without current file metadata; no image downloaded |
