@@ -7,8 +7,8 @@ Qué se trae y de dónde lo dice `scripts/data/outside.mjs`, en la rama del jueg
 
 ## Última descarga: 2026-11-27
 
-Hecha con `arena/baec5cdd-regionle@a0c7df9`. Lo que no se pidió esta vez sigue en la rama `datos` como estaba.
+Hecha con `arena/baec5cdd-regionle@e815a62`. Lo que no se pidió esta vez sigue en la rama `datos` como estaba.
 
 | Archivo | Qué es | De dónde | Licencia | Resultado |
 | --- | --- | --- | --- | --- |
-| `photos/photos.json` | Fotografías de las fichas de los países | Wikimedia Commons (https://commons.wikimedia.org) | La de cada archivo, que su entrada dice: dominio público o una licencia libre | 162 kB · 300 fotografías de 249 fichas: 300 traídas (199.547 kB) |
+| `user-photos/index.json` | Inventario del archivo fotográfico aportado por el dueño | Archivo aportado por el dueño en la release de GitHub (https://github.com/diegosb72/regionle/releases/tag/imagenes) | Sin verificar: el inventario no acredita la licencia de ninguna fotografía | 361 kB · 2134 files (1880 images); only names, sizes and hashes saved, not the ZIP |

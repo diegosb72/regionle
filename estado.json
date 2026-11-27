@@ -1,47 +1,25 @@
 {
-  "when": "2026-11-27T10:27:07.471Z",
-  "from": "arena/baec5cdd-regionle@a0c7df9",
+  "when": "2026-11-27T11:34:43.831Z",
+  "from": "arena/baec5cdd-regionle@e815a62",
   "workflow": "same",
   "sources": [
     {
-      "id": "photos",
-      "file": "photos/photos.json",
-      "from": "Wikimedia Commons (https://commons.wikimedia.org)",
-      "licence": "La de cada archivo, que su entrada dice: dominio público o una licencia libre",
-      "what": "The photographs that the sheets of the countries show, each a file of Commons that a sheet names (scripts/data/profiles/<country>.json), the one chosen for the head of a country nobody has written of (scripts/data/profiles-heads.json), or a further photograph in its gallery (scripts/data/profiles-gallery.json). items: the titles of those of each sheet, by the id of its country (photos). files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height of the original, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; and where the picture of it that Wikimedia draws, 1920 px wide, is kept in this branch (picture): the original is not brought. The pictures are under photos/files, each named after the SHA-1 of its original.",
-      "es": "Fotografías de las fichas de los países",
+      "id": "photos-upload-index",
+      "file": "user-photos/index.json",
+      "from": "Archivo aportado por el dueño en la release de GitHub (https://github.com/diegosb72/regionle/releases/tag/imagenes)",
+      "licence": "Sin verificar: el inventario no acredita la licencia de ninguna fotografía",
+      "what": "Only the names, sizes and SHA-256 hashes of the files inside the split ZIP in scripts/data/release-photos.json. No image is published or assumed to be reusable merely because it is in the archive.",
+      "es": "Inventario del archivo fotográfico aportado por el dueño",
       "needs": "113",
       "ok": true,
-      "bytes": 162119,
-      "blob": "e42ea4404b8dac7eacbc8d99fc72ff731d60a035",
-      "note": "300 fotografías de 249 fichas: 300 traídas (199.547 kB)",
+      "bytes": 361145,
+      "blob": "59ecdc760bba54b66f969dc3823d0a73e3ff75f8",
+      "note": "2134 files (1880 images); only names, sizes and hashes saved, not the ZIP",
       "detail": {
-        "asked": 300,
-        "found": 300,
-        "files": {
-          "all": 300,
-          "missing": 0,
-          "brought": 300,
-          "left": 0,
-          "bytes": 199547008
-        },
-        "licences": {
-          "CC BY-SA 4.0": 137,
-          "CC BY-SA 3.0": 59,
-          "CC BY 2.0": 25,
-          "CC BY-SA 2.0": 20,
-          "Public domain": 18,
-          "CC BY 3.0": 14,
-          "CC0": 12,
-          "CC BY 4.0": 7,
-          "CC BY-SA 2.5": 4,
-          "CC BY 2.5": 2,
-          "CC BY-SA 2.0 fr": 1,
-          "CC BY-SA 3.0 nl": 1
-        },
-        "undone": []
+        "files": 2134,
+        "images": 1880
       },
-      "ms": 143073
+      "ms": 2617
     }
   ],
   "reach": []
