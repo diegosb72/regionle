@@ -271,6 +271,32 @@ licencia y página de Commons sin alterar su cabecera ni la cronología ya exist
 La foto de la grulla muestra el ave en Uganda, y la de Ciudad de Piedra lleva la bandera nacional en
 primer plano. Sus pies no confunden esos motivos con imágenes del dibujo de la bandera.
 
+## Fotografías adicionales de Ruanda y Burundi
+
+A petición del dueño, estas dos fichas muestran **cinco fotografías cada una**, contando la cabecera
+original: cuatro añadidas por país. Las ocho imágenes se contrastaron con sus archivos y previsualizaciones
+de Commons, y con los archivos descargados, no con miniaturas de búsquedas de otras fotos. El flujo
+`photos` guardó sus metadatos y versiones de 1920 px en `datos`, commit
+`f1e444b60212812640af3dc442ac811978f063f2`; `photos-pinned.mjs` fija sus hashes y
+`profiles-gallery.json` sus pies bilingües. De cada foto nueva se generan WebP de 640 y 1280 px, con
+autor, licencia y enlace a Commons. **Las cabeceras de Kigali y del lago Tanganica siguen intactas**;
+Ruanda conserva sus tres etapas contrastadas y Burundi no recibe una cronología sin contrastar.
+
+| Ficha | Archivo y lugar contrastados en Commons | Autor/crédito | Licencia indicada por Commons |
+| --- | --- | --- | --- |
+| RW | [Gorila del grupo Susa en el parque de los Volcanes](https://commons.wikimedia.org/wiki/File:A_mountain_gorilla_from_Susa_Group_in_Karisimbi_thicket_of_Volcanoes_National_Park_in_Rwanda._Emmanuel_Kwizera.jpg) | Emmanuelkwizera | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| RW | [Pasarela del bosque de Nyungwe](https://commons.wikimedia.org/wiki/File:Nyungwe_Canopy_Walk.jpg) | Alex Niragira | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| RW | [Lago Kivu al amanecer, desde Cyangugu](https://commons.wikimedia.org/wiki/File:Lake_Kivu_at_dawn.jpg) | Kisambira | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| RW | [Reconstrucción del palacio tradicional en Nyanza](https://commons.wikimedia.org/wiki/File:Rwanda_Nyanza_Mwami_Palace.jpg) | Amakuru | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| BI | [Cascada Nyakayi 1 de Karera, Rutana](https://commons.wikimedia.org/wiki/File:La_chute_de_karera_nyakayi_1_%C3%A0_Rutana.jpg) | Zamennest | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| BI | [Bosque de Teza, parque nacional de Kibira](https://commons.wikimedia.org/wiki/File:For%C3%AAt_de_Teza_%28Kibira%29.jpg) | NIHEREWENIMANA Richard | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| BI | [Tamborileros en Gishora, región de Gitega](https://commons.wikimedia.org/wiki/File:Les_tambourinaires_de_Gitega.jpg) | NSENGIYUMVA Joseph | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| BI | [Hipopótamos del parque nacional de Rusizi](https://commons.wikimedia.org/wiki/File:Rusizi_NP_hippopotamus.jpg) | d_proffer | [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/) |
+
+El palacio de Nyanza es una **reconstrucción**, no el edificio histórico original. La licencia de la
+fotografía de los hipopótamos fue revisada en Commons a partir de Flickr; la fotografía se atribuye a
+`d_proffer`, no al usuario que la subió a Commons.
+
 ## El texto de Wikipedia
 
 Desde la 1.49.0 las fichas sin texto redactado para el juego cuentan cómo empieza el artículo de Wikipedia

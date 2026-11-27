@@ -61,7 +61,7 @@ const WRITTEN = files(SOURCES);
 /** Bilingual, independently sourced accounts added to generated sheets without inventing flag periods. */
 const CURATED = ['AQ', 'BV', 'GS', 'HM', 'TF'] as const;
 /** Small batches of Commons galleries, always after the chosen head. */
-const GALLERIED = ['AQ', 'BV', 'GS', 'HM', 'KE', 'TF', 'TZ', 'UG'] as const;
+const GALLERIED = ['AQ', 'BV', 'GS', 'HM', 'KE', 'TF', 'TZ', 'UG', 'RW', 'BI'] as const;
 /** Commons gallery photographs after the chosen head, with captions/credits checked on each file's page. */
 type GallerySource = { file: string; es: string; en: string; by?: string };
 const GALLERY = Object.fromEntries(Object.entries(json<Record<string, unknown>>('scripts/data/profiles-gallery.json')).filter(([id]) => id !== '_')) as Record<string, GallerySource[]>;
@@ -710,7 +710,9 @@ describe('sourced polar accounts and additional Commons galleries', () => {
       const [hero, ...photos] = sheetOf(id).photos!;
       expect(hero.title, id).toBe(heads[id].file);
       expect([hero.es, hero.en], id).toEqual([heads[id].es, heads[id].en]);
-      expect(photos, id).toHaveLength(2);
+      expect(photos, id).toHaveLength(['RW', 'BI'].includes(id) ? 4 : 2);
+      expect(photos.length + 1, id).toBeGreaterThanOrEqual(3);
+      expect(photos.length + 1, id).toBeLessThanOrEqual(8);
       for (const [i, photo] of photos.entries()) {
         const source = GALLERY[id][i];
         expect([photo.title, photo.es, photo.en, photo.by], id).toEqual([source.file, source.es, source.en, source.by]);
@@ -728,6 +730,21 @@ describe('sourced polar accounts and additional Commons galleries', () => {
         }
       }
     }
+  });
+
+  it('keeps Rwanda’s existing timeline, does not invent one for Burundi and identifies the palace as a reconstruction', () => {
+    const rwanda = sheetOf('RW');
+    const burundi = sheetOf('BI');
+    expect(rwanda.photos).toHaveLength(5);
+    expect(burundi.photos).toHaveLength(5);
+    expect(rwanda.times).toHaveLength(3);
+    expect(rwanda.timeSource).toBe(TIMELINES.RW.source);
+    expect(burundi.times).toBeUndefined();
+    const palace = rwanda.photos?.find((photo) => photo.title === 'Rwanda Nyanza Mwami Palace.jpg');
+    expect(palace?.es).toMatch(/^Reconstrucción del palacio/);
+    expect(palace?.en).toMatch(/^Reconstruction of the traditional/);
+    expect(rwanda.photos?.slice(1).map((photo) => photo.licence)).toEqual(['CC BY-SA 4.0', 'CC BY-SA 4.0', 'CC BY-SA 4.0', 'CC BY-SA 3.0']);
+    expect(burundi.photos?.slice(1).map((photo) => photo.licence)).toEqual(['CC BY-SA 4.0', 'CC BY-SA 4.0', 'CC BY-SA 4.0', 'CC BY 2.0']);
   });
 
   it('distinguishes the Bartram proposal, the borrowed Norwegian/Australian flags and the TAAF emblem', () => {

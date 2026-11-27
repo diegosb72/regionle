@@ -7,7 +7,7 @@ import { open, seed } from './helpers';
  * (screens/FlagProfile.tsx). Every country with a flag has one: with what the game knows of it and what
  * Wikidata and Wikipedia say of it and of its flag, with how Wikipedia begins to tell of both and
  * a photograph at its head; some have a historical timeline, five polar territories have sourced accounts
- * instead of Wikipedia excerpts, three East African countries have additional photos, and Brazil has a
+ * instead of Wikipedia excerpts, five East African countries have additional photos, and Brazil has a
  * complete handwritten sheet. One sheet leads to another.
  */
 
@@ -838,6 +838,54 @@ test.describe('the sheet of a country without a complete handwritten account', (
         await figure.locator('img').scrollIntoViewIfNeeded();
         await expect.poll(() => drawn(figure.locator('img'))).toBe(true);
         await expect(figure.locator('figcaption')).toBeVisible();
+      }
+      expect(await sheet.locator('.dlg-box').evaluate((el) => el.scrollWidth - el.clientWidth), id).toBeLessThanOrEqual(0);
+    }
+  });
+
+  test('shows five credited Commons photographs each for Rwanda and Burundi without replacing their heads or adding flag periods', async ({ page }) => {
+    await seed(page);
+    const heads = { RW: 'Kigali2018Cropped.jpg', BI: 'Bujumbura Burundi Lac Tanganyika 24.jpg' } as const;
+    for (const id of ['RW', 'BI'] as const) {
+      const file = sheetFile(id);
+      const sheet = await openSheet(page, `/banderas/paises/${id}`);
+      expect(file.photos).toHaveLength(5);
+      expect(file.photos![0].title).toBe(heads[id]);
+      await expect(sheet.locator('.fp-hero figcaption')).toContainText(file.photos![0].es);
+      await expect.poll(() => drawn(sheet.locator('.fp-hero img'))).toBe(true);
+      const gallery = sheet.locator('.fp-photos .fp-masonry figure');
+      await expect(gallery).toHaveCount(4);
+      for (const [i, photo] of file.photos!.slice(1).entries()) {
+        const figure = gallery.nth(i);
+        await expect(figure.locator('figcaption')).toContainText(photo.es);
+        await expect(figure.locator('.fp-credit')).toContainText(`${photo.by} · ${photo.licence} · Wikimedia Commons`);
+        await expect(figure.getByRole('link', { name: photo.licence })).toHaveAttribute('href', photo.licenceUrl!);
+        await expect(figure.getByRole('link', { name: 'Wikimedia Commons' })).toHaveAttribute('href', commons(photo.title));
+        await expect(figure.locator('img')).toHaveAttribute('src', new RegExp(`photos/${photo.file}-640\\.webp$`));
+        await figure.locator('img').scrollIntoViewIfNeeded();
+        await expect.poll(() => drawn(figure.locator('img'))).toBe(true);
+      }
+      if (id === 'RW') await expect(sheet.locator('.fp-times li')).toHaveCount(3);
+      else await expect(sheet.locator('.fp-times')).toHaveCount(0);
+      await expect(page.locator('.crash')).toHaveCount(0);
+    }
+  });
+
+  test('reads both five-photo galleries in English on a phone without overflow @movil', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    for (const id of ['RW', 'BI']) {
+      const file = sheetFile(id);
+      const sheet = await openSheet(page, `/flags/countries/${id}`);
+      await expect(sheet.locator('.fp-hero figcaption')).toContainText(file.photos![0].en);
+      const gallery = sheet.locator('.fp-photos .fp-masonry figure');
+      await expect(gallery).toHaveCount(4);
+      for (const [i, photo] of file.photos!.slice(1).entries()) {
+        const figure = gallery.nth(i);
+        await figure.locator('img').scrollIntoViewIfNeeded();
+        await expect.poll(() => drawn(figure.locator('img'))).toBe(true);
+        await expect(figure.locator('figcaption')).toContainText(photo.en);
+        await expect(figure.locator('.fp-credit')).toContainText(`${photo.by} · ${photo.licence} · Wikimedia Commons`);
+        await expect(figure.getByRole('link', { name: 'Wikimedia Commons' })).toHaveAttribute('href', commons(photo.title));
       }
       expect(await sheet.locator('.dlg-box').evaluate((el) => el.scrollWidth - el.clientWidth), id).toBeLessThanOrEqual(0);
     }

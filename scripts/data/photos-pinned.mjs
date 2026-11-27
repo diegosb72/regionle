@@ -21,7 +21,7 @@
 export const PHOTOS_AT = { repo: 'diegosb72/regionle', commit: '2a95dd4bd0fd18af109c36dc59503adc2e4fc7e3', dir: '' };
 
 /** What Commons says of every photograph that was asked for. */
-export const PHOTOS_SAID = ['photos/photos.json', '2c9e94492037bf4d8b92054b3b2e758c069b390f', 'ffbd398d94e886c87af4a39d2330ad27e6e8b8c2'];
+export const PHOTOS_SAID = ['photos/photos.json', 'e1b67709a25e3833059554463e011e5bf4e96273', 'f1e444b60212812640af3dc442ac811978f063f2'];
 
 /** The pictures, each under the SHA-1 of its original: [where it is in the branch, the Git name of what it holds, the commit it is at where that is another]. */
 export const PHOTOS = [
@@ -61,6 +61,16 @@ export const PHOTOS = [
   ['photos/files/152f72b7ef9b9d248d6f8e30a0941dd6661bbc2d.1920.jpg', '50af15b02ddd08f1ce9f266e6ca034487ac17088', 'ffbd398d94e886c87af4a39d2330ad27e6e8b8c2'], // KE · Lamu town on Lamu Island in Kenya.JPG
   ['photos/files/255bee19bbaafd8ffbfd2efbbe10a2e7f56eead9.1920.jpg', 'b8ac73342d7c5e1bbc661df54ae67a609fa98aab', 'ffbd398d94e886c87af4a39d2330ad27e6e8b8c2'], // TZ · Mlima Kilimanjaro.jpg
   ['photos/files/842485251c73884f7f08b6f088a1dfdb85aa673e.1920.jpg', '724877be987edb5972f598853015dbad914d179c', 'ffbd398d94e886c87af4a39d2330ad27e6e8b8c2'], // TZ · Stone Town-2.jpg
+
+  // Rwanda and Burundi: eight verified photographs after their unchanged heads. The palace is a reconstruction.
+  ['photos/files/f1f19eb5c254361639d1ae1317df57825a110186.1920.jpg', '46088f8448458438e65f3345137a1d8834953a68', 'f1e444b60212812640af3dc442ac811978f063f2'], // RW · A mountain gorilla from Susa Group in Karisimbi thicket of Volcanoes National Park in Rwanda. Emmanuel Kwizera.jpg
+  ['photos/files/1ea046a720e238e947da443497478ba50592154c.1920.jpg', 'bd96ed2726fcc3199248abecaf006ef53ce4c367', 'f1e444b60212812640af3dc442ac811978f063f2'], // RW · Nyungwe Canopy Walk.jpg
+  ['photos/files/d126316047b06193aa511efbe5a55797b87931bc.1920.jpg', '6b6d0276b8409579ebf9cb41b78a4a4ed70f55a6', 'f1e444b60212812640af3dc442ac811978f063f2'], // RW · Lake Kivu at dawn.jpg
+  ['photos/files/5f19d7137b50c21dd81229a9e584a79d3fb026c4.1920.jpg', 'c22dc2916eeb723fe6ba8070a557ba420a0298b1', 'f1e444b60212812640af3dc442ac811978f063f2'], // RW · Rwanda Nyanza Mwami Palace.jpg
+  ['photos/files/ee928567afbaf31c16a6fb280f55f52e39a216eb.1920.jpg', 'b00fc84e871ca4a8ef2b884f27dd4fb91370f73f', 'f1e444b60212812640af3dc442ac811978f063f2'], // BI · La chute de karera nyakayi 1 à Rutana.jpg
+  ['photos/files/6be77ad58d9a879cec7facefc2d3911570290139.1920.jpg', '83beda5407e7e6d74409796f503330cb79000f9a', 'f1e444b60212812640af3dc442ac811978f063f2'], // BI · Forêt de Teza (Kibira).jpg
+  ['photos/files/abb1d7147cf15752429595cce541d3b5d02efd9f.1920.jpg', 'a5989f67814ac55c75fc81ceb4308acd11f62979', 'f1e444b60212812640af3dc442ac811978f063f2'], // BI · Les tambourinaires de Gitega.jpg
+  ['photos/files/71f3398203a40edc89c46c66155c102a984b4767.1920.jpg', '52a143c1d979127be1a03096b2954cd7d6f8d119', 'f1e444b60212812640af3dc442ac811978f063f2'], // BI · Rusizi NP hippopotamus.jpg
 
   // The one chosen for the head of the sheet of each country nobody has written of (scripts/data/profiles-heads.json)
   ['photos/files/692fd0f034ca1e1755b8c657ca1b13aa762948c0.1920.jpg', '45a7841d966750dbe3ef5d04521f49c50a33a4d5'], // AD · Vista de Andorra la Vieja, Andorra, 2013-12-30, DD 01.JPG
