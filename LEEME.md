@@ -7,8 +7,8 @@ Qué se trae y de dónde lo dice `scripts/data/outside.mjs`, en la rama del jueg
 
 ## Última descarga: 2026-11-27
 
-Hecha con `arena/baec5cdd-regionle@c20c3f9`. Lo que no se pidió esta vez sigue en la rama `datos` como estaba.
+Hecha con `main@6c164bb`. Lo que no se pidió esta vez sigue en la rama `datos` como estaba.
 
 | Archivo | Qué es | De dónde | Licencia | Resultado |
 | --- | --- | --- | --- | --- |
-| `user-photos/rights.json` | Revisión de licencias múltiples en las fotografías de dominio público del ZIP | Wikimedia Commons (https://commons.wikimedia.org) | Las fichas de Commons se ofrecen con licencia CC BY-SA; las fotografías tienen sus propias licencias, que hay que revisar por separado | 79 kB · 102 Commons file pages captured for checking more than one license; no images saved |
+| `photos/photos.json` | Fotografías de las fichas de los países | Wikimedia Commons (https://commons.wikimedia.org) | La de cada archivo, que su entrada dice: dominio público o una licencia libre | 162 kB · 300 fotografías de 249 fichas: 300 traídas (199.547 kB) |
