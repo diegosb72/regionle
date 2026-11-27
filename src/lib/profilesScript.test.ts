@@ -211,6 +211,7 @@ function run(
   opts: {
     before?: (dirs: { data: string; photos: string }) => void;
     fixes?: Record<string, unknown>;
+    editorial?: Record<string, unknown>;
     said?: unknown;
     texts?: Record<string, string> | null;
     heads?: Record<string, unknown>;
@@ -228,6 +229,8 @@ function run(
   for (const [name, sheet] of Object.entries(sheets)) fs.writeFileSync(path.join(written, `${name}.json`), JSON.stringify(sheet));
   const fixes = path.join(dir, 'fixes.json');
   if (opts.fixes) fs.writeFileSync(fixes, JSON.stringify({ _: 'Why this file is here.', ...opts.fixes }));
+  const editorial = path.join(dir, 'editorial.json');
+  if (opts.editorial) fs.writeFileSync(editorial, JSON.stringify({ _: 'Reviewed text.', ...opts.editorial }));
   let said = path.join(TMP, 'said.json');
   if (opts.said !== undefined) {
     said = path.join(dir, 'said.json');
@@ -260,7 +263,7 @@ function run(
   let out = '';
   let code = 0;
   try {
-    out = execFileSync('node', [SCRIPT, '--sheets', written, '--brought', brought, '--arms', named, '--said', said, '--texts', texts, '--fixes', fixes, '--heads', heads, '--gallery', gallery, '--times', times, '--history', history, '--data', mine, '--photos', photos, ...(opts.flags ?? [])], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    out = execFileSync('node', [SCRIPT, '--sheets', written, '--brought', brought, '--arms', named, '--said', said, '--texts', texts, '--fixes', fixes, ...(opts.editorial ? ['--editorial', editorial] : []), '--heads', heads, '--gallery', gallery, '--times', times, '--history', history, '--data', mine, '--photos', photos, ...(opts.flags ?? [])], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
   } catch (err) {
     const failed = err as { status?: number; stderr?: string; stdout?: string };
     code = failed.status ?? 1;
@@ -923,8 +926,53 @@ describe('sourced accounts on generated sheets', () => {
     // A borrowed flag's historical date and designer still come from its owner, not this territory's text.
     expect(r.sheet('BB').flag?.of).toBe('CC');
     expect(r.sheet('BB').flag?.adopted).toBe(r.sheet('CC').flag?.adopted);
-    expect(r.sheet('BB').flag?.text).toBeUndefined();
+    expect(r.sheet('BB').flag?.text).toEqual(r.sheet('CC').flag?.text);
+    expect(r.sheet('BB').sources?.flag).toEqual(r.sheet('CC').sources?.flag);
     expect(r.sheet('BB').about?.en).toEqual(['Another island.']);
+  });
+
+  it('layers reviewed prose over source facts and an older authored flag account without replacing either', () => {
+    const editorial = { about: { es: ['Un país nuevo.'], en: ['A new country.'] }, sources: { about: SOURCES.about } };
+    const r = run({}, {
+      fixes: { CC: { flag: FIX().flag, sources: { flag: SOURCES.flag } } },
+      editorial: { CC: editorial },
+      heads: { CC: { file: 'Falls.jpg', ...both('La costa') } },
+      history: { CC: { history: { es: ['Antes era otro reino.'], en: ['Once another kingdom.'] } } },
+      texts: { 'es:Cc (país)': 'Antes un texto de Wikipedia.', 'en:Cc': 'An older Wikipedia text.' },
+    });
+    expect(r.code, r.out).toBe(0);
+    const sheet = r.sheet('CC');
+    expect(sheet.about).toEqual(editorial.about);
+    expect(sheet.sources?.about).toEqual(SOURCES.about);
+    expect(sheet.flag?.text).toEqual(FIX().flag.text);
+    expect(sheet.flag?.parts).toEqual(FIX().flag.parts);
+    expect(sheet.sources?.flag).toEqual(SOURCES.flag);
+    expect(sheet.flag?.adopted).toBe('1960-08-07');
+    expect(sheet.history?.en).toEqual(['Once another kingdom.']);
+    expect(sheet.lead).toBeUndefined();
+    expect(sheet.photos[0]).toMatchObject({ title: 'Falls.jpg', licence: 'CC0' });
+    expect(r.sheet('AA').about).toBeUndefined(); // The real-world editorial file is not read for fixture ids.
+  });
+
+  it('refuses unsourced editorial prose, overlapping authorship, flag facts and borrowed-flag rewrites', () => {
+    const about = { about: FIX().about, sources: { about: SOURCES.about } };
+    const flag = { flag: FIX().flag, sources: { flag: SOURCES.flag } };
+    const wrong = (editorial: Record<string, unknown>, fixes?: Record<string, unknown>, sheets: Record<string, unknown> = {}) => {
+      const r = run(sheets, { editorial, fixes });
+      expect(r.code).not.toBe(0);
+      expect(r.written()).toEqual([]);
+      return r.out;
+    };
+    expect(wrong({ ZZ: about })).toContain('editorial text names no country');
+    expect(wrong({ AA: about }, undefined, { AA: SHEET() })).toContain('needs an unwritten country');
+    expect(wrong({ CC: { about: FIX().about } })).toContain('needs sources');
+    expect(wrong({ CC: { ...about, photos: [] } })).toContain('only about, flag and sources');
+    expect(wrong({ CC: { flag: { ...FIX().flag, adopted: '1900' }, sources: flag.sources } })).toContain('only explain the flag and its parts');
+    expect(wrong({ CC: { ...about, sources: { about: [{ title: SOURCES.about[0].title, url: 'http://example.org/islands' }] } } })).toContain('needs a safe https address');
+    expect(wrong({ CC: { ...about, about: { es: ['Solo una lengua.'] } } })).toContain('no paragraphs in «en»');
+    expect(wrong({ CC: about }, { CC: { ...about } })).toContain('overwrite an authored account');
+    expect(wrong({ CC: flag }, { CC: { ...flag } })).toContain('overwrite an authored account');
+    expect(wrong({ BB: flag }, { BB: { flag: { of: 'CC' } } })).toContain('a borrowed flag cannot have a different editorial explanation');
   });
 
   it('rejects unsourced or unsafe accounts and untranslated flag parts', () => {

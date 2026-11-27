@@ -605,7 +605,11 @@ test.describe('the sheet of a country without a complete handwritten account', (
     await expect(sheet.getByRole('heading', { level: 3 })).toHaveText(['De un vistazo', 'Historia del país o territorio', 'La bandera', 'Sus banderas en el tiempo', 'España en imágenes', 'Las banderas de España']);
     await expect(sheet.locator('.fp-times')).toHaveCount(1);
     await expect(sheet.locator('.fp-photos .fp-masonry figure')).toHaveCount(spain.photos!.length - 1);
-    for (const none of ['.fp-about:not(.fp-lead)', '.fp-parts', '.fp-flown', '.fp-flag-in > div > p']) await expect(sheet.locator(none), none).toHaveCount(0);
+    for (const none of ['.fp-about.fp-lead', '.fp-flagsec .fp-lead', '.fp-flown']) await expect(sheet.locator(none), none).toHaveCount(0);
+    await expect(sheet.locator('.fp-about p:not(.fp-sources)')).toHaveText(spain.about!.es);
+    await expect(sheet.locator('.fp-flagsec .fp-flag-in > div > p').first()).toHaveText(spain.flag!.text!.es[0]);
+    await expect(sheet.locator('.fp-parts dt')).toHaveText(spain.flag!.parts!.map((part) => part.es[0]));
+    await expect(sheet.locator('.fp-about .fp-sources a').first()).toHaveAttribute('href', spain.sources!.about![0].url);
 
     // Its figures, as in every sheet; after them its motto, in its language and with what it means, and its anthem.
     await expect(fact(sheet, 'Capital')).toHaveText('Madrid');
@@ -619,18 +623,20 @@ test.describe('the sheet of a country without a complete handwritten account', (
     const flagSec = sheet.locator('.fp-flagsec');
     await expect(flagSec.locator('.fp-flag-big')).toHaveAttribute('src', /flags\/es\.svg$/);
     await expect(flagSec.locator('.fp-flag-facts dt')).toHaveText(['Adoptada', 'Como es hoy, desde', 'Proporción', 'Colores']);
-    await expect(flagSec.locator('.fp-flag-facts dd')).toHaveText(['28 de mayo de 1785', '5 de octubre de 1981', /^2:3\s+de alto por ancho/, 'rojo, amarillo']);
-    const more = flagSec.locator('.fp-from a').last();
-    await expect(more).toHaveText('Seguir leyendo');
+    await expect(flagSec.locator('.fp-flag-facts dd')).toHaveText(['13 de octubre de 1843', '19 de diciembre de 1981', /^2:3\s+de alto por ancho/, 'rojo, amarillo']);
+    await expect(flagSec).toContainText('buques de guerra españoles');
+    const more = flagSec.locator('.fp-more a');
+    await expect(more).toContainText('Ver también el artículo de Wikipedia');
     await expect(more).toHaveAttribute('href', 'https://es.wikipedia.org/wiki/Bandera_de_Espa%C3%B1a');
     await expect(more).toHaveAttribute('target', '_blank');
 
-    // Under it all, whose each thing is: its photographs, Wikipedia's texts and the independently written timeline.
+    // The sourced editorial account does not mislabel its text as an excerpt from Wikipedia.
     const foot = sheet.locator('.fp-foot');
     await expect(foot).toContainText('The World Factbook');
-    await expect(foot).toContainText('El nombre oficial, el lema, el himno y los datos de la bandera son los que dan Wikidata y Wikipedia.');
+    await expect(foot).toContainText('Los nombres, el lema, el himno y los datos de la bandera se basan en Wikidata y Wikipedia, con las correcciones documentadas en las fuentes enlazadas.');
     await expect(foot).toContainText('El dibujo de la bandera es de la colección flag-icons.');
-    await expect(foot).toContainText('El texto es el comienzo de los artículos de Wikipedia, abreviado, con licencia CC BY-SA 4.0.');
+    await expect(foot).toContainText('Los textos escritos para el juego se basan en las fuentes enlazadas junto a ellos.');
+    await expect(foot).not.toContainText('El texto es el comienzo de los artículos');
     await expect(foot).toContainText('La cronología está escrita para el juego a partir de la fuente enlazada junto a ella.');
     await expect(foot).toContainText('Las fotografías son de Wikimedia Commons, reducidas de tamaño; bajo cada una van su autor y su licencia.');
     await expect(foot.getByRole('link', { name: 'Leer más sobre España en Wikipedia' })).toHaveAttribute('href', 'https://es.wikipedia.org/wiki/Espa%C3%B1a');
@@ -639,17 +645,17 @@ test.describe('the sheet of a country without a complete handwritten account', (
     await expect(page.locator('.crash')).toHaveCount(0);
   });
 
-  test('tells how Wikipedia begins to tell of the country and of its flag, each with whose words they are and where they go on', async ({ page }) => {
+  test('distinguishes an unedited Wikipedia excerpt from authored country and flag accounts', async ({ page }) => {
     await seed(page);
-    const sheet = await openSheet(page, '/banderas/paises/ES');
-    const told = sheetFile('ES');
+    const sheet = await openSheet(page, '/banderas/paises/IT');
+    const told = sheetFile('IT');
     expect(told.lead!.es!.length).toBeGreaterThan(0);
     expect(told.flag!.lead!.es!.length).toBeGreaterThan(0);
 
     // Of the country, under its name and before its figures: the words of Wikipedia, as the sheet was given them.
     const about = sheet.locator('section.fp-about.fp-lead');
     await expect(about.locator('p:not(.fp-from)')).toHaveText(told.lead!.es!);
-    await expect(about.locator('p:not(.fp-from)').first()).toHaveText(/^España, .* es un país /);
+    await expect(about.locator('p:not(.fp-from)').first()).toHaveText(/^Italia, oficialmente la República Italiana, es un país /);
     const [text, glance] = [(await about.boundingBox())!, (await sheet.locator('.fp-glance').boundingBox())!];
     expect(text.y + text.height).toBeLessThanOrEqual(glance.y + 1);
     // Under them, whose they are, that they were shortened, on what terms they are given, and where they go on.
@@ -662,13 +668,13 @@ test.describe('the sheet of a country without a complete handwritten account', (
     await expect(from.locator('a').last()).toHaveAttribute('target', '_blank');
     await expect(from.locator('a').last()).toHaveAttribute('rel', /noopener/);
     // Heard apart from the text, as in a list of links, each of the two says where it leads and what of.
-    await expect(about.getByRole('link', { name: 'Seguir leyendo sobre España en Wikipedia', exact: true })).toHaveAttribute('href', told.read!.es!);
-    await expect(sheet.locator('.fp-flagsec').getByRole('link', { name: 'Seguir leyendo sobre la bandera de España en Wikipedia', exact: true })).toHaveAttribute('href', told.readFlag!.es!);
+    await expect(about.getByRole('link', { name: 'Seguir leyendo sobre Italia en Wikipedia', exact: true })).toHaveAttribute('href', told.read!.es!);
+    await expect(sheet.locator('.fp-flagsec').getByRole('link', { name: 'Seguir leyendo sobre la bandera de Italia en Wikipedia', exact: true })).toHaveAttribute('href', told.readFlag!.es!);
 
     // Of the flag, beside it and before what is known of it: the same, from its own page.
     const flagSec = sheet.locator('.fp-flagsec');
     await expect(flagSec.locator('.fp-lead p:not(.fp-from)')).toHaveText(told.flag!.lead!.es!);
-    await expect(flagSec.locator('.fp-lead p:not(.fp-from)').first()).toHaveText(/^La bandera de España /);
+    await expect(flagSec.locator('.fp-lead p:not(.fp-from)').first()).toHaveText(/^La bandera de Italia /);
     await expect(flagSec.locator('.fp-from')).toHaveText(/^De Wikipedia, abreviado · CC BY-SA 4\.0 · Seguir leyendo$/);
     await expect(flagSec.locator('.fp-from a').last()).toHaveAttribute('href', told.readFlag!.es!);
     const [words, facts] = [(await flagSec.locator('.fp-lead').boundingBox())!, (await flagSec.locator('.fp-flag-facts').boundingBox())!];
@@ -817,6 +823,19 @@ test.describe('the sheet of a country without a complete handwritten account', (
     }
   });
 
+  test('keeps P0 editorial text, sourced links and existing galleries legible on a phone @movil', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    for (const id of ['ES', 'AU', 'UG', 'LK', 'AQ']) {
+      const sheet = await openSheet(page, `/flags/countries/${id}`);
+      await expect(sheet.locator('.fp-about p:not(.fp-sources)')).toHaveText(sheetFile(id).about!.en);
+      await sheet.locator('.fp-about .fp-sources a').first().scrollIntoViewIfNeeded();
+      await expect(sheet.locator('.fp-flagsec .fp-flag-big')).toBeVisible();
+      await expect(sheet.locator('.fp-photos .fp-masonry figure')).toHaveCount(sheetFile(id).photos!.length - 1);
+      if (sheetFile(id).sources?.flag) await sheet.locator('.fp-flagsec .fp-sources a').first().scrollIntoViewIfNeeded();
+      expect(await sheet.locator('.dlg-box').evaluate((el) => el.scrollWidth - el.clientWidth), id).toBeLessThanOrEqual(0);
+    }
+  });
+
   test('adds licensed Commons photos to Uganda, Kenya and Tanzania without changing their chosen heads', async ({ page }) => {
     await seed(page);
     const heads: Record<string, string> = {
@@ -877,7 +896,8 @@ test.describe('the sheet of a country without a complete handwritten account', (
     await expect(sheet.locator('.fp-flag-in p').first()).toHaveText(sheetFile('UG').flag!.text!.en[0]);
     await expect(sheet.locator('.fp-flagsec .fp-sources a').first()).toHaveText("Uganda's National Flag and Armorial Ensigns Act");
     await expect(sheet.locator('.fp-flagsec .fp-lead')).toHaveCount(0);
-    await expect(sheet.locator('.fp-about.fp-lead')).toBeVisible(); // Only the flag's introduction was replaced.
+    await expect(sheet.locator('.fp-about.fp-lead')).toHaveCount(0); // Both Uganda accounts now have authored ES/EN text.
+    await expect(sheet.locator('.fp-about p:not(.fp-sources)')).toHaveText(sheetFile('UG').about!.en);
   });
 
   test('loads the three new galleries on a phone without horizontal overflow @movil', async ({ page }) => {
@@ -1245,6 +1265,26 @@ test.describe('the sheet of a country without a complete handwritten account', (
     await expect(sheet.locator('.fp-id .fp-flagstatus')).toHaveText('Propuesta no oficial · sin bandera oficial');
     await expect(sheet.locator('.fp-flag-history li').first().locator('.fp-flagstatus')).toHaveText('Propuesta no oficial');
     await expect(sheet.locator('.fp-flag-history')).toContainText('no tiene bandera nacional oficial');
+  });
+
+  test('shows Australia’s checked star changes and Sri Lanka’s green stripe without losing their history', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    const sheet = await openSheet(page, '/flags/countries/AU');
+    await expect(sheet.locator('.fp-about p:not(.fp-sources)')).toHaveText(sheetFile('AU').about!.en);
+    await expect(sheet.locator('.fp-flag-in > div > p').first()).toContainText('Southern Cross stars were simplified in 1903');
+    await expect(sheet.locator('.fp-flag-history .fp-when')).toHaveText(sheetFile('AU').flagHistory!.map((event) => event.when.en));
+    await expect(sheet.locator('.fp-flag-history li').nth(1)).toContainText('four larger Southern Cross stars');
+    await expect(sheet.locator('.fp-parts dt')).toHaveText(sheetFile('AU').flag!.parts!.map((part) => part.en[0]));
+    await expect(sheet.locator('.fp-flagsec .fp-sources a').last()).toHaveAttribute('href', 'https://www.legislation.gov.au/C1954A00001/asmade/text');
+    await expect(sheet.locator('.fp-photos .fp-masonry figure')).toHaveCount(7);
+
+    await openSheet(page, '/flags/countries/LK');
+    await expect(sheet.locator('.fp-about p:not(.fp-sources)')).toHaveText(sheetFile('LK').about!.en);
+    await expect(sheet.locator('.fp-flag-in > div > p').first()).toContainText('green and orange stripes');
+    await expect(sheet.locator('.fp-flag-in > div > p').nth(1)).toContainText('Sources disagree');
+    await expect(sheet.locator('.fp-parts dt')).toHaveText(sheetFile('LK').flag!.parts!.map((part) => part.en[0]));
+    await expect(sheet.locator('.fp-flagsec')).not.toContainText('teal');
+    await expect(sheet.locator('.fp-photos .fp-masonry figure')).toHaveCount(5);
   });
 
   test('documents disputed local dates rather than using dates from the drawing catalogue', async ({ page }) => {
@@ -1949,19 +1989,17 @@ test.describe('the sheet of a country without a complete handwritten account', (
     await expect(sheet.locator('.fp-glance .label')).toHaveText('Borders 5 countries and territories');
     await expect(sheet.locator('.fp-nb li a')).toHaveText(['Andorra', 'France', 'Gibraltar', 'Morocco', 'Portugal']);
     await expect(sheet.locator('.fp-flag-facts dt')).toHaveText(['Adopted', 'As it is today, since', 'Proportions', 'Colours']);
-    await expect(sheet.locator('.fp-flag-facts dd')).toHaveText(['28 May 1785', '5 October 1981', /^2:3\s+height to width/, 'red, yellow']);
-    // The words of Wikipedia are those of its page in English, and so is where they go on.
-    await expect(sheet.locator('section.fp-about.fp-lead p:not(.fp-from)')).toHaveText(sheetFile('ES').lead!.en!);
-    await expect(sheet.locator('section.fp-about.fp-lead p:not(.fp-from)').first()).toHaveText(/^Spain, officially the Kingdom of Spain, is a country /);
-    await expect(sheet.locator('section.fp-about .fp-from')).toHaveText(/^From Wikipedia, abridged · CC BY-SA 4\.0 · Read on$/);
-    await expect(sheet.locator('section.fp-about .fp-from a').first()).toHaveAttribute('href', 'https://creativecommons.org/licenses/by-sa/4.0/');
-    await expect(sheet.locator('section.fp-about .fp-from a').last()).toHaveAttribute('href', 'https://en.wikipedia.org/wiki/Spain');
-    await expect(sheet.locator('.fp-flagsec .fp-lead p:not(.fp-from)')).toHaveText(sheetFile('ES').flag!.lead!.en!);
-    await expect(sheet.locator('.fp-flagsec .fp-from a').last()).toHaveText('Read on');
-    await expect(sheet.locator('.fp-flagsec .fp-from a').last()).toHaveAccessibleName('Read on about the flag of Spain on Wikipedia');
-    await expect(sheet.locator('section.fp-about .fp-from a').last()).toHaveAccessibleName('Read on about Spain on Wikipedia');
-    await expect(sheet.locator('.fp-flagsec .fp-from a').last()).toHaveAttribute('href', 'https://en.wikipedia.org/wiki/Flag_of_Spain');
-    await expect(sheet.locator('.fp-foot')).toContainText('The text is the opening of the articles of Wikipedia, abridged, under the CC BY-SA 4.0 licence.');
+    await expect(sheet.locator('.fp-flag-facts dd')).toHaveText(['13 October 1843', '19 December 1981', /^2:3\s+height to width/, 'red, yellow']);
+    // Authored accounts and citations replace both Wikipedia extracts, but its links remain available.
+    await expect(sheet.locator('section.fp-about p:not(.fp-sources)')).toHaveText(sheetFile('ES').about!.en);
+    await expect(sheet.locator('section.fp-about p:not(.fp-sources)').first()).toContainText('Iberian Peninsula');
+    await expect(sheet.locator('section.fp-about .fp-sources a').first()).toHaveAttribute('href', sheetFile('ES').sources!.about![0].url);
+    await expect(sheet.locator('.fp-flagsec .fp-flag-in > div > p').first()).toHaveText(sheetFile('ES').flag!.text!.en[0]);
+    await expect(sheet.locator('.fp-parts dt')).toHaveText(sheetFile('ES').flag!.parts!.map((part) => part.en[0]));
+    await expect(sheet.locator('.fp-lead')).toHaveCount(0);
+    await expect(sheet.locator('.fp-flagsec .fp-more a')).toContainText("See also Wikipedia's article on the flags of Spain");
+    await expect(sheet.locator('.fp-flagsec .fp-more a')).toHaveAttribute('href', 'https://en.wikipedia.org/wiki/Flag_of_Spain');
+    await expect(sheet.locator('.fp-foot')).toContainText('The text written for the game is based on the sources linked beside it.');
     await expect(sheet.locator('.fp-times .fp-when').first()).toHaveText('1701–1760');
     await expect(sheet.locator('.fp-times .fp-when').last()).toHaveText('Since 1981');
     await expect(sheet.locator('.fp-times h4').first()).toHaveText("Philip V's naval ensign");
@@ -1971,7 +2009,7 @@ test.describe('the sheet of a country without a complete handwritten account', (
     await expect(sheet.locator('.fp-times').getByRole('link', { name: 'See the source' })).toHaveAttribute('href', 'https://en.wikipedia.org/wiki/Flag_of_Spain');
     await expect(sheet.locator('.fp-foot')).toContainText('The timeline is written for the game from the source linked beside it.');
     await expect(sheet.locator('.fp-own .label')).toHaveText('Those of 43 of its 52 provinces');
-    await expect(sheet.locator('.fp-foot')).toContainText('The official name, the motto, the anthem and the facts of the flag are those that Wikidata and Wikipedia give.');
+    await expect(sheet.locator('.fp-foot')).toContainText('The names, motto, anthem and flag facts are based on Wikidata and Wikipedia, with corrections documented by the linked sources.');
     await expect(sheet.locator('.fp-foot')).toContainText('The drawing of the flag is from the flag-icons collection.');
     await expect(sheet.locator('.fp-foot').getByRole('link', { name: 'Read more about Spain on Wikipedia' })).toHaveAttribute('href', 'https://en.wikipedia.org/wiki/Spain');
 

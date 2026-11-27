@@ -1,0 +1,170 @@
+{
+  "_": "Presentaciones y explicaciones de banderas originales, bilingües y con fuentes, revisadas por tandas. Solo superpone about, flag.text/parts y sus fuentes a las fichas generadas: no sustituye fotos, escudos, datos ni cronologías. La investigación que sustenta el piloto P0 de Chepin está en scripts/data/profiles-research/. AQ y la explicación de la bandera de UG ya estaban contrastadas en profiles-fixes.json; no se duplican aquí.",
+  "ES": {
+    "about": {
+      "es": [
+        "España ocupa buena parte de la península ibérica, junto al Mediterráneo y el Atlántico. También comprende las islas Baleares, las Canarias y las ciudades de Ceuta y Melilla, en el norte de África; su territorio reúne mesetas, cordilleras y costas muy distintas.",
+        "Es una monarquía parlamentaria organizada en diecisiete comunidades autónomas y dos ciudades autónomas. Sus regiones tienen instituciones propias y, en algunos casos, lenguas y banderas reconocidas junto a las del Estado."
+      ],
+      "en": [
+        "Spain covers much of the Iberian Peninsula, beside the Mediterranean and Atlantic. It also includes the Balearic and Canary Islands and the cities of Ceuta and Melilla in North Africa; its landscapes range from plateaus and mountains to very different coasts.",
+        "It is a parliamentary monarchy organised into seventeen autonomous communities and two autonomous cities. Its regions have their own institutions and, in some cases, languages and flags recognised alongside those of the state."
+      ]
+    },
+    "flag": {
+      "text": {
+        "es": [
+          "El rojo y amarillo se escogieron en 1785 para que los buques de guerra españoles se distinguieran de otros pabellones en el mar; su uso se extendió al Ejército en 1843. La Constitución de 1978 define las tres franjas roja, amarilla y roja, con la central de doble anchura.",
+          "El dibujo mostrado lleva el escudo vigente: la ley lo describió en 1981 y un real decreto publicó su modelo oficial ese diciembre. La bandera también puede emplearse sin escudo en determinados contextos; la norma exige el escudo en las sedes y usos oficiales que enumera. No consta en esas normas un significado para cada color."
+        ],
+        "en": [
+          "Red and yellow were chosen in 1785 to distinguish Spanish warships from other ensigns at sea; use spread to the army in 1843. The 1978 constitution defines three red, yellow and red stripes, with the middle stripe twice as wide.",
+          "The design shown bears the present coat of arms: a 1981 law described it, and a royal decree published its official model that December. The flag may also be used without the arms in some settings; the rules require them for the official premises and uses they specify. Those laws give no separate meaning to each colour."
+        ]
+      },
+      "parts": [
+        {
+          "es": ["Las tres franjas", "La Constitución fija rojo, amarillo y rojo, con la franja amarilla de doble anchura. Carlos III había escogido esos colores para reconocer sus barcos a distancia, no por un simbolismo atribuido en la norma."],
+          "en": ["The three stripes", "The constitution specifies red, yellow and red, with the yellow stripe twice as wide. Charles III had chosen those colours to identify his ships at a distance, not for a symbolic meaning assigned by the law."]
+        },
+        {
+          "es": ["El escudo", "El modelo oficial de 1981 reúne, entre otros elementos, un castillo, un león, cuatro palos, cadenas, una granada y las columnas con el lema «Plus Ultra». No es el escudo con águila de la época franquista."],
+          "en": ["The coat of arms", "The official 1981 design includes, among other elements, a castle, a lion, four bars, chains, a pomegranate and the pillars with the motto ‘Plus Ultra’. It is not the eagle-bearing arms of the Franco era."]
+        }
+      ]
+    },
+    "sources": {
+      "about": [
+        { "title": { "es": "Portal oficial de turismo: geografía de España", "en": "Spain's official tourism portal: geography" }, "url": "https://www.spain.info/gcc/en/activities/geography-and-landscape-spain/" },
+        { "title": { "es": "La Moncloa: organización territorial del Estado", "en": "La Moncloa: territorial organisation of the state" }, "url": "https://www.lamoncloa.gob.es/espana/organizacionestado/paginas/index.aspx" },
+        { "title": { "es": "Constitución española, arts. 3 y 4: lenguas y banderas", "en": "Spanish Constitution, Articles 3 and 4: languages and flags" }, "url": "https://www.boe.es/buscar/act.php?id=BOE-A-1978-31229" }
+      ],
+      "flag": [
+        { "title": { "es": "La Moncloa: origen de la rojigualda en 1785 y extensión en 1843", "en": "La Moncloa: the flag's naval origins in 1785 and extension in 1843" }, "url": "https://www.lamoncloa.gob.es/lang/en/espana/statesymbols/paginas/index.aspx" },
+        { "title": { "es": "Constitución española, art. 4: disposición de las franjas", "en": "Spanish Constitution, Article 4: arrangement of the stripes" }, "url": "https://www.boe.es/buscar/act.php?id=BOE-A-1978-31229" },
+        { "title": { "es": "Ley 39/1981, art. 2: uso del escudo en la bandera", "en": "Act 39/1981, Article 2: use of the coat of arms on the flag" }, "url": "https://www.boe.es/buscar/act.php?id=BOE-A-1981-26082" },
+        { "title": { "es": "Ley 33/1981: descripción del escudo", "en": "Act 33/1981: description of the coat of arms" }, "url": "https://www.boe.es/buscar/act.php?id=BOE-A-1981-24155" },
+        { "title": { "es": "Real Decreto 2964/1981: modelo y ubicación del escudo", "en": "Royal Decree 2964/1981: model and placement of the arms" }, "url": "https://www.boe.es/buscar/act.php?id=BOE-A-1981-29376" }
+      ]
+    }
+  },
+  "AU": {
+    "about": {
+      "es": [
+        "Australia reúne un continente, la isla de Tasmania y muchas otras islas. En su extensa superficie se alternan costas, bosques y zonas áridas; es el sexto país más grande del mundo.",
+        "Los pueblos aborígenes y los isleños del estrecho de Torres forman numerosas comunidades con lenguas y tradiciones propias, vivas hoy. El país se organiza en seis estados y varios territorios."
+      ],
+      "en": [
+        "Australia comprises a continent, the island of Tasmania and many other islands. Its vast area includes coasts, forests and arid regions; it is the world's sixth-largest country.",
+        "Aboriginal and Torres Strait Islander peoples belong to many communities with their own living languages and traditions. The country is organised into six states and several territories."
+      ]
+    },
+    "flag": {
+      "text": {
+        "es": [
+          "La bandera surgió de un concurso convocado tras la federación: cinco diseños casi idénticos compartieron el premio y la primera enseña azul se izó el 3 de septiembre de 1901. En 1903 se simplificaron las estrellas de la Cruz del Sur y en 1908 la estrella de la federación pasó de seis a siete puntas.",
+          "La ley de banderas de 1953, sancionada en 1954, declaró nacional el pabellón azul que muestra el juego y distinguió de él el pabellón rojo de la marina mercante. Son enseñas distintas, no dos etapas sucesivas de la bandera nacional."
+        ],
+        "en": [
+          "The flag emerged from a competition held after federation: five nearly identical designs shared the prize, and the first blue ensign was flown on 3 September 1901. The Southern Cross stars were simplified in 1903, and the Commonwealth Star gained its seventh point in 1908.",
+          "The Flags Act 1953, assented to in 1954, declared the blue ensign shown in the game to be the national flag and distinguished it from the red merchant ensign. They are different ensigns, not successive versions of the national flag."
+        ]
+      },
+      "parts": [
+        {
+          "es": ["La bandera británica", "Aparece en el cantón como referencia a la historia de la colonización británica, según la guía oficial australiana."],
+          "en": ["The Union Jack", "It appears in the canton to acknowledge the history of British settlement, according to the Australian government's flag guide."]
+        },
+        {
+          "es": ["La estrella de la Mancomunidad", "Sus seis puntas originales representaban los estados federados; la séptima, añadida en 1908, representa los territorios."],
+          "en": ["The Commonwealth Star", "Its original six points represented the federated states; the seventh, added in 1908, represents the territories."]
+        },
+        {
+          "es": ["La Cruz del Sur", "Cinco estrellas blancas representan esa constelación del cielo austral; cuatro tienen siete puntas y la menor, cinco."],
+          "en": ["The Southern Cross", "Five white stars represent this constellation of the southern sky; four have seven points and the smallest has five."]
+        }
+      ]
+    },
+    "sources": {
+      "about": [
+        { "title": { "es": "Geoscience Australia: territorio, islas y desiertos", "en": "Geoscience Australia: territory, islands and deserts" }, "url": "https://www.ga.gov.au/scientific-topics/national-location-information/geography/areas-of-australia" },
+        { "title": { "es": "AIATSIS: pueblos y lenguas indígenas de Australia", "en": "AIATSIS: Aboriginal and Torres Strait Islander peoples and languages" }, "url": "https://aiatsis.gov.au/explore/map-indigenous-australia" }
+      ],
+      "flag": [
+        { "title": { "es": "Gobierno australiano: elementos y significados de la bandera", "en": "Australian government: flag elements and meanings" }, "url": "https://www.pmc.gov.au/resources/australian-flags-booklet/part-1-australian-national-flag" },
+        { "title": { "es": "Gobierno australiano: concurso, primer izado y evolución", "en": "Australian government: competition, first flying and changes" }, "url": "https://www.pmc.gov.au/resources/australian-flags-booklet/part-4-history-australian-national-flag/how-australian-national-flag-was-chosen" },
+        { "title": { "es": "Flags Act 1953: bandera nacional azul y pabellón mercante rojo", "en": "Flags Act 1953: blue national flag and red merchant ensign" }, "url": "https://www.legislation.gov.au/C1954A00001/asmade/text" }
+      ]
+    }
+  },
+  "UG": {
+    "about": {
+      "es": [
+        "Uganda es un país sin salida al mar del África oriental, junto al ecuador. Su territorio alcanza la ribera norte del lago Victoria y comprende lagos, mesetas y montañas; el Nilo sale del lago y atraviesa el país hacia el norte.",
+        "En Uganda conviven numerosas comunidades y lenguas. El inglés y el suajili son lenguas oficiales; el luganda se habla ampliamente en la zona de Kampala, su capital."
+      ],
+      "en": [
+        "Uganda is a landlocked East African country near the equator. Its territory reaches the northern shore of Lake Victoria and includes lakes, plateaus and mountains; the Nile leaves the lake and crosses the country northwards.",
+        "Uganda is home to many communities and languages. English and Swahili are official languages; Luganda is widely spoken around its capital, Kampala."
+      ]
+    },
+    "sources": {
+      "about": [
+        { "title": { "es": "Información oficial de Uganda para la Cumbre del Movimiento de Países No Alineados: geografía y lenguas", "en": "Uganda's Non-Aligned Movement summit information: geography and languages" }, "url": "https://nam.go.ug/useful-information" },
+        { "title": { "es": "Oficina de Turismo de Uganda: Jinja y la salida del Nilo del lago Victoria", "en": "Uganda Tourism Board: Jinja and the Nile at Lake Victoria" }, "url": "https://exploreuganda.com/cities/" }
+      ]
+    }
+  },
+  "LK": {
+    "about": {
+      "es": [
+        "Sri Lanka es una isla del océano Índico, al sureste de la India. A las llanuras costeras se suman montañas en el interior meridional; los monzones riegan distintas partes de la isla en épocas diferentes.",
+        "En ella se hablan cingalés y tamil, y conviven comunidades y tradiciones diversas. Sigiriya, antigua ciudadela sobre una gran roca, es parte de su patrimonio; las zonas altas también son conocidas por sus plantaciones de té."
+      ],
+      "en": [
+        "Sri Lanka is an island in the Indian Ocean, southeast of India. Beyond its coastal plains, mountains rise in the south-central interior; monsoon rains reach different parts of the island at different times.",
+        "Sinhala and Tamil are spoken there, alongside diverse communities and traditions. Sigiriya, an ancient citadel on a great rock, is part of its heritage; the highlands are also known for tea plantations."
+      ]
+    },
+    "flag": {
+      "text": {
+        "es": [
+          "En la independencia de 1948 volvió a izarse el estandarte del león del último rey de Ceilán. Una comisión conservó el león con espada y añadió franjas verde y naranja para representar a otras comunidades; el nuevo diseño se izó en 1950 y recibió reconocimiento oficial en 1951.",
+          "La bandera actual conserva el león, las franjas, el borde dorado y cuatro hojas del árbol bo. Hay versiones incompatibles sobre cuándo aparecieron estas hojas: una representación oficial las sitúa en el diseño de 1950 y Britannica describe una sustitución en 1972; el detalle se explica en la cronología, sin dar por segura una sola versión."
+        ],
+        "en": [
+          "At independence in 1948, the lion standard of Ceylon's last king was raised again. A commission kept the sword-bearing lion and added green and orange stripes to represent other communities; the new design was flown in 1950 and gained official recognition in 1951.",
+          "Today's flag retains the lion, stripes, gold border and four bo tree leaves. Sources disagree on when those leaves appeared: an official account places them in the 1950 design, while Britannica describes a change in 1972. The timeline explains the disagreement rather than treating one account as certain."
+        ]
+      },
+      "parts": [
+        {
+          "es": ["El león y la espada", "Según la Alta Comisión de Sri Lanka, el león representa a la comunidad cingalesa y su espada, la soberanía del país."],
+          "en": ["The lion and sword", "According to Sri Lanka's High Commission, the lion represents the Sinhalese community and its sword the country's sovereignty."]
+        },
+        {
+          "es": ["Las dos franjas", "La naranja representa a la comunidad tamil; la verde, a la musulmana, según la descripción oficial."],
+          "en": ["The two stripes", "Orange represents the Tamil community and green the Muslim community, according to the official account."]
+        },
+        {
+          "es": ["Las hojas del árbol bo", "En las esquinas del campo carmesí, remiten al budismo y a cuatro virtudes que describe la Alta Comisión. Las fuentes no coinciden en cuándo se incorporaron."],
+          "en": ["The bo tree leaves", "In the corners of the crimson field, they refer to Buddhism and four virtues described by the High Commission. Sources disagree on when they were introduced."]
+        },
+        {
+          "es": ["El borde dorado", "Rodea el paño; la Alta Comisión lo relaciona con otras comunidades minoritarias del país."],
+          "en": ["The gold border", "It frames the flag; the High Commission associates it with the country's other minority communities."]
+        }
+      ]
+    },
+    "sources": {
+      "about": [
+        { "title": { "es": "Alta Comisión de Sri Lanka: situación, relieve, lenguas y cultivos", "en": "Sri Lanka High Commission: location, terrain, languages and crops" }, "url": "https://www.hc-wellington.gov.lk/en/country-profile" },
+        { "title": { "es": "UNESCO: antigua ciudad de Sigiriya", "en": "UNESCO: Ancient City of Sigiriya" }, "url": "https://whc.unesco.org/en/list/202/" }
+      ],
+      "flag": [
+        { "title": { "es": "Alta Comisión de Sri Lanka: partes de la bandera y dibujo de 1950", "en": "Sri Lanka High Commission: flag elements and 1950 design" }, "url": "https://www.hc-wellington.gov.lk/en/country-profile" },
+        { "title": { "es": "Encyclopædia Britannica: adopción de 1951 y versión de las hojas de 1972", "en": "Encyclopaedia Britannica: 1951 adoption and account of the leaves in 1972" }, "url": "https://www.britannica.com/topic/flag-of-Sri-Lanka" }
+      ]
+    }
+  }
+}

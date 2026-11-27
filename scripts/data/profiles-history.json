@@ -333,6 +333,17 @@
         }
       },
       {
+        "year": 1903,
+        "when": {
+          "es": "1903 · se simplifica la Cruz del Sur",
+          "en": "1903 · Southern Cross simplified"
+        },
+        "text": {
+          "es": "Una versión oficial igualó las cuatro estrellas mayores de la Cruz del Sur a siete puntas; la menor conservó cinco. La estrella de la federación aún tenía seis.",
+          "en": "An official design gave the four larger Southern Cross stars seven points each; the smaller one kept five. The Commonwealth Star still had six points."
+        }
+      },
+      {
         "year": 1908,
         "when": {
           "es": "1908 · la séptima punta",
@@ -350,9 +361,19 @@
           "en": "1953–54 · Flags Act"
         },
         "text": {
-          "es": "La ley de 1953, en vigor en 1954, designó expresamente el pabellón azul como bandera nacional australiana.",
-          "en": "The 1953 Act, brought into force in 1954, expressly designated the Blue Ensign as the Australian National Flag."
+          "es": "La ley de 1953, sancionada y en vigor en febrero de 1954, designó expresamente el pabellón azul como bandera nacional australiana.",
+          "en": "The 1953 Act, assented to and brought into force in February 1954, expressly designated the Blue Ensign as the Australian National Flag."
         }
+      }
+    ],
+    "flagHistorySources": [
+      {
+        "title": { "es": "Gobierno australiano: evolución de las estrellas en 1903 y 1908", "en": "Australian government: changes to the stars in 1903 and 1908" },
+        "url": "https://www.pmc.gov.au/resources/australian-flags-booklet/part-1-australian-national-flag"
+      },
+      {
+        "title": { "es": "Flags Act 1953: sanción del 14 de febrero de 1954", "en": "Flags Act 1953: assent on 14 February 1954" },
+        "url": "https://www.legislation.gov.au/C1954A00001/asmade/text"
       }
     ]
   },

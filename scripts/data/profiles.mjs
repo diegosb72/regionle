@@ -8,8 +8,9 @@
 //   npm run data:profiles                  the sheets and their pictures
 //   npm run data:profiles -- --review      the same, and what whoever corrects the sources should look at
 //
-// (`--sheets`, `--brought`, `--arms`, `--said`, `--texts`, `--fixes`, `--heads`, `--gallery`, `--release`, `--times`,
-// `--history`, `--data` and `--photos` name other folders and files to read from and write to: tests use invented countries.
+// (`--sheets`, `--brought`, `--arms`, `--said`, `--texts`, `--fixes`, `--editorial`, `--heads`, `--gallery`,
+// `--release`, `--times`, `--history`, `--data` and `--photos` name other folders and files to read from and
+// write to: tests use invented countries.
 // The uploaded gallery is used in the normal build, or explicitly with `--release` in a fixture, not implicitly
 // when `--data` points at a different world.)
 //
@@ -25,6 +26,8 @@
 //      these replace Wikipedia excerpts, not the photographs or historical flag timelines.
 //      A territory that the game draws with the flag of its country (Réunion with that of France, Svalbard
 //      with that of Norway) is told there whose flag it is (`flag.of`), and says of it what that country says.
+//      scripts/data/profiles-editorial.json adds only new bilingual introductions and flag explanations
+//      after research and review. Its fields cannot overwrite an earlier authored account or a full sheet.
 //   3. scripts/data/profiles-times.json, where someone has researched its history: the flags of each period
 //      and what happened then, in both languages, without replacing the photograph or the Wikipedia texts.
 //      The year a flag is displayed with may differ from Wikidata's range when that range is wrong: `past`
@@ -100,6 +103,8 @@ const ARMS = path.resolve(ROOT, value('arms') ?? '.cache/src/arms');
 /** What Wikidata and Wikipedia say of each country, as it was brought, and what was corrected of it by hand. */
 const SAID = path.resolve(ROOT, value('said') ?? '.cache/src/countries-said.json');
 const FIXES = path.resolve(ROOT, value('fixes') ?? 'scripts/data/profiles-fixes.json');
+/** Reviewed, sourced ES/EN introductions and flag explanations; not histories, photos or flag facts. */
+const EDITORIAL = path.resolve(ROOT, value('editorial') ?? 'scripts/data/profiles-editorial.json');
 /** The photograph chosen for the head of the sheet of each country nobody has written of, with what is seen in it. */
 const HEADS = path.resolve(ROOT, value('heads') ?? 'scripts/data/profiles-heads.json');
 /** Further Commons photographs, with bilingual captions, without replacing the one chosen for the head. */
@@ -187,6 +192,31 @@ function safeSource(id, section, source) {
   if (!source || Object.keys(source).some((key) => !['title', 'url'].includes(key)) || !source.title || !LANGS.every((lang) => isText(source.title[lang])) || Object.keys(source.title).some((lang) => !LANGS.includes(lang)) || url?.protocol !== 'https:' || url.username || url.password || !url.hostname)
     fail(id, `its text source for «${section}» needs a safe https address and a title in both languages`);
   return source;
+}
+
+/** An editorial layer can add only sourced text, never silently replace authored text, history or pictures. */
+function editorialEntry(id, entry, fix, written) {
+  if (!entry || typeof entry !== 'object' || Array.isArray(entry) || !Object.keys(entry).length || Object.keys(entry).some((key) => !['about', 'flag', 'sources'].includes(key)) || written.includes(id))
+    fail(id, 'editorial text needs an unwritten country and only about, flag and sources');
+  if (!entry.about && !entry.flag || !entry.sources || typeof entry.sources !== 'object' || Array.isArray(entry.sources) || Object.keys(entry.sources).some((key) => !['about', 'flag'].includes(key)))
+    fail(id, 'editorial text needs sources for each authored section');
+  if (entry.flag && (typeof entry.flag !== 'object' || Array.isArray(entry.flag) || !entry.flag.text || Object.keys(entry.flag).some((key) => !['text', 'parts'].includes(key))))
+    fail(id, 'editorial flag text can only explain the flag and its parts');
+  for (const section of ['about', 'flag']) {
+    if (!!entry[section] !== !!entry.sources[section]?.length || entry.sources[section] && !Array.isArray(entry.sources[section]))
+      fail(id, `editorial «${section}» needs its own list of sources`);
+    if (entry[section] && (fix?.[section === 'flag' ? 'flag' : 'about']?.[section === 'flag' ? 'text' : 'es'] || fix?.sources?.[section]))
+      fail(id, `editorial «${section}» would overwrite an authored account or its sources`);
+    for (const source of entry.sources[section] ?? []) safeSource(id, section, source);
+  }
+  if (entry.flag && fix?.flag?.parts) fail(id, 'editorial flag parts would overwrite authored parts');
+  if (entry.about) paragraphs(id, 'editorial country introduction', entry.about);
+  if (entry.flag) paragraphs(id, 'editorial flag explanation', entry.flag.text);
+  if (entry.flag?.parts) {
+    if (!Array.isArray(entry.flag.parts)) fail(id, 'editorial flag parts are not a list');
+    for (const [i, part] of entry.flag.parts.entries())
+      if (!LANGS.every((lang) => Array.isArray(part?.[lang]) && part[lang].length === 2 && part[lang].every(isText))) fail(id, `editorial flag part ${i + 1} needs a name and explanation in both languages`);
+  }
 }
 
 /** Pinned Factbook background/flag description plus the pages that were read, not a guessed URL for a country code. */
@@ -625,6 +655,9 @@ async function main() {
   if (!fs.existsSync(TEXTS)) throw new Error(`How Wikipedia begins to tell of the countries is not in ${path.relative(ROOT, TEXTS) || TEXTS}: run «npm run data:fetch -- countries-texts»`);
   const pages = read(TEXTS).pages ?? {};
   const { _: _why, ...fixes } = fs.existsSync(FIXES) ? read(FIXES) : {};
+  if (args.includes('--editorial') && !fs.existsSync(EDITORIAL)) throw new Error(`Missing reviewed editorial file: ${EDITORIAL}`);
+  // A test world is invented; its ids must not silently receive the real-world editorial text.
+  const { _: _editorial, ...editorial } = (!args.includes('--data') || args.includes('--editorial')) && fs.existsSync(EDITORIAL) ? read(EDITORIAL) : {};
   const { _: _what, ...heads } = fs.existsSync(HEADS) ? read(HEADS) : {};
   const { _: _gallery, ...gallery } = fs.existsSync(GALLERY) ? read(GALLERY) : {};
   if (args.includes('--release') && !fs.existsSync(RELEASE)) throw new Error(`The reviewed release gallery is missing: ${RELEASE}`);
@@ -650,6 +683,10 @@ async function main() {
   }
   const written = fs.existsSync(SHEETS) ? fs.readdirSync(SHEETS).filter((f) => f.endsWith('.json')).map((f) => path.basename(f, '.json')) : [];
   for (const id of written) if (!lands.some((c) => c.id === id)) fail(id, 'the game has no such country with a flag');
+  for (const [id, entry] of Object.entries(editorial)) {
+    if (!lands.some((c) => c.id === id)) fail(id, 'editorial text names no country of the game with a flag');
+    editorialEntry(id, entry, fixes[id], written);
+  }
   for (const id of Object.keys(heads)) if (!lands.some((c) => c.id === id)) throw new Error(`${path.basename(HEADS)} chooses a photograph for «${id}», which is no country of the game with a flag`);
   for (const [id, photos] of Object.entries(gallery)) {
     if (!heads[id] || written.includes(id)) fail(id, 'a gallery needs a chosen head, not a full hand-written sheet');
@@ -693,6 +730,10 @@ async function main() {
     // Its coat of arms is the one Wikidata names — the first by name, should it name several —, unless somebody says another, or none.
     const arms = emblems.items?.[id]?.files?.[0];
     let one = laid(arms ? { ...given, arms: { file: arms } } : given, fix) ?? {};
+    if (editorial[id]) {
+      if (editorial[id].flag && one.flag?.of) fail(id, 'a borrowed flag cannot have a different editorial explanation');
+      one = laid(one, editorial[id]);
+    }
     if (written.includes(id)) {
       const mine = await sheet(path.join(SHEETS, `${id}.json`), commons, index, flags, made);
       // Whoever wrote of the flag told its colours in words: the list of them is not said twice.
@@ -744,6 +785,15 @@ async function main() {
     if (theirs.flag?.of !== undefined) fail(id, `its flag is said to be that of «${of}», whose flag is that of another`);
     if (written.includes(id)) fail(id, 'somebody wrote of its flag, which is said to be that of another country');
     one.flag = { of, ...Object.fromEntries(FLAG_FACTS.filter((key) => theirs.flag?.[key] !== undefined).map((key) => [key, theirs.flag[key]])) };
+    if (theirs.flag?.text && theirs.sources?.flag) {
+      // A borrowed national flag has the same sourced explanation as at home, not a stale Wikipedia
+      // excerpt about that flag on the dependent territory's page. Unsourced hand-written sheet text
+      // is not silently transplanted. The dependent territory's own introduction stays its own.
+      if (one.sources?.flag) fail(id, 'a borrowed authored flag cannot have different territorial sources');
+      one.flag.text = theirs.flag.text;
+      if (theirs.flag.parts) one.flag.parts = theirs.flag.parts;
+      one.sources = { ...one.sources, flag: theirs.sources.flag };
+    }
     if (theirs.readFlag) one.readFlag = theirs.readFlag;
     else delete one.readFlag;
     // Nor is a coat of arms shown for it: those that such territories are given are seldom official.
