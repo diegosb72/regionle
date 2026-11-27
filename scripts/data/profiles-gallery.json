@@ -215,5 +215,57 @@
       "en": "The Lozi people's Kuomboka ceremony in western Zambia",
       "by": "Jae zambia"
     }
+  ],
+  "AO": [
+    {
+      "file": "Panorama baixa Luanda.JPG",
+      "es": "La Baixa, en el centro de Luanda, Angola",
+      "en": "The Baixa district in central Luanda, Angola",
+      "by": "Fabio Vanin"
+    },
+    {
+      "file": "Tundavala Gap.jpg",
+      "es": "La garganta de Tundavala, en la sierra de Leba, Angola",
+      "en": "Tundavala Gap in Angola's Serra da Leba",
+      "by": "tim kubacki"
+    },
+    {
+      "file": "Museu da Escravatura Luanda.JPG",
+      "es": "La capilla del Museo Nacional de la Esclavitud, en Luanda",
+      "en": "The chapel of the National Museum of Slavery in Luanda",
+      "by": "Fabio Vanin"
+    },
+    {
+      "file": "Barco com pescadores em uma praia de Cabo Ledo, Angola.jpg",
+      "es": "Una barca de pescadores en la playa de Cabo Ledo, Angola",
+      "en": "A fishing boat on the beach at Cabo Ledo, Angola",
+      "by": "Felipe Miguel"
+    }
+  ],
+  "NA": [
+    {
+      "file": "Windhoek-Skyline.jpg",
+      "es": "Windhoek, con el ferrocarril TransNamib y los montes Khomas",
+      "en": "Windhoek with the TransNamib railway and the Khomas Mountains",
+      "by": "Bries"
+    },
+    {
+      "file": "Elephant waterhole.jpg",
+      "es": "Un elefante junto a un abrevadero en el parque nacional de Etosha",
+      "en": "An elephant by a waterhole in Etosha National Park",
+      "by": "Bibitono"
+    },
+    {
+      "file": "Fish River Canyon - Namibie - panoramio (8).jpg",
+      "es": "El cañón del río Fish, en Namibia",
+      "en": "Fish River Canyon in Namibia",
+      "by": "Pavel Špindler"
+    },
+    {
+      "file": "San - Khoekhoen rock art - Namibia.jpg",
+      "es": "Grabados rupestres en Twyfelfontein, Namibia",
+      "en": "Rock engravings at Twyfelfontein, Namibia",
+      "by": "Hans Hillewaert"
+    }
   ]
 }
