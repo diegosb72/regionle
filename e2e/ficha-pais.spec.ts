@@ -7,7 +7,8 @@ import { open, seed } from './helpers';
  * (screens/FlagProfile.tsx). Every country with a flag has one: with what the game knows of it and what
  * Wikidata and Wikipedia say of it and of its flag, with how Wikipedia begins to tell of both and
  * a photograph at its head; some have a historical timeline, five polar territories have sourced accounts
- * instead of Wikipedia excerpts, and Brazil has a complete handwritten sheet. One sheet leads to another.
+ * instead of Wikipedia excerpts, three East African countries have additional photos, and Brazil has a
+ * complete handwritten sheet. One sheet leads to another.
  */
 
 interface Photo {
@@ -764,6 +765,80 @@ test.describe('the sheet of a country without a complete handwritten account', (
         await expect(figure.locator('figcaption')).toBeVisible();
       }
       if (sheetFile(id).sources?.flag) await sheet.locator('.fp-flagsec .fp-sources a').first().scrollIntoViewIfNeeded();
+      expect(await sheet.locator('.dlg-box').evaluate((el) => el.scrollWidth - el.clientWidth), id).toBeLessThanOrEqual(0);
+    }
+  });
+
+  test('adds licensed Commons photos to Uganda, Kenya and Tanzania without changing their chosen heads', async ({ page }) => {
+    await seed(page);
+    const heads: Record<string, string> = {
+      UG: 'Kasubi Tombs 20250815 1.jpg',
+      KE: 'Three giraffes 01.jpg',
+      TZ: 'Serengeti-Landscape-2012.JPG',
+    };
+    for (const id of ['UG', 'KE', 'TZ']) {
+      const file = sheetFile(id);
+      const sheet = await openSheet(page, `/banderas/paises/${id}`);
+      expect(file.photos).toHaveLength(3);
+      expect(file.photos![0].title).toBe(heads[id]);
+      await expect(sheet.locator('.fp-hero figcaption')).toContainText(file.photos![0].es);
+      await expect.poll(() => drawn(sheet.locator('.fp-hero img'))).toBe(true);
+      const gallery = sheet.locator('.fp-photos .fp-masonry figure');
+      await expect(gallery).toHaveCount(2);
+      for (const [i, photo] of file.photos!.slice(1).entries()) {
+        const figure = gallery.nth(i);
+        await expect(figure.locator('figcaption')).toContainText(photo.es);
+        await expect(figure.locator('.fp-credit')).toContainText(photo.by!);
+        await expect(figure.locator(`a[href="${photo.licenceUrl}"]`)).toContainText(photo.licence);
+        await expect(figure.getByRole('link', { name: 'Wikimedia Commons' })).toHaveAttribute('href', commons(photo.title));
+        await expect(figure.locator('img')).toHaveAttribute('src', new RegExp(`photos/${photo.file}-640\\.webp$`));
+        await figure.locator('img').scrollIntoViewIfNeeded();
+        await expect.poll(() => drawn(figure.locator('img'))).toBe(true);
+      }
+    }
+    const sheet = sheetOf(page);
+    await expect(sheet.locator('.fp-times li')).toHaveCount(3); // Tanzania's existing, researched timeline survives.
+    await openSheet(page, '/banderas/paises/UG');
+    await expect(sheet.locator('.fp-flagsec .fp-flag-in p').first()).toHaveText(sheetFile('UG').flag!.text!.es[0]);
+    await expect(sheet.locator('.fp-flagsec')).toContainText('9 de octubre de 1962');
+    await expect(sheet.locator('.fp-flagsec')).not.toContainText('1969');
+    await expect(sheet.locator('.fp-flagsec .fp-sources a').first()).toHaveAttribute('href', 'https://ulii.org/akn/ug/act/ord/1962/64');
+    await expect(sheet.locator('.fp-parts dt')).toHaveText(sheetFile('UG').flag!.parts!.map((part) => part.es[0]));
+    await expect(sheet.locator('.fp-times')).toHaveCount(0); // The 1962 catalogue proposal was not adopted.
+  });
+
+  test('credits the new East African galleries and Uganda’s sourced flag explanation in English', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    for (const id of ['UG', 'KE', 'TZ']) {
+      const file = sheetFile(id);
+      const sheet = await openSheet(page, `/flags/countries/${id}`);
+      await expect(sheet.locator('.fp-hero figcaption')).toContainText(file.photos![0].en);
+      const gallery = sheet.locator('.fp-photos .fp-masonry figure');
+      await expect(gallery).toHaveCount(2);
+      for (const [i, photo] of file.photos!.slice(1).entries()) {
+        await expect(gallery.nth(i).locator('figcaption')).toContainText(photo.en);
+        await expect(gallery.nth(i).locator('.fp-credit')).toContainText(photo.by!);
+        await expect(gallery.nth(i).getByRole('link', { name: 'Wikimedia Commons' })).toHaveAttribute('href', commons(photo.title));
+      }
+    }
+    const sheet = await openSheet(page, '/flags/countries/UG');
+    await expect(sheet.locator('.fp-flag-in p').first()).toHaveText(sheetFile('UG').flag!.text!.en[0]);
+    await expect(sheet.locator('.fp-flagsec .fp-sources a').first()).toHaveText("Uganda's National Flag and Armorial Ensigns Act");
+    await expect(sheet.locator('.fp-flagsec .fp-lead')).toHaveCount(0);
+    await expect(sheet.locator('.fp-about.fp-lead')).toBeVisible(); // Only the flag's introduction was replaced.
+  });
+
+  test('loads the three new galleries on a phone without horizontal overflow @movil', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    for (const id of ['UG', 'KE', 'TZ']) {
+      const sheet = await openSheet(page, `/flags/countries/${id}`);
+      const gallery = sheet.locator('.fp-photos .fp-masonry figure');
+      await expect(gallery).toHaveCount(2);
+      for (const figure of await gallery.all()) {
+        await figure.locator('img').scrollIntoViewIfNeeded();
+        await expect.poll(() => drawn(figure.locator('img'))).toBe(true);
+        await expect(figure.locator('figcaption')).toBeVisible();
+      }
       expect(await sheet.locator('.dlg-box').evaluate((el) => el.scrollWidth - el.clientWidth), id).toBeLessThanOrEqual(0);
     }
   });

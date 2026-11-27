@@ -261,6 +261,24 @@
   "TO": { "motto": { "en": "God and Tonga are my inheritance" } },
   "TW": { "flag": { "adopted": "1928-10-28", "by": { "es": "Lu Haodong (cantón) y Sun Yat-sen (campo rojo)", "en": "Lu Haodong (canton) and Sun Yat-sen (red field)" } } },
   "UA": { "motto": null },
+  "UG": {
+    "flag": {
+      "text": {
+        "es": ["La bandera de Uganda se adoptó el 9 de octubre de 1962, día de la independencia. La ley prescribe seis franjas horizontales de igual anchura, con los colores negro, amarillo y rojo repetidos dos veces, y una grulla coronada en un disco blanco central. El diseño de Grace Ibingira reemplazó una propuesta previa de franjas verticales que no fue la enseña nacional."],
+        "en": ["Uganda's flag was adopted on 9 October 1962, the day of independence. The law prescribes six equal horizontal stripes, repeating black, yellow and red twice, with a crowned crane on a white disc at the centre. Grace Ibingira's design replaced an earlier vertical-striped proposal that never became the national flag."]
+      },
+      "parts": [
+        { "es": ["Las franjas", "El negro representa a los pueblos africanos, el amarillo el sol y el rojo la hermandad, según la interpretación recogida por Flags of the World."], "en": ["The stripes", "Black stands for the peoples of Africa, yellow for sunshine and red for brotherhood, according to the interpretation recorded by Flags of the World."] },
+        { "es": ["La grulla", "La grulla coronada gris ya aparecía en la insignia colonial de Uganda; en la bandera actual se alza sobre un disco blanco."], "en": ["The crane", "The grey crowned crane already appeared on Uganda's colonial flag badge; on today's flag it stands on a white disc."] }
+      ]
+    },
+    "sources": {
+      "flag": [
+        { "title": { "es": "Ley de la bandera nacional de Uganda", "en": "Uganda's National Flag and Armorial Ensigns Act" }, "url": "https://ulii.org/akn/ug/act/ord/1962/64" },
+        { "title": { "es": "Flags of the World: bandera de Uganda", "en": "Flags of the World: Uganda's flag" }, "url": "https://www.crwflags.com/fotw/flags/ug.html" }
+      ]
+    }
+  },
   "UZ": { "motto": { "en": "Strength is in justice" } },
   "VE": { "flag": { "adopted": "2006-03-09" } },
   "VN": { "official": { "en": "Socialist Republic of Vietnam" }, "local": "Cộng hòa Xã hội chủ nghĩa Việt Nam", "motto": { "text": "Độc lập – Tự do – Hạnh phúc", "es": "Independencia – Libertad – Felicidad", "en": "Independence – Freedom – Happiness" } },

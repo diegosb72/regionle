@@ -78,6 +78,14 @@ se toma el primer día que dan las dos fichas, y si tampoco, nada. Estos se han 
   El 1298 de la tricolor de 2004–2021 sí pertenece al calendario solar (1919).
 - **AS**: 17-4-1960, día en que se izó la bandera territorial de Samoa Estadounidense, según la historia de
   su bandera; las fuentes traídas daban por error el 27 de abril.
+- **UG**: la entradilla española de Wikipedia dice por error «1969», pese a que la fecha que muestra la ficha
+  es **9-10-1962**. Se sustituye **solo la explicación de la bandera**, no la del país, por un texto propio
+  bilingüe, contrastado con la [ley nacional de símbolos](https://ulii.org/akn/ug/act/ord/1962/64)
+  (en vigor desde el día de la independencia; anexo II: seis franjas y grulla sobre blanco) y
+  [FOTW](https://www.crwflags.com/fotw/flags/ug.html) (Grace Ibingira, colores y propuesta provisional).
+  El dibujo de franjas verticales del catálogo era una propuesta, **no** una etapa de bandera nacional
+  adoptada: la ficha no inventa una cronología histórica a partir de él. La foto de la grulla es un ave
+  fotografiada **en Uganda**, no en un parque zoológico extranjero.
 - **MR**: 25-10-2017, fecha del decreto de la bandera con franjas rojas, según la historia de la bandera de
   Mauritania; las fuentes traídas daban el 15 de agosto, posterior al referéndum pero anterior al decreto.
 - **HT**: se quita el día exacto: Britannica fecha la restitución de la bicolor el 25 de febrero de 1986 y
@@ -242,6 +250,27 @@ ni sus autores se presentan como fotos sin procedencia. El pie de la imagen NASA
 el instrumento MODIS y **no** atribuye esa imagen a NOAA; el de la antigua base identifica a NOAA y
 no afirma que la estación siga abierta.
 
+## Fotografías adicionales de Uganda, Kenia y Tanzania
+
+Se conservan las cabeceras elegidas (tumbas de Kasubi, jirafas del Masái Mara y sabana del Serengueti) y
+se añaden **dos fotografías por país**, elegidas y cotejadas con sus originales de Commons, sus autores,
+lugares y licencias. El flujo `photos` dejó los seis archivos a 1920 px y sus metadatos en `datos`, commit
+`ffbd398d94e886c87af4a39d2330ad27e6e8b8c2`; `photos-pinned.mjs` fija los hashes y
+`profiles-gallery.json`, los pies bilingües. Se generan dos WebP por foto; cada ficha acredita autor,
+licencia y página de Commons sin alterar su cabecera ni la cronología ya existente de Tanzania.
+
+| Ficha | Archivo y lugar contrastados en Commons | Autor/crédito | Licencia indicada por Commons |
+| --- | --- | --- | --- |
+| UG | [Cataratas Murchison vistas desde el Nilo](https://commons.wikimedia.org/wiki/File:Murchison_Falls_view_from_Nile.jpg) | Yakov Fedorov | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| UG | [Grulla coronada gris, cerca del lago Bunyonyi](https://commons.wikimedia.org/wiki/File:Grey_crowned_crane_(Balearica_regulorum_gibbericeps).jpg) | Charles J. Sharp | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| KE | [Monte Kenia desde Nanyuki](https://commons.wikimedia.org/wiki/File:MtKenya.jpg) | Don Elvis Muraya | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| KE | [Frente marítimo de Lamu](https://commons.wikimedia.org/wiki/File:Lamu_town_on_Lamu_Island_in_Kenya.JPG) | Magnus Kjaergaard | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) |
+| TZ | [Kilimanjaro desde Moshi](https://commons.wikimedia.org/wiki/File:Mlima_Kilimanjaro.jpg) | Alfred Shauri | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| TZ | [Bandera de Tanzania ante Ciudad de Piedra, Zanzíbar](https://commons.wikimedia.org/wiki/File:Stone_Town-2.jpg) | Fanny Schertzer | [CC BY 2.5](https://creativecommons.org/licenses/by/2.5/) |
+
+La foto de la grulla muestra el ave en Uganda, y la de Ciudad de Piedra lleva la bandera nacional en
+primer plano. Sus pies no confunden esos motivos con imágenes del dibujo de la bandera.
+
 ## El texto de Wikipedia
 
 Desde la 1.49.0 las fichas sin texto redactado para el juego cuentan cómo empieza el artículo de Wikipedia
@@ -260,8 +289,11 @@ o no se enseña. Lo que se ha decidido a mano (`leads`, o la página de la que s
   («1990. la Ley de la Bandera…»): se deja la primera. La fecha de adopción está entre los datos.
 
 Lo que es de Wikipedia y se queda como está, porque quitarlo dejaría la ficha sin lo que cuenta: «es el
-bandera» (Japón, en español), «(símbolo Estado)» (Uganda, en español), una coma por una conjunción en la de
-Costa Rica. Se arreglan en Wikipedia, no aquí.
+bandera» (Japón, en español) o una coma por una conjunción en la de Costa Rica. En Uganda, en cambio, el
+«1969» y «(símbolo Estado)» de la entradilla de su **bandera** se sustituyen por una explicación propia,
+contrastada con la ley y acreditada como tal (véase «Banderas»); su texto sobre el país sigue siendo el
+de Wikipedia. Las erratas en el artículo original se arreglan en Wikipedia, no atribuyendo texto
+reescrito a sus autores.
 
 ## El escudo
 

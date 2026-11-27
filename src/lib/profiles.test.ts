@@ -60,6 +60,8 @@ const LANDS = INDEX.countries.filter((c) => hasProfile(c)).map((c) => c.id);
 const WRITTEN = files(SOURCES);
 /** Bilingual, independently sourced accounts added to generated sheets without inventing flag periods. */
 const CURATED = ['AQ', 'BV', 'GS', 'HM', 'TF'] as const;
+/** Small batches of Commons galleries, always after the chosen head. */
+const GALLERIED = ['AQ', 'BV', 'GS', 'HM', 'KE', 'TF', 'TZ', 'UG'] as const;
 /** Commons gallery photographs after the chosen head, with captions/credits checked on each file's page. */
 type GallerySource = { file: string; es: string; en: string; by?: string };
 const GALLERY = Object.fromEntries(Object.entries(json<Record<string, unknown>>('scripts/data/profiles-gallery.json')).filter(([id]) => id !== '_')) as Record<string, GallerySource[]>;
@@ -672,7 +674,7 @@ describe('the sheet of every country', () => {
   });
 });
 
-describe('the sourced accounts of the five polar territories', () => {
+describe('sourced polar accounts and additional Commons galleries', () => {
   it('adds bilingual text and its real sources without replacing a photograph, an emblem or a Wikipedia link', () => {
     for (const id of CURATED) {
       const sheet = sheetOf(id);
@@ -701,10 +703,10 @@ describe('the sourced accounts of the five polar territories', () => {
   });
 
   it('keeps each chosen head and adds only the bilingual, licensed Commons photographs in the gallery', () => {
-    expect(Object.keys(GALLERY).sort()).toEqual([...CURATED].sort());
+    expect(Object.keys(GALLERY).sort()).toEqual([...GALLERIED].sort());
     const heads = json<Record<string, { file: string; es: string; en: string }>>('scripts/data/profiles-heads.json');
     const used = new Set<string>();
-    for (const id of CURATED) {
+    for (const id of GALLERIED) {
       const [hero, ...photos] = sheetOf(id).photos!;
       expect(hero.title, id).toBe(heads[id].file);
       expect([hero.es, hero.en], id).toEqual([heads[id].es, heads[id].en]);
@@ -762,6 +764,24 @@ describe('the sourced accounts of the five polar territories', () => {
   });
 });
 
+describe('the sourced correction to Uganda’s flag description', () => {
+  it('uses the 1962 law rather than the incorrect 1969 Spanish introduction without inventing a flag period', () => {
+    const sheet = sheetOf('UG');
+    const fix = FIXES.UG;
+    expect(sheet.flag?.adopted).toBe('1962-10-09');
+    expect(sheet.flag?.text).toEqual(fix.flag?.text);
+    expect(sheet.flag?.parts).toEqual(fix.flag?.parts);
+    expect(sheet.flag?.lead).toBeUndefined();
+    expect(sheet.flag?.text?.es[0]).toContain('9 de octubre de 1962');
+    expect(sheet.flag?.text?.es[0]).not.toContain('1969');
+    expect(sheet.sources?.flag).toEqual(fix.sources?.flag);
+    expect(sheet.sources?.flag?.[0].url).toBe('https://ulii.org/akn/ug/act/ord/1962/64');
+    expect(sheet.lead?.es).toBeDefined(); // The country introduction still comes from its Wikipedia page.
+    expect(sheet.readFlag?.es).toMatch(/^https:\/\/es\.wikipedia\.org\/wiki\//);
+    expect(sheet.times).toBeUndefined(); // The catalogue's 1962 drawing was a proposal, not this national flag.
+  });
+});
+
 describe('researched timelines layered over the generated sheets', () => {
   it('covers eighty-six real countries without replacing their photograph or attributing corrected text to Wikipedia', () => {
     expect(typeof TIMELINE_REASON).toBe('string');
@@ -775,7 +795,8 @@ describe('researched timelines layered over the generated sheets', () => {
       const sheet = sheetOf(id);
       const source = TIMELINES[id];
       expect(sheet.about, id).toBeUndefined();
-      expect(sheet.photos, id).toHaveLength(1);
+      // Timelines do not replace the chosen head or any separately curated gallery (TZ has both).
+      expect(sheet.photos, id).toHaveLength(1 + (GALLERY[id]?.length ?? 0));
       expect(sheet.lead?.es?.length, id).toBeGreaterThan(0);
       expect(sheet.lead?.en?.length, id).toBeGreaterThan(0);
       // Misleading dates and descriptions are hidden, not rewritten as if they came from Wikipedia.

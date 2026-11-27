@@ -21,7 +21,7 @@
 export const PHOTOS_AT = { repo: 'diegosb72/regionle', commit: '2a95dd4bd0fd18af109c36dc59503adc2e4fc7e3', dir: '' };
 
 /** What Commons says of every photograph that was asked for. */
-export const PHOTOS_SAID = ['photos/photos.json', '1fbca3bd8104c6fa171ae011d841f1a60574cf8d', '45642b58bfed8394088b056eaa54e85f44a61179'];
+export const PHOTOS_SAID = ['photos/photos.json', '2c9e94492037bf4d8b92054b3b2e758c069b390f', 'ffbd398d94e886c87af4a39d2330ad27e6e8b8c2'];
 
 /** The pictures, each under the SHA-1 of its original: [where it is in the branch, the Git name of what it holds, the commit it is at where that is another]. */
 export const PHOTOS = [
@@ -53,6 +53,14 @@ export const PHOTOS = [
   ['photos/files/24d154ce3baf361d121450f1b022568b1072120b.1920.jpg', '020019df20deb2e9e4dcedbfb50ad5eb89a412f6', '45642b58bfed8394088b056eaa54e85f44a61179'], // HM · Heard Island 2005-08.jpg
   ['photos/files/db364ec3cbeb5010652871a61963b5aa6f1a4aaf.1920.jpg', 'fe950beb27f5fa86c114cd64ef147a463af802a9', '45642b58bfed8394088b056eaa54e85f44a61179'], // TF · Vagues et manchots à l'assaut de la plage.jpg
   ['photos/files/6e7f24b9b6f157eaa929196089ec9738417d02c2.1920.jpg', '0754a1e5bfadb7d0a206c9f837f5dff1c9f6c8ce', '45642b58bfed8394088b056eaa54e85f44a61179'], // TF · Amsterdam vue du large - panoramio.jpg
+
+  // Uganda, Kenya and Tanzania: six Commons 1920px renders verified in the next data run; earlier heads stay pinned.
+  ['photos/files/e95e128424a42cb6d36c4ea066d3d4d0cf1b0c26.1920.jpg', 'ac099079956d087d5c4296a0c4e3ac1b2962baf9', 'ffbd398d94e886c87af4a39d2330ad27e6e8b8c2'], // UG · Murchison Falls view from Nile.jpg
+  ['photos/files/000e5bbae3538427b4d4a769f50c84afc2fa676a.1920.jpg', '9a46b48d124f81a34405f3993d3f92956d4c158a', 'ffbd398d94e886c87af4a39d2330ad27e6e8b8c2'], // UG · Grey crowned crane (Balearica regulorum gibbericeps).jpg
+  ['photos/files/e48e45e84d8cc20f7298714788c5c1663bad8840.1920.jpg', '7a327afcf861ec5f26fdb8bf226704b2fd9ef07b', 'ffbd398d94e886c87af4a39d2330ad27e6e8b8c2'], // KE · MtKenya.jpg
+  ['photos/files/152f72b7ef9b9d248d6f8e30a0941dd6661bbc2d.1920.jpg', '50af15b02ddd08f1ce9f266e6ca034487ac17088', 'ffbd398d94e886c87af4a39d2330ad27e6e8b8c2'], // KE · Lamu town on Lamu Island in Kenya.JPG
+  ['photos/files/255bee19bbaafd8ffbfd2efbbe10a2e7f56eead9.1920.jpg', 'b8ac73342d7c5e1bbc661df54ae67a609fa98aab', 'ffbd398d94e886c87af4a39d2330ad27e6e8b8c2'], // TZ · Mlima Kilimanjaro.jpg
+  ['photos/files/842485251c73884f7f08b6f088a1dfdb85aa673e.1920.jpg', '724877be987edb5972f598853015dbad914d179c', 'ffbd398d94e886c87af4a39d2330ad27e6e8b8c2'], // TZ · Stone Town-2.jpg
 
   // The one chosen for the head of the sheet of each country nobody has written of (scripts/data/profiles-heads.json)
   ['photos/files/692fd0f034ca1e1755b8c657ca1b13aa762948c0.1920.jpg', '45a7841d966750dbe3ef5d04521f49c50a33a4d5'], // AD · Vista de Andorra la Vieja, Andorra, 2013-12-30, DD 01.JPG
