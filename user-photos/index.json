@@ -1,7 +1,7 @@
 {
   "source": "Archivo aportado por el dueño en la release de GitHub (https://github.com/diegosb72/regionle/releases/tag/imagenes)",
   "licence": "Sin verificar: el inventario no acredita la licencia de ninguna fotografía",
-  "what": "Only the names, sizes and SHA-256 hashes of the files inside the split ZIP in scripts/data/release-photos.json. No image is published or assumed to be reusable merely because it is in the archive.",
+  "what": "Names, sizes and SHA-256 hashes of the files inside the split ZIP in scripts/data/release-photos.json, plus its five small top-level documents for review. The application script is read, never run. No image is published or assumed reusable merely because it is in the archive.",
   "release": "https://github.com/diegosb72/regionle/releases/tag/imagenes",
   "parts": [
     {
