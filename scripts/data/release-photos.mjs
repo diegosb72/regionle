@@ -62,6 +62,30 @@ export function documentsZip(archivePath) {
   return JSON.parse(execFileSync('python3', ['-c', DOCUMENTS, archivePath], { encoding: 'utf8', maxBuffer: 5_000_000, timeout: 30_000 }));
 }
 
+// Read the complete, *untrusted* photo lists and bilingual captions before choosing anything to publish.
+// A single small JSON blob is enough for inspection; the original profiles are never installed from the ZIP.
+const PROFILES = String.raw`
+import json, re, sys, zipfile
+with zipfile.ZipFile(sys.argv[1]) as archive:
+    profiles = {}
+    names = [i for i in archive.infolist() if re.fullmatch(r'public/data/profiles/[A-Z]{2}\.json', i.filename)]
+    if len(names) != 249 or len({i.filename for i in names}) != 249 or sum(i.file_size for i in names) > 6000000:
+        raise ValueError('Photo archive does not contain exactly 249 distinct, small profiles')
+    for info in names:
+        code = info.filename.rsplit('/', 1)[-1][:-5]
+        if info.is_dir() or info.file_size > 100000:
+            raise ValueError('Invalid photo profile: ' + code)
+        profile = json.loads(archive.read(info).decode('utf-8-sig'))
+        if profile.get('id') != code or not isinstance(profile.get('photos'), list) or not 1 <= len(profile['photos']) <= 8:
+            raise ValueError('Invalid photo list: ' + code)
+        profiles[code] = profile['photos']
+    print(json.dumps(profiles, ensure_ascii=False, separators=(',', ':')))
+`;
+
+export function profilesZip(archivePath) {
+  return JSON.parse(execFileSync('python3', ['-c', PROFILES, archivePath], { encoding: 'utf8', maxBuffer: 8_000_000, timeout: 30_000 }));
+}
+
 async function partFromGitHub(url, part) {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
@@ -97,9 +121,11 @@ export async function releasePhotoInventory(source, keep) {
     if (!files.length) throw new Error('The photo archive is empty');
     const documents = documentsZip(archive);
     for (const [name, base64] of Object.entries(documents)) keep(`user-photos/${name}`, Buffer.from(base64, 'base64'));
+    const profiles = profilesZip(archive);
+    keep('user-photos/profiles.json', Buffer.from(JSON.stringify(profiles) + '\n'));
     const images = files.filter((f) => /\.(jpe?g|png|webp|tiff?)$/i.test(f.path)).length;
     const text = JSON.stringify({ source: source.from, licence: source.licence, what: source.what, release: manifest.release, parts, files }, null, 2) + '\n';
-    return { text, note: `${files.length} files (${images} images), ${Object.keys(documents).length} documents; the ZIP and images are not saved`, detail: { files: files.length, images } };
+    return { text, note: `${files.length} files (${images} images), ${Object.keys(documents).length} documents and ${Object.keys(profiles).length} photo lists; no images saved`, detail: { files: files.length, images } };
   } finally {
     fs.rmSync(temp, { recursive: true, force: true });
   }

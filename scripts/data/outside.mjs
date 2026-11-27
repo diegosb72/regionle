@@ -2365,7 +2365,7 @@ const SOURCES = [
     file: 'user-photos/index.json',
     from: 'Archivo aportado por el dueño en la release de GitHub (https://github.com/diegosb72/regionle/releases/tag/imagenes)',
     licence: 'Sin verificar: el inventario no acredita la licencia de ninguna fotografía',
-    what: 'Names, sizes and SHA-256 hashes of the files inside the split ZIP in scripts/data/release-photos.json, plus its five small top-level documents for review. The application script is read, never run. No image is published or assumed reusable merely because it is in the archive.',
+    what: 'Names, sizes and SHA-256 hashes of the files inside the split ZIP in scripts/data/release-photos.json, plus its five small top-level documents and the photo lists of 249 profiles for review. The application script is read, never run. No image is published or assumed reusable merely because it is in the archive.',
     es: 'Inventario del archivo fotográfico aportado por el dueño',
     needs: '113',
     run: async (source, keep) => {
