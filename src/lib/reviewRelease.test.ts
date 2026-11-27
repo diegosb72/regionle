@@ -6,7 +6,7 @@ import path from 'node:path';
 import sharp from 'sharp';
 import { afterAll, describe, expect, it } from 'vitest';
 // @ts-expect-error data review script (plain JS)
-import { reviewedGallery } from '../../scripts/data/review-release.mjs';
+import { beforeRelease, reviewedGallery } from '../../scripts/data/review-release.mjs';
 // @ts-expect-error extraction script (plain JS)
 import { extractReviewedZip } from '../../scripts/data/extract-release.mjs';
 
@@ -36,6 +36,20 @@ describe('reviewing the candidate ZIP photos', () => {
     expect(gallery.countries.AA[0]).toEqual({ file, w: 1280, h: 800, sizes: [640], title, by: 'A. Photographer',
       licence: license, licenceUrl: 'https://creativecommons.org/licenses/by-sa/4.0', es: 'Una vista', en: 'A view', sha256 });
     expect(sources.current.AA.photos).toEqual([{ title: 'Head.jpg', file: '1234567890' }]);
+  });
+
+  it('can review again after profiles are generated, only peeling off its own exact suffix', () => {
+    const sources = mock();
+    const gallery = reviewedGallery(...Object.values(sources));
+    const { sha256: _checksum, ...photo } = gallery.countries.AA[0];
+    const built = { AA: { photos: [...sources.current.AA.photos, photo] } };
+    const original = beforeRelease(built, gallery.countries);
+    expect(original).toEqual(sources.current);
+    expect(built.AA.photos).toHaveLength(2);
+    expect(reviewedGallery(sources.plan, sources.profiles, sources.audit, sources.inventory, original, sources.decisions)).toEqual(gallery);
+    expect(beforeRelease(sources.current, gallery.countries)).toEqual(sources.current);
+    const edited = { AA: { photos: [...sources.current.AA.photos, { ...photo, by: 'Someone else' }] } };
+    expect(() => beforeRelease(edited, gallery.countries)).toThrow(/approved release photo was changed/);
   });
 
   it('excludes an unusable panorama and explicitly rejected provenance, without replacing a photo', () => {

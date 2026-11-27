@@ -1,5 +1,5 @@
 {
-  "_": "Correcciones de créditos de las candidatas de la release, después de contrastar los datos actuales y las páginas de Commons. No son nuevas licencias: release-review.mjs toma la licencia y la URL de la auditoría de Commons. Las fotografías muy panorámicas (>4:1) se excluyen automáticamente porque la galería las muestra demasiado pequeñas.",
+  "_": "Correcciones de créditos de las candidatas de la release, después de contrastar los datos actuales y las páginas de Commons. No son nuevas licencias: review-release.mjs toma la licencia y la URL de la auditoría de Commons. Las fotografías muy panorámicas (>4:1) se excluyen automáticamente porque la galería las muestra demasiado pequeñas.",
   "excluded": {
     "DG Ariel Plantation.jpg": "Commons indica dominio público por ser obra federal de EE. UU., pero la propia página advierte que faltan tanto la fuente como el autor; no se puede comprobar el fundamento de la atribución gubernamental.",
     "Bouvet Island 1927.jpg": "Fotografía histórica de 1927 con autor desconocido; la etiqueta PD por vida+70 años no justifica la expiración sin conocer al autor o su fecha de muerte.",

@@ -1401,9 +1401,11 @@ describe('the photographs that are fetched to make the sheets', () => {
     expect(PHOTOS_SAID).toHaveLength(3);
     expect(PHOTOS_SAID[2]).not.toBe(PHOTOS_AT.commit);
     for (const [file] of PHOTOS) expect(file).toMatch(/^photos\/files\/[0-9a-f]{40}\.1920\.(jpg|png)$/);
-    // Under the SHA-1 of its original, whose first figures are what its pictures are named after.
+    // The downloaded originals make the earlier photos. The separately hash-pinned release WebPs
+    // have no 1920px originals in this source and must not silently appear in photos-pinned.mjs.
     const pinned = PHOTOS.map(([file]) => path.basename(file).slice(0, 10)).sort();
-    const shown = LANDS.flatMap((land) => photosOf(sheetOf(land)).map((photo) => photo.file)).sort();
+    const released = new Set(Object.values(RELEASE).flat().map((photo) => photo.file));
+    const shown = LANDS.flatMap((land) => photosOf(sheetOf(land)).map((photo) => photo.file)).filter((file) => !released.has(file)).sort();
     expect(pinned).toEqual(shown);
   });
 });

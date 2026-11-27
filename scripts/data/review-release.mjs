@@ -10,6 +10,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isDeepStrictEqual } from 'node:util';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const here = (file) => JSON.parse(fs.readFileSync(path.join(ROOT, file), 'utf8'));
@@ -79,11 +80,33 @@ export function reviewedGallery(plan, profiles, audit, inventory, current, decis
   };
 }
 
+// `data:profiles` has already appended the last approved release on a working branch. Take away *only*
+// that exact suffix, so a repeated review still compares against the original head and curated gallery.
+// A changed credit/caption in the suffix is an error, not a reason to silently treat it as an old photo.
+export function beforeRelease(current, approved) {
+  const originals = { ...current };
+  for (const [id, additions] of Object.entries(approved)) {
+    const photos = originals[id]?.photos;
+    if (!Array.isArray(additions) || !additions.length) stop(`${id}: invalid previous approval`);
+    if (!Array.isArray(photos) || photos.length <= additions.length) continue;
+    const tail = photos.slice(-additions.length);
+    if (!tail.every((photo, i) => photo.file === additions[i].file && photo.title === additions[i].title)) continue;
+    if (!tail.every((photo, i) => {
+      const { sha256: _checksum, ...record } = additions[i];
+      return isDeepStrictEqual(photo, record);
+    })) stop(`${id}: an approved release photo was changed in the sheet`);
+    originals[id] = { ...originals[id], photos: photos.slice(0, -additions.length) };
+  }
+  return originals;
+}
+
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const [profiles, audit, inventory] = process.argv.slice(2);
   if (!profiles || !audit || !inventory) stop('usage: review-release.mjs <profiles.json> <audit.json> <inventory.json>');
   const current = Object.fromEntries(fs.readdirSync(path.join(ROOT, 'public/data/profiles')).filter((f) => /^[A-Z]{2}\.json$/.test(f)).map((f) => [f.slice(0, 2), here(`public/data/profiles/${f}`)]));
-  const result = reviewedGallery(here('scripts/data/release-photo-plan.json'), here(profiles), here(audit), here(inventory), current, here('scripts/data/release-credits.json'));
+  const old = fs.existsSync(path.join(ROOT, 'scripts/data/release-gallery.json')) ? here('scripts/data/release-gallery.json').countries : {};
+  const originals = beforeRelease(current, old);
+  const result = reviewedGallery(here('scripts/data/release-photo-plan.json'), here(profiles), here(audit), here(inventory), originals, here('scripts/data/release-credits.json'));
   fs.writeFileSync(path.join(ROOT, 'scripts/data/release-gallery.json'), JSON.stringify(result, null, 2) + '\n');
   console.log(`${Object.values(result.countries).flat().length} reviewed additions for ${Object.keys(result.countries).length} countries; ${result.excluded.length} excluded`);
 }

@@ -102,6 +102,41 @@ test.describe('the sheet of a country, in the gallery of flags', () => {
     await expect(page.locator('.crash')).toHaveCount(0);
   });
 
+  test('keeps Andorra’s chosen head and shows the reviewed release WebPs with captions and Commons credits', async ({ page }) => {
+    await seed(page);
+    const sheet = await openSheet(page, '/banderas/paises/AD');
+    const country = sheetFile('AD');
+    const hero = sheet.locator('.fp-hero img');
+    await expect.poll(() => drawn(hero)).toBe(true);
+    expect(await hero.evaluate((el) => (el as HTMLImageElement).currentSrc)).toContain(`/photos/${country.photos![0].file}-`);
+    const figures = sheet.locator('.fp-photos .fp-masonry figure');
+    await expect(figures).toHaveCount(country.photos!.length - 1);
+    const photo = country.photos![1];
+    expect(photo.title).toBe('Building in Ordino. Andorra 216.jpg');
+    expect(photo.sizes).toEqual([640]);
+    const first = figures.first();
+    const image = first.locator('img');
+    await image.scrollIntoViewIfNeeded();
+    await expect.poll(() => drawn(image)).toBe(true);
+    expect(await image.evaluate((el) => (el as HTMLImageElement).currentSrc)).toMatch(new RegExp(`/photos/${photo.file}-640\\.webp$`));
+    await expect(first.locator('figcaption')).toContainText(photo.es);
+    await expect(first.locator('.fp-credit')).toContainText(`${photo.by} · ${photo.licence} · Wikimedia Commons`);
+    await expect(first.getByRole('link', { name: 'Wikimedia Commons' })).toHaveAttribute('href', commons(photo.title));
+  });
+
+  test('links a photographer’s requested credit and the image-specific licence, not the ZIP’s guess', async ({ page }) => {
+    await seed(page);
+    const sheet = await openSheet(page, '/banderas/paises/VI');
+    const photo = sheetFile('VI').photos!.find((p) => p.title === 'Charlotte Amalie Wade.jpg')!;
+    expect(photo.licence).toBe('CC BY-SA 4.0');
+    const figure = sheet.locator('.fp-photos figure').filter({ has: page.locator(`img[src*="${photo.file}"]`) });
+    await figure.locator('img').scrollIntoViewIfNeeded();
+    await expect.poll(() => drawn(figure.locator('img'))).toBe(true);
+    await expect(figure.getByRole('link', { name: 'Matt H. Wade' })).toHaveAttribute('href', 'https://en.wikipedia.org/wiki/User:MattWade/ImageAttribution');
+    await expect(figure.getByRole('link', { name: 'CC BY-SA 4.0' })).toHaveAttribute('href', 'https://creativecommons.org/licenses/by-sa/4.0');
+    await expect(figure.getByRole('link', { name: 'Wikimedia Commons' })).toHaveAttribute('href', commons(photo.title));
+  });
+
   test('gives the figures the game has of the country, its place in the world, where it is and its neighbours', async ({ page }) => {
     await seed(page);
     const sheet = await openSheet(page);
