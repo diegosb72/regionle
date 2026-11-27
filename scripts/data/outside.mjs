@@ -2374,6 +2374,33 @@ const SOURCES = [
     },
   },
   {
+    id: 'photos-upload-audit',
+    file: 'user-photos/audit.json',
+    from: 'Wikimedia Commons (https://commons.wikimedia.org)',
+    licence: 'La licencia de cada archivo se consulta en Commons; los metadatos no sustituyen una revisión de derechos de terceros',
+    what: 'Solo metadatos ACTUALES de Commons para las candidatas de scripts/data/release-photo-plan.json: URL, SHA-1, autor, licencia y restricciones. No descarga fotografías ni aprueba automáticamente las candidatas.',
+    es: 'Metadatos actuales de Commons de las fotos candidatas del ZIP',
+    needs: '113',
+    run: async (source) => {
+      const plan = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/data/release-photo-plan.json'), 'utf8'));
+      const names = [...new Set(Object.values(plan.countries).flatMap((photos) => photos.map((photo) => photo.title)))].sort();
+      if (names.length < 100 || names.length > 2000) throw new Error('The photo plan does not name a plausible number of unique files');
+      const { until } = patient();
+      const { pages, titled } = await commonsOf(names, {
+        prop: 'imageinfo',
+        iiprop: 'url|size|mime|sha1|extmetadata',
+        iiextmetadatafilter: 'LicenseShortName|UsageTerms|LicenseUrl|Artist|Credit|AttributionRequired|Restrictions',
+      }, until);
+      const files = Object.fromEntries(names.map((title) => [title, { canonical: titled(title), ...(about(pages.get(titled(title))) ?? { missing: true }) }]));
+      const missing = Object.values(files).filter((file) => file.missing).length;
+      return {
+        text: JSON.stringify({ source: source.from, licence: source.licence, plan: 'scripts/data/release-photo-plan.json', files }, null, 2) + '\n',
+        note: `${names.length} candidate photos checked in Commons; ${missing} without current file metadata; no image downloaded`,
+        detail: { checked: names.length, missing },
+      };
+    },
+  },
+  {
     id: 'heads',
     file: 'heads/heads.json',
     from: 'Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org)',
