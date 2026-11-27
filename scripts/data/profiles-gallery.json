@@ -163,5 +163,57 @@
       "en": "Hippopotamuses in Rusizi National Park, Burundi",
       "by": "d_proffer"
     }
+  ],
+  "CD": [
+    {
+      "file": "Lava Lake Nyiragongo 2.jpg",
+      "es": "El lago de lava del volcán Nyiragongo, en el parque nacional de Virunga",
+      "en": "The lava lake of Mount Nyiragongo in Virunga National Park",
+      "by": "Cai Tjeenk Willink (Caitjeenk)"
+    },
+    {
+      "file": "Fleuve Congo Kinshasa 7.JPG",
+      "es": "La ribera del río Congo y sus rápidos cerca de Kinsasa",
+      "en": "The Congo River bank and its rapids near Kinshasa",
+      "by": "Serein"
+    },
+    {
+      "file": "Square in Lubumbashi, 2011.jpg",
+      "es": "Una plaza en Lubumbashi, República Democrática del Congo",
+      "en": "A square in Lubumbashi, Democratic Republic of the Congo",
+      "by": "T. Thielemans"
+    },
+    {
+      "file": "Bonobo (Pan paniscus) at Lola Ya Bonobo - 3.JPG",
+      "es": "Una madre bonobo y su cría en el santuario Lola ya Bonobo, Kinsasa",
+      "en": "A bonobo mother and infant at Lola ya Bonobo sanctuary in Kinshasa",
+      "by": "Christina Bergey"
+    }
+  ],
+  "ZM": [
+    {
+      "file": "Loxodonta africana South Luangwa National Park (1).jpg",
+      "es": "Elefantes cruzando el río Luangwa en el parque nacional de Luangwa Sur",
+      "en": "Elephants crossing the Luangwa River in South Luangwa National Park",
+      "by": "Geoff Gallice"
+    },
+    {
+      "file": "Lusaka, Zambia CBD Kafue Roundabout.jpg",
+      "es": "La rotonda de Kafue y el centro de Lusaka, Zambia",
+      "en": "Kafue Roundabout and central Lusaka, Zambia",
+      "by": "Lupali"
+    },
+    {
+      "file": "Boats Harbor, Kairba Lake, Siavonga Zambia.jpg",
+      "es": "Barcas en el puerto del lago Kariba, en Siavonga, Zambia",
+      "en": "Boats at the Lake Kariba harbour in Siavonga, Zambia",
+      "by": "Mulengac"
+    },
+    {
+      "file": "Kuomboka ceremony in Zambia 13.jpg",
+      "es": "La ceremonia Kuomboka del pueblo lozi en el oeste de Zambia",
+      "en": "The Lozi people's Kuomboka ceremony in western Zambia",
+      "by": "Jae zambia"
+    }
   ]
 }
