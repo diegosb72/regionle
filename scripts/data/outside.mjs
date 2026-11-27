@@ -26,6 +26,7 @@ import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { releasePhotoInventory } from './release-photos.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const args = process.argv.slice(2);
@@ -2359,6 +2360,16 @@ const SOURCES = [
     es: 'Fotografías de las fichas de los países',
     needs: '113',
     run: profilePhotos,
+  },
+  {
+    id: 'photos-upload-index',
+    file: 'user-photos/index.json',
+    from: 'Archivo aportado por el dueño en la release de GitHub (https://github.com/diegosb72/regionle/releases/tag/imagenes)',
+    licence: 'Sin verificar: el inventario no acredita la licencia de ninguna fotografía',
+    what: 'Only the names, sizes and SHA-256 hashes of the files inside the split ZIP in scripts/data/release-photos.json. No image is published or assumed to be reusable merely because it is in the archive.',
+    es: 'Inventario del archivo fotográfico aportado por el dueño',
+    needs: '113',
+    run: releasePhotoInventory,
   },
   {
     id: 'heads',

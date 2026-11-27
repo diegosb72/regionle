@@ -1,0 +1,12 @@
+{
+  "_": "Archivo fotográfico aportado por el dueño. Su inclusión en la release no acredita la licencia de ninguna imagen; solo se trae el inventario, no el ZIP ni sus fotos.",
+  "release": "https://github.com/diegosb72/regionle/releases/tag/imagenes",
+  "parts": [
+    { "file": "Regionle-fotos-mundial-249.zip.001", "size": 20971520, "sha256": "f984d1695a3e94c636bb4c20965156163f1fcb289d86910c666cb03209c7e77f" },
+    { "file": "Regionle-fotos-mundial-249.zip.002", "size": 20971520, "sha256": "b65ced11bd9018cf117d99211a5f87c44897059b3eea35145a9ee3579ed188d6" },
+    { "file": "Regionle-fotos-mundial-249.zip.003", "size": 20971520, "sha256": "2617962e6930e0fa4b7fc2cdb9562ebae72fa8c85c4ee0c1f5ac89ab123ea319" },
+    { "file": "Regionle-fotos-mundial-249.zip.004", "size": 20971520, "sha256": "5ce5aabc358ed9c27b1c021d629cfea37ec979d1fb2ac600ec2d9ebd9864db11" },
+    { "file": "Regionle-fotos-mundial-249.zip.005", "size": 20971520, "sha256": "532928a0e78c70826b67c9ccd9f77d286f40c2526804cb050cc55e34e7472e72" },
+    { "file": "Regionle-fotos-mundial-249.zip.006", "size": 18302866, "sha256": "c6e8e3e5d7b61421ac986d8d793ca50cb24e5d0d447ecc35b8a2164298684646" }
+  ]
+}
