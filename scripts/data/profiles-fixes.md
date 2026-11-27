@@ -323,6 +323,31 @@ no se amplía artificialmente a 1280; las otras siete tienen ambos tamaños. El 
 Kariba escribe «Kairba»; la ficha emplea el nombre correcto. Commons revisó las licencias originales de
 las fotografías de los elefantes (Flickr) y la plaza de Lubumbashi (Panoramio).
 
+## Fotografías adicionales de Angola y Namibia
+
+Cada ficha conserva su cabecera (las cataratas de Kalandula y la llanura arcillosa de Deadvlei,
+respectivamente) y añade **cuatro fotografías**, hasta cinco con la cabecera. Se contrastaron el
+lugar, autor y licencia en las páginas de Commons y se cotejaron los ocho JPEG descargados con los hashes
+de Git. La solicitud 57 del flujo `photos`
+guardó los metadatos y las imágenes en `datos`, commit `08f8066d31261e24d8f4735f000444da3b3bbbf3`;
+`photos-pinned.mjs` fija sus versiones y `profiles-gallery.json` los pies en español e inglés. No se
+inventan cronologías para Angola ni Namibia; el resto de ambas fichas queda igual.
+
+| Ficha | Archivo y lugar contrastados en Commons | Autor/crédito | Licencia indicada por Commons |
+| --- | --- | --- | --- |
+| AO | [La Baixa, centro de Luanda](https://commons.wikimedia.org/wiki/File:Panorama_baixa_Luanda.JPG) | Fabio Vanin | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| AO | [Garganta de Tundavala, sierra de Leba](https://commons.wikimedia.org/wiki/File:Tundavala_Gap.jpg) | tim kubacki | [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/) |
+| AO | [Capilla del Museo Nacional de la Esclavitud, Luanda](https://commons.wikimedia.org/wiki/File:Museu_da_Escravatura_Luanda.JPG) | Fabio Vanin | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| AO | [Barca de pescadores en Cabo Ledo](https://commons.wikimedia.org/wiki/File:Barco_com_pescadores_em_uma_praia_de_Cabo_Ledo,_Angola.jpg) | Felipe Miguel | [CC BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/) |
+| NA | [Windhoek y el ferrocarril TransNamib](https://commons.wikimedia.org/wiki/File:Windhoek-Skyline.jpg) | Bries | [CC BY-SA 2.5](https://creativecommons.org/licenses/by-sa/2.5/) |
+| NA | [Elefante en el parque nacional de Etosha](https://commons.wikimedia.org/wiki/File:Elephant_waterhole.jpg) | Bibitono | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| NA | [Cañón del río Fish](https://commons.wikimedia.org/wiki/File:Fish_River_Canyon_-_Namibie_-_panoramio_%288%29.jpg) | Pavel Špindler | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) |
+| NA | [Grabados rupestres de Twyfelfontein](https://commons.wikimedia.org/wiki/File:San_-_Khoekhoen_rock_art_-_Namibia.jpg) | Hans Hillewaert | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+
+Los ocho archivos producen dos WebP cada uno (640 y 1280 px); la foto de Windhoek procede de un original
+de 1840 px y no se amplía. Las páginas de Commons de Cabo Ledo, Tundavala y el cañón del río Fish registran
+la revisión de la licencia de sus fuentes originales (Flickr o Panoramio).
+
 ## El texto de Wikipedia
 
 Desde la 1.49.0 las fichas sin texto redactado para el juego cuentan cómo empieza el artículo de Wikipedia

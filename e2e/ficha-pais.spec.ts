@@ -843,13 +843,15 @@ test.describe('the sheet of a country without a complete handwritten account', (
     }
   });
 
-  test('shows five credited Commons photographs each for Rwanda, Burundi, DR Congo and Zambia without replacing their heads or changing their flag periods', async ({ page }) => {
+  test('shows five credited Commons photographs per gallery without replacing the heads or changing flag periods', async ({ page }) => {
     await seed(page);
     const heads = {
       RW: 'Kigali2018Cropped.jpg', BI: 'Bujumbura Burundi Lac Tanganyika 24.jpg',
       CD: 'Virunga 01.jpg', ZM: 'Cataratas Victoria, Zambia-Zimbabue, 2018-07-27, DD 05.jpg',
+      AO: 'Quedas-Kalandula 07 queda LWS-2011-08 QD18 (cropped).jpg',
+      NA: 'Dead Vlei, Sossusvlei, Namibia, 2018-08-06, DD 086.jpg',
     } as const;
-    for (const id of ['RW', 'BI', 'CD', 'ZM'] as const) {
+    for (const id of ['RW', 'BI', 'CD', 'ZM', 'AO', 'NA'] as const) {
       const file = sheetFile(id);
       const sheet = await openSheet(page, `/banderas/paises/${id}`);
       expect(file.photos).toHaveLength(5);
@@ -874,9 +876,9 @@ test.describe('the sheet of a country without a complete handwritten account', (
     }
   });
 
-  test('reads the four five-photo galleries in English on a phone without overflow @movil', async ({ page }) => {
+  test('reads the six five-photo galleries in English on a phone without overflow @movil', async ({ page }) => {
     await seed(page, { lang: 'en' });
-    for (const id of ['RW', 'BI', 'CD', 'ZM']) {
+    for (const id of ['RW', 'BI', 'CD', 'ZM', 'AO', 'NA']) {
       const file = sheetFile(id);
       const sheet = await openSheet(page, `/flags/countries/${id}`);
       await expect(sheet.locator('.fp-hero figcaption')).toContainText(file.photos![0].en);

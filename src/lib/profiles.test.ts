@@ -61,7 +61,7 @@ const WRITTEN = files(SOURCES);
 /** Bilingual, independently sourced accounts added to generated sheets without inventing flag periods. */
 const CURATED = ['AQ', 'BV', 'GS', 'HM', 'TF'] as const;
 /** Small batches of Commons galleries, always after the chosen head. */
-const GALLERIED = ['AQ', 'BV', 'GS', 'HM', 'KE', 'TF', 'TZ', 'UG', 'RW', 'BI', 'CD', 'ZM'] as const;
+const GALLERIED = ['AQ', 'BV', 'GS', 'HM', 'KE', 'TF', 'TZ', 'UG', 'RW', 'BI', 'CD', 'ZM', 'AO', 'NA'] as const;
 /** Commons gallery photographs after the chosen head, with captions/credits checked on each file's page. */
 type GallerySource = { file: string; es: string; en: string; by?: string };
 const GALLERY = Object.fromEntries(Object.entries(json<Record<string, unknown>>('scripts/data/profiles-gallery.json')).filter(([id]) => id !== '_')) as Record<string, GallerySource[]>;
@@ -710,7 +710,7 @@ describe('sourced polar accounts and additional Commons galleries', () => {
       const [hero, ...photos] = sheetOf(id).photos!;
       expect(hero.title, id).toBe(heads[id].file);
       expect([hero.es, hero.en], id).toEqual([heads[id].es, heads[id].en]);
-      expect(photos, id).toHaveLength(['RW', 'BI', 'CD', 'ZM'].includes(id) ? 4 : 2);
+      expect(photos, id).toHaveLength(['RW', 'BI', 'CD', 'ZM', 'AO', 'NA'].includes(id) ? 4 : 2);
       expect(photos.length + 1, id).toBeGreaterThanOrEqual(3);
       expect(photos.length + 1, id).toBeLessThanOrEqual(8);
       for (const [i, photo] of photos.entries()) {
@@ -759,6 +759,29 @@ describe('sourced polar accounts and additional Commons galleries', () => {
     expect(zambia.times).toBeUndefined();
     expect(congo.photos?.slice(1).map((photo) => photo.licence)).toEqual(['CC BY-SA 3.0', 'CC BY-SA 3.0', 'CC BY 3.0', 'CC BY-SA 3.0']);
     expect(zambia.photos?.slice(1).map((photo) => photo.licence)).toEqual(['CC BY 2.0', 'CC BY-SA 4.0', 'CC BY-SA 4.0', 'CC BY-SA 4.0']);
+  });
+
+  it('keeps Angola and Namibia’s chosen heads and flag dates, adding photos but no unsourced timelines', () => {
+    const expected = {
+      AO: {
+        head: 'Quedas-Kalandula 07 queda LWS-2011-08 QD18 (cropped).jpg',
+        adopted: '1975-11-11',
+        licences: ['CC BY-SA 3.0', 'CC BY 2.0', 'CC BY-SA 3.0', 'CC BY-SA 2.0'],
+      },
+      NA: {
+        head: 'Dead Vlei, Sossusvlei, Namibia, 2018-08-06, DD 086.jpg',
+        adopted: '1990-03-21',
+        licences: ['CC BY-SA 2.5', 'CC BY-SA 3.0', 'CC BY 3.0', 'CC BY-SA 4.0'],
+      },
+    };
+    for (const [id, { head, adopted, licences }] of Object.entries(expected)) {
+      const sheet = sheetOf(id);
+      expect(sheet.photos, id).toHaveLength(5);
+      expect(sheet.photos?.[0].title, id).toBe(head);
+      expect(sheet.photos?.slice(1).map((photo) => photo.licence), id).toEqual(licences);
+      expect(sheet.flag?.adopted, id).toBe(adopted);
+      expect(sheet.times, id).toBeUndefined();
+    }
   });
 
   it('distinguishes the Bartram proposal, the borrowed Norwegian/Australian flags and the TAAF emblem', () => {
