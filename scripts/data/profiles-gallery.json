@@ -111,5 +111,57 @@
       "en": "Tanzania's flag in front of Stone Town, Zanzibar",
       "by": "Fanny Schertzer"
     }
+  ],
+  "RW": [
+    {
+      "file": "A mountain gorilla from Susa Group in Karisimbi thicket of Volcanoes National Park in Rwanda. Emmanuel Kwizera.jpg",
+      "es": "Un gorila de montaña del grupo Susa en el parque nacional de los Volcanes",
+      "en": "A mountain gorilla from the Susa group in Volcanoes National Park",
+      "by": "Emmanuelkwizera"
+    },
+    {
+      "file": "Nyungwe Canopy Walk.jpg",
+      "es": "La pasarela suspendida sobre el bosque de Nyungwe, Ruanda",
+      "en": "The canopy walkway over Nyungwe Forest, Rwanda",
+      "by": "Alex Niragira"
+    },
+    {
+      "file": "Lake Kivu at dawn.jpg",
+      "es": "El lago Kivu al amanecer, visto desde Cyangugu, Ruanda",
+      "en": "Lake Kivu at dawn, seen from Cyangugu, Rwanda",
+      "by": "Kisambira"
+    },
+    {
+      "file": "Rwanda Nyanza Mwami Palace.jpg",
+      "es": "Reconstrucción del palacio tradicional del rey en Nyanza, Ruanda",
+      "en": "Reconstruction of the traditional king's palace in Nyanza, Rwanda",
+      "by": "Amakuru"
+    }
+  ],
+  "BI": [
+    {
+      "file": "La chute de karera nyakayi 1 à Rutana.jpg",
+      "es": "La cascada Nyakayi 1 de Karera, en Rutana, Burundi",
+      "en": "Nyakayi 1 waterfall at Karera in Rutana, Burundi",
+      "by": "Zamennest"
+    },
+    {
+      "file": "Forêt de Teza (Kibira).jpg",
+      "es": "El bosque de Teza, en el parque nacional de Kibira",
+      "en": "Teza Forest in Kibira National Park",
+      "by": "NIHEREWENIMANA Richard"
+    },
+    {
+      "file": "Les tambourinaires de Gitega.jpg",
+      "es": "Tamborileros en Gishora, en la región de Gitega",
+      "en": "Drummers at Gishora in the Gitega region",
+      "by": "NSENGIYUMVA Joseph"
+    },
+    {
+      "file": "Rusizi NP hippopotamus.jpg",
+      "es": "Hipopótamos en el parque nacional de Rusizi, Burundi",
+      "en": "Hippopotamuses in Rusizi National Park, Burundi",
+      "by": "d_proffer"
+    }
   ]
 }
