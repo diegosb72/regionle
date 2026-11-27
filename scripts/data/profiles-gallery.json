@@ -69,5 +69,47 @@
       "en": "Amsterdam Island seen from the sea",
       "by": "franek2"
     }
+  ],
+  "UG": [
+    {
+      "file": "Murchison Falls view from Nile.jpg",
+      "es": "Las cataratas Murchison vistas desde el Nilo, en Uganda",
+      "en": "Murchison Falls seen from the Nile in Uganda",
+      "by": "Yakov Fedorov"
+    },
+    {
+      "file": "Grey crowned crane (Balearica regulorum gibbericeps).jpg",
+      "es": "Una grulla coronada gris cerca del lago Bunyonyi, el ave de la bandera de Uganda",
+      "en": "A grey crowned crane near Lake Bunyonyi, the bird on Uganda's flag",
+      "by": "Charles J. Sharp"
+    }
+  ],
+  "KE": [
+    {
+      "file": "MtKenya.jpg",
+      "es": "El monte Kenia visto desde Nanyuki",
+      "en": "Mount Kenya seen from Nanyuki",
+      "by": "Don Elvis Muraya"
+    },
+    {
+      "file": "Lamu town on Lamu Island in Kenya.JPG",
+      "es": "Barcas frente al paseo marítimo de Lamu, Kenia",
+      "en": "Boats off Lamu's seafront in Kenya",
+      "by": "Magnus Kjaergaard"
+    }
+  ],
+  "TZ": [
+    {
+      "file": "Mlima Kilimanjaro.jpg",
+      "es": "El Kilimanjaro visto desde Moshi, Tanzania",
+      "en": "Mount Kilimanjaro seen from Moshi, Tanzania",
+      "by": "Alfred Shauri"
+    },
+    {
+      "file": "Stone Town-2.jpg",
+      "es": "La bandera de Tanzania ante Ciudad de Piedra, Zanzíbar",
+      "en": "Tanzania's flag in front of Stone Town, Zanzibar",
+      "by": "Fanny Schertzer"
+    }
   ]
 }

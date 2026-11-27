@@ -7,6 +7,6 @@
 # brings what is named here and keeps it in the branch `datos`. A line that starts with # is a note, so
 # changing the number of the request is enough to ask for the same again.
 #
-# Request 53: the chosen head plus two additional, verified Commons photographs for each of
-# AQ, BV, GS, HM and TF (scripts/data/profiles-gallery.json); keep the existing heads.
+# Request 54: add two verified Commons photographs to each of UG, KE and TZ, after their
+# existing chosen heads. All previous gallery photos remain in scripts/data/profiles-gallery.json.
 photos
