@@ -160,16 +160,24 @@ De tres no vino ningún dato de la bandera, y se han puesto a mano leyendo la fi
 - **AQ**: la Antártida no tiene bandera oficial. El juego dibuja la propuesta de Graham Bartram (1996), que es
   la de flag-icons y la del emoji; se dice de quién es y que no es oficial, y no se da fecha de adopción.
 
-### Territorios que ondean la bandera de su país
+### Territorios representados con la bandera de otro país
 
-El juego dibuja con la bandera de su país a los territorios que no tienen otra oficial (`SAME_FLAG`, en
-`src/lib/pairs.ts`): **BL, GF, GP, MF, PM, RE, WF, YT** con la de Francia, **BV, SJ** con la de Noruega,
-**BQ** con la de los Países Bajos, **HM** con la de Australia y **SH** con la del Reino Unido. Wikidata y
-Wikipedia hablan en cambio de la bandera local, que no es oficial y que la ficha no enseña (la de San Pedro
-y Miquelón «adoptada en 1982», la de Santa Elena en 1984). En cada uno se dice de quién es la bandera
-(`flag.of`) y el programa copia de la ficha de ese país lo que es de la bandera: fecha, proporción, colores,
-diseñador y la página de Wikipedia. Una prueba (`src/lib/profiles.test.ts`) comprueba que son los mismos
-territorios que dice el juego.
+El juego dibuja con la bandera de su país a **BL, GF, GP, MF, PM, RE, WF, YT** (Francia), **BV, SJ**
+(Noruega), **BQ** (Países Bajos), **HM** (Australia) y **SH** (Reino Unido): es una elección de
+representación del juego (`SAME_FLAG`, en `src/lib/pairs.ts`), **no** una prueba de que ninguno de esos
+territorios tenga otra bandera oficial. En cada ficha, `flag.of` identifica la enseña **mostrada**;
+fecha, proporción, colores, diseñador y enlace a Wikipedia se copian de la ficha del país cuya bandera se
+muestra. Las cronologías locales se investigan por separado. Una prueba (`src/lib/profiles.test.ts`)
+comprueba que coinciden los códigos del juego.
+
+En particular, [el Gobierno de Santa Elena](https://www.sainthelena.gov.sh/st-helena/history-and-heritage/)
+califica de **oficial** el pabellón azul de la *isla* de Santa Elena con su escudo autorizado en 1984;
+[actualizó su dibujo en 2019](https://www.sainthelena.gov.sh/st-helena-government-adopts-updated-coat-of-arms/).
+[Ascensión](https://www.ascension.gov.ac/first-ever-ascension-flag-to-fly) estrenó el suyo en 2013 y
+[Tristán de Acuña](https://www.tristandc.com/government.php) recibió el suyo en 2002. **SH sigue
+mostrando la Union Flag**, que no es ninguna de esas tres enseñas insulares. Otros símbolos locales,
+como el paño de San Pedro y Miquelón, pueden carecer de reconocimiento oficial: cada caso se describe
+y documenta sin generalizar su estatus.
 
 ## Textos contrastados de los territorios polares
 

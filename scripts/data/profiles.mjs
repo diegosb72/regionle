@@ -9,7 +9,7 @@
 //   npm run data:profiles -- --review      the same, and what whoever corrects the sources should look at
 //
 // (`--sheets`, `--brought`, `--arms`, `--said`, `--texts`, `--fixes`, `--heads`, `--gallery`, `--release`, `--times`,
-// `--data` and `--photos` name other folders and files to read from and write to: tests use invented countries.
+// `--history`, `--data` and `--photos` name other folders and files to read from and write to: tests use invented countries.
 // The uploaded gallery is used in the normal build, or explicitly with `--release` in a fixture, not implicitly
 // when `--data` points at a different world.)
 //
@@ -39,6 +39,10 @@
 //      the two languages of the game — what it is, what its flag means, what it was at the time of each of
 //      the flags it flew — and the photographs it is shown with, each a file of Wikimedia Commons named by
 //      its title, with its caption. What it says is what the sheet says; the rest stays as it was read.
+//   5. scripts/data/profiles-history.json: a separately sourced, bilingual territorial history for every
+//      sheet and documented flag milestones for the sheets without a researched illustrated chronology.
+//      These add to the introductions, photos and hand-written timelines; they never replace them. Each
+//      section links to the pinned Factbook and Wikipedia pages where available, plus specific references.
 //
 // Where nobody has written of a country, its sheet tells how Wikipedia begins to tell of it and of its flag:
 // the opening of the page the sheet leads to (`read`, `readFlag`) in each language of the game, cut after as
@@ -79,6 +83,7 @@ import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { saidOf, tongueCodes } from './profiles-said.mjs';
 import { leadOf } from './profiles-text.mjs';
+import { PAGES } from './factbook-pages.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const args = process.argv.slice(2);
@@ -103,6 +108,8 @@ const GALLERY = path.resolve(ROOT, value('gallery') ?? 'scripts/data/profiles-ga
 const RELEASE = path.resolve(ROOT, value('release') ?? 'scripts/data/release-gallery.json');
 /** An invented world with `--data` does not silently receive the real-world release gallery. */
 const USE_RELEASE = !args.includes('--data') || args.includes('--release');
+/** Source-backed country histories and text-only flag milestones where no illustrated timeline has been researched. */
+const HISTORY = path.resolve(ROOT, value('history') ?? 'scripts/data/profiles-history.json');
 /** Historical timelines written for the game without replacing the rest of each country's sheet. */
 const TIMES = path.resolve(ROOT, value('times') ?? 'scripts/data/profiles-times.json');
 /** How Wikipedia begins to tell of each country and of its flag, as it was brought. */
@@ -172,6 +179,49 @@ function paragraphs(id, what, text) {
   for (const lang of LANGS) if (!Array.isArray(text?.[lang]) || !text[lang].length || text[lang].some((p) => typeof p !== 'string' || !p.trim())) fail(id, `${what} has no paragraphs in «${lang}»`);
   if (text.es.length !== text.en.length) fail(id, `${what} has ${text.es.length} paragraphs in Spanish and ${text.en.length} in English`);
   return { es: text.es.map((p) => p.trim()), en: text.en.map((p) => p.trim()) };
+}
+
+/** Every newly written historical claim must lead to a real, safe reference, including proposals. */
+function safeSource(id, section, source) {
+  const url = typeof source?.url === 'string' && URL.canParse(source.url) ? new URL(source.url) : null;
+  if (!source || Object.keys(source).some((key) => !['title', 'url'].includes(key)) || !source.title || !LANGS.every((lang) => isText(source.title[lang])) || Object.keys(source.title).some((lang) => !LANGS.includes(lang)) || url?.protocol !== 'https:' || url.username || url.password || !url.hostname)
+    fail(id, `its text source for «${section}» needs a safe https address and a title in both languages`);
+  return source;
+}
+
+/** Pinned Factbook background/flag description plus the pages that were read, not a guessed URL for a country code. */
+function historySources(id, one, part, extras = []) {
+  if (!Array.isArray(extras)) fail(id, `the extra sources for «${part}» are not a list`);
+  const sources = [];
+  if (!args.includes('--data')) {
+    // A test world uses invented countries, even if an id happens to coincide with a real one.
+    for (const [file] of PAGES[id] ?? []) sources.push({
+      title: part === 'history'
+        ? { es: 'The World Factbook: historia (edición fijada)', en: 'The World Factbook: background (pinned edition)' }
+        : { es: 'The World Factbook: enseña (edición fijada)', en: 'The World Factbook: flag (pinned edition)' },
+      url: `https://github.com/factbook/factbook.json/blob/144d6977b2b01ac1cbd220de754c0a005616760b/${file}`,
+    });
+  }
+  for (const lang of LANGS) {
+    const link = (part === 'history' ? one.read : one.readFlag)?.[lang];
+    if (link) sources.push({ title: lang === 'es'
+      ? { es: 'Wikipedia en español (CC BY-SA 4.0)', en: 'Spanish Wikipedia (CC BY-SA 4.0)' }
+      : { es: 'Wikipedia en inglés (CC BY-SA 4.0)', en: 'English Wikipedia (CC BY-SA 4.0)' }, url: link });
+  }
+  for (const source of extras) sources.push(safeSource(id, part, source));
+  if (!sources.length) fail(id, `the history of «${part}» has no source`);
+  return sources;
+}
+
+/** A text-only milestone must never turn an unadopted design into a national flag. */
+function flagMilestones(id, events) {
+  if (!Array.isArray(events) || !events.length) fail(id, 'the history of its flags has no documented events');
+  let lastYear = 0;
+  return events.map((event, i) => {
+    if (!event || Object.keys(event).some((key) => !['year', 'when', 'text', 'status'].includes(key)) || !Number.isInteger(event.year) || event.year < 1 || event.year > new Date().getUTCFullYear() || event.year < lastYear || (event.status !== undefined && !['proposal', 'unofficial'].includes(event.status))) fail(id, `flag milestone ${i + 1} has no valid historical order or kind`);
+    lastYear = event.year;
+    return { year: event.year, when: said(id, `when flag milestone ${i + 1} occurred`, event.when), text: said(id, `what flag milestone ${i + 1} says`, event.text), ...(event.status ? { status: event.status } : {}) };
+  });
 }
 
 /**
@@ -509,7 +559,13 @@ function checked(id, one) {
   if (one.anthem !== undefined && !inSome(one.anthem)) fail(id, 'its anthem is not a text in a language of the game');
   // Authored summaries in the corrections must meet the same bilingual standard as a complete hand-written sheet.
   if (one.about !== undefined) paragraphs(id, 'what is said of the country', one.about);
+  if (one.history !== undefined) paragraphs(id, 'its country history', one.history);
   if (flag.text !== undefined) paragraphs(id, 'what is said of the flag', flag.text);
+  if (one.flagHistory !== undefined) {
+    if (one.times?.length) fail(id, 'a text-only flag history must not replace a researched illustrated timeline');
+    flagMilestones(id, one.flagHistory);
+  }
+  if (flag.status !== undefined && (flag.status !== 'proposal' || !flag.text || !one.sources?.flag?.length)) fail(id, 'an unofficial flag must be identified as a proposal and its explanation must have sources');
   if (flag.parts !== undefined) {
     if (!Array.isArray(flag.parts)) fail(id, 'the parts of the flag are not a list');
     for (const [i, part] of flag.parts.entries()) {
@@ -519,14 +575,13 @@ function checked(id, one) {
   if (one.sources !== undefined) {
     if (!one.sources || typeof one.sources !== 'object' || Array.isArray(one.sources) || !Object.keys(one.sources).length) fail(id, 'its text sources are not grouped by section');
     for (const [section, sources] of Object.entries(one.sources)) {
-      if (!['about', 'flag'].includes(section) || !(section === 'about' ? one.about : flag.text) || !Array.isArray(sources) || !sources.length) fail(id, `its text sources for «${section}» have no matching text or links`);
-      for (const source of sources) {
-        const url = typeof source?.url === 'string' && URL.canParse(source.url) ? new URL(source.url) : null;
-        if (!source || Object.keys(source).some((key) => !['title', 'url'].includes(key)) || !source.title || !LANGS.every((lang) => isText(source.title[lang])) || Object.keys(source.title).some((lang) => !LANGS.includes(lang)) || url?.protocol !== 'https:' || url.username || url.password || !url.hostname)
-          fail(id, `its text source for «${section}» needs a safe https address and a title in both languages`);
-      }
+      const hasText = { about: !!one.about, flag: !!flag.text, history: !!one.history, flagHistory: !!one.flagHistory }[section];
+      if (!hasText || !Array.isArray(sources) || !sources.length) fail(id, `its text sources for «${section}» have no matching text or links`);
+      for (const source of sources) safeSource(id, section, source);
     }
   }
+  if (one.history && !one.sources?.history?.length) fail(id, 'a written country history needs its sources');
+  if (one.flagHistory && !one.sources?.flagHistory?.length) fail(id, 'a written history of the flags needs its sources');
   if (flag.adopted !== undefined && !isDay(flag.adopted)) fail(id, `the day its flag was adopted on is not a day or a year: ${flag.adopted}`);
   if (flag.changed !== undefined && (!isDay(flag.changed) || !flag.adopted || flag.changed.slice(0, 4) < flag.adopted.slice(0, 4))) fail(id, `its flag is said to be as it is since ${flag.changed}, which is not a day after the one it was adopted on`);
   if (flag.ratio !== undefined && !/^\d+(\.\d+)?:\d+(\.\d+)?$/.test(flag.ratio)) fail(id, `the proportions of its flag are not two numbers: ${flag.ratio}`);
@@ -576,6 +631,9 @@ async function main() {
   const uploaded = USE_RELEASE && fs.existsSync(RELEASE) ? read(RELEASE).countries : {};
   if (!uploaded || typeof uploaded !== 'object' || Array.isArray(uploaded)) throw new Error('The reviewed release gallery has no country lists');
   const { _: _timeline, ...timelines } = fs.existsSync(TIMES) ? read(TIMES) : {};
+  if (args.includes('--history') && !fs.existsSync(HISTORY)) throw new Error(`Missing reviewed history file: ${HISTORY}`);
+  // An invented world must not receive the real-world histories just because an id happens to match.
+  const { _: _history, ...histories } = (!args.includes('--data') || args.includes('--history')) && fs.existsSync(HISTORY) ? read(HISTORY) : {};
   if (!fs.existsSync(path.join(ARMS, 'arms.json'))) throw new Error(`What was brought of the coats of arms is not in ${path.relative(ROOT, ARMS) || ARMS}: run «npm run data:fetch -- arms»`);
   const emblems = read(path.join(ARMS, 'arms.json'));
   const about = path.join(BROUGHT, 'photos.json');
@@ -607,6 +665,12 @@ async function main() {
   for (const id of Object.keys(timelines)) {
     if (!lands.some((c) => c.id === id)) fail(id, 'a timeline was written for what is no country of the game with a flag');
     if (written.includes(id)) fail(id, 'a timeline was written twice: once on its own and once in its full hand-written sheet');
+  }
+  for (const [id, story] of Object.entries(histories)) {
+    if (!lands.some((c) => c.id === id)) fail(id, 'a history was written for what is no country of the game with a flag');
+    if (!story || typeof story !== 'object' || Array.isArray(story) || !Object.keys(story).length || Object.keys(story).some((key) => !['history', 'historySources', 'flagHistory', 'flagHistorySources'].includes(key))) fail(id, 'the reviewed history has unrecognised or missing sections');
+    if (!story.history && story.historySources || !story.flagHistory && story.flagHistorySources) fail(id, 'the history has sources without their account');
+    if (story.flagHistory && (timelines[id] || written.includes(id))) fail(id, 'a text-only flag history must not replace a researched illustrated timeline');
   }
 
   const codes = tongueCodes(facts);
@@ -702,6 +766,19 @@ async function main() {
     if (lead) one.lead = lead;
     const flagLead = one.flag?.text ? null : leadIn(one.readFlag, pages, LEAD_MAX.flag, cuts.get(one.flag?.of ?? id)?.flag);
     if (flagLead) one.flag = { ...(one.flag ?? {}), lead: flagLead };
+  }
+  // The researched history has its own fields. It never overwrites an introduction, an illustrated
+  // chronology, a fact, or a photograph (including the entirely hand-written Brazilian sheet).
+  for (const [id, story] of Object.entries(histories)) {
+    const one = sheets.get(id);
+    if (story.history) {
+      one.history = paragraphs(id, 'its country history', story.history);
+      one.sources = { ...one.sources, history: historySources(id, one, 'history', story.historySources) };
+    }
+    if (story.flagHistory) {
+      one.flagHistory = flagMilestones(id, story.flagHistory);
+      one.sources = { ...one.sources, flagHistory: historySources(id, one, 'flagHistory', story.flagHistorySources) };
+    }
   }
   for (const [id, one] of sheets) {
     if (one.flag && !Object.keys(one.flag).length) delete one.flag;

@@ -74,6 +74,9 @@ const FIXES = json<Record<string, Partial<ProfileFile>>>('scripts/data/profiles-
 const TIMELINE_FILE = json<Record<string, unknown>>('scripts/data/profiles-times.json');
 type TimeSource = Omit<ProfileTime, 'picture'> & { picture?: { file: string; by?: string; es: string; en: string } };
 const { _: TIMELINE_REASON, ...TIMELINES } = TIMELINE_FILE as { _: string } & Record<string, { source: string; note?: Said; times: TimeSource[] }>;
+/** Bilingual researched country histories and, where there is no illustrated chronology, flag milestones. */
+type ReviewedHistory = { history: NonNullable<ProfileFile['history']>; historySources?: NonNullable<NonNullable<ProfileFile['sources']>['history']>; flagHistory?: NonNullable<ProfileFile['flagHistory']>; flagHistorySources?: NonNullable<NonNullable<ProfileFile['sources']>['flagHistory']> };
+const { _: HISTORY_REASON, ...HISTORIES } = json<{ _: string } & Record<string, ReviewedHistory>>('scripts/data/profiles-history.json');
 const has = (id: string) => LANDS.includes(id);
 
 beforeEach(() => setLang('es'));
@@ -344,8 +347,8 @@ describe('the sheet of every country', () => {
   const sheets = LANDS.map((id) => sheetOf(id));
 
   it('is of its country, and says only what a sheet says', () => {
-    const known = ['v', 'id', 'official', 'local', 'localLang', 'motto', 'anthem', 'about', 'sources', 'lead', 'flag', 'times', 'timeSource', 'timeNote', 'photos', 'arms', 'read', 'readFlag'];
-    const ofFlag = ['of', 'adopted', 'changed', 'ratio', 'colours', 'called', 'by', 'drawing', 'text', 'lead', 'parts'];
+    const known = ['v', 'id', 'official', 'local', 'localLang', 'motto', 'anthem', 'about', 'history', 'sources', 'lead', 'flag', 'times', 'flagHistory', 'timeSource', 'timeNote', 'photos', 'arms', 'read', 'readFlag'];
+    const ofFlag = ['of', 'status', 'adopted', 'changed', 'ratio', 'colours', 'called', 'by', 'drawing', 'text', 'lead', 'parts'];
     for (const [i, sheet] of sheets.entries()) {
       expect(sheet.v, LANDS[i]).toBe(1);
       expect(sheet.id).toBe(LANDS[i]);
@@ -528,7 +531,12 @@ describe('the sheet of every country', () => {
         continue;
       }
       const lowered = (FLAGS.past?.[sheet.id] ?? []).map((row) => row[3]);
-      expect(lowered.length, sheet.id).toBeGreaterThan(0);
+      if (!lowered.length) {
+        // A change can be documented in the written history without an available catalogue drawing.
+        const year = yearOfDay(sheet.flag.changed)!;
+        expect(sheet.flagHistory?.some((event) => event.year === year || event.when.es.includes(String(year)) && event.when.en.includes(String(year))), sheet.id).toBe(true);
+        continue;
+      }
       expect(Math.abs(yearOfDay(sheet.flag.changed)! - Math.max(...lowered)), sheet.id).toBeLessThanOrEqual(1);
     }
   });
@@ -614,10 +622,12 @@ describe('the sheet of every country', () => {
       if (sheet.flag?.text) expect(sheet.flag.lead, sheet.id).toBeUndefined();
     }
     for (const id of WRITTEN) expect([sheetOf(id).lead, sheetOf(id).flag?.lead], id).toEqual([undefined, undefined]);
-    // Every country without an authored account has its page in both Wikipedias, and so its text; most flags have theirs.
+    // Most flags retain Wikipedia excerpts, except where a disputed or stale claim was suppressed.
     expect(count.about).toEqual({ es: sheets.length - WRITTEN.length - CURATED.length, en: sheets.length - WRITTEN.length - CURATED.length });
-    expect(count.flag.es).toBeGreaterThanOrEqual(240);
-    expect(count.flag.en).toBeGreaterThanOrEqual(240);
+    expect(count.flag.es).toBeGreaterThanOrEqual(235);
+    expect(count.flag.en).toBeGreaterThanOrEqual(235);
+    expect(sheetOf('ST').flag?.lead).toBeUndefined(); // Contradictory exact adoption dates in the two languages.
+    expect(sheetOf('TK').flag?.lead?.es).toBeUndefined(); // The old Spanish lead still says official approval is pending.
     expect(LEAD_MAX).toEqual({ about: 640, flag: 480 });
   });
 
@@ -678,6 +688,67 @@ describe('the sheet of every country', () => {
   });
 });
 
+describe('reviewed histories of all 249 countries and their flags', () => {
+  it('keeps a separately cited bilingual country history for every sheet without replacing its introduction', () => {
+    expect(typeof HISTORY_REASON).toBe('string');
+    expect(Object.keys(HISTORIES).sort()).toEqual([...LANDS].sort());
+    for (const id of LANDS) {
+      const sheet = sheetOf(id);
+      const story = HISTORIES[id];
+      expect(sheet.history, id).toEqual(story.history);
+      expect(sheet.history?.es.length, id).toBeGreaterThan(0);
+      expect(sheet.history?.en.length, id).toBe(sheet.history?.es.length);
+      for (const lang of ['es', 'en'] as const) for (const paragraph of sheet.history?.[lang] ?? []) clean(paragraph, `${id} country history (${lang})`);
+      expect(sheet.sources?.history?.length, id).toBeGreaterThan(0);
+      for (const source of sheet.sources?.history ?? []) {
+        cleanIn(source.title, `${id} history reference`);
+        expect(new URL(source.url).protocol, id).toBe('https:');
+      }
+      for (const source of story.historySources ?? []) expect(sheet.sources?.history, id).toContainEqual(source);
+      if (WRITTEN.includes(id) || CURATED.some((c) => c === id)) expect(sheet.about, id).toBeDefined();
+      else expect(sheet.about, id).toBeUndefined();
+    }
+    expect(sheetOf('BR').times).toHaveLength(6);
+    expect(sheetOf('BR').photos?.map((photo) => photo.title)).toEqual(sourceOf('BR').photos.map((photo) => photo.file));
+  });
+
+  it('has either a researched illustrated chronology or cited milestones, never a catalogue-only succession', () => {
+    expect(Object.values(HISTORIES).filter((story) => story.flagHistory).length).toBe(162);
+    for (const id of LANDS) {
+      const sheet = sheetOf(id);
+      const story = HISTORIES[id];
+      expect(!!sheet.times, id).toBe(!story.flagHistory);
+      if (sheet.times) {
+        expect(sheet.flagHistory, id).toBeUndefined();
+        expect(sheet.sources?.flagHistory, id).toBeUndefined();
+        continue;
+      }
+      expect(sheet.flagHistory, id).toEqual(story.flagHistory);
+      expect(sheet.flagHistory?.length, id).toBeGreaterThan(0);
+      let previous = 0;
+      for (const milestone of sheet.flagHistory ?? []) {
+        expect(milestone.year, id).toBeGreaterThanOrEqual(previous);
+        previous = milestone.year;
+        cleanIn(milestone.when, `${id} milestone date`);
+        cleanIn(milestone.text, `${id} milestone account`);
+        if (milestone.status) expect(['proposal', 'unofficial'], id).toContain(milestone.status);
+      }
+      expect(sheet.sources?.flagHistory?.length, id).toBeGreaterThan(0);
+      for (const source of sheet.sources?.flagHistory ?? []) {
+        cleanIn(source.title, `${id} flag reference`);
+        expect(new URL(source.url).protocol, id).toBe('https:');
+      }
+      for (const source of story.flagHistorySources ?? []) expect(sheet.sources?.flagHistory, id).toContainEqual(source);
+    }
+    expect(sheetOf('AQ').flag?.status).toBe('proposal');
+    expect(sheetOf('AQ').flagHistory?.some((event) => event.status === 'proposal')).toBe(true);
+    expect(sheetOf('SH').flag?.of).toBe('GB');
+    expect(sheetOf('SH').flagHistory?.[1].text.en).toContain('Saint Helena');
+    expect(sheetOf('ST').flagHistory?.[0].text.es).toContain('fuentes difieren');
+    expect(sheetOf('TK').flagHistory?.at(-1)?.text.en).toContain('royal licence');
+  });
+});
+
 describe('sourced polar accounts and additional Commons galleries', () => {
   it('adds bilingual text and its real sources without replacing a photograph, an emblem or a Wikipedia link', () => {
     for (const id of CURATED) {
@@ -687,7 +758,7 @@ describe('sourced polar accounts and additional Commons galleries', () => {
       expect(sheet.about?.es, id).toHaveLength(2);
       expect(sheet.about?.en, id).toHaveLength(2);
       expect(sheet.lead, id).toBeUndefined(); // Authored accounts are not labelled as Wikipedia excerpts.
-      expect(sheet.sources, id).toEqual(fix.sources);
+      expect(sheet.sources, id).toMatchObject(fix.sources!);
       expect(sheet.sources?.about?.length, id).toBeGreaterThan(0);
       for (const sources of Object.values(sheet.sources ?? {})) for (const source of sources ?? []) {
         cleanIn(source.title, `${id} source`);
