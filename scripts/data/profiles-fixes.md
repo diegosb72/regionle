@@ -78,6 +78,19 @@ se toma el primer día que dan las dos fichas, y si tampoco, nada. Estos se han 
   El 1298 de la tricolor de 2004–2021 sí pertenece al calendario solar (1919).
 - **AS**: 17-4-1960, día en que se izó la bandera territorial de Samoa Estadounidense, según la historia de
   su bandera; las fuentes traídas daban por error el 27 de abril.
+- **ES**: la fecha leída del catálogo, **28-5-1785**, corresponde a la elección de los pabellones de guerra
+  y mercante para los barcos de Carlos III, **no** a la adopción de la bandera nacional actual. Se muestra
+  **13-10-1843** para la unificación de su uso en el Ejército, según
+  [La Moncloa](https://www.lamoncloa.gob.es/lang/en/espana/statesymbols/paginas/index.aspx), y se explica
+  el origen naval en el texto y los nueve periodos ilustrados. La ley del escudo es de 5-10-1981, pero el
+  **modelo oficial** del escudo de la bandera se publicó y entró en vigor el **19-12-1981**
+  ([RD 2964/1981](https://www.boe.es/buscar/act.php?id=BOE-A-1981-29376)); esa es la fecha de
+  «como es hoy», no el cumpleaños de la tricolor.
+- **LK**: la entradilla inglesa de Wikipedia denomina incorrectamente «teal» a la franja **verde**;
+  se oculta esa entradilla y se sustituye por la explicación bilingüe en `profiles-editorial.json`,
+  contrastada con la [Alta Comisión de Sri Lanka](https://www.hc-wellington.gov.lk/en/country-profile).
+  Sobre las hojas bo, [Britannica](https://www.britannica.com/topic/flag-of-Sri-Lanka) da 1972 y la Alta
+  Comisión las incluye en su descripción del diseño de 1950; la cronología conserva ambas versiones.
 - **UG**: la entradilla española de Wikipedia dice por error «1969», pese a que la fecha que muestra la ficha
   es **9-10-1962**. Se sustituye **solo la explicación de la bandera**, no la del país, por un texto propio
   bilingüe, contrastado con la [ley nacional de símbolos](https://ulii.org/akn/ug/act/ord/1962/64)
