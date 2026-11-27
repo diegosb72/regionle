@@ -1,25 +1,24 @@
 {
-  "when": "2026-11-27T12:09:36.478Z",
-  "from": "arena/baec5cdd-regionle@d172fe5",
+  "when": "2026-11-27T12:21:00.366Z",
+  "from": "arena/baec5cdd-regionle@c20c3f9",
   "workflow": "same",
   "sources": [
     {
-      "id": "photos-upload-audit",
-      "file": "user-photos/audit.json",
+      "id": "photos-upload-rights",
+      "file": "user-photos/rights.json",
       "from": "Wikimedia Commons (https://commons.wikimedia.org)",
-      "licence": "La licencia de cada archivo se consulta en Commons; los metadatos no sustituyen una revisión de derechos de terceros",
-      "what": "Solo metadatos ACTUALES de Commons para las candidatas de scripts/data/release-photo-plan.json: URL, SHA-1, autor, licencia y restricciones. No descarga fotografías ni aprueba automáticamente las candidatas.",
-      "es": "Metadatos actuales de Commons de las fotos candidatas del ZIP",
+      "licence": "Las fichas de Commons se ofrecen con licencia CC BY-SA; las fotografías tienen sus propias licencias, que hay que revisar por separado",
+      "what": "Wikitext de las páginas de Commons para las candidatas marcadas como dominio público, para detectar fotografías con dos licencias distintas (p. ej. edificio PD y fotografía CC BY) y avisos no reflejados en los metadatos resumidos. No aprueba derechos automáticamente.",
+      "es": "Revisión de licencias múltiples en las fotografías de dominio público del ZIP",
       "needs": "113",
       "ok": true,
-      "bytes": 745680,
-      "blob": "9003131003caf1b7a44ab6a708c1e106aacd3db6",
-      "note": "1345 candidate photos checked in Commons; 0 without current file metadata; no image downloaded",
+      "bytes": 78550,
+      "blob": "663e341fb29c7c60b8e9368fa186805a2272e445",
+      "note": "102 Commons file pages captured for checking more than one license; no images saved",
       "detail": {
-        "checked": 1345,
-        "missing": 0
+        "files": 102
       },
-      "ms": 25905
+      "ms": 2743
     }
   ],
   "reach": []
