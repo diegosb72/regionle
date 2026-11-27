@@ -5,10 +5,10 @@ La escribe el flujo «Traer datos» (pestaña *Actions*), cuando alguien pulsa s
 juego cambia la lista de lo que pide (`scripts/data/pedido.txt`); nadie más escribe aquí.
 Qué se trae y de dónde lo dice `scripts/data/outside.mjs`, en la rama del juego.
 
-## Última descarga: 2026-11-26
+## Última descarga: 2026-11-27
 
-Hecha con `arena/baec5cdd-regionle@6da304a`. Lo que no se pidió esta vez sigue en la rama `datos` como estaba.
+Hecha con `arena/baec5cdd-regionle@0b84484`. Lo que no se pidió esta vez sigue en la rama `datos` como estaba.
 
 | Archivo | Qué es | De dónde | Licencia | Resultado |
 | --- | --- | --- | --- | --- |
-| `photos/photos.json` | Fotografías de las fichas de los países | Wikimedia Commons (https://commons.wikimedia.org) | La de cada archivo, que su entrada dice: dominio público o una licencia libre | 147 kB · 270 fotografías de 249 fichas: 270 traídas (178.296 kB) |
+| `photos/photos.json` | Fotografías de las fichas de los países | Wikimedia Commons (https://commons.wikimedia.org) | La de cada archivo, que su entrada dice: dominio público o una licencia libre | 150 kB · 276 fotografías de 249 fichas: 276 traídas (181.678 kB) |
