@@ -1,6 +1,7 @@
 // Inventories the owner's photo archive from a GitHub release, without publishing any of its images.
 // The local workspace cannot reach GitHub's release-asset CDN; the existing "Traer datos" workflow can.
-// It stores only a small, verified list in the data branch, never the 117 MB archive or its photographs.
+// It stores a verified list and the archive's small text/JSON documentation in the data branch,
+// never the 117 MB archive or its photographs.
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
@@ -37,6 +38,30 @@ export function inventoryZip(archivePath) {
   return JSON.parse(execFileSync('python3', ['-c', PYTHON, archivePath], { encoding: 'utf8', maxBuffer: 10_000_000, timeout: 180_000 }));
 }
 
+// The owner also put instructions, a manifest and an application script at the ZIP root. Read these as
+// untrusted text, never run the script. Do not extract other files or allow archive paths to choose a target.
+const DOCUMENTS = String.raw`
+import base64, json, sys, zipfile
+wanted = ('LEEME.md', 'FICHAS.md', 'PENDIENTES.md', 'MANIFIESTO.json', 'aplicar.py')
+with zipfile.ZipFile(sys.argv[1]) as archive:
+    documents = {}
+    for name in wanted:
+        try:
+            info = archive.getinfo(name)
+        except KeyError:
+            continue
+        if info.is_dir() or info.file_size > 1500000:
+            raise ValueError('Invalid document in photo archive: ' + name)
+        raw = archive.read(info)
+        raw.decode('utf-8-sig')
+        documents[name] = base64.b64encode(raw).decode('ascii')
+    print(json.dumps(documents))
+`;
+
+export function documentsZip(archivePath) {
+  return JSON.parse(execFileSync('python3', ['-c', DOCUMENTS, archivePath], { encoding: 'utf8', maxBuffer: 5_000_000, timeout: 30_000 }));
+}
+
 async function partFromGitHub(url, part) {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
@@ -52,7 +77,7 @@ async function partFromGitHub(url, part) {
   }
 }
 
-export async function releasePhotoInventory(source) {
+export async function releasePhotoInventory(source, keep) {
   const manifest = read();
   const url = new URL(manifest.release);
   if (url.origin !== 'https://github.com' || !/^\/diegosb72\/regionle\/releases\/tag\/[^/]+$/.test(url.pathname)) throw new Error('Unexpected release URL');
@@ -70,9 +95,11 @@ export async function releasePhotoInventory(source) {
     }
     const files = inventoryZip(archive);
     if (!files.length) throw new Error('The photo archive is empty');
+    const documents = documentsZip(archive);
+    for (const [name, base64] of Object.entries(documents)) keep(`user-photos/${name}`, Buffer.from(base64, 'base64'));
     const images = files.filter((f) => /\.(jpe?g|png|webp|tiff?)$/i.test(f.path)).length;
     const text = JSON.stringify({ source: source.from, licence: source.licence, what: source.what, release: manifest.release, parts, files }, null, 2) + '\n';
-    return { text, note: `${files.length} files (${images} images); only names, sizes and hashes saved, not the ZIP`, detail: { files: files.length, images } };
+    return { text, note: `${files.length} files (${images} images), ${Object.keys(documents).length} documents; the ZIP and images are not saved`, detail: { files: files.length, images } };
   } finally {
     fs.rmSync(temp, { recursive: true, force: true });
   }
