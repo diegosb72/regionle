@@ -149,6 +149,23 @@
 .fp-about.fp-lead {
   font-size: calc(15.5px * var(--fs));
 }
+.fp-history {
+  display: grid;
+  gap: 12px;
+  font-size: calc(15.5px * var(--fs));
+}
+.fp-flagstatus {
+  display: inline-block;
+  width: fit-content;
+  padding: 3px 9px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--accent) 13%, var(--card));
+  color: var(--accent-ink);
+  font-size: calc(12px * var(--fs));
+  font-weight: 700;
+  line-height: 1.4;
+}
+.fp-id .fp-flagstatus { margin-top: 5px; }
 .fp-from {
   color: var(--ink-3);
   font-size: calc(12.5px * var(--fs));
@@ -367,6 +384,12 @@
 .fp-times li.fp-with-pic {
   grid-template-columns: 132px minmax(0, 1fr) minmax(240px, 340px);
 }
+.fp-times li.fp-words {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 760px;
+}
+.fp-flag-history .fp-note { margin-top: 14px; }
+.fp-flag-history .fp-sources { margin-top: 8px; }
 .fp-times li:last-child {
   padding-bottom: 0;
   border-left-color: transparent;

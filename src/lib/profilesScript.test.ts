@@ -216,6 +216,7 @@ function run(
     heads?: Record<string, unknown>;
     gallery?: Record<string, unknown>;
     times?: Record<string, unknown>;
+    history?: Record<string, unknown>;
     arms?: Record<string, string[]> | null;
     flags?: string[];
   } = {},
@@ -244,6 +245,8 @@ function run(
   if (opts.gallery) fs.writeFileSync(gallery, JSON.stringify({ _: 'Further photographs for the test.', ...opts.gallery }));
   const times = path.join(dir, 'times.json');
   if (opts.times) fs.writeFileSync(times, JSON.stringify({ _: 'Researched periods of the countries of the test.', ...opts.times }));
+  const history = path.join(dir, 'history.json');
+  fs.writeFileSync(history, JSON.stringify({ _: 'Reviewed history of the countries of the test.', ...opts.history }));
   // What was brought of the coats of arms: the pictures of the test, and which of them Wikidata names for each country.
   const named = path.join(dir, 'arms');
   if (opts.arms !== null) {
@@ -257,7 +260,7 @@ function run(
   let out = '';
   let code = 0;
   try {
-    out = execFileSync('node', [SCRIPT, '--sheets', written, '--brought', brought, '--arms', named, '--said', said, '--texts', texts, '--fixes', fixes, '--heads', heads, '--gallery', gallery, '--times', times, '--data', mine, '--photos', photos, ...(opts.flags ?? [])], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    out = execFileSync('node', [SCRIPT, '--sheets', written, '--brought', brought, '--arms', named, '--said', said, '--texts', texts, '--fixes', fixes, '--heads', heads, '--gallery', gallery, '--times', times, '--history', history, '--data', mine, '--photos', photos, ...(opts.flags ?? [])], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
   } catch (err) {
     const failed = err as { status?: number; stderr?: string; stdout?: string };
     code = failed.status ?? 1;
@@ -937,6 +940,54 @@ describe('sourced accounts on generated sheets', () => {
     expect(wrong({ ...FIX(), sources: { ...SOURCES, about: [{ title: { es: 'Solo español' }, url: 'https://example.org/islands' }] } })).toContain('a title in both languages');
     expect(wrong({ ...FIX(), flag: { ...FIX().flag, parts: [{ es: ['Parte', 'Significado.'] }] } })).toContain('has no name and text in both languages');
     expect(wrong({ sources: { about: SOURCES.about } })).toContain('no matching text or links');
+  });
+});
+
+describe('sourced histories separate from introductions and illustrated flag timelines', () => {
+  const events = () => [
+    { year: 1930, when: both('1930'), text: both('Una enseña anterior del territorio') },
+    { year: 1960, when: both('Desde 1960'), text: both('La bandera actual') },
+  ];
+  const history = () => ({ history: { es: ['Antes fue una colonia.'], en: ['It was once a colony.'] }, flagHistory: events() });
+
+  it('keeps the hand-written sheet, the photographs, facts and both Wikipedia leads', () => {
+    const r = run({ AA: SHEET() }, {
+      history: { AA: { history: { es: ['Un hecho histórico.'], en: ['A historical fact.'] } }, CC: history() },
+      heads: { CC: { file: 'Falls.jpg', ...both('La costa') } },
+      texts: { 'es:Cc (país)': 'La página presenta Cc.', 'en:Flag of Cc': 'The flag is described.' },
+    });
+    expect(r.code, r.out).toBe(0);
+    expect(r.sheet('AA').about?.es).toEqual(['Uno.', 'Dos.']);
+    expect(r.sheet('AA').photos).toHaveLength(3);
+    expect(r.sheet('AA').history).toEqual({ es: ['Un hecho histórico.'], en: ['A historical fact.'] });
+    expect(r.sheet('CC').photos[0].title).toBe('Falls.jpg');
+    expect(r.sheet('CC').lead?.es).toEqual(['La página presenta Cc.']);
+    expect(r.sheet('CC').flag?.lead?.en).toEqual(['The flag is described.']);
+    expect(r.sheet('CC').flagHistory).toEqual(events());
+    expect(r.sheet('CC').sources?.history).toHaveLength(2);
+    expect(r.sheet('CC').sources?.flagHistory).toHaveLength(2);
+    expect(r.sheet('CC').times).toBeUndefined();
+  });
+
+  it('rejects missing citations, misleadingly official proposals, inconsistent years and double timelines', () => {
+    const rejected = (story: Record<string, unknown>, opts: { times?: Record<string, unknown>; fixes?: Record<string, unknown> } = {}) => {
+      const r = run({}, { history: { CC: story }, ...opts });
+      expect(r.code).not.toBe(0);
+      expect(r.written()).toEqual([]);
+      return r.out;
+    };
+    expect(rejected({ flagHistory: [{ ...events()[0], year: 2040 }] })).toContain('no valid historical order');
+    expect(rejected({ flagHistory: events().reverse() })).toContain('no valid historical order');
+    expect(rejected({ flagHistory: [{ ...events()[0], text: { es: 'Solamente español' } }] })).toContain('no text in «en»');
+    expect(rejected({ flagHistory: [{ ...events()[0], status: 'adopted' }] })).toContain('no valid historical order or kind');
+    expect(rejected({ history: history().history, historySources: [{ title: both('Fuente'), url: 'http://example.org/' }] })).toContain('needs a safe https address');
+    expect(rejected({ flagHistory: events(), flagHistorySources: [{ title: both('Fuente'), url: 'https://x:password@example.org/' }] })).toContain('needs a safe https address');
+    expect(rejected({ flagHistory: events() }, { times: { CC: { source: 'https://example.org/flag', times: [] } } })).toContain('must not replace a researched illustrated timeline');
+    const proposal = run({}, { fixes: { CC: { flag: { status: 'proposal' } } } });
+    expect(proposal.out).toContain('an unofficial flag must be identified as a proposal and its explanation must have sources');
+    const cited = run({}, { fixes: { CC: { flag: { status: 'proposal', text: { es: ['Propuesta.'], en: ['Proposal.'] } }, sources: { flag: [{ title: both('Archivo'), url: 'https://example.org/flag' }] } } } });
+    expect(cited.code, cited.out).toBe(0);
+    expect(cited.sheet('CC').flag?.status).toBe('proposal');
   });
 });
 

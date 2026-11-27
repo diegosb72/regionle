@@ -6,9 +6,9 @@ import { open, seed } from './helpers';
  * The sheet of a country, which the gallery of flags opens when the flag of a country is touched
  * (screens/FlagProfile.tsx). Every country with a flag has one: with what the game knows of it and what
  * Wikidata and Wikipedia say of it and of its flag, with how Wikipedia begins to tell of both and
- * a photograph at its head; some have a historical timeline, five polar territories have sourced accounts
- * instead of Wikipedia excerpts, selected African countries have additional photos, and Brazil has a
- * complete handwritten sheet. One sheet leads to another.
+ * a photograph at its head; all have sourced territorial histories and either a researched illustrated
+ * chronology or documented flag milestones. Five polar territories have authored introductions instead
+ * of Wikipedia excerpts; Brazil retains its complete handwritten sheet. One sheet leads to another.
  */
 
 interface Photo {
@@ -25,6 +25,7 @@ interface Photo {
 /** The sheet the site is built with: what is on screen is read against it. */
 const SHEET = JSON.parse(fs.readFileSync('public/data/profiles/BR.json', 'utf8')) as {
   about: { es: string[]; en: string[] };
+  history: { es: string[]; en: string[] };
   flag: { parts: { es: [string, string]; en: [string, string] }[] };
   times: { from: number; to?: number; now?: true; name: { es: string; en: string }; picture?: Photo }[];
   photos: Photo[];
@@ -47,8 +48,10 @@ const sheetFile = (id: string) =>
   JSON.parse(fs.readFileSync(`public/data/profiles/${id}.json`, 'utf8')) as {
     lead?: Lead;
     about?: { es: string[]; en: string[] };
-    sources?: { about?: { title: { es: string; en: string }; url: string }[]; flag?: { title: { es: string; en: string }; url: string }[] };
-    flag?: { lead?: Lead; text?: { es: string[]; en: string[] }; parts?: { es: [string, string]; en: [string, string] }[]; of?: string; adopted?: string };
+    history?: { es: string[]; en: string[] };
+    sources?: Partial<Record<'about' | 'flag' | 'history' | 'flagHistory', { title: { es: string; en: string }; url: string }[]>>;
+    flagHistory?: { year: number; when: { es: string; en: string }; text: { es: string; en: string }; status?: 'proposal' | 'unofficial' }[];
+    flag?: { lead?: Lead; text?: { es: string[]; en: string[] }; parts?: { es: [string, string]; en: [string, string] }[]; of?: string; adopted?: string; status?: 'proposal' };
     read?: { es?: string; en?: string };
     readFlag?: { es?: string; en?: string };
     photos?: (Photo & { focus?: [number, number] })[];
@@ -426,7 +429,8 @@ test.describe('the sheet of a country, in the gallery of flags', () => {
     await expect(sheet.locator('.fp-official')).toHaveText('Federative Republic of Brazil');
     await expect(sheet.locator('.fp-flag')).toHaveAttribute('alt', 'Flag of Brazil');
     await expect(sheet.locator('.fp-about p')).toHaveText(SHEET.about.en);
-    await expect(sheet.getByRole('heading', { level: 3 })).toHaveText(['At a glance', 'The flag', 'Its flags through time', 'Brazil in pictures', 'The flags of Brazil']);
+    await expect(sheet.getByRole('heading', { level: 3 })).toHaveText(['At a glance', 'History of the country or territory', 'The flag', 'Its flags through time', 'Brazil in pictures', 'The flags of Brazil']);
+    await expect(sheet.locator('.fp-history p:not(.fp-sources)')).toHaveText(SHEET.history.en);
     await expect(sheet.locator('.fp-glance .fp-facts dd').nth(1)).toHaveText(/^213 million people\s+2025 · 7th in the world$/);
     await expect(sheet.locator('.fp-glance .fp-facts dd').nth(2)).toHaveText(/^8\.51 million km²\s+5th in the world$/);
     await expect(sheet.locator('.fp-glance .label')).toHaveText('Borders 10 countries and territories');
@@ -598,7 +602,7 @@ test.describe('the sheet of a country without a complete handwritten account', (
     await expect(caption.locator('.fp-credit a').last()).toHaveAttribute('href', commons(head.title));
 
     // Its chosen head and researched timeline remain; the expanded gallery follows the old head.
-    await expect(sheet.getByRole('heading', { level: 3 })).toHaveText(['De un vistazo', 'La bandera', 'Sus banderas en el tiempo', 'España en imágenes', 'Las banderas de España']);
+    await expect(sheet.getByRole('heading', { level: 3 })).toHaveText(['De un vistazo', 'Historia del país o territorio', 'La bandera', 'Sus banderas en el tiempo', 'España en imágenes', 'Las banderas de España']);
     await expect(sheet.locator('.fp-times')).toHaveCount(1);
     await expect(sheet.locator('.fp-photos .fp-masonry figure')).toHaveCount(spain.photos!.length - 1);
     for (const none of ['.fp-about:not(.fp-lead)', '.fp-parts', '.fp-flown', '.fp-flag-in > div > p']) await expect(sheet.locator(none), none).toHaveCount(0);
@@ -678,7 +682,9 @@ test.describe('the sheet of a country without a complete handwritten account', (
     await openSheet(page, '/banderas/paises/BR');
     await expect(sheet.getByRole('heading', { level: 2 })).toHaveText('Brasil');
     await expect(sheet.locator('.fp-about p')).toHaveText(SHEET.about.es);
-    await expect(sheet.locator('.fp-lead, .fp-from')).toHaveCount(0);
+    await expect(sheet.locator('.fp-lead, .fp-about .fp-from, .fp-flagsec .fp-from')).toHaveCount(0);
+    await expect(sheet.locator('.fp-history p:not(.fp-sources)')).toHaveText(SHEET.history.es);
+    await expect(sheet.locator('.fp-history .fp-sources a').first()).toHaveAttribute('href', sheetFile('BR').sources!.history![0].url);
     await expect(sheet.locator('.fp-foot')).toContainText('El texto está escrito para el juego');
     await expect(sheet.locator('.fp-foot')).not.toContainText('comienzo de los artículos');
 
@@ -710,7 +716,8 @@ test.describe('the sheet of a country without a complete handwritten account', (
       await expect(sheet.locator('.fp-about .fp-sources')).toContainText('Fuente');
       await expect(sheet.locator('.fp-about .fp-sources a')).toHaveCount(file.sources!.about!.length);
       await expect(sheet.locator('.fp-about .fp-sources a').first()).toHaveAttribute('href', file.sources!.about![0].url);
-      await expect(sheet.locator('.fp-about.fp-lead, .fp-times, .fp-flown')).toHaveCount(0);
+      await expect(sheet.locator('.fp-about.fp-lead, .fp-flown')).toHaveCount(0);
+      await expect(sheet.locator('.fp-flag-history li')).toHaveCount(file.flagHistory!.length);
       await expect(sheet.locator('.fp-hero figcaption')).toContainText(file.photos![0].by!);
       await expect(sheet.locator('.fp-hero img')).toHaveAttribute('src', new RegExp(`photos/${file.photos![0].file}-640\\.webp$`));
       await expect.poll(() => drawn(sheet.locator('.fp-hero img'))).toBe(true);
@@ -847,7 +854,9 @@ test.describe('the sheet of a country without a complete handwritten account', (
     await expect(sheet.locator('.fp-flagsec')).not.toContainText('1969');
     await expect(sheet.locator('.fp-flagsec .fp-sources a').first()).toHaveAttribute('href', 'https://ulii.org/akn/ug/act/ord/1962/64');
     await expect(sheet.locator('.fp-parts dt')).toHaveText(sheetFile('UG').flag!.parts!.map((part) => part.es[0]));
-    await expect(sheet.locator('.fp-times')).toHaveCount(0); // The 1962 catalogue proposal was not adopted.
+    await expect(sheet.locator('.fp-flag-history li')).toHaveCount(3);
+    await expect(sheet.locator('.fp-flag-history li').nth(1).locator('.fp-flagstatus')).toHaveText('Propuesta no oficial');
+    await expect(sheet.locator('.fp-time-flag img')).toHaveCount(0); // The 1962 catalogue proposal was not adopted.
   });
 
   test('credits the new East African galleries and Uganda’s sourced flag explanation in English', async ({ page }) => {
@@ -916,7 +925,7 @@ test.describe('the sheet of a country without a complete handwritten account', (
         await expect.poll(() => drawn(figure.locator('img'))).toBe(true);
       }
       if (id === 'RW' || id === 'CD') await expect(sheet.locator('.fp-times li')).toHaveCount(id === 'RW' ? 3 : 6);
-      else await expect(sheet.locator('.fp-times')).toHaveCount(0);
+      else await expect(sheet.locator('.fp-flag-history li')).toHaveCount(file.flagHistory!.length);
       await expect(page.locator('.crash')).toHaveCount(0);
     }
   });
@@ -1190,26 +1199,101 @@ test.describe('the sheet of a country without a complete handwritten account', (
     const towns = FLAGS.capitals.filter((row) => row[1] === 'ES').length + FLAGS.cities.ES.length;
     await expect(own.locator('.fp-links a')).toHaveText(['Ver las de sus provincias', `Ver las de ${towns} ciudades`, 'Jugar con las de sus provincias']);
 
-    // A country the game has no earlier flag of tells nothing of them; one with a single town with a flag names what it is.
+    // Gibraltar has no catalogue predecessors, but its sourced flag milestones can still be read.
     expect(FLAGS.past.GI ?? []).toHaveLength(0);
     await openSheet(page, '/banderas/paises/GI');
     await expect(title(sheet)).toHaveText('Gibraltar');
-    await expect(sheet.locator('.fp-flown, .fp-times')).toHaveCount(0);
-    await expect(sheet.getByRole('heading', { level: 3 })).toHaveText(['De un vistazo', 'La bandera', 'Gibraltar en imágenes', 'Las banderas de Gibraltar']);
+    await expect(sheet.locator('.fp-flown')).toHaveCount(0);
+    await expect(sheet.locator('.fp-flag-history li')).toHaveCount(sheetFile('GI').flagHistory!.length);
+    await expect(sheet.getByRole('heading', { level: 3 })).toHaveText(['De un vistazo', 'Historia del país o territorio', 'La bandera', 'Historia de sus banderas', 'Gibraltar en imágenes', 'Las banderas de Gibraltar']);
     await expect(sheet.locator('.fp-own .fp-links a')).toHaveText(['Ver la de su capital']);
     await expect(sheet.locator('.fp-glance .label')).toHaveText('Limita con un país');
   });
 
-  test('keeps the simple past-flags gallery where no history has been written', async ({ page }) => {
+  test('adds a referenced territorial history to authored and Wikipedia introductions without replacing illustrated flags', async ({ page }) => {
     await seed(page);
-    // Tuvalu still lacks the 1995–1997 flag without a Union Jack, so it has no researched timeline yet.
+    for (const id of ['BR', 'ES', 'BV', 'SH']) {
+      const file = sheetFile(id);
+      const sheet = await openSheet(page, `/banderas/paises/${id}`);
+      await expect(sheet.locator('.fp-history h3'), id).toHaveText('Historia del país o territorio');
+      await expect(sheet.locator('.fp-history p:not(.fp-sources)'), id).toHaveText(file.history!.es);
+      await expect(sheet.locator('.fp-history .fp-sources a'), id).toHaveCount(file.sources!.history!.length);
+      await expect(sheet.locator('.fp-history .fp-sources a').first(), id).toHaveAttribute('href', file.sources!.history![0].url);
+      await expect(sheet.locator('.fp-hero img'), id).toHaveAttribute('src', /photos\//);
+      if (file.times) {
+        await expect(sheet.locator('.fp-times li.fp-words'), id).toHaveCount(0);
+        await expect(sheet.locator('.fp-times ol > li'), id).toHaveCount(file.times.length);
+      } else {
+        await expect(sheet.locator('.fp-flag-history ol > li'), id).toHaveCount(file.flagHistory!.length);
+        await expect(sheet.locator('.fp-flown'), id).toHaveCount(0);
+      }
+    }
+  });
+
+  test('distinguishes the flag displayed by the game, official island ensigns, and unadopted proposals', async ({ page }) => {
+    await seed(page);
+    const sheet = await openSheet(page, '/banderas/paises/SH');
+    await expect(sheet.locator('.fp-flag')).toHaveAttribute('alt', 'Bandera de Reino Unido, que representa a Santa Elena en el juego');
+    await expect(sheet.locator('.fp-flag-facts .fp-owner a')).toHaveText('Reino Unido');
+    await expect(sheet.locator('.fp-flag-history li')).toHaveCount(5);
+    await expect(sheet.locator('.fp-flag-history li').last()).toContainText('bandera local oficial');
+    await expect(sheet.locator('.fp-flag-history').getByRole('link', { name: /Gobierno de Santa Elena: escudo y bandera insular/ })).toHaveAttribute('href', 'https://www.sainthelena.gov.sh/st-helena-government-adopts-updated-coat-of-arms/');
+
+    await openSheet(page, '/banderas/paises/AQ');
+    await expect(sheet.locator('.fp-flag')).toHaveAttribute('alt', 'Propuesta no oficial de bandera para Antártida');
+    await expect(sheet.locator('.fp-flagsec h3')).toHaveText('La propuesta de bandera (no oficial)');
+    await expect(sheet.locator('.fp-id .fp-flagstatus')).toHaveText('Propuesta no oficial · sin bandera oficial');
+    await expect(sheet.locator('.fp-flag-history li').first().locator('.fp-flagstatus')).toHaveText('Propuesta no oficial');
+    await expect(sheet.locator('.fp-flag-history')).toContainText('no tiene bandera nacional oficial');
+  });
+
+  test('documents disputed local dates rather than using dates from the drawing catalogue', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    const sheet = await openSheet(page, '/flags/countries/LK');
+    await expect(sheet.locator('.fp-history p:not(.fp-sources)')).toHaveText(sheetFile('LK').history!.en);
+    await expect(sheet.locator('.fp-flag-history .fp-when')).toHaveText(sheetFile('LK').flagHistory!.map((e) => e.when.en));
+    await expect(sheet.locator('.fp-flag-history li').nth(2)).toContainText('the sources differ on when they appeared');
+    await expect(sheet.locator('.fp-flag-history .fp-sources a')).toContainText(['Sri Lankan High Commission in New Zealand: 1948 and 1950 flags', 'Encyclopaedia Britannica: 1951 recognition and 1972 and 1978 changes']);
+    await expect(sheet.locator('.fp-flag-facts dt').first()).toHaveText('Adopted');
+    await expect(sheet.locator('.fp-flag-facts dd').first()).toHaveText('2 March 1951');
+
+    await openSheet(page, '/flags/countries/TK');
+    await expect(sheet.locator('.fp-flag-history li').first()).toContainText('2008');
+    await expect(sheet.locator('.fp-flag-history li').first()).toContainText('February 2009');
+    await expect(sheet.locator('.fp-flag-history li').last()).toContainText('royal licence');
+    await expect(sheet.locator('.fp-flag-history li img')).toHaveCount(0);
+  });
+
+  test('dates Norway’s union mark and its removal from civil and naval ensigns using parliamentary sources', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    const sheet = await openSheet(page, '/flags/countries/NO');
+    const history = sheet.locator('.fp-flag-history');
+    await expect(history.locator('.fp-when')).toHaveText([
+      '1821 · Norwegian cross chosen', '1844 · Swedish union mark',
+      '15 December 1899 · civil flag without union mark', '9 June 1905 · removed from the military ensign',
+    ]);
+    await expect(history.locator('li').nth(2)).toContainText('The military ensign still bore the mark');
+    await expect(history.locator('li').nth(3)).toContainText('the navy and fortresses');
+    await expect(history.getByRole('link', { name: /Norwegian Parliament: 1844 union mark/ })).toHaveAttribute(
+      'href', 'https://www.stortinget.no/no/Stortinget-og-demokratiet/Historikk/stortinget-og-unionen-med-sverige/i-unionen/det-rene-norske-handelsflagget/',
+    );
+
+    await openSheet(page, '/flags/countries/GB');
+    await expect(sheet.locator('.fp-history').getByRole('link', { name: 'UK government: devolution acts of 1998' })).toHaveAttribute(
+      'href', 'https://www.gov.uk/government/publications/devolution-guidance-for-civil-servants/devolution-guidance-for-civil-servants',
+    );
+  });
+
+  test('documents Tuvalu’s alternative as an official, temporary flag without inventing its drawing', async ({ page }) => {
+    await seed(page);
     const sheet = await openSheet(page, '/banderas/paises/TV');
-    const flown = sheet.locator('.fp-flown');
-    await expect(sheet.locator('.fp-times')).toHaveCount(0);
-    await expect(flown.locator('ol > li')).toHaveCount(FLAGS.past.TV.length + 1);
-    await expect(flown.locator('.fp-when').last()).toHaveText('Hoy');
-    await expect(flown.locator('.fp-note')).toHaveText('Son las banderas anteriores que recoge Wikidata, con los años en que ondeó cada una; puede faltar alguna.');
-    await expect(flown.locator('li.fp-now img')).toHaveAttribute('src', /flags\/tv\.svg$/);
+    const history = sheet.locator('.fp-flag-history');
+    await expect(sheet.locator('.fp-flown')).toHaveCount(0);
+    await expect(history.locator('ol > li')).toHaveCount(4);
+    await expect(history.locator('.fp-when').last()).toHaveText('Desde el 11 de abril de 1997');
+    await expect(history.locator('li').nth(2)).toContainText('Fue una bandera oficial durante ese período');
+    await expect(history.locator('.fp-flagstatus, img')).toHaveCount(0); // It was adopted, but has no reviewed drawing.
+    await expect(history.locator('.fp-sources a')).not.toHaveCount(0);
   });
 
   for (const [group, ids] of [
@@ -1859,7 +1943,7 @@ test.describe('the sheet of a country without a complete handwritten account', (
     // What it calls itself is now another thing than what it is called here, and is said in its language.
     await expect(sheet.locator('.fp-local')).toHaveText('Reino de España');
     await expect(sheet.locator('.fp-local')).toHaveAttribute('lang', 'es');
-    await expect(sheet.getByRole('heading', { level: 3 })).toHaveText(['At a glance', 'The flag', 'Its flags through time', 'Spain in pictures', 'The flags of Spain']);
+    await expect(sheet.getByRole('heading', { level: 3 })).toHaveText(['At a glance', 'History of the country or territory', 'The flag', 'Its flags through time', 'Spain in pictures', 'The flags of Spain']);
     await expect(fact(sheet, 'Motto')).toHaveText(/^«Plus ultra»\s+\(Further Beyond\)$/);
     await expect(fact(sheet, 'Anthem')).toHaveText('Marcha Real');
     await expect(sheet.locator('.fp-glance .label')).toHaveText('Borders 5 countries and territories');
@@ -1949,6 +2033,27 @@ test.describe('the sheet of a country without a complete handwritten account', (
     await open(page, '/banderas/paises/AQ');
     await expect(sheet.locator('.fp-flag-facts dt')).toHaveText(['Colores', 'Diseño de']);
     await expect(sheet.locator('.fp-flag-facts dd').last()).toContainText('la Antártida no tiene bandera oficial');
+  });
+
+  test('fits cited histories, flag milestones and photographs in a phone in both languages @movil', async ({ page }) => {
+    await seed(page, { lang: 'en' });
+    for (const id of ['BR', 'SH', 'LK', 'AQ']) {
+      const file = sheetFile(id);
+      const sheet = await openSheet(page, `/flags/countries/${id}`);
+      const history = sheet.locator('.fp-history');
+      await expect(history.locator('p:not(.fp-sources)'), id).toHaveText(file.history!.en);
+      await expect(history.locator('.fp-sources a'), id).toHaveCount(file.sources!.history!.length);
+      const link = history.locator('.fp-sources a').last();
+      await link.scrollIntoViewIfNeeded();
+      await expect(link).toBeVisible();
+      if (file.flagHistory) {
+        const flags = sheet.locator('.fp-flag-history');
+        await expect(flags.locator('li'), id).toHaveCount(file.flagHistory.length);
+        await flags.locator('.fp-sources a').last().scrollIntoViewIfNeeded();
+        await expect(flags.locator('.fp-sources a').last()).toBeVisible();
+      } else await expect(sheet.locator('.fp-times ol > li'), id).toHaveCount(file.times!.length);
+      expect(await sheet.locator('.dlg-box').evaluate((el) => el.scrollWidth - el.clientWidth), id).toBeLessThanOrEqual(0);
+    }
   });
 
   test('fills a phone with nothing wider than the screen, with territorial and State photographs from side to side @movil', async ({ page }) => {

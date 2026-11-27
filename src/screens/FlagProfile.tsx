@@ -359,7 +359,7 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
   const flag = profile?.flag;
   /** What is known of the flag, each thing under its name. */
   const flagRows: Row[] = [];
-  // A territory with no flag of its own flies that of its country: whose it is comes first, and leads to it.
+  // The game's drawing may show a different country's flag, even where a constituent island has its own official ensign.
   const flies = flag?.of ? world.byId.get(flag.of) : undefined;
   if (flies) flagRows.push({ name: L('Es la de', 'It is that of'), value: <span className="fp-owner">{land(flies.id)}</span> });
   if (flag?.adopted) flagRows.push({ name: L('Adoptada', 'Adopted'), value: dayText(flag.adopted) });
@@ -410,9 +410,10 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
               </div>
             )}
             <div className="fp-id">
-              <img className="fp-flag" src={flagSrc} style={drawing && flag?.ratio ? { aspectRatio: flag.ratio.split(':').reverse().join(' / ') } : undefined} alt={L(`Bandera de ${name}`, `Flag of ${name}`)} draggable={false} />
+              <img className="fp-flag" src={flagSrc} style={drawing && flag?.ratio ? { aspectRatio: flag.ratio.split(':').reverse().join(' / ') } : undefined} alt={flag?.status === 'proposal' ? L(`Propuesta no oficial de bandera para ${name}`, `Unofficial flag proposal for ${name}`) : flies ? L(`Bandera de ${nm(flies.n)}, que representa a ${name} en el juego`, `Flag of ${nm(flies.n)}, representing ${name} in the game`) : L(`Bandera de ${name}`, `Flag of ${name}`)} draggable={false} />
               <div>
                 <p className="kicker">{nm(where)}</p>
+                {flag?.status === 'proposal' && <p className="fp-flagstatus">{L('Propuesta no oficial · sin bandera oficial', 'Unofficial proposal · no official flag')}</p>}
                 {official && <p className="fp-official">{official}</p>}
                 {profile.local && profile.local !== official && (
                   <p className={official ? 'fp-local' : 'fp-official'} lang={profile.localLang}>
@@ -467,8 +468,16 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
             )}
           </section>
 
+          {profile.history && (
+            <section className="fp-sec fp-history">
+              <h3>{L('Historia del país o territorio', 'History of the country or territory')}</h3>
+              {paragraphs(profile.history).map((text) => <p key={text}>{text}</p>)}
+              <Sources sources={profile.sources?.history} />
+            </section>
+          )}
+
           <section className="fp-sec fp-flagsec">
-            <h3>{L('La bandera', 'The flag')}</h3>
+            <h3>{flag?.status === 'proposal' ? L('La propuesta de bandera (no oficial)', 'The flag proposal (unofficial)') : L('La bandera', 'The flag')}</h3>
             <div className="fp-flag-in">
               <figure>
                 <img className="fp-flag-big" src={flagSrc} style={drawing && flag?.ratio ? { aspectRatio: flag.ratio.split(':').reverse().join(' / ') } : undefined} alt="" draggable={false} />
@@ -547,6 +556,23 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
                   </a>
                 </p>
               )}
+            </section>
+          ) : profile.flagHistory?.length ? (
+            <section className="fp-sec fp-times fp-flag-history">
+              <h3>{L('Historia de sus banderas', 'History of its flags')}</h3>
+              <ol>
+                {profile.flagHistory.map((event, i) => (
+                  <li key={`${event.year}-${i}`} className="fp-words">
+                    <div className="fp-time-text">
+                      <p className="fp-when">{say(event.when)}</p>
+                      {event.status && <strong className="fp-flagstatus">{event.status === 'proposal' ? L('Propuesta no oficial', 'Unofficial proposal') : L('Símbolo no oficial', 'Unofficial symbol')}</strong>}
+                      <p>{say(event.text)}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+              <p className="fp-note">{L('Hitos documentados, no una sucesión ininterrumpida de banderas oficiales. No se inventan enseñas anteriores cuando faltan dibujos o fuentes.', 'Documented milestones, not an uninterrupted succession of official flags. Earlier flags are not invented when drawings or sources are missing.')}</p>
+              <Sources sources={profile.sources?.flagHistory} />
             </section>
           ) : (
             flown.length > 0 && (
@@ -635,7 +661,7 @@ export function FlagProfile({ id, world, onOpen, onClose }: { id: string; world:
                 'The figures are those the whole game uses: World Bank, GeoNames, Unicode CLDR and The World Factbook.',
               )}
               {given &&
-                ` ${profile.sources
+                ` ${profile.sources?.about || profile.sources?.flag
                   ? L(
                       'Los nombres, el lema, el himno y los datos de la bandera se basan en Wikidata y Wikipedia, con las correcciones documentadas en las fuentes enlazadas.',
                       'The names, motto, anthem and flag facts are based on Wikidata and Wikipedia, with corrections documented by the linked sources.',

@@ -68,6 +68,15 @@ export interface ProfileArms extends Pick<ProfilePhoto, 'file' | 'w' | 'h' | 'ti
   kind?: 'emblem' | 'seal';
 }
 
+/** A sourced milestone without a verified drawing of the flag: never pretend a proposal was adopted. */
+export interface ProfileFlagMilestone {
+  /** Chronological order only; the visible date/period is the researched `when`, not a guessed first day. */
+  year: number;
+  when: Said;
+  text: Said;
+  status?: 'proposal' | 'unofficial';
+}
+
 /** A time of the country, by the flag it flew then: one of other times, that of what it was then, or the one it flies. */
 export interface ProfileTime {
   /** The years recorded for the drawing in the game's catalogue (`past`); they may differ from the researched years below. */
@@ -111,16 +120,21 @@ export interface ProfileFile {
   anthem?: SaidIn;
   /** What the country is: written for the game. */
   about?: { es: string[]; en: string[] };
-  /** References for the accounts written for the game, separately for the territory and its flag. */
-  sources?: { about?: ProfileSource[]; flag?: ProfileSource[] };
+  /** Its researched history, in addition to (not instead of) its introduction. */
+  history?: { es: string[]; en: string[] };
+  /** References for each researched account; country/flag history has its own links. */
+  sources?: { about?: ProfileSource[]; flag?: ProfileSource[]; history?: ProfileSource[]; flagHistory?: ProfileSource[] };
   /** How its page of Wikipedia (`read`) begins: what is shown of it while nobody has written `about`. */
   lead?: ProfileLead;
   flag?: {
     /**
-     * Whose flag it is, where it is not its own: a territory that flies that of its country (Réunion, that
-     * of France). What follows is then said of that flag, as the sheet of that country says it.
+     * Whose flag the game displays for this territory: e.g. France for Réunion or the UK for the
+     * combined Saint Helena territory. A constituent island may have its own official ensign even
+     * when the game depicts the parent country's flag. The facts here describe the displayed flag.
      */
     of?: string;
+    /** A displayed design that has no official status. Never identify it as an adopted national flag. */
+    status?: 'proposal';
     /** The day it was adopted on, or the year where the day is not known (`1889-11-19`, `1889`), and the day it was last changed on. */
     adopted?: string;
     changed?: string;
@@ -140,6 +154,8 @@ export interface ProfileFile {
   };
   /** The oldest first; the last is the flag of today. A sheet that tells nothing of them shows the flags the game has (`flownCards`). */
   times?: ProfileTime[];
+  /** Historically sourced events where the catalogue has no researched illustrated timeline. */
+  flagHistory?: ProfileFlagMilestone[];
   /** A source for a researched timeline and, if needed, a note about omitted periods or the kind of ensigns shown. */
   timeSource?: string;
   timeNote?: Said;
