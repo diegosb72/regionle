@@ -26,7 +26,6 @@ import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { releasePhotoInventory } from './release-photos.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const args = process.argv.slice(2);
@@ -2369,7 +2368,10 @@ const SOURCES = [
     what: 'Names, sizes and SHA-256 hashes of the files inside the split ZIP in scripts/data/release-photos.json, plus its five small top-level documents for review. The application script is read, never run. No image is published or assumed reusable merely because it is in the archive.',
     es: 'Inventario del archivo fotográfico aportado por el dueño',
     needs: '113',
-    run: releasePhotoInventory,
+    run: async (source, keep) => {
+      const { releasePhotoInventory } = await import('./release-photos.mjs');
+      return releasePhotoInventory(source, keep);
+    },
   },
   {
     id: 'heads',
