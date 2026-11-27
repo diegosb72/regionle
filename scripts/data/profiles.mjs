@@ -8,8 +8,10 @@
 //   npm run data:profiles                  the sheets and their pictures
 //   npm run data:profiles -- --review      the same, and what whoever corrects the sources should look at
 //
-// (`--sheets`, `--brought`, `--arms`, `--said`, `--texts`, `--fixes`, `--heads`, `--gallery`, `--times`, `--data` and
-// `--photos` name other folders and files to read from and write to: the tests run it on invented countries.)
+// (`--sheets`, `--brought`, `--arms`, `--said`, `--texts`, `--fixes`, `--heads`, `--gallery`, `--release`, `--times`,
+// `--data` and `--photos` name other folders and files to read from and write to: tests use invented countries.
+// The uploaded gallery is used in the normal build, or explicitly with `--release` in a fixture, not implicitly
+// when `--data` points at a different world.)
 //
 // A sheet is made of four things, each laid over the one before:
 //
@@ -30,6 +32,9 @@
 //      years, and `from`/`to` are the checked years shown to the reader.
 //      scripts/data/profiles-gallery.json can add captioned Commons photographs after a chosen head without
 //      writing a full sheet or changing that photograph. The same list is fetched by outside.mjs.
+//      scripts/data/release-gallery.json adds reviewed 640-px WebP photographs from the owner's archive
+//      after every existing selection; each file and its Commons licence is pinned and checked, not
+//      regenerated from an uploaded country JSON.
 //   4. scripts/data/profiles/<country>.json, where there is one: what is written of the country by hand, in
 //      the two languages of the game — what it is, what its flag means, what it was at the time of each of
 //      the flags it flew — and the photographs it is shown with, each a file of Wikimedia Commons named by
@@ -67,6 +72,7 @@
 // The pictures are not part of what the game stores to work without a connection (scripts/pwa/build.mjs):
 // each is fetched when its sheet is opened, and kept from then on.
 
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -93,6 +99,10 @@ const FIXES = path.resolve(ROOT, value('fixes') ?? 'scripts/data/profiles-fixes.
 const HEADS = path.resolve(ROOT, value('heads') ?? 'scripts/data/profiles-heads.json');
 /** Further Commons photographs, with bilingual captions, without replacing the one chosen for the head. */
 const GALLERY = path.resolve(ROOT, value('gallery') ?? 'scripts/data/profiles-gallery.json');
+/** Reviewed, credited and hash-pinned photos from the owner's archive, layered after every existing gallery. */
+const RELEASE = path.resolve(ROOT, value('release') ?? 'scripts/data/release-gallery.json');
+/** An invented world with `--data` does not silently receive the real-world release gallery. */
+const USE_RELEASE = !args.includes('--data') || args.includes('--release');
 /** Historical timelines written for the game without replacing the rest of each country's sheet. */
 const TIMES = path.resolve(ROOT, value('times') ?? 'scripts/data/profiles-times.json');
 /** How Wikipedia begins to tell of each country and of its flag, as it was brought. */
@@ -227,6 +237,36 @@ async function photograph(id, one, commons, widths, made) {
     ...text,
     ...(focus ? { focus } : {}),
   };
+}
+
+/** A reviewed photo from the release is already a WebP. Verify its pinned bytes instead of fetching the
+ * uploaded profile or trusting a path or licence from the ZIP at build time. Existing heads are untouched. */
+async function uploadedPhotograph(id, one, made) {
+  const fields = ['file', 'w', 'h', 'sizes', 'title', 'by', 'byUrl', 'licence', 'licenceUrl', 'es', 'en', 'focus', 'sha256'];
+  if (!one || typeof one !== 'object' || Object.keys(one).some((key) => !fields.includes(key))) fail(id, 'the uploaded gallery has an unexpected photograph field');
+  if (!/^[a-f0-9]{10}$/.test(one.file ?? '') || !/^[a-f0-9]{64}$/.test(one.sha256 ?? '')) fail(id, 'an uploaded photo has no pinned image and checksum');
+  if (!Number.isInteger(one.w) || !Number.isInteger(one.h) || one.w < 640 || one.h < 1 || JSON.stringify(one.sizes) !== '[640]') fail(id, `«${one.title}» has unexpected uploaded image dimensions`);
+  if (typeof one.title !== 'string' || !/\.(jpe?g|png|tiff?)$/i.test(one.title)) fail(id, 'an uploaded photo has no Commons title');
+  if (!FREE.test(one.licence ?? '')) fail(id, `«${one.title}» has no known free licence`);
+  if ((one.licence ?? '').startsWith('CC') && (!URL.canParse(one.licenceUrl ?? '') || new URL(one.licenceUrl).hostname !== 'creativecommons.org' || new URL(one.licenceUrl).protocol !== 'https:')) fail(id, `«${one.title}» has no safe licence URL`);
+  if (one.by !== undefined && (typeof one.by !== 'string' || !one.by.trim() || one.by.length > 60)) fail(id, `«${one.title}» has no short, named author`);
+  if (/^CC BY/.test(one.licence) && !one.by) fail(id, `«${one.title}» requires a named author`);
+  if (one.byUrl !== undefined) {
+    const url = typeof one.byUrl === 'string' && URL.canParse(one.byUrl) ? new URL(one.byUrl) : null;
+    if (!one.by || url?.protocol !== 'https:' || url.username || url.password || !url.hostname) fail(id, `«${one.title}» has no safe https credit site (byUrl)`);
+  }
+  said(id, `the uploaded photograph «${one.title}»`, one);
+  if (one.focus !== undefined && (!Array.isArray(one.focus) || one.focus.length !== 2 || one.focus.some((n) => !Number.isFinite(n) || n < 0 || n > 100))) fail(id, `«${one.title}» has an invalid focus`);
+  const name = `${one.file}-640.webp`;
+  const imagePath = path.join(PICTURES, name);
+  if (!fs.existsSync(imagePath)) fail(id, `the pinned uploaded photo is missing: ${name}`);
+  const bytes = fs.readFileSync(imagePath);
+  if (bytes.length < 2_000 || bytes.length > HEAVY(640) || bytes.subarray(8, 12).toString('latin1') !== 'WEBP' || createHash('sha256').update(bytes).digest('hex') !== one.sha256) fail(id, `the uploaded photo does not match its pinned image: ${name}`);
+  const shape = await sharp(bytes).metadata();
+  if (shape.format !== 'webp' || shape.width !== 640 || !shape.height || Math.abs(shape.height - Math.round(640 * one.h / one.w)) > 2) fail(id, `the uploaded photo is not a 640 px WebP with its declared proportions: ${name}`);
+  made.add(name);
+  const { sha256: _checksum, ...photo } = one;
+  return photo;
 }
 
 /** What tells that Commons says something other than a name where it says who made a file, or more than fits under it. */
@@ -532,6 +572,9 @@ async function main() {
   const { _: _why, ...fixes } = fs.existsSync(FIXES) ? read(FIXES) : {};
   const { _: _what, ...heads } = fs.existsSync(HEADS) ? read(HEADS) : {};
   const { _: _gallery, ...gallery } = fs.existsSync(GALLERY) ? read(GALLERY) : {};
+  if (args.includes('--release') && !fs.existsSync(RELEASE)) throw new Error(`The reviewed release gallery is missing: ${RELEASE}`);
+  const uploaded = USE_RELEASE && fs.existsSync(RELEASE) ? read(RELEASE).countries : {};
+  if (!uploaded || typeof uploaded !== 'object' || Array.isArray(uploaded)) throw new Error('The reviewed release gallery has no country lists');
   const { _: _timeline, ...timelines } = fs.existsSync(TIMES) ? read(TIMES) : {};
   if (!fs.existsSync(path.join(ARMS, 'arms.json'))) throw new Error(`What was brought of the coats of arms is not in ${path.relative(ROOT, ARMS) || ARMS}: run «npm run data:fetch -- arms»`);
   const emblems = read(path.join(ARMS, 'arms.json'));
@@ -555,6 +598,11 @@ async function main() {
     if (!Array.isArray(photos) || !photos.length) fail(id, 'a gallery needs photographs');
     const files = [heads[id].file?.trim(), ...photos.map((p) => (typeof p?.file === 'string' ? p.file.trim() : ''))];
     if (files.some((file) => !file) || new Set(files).size !== files.length) fail(id, 'a gallery must not repeat its head or another photograph');
+  }
+  for (const [id, photos] of Object.entries(uploaded)) {
+    if (!lands.some((c) => c.id === id)) fail(id, 'the uploaded gallery names no country of the game with a flag');
+    if (!Array.isArray(photos) || !photos.length) fail(id, 'the uploaded gallery needs photographs');
+    if (new Set(photos.map((p) => p?.title)).size !== photos.length) fail(id, 'the uploaded gallery repeats a title');
   }
   for (const id of Object.keys(timelines)) {
     if (!lands.some((c) => c.id === id)) fail(id, 'a timeline was written for what is no country of the game with a flag');
@@ -607,6 +655,17 @@ async function main() {
         one.timeSource = source;
         if (note !== undefined) one.timeNote = said(id, 'the note on its timeline', note);
         count.timeline++;
+      }
+    }
+    if (uploaded[id]) {
+      if (!Array.isArray(one.photos) || !one.photos.length || one.photos.length + uploaded[id].length > 8) fail(id, 'uploaded photos would replace or overfill its existing gallery');
+      const titles = new Set(one.photos.map((photo) => photo.title));
+      const names = new Set(one.photos.map((photo) => photo.file));
+      for (const photo of uploaded[id]) {
+        if (titles.has(photo.title) || names.has(photo.file)) fail(id, `«${photo.title}» would repeat or replace an existing photograph`);
+        one.photos.push(await uploadedPhotograph(id, photo, made));
+        titles.add(photo.title);
+        names.add(photo.file);
       }
     }
     sheets.set(id, one);

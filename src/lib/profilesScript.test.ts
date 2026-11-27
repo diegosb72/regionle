@@ -352,6 +352,47 @@ describe('the sheet of a country, as the script makes it', () => {
     expect(r.written()).toEqual(ALL);
   });
 
+  it('adds only a hash-pinned, licensed release WebP after existing photos, and keeps it on regeneration', async () => {
+    const file = 'abcdef0123';
+    const pixels = Buffer.alloc(640 * 320 * 3);
+    let seed = 1;
+    for (let i = 0; i < pixels.length; i++) { seed = (seed * 1664525 + 1013904223) >>> 0; pixels[i] = seed >>> 24; }
+    const image = await sharp(pixels, { raw: { width: 640, height: 320, channels: 3 } }).webp().toBuffer();
+    const release = path.join(TMP, 'fixture-reviewed-release.json');
+    const photo = {
+      file, w: 1920, h: 960, sizes: [640], title: 'New Commons.jpg', by: 'Ana Pérez',
+      licence: 'CC BY 4.0', licenceUrl: 'https://creativecommons.org/licenses/by/4.0',
+      es: 'Una vista del lugar', en: 'A view of the place', sha256: createHash('sha256').update(image).digest('hex'),
+    };
+    const use = (as: typeof photo, bytes: Buffer) => {
+      fs.writeFileSync(release, JSON.stringify({ countries: { AA: [as] } }));
+      return run({ AA: SHEET() }, {
+        flags: ['--release', release],
+        before: ({ photos }) => { fs.mkdirSync(photos, { recursive: true }); fs.writeFileSync(path.join(photos, `${file}-640.webp`), bytes); },
+      });
+    };
+    const good = use(photo, image);
+    expect(good.code).toBe(0);
+    expect(good.sheet('AA').photos.map((p) => p.title)).toEqual(['Head.jpg', 'Falls.jpg', 'Small.jpg', 'New Commons.jpg']);
+    const { sha256: _hash, ...publicPhoto } = photo;
+    expect(good.sheet('AA').photos.at(-1)).toEqual(publicPhoto);
+    expect(good.pictures()).toContain(`${file}-640.webp`);
+    expect(good.sheet('BB').photos).toBeUndefined();
+
+    const corrupt = use(photo, Buffer.from('not a photo'));
+    expect(corrupt.code).not.toBe(0);
+    expect(corrupt.out).toContain('does not match its pinned image');
+    expect(corrupt.written()).toEqual([]);
+    const duplicate = use({ ...photo, title: 'Head.jpg' }, image);
+    expect(duplicate.code).not.toBe(0);
+    expect(duplicate.out).toContain('would repeat or replace');
+    expect(duplicate.written()).toEqual([]);
+    const closed = use({ ...photo, licence: 'All rights reserved' }, image);
+    expect(closed.code).not.toBe(0);
+    expect(closed.out).toContain('no known free licence');
+    expect(closed.written()).toEqual([]);
+  });
+
   it('lays what is written over the sheet of each country that has it, and makes a photograph that two show once', () => {
     const other = { ...SHEET(), id: 'BB', times: [{ past: [1700, 1750], from: 1700, to: 1750, name: both('Vieja'), text: both('Vieja') }, { now: true, from: 1750, name: both('Hoy'), text: both('Hoy') }], photos: [{ file: 'Falls.jpg', ...both('Las mismas cataratas') }] };
     const r = run({ AA: SHEET(), BB: other });

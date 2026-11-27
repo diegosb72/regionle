@@ -101,14 +101,16 @@ async function partFromGitHub(url, part) {
   }
 }
 
-export async function releasePhotoInventory(source, keep) {
+// Download the same immutable, per-part SHA-256-checked release both for its inventory and for the
+// later, explicitly reviewed extraction. Never trust a ZIP filename from the release as an output path.
+export async function withReleaseArchive(use) {
   const manifest = read();
   const url = new URL(manifest.release);
   if (url.origin !== 'https://github.com' || !/^\/diegosb72\/regionle\/releases\/tag\/[^/]+$/.test(url.pathname)) throw new Error('Unexpected release URL');
   const parts = manifest.parts;
   if (!Array.isArray(parts) || !parts.length || parts.length > 20 || new Set(parts.map((p) => p.file)).size !== parts.length) throw new Error('Missing or duplicate archive parts');
   const base = manifest.release.replace('/releases/tag/', '/releases/download/');
-  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'regionle-photo-inventory-'));
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'regionle-photo-archive-'));
   const archive = path.join(temp, 'photos.zip');
   try {
     for (const [index, part] of parts.entries()) {
@@ -117,6 +119,14 @@ export async function releasePhotoInventory(source, keep) {
       fs.appendFileSync(archive, bytes);
       console.log(`${part.file}: ${(bytes.length / 1e6).toFixed(1)} MB, SHA-256 correct`);
     }
+    return await use(archive, manifest);
+  } finally {
+    fs.rmSync(temp, { recursive: true, force: true });
+  }
+}
+
+export async function releasePhotoInventory(source, keep) {
+  return withReleaseArchive(async (archive, manifest) => {
     const files = inventoryZip(archive);
     if (!files.length) throw new Error('The photo archive is empty');
     const documents = documentsZip(archive);
@@ -124,9 +134,7 @@ export async function releasePhotoInventory(source, keep) {
     const profiles = profilesZip(archive);
     keep('user-photos/profiles.json', Buffer.from(JSON.stringify(profiles) + '\n'));
     const images = files.filter((f) => /\.(jpe?g|png|webp|tiff?)$/i.test(f.path)).length;
-    const text = JSON.stringify({ source: source.from, licence: source.licence, what: source.what, release: manifest.release, parts, files }, null, 2) + '\n';
+    const text = JSON.stringify({ source: source.from, licence: source.licence, what: source.what, release: manifest.release, parts: manifest.parts, files }, null, 2) + '\n';
     return { text, note: `${files.length} files (${images} images), ${Object.keys(documents).length} documents and ${Object.keys(profiles).length} photo lists; no images saved`, detail: { files: files.length, images } };
-  } finally {
-    fs.rmSync(temp, { recursive: true, force: true });
-  }
+  });
 }

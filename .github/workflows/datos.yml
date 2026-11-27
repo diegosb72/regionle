@@ -14,8 +14,10 @@
 #   · "Descargar" runs `npm run data:outside` (scripts/data/outside.mjs), which downloads what its list
 #     says. This job can read the repository and nothing else.
 #   · "Guardar en la rama datos" runs nothing of the repository: it takes what the first job downloaded and
-#     keeps it in the branch `datos`. That branch is the only thing this workflow ever writes: `main` is not
-#     touched and nothing is published.
+#     keeps it in the branch `datos`. That is the only branch touched by ordinary data-source runs.
+#   · Only with the explicit `photos-upload-extract` manual input on a proposal branch, a separate job
+#     downloads the pinned release, verifies each reviewed WebP and commits the selected photos to that SAME
+#     branch. Never to main, and never by applying uploaded JSON to the generated country sheets.
 #
 # A source that could not be read ends the run in red, after what was read has been kept.
 #
@@ -53,6 +55,7 @@ concurrency:
 jobs:
   descargar:
     name: Descargar
+    if: ${{ inputs.solo != 'photos-upload-extract' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     outputs:
@@ -143,3 +146,35 @@ jobs:
           git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" -c core.hooksPath=/dev/null commit --quiet --message "Datos de fuera, traídos con $DE"
           git push --quiet origin HEAD:refs/heads/datos
           echo "::notice title=Guardado::La rama datos tiene lo que se acaba de traer."
+
+  fotos_revisadas:
+    name: Extraer fotografías revisadas en la rama de la propuesta
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.solo == 'photos-upload-extract' && github.ref_type == 'branch' && github.ref_name != 'main' && github.ref_name != 'datos' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Solo las fotos elegidas y fijadas por SHA-256
+        run: node scripts/data/extract-release.mjs
+      - name: Guardar las imágenes sin tocar ninguna otra rama
+        env:
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          test "$(git branch --show-current)" = "$BRANCH"
+          git add -- public/photos/
+          if git diff --cached --quiet; then
+            echo "::notice title=Sin cambios::Las fotos revisadas ya estaban en la rama."
+            exit 0
+          fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" -c core.hooksPath=/dev/null commit --quiet -m "Incorporar WebP revisados de la release imagenes"
+          git push origin "$BRANCH"

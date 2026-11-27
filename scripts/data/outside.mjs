@@ -2401,6 +2401,25 @@ const SOURCES = [
     },
   },
   {
+    id: 'photos-upload-rights',
+    file: 'user-photos/rights.json',
+    from: 'Wikimedia Commons (https://commons.wikimedia.org)',
+    licence: 'Las fichas de Commons se ofrecen con licencia CC BY-SA; las fotografías tienen sus propias licencias, que hay que revisar por separado',
+    what: 'Wikitext de las páginas de Commons para las candidatas marcadas como dominio público, para detectar fotografías con dos licencias distintas (p. ej. edificio PD y fotografía CC BY) y avisos no reflejados en los metadatos resumidos. No aprueba derechos automáticamente.',
+    es: 'Revisión de licencias múltiples en las fotografías de dominio público del ZIP',
+    needs: '113',
+    run: async (source) => {
+      const gallery = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/data/release-gallery.json'), 'utf8'));
+      const names = Object.values(gallery.countries).flat().filter((photo) => photo.licence === 'Public domain').map((photo) => photo.title).sort();
+      if (names.length < 50 || names.length > 250) throw new Error('Implausible number of public-domain photo pages to review');
+      const { pages, titled } = await commonsOf(names, { prop: 'revisions', rvprop: 'content', rvslots: 'main' }, patient().until);
+      const files = Object.fromEntries(names.map((name) => [name, pages.get(titled(name))?.revisions?.[0]?.slots?.main?.content ?? null]));
+      if (Object.values(files).some((text) => typeof text !== 'string' || !text.length)) throw new Error('Commons did not return all the pages for the public-domain review');
+      return { text: JSON.stringify({ source: source.from, what: source.what, files }) + '\n',
+        note: `${names.length} Commons file pages captured for checking more than one license; no images saved`, detail: { files: names.length } };
+    },
+  },
+  {
     id: 'heads',
     file: 'heads/heads.json',
     from: 'Wikidata (https://www.wikidata.org) y Wikimedia Commons (https://commons.wikimedia.org)',
