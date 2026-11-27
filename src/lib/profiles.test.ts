@@ -65,6 +65,10 @@ const GALLERIED = ['AQ', 'BV', 'GS', 'HM', 'KE', 'TF', 'TZ', 'UG', 'RW', 'BI', '
 /** Commons gallery photographs after the chosen head, with captions/credits checked on each file's page. */
 type GallerySource = { file: string; es: string; en: string; by?: string };
 const GALLERY = Object.fromEntries(Object.entries(json<Record<string, unknown>>('scripts/data/profiles-gallery.json')).filter(([id]) => id !== '_')) as Record<string, GallerySource[]>;
+/** Reviewed photos from the owner's archive, after all existing heads and Commons galleries. */
+type ReleasePhoto = ProfilePhoto & { sha256: string };
+const RELEASE_FILE = json<{ countries: Record<string, ReleasePhoto[]>; excluded: { id: string; title: string; reason: string }[] }>('scripts/data/release-gallery.json');
+const RELEASE = RELEASE_FILE.countries;
 const FIXES = json<Record<string, Partial<ProfileFile>>>('scripts/data/profiles-fixes.json');
 /** Independent, sourced timelines: these add to the generated sheets rather than replacing them. */
 const TIMELINE_FILE = json<Record<string, unknown>>('scripts/data/profiles-times.json');
@@ -352,7 +356,7 @@ describe('the sheet of every country', () => {
         if (!CURATED.some((id) => id === sheet.id)) expect(sheet.about, `${sheet.id}.about`).toBeUndefined();
         if (TIMELINES[sheet.id]) expect(sheet.times?.length, `${sheet.id}.times`).toBe(TIMELINES[sheet.id].times.length);
         else expect(sheet.times, `${sheet.id}.times`).toBeUndefined();
-        expect(sheet.photos?.length ?? 0, `${sheet.id}.photos`).toBeLessThanOrEqual(1 + (GALLERY[sheet.id]?.length ?? 0));
+        expect(sheet.photos?.length ?? 0, `${sheet.id}.photos`).toBeLessThanOrEqual(1 + (GALLERY[sheet.id]?.length ?? 0) + (RELEASE[sheet.id]?.length ?? 0));
       }
     }
   });
@@ -397,7 +401,7 @@ describe('the sheet of every country', () => {
       if (WRITTEN.includes(sheet.id)) continue;
       const head = chosen[sheet.id];
       expect(head, sheet.id).toBeDefined();
-      expect(sheet.photos, sheet.id).toHaveLength(1 + (GALLERY[sheet.id]?.length ?? 0));
+      expect(sheet.photos, sheet.id).toHaveLength(1 + (GALLERY[sheet.id]?.length ?? 0) + (RELEASE[sheet.id]?.length ?? 0));
       const photo = sheet.photos![0];
       expect(photo.title, sheet.id).toBe(head.file);
       expect([photo.es, photo.en], sheet.id).toEqual([head.es, head.en]);
@@ -691,7 +695,7 @@ describe('sourced polar accounts and additional Commons galleries', () => {
       }
       expect(sheet.read?.es, id).toMatch(/^https:\/\/es\.wikipedia\.org\/wiki\//);
       expect(sheet.read?.en, id).toMatch(/^https:\/\/en\.wikipedia\.org\/wiki\//);
-      expect(sheet.photos, id).toHaveLength(1 + GALLERY[id].length);
+      expect(sheet.photos, id).toHaveLength(1 + GALLERY[id].length + (RELEASE[id]?.length ?? 0));
       expect(sheet.photos?.[0].by, id).toBeTruthy();
       expect(sheet.photos?.[0].licence, id).toMatch(/^(CC BY(-SA)? \d|Public domain)/);
       expect(JSON.stringify(sheet), id).not.toContain('Placeholder');
@@ -707,7 +711,7 @@ describe('sourced polar accounts and additional Commons galleries', () => {
     const heads = json<Record<string, { file: string; es: string; en: string }>>('scripts/data/profiles-heads.json');
     const used = new Set<string>();
     for (const id of GALLERIED) {
-      const [hero, ...photos] = sheetOf(id).photos!;
+      const [hero, ...photos] = sheetOf(id).photos!.slice(0, 1 + GALLERY[id].length);
       expect(hero.title, id).toBe(heads[id].file);
       expect([hero.es, hero.en], id).toEqual([heads[id].es, heads[id].en]);
       expect(photos, id).toHaveLength(['RW', 'BI', 'CD', 'ZM', 'AO', 'NA'].includes(id) ? 4 : 2);
@@ -735,30 +739,30 @@ describe('sourced polar accounts and additional Commons galleries', () => {
   it('keeps Rwanda’s existing timeline, does not invent one for Burundi and identifies the palace as a reconstruction', () => {
     const rwanda = sheetOf('RW');
     const burundi = sheetOf('BI');
-    expect(rwanda.photos).toHaveLength(5);
-    expect(burundi.photos).toHaveLength(5);
+    expect(rwanda.photos?.length).toBe(5 + (RELEASE.RW?.length ?? 0));
+    expect(burundi.photos?.length).toBe(5 + (RELEASE.BI?.length ?? 0));
     expect(rwanda.times).toHaveLength(3);
     expect(rwanda.timeSource).toBe(TIMELINES.RW.source);
     expect(burundi.times).toBeUndefined();
     const palace = rwanda.photos?.find((photo) => photo.title === 'Rwanda Nyanza Mwami Palace.jpg');
     expect(palace?.es).toMatch(/^Reconstrucción del palacio/);
     expect(palace?.en).toMatch(/^Reconstruction of the traditional/);
-    expect(rwanda.photos?.slice(1).map((photo) => photo.licence)).toEqual(['CC BY-SA 4.0', 'CC BY-SA 4.0', 'CC BY-SA 4.0', 'CC BY-SA 3.0']);
-    expect(burundi.photos?.slice(1).map((photo) => photo.licence)).toEqual(['CC BY-SA 4.0', 'CC BY-SA 4.0', 'CC BY-SA 4.0', 'CC BY 2.0']);
+    expect(rwanda.photos?.slice(1, 5).map((photo) => photo.licence)).toEqual(['CC BY-SA 4.0', 'CC BY-SA 4.0', 'CC BY-SA 4.0', 'CC BY-SA 3.0']);
+    expect(burundi.photos?.slice(1, 5).map((photo) => photo.licence)).toEqual(['CC BY-SA 4.0', 'CC BY-SA 4.0', 'CC BY-SA 4.0', 'CC BY 2.0']);
   });
 
   it('keeps DR Congo’s six flag periods and Zambia’s lack of a timeline alongside their new photographs', () => {
     const congo = sheetOf('CD');
     const zambia = sheetOf('ZM');
-    expect(congo.photos).toHaveLength(5);
-    expect(zambia.photos).toHaveLength(5);
+    expect(congo.photos?.length).toBe(5 + (RELEASE.CD?.length ?? 0));
+    expect(zambia.photos?.length).toBe(5 + (RELEASE.ZM?.length ?? 0));
     expect(congo.photos?.[0].title).toBe('Virunga 01.jpg');
     expect(zambia.photos?.[0].title).toBe('Cataratas Victoria, Zambia-Zimbabue, 2018-07-27, DD 05.jpg');
     expect(congo.times).toHaveLength(6);
     expect(congo.timeSource).toBe(TIMELINES.CD.source);
     expect(zambia.times).toBeUndefined();
-    expect(congo.photos?.slice(1).map((photo) => photo.licence)).toEqual(['CC BY-SA 3.0', 'CC BY-SA 3.0', 'CC BY 3.0', 'CC BY-SA 3.0']);
-    expect(zambia.photos?.slice(1).map((photo) => photo.licence)).toEqual(['CC BY 2.0', 'CC BY-SA 4.0', 'CC BY-SA 4.0', 'CC BY-SA 4.0']);
+    expect(congo.photos?.slice(1, 5).map((photo) => photo.licence)).toEqual(['CC BY-SA 3.0', 'CC BY-SA 3.0', 'CC BY 3.0', 'CC BY-SA 3.0']);
+    expect(zambia.photos?.slice(1, 5).map((photo) => photo.licence)).toEqual(['CC BY 2.0', 'CC BY-SA 4.0', 'CC BY-SA 4.0', 'CC BY-SA 4.0']);
   });
 
   it('keeps Angola and Namibia’s chosen heads and flag dates, adding photos but no unsourced timelines', () => {
@@ -776,9 +780,9 @@ describe('sourced polar accounts and additional Commons galleries', () => {
     };
     for (const [id, { head, adopted, licences }] of Object.entries(expected)) {
       const sheet = sheetOf(id);
-      expect(sheet.photos, id).toHaveLength(5);
+      expect(sheet.photos?.length, id).toBe(5 + (RELEASE[id]?.length ?? 0));
       expect(sheet.photos?.[0].title, id).toBe(head);
-      expect(sheet.photos?.slice(1).map((photo) => photo.licence), id).toEqual(licences);
+      expect(sheet.photos?.slice(1, 5).map((photo) => photo.licence), id).toEqual(licences);
       expect(sheet.flag?.adopted, id).toBe(adopted);
       expect(sheet.times, id).toBeUndefined();
     }
@@ -836,6 +840,32 @@ describe('the sourced correction to Uganda’s flag description', () => {
   });
 });
 
+describe('the reviewed WebPs from the owner’s photo release', () => {
+  it('preserves every chosen head and earlier gallery, then adds only the pinned bilingual photos across 248 more sheets', () => {
+    expect(Object.keys(RELEASE).sort()).toEqual(LANDS.filter((id) => id !== 'BR').sort());
+    expect(Object.values(RELEASE).flat()).toHaveLength(1330);
+    expect(RELEASE_FILE.excluded).toHaveLength(15); // Eight too-wide panoramas, seven with uncertain rights.
+    for (const id of LANDS) {
+      const sheet = sheetOf(id);
+      if (id === 'BR') { expect(RELEASE[id]).toBeUndefined(); continue; }
+      const prior = 1 + (GALLERY[id]?.length ?? 0);
+      const rows = RELEASE[id];
+      expect(sheet.photos?.length, id).toBe(prior + rows.length);
+      expect(sheet.photos?.length, id).toBeLessThanOrEqual(8);
+      expect(new Set(sheet.photos?.map((photo) => photo.title)).size, id).toBe(sheet.photos?.length);
+      const approved = rows.map(({ sha256: _hash, ...photo }) => photo);
+      expect(sheet.photos?.slice(prior), id).toEqual(approved);
+      for (const photo of rows) {
+        expect(photo.sizes, photo.title).toEqual([640]);
+        const file = path.join(ROOT, PICTURES, `${photo.file}-640.webp`);
+        expect(fs.existsSync(file), file).toBe(true);
+        expect(createHash('sha256').update(fs.readFileSync(file)).digest('hex'), file).toBe(photo.sha256);
+      }
+    }
+    for (const excluded of RELEASE_FILE.excluded) expect(sheetOf(excluded.id).photos?.map((p) => p.title), excluded.title).not.toContain(excluded.title);
+  });
+});
+
 describe('researched timelines layered over the generated sheets', () => {
   it('covers eighty-six real countries without replacing their photograph or attributing corrected text to Wikipedia', () => {
     expect(typeof TIMELINE_REASON).toBe('string');
@@ -850,7 +880,7 @@ describe('researched timelines layered over the generated sheets', () => {
       const source = TIMELINES[id];
       expect(sheet.about, id).toBeUndefined();
       // Timelines do not replace the chosen head or any separately curated gallery (TZ has both).
-      expect(sheet.photos, id).toHaveLength(1 + (GALLERY[id]?.length ?? 0));
+      expect(sheet.photos, id).toHaveLength(1 + (GALLERY[id]?.length ?? 0) + (RELEASE[id]?.length ?? 0));
       expect(sheet.lead?.es?.length, id).toBeGreaterThan(0);
       expect(sheet.lead?.en?.length, id).toBeGreaterThan(0);
       // Misleading dates and descriptions are hidden, not rewritten as if they came from Wikipedia.
@@ -1190,7 +1220,8 @@ describe.each(WRITTEN.map((id) => [id]))('the sheet of %s, written by hand', (id
       expect(photo.w).toBeGreaterThan(0);
       expect(photo.h).toBeGreaterThan(0);
       // The widths of where it is shown: the one at the head of the sheet, those of its gallery, that of a time.
-      const wanted: readonly number[] = i === 0 ? WIDTHS.head : i < sheet.photos.length ? WIDTHS.photo : WIDTHS.time;
+      const released = i >= sheet.photos.length - (RELEASE[id]?.length ?? 0) && i < sheet.photos.length;
+      const wanted: readonly number[] = i === 0 ? WIDTHS.head : released ? [640] : i < sheet.photos.length ? WIDTHS.photo : WIDTHS.time;
       expect(photo.sizes, photo.title).toEqual(wanted.filter((w) => w <= photo.w));
       for (const w of photo.sizes) {
         const file = path.join(ROOT, PICTURES, `${photo.file}-${w}.webp`);
