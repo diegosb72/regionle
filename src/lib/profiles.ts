@@ -11,6 +11,8 @@
  *     the game: what a sheet tells in words while nobody has written of the country;
  *   · a researched timeline of historical flags, where someone has written it in both languages, without
  *     displacing that country's chosen photograph or its Wikipedia text;
+ *   · sourced bilingual accounts of some territories and their flags, which replace their Wikipedia excerpts
+ *     but retain their chosen photographs and do not invent periods without historical flags;
  *   · and, where somebody has written a whole sheet (Brazil), what the country is, what its flag
  *     means, what it was at the time of each flag it flew, and the photographs it is shown with.
  */
@@ -24,6 +26,12 @@ import { loadFile } from './world';
 export interface Said {
   es: string;
   en: string;
+}
+
+/** A reference for a summary written for the game, not a quotation of a Wikipedia lead. */
+export interface ProfileSource {
+  title: Said;
+  url: string;
 }
 
 /** A photograph of Wikimedia Commons, as a sheet shows it. */
@@ -103,6 +111,8 @@ export interface ProfileFile {
   anthem?: SaidIn;
   /** What the country is: written for the game. */
   about?: { es: string[]; en: string[] };
+  /** References for the accounts written for the game, separately for the territory and its flag. */
+  sources?: { about?: ProfileSource[]; flag?: ProfileSource[] };
   /** How its page of Wikipedia (`read`) begins: what is shown of it while nobody has written `about`. */
   lead?: ProfileLead;
   flag?: {

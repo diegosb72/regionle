@@ -395,6 +395,7 @@ function run(source: string, data: string, env: Record<string, string> = {}, out
       OUTSIDE_FLAG_SIGNALS: none,
       OUTSIDE_PROFILES: none,
       OUTSIDE_TIMES: none,
+      OUTSIDE_GALLERY: none,
       OUTSIDE_HEADS: none,
       OUTSIDE_HEADS_ASKED: none,
       OUTSIDE_PROFILE_FIXES: none,
@@ -1326,6 +1327,29 @@ describe('the photographs of the sheets of the countries', () => {
     expect(r.data().files['Past.jpg']).toMatchObject({ licence: 'Public domain', artist: 'E. Le Deley', picture: picture('a period document') });
     expect(asked.filter((q) => q === 'picture Past.jpg')).toHaveLength(1);
     expect(r.data().files['Not Rio.jpg']).toBeUndefined();
+  });
+
+  it('asks Commons for a chosen head and its captioned gallery together, without changing the head', async () => {
+    const headsFile = path.join(fresh('heads'), 'profiles-heads.json');
+    fs.writeFileSync(headsFile, JSON.stringify({ _: 'chosen head', ES: { file: 'Head.jpg' } }));
+    const galleryFile = path.join(fresh('gallery'), 'profiles-gallery.json');
+    fs.writeFileSync(galleryFile, JSON.stringify({
+      _: 'captioned additions',
+      ES: [
+        { file: 'More.jpg', es: 'Un lugar', en: 'A place', by: 'Ana' },
+        { file: 'Another.jpg', es: 'Otro lugar', en: 'Another place', by: 'Luis' },
+      ],
+    }));
+    for (const title of ['Head.jpg', 'More.jpg', 'Another.jpg']) {
+      world.files[title] = { body: `a picture of ${title}`, mime: 'image/jpeg', licence: 'CC BY-SA 4.0', artist: title === 'Another.jpg' ? 'Luis' : 'Ana' };
+    }
+    const r = await run('photos', PLAIN(), { OUTSIDE_HEADS: headsFile, OUTSIDE_GALLERY: galleryFile });
+    expect(r.code).toBe(0);
+    expect(r.source().ok).toBe(true);
+    expect(r.data().items).toEqual({ ES: { photos: ['Head.jpg', 'More.jpg', 'Another.jpg'] } });
+    expect(Object.keys(r.data().files).sort()).toEqual(['Another.jpg', 'Head.jpg', 'More.jpg']);
+    expect(r.data().files['More.jpg']).toMatchObject({ licence: 'CC BY-SA 4.0', artist: 'Ana', picture: picture('a picture of More.jpg') });
+    expect(asked.filter((q) => q.startsWith('picture '))).toHaveLength(3);
   });
 
   it('keeps what it could bring when a picture does not come, and says which did not', async () => {

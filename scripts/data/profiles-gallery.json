@@ -1,0 +1,271 @@
+{
+  "_": "Photographs added after the chosen head, not instead of it. Each title is a Wikimedia Commons file checked for its location, author and free licence on its file page. The source photos brings the file and its Commons metadata; profiles.mjs makes the bilingual caption and credits from both. No images from the uploaded JSON are used.",
+  "AQ": [
+    {
+      "file": "Lemaire Channel, Antarctica.jpg",
+      "es": "El canal Lemaire, entre la península Antártica y la isla Booth",
+      "en": "Lemaire Channel, between the Antarctic Peninsula and Booth Island",
+      "by": "Liam Quinn"
+    },
+    {
+      "file": "McMurdo Station.jpg",
+      "es": "La estación McMurdo vista desde Observation Hill, en la isla de Ross",
+      "en": "McMurdo Station seen from Observation Hill on Ross Island",
+      "by": "Gaelen Marsden"
+    }
+  ],
+  "BV": [
+    {
+      "file": "Antarktisk pelssel på Bouvetøya, Nyrøysa.jpg",
+      "es": "Lobos marinos antárticos en Nyrøysa, isla Bouvet",
+      "en": "Antarctic fur seals at Nyrøysa, Bouvet Island",
+      "by": "Audun Narvestad"
+    },
+    {
+      "file": "Bouvet island 0.jpg",
+      "es": "Costa sureste de Bouvet en 1898, en una fotografía coloreada a mano",
+      "en": "Bouvet's southeast coast in 1898, in a hand-coloured photograph",
+      "by": "Carl Chun / F. Winter"
+    }
+  ],
+  "GS": [
+    {
+      "file": "Grytviken Harbour, Island of South Georgia, United Kingdom.jpg",
+      "es": "Grytviken y su antigua estación ballenera, en Georgia del Sur",
+      "en": "Grytviken and its former whaling station on South Georgia",
+      "by": "Lexaxis7"
+    },
+    {
+      "file": "GoldHarbour.JPG",
+      "es": "Glaciares y playa de Gold Harbour, Georgia del Sur",
+      "en": "Glaciers and beach at Gold Harbour, South Georgia",
+      "by": "BluesyPete"
+    }
+  ],
+  "HM": [
+    {
+      "file": "Heard2.jpg",
+      "es": "La antigua estación de investigación de la isla Heard",
+      "en": "The former research station on Heard Island",
+      "by": "NOAA"
+    },
+    {
+      "file": "Heard Island 2005-08.jpg",
+      "es": "La isla Heard bajo vórtices de nubes, fotografiada desde el espacio en 2005",
+      "en": "Heard Island beneath cloud vortices, photographed from space in 2005",
+      "by": "NASA / MODIS"
+    }
+  ],
+  "TF": [
+    {
+      "file": "Vagues et manchots à l'assaut de la plage.jpg",
+      "es": "Pingüinos rey en la playa de la isla de la Posesión, archipiélago de Crozet",
+      "en": "King penguins on the beach of Possession Island, Crozet Islands",
+      "by": "franek2"
+    },
+    {
+      "file": "Amsterdam vue du large - panoramio.jpg",
+      "es": "La isla de Ámsterdam vista desde el mar",
+      "en": "Amsterdam Island seen from the sea",
+      "by": "franek2"
+    }
+  ],
+  "UG": [
+    {
+      "file": "Murchison Falls view from Nile.jpg",
+      "es": "Las cataratas Murchison vistas desde el Nilo, en Uganda",
+      "en": "Murchison Falls seen from the Nile in Uganda",
+      "by": "Yakov Fedorov"
+    },
+    {
+      "file": "Grey crowned crane (Balearica regulorum gibbericeps).jpg",
+      "es": "Una grulla coronada gris cerca del lago Bunyonyi, el ave de la bandera de Uganda",
+      "en": "A grey crowned crane near Lake Bunyonyi, the bird on Uganda's flag",
+      "by": "Charles J. Sharp"
+    }
+  ],
+  "KE": [
+    {
+      "file": "MtKenya.jpg",
+      "es": "El monte Kenia visto desde Nanyuki",
+      "en": "Mount Kenya seen from Nanyuki",
+      "by": "Don Elvis Muraya"
+    },
+    {
+      "file": "Lamu town on Lamu Island in Kenya.JPG",
+      "es": "Barcas frente al paseo marítimo de Lamu, Kenia",
+      "en": "Boats off Lamu's seafront in Kenya",
+      "by": "Magnus Kjaergaard"
+    }
+  ],
+  "TZ": [
+    {
+      "file": "Mlima Kilimanjaro.jpg",
+      "es": "El Kilimanjaro visto desde Moshi, Tanzania",
+      "en": "Mount Kilimanjaro seen from Moshi, Tanzania",
+      "by": "Alfred Shauri"
+    },
+    {
+      "file": "Stone Town-2.jpg",
+      "es": "La bandera de Tanzania ante Ciudad de Piedra, Zanzíbar",
+      "en": "Tanzania's flag in front of Stone Town, Zanzibar",
+      "by": "Fanny Schertzer"
+    }
+  ],
+  "RW": [
+    {
+      "file": "A mountain gorilla from Susa Group in Karisimbi thicket of Volcanoes National Park in Rwanda. Emmanuel Kwizera.jpg",
+      "es": "Un gorila de montaña del grupo Susa en el parque nacional de los Volcanes",
+      "en": "A mountain gorilla from the Susa group in Volcanoes National Park",
+      "by": "Emmanuelkwizera"
+    },
+    {
+      "file": "Nyungwe Canopy Walk.jpg",
+      "es": "La pasarela suspendida sobre el bosque de Nyungwe, Ruanda",
+      "en": "The canopy walkway over Nyungwe Forest, Rwanda",
+      "by": "Alex Niragira"
+    },
+    {
+      "file": "Lake Kivu at dawn.jpg",
+      "es": "El lago Kivu al amanecer, visto desde Cyangugu, Ruanda",
+      "en": "Lake Kivu at dawn, seen from Cyangugu, Rwanda",
+      "by": "Kisambira"
+    },
+    {
+      "file": "Rwanda Nyanza Mwami Palace.jpg",
+      "es": "Reconstrucción del palacio tradicional del rey en Nyanza, Ruanda",
+      "en": "Reconstruction of the traditional king's palace in Nyanza, Rwanda",
+      "by": "Amakuru"
+    }
+  ],
+  "BI": [
+    {
+      "file": "La chute de karera nyakayi 1 à Rutana.jpg",
+      "es": "La cascada Nyakayi 1 de Karera, en Rutana, Burundi",
+      "en": "Nyakayi 1 waterfall at Karera in Rutana, Burundi",
+      "by": "Zamennest"
+    },
+    {
+      "file": "Forêt de Teza (Kibira).jpg",
+      "es": "El bosque de Teza, en el parque nacional de Kibira",
+      "en": "Teza Forest in Kibira National Park",
+      "by": "NIHEREWENIMANA Richard"
+    },
+    {
+      "file": "Les tambourinaires de Gitega.jpg",
+      "es": "Tamborileros en Gishora, en la región de Gitega",
+      "en": "Drummers at Gishora in the Gitega region",
+      "by": "NSENGIYUMVA Joseph"
+    },
+    {
+      "file": "Rusizi NP hippopotamus.jpg",
+      "es": "Hipopótamos en el parque nacional de Rusizi, Burundi",
+      "en": "Hippopotamuses in Rusizi National Park, Burundi",
+      "by": "d_proffer"
+    }
+  ],
+  "CD": [
+    {
+      "file": "Lava Lake Nyiragongo 2.jpg",
+      "es": "El lago de lava del volcán Nyiragongo, en el parque nacional de Virunga",
+      "en": "The lava lake of Mount Nyiragongo in Virunga National Park",
+      "by": "Cai Tjeenk Willink (Caitjeenk)"
+    },
+    {
+      "file": "Fleuve Congo Kinshasa 7.JPG",
+      "es": "La ribera del río Congo y sus rápidos cerca de Kinsasa",
+      "en": "The Congo River bank and its rapids near Kinshasa",
+      "by": "Serein"
+    },
+    {
+      "file": "Square in Lubumbashi, 2011.jpg",
+      "es": "Una plaza en Lubumbashi, República Democrática del Congo",
+      "en": "A square in Lubumbashi, Democratic Republic of the Congo",
+      "by": "T. Thielemans"
+    },
+    {
+      "file": "Bonobo (Pan paniscus) at Lola Ya Bonobo - 3.JPG",
+      "es": "Una madre bonobo y su cría en el santuario Lola ya Bonobo, Kinsasa",
+      "en": "A bonobo mother and infant at Lola ya Bonobo sanctuary in Kinshasa",
+      "by": "Christina Bergey"
+    }
+  ],
+  "ZM": [
+    {
+      "file": "Loxodonta africana South Luangwa National Park (1).jpg",
+      "es": "Elefantes cruzando el río Luangwa en el parque nacional de Luangwa Sur",
+      "en": "Elephants crossing the Luangwa River in South Luangwa National Park",
+      "by": "Geoff Gallice"
+    },
+    {
+      "file": "Lusaka, Zambia CBD Kafue Roundabout.jpg",
+      "es": "La rotonda de Kafue y el centro de Lusaka, Zambia",
+      "en": "Kafue Roundabout and central Lusaka, Zambia",
+      "by": "Lupali"
+    },
+    {
+      "file": "Boats Harbor, Kairba Lake, Siavonga Zambia.jpg",
+      "es": "Barcas en el puerto del lago Kariba, en Siavonga, Zambia",
+      "en": "Boats at the Lake Kariba harbour in Siavonga, Zambia",
+      "by": "Mulengac"
+    },
+    {
+      "file": "Kuomboka ceremony in Zambia 13.jpg",
+      "es": "La ceremonia Kuomboka del pueblo lozi en el oeste de Zambia",
+      "en": "The Lozi people's Kuomboka ceremony in western Zambia",
+      "by": "Jae zambia"
+    }
+  ],
+  "AO": [
+    {
+      "file": "Panorama baixa Luanda.JPG",
+      "es": "La Baixa, en el centro de Luanda, Angola",
+      "en": "The Baixa district in central Luanda, Angola",
+      "by": "Fabio Vanin"
+    },
+    {
+      "file": "Tundavala Gap.jpg",
+      "es": "La garganta de Tundavala, en la sierra de Leba, Angola",
+      "en": "Tundavala Gap in Angola's Serra da Leba",
+      "by": "tim kubacki"
+    },
+    {
+      "file": "Museu da Escravatura Luanda.JPG",
+      "es": "La capilla del Museo Nacional de la Esclavitud, en Luanda",
+      "en": "The chapel of the National Museum of Slavery in Luanda",
+      "by": "Fabio Vanin"
+    },
+    {
+      "file": "Barco com pescadores em uma praia de Cabo Ledo, Angola.jpg",
+      "es": "Una barca de pescadores en la playa de Cabo Ledo, Angola",
+      "en": "A fishing boat on the beach at Cabo Ledo, Angola",
+      "by": "Felipe Miguel"
+    }
+  ],
+  "NA": [
+    {
+      "file": "Windhoek-Skyline.jpg",
+      "es": "Windhoek, con el ferrocarril TransNamib y los montes Khomas",
+      "en": "Windhoek with the TransNamib railway and the Khomas Mountains",
+      "by": "Bries"
+    },
+    {
+      "file": "Elephant waterhole.jpg",
+      "es": "Un elefante junto a un abrevadero en el parque nacional de Etosha",
+      "en": "An elephant by a waterhole in Etosha National Park",
+      "by": "Bibitono"
+    },
+    {
+      "file": "Fish River Canyon - Namibie - panoramio (8).jpg",
+      "es": "El cañón del río Fish, en Namibia",
+      "en": "Fish River Canyon in Namibia",
+      "by": "Pavel Špindler"
+    },
+    {
+      "file": "San - Khoekhoen rock art - Namibia.jpg",
+      "es": "Grabados rupestres en Twyfelfontein, Namibia",
+      "en": "Rock engravings at Twyfelfontein, Namibia",
+      "by": "Hans Hillewaert"
+    }
+  ]
+}

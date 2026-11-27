@@ -703,6 +703,8 @@ const FLAG_SIGNALS = path.resolve(ROOT, process.env.OUTSIDE_FLAG_SIGNALS ?? 'scr
  * its own in this folder (`BR.json`), and it names the photographs the sheet shows, each a file of Commons.
  */
 const PROFILES = path.resolve(ROOT, process.env.OUTSIDE_PROFILES ?? 'scripts/data/profiles');
+/** Additional, captioned photographs after a chosen head; never a replacement for the chosen head. */
+const PROFILE_GALLERY = path.resolve(ROOT, process.env.OUTSIDE_GALLERY ?? 'scripts/data/profiles-gallery.json');
 /** Research written separately from the full sheets: its stages may also name period photographs. */
 const PROFILE_TIMES = path.resolve(ROOT, process.env.OUTSIDE_TIMES ?? 'scripts/data/profiles-times.json');
 /**
@@ -1521,7 +1523,8 @@ function photosIn(sheet) {
 
 /**
  * The photographs of the sheets of the countries, each a file of Commons named by a complete sheet,
- * a chosen head or an independently written timeline (scripts/data/profiles-times.json).
+ * a chosen head, its additional gallery (scripts/data/profiles-gallery.json), or an independently written
+ * timeline (scripts/data/profiles-times.json).
  * Of each: what Commons says of it (who made it and on what terms it is given,
  * which the sheet has to say under it) and the picture that Wikimedia draws of it, `PHOTO_WIDTH` px wide.
  * The original is never asked for. A photograph that could not be brought has its entry with no picture.
@@ -1535,6 +1538,18 @@ async function profilePhotos(source, keep) {
   }
   // The one chosen for the head of the sheet of each country nobody has written of.
   for (const [id, head] of Object.entries(headsChosen())) if (!items[id] && typeof head?.file === 'string' && head.file.trim()) items[id] = { photos: [head.file.trim()] };
+  // A gallery adds to an existing head, never replacing it. One manifest supplies captions for the build
+  // and names the very same Commons files for the workflow; otherwise the two can drift apart.
+  if (fs.existsSync(PROFILE_GALLERY)) {
+    const { _: _note, ...gallery } = JSON.parse(fs.readFileSync(PROFILE_GALLERY, 'utf8'));
+    for (const [id, photos] of Object.entries(gallery)) {
+      if (!items[id]) throw new Error(`The gallery of ${id} has no chosen head or hand-written sheet`);
+      if (!Array.isArray(photos) || !photos.length || photosIn({ photos }).length !== photos.length) throw new Error(`The gallery of ${id} needs distinct Commons files`);
+      const named = [...items[id].photos, ...photosIn({ photos })];
+      if (new Set(named).size !== named.length) throw new Error(`The gallery of ${id} repeats its head or another photograph`);
+      items[id].photos = named;
+    }
+  }
   // A timeline is an addition to the sheet, not a replacement for its head photograph. Ask for both.
   if (fs.existsSync(PROFILE_TIMES)) {
     const { _: _about, ...timelines } = JSON.parse(fs.readFileSync(PROFILE_TIMES, 'utf8'));
@@ -2337,13 +2352,72 @@ const SOURCES = [
     from: 'Wikimedia Commons (https://commons.wikimedia.org)',
     licence: 'La de cada archivo, que su entrada dice: dominio público o una licencia libre',
     what:
-      'The photographs that the sheets of the countries show, each a file of Commons that a sheet names (scripts/data/profiles/<country>.json) or the one chosen for the head of the sheet of a country nobody has written of (scripts/data/profiles-heads.json). ' +
+      'The photographs that the sheets of the countries show, each a file of Commons that a sheet names (scripts/data/profiles/<country>.json), the one chosen for the head of a country nobody has written of (scripts/data/profiles-heads.json), or a further photograph in its gallery (scripts/data/profiles-gallery.json). ' +
       'items: the titles of those of each sheet, by the id of its country (photos). ' +
       'files: what Commons says of each file, by its title: SHA-1, bytes, MIME type, width and height of the original, licence and its address, author, credit, whether it must be attributed, restrictions other than copyright, and its page; ' +
       `and where the picture of it that Wikimedia draws, ${PHOTO_WIDTH} px wide, is kept in this branch (picture): the original is not brought. The pictures are under ${PHOTO_FILES}, each named after the SHA-1 of its original.`,
     es: 'Fotografías de las fichas de los países',
     needs: '113',
     run: profilePhotos,
+  },
+  {
+    id: 'photos-upload-index',
+    file: 'user-photos/index.json',
+    from: 'Archivo aportado por el dueño en la release de GitHub (https://github.com/diegosb72/regionle/releases/tag/imagenes)',
+    licence: 'Sin verificar: el inventario no acredita la licencia de ninguna fotografía',
+    what: 'Names, sizes and SHA-256 hashes of the files inside the split ZIP in scripts/data/release-photos.json, plus its five small top-level documents and the photo lists of 249 profiles for review. The application script is read, never run. No image is published or assumed reusable merely because it is in the archive.',
+    es: 'Inventario del archivo fotográfico aportado por el dueño',
+    needs: '113',
+    run: async (source, keep) => {
+      const { releasePhotoInventory } = await import('./release-photos.mjs');
+      return releasePhotoInventory(source, keep);
+    },
+  },
+  {
+    id: 'photos-upload-audit',
+    file: 'user-photos/audit.json',
+    from: 'Wikimedia Commons (https://commons.wikimedia.org)',
+    licence: 'La licencia de cada archivo se consulta en Commons; los metadatos no sustituyen una revisión de derechos de terceros',
+    what: 'Solo metadatos ACTUALES de Commons para las candidatas de scripts/data/release-photo-plan.json: URL, SHA-1, autor, licencia y restricciones. No descarga fotografías ni aprueba automáticamente las candidatas.',
+    es: 'Metadatos actuales de Commons de las fotos candidatas del ZIP',
+    needs: '113',
+    run: async (source) => {
+      const plan = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/data/release-photo-plan.json'), 'utf8'));
+      const names = [...new Set(Object.values(plan.countries).flatMap((photos) => photos.map((photo) => photo.title)))].sort();
+      if (names.length < 100 || names.length > 2000) throw new Error('The photo plan does not name a plausible number of unique files');
+      const { until } = patient();
+      const { pages, titled } = await commonsOf(names, {
+        prop: 'imageinfo',
+        iiprop: 'url|size|mime|sha1|extmetadata',
+        iiextmetadatafilter: 'LicenseShortName|UsageTerms|LicenseUrl|Artist|Credit|AttributionRequired|Restrictions',
+      }, until);
+      const files = Object.fromEntries(names.map((title) => [title, { canonical: titled(title), ...(about(pages.get(titled(title))) ?? { missing: true }) }]));
+      const missing = Object.values(files).filter((file) => file.missing).length;
+      return {
+        text: JSON.stringify({ source: source.from, licence: source.licence, plan: 'scripts/data/release-photo-plan.json', files }, null, 2) + '\n',
+        note: `${names.length} candidate photos checked in Commons; ${missing} without current file metadata; no image downloaded`,
+        detail: { checked: names.length, missing },
+      };
+    },
+  },
+  {
+    id: 'photos-upload-rights',
+    file: 'user-photos/rights.json',
+    from: 'Wikimedia Commons (https://commons.wikimedia.org)',
+    licence: 'Las fichas de Commons se ofrecen con licencia CC BY-SA; las fotografías tienen sus propias licencias, que hay que revisar por separado',
+    what: 'Wikitext de las páginas de Commons para las candidatas marcadas como dominio público, para detectar fotografías con dos licencias distintas (p. ej. edificio PD y fotografía CC BY) y avisos no reflejados en los metadatos resumidos. No aprueba derechos automáticamente.',
+    es: 'Revisión de licencias múltiples en las fotografías de dominio público del ZIP',
+    needs: '113',
+    run: async (source) => {
+      const gallery = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/data/release-gallery.json'), 'utf8'));
+      const names = Object.values(gallery.countries).flat().filter((photo) => photo.licence === 'Public domain').map((photo) => photo.title).sort();
+      if (names.length < 50 || names.length > 250) throw new Error('Implausible number of public-domain photo pages to review');
+      const { pages, titled } = await commonsOf(names, { prop: 'revisions', rvprop: 'content', rvslots: 'main' }, patient().until);
+      const files = Object.fromEntries(names.map((name) => [name, pages.get(titled(name))?.revisions?.[0]?.slots?.main?.content ?? null]));
+      if (Object.values(files).some((text) => typeof text !== 'string' || !text.length)) throw new Error('Commons did not return all the pages for the public-domain review');
+      return { text: JSON.stringify({ source: source.from, what: source.what, files }) + '\n',
+        note: `${names.length} Commons file pages captured for checking more than one license; no images saved`, detail: { files: names.length } };
+    },
   },
   {
     id: 'heads',

@@ -78,6 +78,14 @@ se toma el primer día que dan las dos fichas, y si tampoco, nada. Estos se han 
   El 1298 de la tricolor de 2004–2021 sí pertenece al calendario solar (1919).
 - **AS**: 17-4-1960, día en que se izó la bandera territorial de Samoa Estadounidense, según la historia de
   su bandera; las fuentes traídas daban por error el 27 de abril.
+- **UG**: la entradilla española de Wikipedia dice por error «1969», pese a que la fecha que muestra la ficha
+  es **9-10-1962**. Se sustituye **solo la explicación de la bandera**, no la del país, por un texto propio
+  bilingüe, contrastado con la [ley nacional de símbolos](https://ulii.org/akn/ug/act/ord/1962/64)
+  (en vigor desde el día de la independencia; anexo II: seis franjas y grulla sobre blanco) y
+  [FOTW](https://www.crwflags.com/fotw/flags/ug.html) (Grace Ibingira, colores y propuesta provisional).
+  El dibujo de franjas verticales del catálogo era una propuesta, **no** una etapa de bandera nacional
+  adoptada: la ficha no inventa una cronología histórica a partir de él. La foto de la grulla es un ave
+  fotografiada **en Uganda**, no en un parque zoológico extranjero.
 - **MR**: 25-10-2017, fecha del decreto de la bandera con franjas rojas, según la historia de la bandera de
   Mauritania; las fuentes traídas daban el 15 de agosto, posterior al referéndum pero anterior al decreto.
 - **HT**: se quita el día exacto: Britannica fecha la restitución de la bicolor el 25 de febrero de 1986 y
@@ -163,25 +171,206 @@ y Miquelón «adoptada en 1982», la de Santa Elena en 1984). En cada uno se dic
 diseñador y la página de Wikipedia. Una prueba (`src/lib/profiles.test.ts`) comprueba que son los mismos
 territorios que dice el juego.
 
+## Textos contrastados de los territorios polares
+
+El JSON aportado para **AQ, BV, GS, HM y TF** contenía explicaciones útiles, pero también 20 fotografías
+ficticias con autor «Placeholder», efemérides que no son banderas y fechas y símbolos mezclados. Se
+incorporan los datos contrastados como `about` y, donde hay bandera propia o propuesta, `flag.text` y
+`flag.parts` en `profiles-fixes.json`: son **resúmenes redactados para el juego**, no extractos de Wikipedia.
+`sources.about` y `sources.flag` enlazan los documentos a partir de los que se escribieron. El generador
+mantiene la fotografía de cabecera original acreditada de Commons (y los escudos de GS y TF), añade dos
+fotografías reales por ficha tras comprobar sus páginas de Commons, conserva los enlaces a Wikipedia para
+ampliar información y no inventa imágenes ni etapas de banderas. Las cinco fichas se ofrecen en español e
+inglés; las cronologías del resto de países permanecen intactas.
+
+- **AQ**: el dibujo que usa `flag-icons` es la [propuesta de Graham Bartram de
+  1996](https://www.crwflags.com/fotw/flags/aq!.html#gb), una silueta blanca sobre azul ONU, **no** el
+  [emblema del Tratado](https://www.ats.aq/devAS/e/Meetings/Measure?id=289) aprobado el 20-9-2002.
+  Antártida no tiene bandera oficial ni, por tanto, día de adopción de la propuesta. El
+  [Tratado Antártico](https://www.ats.aq/e/antarctictreaty.html) se firmó en 1959, entró en vigor en
+  1961 y conserva las posiciones de los Estados sobre reivindicaciones anteriores; no las anula.
+  La capa de hielo y el clima se contrastaron con el
+  [British Antarctic Survey](https://www.bas.ac.uk/about/where-we-work/antarctica/).
+- **BV**: la [ficha del Instituto Polar Noruego](https://npolar.no/en/themes/bouvetoya/) confirma que
+  está al **norte de 60° S** (fuera de la Antártida del Tratado), que 89 % de su superficie está cubierta
+  de glaciares, la izada noruega de 1927 y la reserva natural de 1971. El año 1930 es el de la
+  dependencia, **no** el de adopción de su bandera: el generador sigue tomando esta última de NO (1821).
+  Se añade «Bouvetøya» como nombre local, sin atribuirle un himno propio.
+- **GS**: el [gobierno territorial](https://gov.gs/about-sgssi/) documenta la reclamación de Cook en
+  1775, la ocupación argentina de 1982 y la separación de las Dependencias de las Malvinas en 1985;
+  no se convierten esas fechas en supuestos períodos de banderas. [FOTW](https://www.crwflags.com/fotw/flags/gs.html)
+  documenta el escudo concedido el 14-2-1992 y el pabellón inicial con disco blanco, luego sustituido
+  por el dibujo sin disco. **1992 es el año del escudo, no una fecha acreditada para el pabellón actual**:
+  se oculta la fecha heredada, y tampoco se da por verificada la adopción el 1-1-1999 del adjunto.
+  El lobo marino y el pingüino son nativos; el reno del escudo fue [introducido por
+  balleneros](https://gov.gs/eradication-projectsreindeer/). Se conserva el escudo acreditado.
+- **HM**: el [Programa Antártico Australiano](https://www.antarctica.gov.au/antarctic-operations/stations-and-field-locations/heard-island/)
+  confirma que es un territorio exterior deshabitado y protegido; [documenta](https://www.antarctica.gov.au/about-antarctica/history/stations/heard-island-and-mcdonald-islands/research-expeditions/)
+  la estación científica de Atlas Cove **de diciembre de 1947 a marzo de 1955**. No sigue existiendo una
+  estación estacional: hoy hay expediciones ocasionales. La bandera mostrada es la de AU, con la fecha
+  de esa bandera (1901), no la de la transferencia de las islas en 1947.
+- **TF**: la [administración de las TAAF](https://taaf.fr/collectivites/presentation/) enumera sus
+  cinco distritos, con las islas Dispersas incorporadas **en 2007, no en 1960**, y la sede en Saint-Pierre.
+  [FOTW](https://www.crwflags.com/fotw/flags/tf.html#fla) transcribe el decreto que oficializa el
+  emblema el **23-2-2007**: monograma TAAF y **cinco estrellas**. Su proporción habitual 2:3 no está
+  prescrita en el decreto ni este explica el significado de las estrellas; relacionarlas con los
+  distritos es una interpretación. La enseña anterior del administrador tenía tres estrellas y no es
+  la del juego. Suzanne Gauthier diseñó el **escudo** original registrado en 1958, no el pabellón;
+  no se le atribuye su autoría. El lema y el himno de Francia tampoco se adjudican al territorio.
+
+## Fotografías adicionales de AQ, BV, GS, HM y TF
+
+Las diez imágenes proceden de archivos reales de Wikimedia Commons, **no** de los 20 `Placeholder` del
+JSON recibido. `profiles-gallery.json` guarda los pies en español e inglés y, donde los metadatos breves
+no dan el crédito completo, el autor (`by`); `outside.mjs` pide esos mismos archivos en la fuente `photos`.
+El flujo dejó sus metadatos y versiones a 1920 px en la rama `datos` (commit
+`45642b58bfed8394088b056eaa54e85f44a61179`); `photos-pinned.mjs` fija cada archivo por su hash y
+`profiles.mjs` crea WebP de 640 y, cuando la resolución lo permite, 1280 px. Los **cinco pies de cabecera,
+sus créditos y sus imágenes anteriores siguen iguales**. La ficha enlaza cada fotografía a su página
+original de Commons, atribuye al autor y dice su licencia; si la licencia es de dominio público, su
+justificación se consulta en esa página, pues no hay una URL de licencia independiente.
+
+| Ficha | Archivo y lugar contrastados en Commons | Autor/crédito | Licencia indicada por Commons |
+| --- | --- | --- | --- |
+| AQ | [Canal Lemaire, Antártida](https://commons.wikimedia.org/wiki/File:Lemaire_Channel,_Antarctica.jpg) | Liam Quinn | [CC BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/) |
+| AQ | [Estación McMurdo, isla de Ross](https://commons.wikimedia.org/wiki/File:McMurdo_Station.jpg) | Gaelen Marsden | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| BV | [Lobos finos antárticos en Nyrøysa](https://commons.wikimedia.org/wiki/File:Antarktisk_pelssel_p%C3%A5_Bouvet%C3%B8ya,_Nyr%C3%B8ysa.jpg) | Audun Narvestad | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| BV | [Costa sureste, fotografía de 1898 coloreada a mano](https://commons.wikimedia.org/wiki/File:Bouvet_island_0.jpg) | Carl Chun; acuarela de F. Winter | Dominio público según Commons (publicación de 1903) |
+| GS | [Grytviken y la antigua estación ballenera](https://commons.wikimedia.org/wiki/File:Grytviken_Harbour,_Island_of_South_Georgia,_United_Kingdom.jpg) | Lexaxis7 | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| GS | [Glaciares y playa de Gold Harbour](https://commons.wikimedia.org/wiki/File:GoldHarbour.JPG) | BluesyPete | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| HM | [Instalaciones de la antigua estación de Heard](https://commons.wikimedia.org/wiki/File:Heard2.jpg) | NOAA | Dominio público en EE. UU. según Commons (NOAA) |
+| HM | [Heard y vórtices de nubes vistos desde el espacio en 2005](https://commons.wikimedia.org/wiki/File:Heard_Island_2005-08.jpg) | NASA / MODIS | Dominio público en EE. UU. según Commons (obra de NASA) |
+| TF | [Pingüinos rey en la isla de la Posesión, Crozet](https://commons.wikimedia.org/wiki/File:Vagues_et_manchots_%C3%A0_l%27assaut_de_la_plage.jpg) | franek2 | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| TF | [Isla de Ámsterdam desde el mar](https://commons.wikimedia.org/wiki/File:Amsterdam_vue_du_large_-_panoramio.jpg) | franek2 | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+
+El archivo de McMurdo ofrece varias licencias: los metadatos de Commons señalan la alternativa CC BY-SA
+3.0 que se muestra en la ficha. Las dos fotografías de `franek2` tienen revisión de la licencia original
+de Panoramio; la del canal Lemaire también fue verificada desde Flickr. Ni las fotos de dominio público
+ni sus autores se presentan como fotos sin procedencia. El pie de la imagen NASA identifica correctamente
+el instrumento MODIS y **no** atribuye esa imagen a NOAA; el de la antigua base identifica a NOAA y
+no afirma que la estación siga abierta.
+
+## Fotografías adicionales de Uganda, Kenia y Tanzania
+
+Se conservan las cabeceras elegidas (tumbas de Kasubi, jirafas del Masái Mara y sabana del Serengueti) y
+se añaden **dos fotografías por país**, elegidas y cotejadas con sus originales de Commons, sus autores,
+lugares y licencias. El flujo `photos` dejó los seis archivos a 1920 px y sus metadatos en `datos`, commit
+`ffbd398d94e886c87af4a39d2330ad27e6e8b8c2`; `photos-pinned.mjs` fija los hashes y
+`profiles-gallery.json`, los pies bilingües. Se generan dos WebP por foto; cada ficha acredita autor,
+licencia y página de Commons sin alterar su cabecera ni la cronología ya existente de Tanzania.
+
+| Ficha | Archivo y lugar contrastados en Commons | Autor/crédito | Licencia indicada por Commons |
+| --- | --- | --- | --- |
+| UG | [Cataratas Murchison vistas desde el Nilo](https://commons.wikimedia.org/wiki/File:Murchison_Falls_view_from_Nile.jpg) | Yakov Fedorov | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| UG | [Grulla coronada gris, cerca del lago Bunyonyi](https://commons.wikimedia.org/wiki/File:Grey_crowned_crane_(Balearica_regulorum_gibbericeps).jpg) | Charles J. Sharp | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| KE | [Monte Kenia desde Nanyuki](https://commons.wikimedia.org/wiki/File:MtKenya.jpg) | Don Elvis Muraya | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| KE | [Frente marítimo de Lamu](https://commons.wikimedia.org/wiki/File:Lamu_town_on_Lamu_Island_in_Kenya.JPG) | Magnus Kjaergaard | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) |
+| TZ | [Kilimanjaro desde Moshi](https://commons.wikimedia.org/wiki/File:Mlima_Kilimanjaro.jpg) | Alfred Shauri | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| TZ | [Bandera de Tanzania ante Ciudad de Piedra, Zanzíbar](https://commons.wikimedia.org/wiki/File:Stone_Town-2.jpg) | Fanny Schertzer | [CC BY 2.5](https://creativecommons.org/licenses/by/2.5/) |
+
+La foto de la grulla muestra el ave en Uganda, y la de Ciudad de Piedra lleva la bandera nacional en
+primer plano. Sus pies no confunden esos motivos con imágenes del dibujo de la bandera.
+
+## Fotografías adicionales de Ruanda y Burundi
+
+A petición del dueño, estas dos fichas muestran **cinco fotografías cada una**, contando la cabecera
+original: cuatro añadidas por país. Las ocho imágenes se contrastaron con sus archivos y previsualizaciones
+de Commons, y con los archivos descargados, no con miniaturas de búsquedas de otras fotos. El flujo
+`photos` guardó sus metadatos y versiones de 1920 px en `datos`, commit
+`f1e444b60212812640af3dc442ac811978f063f2`; `photos-pinned.mjs` fija sus hashes y
+`profiles-gallery.json` sus pies bilingües. De cada foto nueva se generan WebP de 640 y 1280 px, con
+autor, licencia y enlace a Commons. **Las cabeceras de Kigali y del lago Tanganica siguen intactas**;
+Ruanda conserva sus tres etapas contrastadas y Burundi no recibe una cronología sin contrastar.
+
+| Ficha | Archivo y lugar contrastados en Commons | Autor/crédito | Licencia indicada por Commons |
+| --- | --- | --- | --- |
+| RW | [Gorila del grupo Susa en el parque de los Volcanes](https://commons.wikimedia.org/wiki/File:A_mountain_gorilla_from_Susa_Group_in_Karisimbi_thicket_of_Volcanoes_National_Park_in_Rwanda._Emmanuel_Kwizera.jpg) | Emmanuelkwizera | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| RW | [Pasarela del bosque de Nyungwe](https://commons.wikimedia.org/wiki/File:Nyungwe_Canopy_Walk.jpg) | Alex Niragira | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| RW | [Lago Kivu al amanecer, desde Cyangugu](https://commons.wikimedia.org/wiki/File:Lake_Kivu_at_dawn.jpg) | Kisambira | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| RW | [Reconstrucción del palacio tradicional en Nyanza](https://commons.wikimedia.org/wiki/File:Rwanda_Nyanza_Mwami_Palace.jpg) | Amakuru | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| BI | [Cascada Nyakayi 1 de Karera, Rutana](https://commons.wikimedia.org/wiki/File:La_chute_de_karera_nyakayi_1_%C3%A0_Rutana.jpg) | Zamennest | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| BI | [Bosque de Teza, parque nacional de Kibira](https://commons.wikimedia.org/wiki/File:For%C3%AAt_de_Teza_%28Kibira%29.jpg) | NIHEREWENIMANA Richard | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| BI | [Tamborileros en Gishora, región de Gitega](https://commons.wikimedia.org/wiki/File:Les_tambourinaires_de_Gitega.jpg) | NSENGIYUMVA Joseph | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| BI | [Hipopótamos del parque nacional de Rusizi](https://commons.wikimedia.org/wiki/File:Rusizi_NP_hippopotamus.jpg) | d_proffer | [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/) |
+
+El palacio de Nyanza es una **reconstrucción**, no el edificio histórico original. La licencia de la
+fotografía de los hipopótamos fue revisada en Commons a partir de Flickr; la fotografía se atribuye a
+`d_proffer`, no al usuario que la subió a Commons.
+
+## Fotografías adicionales de la República Democrática del Congo y Zambia
+
+Ambas fichas muestran **cinco fotografías contando la cabecera**: cuatro nuevas por país, sin cambiar la
+cascada de Virunga ni las cataratas Victoria. Se comprobaron en las páginas de cada archivo de Commons el
+lugar, autor y licencia, y se cotejaron los ocho JPEG descargados con sus imágenes y hashes. El flujo
+`photos` guardó sus metadatos y versiones de hasta 1920 px en `datos`, commit
+`025d53ff39e02d8fb4cc446006aeeaef768193d0`; `photos-pinned.mjs` fija los hashes y
+`profiles-gallery.json` los pies bilingües. La ficha del Congo **conserva sus seis etapas** y Zambia no
+recibe ninguna cronología inventada. Todas las fotos tienen autor, licencia y enlace a Commons en la ficha.
+
+| Ficha | Archivo y lugar contrastados en Commons | Autor/crédito | Licencia indicada por Commons |
+| --- | --- | --- | --- |
+| CD | [Lago de lava del Nyiragongo, parque nacional de Virunga](https://commons.wikimedia.org/wiki/File:Lava_Lake_Nyiragongo_2.jpg) | Cai Tjeenk Willink (Caitjeenk) | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| CD | [Ribera del río Congo y rápidos cerca de Kinsasa](https://commons.wikimedia.org/wiki/File:Fleuve_Congo_Kinshasa_7.JPG) | Serein | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| CD | [Plaza de Lubumbashi](https://commons.wikimedia.org/wiki/File:Square_in_Lubumbashi,_2011.jpg) | T. Thielemans | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) |
+| CD | [Madre bonobo y cría en el santuario Lola ya Bonobo, Kinsasa](https://commons.wikimedia.org/wiki/File:Bonobo_%28Pan_paniscus%29_at_Lola_Ya_Bonobo_-_3.JPG) | Christina Bergey | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| ZM | [Elefantes cruzando el Luangwa en el parque nacional de Luangwa Sur](https://commons.wikimedia.org/wiki/File:Loxodonta_africana_South_Luangwa_National_Park_%281%29.jpg) | Geoff Gallice | [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/) |
+| ZM | [Rotonda de Kafue y centro de Lusaka](https://commons.wikimedia.org/wiki/File:Lusaka,_Zambia_CBD_Kafue_Roundabout.jpg) | Lupali | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| ZM | [Barcas en el puerto del lago Kariba, Siavonga](https://commons.wikimedia.org/wiki/File:Boats_Harbor,_Kairba_Lake,_Siavonga_Zambia.jpg) | Mulengac | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| ZM | [Ceremonia Kuomboka del pueblo lozi, oeste de Zambia](https://commons.wikimedia.org/wiki/File:Kuomboka_ceremony_in_Zambia_13.jpg) | Jae zambia | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+
+La fotografía de Kuomboka tiene solo **1080 px de ancho en Commons**, así que se genera un WebP de 640,
+no se amplía artificialmente a 1280; las otras siete tienen ambos tamaños. El título del archivo del lago
+Kariba escribe «Kairba»; la ficha emplea el nombre correcto. Commons revisó las licencias originales de
+las fotografías de los elefantes (Flickr) y la plaza de Lubumbashi (Panoramio).
+
+## Fotografías adicionales de Angola y Namibia
+
+Cada ficha conserva su cabecera (las cataratas de Kalandula y la llanura arcillosa de Deadvlei,
+respectivamente) y añade **cuatro fotografías**, hasta cinco con la cabecera. Se contrastaron el
+lugar, autor y licencia en las páginas de Commons y se cotejaron los ocho JPEG descargados con los hashes
+de Git. La solicitud 57 del flujo `photos`
+guardó los metadatos y las imágenes en `datos`, commit `08f8066d31261e24d8f4735f000444da3b3bbbf3`;
+`photos-pinned.mjs` fija sus versiones y `profiles-gallery.json` los pies en español e inglés. No se
+inventan cronologías para Angola ni Namibia; el resto de ambas fichas queda igual.
+
+| Ficha | Archivo y lugar contrastados en Commons | Autor/crédito | Licencia indicada por Commons |
+| --- | --- | --- | --- |
+| AO | [La Baixa, centro de Luanda](https://commons.wikimedia.org/wiki/File:Panorama_baixa_Luanda.JPG) | Fabio Vanin | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| AO | [Garganta de Tundavala, sierra de Leba](https://commons.wikimedia.org/wiki/File:Tundavala_Gap.jpg) | tim kubacki | [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/) |
+| AO | [Capilla del Museo Nacional de la Esclavitud, Luanda](https://commons.wikimedia.org/wiki/File:Museu_da_Escravatura_Luanda.JPG) | Fabio Vanin | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| AO | [Barca de pescadores en Cabo Ledo](https://commons.wikimedia.org/wiki/File:Barco_com_pescadores_em_uma_praia_de_Cabo_Ledo,_Angola.jpg) | Felipe Miguel | [CC BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/) |
+| NA | [Windhoek y el ferrocarril TransNamib](https://commons.wikimedia.org/wiki/File:Windhoek-Skyline.jpg) | Bries | [CC BY-SA 2.5](https://creativecommons.org/licenses/by-sa/2.5/) |
+| NA | [Elefante en el parque nacional de Etosha](https://commons.wikimedia.org/wiki/File:Elephant_waterhole.jpg) | Bibitono | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| NA | [Cañón del río Fish](https://commons.wikimedia.org/wiki/File:Fish_River_Canyon_-_Namibie_-_panoramio_%288%29.jpg) | Pavel Špindler | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) |
+| NA | [Grabados rupestres de Twyfelfontein](https://commons.wikimedia.org/wiki/File:San_-_Khoekhoen_rock_art_-_Namibia.jpg) | Hans Hillewaert | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+
+Los ocho archivos producen dos WebP cada uno (640 y 1280 px); la foto de Windhoek procede de un original
+de 1840 px y no se amplía. Las páginas de Commons de Cabo Ledo, Tundavala y el cañón del río Fish registran
+la revisión de la licencia de sus fuentes originales (Flickr o Panoramio).
+
 ## El texto de Wikipedia
 
-Desde la 1.49.0 cada ficha cuenta cómo empieza el artículo de Wikipedia del país y el de su bandera
-(`scripts/data/profiles-text.mjs`), abreviado. El texto no se corrige: se corta o no se enseña. Lo que se ha
-decidido a mano (`leads`, o la página de la que sale):
+Desde la 1.49.0 las fichas sin texto redactado para el juego cuentan cómo empieza el artículo de Wikipedia
+del país y el de su bandera (`scripts/data/profiles-text.mjs`), abreviado. El texto no se corrige: se corta
+o no se enseña. Lo que se ha decidido a mano (`leads`, o la página de la que sale):
 
 - **PS**: la ficha llevaba al artículo de la región histórica («Palestina (región)»), porque ese es el
   elemento de Wikidata que el juego tiene. La ficha es la del Estado de Palestina: se cambian sus páginas
   por las del Estado, «Palestina» y «Palestine», y de ellas sale el texto.
 - **AQ**: el comienzo del artículo en español sobre la bandera habla de la del Tratado Antártico, que no es
-  la que el juego dibuja: no se enseña. El inglés, que habla de las propuestas, sí.
+  la que el juego dibuja: se ocultó. Ahora ambas entradillas dejan lugar al texto contrastado de arriba,
+  sin atribuírselo a Wikipedia; el enlace al artículo se mantiene.
 - **BO**: la segunda frase del artículo en español tiene una errata («ciento doce provincias. trescientos
   cuarenta municipios»): se deja la primera, que dice lo que es el país.
 - **AM**: en el artículo en español sobre la bandera, la segunda frase sigue tras un punto con minúscula
   («1990. la Ley de la Bandera…»): se deja la primera. La fecha de adopción está entre los datos.
 
 Lo que es de Wikipedia y se queda como está, porque quitarlo dejaría la ficha sin lo que cuenta: «es el
-bandera» (Japón, en español), «(símbolo Estado)» (Uganda, en español), una coma por una conjunción en la de
-Costa Rica. Se arreglan en Wikipedia, no aquí.
+bandera» (Japón, en español) o una coma por una conjunción en la de Costa Rica. En Uganda, en cambio, el
+«1969» y «(símbolo Estado)» de la entradilla de su **bandera** se sustituyen por una explicación propia,
+contrastada con la ley y acreditada como tal (véase «Banderas»); su texto sobre el país sigue siendo el
+de Wikipedia. Las erratas en el artículo original se arreglan en Wikipedia, no atribuyendo texto
+reescrito a sus autores.
 
 ## El escudo
 

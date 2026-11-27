@@ -8,8 +8,10 @@
 //   npm run data:profiles                  the sheets and their pictures
 //   npm run data:profiles -- --review      the same, and what whoever corrects the sources should look at
 //
-// (`--sheets`, `--brought`, `--arms`, `--said`, `--texts`, `--fixes`, `--heads`, `--times`, `--data` and `--photos` name other folders
-// and files to read from and write to: the tests run it on countries made up for the occasion.)
+// (`--sheets`, `--brought`, `--arms`, `--said`, `--texts`, `--fixes`, `--heads`, `--gallery`, `--release`, `--times`,
+// `--data` and `--photos` name other folders and files to read from and write to: tests use invented countries.
+// The uploaded gallery is used in the normal build, or explicitly with `--release` in a fixture, not implicitly
+// when `--data` points at a different world.)
 //
 // A sheet is made of four things, each laid over the one before:
 //
@@ -19,6 +21,8 @@
 //      its proportions and its colours. Every country has this, as far as the sources say it.
 //   2. scripts/data/profiles-fixes.json: what was corrected by hand after reading it (profiles-fixes.md
 //      tells why). No program writes that file, so bringing the sources again undoes nothing.
+//      A few territories have sourced, bilingual summaries here (`about`, `flag.text`/`parts`, `sources`):
+//      these replace Wikipedia excerpts, not the photographs or historical flag timelines.
 //      A territory that the game draws with the flag of its country (Réunion with that of France, Svalbard
 //      with that of Norway) is told there whose flag it is (`flag.of`), and says of it what that country says.
 //   3. scripts/data/profiles-times.json, where someone has researched its history: the flags of each period
@@ -26,6 +30,11 @@
 //      The year a flag is displayed with may differ from Wikidata's range when that range is wrong: `past`
 //      identifies the image in the game's flags, `pastFile` distinguishes two with the same catalogue
 //      years, and `from`/`to` are the checked years shown to the reader.
+//      scripts/data/profiles-gallery.json can add captioned Commons photographs after a chosen head without
+//      writing a full sheet or changing that photograph. The same list is fetched by outside.mjs.
+//      scripts/data/release-gallery.json adds reviewed 640-px WebP photographs from the owner's archive
+//      after every existing selection; each file and its Commons licence is pinned and checked, not
+//      regenerated from an uploaded country JSON.
 //   4. scripts/data/profiles/<country>.json, where there is one: what is written of the country by hand, in
 //      the two languages of the game — what it is, what its flag means, what it was at the time of each of
 //      the flags it flew — and the photographs it is shown with, each a file of Wikimedia Commons named by
@@ -63,6 +72,7 @@
 // The pictures are not part of what the game stores to work without a connection (scripts/pwa/build.mjs):
 // each is fetched when its sheet is opened, and kept from then on.
 
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -87,6 +97,12 @@ const SAID = path.resolve(ROOT, value('said') ?? '.cache/src/countries-said.json
 const FIXES = path.resolve(ROOT, value('fixes') ?? 'scripts/data/profiles-fixes.json');
 /** The photograph chosen for the head of the sheet of each country nobody has written of, with what is seen in it. */
 const HEADS = path.resolve(ROOT, value('heads') ?? 'scripts/data/profiles-heads.json');
+/** Further Commons photographs, with bilingual captions, without replacing the one chosen for the head. */
+const GALLERY = path.resolve(ROOT, value('gallery') ?? 'scripts/data/profiles-gallery.json');
+/** Reviewed, credited and hash-pinned photos from the owner's archive, layered after every existing gallery. */
+const RELEASE = path.resolve(ROOT, value('release') ?? 'scripts/data/release-gallery.json');
+/** An invented world with `--data` does not silently receive the real-world release gallery. */
+const USE_RELEASE = !args.includes('--data') || args.includes('--release');
 /** Historical timelines written for the game without replacing the rest of each country's sheet. */
 const TIMES = path.resolve(ROOT, value('times') ?? 'scripts/data/profiles-times.json');
 /** How Wikipedia begins to tell of each country and of its flag, as it was brought. */
@@ -221,6 +237,36 @@ async function photograph(id, one, commons, widths, made) {
     ...text,
     ...(focus ? { focus } : {}),
   };
+}
+
+/** A reviewed photo from the release is already a WebP. Verify its pinned bytes instead of fetching the
+ * uploaded profile or trusting a path or licence from the ZIP at build time. Existing heads are untouched. */
+async function uploadedPhotograph(id, one, made) {
+  const fields = ['file', 'w', 'h', 'sizes', 'title', 'by', 'byUrl', 'licence', 'licenceUrl', 'es', 'en', 'focus', 'sha256'];
+  if (!one || typeof one !== 'object' || Object.keys(one).some((key) => !fields.includes(key))) fail(id, 'the uploaded gallery has an unexpected photograph field');
+  if (!/^[a-f0-9]{10}$/.test(one.file ?? '') || !/^[a-f0-9]{64}$/.test(one.sha256 ?? '')) fail(id, 'an uploaded photo has no pinned image and checksum');
+  if (!Number.isInteger(one.w) || !Number.isInteger(one.h) || one.w < 640 || one.h < 1 || JSON.stringify(one.sizes) !== '[640]') fail(id, `«${one.title}» has unexpected uploaded image dimensions`);
+  if (typeof one.title !== 'string' || !/\.(jpe?g|png|tiff?)$/i.test(one.title)) fail(id, 'an uploaded photo has no Commons title');
+  if (!FREE.test(one.licence ?? '')) fail(id, `«${one.title}» has no known free licence`);
+  if ((one.licence ?? '').startsWith('CC') && (!URL.canParse(one.licenceUrl ?? '') || new URL(one.licenceUrl).hostname !== 'creativecommons.org' || new URL(one.licenceUrl).protocol !== 'https:')) fail(id, `«${one.title}» has no safe licence URL`);
+  if (one.by !== undefined && (typeof one.by !== 'string' || !one.by.trim() || one.by.length > 60)) fail(id, `«${one.title}» has no short, named author`);
+  if (/^CC BY/.test(one.licence) && !one.by) fail(id, `«${one.title}» requires a named author`);
+  if (one.byUrl !== undefined) {
+    const url = typeof one.byUrl === 'string' && URL.canParse(one.byUrl) ? new URL(one.byUrl) : null;
+    if (!one.by || url?.protocol !== 'https:' || url.username || url.password || !url.hostname) fail(id, `«${one.title}» has no safe https credit site (byUrl)`);
+  }
+  said(id, `the uploaded photograph «${one.title}»`, one);
+  if (one.focus !== undefined && (!Array.isArray(one.focus) || one.focus.length !== 2 || one.focus.some((n) => !Number.isFinite(n) || n < 0 || n > 100))) fail(id, `«${one.title}» has an invalid focus`);
+  const name = `${one.file}-640.webp`;
+  const imagePath = path.join(PICTURES, name);
+  if (!fs.existsSync(imagePath)) fail(id, `the pinned uploaded photo is missing: ${name}`);
+  const bytes = fs.readFileSync(imagePath);
+  if (bytes.length < 2_000 || bytes.length > HEAVY(640) || bytes.subarray(8, 12).toString('latin1') !== 'WEBP' || createHash('sha256').update(bytes).digest('hex') !== one.sha256) fail(id, `the uploaded photo does not match its pinned image: ${name}`);
+  const shape = await sharp(bytes).metadata();
+  if (shape.format !== 'webp' || shape.width !== 640 || !shape.height || Math.abs(shape.height - Math.round(640 * one.h / one.w)) > 2) fail(id, `the uploaded photo is not a 640 px WebP with its declared proportions: ${name}`);
+  made.add(name);
+  const { sha256: _checksum, ...photo } = one;
+  return photo;
 }
 
 /** What tells that Commons says something other than a name where it says who made a file, or more than fits under it. */
@@ -461,6 +507,26 @@ function checked(id, one) {
     if (Object.keys(means).length && !inSome(means)) fail(id, 'what its motto means is not a text in a language of the game');
   }
   if (one.anthem !== undefined && !inSome(one.anthem)) fail(id, 'its anthem is not a text in a language of the game');
+  // Authored summaries in the corrections must meet the same bilingual standard as a complete hand-written sheet.
+  if (one.about !== undefined) paragraphs(id, 'what is said of the country', one.about);
+  if (flag.text !== undefined) paragraphs(id, 'what is said of the flag', flag.text);
+  if (flag.parts !== undefined) {
+    if (!Array.isArray(flag.parts)) fail(id, 'the parts of the flag are not a list');
+    for (const [i, part] of flag.parts.entries()) {
+      if (!LANGS.every((lang) => Array.isArray(part?.[lang]) && part[lang].length === 2 && part[lang].every(isText))) fail(id, `part ${i + 1} of the flag has no name and text in both languages`);
+    }
+  }
+  if (one.sources !== undefined) {
+    if (!one.sources || typeof one.sources !== 'object' || Array.isArray(one.sources) || !Object.keys(one.sources).length) fail(id, 'its text sources are not grouped by section');
+    for (const [section, sources] of Object.entries(one.sources)) {
+      if (!['about', 'flag'].includes(section) || !(section === 'about' ? one.about : flag.text) || !Array.isArray(sources) || !sources.length) fail(id, `its text sources for «${section}» have no matching text or links`);
+      for (const source of sources) {
+        const url = typeof source?.url === 'string' && URL.canParse(source.url) ? new URL(source.url) : null;
+        if (!source || Object.keys(source).some((key) => !['title', 'url'].includes(key)) || !source.title || !LANGS.every((lang) => isText(source.title[lang])) || Object.keys(source.title).some((lang) => !LANGS.includes(lang)) || url?.protocol !== 'https:' || url.username || url.password || !url.hostname)
+          fail(id, `its text source for «${section}» needs a safe https address and a title in both languages`);
+      }
+    }
+  }
   if (flag.adopted !== undefined && !isDay(flag.adopted)) fail(id, `the day its flag was adopted on is not a day or a year: ${flag.adopted}`);
   if (flag.changed !== undefined && (!isDay(flag.changed) || !flag.adopted || flag.changed.slice(0, 4) < flag.adopted.slice(0, 4))) fail(id, `its flag is said to be as it is since ${flag.changed}, which is not a day after the one it was adopted on`);
   if (flag.ratio !== undefined && !/^\d+(\.\d+)?:\d+(\.\d+)?$/.test(flag.ratio)) fail(id, `the proportions of its flag are not two numbers: ${flag.ratio}`);
@@ -505,6 +571,10 @@ async function main() {
   const pages = read(TEXTS).pages ?? {};
   const { _: _why, ...fixes } = fs.existsSync(FIXES) ? read(FIXES) : {};
   const { _: _what, ...heads } = fs.existsSync(HEADS) ? read(HEADS) : {};
+  const { _: _gallery, ...gallery } = fs.existsSync(GALLERY) ? read(GALLERY) : {};
+  if (args.includes('--release') && !fs.existsSync(RELEASE)) throw new Error(`The reviewed release gallery is missing: ${RELEASE}`);
+  const uploaded = USE_RELEASE && fs.existsSync(RELEASE) ? read(RELEASE).countries : {};
+  if (!uploaded || typeof uploaded !== 'object' || Array.isArray(uploaded)) throw new Error('The reviewed release gallery has no country lists');
   const { _: _timeline, ...timelines } = fs.existsSync(TIMES) ? read(TIMES) : {};
   if (!fs.existsSync(path.join(ARMS, 'arms.json'))) throw new Error(`What was brought of the coats of arms is not in ${path.relative(ROOT, ARMS) || ARMS}: run «npm run data:fetch -- arms»`);
   const emblems = read(path.join(ARMS, 'arms.json'));
@@ -515,10 +585,25 @@ async function main() {
   fs.mkdirSync(PICTURES, { recursive: true });
 
   const lands = index.countries.filter((c) => c.fl);
-  for (const id of Object.keys(fixes)) if (!lands.some((c) => c.id === id)) throw new Error(`${path.basename(FIXES)} corrects «${id}», which is no country of the game with a flag`);
+  for (const [id, fix] of Object.entries(fixes)) {
+    if (!lands.some((c) => c.id === id)) throw new Error(`${path.basename(FIXES)} corrects «${id}», which is no country of the game with a flag`);
+    if (fix?.about && !fix.sources?.about?.length) fail(id, 'an authored account of the country needs its sources');
+    if (fix?.flag?.text && !fix.sources?.flag?.length) fail(id, 'an authored account of the flag needs its sources');
+  }
   const written = fs.existsSync(SHEETS) ? fs.readdirSync(SHEETS).filter((f) => f.endsWith('.json')).map((f) => path.basename(f, '.json')) : [];
   for (const id of written) if (!lands.some((c) => c.id === id)) fail(id, 'the game has no such country with a flag');
   for (const id of Object.keys(heads)) if (!lands.some((c) => c.id === id)) throw new Error(`${path.basename(HEADS)} chooses a photograph for «${id}», which is no country of the game with a flag`);
+  for (const [id, photos] of Object.entries(gallery)) {
+    if (!heads[id] || written.includes(id)) fail(id, 'a gallery needs a chosen head, not a full hand-written sheet');
+    if (!Array.isArray(photos) || !photos.length) fail(id, 'a gallery needs photographs');
+    const files = [heads[id].file?.trim(), ...photos.map((p) => (typeof p?.file === 'string' ? p.file.trim() : ''))];
+    if (files.some((file) => !file) || new Set(files).size !== files.length) fail(id, 'a gallery must not repeat its head or another photograph');
+  }
+  for (const [id, photos] of Object.entries(uploaded)) {
+    if (!lands.some((c) => c.id === id)) fail(id, 'the uploaded gallery names no country of the game with a flag');
+    if (!Array.isArray(photos) || !photos.length) fail(id, 'the uploaded gallery needs photographs');
+    if (new Set(photos.map((p) => p?.title)).size !== photos.length) fail(id, 'the uploaded gallery repeats a title');
+  }
   for (const id of Object.keys(timelines)) {
     if (!lands.some((c) => c.id === id)) fail(id, 'a timeline was written for what is no country of the game with a flag');
     if (written.includes(id)) fail(id, 'a timeline was written twice: once on its own and once in its full hand-written sheet');
@@ -558,6 +643,10 @@ async function main() {
         one = { ...one, photos: [await photograph(id, heads[id], commons, WIDTHS.chosen, made)] };
         count.head++;
       }
+      if (gallery[id]) {
+        // These are only additions: the first photo, its caption and its original WebP stay untouched.
+        for (const photo of gallery[id]) one.photos.push(await photograph(id, photo, commons, WIDTHS.photo, made));
+      }
       if (timelines[id]) {
         // A historical account is independent of the chosen head, the Wikipedia texts and the rest of its facts.
         const { times, source, note } = timelines[id];
@@ -566,6 +655,17 @@ async function main() {
         one.timeSource = source;
         if (note !== undefined) one.timeNote = said(id, 'the note on its timeline', note);
         count.timeline++;
+      }
+    }
+    if (uploaded[id]) {
+      if (!Array.isArray(one.photos) || !one.photos.length || one.photos.length + uploaded[id].length > 8) fail(id, 'uploaded photos would replace or overfill its existing gallery');
+      const titles = new Set(one.photos.map((photo) => photo.title));
+      const names = new Set(one.photos.map((photo) => photo.file));
+      for (const photo of uploaded[id]) {
+        if (titles.has(photo.title) || names.has(photo.file)) fail(id, `«${photo.title}» would repeat or replace an existing photograph`);
+        one.photos.push(await uploadedPhotograph(id, photo, made));
+        titles.add(photo.title);
+        names.add(photo.file);
       }
     }
     sheets.set(id, one);

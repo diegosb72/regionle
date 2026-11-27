@@ -58,6 +58,18 @@ const files = (dir: string) => fs.readdirSync(path.join(ROOT, dir)).filter((name
 /** The countries that have a sheet, and those of them that somebody has written of by hand. */
 const LANDS = INDEX.countries.filter((c) => hasProfile(c)).map((c) => c.id);
 const WRITTEN = files(SOURCES);
+/** Bilingual, independently sourced accounts added to generated sheets without inventing flag periods. */
+const CURATED = ['AQ', 'BV', 'GS', 'HM', 'TF'] as const;
+/** Small batches of Commons galleries, always after the chosen head. */
+const GALLERIED = ['AQ', 'BV', 'GS', 'HM', 'KE', 'TF', 'TZ', 'UG', 'RW', 'BI', 'CD', 'ZM', 'AO', 'NA'] as const;
+/** Commons gallery photographs after the chosen head, with captions/credits checked on each file's page. */
+type GallerySource = { file: string; es: string; en: string; by?: string };
+const GALLERY = Object.fromEntries(Object.entries(json<Record<string, unknown>>('scripts/data/profiles-gallery.json')).filter(([id]) => id !== '_')) as Record<string, GallerySource[]>;
+/** Reviewed photos from the owner's archive, after all existing heads and Commons galleries. */
+type ReleasePhoto = ProfilePhoto & { sha256: string };
+const RELEASE_FILE = json<{ countries: Record<string, ReleasePhoto[]>; excluded: { id: string; title: string; reason: string }[] }>('scripts/data/release-gallery.json');
+const RELEASE = RELEASE_FILE.countries;
+const FIXES = json<Record<string, Partial<ProfileFile>>>('scripts/data/profiles-fixes.json');
 /** Independent, sourced timelines: these add to the generated sheets rather than replacing them. */
 const TIMELINE_FILE = json<Record<string, unknown>>('scripts/data/profiles-times.json');
 type TimeSource = Omit<ProfileTime, 'picture'> & { picture?: { file: string; by?: string; es: string; en: string } };
@@ -332,19 +344,19 @@ describe('the sheet of every country', () => {
   const sheets = LANDS.map((id) => sheetOf(id));
 
   it('is of its country, and says only what a sheet says', () => {
-    const known = ['v', 'id', 'official', 'local', 'localLang', 'motto', 'anthem', 'about', 'lead', 'flag', 'times', 'timeSource', 'timeNote', 'photos', 'arms', 'read', 'readFlag'];
+    const known = ['v', 'id', 'official', 'local', 'localLang', 'motto', 'anthem', 'about', 'sources', 'lead', 'flag', 'times', 'timeSource', 'timeNote', 'photos', 'arms', 'read', 'readFlag'];
     const ofFlag = ['of', 'adopted', 'changed', 'ratio', 'colours', 'called', 'by', 'drawing', 'text', 'lead', 'parts'];
     for (const [i, sheet] of sheets.entries()) {
       expect(sheet.v, LANDS[i]).toBe(1);
       expect(sheet.id).toBe(LANDS[i]);
       for (const key of Object.keys(sheet)) expect(known, `${sheet.id}.${key}`).toContain(key);
       for (const key of Object.keys(sheet.flag ?? {})) expect(ofFlag, `${sheet.id}.flag.${key}`).toContain(key);
-      // Only Brazil has a complete text and gallery of photographs written by hand. Researched timelines are independent.
+      // Brazil alone has a complete hand-written sheet; five more have sourced text and a checked gallery, not invented flag periods.
       if (!WRITTEN.includes(sheet.id)) {
-        expect(sheet.about, `${sheet.id}.about`).toBeUndefined();
+        if (!CURATED.some((id) => id === sheet.id)) expect(sheet.about, `${sheet.id}.about`).toBeUndefined();
         if (TIMELINES[sheet.id]) expect(sheet.times?.length, `${sheet.id}.times`).toBe(TIMELINES[sheet.id].times.length);
         else expect(sheet.times, `${sheet.id}.times`).toBeUndefined();
-        expect(sheet.photos?.length ?? 0, `${sheet.id}.photos`).toBeLessThanOrEqual(1);
+        expect(sheet.photos?.length ?? 0, `${sheet.id}.photos`).toBeLessThanOrEqual(1 + (GALLERY[sheet.id]?.length ?? 0) + (RELEASE[sheet.id]?.length ?? 0));
       }
     }
   });
@@ -389,7 +401,7 @@ describe('the sheet of every country', () => {
       if (WRITTEN.includes(sheet.id)) continue;
       const head = chosen[sheet.id];
       expect(head, sheet.id).toBeDefined();
-      expect(sheet.photos, sheet.id).toHaveLength(1);
+      expect(sheet.photos, sheet.id).toHaveLength(1 + (GALLERY[sheet.id]?.length ?? 0) + (RELEASE[sheet.id]?.length ?? 0));
       const photo = sheet.photos![0];
       expect(photo.title, sheet.id).toBe(head.file);
       expect([photo.es, photo.en], sheet.id).toEqual([head.es, head.en]);
@@ -602,8 +614,8 @@ describe('the sheet of every country', () => {
       if (sheet.flag?.text) expect(sheet.flag.lead, sheet.id).toBeUndefined();
     }
     for (const id of WRITTEN) expect([sheetOf(id).lead, sheetOf(id).flag?.lead], id).toEqual([undefined, undefined]);
-    // Every country nobody has written of has its page in both Wikipedias, and so its text; most flags have theirs.
-    expect(count.about).toEqual({ es: sheets.length - WRITTEN.length, en: sheets.length - WRITTEN.length });
+    // Every country without an authored account has its page in both Wikipedias, and so its text; most flags have theirs.
+    expect(count.about).toEqual({ es: sheets.length - WRITTEN.length - CURATED.length, en: sheets.length - WRITTEN.length - CURATED.length });
     expect(count.flag.es).toBeGreaterThanOrEqual(240);
     expect(count.flag.en).toBeGreaterThanOrEqual(240);
     expect(LEAD_MAX).toEqual({ about: 640, flag: 480 });
@@ -617,9 +629,10 @@ describe('the sheet of every country', () => {
     expect(sheetOf('PS').read).toEqual({ es: 'https://es.wikipedia.org/wiki/Palestina', en: 'https://en.wikipedia.org/wiki/Palestine' });
     expect(sheetOf('PS').lead?.es?.[0]).toMatch(/^Palestina, oficialmente Estado de Palestina, es un país/);
     expect(sheetOf('PS').lead?.en?.[0]).toMatch(/^Palestine, officially the State of Palestine, is a country/);
-    // The page in Spanish of the flag of Antarctica begins with another flag than the one the game draws.
-    expect(Object.keys(sheetOf('AQ').flag?.lead ?? {})).toEqual(['en']);
-    expect(Object.keys(sheetOf('AQ').lead ?? {}).sort()).toEqual(['en', 'es']);
+    // Neither Wikipedia flag lead explains the particular Bartram proposal as accurately as the sourced account.
+    expect(sheetOf('AQ').flag?.lead).toBeUndefined();
+    expect(sheetOf('AQ').lead).toBeUndefined();
+    expect(sheetOf('AQ').flag?.text?.en[0]).toContain('not the Antarctic Treaty emblem');
     // Misleading dates or colours in the source are hidden rather than attributed to it after rewriting.
     for (const id of ['GQ', 'JE', 'RW']) expect(Object.keys(sheetOf(id).flag?.lead ?? {})).toEqual(['en']);
     expect(Object.keys(sheetOf('HN').flag?.lead ?? {})).toEqual(['es']);
@@ -665,6 +678,194 @@ describe('the sheet of every country', () => {
   });
 });
 
+describe('sourced polar accounts and additional Commons galleries', () => {
+  it('adds bilingual text and its real sources without replacing a photograph, an emblem or a Wikipedia link', () => {
+    for (const id of CURATED) {
+      const sheet = sheetOf(id);
+      const fix = FIXES[id];
+      expect(sheet.about, id).toEqual(fix.about);
+      expect(sheet.about?.es, id).toHaveLength(2);
+      expect(sheet.about?.en, id).toHaveLength(2);
+      expect(sheet.lead, id).toBeUndefined(); // Authored accounts are not labelled as Wikipedia excerpts.
+      expect(sheet.sources, id).toEqual(fix.sources);
+      expect(sheet.sources?.about?.length, id).toBeGreaterThan(0);
+      for (const sources of Object.values(sheet.sources ?? {})) for (const source of sources ?? []) {
+        cleanIn(source.title, `${id} source`);
+        expect(new URL(source.url).protocol, id).toBe('https:');
+      }
+      expect(sheet.read?.es, id).toMatch(/^https:\/\/es\.wikipedia\.org\/wiki\//);
+      expect(sheet.read?.en, id).toMatch(/^https:\/\/en\.wikipedia\.org\/wiki\//);
+      expect(sheet.photos, id).toHaveLength(1 + GALLERY[id].length + (RELEASE[id]?.length ?? 0));
+      expect(sheet.photos?.[0].by, id).toBeTruthy();
+      expect(sheet.photos?.[0].licence, id).toMatch(/^(CC BY(-SA)? \d|Public domain)/);
+      expect(JSON.stringify(sheet), id).not.toContain('Placeholder');
+      // The upload's dated historical events are not flag periods; no earlier flag exists in the catalogue.
+      expect(FLAGS.past?.[id], id).toBeUndefined();
+      expect(sheet.times, id).toBeUndefined();
+    }
+    for (const id of ['GS', 'TF']) expect(sheetOf(id).arms, id).toBeDefined();
+  });
+
+  it('keeps each chosen head and adds only the bilingual, licensed Commons photographs in the gallery', () => {
+    expect(Object.keys(GALLERY).sort()).toEqual([...GALLERIED].sort());
+    const heads = json<Record<string, { file: string; es: string; en: string }>>('scripts/data/profiles-heads.json');
+    const used = new Set<string>();
+    for (const id of GALLERIED) {
+      const [hero, ...photos] = sheetOf(id).photos!.slice(0, 1 + GALLERY[id].length);
+      expect(hero.title, id).toBe(heads[id].file);
+      expect([hero.es, hero.en], id).toEqual([heads[id].es, heads[id].en]);
+      expect(photos, id).toHaveLength(['RW', 'BI', 'CD', 'ZM', 'AO', 'NA'].includes(id) ? 4 : 2);
+      expect(photos.length + 1, id).toBeGreaterThanOrEqual(3);
+      expect(photos.length + 1, id).toBeLessThanOrEqual(8);
+      for (const [i, photo] of photos.entries()) {
+        const source = GALLERY[id][i];
+        expect([photo.title, photo.es, photo.en, photo.by], id).toEqual([source.file, source.es, source.en, source.by]);
+        expect(used.has(photo.file), photo.title).toBe(false);
+        used.add(photo.file);
+        expect(photo.file, photo.title).toMatch(/^[0-9a-f]{10}$/);
+        expect(photo.sizes, photo.title).toEqual(WIDTHS.photo.filter((w) => w <= photo.w));
+        expect(photo.licence, photo.title).toMatch(/^(CC BY(-SA)? \d|Public domain)/);
+        if (photo.licence.startsWith('CC')) expect(photo.licenceUrl, photo.title).toMatch(/^https:\/\/creativecommons\.org\//);
+        for (const width of photo.sizes) {
+          const file = path.join(ROOT, PICTURES, `${photo.file}-${width}.webp`);
+          expect(fs.existsSync(file), file).toBe(true);
+          expect(fs.statSync(file).size, file).toBeLessThanOrEqual(300_000);
+          expect(fs.readFileSync(file).subarray(8, 12).toString('latin1')).toBe('WEBP');
+        }
+      }
+    }
+  });
+
+  it('keeps Rwanda’s existing timeline, does not invent one for Burundi and identifies the palace as a reconstruction', () => {
+    const rwanda = sheetOf('RW');
+    const burundi = sheetOf('BI');
+    expect(rwanda.photos?.length).toBe(5 + (RELEASE.RW?.length ?? 0));
+    expect(burundi.photos?.length).toBe(5 + (RELEASE.BI?.length ?? 0));
+    expect(rwanda.times).toHaveLength(3);
+    expect(rwanda.timeSource).toBe(TIMELINES.RW.source);
+    expect(burundi.times).toBeUndefined();
+    const palace = rwanda.photos?.find((photo) => photo.title === 'Rwanda Nyanza Mwami Palace.jpg');
+    expect(palace?.es).toMatch(/^Reconstrucción del palacio/);
+    expect(palace?.en).toMatch(/^Reconstruction of the traditional/);
+    expect(rwanda.photos?.slice(1, 5).map((photo) => photo.licence)).toEqual(['CC BY-SA 4.0', 'CC BY-SA 4.0', 'CC BY-SA 4.0', 'CC BY-SA 3.0']);
+    expect(burundi.photos?.slice(1, 5).map((photo) => photo.licence)).toEqual(['CC BY-SA 4.0', 'CC BY-SA 4.0', 'CC BY-SA 4.0', 'CC BY 2.0']);
+  });
+
+  it('keeps DR Congo’s six flag periods and Zambia’s lack of a timeline alongside their new photographs', () => {
+    const congo = sheetOf('CD');
+    const zambia = sheetOf('ZM');
+    expect(congo.photos?.length).toBe(5 + (RELEASE.CD?.length ?? 0));
+    expect(zambia.photos?.length).toBe(5 + (RELEASE.ZM?.length ?? 0));
+    expect(congo.photos?.[0].title).toBe('Virunga 01.jpg');
+    expect(zambia.photos?.[0].title).toBe('Cataratas Victoria, Zambia-Zimbabue, 2018-07-27, DD 05.jpg');
+    expect(congo.times).toHaveLength(6);
+    expect(congo.timeSource).toBe(TIMELINES.CD.source);
+    expect(zambia.times).toBeUndefined();
+    expect(congo.photos?.slice(1, 5).map((photo) => photo.licence)).toEqual(['CC BY-SA 3.0', 'CC BY-SA 3.0', 'CC BY 3.0', 'CC BY-SA 3.0']);
+    expect(zambia.photos?.slice(1, 5).map((photo) => photo.licence)).toEqual(['CC BY 2.0', 'CC BY-SA 4.0', 'CC BY-SA 4.0', 'CC BY-SA 4.0']);
+  });
+
+  it('keeps Angola and Namibia’s chosen heads and flag dates, adding photos but no unsourced timelines', () => {
+    const expected = {
+      AO: {
+        head: 'Quedas-Kalandula 07 queda LWS-2011-08 QD18 (cropped).jpg',
+        adopted: '1975-11-11',
+        licences: ['CC BY-SA 3.0', 'CC BY 2.0', 'CC BY-SA 3.0', 'CC BY-SA 2.0'],
+      },
+      NA: {
+        head: 'Dead Vlei, Sossusvlei, Namibia, 2018-08-06, DD 086.jpg',
+        adopted: '1990-03-21',
+        licences: ['CC BY-SA 2.5', 'CC BY-SA 3.0', 'CC BY 3.0', 'CC BY-SA 4.0'],
+      },
+    };
+    for (const [id, { head, adopted, licences }] of Object.entries(expected)) {
+      const sheet = sheetOf(id);
+      expect(sheet.photos?.length, id).toBe(5 + (RELEASE[id]?.length ?? 0));
+      expect(sheet.photos?.[0].title, id).toBe(head);
+      expect(sheet.photos?.slice(1, 5).map((photo) => photo.licence), id).toEqual(licences);
+      expect(sheet.flag?.adopted, id).toBe(adopted);
+      expect(sheet.times, id).toBeUndefined();
+    }
+  });
+
+  it('distinguishes the Bartram proposal, the borrowed Norwegian/Australian flags and the TAAF emblem', () => {
+    const aq = sheetOf('AQ');
+    expect(aq.flag?.text).toEqual(FIXES.AQ.flag?.text);
+    expect(aq.flag?.parts).toEqual(FIXES.AQ.flag?.parts);
+    expect(aq.flag?.lead).toBeUndefined();
+    expect(aq.flag?.adopted).toBeUndefined(); // 2002 is the Treaty emblem, not this flag.
+    expect(aq.flag?.text?.es[0]).toContain('No es el emblema del Tratado Antártico');
+    for (const [id, owner] of [['BV', 'NO'], ['HM', 'AU']] as const) {
+      const sheet = sheetOf(id);
+      expect(sheet.flag?.of, id).toBe(owner);
+      expect(sheet.flag?.adopted, id).toBe(sheetOf(owner).flag?.adopted);
+      expect(sheet.flag?.ratio, id).toBe(sheetOf(owner).flag?.ratio);
+      expect(sheet.flag?.lead, id).toEqual(sheetOf(owner).flag?.lead);
+      expect(sheet.flag?.text, id).toBeUndefined();
+      expect(sheet.sources?.flag, id).toBeUndefined();
+      expect(sheet.arms, id).toBeUndefined();
+    }
+    expect(sheetOf('BV')).toMatchObject({ local: 'Bouvetøya', localLang: 'nb' });
+    for (const id of ['GS', 'TF'] as const) {
+      const sheet = sheetOf(id);
+      expect(sheet.flag?.text, id).toEqual(FIXES[id].flag?.text);
+      expect(sheet.flag?.parts, id).toEqual(FIXES[id].flag?.parts);
+      expect(sheet.flag?.lead, id).toBeUndefined();
+      expect(sheet.sources?.flag?.length, id).toBeGreaterThan(0);
+    }
+    expect(sheetOf('GS').flag?.adopted).toBeUndefined(); // 1992 dates the arms, not an attested adoption of today's ensign.
+    expect(sheetOf('GS').flag?.parts?.[1].en[1]).toContain('not native wildlife');
+    expect(sheetOf('TF').flag?.adopted).toBe('2007-02-23');
+    expect(sheetOf('TF').flag?.text?.en[0]).toContain('decree sets no proportions');
+    expect(sheetOf('TF').flag?.parts?.[2].es[1]).toContain('el decreto no establece ese significado');
+    expect(sheetOf('TF').motto).toBeUndefined(); // The motto of France is not a motto of this territory.
+  });
+});
+
+describe('the sourced correction to Uganda’s flag description', () => {
+  it('uses the 1962 law rather than the incorrect 1969 Spanish introduction without inventing a flag period', () => {
+    const sheet = sheetOf('UG');
+    const fix = FIXES.UG;
+    expect(sheet.flag?.adopted).toBe('1962-10-09');
+    expect(sheet.flag?.text).toEqual(fix.flag?.text);
+    expect(sheet.flag?.parts).toEqual(fix.flag?.parts);
+    expect(sheet.flag?.lead).toBeUndefined();
+    expect(sheet.flag?.text?.es[0]).toContain('9 de octubre de 1962');
+    expect(sheet.flag?.text?.es[0]).not.toContain('1969');
+    expect(sheet.sources?.flag).toEqual(fix.sources?.flag);
+    expect(sheet.sources?.flag?.[0].url).toBe('https://ulii.org/akn/ug/act/ord/1962/64');
+    expect(sheet.lead?.es).toBeDefined(); // The country introduction still comes from its Wikipedia page.
+    expect(sheet.readFlag?.es).toMatch(/^https:\/\/es\.wikipedia\.org\/wiki\//);
+    expect(sheet.times).toBeUndefined(); // The catalogue's 1962 drawing was a proposal, not this national flag.
+  });
+});
+
+describe('the reviewed WebPs from the owner’s photo release', () => {
+  it('preserves every chosen head and earlier gallery, then adds only the pinned bilingual photos across 248 more sheets', () => {
+    expect(Object.keys(RELEASE).sort()).toEqual(LANDS.filter((id) => id !== 'BR').sort());
+    expect(Object.values(RELEASE).flat()).toHaveLength(1330);
+    expect(RELEASE_FILE.excluded).toHaveLength(15); // Eight too-wide panoramas, seven with uncertain rights.
+    for (const id of LANDS) {
+      const sheet = sheetOf(id);
+      if (id === 'BR') { expect(RELEASE[id]).toBeUndefined(); continue; }
+      const prior = 1 + (GALLERY[id]?.length ?? 0);
+      const rows = RELEASE[id];
+      expect(sheet.photos?.length, id).toBe(prior + rows.length);
+      expect(sheet.photos?.length, id).toBeLessThanOrEqual(8);
+      expect(new Set(sheet.photos?.map((photo) => photo.title)).size, id).toBe(sheet.photos?.length);
+      const approved = rows.map(({ sha256: _hash, ...photo }) => photo);
+      expect(sheet.photos?.slice(prior), id).toEqual(approved);
+      for (const photo of rows) {
+        expect(photo.sizes, photo.title).toEqual([640]);
+        const file = path.join(ROOT, PICTURES, `${photo.file}-640.webp`);
+        expect(fs.existsSync(file), file).toBe(true);
+        expect(createHash('sha256').update(fs.readFileSync(file)).digest('hex'), file).toBe(photo.sha256);
+      }
+    }
+    for (const excluded of RELEASE_FILE.excluded) expect(sheetOf(excluded.id).photos?.map((p) => p.title), excluded.title).not.toContain(excluded.title);
+  });
+});
+
 describe('researched timelines layered over the generated sheets', () => {
   it('covers eighty-six real countries without replacing their photograph or attributing corrected text to Wikipedia', () => {
     expect(typeof TIMELINE_REASON).toBe('string');
@@ -678,7 +879,8 @@ describe('researched timelines layered over the generated sheets', () => {
       const sheet = sheetOf(id);
       const source = TIMELINES[id];
       expect(sheet.about, id).toBeUndefined();
-      expect(sheet.photos, id).toHaveLength(1);
+      // Timelines do not replace the chosen head or any separately curated gallery (TZ has both).
+      expect(sheet.photos, id).toHaveLength(1 + (GALLERY[id]?.length ?? 0) + (RELEASE[id]?.length ?? 0));
       expect(sheet.lead?.es?.length, id).toBeGreaterThan(0);
       expect(sheet.lead?.en?.length, id).toBeGreaterThan(0);
       // Misleading dates and descriptions are hidden, not rewritten as if they came from Wikipedia.
@@ -1018,7 +1220,8 @@ describe.each(WRITTEN.map((id) => [id]))('the sheet of %s, written by hand', (id
       expect(photo.w).toBeGreaterThan(0);
       expect(photo.h).toBeGreaterThan(0);
       // The widths of where it is shown: the one at the head of the sheet, those of its gallery, that of a time.
-      const wanted: readonly number[] = i === 0 ? WIDTHS.head : i < sheet.photos.length ? WIDTHS.photo : WIDTHS.time;
+      const released = i >= sheet.photos.length - (RELEASE[id]?.length ?? 0) && i < sheet.photos.length;
+      const wanted: readonly number[] = i === 0 ? WIDTHS.head : released ? [640] : i < sheet.photos.length ? WIDTHS.photo : WIDTHS.time;
       expect(photo.sizes, photo.title).toEqual(wanted.filter((w) => w <= photo.w));
       for (const w of photo.sizes) {
         const file = path.join(ROOT, PICTURES, `${photo.file}-${w}.webp`);
@@ -1198,9 +1401,11 @@ describe('the photographs that are fetched to make the sheets', () => {
     expect(PHOTOS_SAID).toHaveLength(3);
     expect(PHOTOS_SAID[2]).not.toBe(PHOTOS_AT.commit);
     for (const [file] of PHOTOS) expect(file).toMatch(/^photos\/files\/[0-9a-f]{40}\.1920\.(jpg|png)$/);
-    // Under the SHA-1 of its original, whose first figures are what its pictures are named after.
+    // The downloaded originals make the earlier photos. The separately hash-pinned release WebPs
+    // have no 1920px originals in this source and must not silently appear in photos-pinned.mjs.
     const pinned = PHOTOS.map(([file]) => path.basename(file).slice(0, 10)).sort();
-    const shown = LANDS.flatMap((land) => photosOf(sheetOf(land)).map((photo) => photo.file)).sort();
+    const released = new Set(Object.values(RELEASE).flat().map((photo) => photo.file));
+    const shown = LANDS.flatMap((land) => photosOf(sheetOf(land)).map((photo) => photo.file)).filter((file) => !released.has(file)).sort();
     expect(pinned).toEqual(shown);
   });
 });

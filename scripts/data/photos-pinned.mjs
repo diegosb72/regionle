@@ -21,7 +21,7 @@
 export const PHOTOS_AT = { repo: 'diegosb72/regionle', commit: '2a95dd4bd0fd18af109c36dc59503adc2e4fc7e3', dir: '' };
 
 /** What Commons says of every photograph that was asked for. */
-export const PHOTOS_SAID = ['photos/photos.json', '060e26642bce52a678092094a27d5996e751bd9f', '57ea97553400f0cb72a2b4a7c0ff67bc8562e0e1'];
+export const PHOTOS_SAID = ['photos/photos.json', 'e42ea4404b8dac7eacbc8d99fc72ff731d60a035', '08f8066d31261e24d8f4735f000444da3b3bbbf3'];
 
 /** The pictures, each under the SHA-1 of its original: [where it is in the branch, the Git name of what it holds, the commit it is at where that is another]. */
 export const PHOTOS = [
@@ -41,6 +41,56 @@ export const PHOTOS = [
   // Commons has since redrawn twelve of them, so these new files use their own verified commit.
   ['photos/files/6864d3137af417653a52e862af852f65bb7593ae.1920.jpg', '98af5020ec7797c86548f1f77b3e75f27153b7d5', '57ea97553400f0cb72a2b4a7c0ff67bc8562e0e1'], // AL · Postcard of the Albanian Flag by Aladro Kastriota (1913).jpg
   ['photos/files/a9862cf589cd56ad1fc22871c2a6063f6b9fda1b.1920.jpg', '58dc4254937dec50287bd3a812718a95f89a2877', '57ea97553400f0cb72a2b4a7c0ff67bc8562e0e1'], // GR · Xenophon - Book of Signals - Flags of the Admirals.jpg
+
+  // Additional photographs after the five unchanged chosen heads; each render is fixed at the verified run.
+  ['photos/files/cd079a64ea2c9408f7f67fb83dfe25bef9e139d5.1920.jpg', '7b0d78fc1f6fc790a3df4a675e57de7343bf5f35', '45642b58bfed8394088b056eaa54e85f44a61179'], // AQ · Lemaire Channel, Antarctica.jpg
+  ['photos/files/552d4aa2e7acd051ec1e6700997d250c007126ff.1920.jpg', '57f15273758b86e99c2155ce66886be2c9311f31', '45642b58bfed8394088b056eaa54e85f44a61179'], // AQ · McMurdo Station.jpg
+  ['photos/files/ebc7dde7422d81d6578ed79e1ddb7eda0461deb7.1920.jpg', '221ee783e03973f10275cac35f1190738abc5e34', '45642b58bfed8394088b056eaa54e85f44a61179'], // BV · Antarktisk pelssel på Bouvetøya, Nyrøysa.jpg
+  ['photos/files/8f7a672fefc977c186cac1251bea8945c7e88489.1920.jpg', '8d94fd87d04d5b4d7c772e846f2e0b1b3a5a0203', '45642b58bfed8394088b056eaa54e85f44a61179'], // BV · Bouvet island 0.jpg
+  ['photos/files/3df387071057d77770ffc0b3e885448a50ad1389.1920.jpg', '90560c155d0d75c98047c07e0f222326abd73f39', '45642b58bfed8394088b056eaa54e85f44a61179'], // GS · Grytviken Harbour, Island of South Georgia, United Kingdom.jpg
+  ['photos/files/36baf18281f2c3f9b24bf2571ea2b15f4749c871.1920.jpg', 'd32fc5ad742be620a165d246c47045232d81ce84', '45642b58bfed8394088b056eaa54e85f44a61179'], // GS · GoldHarbour.JPG
+  ['photos/files/1de1f6246da3f8eb65819e5589bc014337039eb8.1920.jpg', '1a90db5160a9eb482ddf0d063629ff9d78777aa3', '45642b58bfed8394088b056eaa54e85f44a61179'], // HM · Heard2.jpg
+  ['photos/files/24d154ce3baf361d121450f1b022568b1072120b.1920.jpg', '020019df20deb2e9e4dcedbfb50ad5eb89a412f6', '45642b58bfed8394088b056eaa54e85f44a61179'], // HM · Heard Island 2005-08.jpg
+  ['photos/files/db364ec3cbeb5010652871a61963b5aa6f1a4aaf.1920.jpg', 'fe950beb27f5fa86c114cd64ef147a463af802a9', '45642b58bfed8394088b056eaa54e85f44a61179'], // TF · Vagues et manchots à l'assaut de la plage.jpg
+  ['photos/files/6e7f24b9b6f157eaa929196089ec9738417d02c2.1920.jpg', '0754a1e5bfadb7d0a206c9f837f5dff1c9f6c8ce', '45642b58bfed8394088b056eaa54e85f44a61179'], // TF · Amsterdam vue du large - panoramio.jpg
+
+  // Uganda, Kenya and Tanzania: six Commons 1920px renders verified in the next data run; earlier heads stay pinned.
+  ['photos/files/e95e128424a42cb6d36c4ea066d3d4d0cf1b0c26.1920.jpg', 'ac099079956d087d5c4296a0c4e3ac1b2962baf9', 'ffbd398d94e886c87af4a39d2330ad27e6e8b8c2'], // UG · Murchison Falls view from Nile.jpg
+  ['photos/files/000e5bbae3538427b4d4a769f50c84afc2fa676a.1920.jpg', '9a46b48d124f81a34405f3993d3f92956d4c158a', 'ffbd398d94e886c87af4a39d2330ad27e6e8b8c2'], // UG · Grey crowned crane (Balearica regulorum gibbericeps).jpg
+  ['photos/files/e48e45e84d8cc20f7298714788c5c1663bad8840.1920.jpg', '7a327afcf861ec5f26fdb8bf226704b2fd9ef07b', 'ffbd398d94e886c87af4a39d2330ad27e6e8b8c2'], // KE · MtKenya.jpg
+  ['photos/files/152f72b7ef9b9d248d6f8e30a0941dd6661bbc2d.1920.jpg', '50af15b02ddd08f1ce9f266e6ca034487ac17088', 'ffbd398d94e886c87af4a39d2330ad27e6e8b8c2'], // KE · Lamu town on Lamu Island in Kenya.JPG
+  ['photos/files/255bee19bbaafd8ffbfd2efbbe10a2e7f56eead9.1920.jpg', 'b8ac73342d7c5e1bbc661df54ae67a609fa98aab', 'ffbd398d94e886c87af4a39d2330ad27e6e8b8c2'], // TZ · Mlima Kilimanjaro.jpg
+  ['photos/files/842485251c73884f7f08b6f088a1dfdb85aa673e.1920.jpg', '724877be987edb5972f598853015dbad914d179c', 'ffbd398d94e886c87af4a39d2330ad27e6e8b8c2'], // TZ · Stone Town-2.jpg
+
+  // Rwanda and Burundi: eight verified photographs after their unchanged heads. The palace is a reconstruction.
+  ['photos/files/f1f19eb5c254361639d1ae1317df57825a110186.1920.jpg', '46088f8448458438e65f3345137a1d8834953a68', 'f1e444b60212812640af3dc442ac811978f063f2'], // RW · A mountain gorilla from Susa Group in Karisimbi thicket of Volcanoes National Park in Rwanda. Emmanuel Kwizera.jpg
+  ['photos/files/1ea046a720e238e947da443497478ba50592154c.1920.jpg', 'bd96ed2726fcc3199248abecaf006ef53ce4c367', 'f1e444b60212812640af3dc442ac811978f063f2'], // RW · Nyungwe Canopy Walk.jpg
+  ['photos/files/d126316047b06193aa511efbe5a55797b87931bc.1920.jpg', '6b6d0276b8409579ebf9cb41b78a4a4ed70f55a6', 'f1e444b60212812640af3dc442ac811978f063f2'], // RW · Lake Kivu at dawn.jpg
+  ['photos/files/5f19d7137b50c21dd81229a9e584a79d3fb026c4.1920.jpg', 'c22dc2916eeb723fe6ba8070a557ba420a0298b1', 'f1e444b60212812640af3dc442ac811978f063f2'], // RW · Rwanda Nyanza Mwami Palace.jpg
+  ['photos/files/ee928567afbaf31c16a6fb280f55f52e39a216eb.1920.jpg', 'b00fc84e871ca4a8ef2b884f27dd4fb91370f73f', 'f1e444b60212812640af3dc442ac811978f063f2'], // BI · La chute de karera nyakayi 1 à Rutana.jpg
+  ['photos/files/6be77ad58d9a879cec7facefc2d3911570290139.1920.jpg', '83beda5407e7e6d74409796f503330cb79000f9a', 'f1e444b60212812640af3dc442ac811978f063f2'], // BI · Forêt de Teza (Kibira).jpg
+  ['photos/files/abb1d7147cf15752429595cce541d3b5d02efd9f.1920.jpg', 'a5989f67814ac55c75fc81ceb4308acd11f62979', 'f1e444b60212812640af3dc442ac811978f063f2'], // BI · Les tambourinaires de Gitega.jpg
+  ['photos/files/71f3398203a40edc89c46c66155c102a984b4767.1920.jpg', '52a143c1d979127be1a03096b2954cd7d6f8d119', 'f1e444b60212812640af3dc442ac811978f063f2'], // BI · Rusizi NP hippopotamus.jpg
+
+  // DR Congo and Zambia: eight Commons renders checked in the next data run, after their unchanged heads.
+  ['photos/files/bb3e84e414afec96422eb528e408d2e8d4616527.1920.jpg', '73054551081c7a2cb27e34aa5da166d7839344c3', '025d53ff39e02d8fb4cc446006aeeaef768193d0'], // CD · Lava Lake Nyiragongo 2.jpg
+  ['photos/files/845579a2eac83082ecae3c6966ce0e3918d0ca35.1920.jpg', 'e5017c6b33bd2709ae695c38fee7439b68f6629a', '025d53ff39e02d8fb4cc446006aeeaef768193d0'], // CD · Fleuve Congo Kinshasa 7.JPG
+  ['photos/files/c8d6f996dac2b08f75719c7abecc679a00b26d33.1920.jpg', '06f63b89009a410e65becdc46d148a5bfbd3e97d', '025d53ff39e02d8fb4cc446006aeeaef768193d0'], // CD · Square in Lubumbashi, 2011.jpg
+  ['photos/files/5cd52f416bbc25698004c66cb9e77a29f617a307.1920.jpg', '6152aa05d3ea872c01f64f329e49c64d9239e2ff', '025d53ff39e02d8fb4cc446006aeeaef768193d0'], // CD · Bonobo (Pan paniscus) at Lola Ya Bonobo - 3.JPG
+  ['photos/files/ad37559325582e5be205e21e336ec276f42c5c47.1920.jpg', 'ca3d7877585d654758c2915abf20c43fb8f4da86', '025d53ff39e02d8fb4cc446006aeeaef768193d0'], // ZM · Loxodonta africana South Luangwa National Park (1).jpg
+  ['photos/files/8ff713a6e42ac337ed4fb7d99097ed439049d8d5.1920.jpg', '507f64bbd1dea4dabb434cba084a4ae5ebe6c263', '025d53ff39e02d8fb4cc446006aeeaef768193d0'], // ZM · Lusaka, Zambia CBD Kafue Roundabout.jpg
+  ['photos/files/42fba2aa228251832b49b0cc1c635a6869d61b1c.1920.jpg', 'bc7705fe6caad898723371445ffc6d5e093ad288', '025d53ff39e02d8fb4cc446006aeeaef768193d0'], // ZM · Boats Harbor, Kairba Lake, Siavonga Zambia.jpg
+  ['photos/files/b127f4335347a7a1775fc071b6d6e7dbba85e1ae.1920.jpg', '4b9bcce85ca205d64f9323e6aca74db5c442c758', '025d53ff39e02d8fb4cc446006aeeaef768193d0'], // ZM · Kuomboka ceremony in Zambia 13.jpg
+
+  // Angola and Namibia: eight verified Commons photographs, with the chosen heads unchanged.
+  ['photos/files/8b7811ca4ca4e7fc3948949587ea604a91223de7.1920.jpg', 'ab3f4d8a90012dcb6e85c5f220067053e3501e05', '08f8066d31261e24d8f4735f000444da3b3bbbf3'], // AO · Panorama baixa Luanda.JPG
+  ['photos/files/edd3e2d6b1ba4e0edfe434222f253f0ae3c5cc56.1920.jpg', '1637afbca20d412bec2e3789b12c124c11a0bf47', '08f8066d31261e24d8f4735f000444da3b3bbbf3'], // AO · Tundavala Gap.jpg
+  ['photos/files/3080d7317026e66cc6313d84b3f842588efede11.1920.jpg', '52cfd92f1fd61afda39b2979570579a8304ddef1', '08f8066d31261e24d8f4735f000444da3b3bbbf3'], // AO · Museu da Escravatura Luanda.JPG
+  ['photos/files/edddadf14b771ed596a58141635a171a5f35fb53.1920.jpg', 'b629d26e9e95f92de717a13ddbf9935da332368f', '08f8066d31261e24d8f4735f000444da3b3bbbf3'], // AO · Barco com pescadores em uma praia de Cabo Ledo, Angola.jpg
+  ['photos/files/e8b4684c1027824b64eabfe5cee7d7d6b15ba182.1920.jpg', 'ad87329b8b6c077314546a7d93374eb697b003a3', '08f8066d31261e24d8f4735f000444da3b3bbbf3'], // NA · Windhoek-Skyline.jpg
+  ['photos/files/3050f5fac37470902b90da84d094fea3400f6306.1920.jpg', '1919235c915a1c7df8156f5daf9d9c8dca101b5a', '08f8066d31261e24d8f4735f000444da3b3bbbf3'], // NA · Elephant waterhole.jpg
+  ['photos/files/f92b48734f294e6ee8a3ed6e9cbfffd0799650c0.1920.jpg', 'e88eb4a3f7c37b42c40a926c0ada73a513365332', '08f8066d31261e24d8f4735f000444da3b3bbbf3'], // NA · Fish River Canyon - Namibie - panoramio (8).jpg
+  ['photos/files/ac2ac777c26d0b0b62004a6798f06c2384286df3.1920.jpg', '79345fb4f39d1491ab065fcf1bde4be537ca583a', '08f8066d31261e24d8f4735f000444da3b3bbbf3'], // NA · San - Khoekhoen rock art - Namibia.jpg
 
   // The one chosen for the head of the sheet of each country nobody has written of (scripts/data/profiles-heads.json)
   ['photos/files/692fd0f034ca1e1755b8c657ca1b13aa762948c0.1920.jpg', '45a7841d966750dbe3ef5d04521f49c50a33a4d5'], // AD · Vista de Andorra la Vieja, Andorra, 2013-12-30, DD 01.JPG
