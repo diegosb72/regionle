@@ -1,6 +1,6 @@
 {
-  "when": "2026-11-27T11:36:38.167Z",
-  "from": "arena/baec5cdd-regionle@2e66d74",
+  "when": "2026-11-27T12:06:47.386Z",
+  "from": "arena/baec5cdd-regionle@c407854",
   "workflow": "same",
   "sources": [
     {
@@ -8,18 +8,18 @@
       "file": "user-photos/index.json",
       "from": "Archivo aportado por el dueño en la release de GitHub (https://github.com/diegosb72/regionle/releases/tag/imagenes)",
       "licence": "Sin verificar: el inventario no acredita la licencia de ninguna fotografía",
-      "what": "Names, sizes and SHA-256 hashes of the files inside the split ZIP in scripts/data/release-photos.json, plus its five small top-level documents for review. The application script is read, never run. No image is published or assumed reusable merely because it is in the archive.",
+      "what": "Names, sizes and SHA-256 hashes of the files inside the split ZIP in scripts/data/release-photos.json, plus its five small top-level documents and the photo lists of 249 profiles for review. The application script is read, never run. No image is published or assumed reusable merely because it is in the archive.",
       "es": "Inventario del archivo fotográfico aportado por el dueño",
       "needs": "113",
       "ok": true,
-      "bytes": 361225,
-      "blob": "f760570f454224f64c4a22cd0eb715909bb494f7",
-      "note": "2134 files (1880 images), 5 documents; the ZIP and images are not saved",
+      "bytes": 361261,
+      "blob": "d85cc66bd493944a29a5434b8b3e550de3e02e09",
+      "note": "2134 files (1880 images), 5 documents and 249 photo lists; no images saved",
       "detail": {
         "files": 2134,
         "images": 1880
       },
-      "ms": 1623
+      "ms": 2853
     }
   ],
   "reach": []
