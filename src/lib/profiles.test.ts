@@ -61,7 +61,7 @@ const WRITTEN = files(SOURCES);
 /** Bilingual, independently sourced accounts added to generated sheets without inventing flag periods. */
 const CURATED = ['AQ', 'BV', 'GS', 'HM', 'TF'] as const;
 /** Small batches of Commons galleries, always after the chosen head. */
-const GALLERIED = ['AQ', 'BV', 'GS', 'HM', 'KE', 'TF', 'TZ', 'UG', 'RW', 'BI'] as const;
+const GALLERIED = ['AQ', 'BV', 'GS', 'HM', 'KE', 'TF', 'TZ', 'UG', 'RW', 'BI', 'CD', 'ZM'] as const;
 /** Commons gallery photographs after the chosen head, with captions/credits checked on each file's page. */
 type GallerySource = { file: string; es: string; en: string; by?: string };
 const GALLERY = Object.fromEntries(Object.entries(json<Record<string, unknown>>('scripts/data/profiles-gallery.json')).filter(([id]) => id !== '_')) as Record<string, GallerySource[]>;
@@ -710,7 +710,7 @@ describe('sourced polar accounts and additional Commons galleries', () => {
       const [hero, ...photos] = sheetOf(id).photos!;
       expect(hero.title, id).toBe(heads[id].file);
       expect([hero.es, hero.en], id).toEqual([heads[id].es, heads[id].en]);
-      expect(photos, id).toHaveLength(['RW', 'BI'].includes(id) ? 4 : 2);
+      expect(photos, id).toHaveLength(['RW', 'BI', 'CD', 'ZM'].includes(id) ? 4 : 2);
       expect(photos.length + 1, id).toBeGreaterThanOrEqual(3);
       expect(photos.length + 1, id).toBeLessThanOrEqual(8);
       for (const [i, photo] of photos.entries()) {
@@ -745,6 +745,20 @@ describe('sourced polar accounts and additional Commons galleries', () => {
     expect(palace?.en).toMatch(/^Reconstruction of the traditional/);
     expect(rwanda.photos?.slice(1).map((photo) => photo.licence)).toEqual(['CC BY-SA 4.0', 'CC BY-SA 4.0', 'CC BY-SA 4.0', 'CC BY-SA 3.0']);
     expect(burundi.photos?.slice(1).map((photo) => photo.licence)).toEqual(['CC BY-SA 4.0', 'CC BY-SA 4.0', 'CC BY-SA 4.0', 'CC BY 2.0']);
+  });
+
+  it('keeps DR Congo’s six flag periods and Zambia’s lack of a timeline alongside their new photographs', () => {
+    const congo = sheetOf('CD');
+    const zambia = sheetOf('ZM');
+    expect(congo.photos).toHaveLength(5);
+    expect(zambia.photos).toHaveLength(5);
+    expect(congo.photos?.[0].title).toBe('Virunga 01.jpg');
+    expect(zambia.photos?.[0].title).toBe('Cataratas Victoria, Zambia-Zimbabue, 2018-07-27, DD 05.jpg');
+    expect(congo.times).toHaveLength(6);
+    expect(congo.timeSource).toBe(TIMELINES.CD.source);
+    expect(zambia.times).toBeUndefined();
+    expect(congo.photos?.slice(1).map((photo) => photo.licence)).toEqual(['CC BY-SA 3.0', 'CC BY-SA 3.0', 'CC BY 3.0', 'CC BY-SA 3.0']);
+    expect(zambia.photos?.slice(1).map((photo) => photo.licence)).toEqual(['CC BY 2.0', 'CC BY-SA 4.0', 'CC BY-SA 4.0', 'CC BY-SA 4.0']);
   });
 
   it('distinguishes the Bartram proposal, the borrowed Norwegian/Australian flags and the TAAF emblem', () => {

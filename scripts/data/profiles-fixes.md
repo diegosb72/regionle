@@ -297,6 +297,32 @@ El palacio de Nyanza es una **reconstrucción**, no el edificio histórico origi
 fotografía de los hipopótamos fue revisada en Commons a partir de Flickr; la fotografía se atribuye a
 `d_proffer`, no al usuario que la subió a Commons.
 
+## Fotografías adicionales de la República Democrática del Congo y Zambia
+
+Ambas fichas muestran **cinco fotografías contando la cabecera**: cuatro nuevas por país, sin cambiar la
+cascada de Virunga ni las cataratas Victoria. Se comprobaron en las páginas de cada archivo de Commons el
+lugar, autor y licencia, y se cotejaron los ocho JPEG descargados con sus imágenes y hashes. El flujo
+`photos` guardó sus metadatos y versiones de hasta 1920 px en `datos`, commit
+`025d53ff39e02d8fb4cc446006aeeaef768193d0`; `photos-pinned.mjs` fija los hashes y
+`profiles-gallery.json` los pies bilingües. La ficha del Congo **conserva sus seis etapas** y Zambia no
+recibe ninguna cronología inventada. Todas las fotos tienen autor, licencia y enlace a Commons en la ficha.
+
+| Ficha | Archivo y lugar contrastados en Commons | Autor/crédito | Licencia indicada por Commons |
+| --- | --- | --- | --- |
+| CD | [Lago de lava del Nyiragongo, parque nacional de Virunga](https://commons.wikimedia.org/wiki/File:Lava_Lake_Nyiragongo_2.jpg) | Cai Tjeenk Willink (Caitjeenk) | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| CD | [Ribera del río Congo y rápidos cerca de Kinsasa](https://commons.wikimedia.org/wiki/File:Fleuve_Congo_Kinshasa_7.JPG) | Serein | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| CD | [Plaza de Lubumbashi](https://commons.wikimedia.org/wiki/File:Square_in_Lubumbashi,_2011.jpg) | T. Thielemans | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) |
+| CD | [Madre bonobo y cría en el santuario Lola ya Bonobo, Kinsasa](https://commons.wikimedia.org/wiki/File:Bonobo_%28Pan_paniscus%29_at_Lola_Ya_Bonobo_-_3.JPG) | Christina Bergey | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| ZM | [Elefantes cruzando el Luangwa en el parque nacional de Luangwa Sur](https://commons.wikimedia.org/wiki/File:Loxodonta_africana_South_Luangwa_National_Park_%281%29.jpg) | Geoff Gallice | [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/) |
+| ZM | [Rotonda de Kafue y centro de Lusaka](https://commons.wikimedia.org/wiki/File:Lusaka,_Zambia_CBD_Kafue_Roundabout.jpg) | Lupali | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| ZM | [Barcas en el puerto del lago Kariba, Siavonga](https://commons.wikimedia.org/wiki/File:Boats_Harbor,_Kairba_Lake,_Siavonga_Zambia.jpg) | Mulengac | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| ZM | [Ceremonia Kuomboka del pueblo lozi, oeste de Zambia](https://commons.wikimedia.org/wiki/File:Kuomboka_ceremony_in_Zambia_13.jpg) | Jae zambia | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+
+La fotografía de Kuomboka tiene solo **1080 px de ancho en Commons**, así que se genera un WebP de 640,
+no se amplía artificialmente a 1280; las otras siete tienen ambos tamaños. El título del archivo del lago
+Kariba escribe «Kairba»; la ficha emplea el nombre correcto. Commons revisó las licencias originales de
+las fotografías de los elefantes (Flickr) y la plaza de Lubumbashi (Panoramio).
+
 ## El texto de Wikipedia
 
 Desde la 1.49.0 las fichas sin texto redactado para el juego cuentan cómo empieza el artículo de Wikipedia

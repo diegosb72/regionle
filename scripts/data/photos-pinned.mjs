@@ -21,7 +21,7 @@
 export const PHOTOS_AT = { repo: 'diegosb72/regionle', commit: '2a95dd4bd0fd18af109c36dc59503adc2e4fc7e3', dir: '' };
 
 /** What Commons says of every photograph that was asked for. */
-export const PHOTOS_SAID = ['photos/photos.json', 'e1b67709a25e3833059554463e011e5bf4e96273', 'f1e444b60212812640af3dc442ac811978f063f2'];
+export const PHOTOS_SAID = ['photos/photos.json', '8f40586e83049968b48704d0733dfff6080a3b0c', '025d53ff39e02d8fb4cc446006aeeaef768193d0'];
 
 /** The pictures, each under the SHA-1 of its original: [where it is in the branch, the Git name of what it holds, the commit it is at where that is another]. */
 export const PHOTOS = [
@@ -71,6 +71,16 @@ export const PHOTOS = [
   ['photos/files/6be77ad58d9a879cec7facefc2d3911570290139.1920.jpg', '83beda5407e7e6d74409796f503330cb79000f9a', 'f1e444b60212812640af3dc442ac811978f063f2'], // BI · Forêt de Teza (Kibira).jpg
   ['photos/files/abb1d7147cf15752429595cce541d3b5d02efd9f.1920.jpg', 'a5989f67814ac55c75fc81ceb4308acd11f62979', 'f1e444b60212812640af3dc442ac811978f063f2'], // BI · Les tambourinaires de Gitega.jpg
   ['photos/files/71f3398203a40edc89c46c66155c102a984b4767.1920.jpg', '52a143c1d979127be1a03096b2954cd7d6f8d119', 'f1e444b60212812640af3dc442ac811978f063f2'], // BI · Rusizi NP hippopotamus.jpg
+
+  // DR Congo and Zambia: eight Commons renders checked in the next data run, after their unchanged heads.
+  ['photos/files/bb3e84e414afec96422eb528e408d2e8d4616527.1920.jpg', '73054551081c7a2cb27e34aa5da166d7839344c3', '025d53ff39e02d8fb4cc446006aeeaef768193d0'], // CD · Lava Lake Nyiragongo 2.jpg
+  ['photos/files/845579a2eac83082ecae3c6966ce0e3918d0ca35.1920.jpg', 'e5017c6b33bd2709ae695c38fee7439b68f6629a', '025d53ff39e02d8fb4cc446006aeeaef768193d0'], // CD · Fleuve Congo Kinshasa 7.JPG
+  ['photos/files/c8d6f996dac2b08f75719c7abecc679a00b26d33.1920.jpg', '06f63b89009a410e65becdc46d148a5bfbd3e97d', '025d53ff39e02d8fb4cc446006aeeaef768193d0'], // CD · Square in Lubumbashi, 2011.jpg
+  ['photos/files/5cd52f416bbc25698004c66cb9e77a29f617a307.1920.jpg', '6152aa05d3ea872c01f64f329e49c64d9239e2ff', '025d53ff39e02d8fb4cc446006aeeaef768193d0'], // CD · Bonobo (Pan paniscus) at Lola Ya Bonobo - 3.JPG
+  ['photos/files/ad37559325582e5be205e21e336ec276f42c5c47.1920.jpg', 'ca3d7877585d654758c2915abf20c43fb8f4da86', '025d53ff39e02d8fb4cc446006aeeaef768193d0'], // ZM · Loxodonta africana South Luangwa National Park (1).jpg
+  ['photos/files/8ff713a6e42ac337ed4fb7d99097ed439049d8d5.1920.jpg', '507f64bbd1dea4dabb434cba084a4ae5ebe6c263', '025d53ff39e02d8fb4cc446006aeeaef768193d0'], // ZM · Lusaka, Zambia CBD Kafue Roundabout.jpg
+  ['photos/files/42fba2aa228251832b49b0cc1c635a6869d61b1c.1920.jpg', 'bc7705fe6caad898723371445ffc6d5e093ad288', '025d53ff39e02d8fb4cc446006aeeaef768193d0'], // ZM · Boats Harbor, Kairba Lake, Siavonga Zambia.jpg
+  ['photos/files/b127f4335347a7a1775fc071b6d6e7dbba85e1ae.1920.jpg', '4b9bcce85ca205d64f9323e6aca74db5c442c758', '025d53ff39e02d8fb4cc446006aeeaef768193d0'], // ZM · Kuomboka ceremony in Zambia 13.jpg
 
   // The one chosen for the head of the sheet of each country nobody has written of (scripts/data/profiles-heads.json)
   ['photos/files/692fd0f034ca1e1755b8c657ca1b13aa762948c0.1920.jpg', '45a7841d966750dbe3ef5d04521f49c50a33a4d5'], // AD · Vista de Andorra la Vieja, Andorra, 2013-12-30, DD 01.JPG
